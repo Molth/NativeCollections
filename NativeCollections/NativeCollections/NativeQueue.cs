@@ -174,7 +174,7 @@ namespace Native.Collections
         /// </summary>
         /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Enqueue(T item)
+        public void Enqueue(in T item)
         {
             if (_handle->Size == _handle->Length)
                 Grow(_handle->Size + 1);
@@ -374,7 +374,7 @@ namespace Native.Collections
             /// </summary>
             /// <param name="nativeQueue">NativeQueue</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(NativeQueue<T> nativeQueue)
+            internal Enumerator(in NativeQueue<T> nativeQueue)
             {
                 _nativeQueue = nativeQueue;
                 _version = nativeQueue._handle->Version;

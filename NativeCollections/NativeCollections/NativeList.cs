@@ -255,7 +255,7 @@ namespace Native.Collections
         /// </summary>
         /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Add(T item)
+        public void Add(in T item)
         {
             _handle->Version++;
             var size = _handle->Size;
@@ -277,7 +277,7 @@ namespace Native.Collections
         /// </summary>
         /// <param name="collection">Collection</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddRange(NativeList<T> collection)
+        public void AddRange(in NativeList<T> collection)
         {
             var count = collection._handle->Size;
             if (count > 0)
@@ -296,7 +296,7 @@ namespace Native.Collections
         /// <param name="index">Index</param>
         /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Insert(int index, T item)
+        public void Insert(int index, in T item)
         {
             if ((uint)index > (uint)_handle->Size)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "ListInsert");
@@ -315,7 +315,7 @@ namespace Native.Collections
         /// <param name="index">Index</param>
         /// <param name="collection">Collection</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void InsertRange(int index, NativeList<T> collection)
+        public void InsertRange(int index, in NativeList<T> collection)
         {
             if ((uint)index > (uint)_handle->Size)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
@@ -347,7 +347,7 @@ namespace Native.Collections
         /// <param name="item">Item</param>
         /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Remove(T item)
+        public bool Remove(in T item)
         {
             var index = IndexOf(item);
             if (index >= 0)
@@ -435,7 +435,7 @@ namespace Native.Collections
         /// <param name="item">Item</param>
         /// <returns>Contains</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Contains(T item) => _handle->Size != 0 && IndexOf(item) >= 0;
+        public bool Contains(in T item) => _handle->Size != 0 && IndexOf(item) >= 0;
 
         /// <summary>
         ///     Ensure capacity
@@ -488,7 +488,7 @@ namespace Native.Collections
         /// <param name="item">Item</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int IndexOf(T item) => _handle->Size == 0 ? -1 : MemoryMarshal.CreateReadOnlySpan(ref *_handle->Array, _handle->Size).IndexOf(item);
+        public int IndexOf(in T item) => _handle->Size == 0 ? -1 : MemoryMarshal.CreateReadOnlySpan(ref *_handle->Array, _handle->Size).IndexOf(item);
 
         /// <summary>
         ///     Index of
@@ -497,7 +497,7 @@ namespace Native.Collections
         /// <param name="index">Index</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int IndexOf(T item, int index)
+        public int IndexOf(in T item, int index)
         {
             if (_handle->Size == 0)
                 return -1;
@@ -516,7 +516,7 @@ namespace Native.Collections
         /// <param name="count">Count</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int IndexOf(T item, int index, int count)
+        public int IndexOf(in T item, int index, int count)
         {
             if (_handle->Size == 0)
                 return -1;
@@ -537,7 +537,7 @@ namespace Native.Collections
         /// <param name="item">Item</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int LastIndexOf(T item) => _handle->Size == 0 ? -1 : MemoryMarshal.CreateReadOnlySpan(ref *(_handle->Array + (_handle->Size - 1)), _handle->Size).LastIndexOf(item);
+        public int LastIndexOf(in T item) => _handle->Size == 0 ? -1 : MemoryMarshal.CreateReadOnlySpan(ref *(_handle->Array + (_handle->Size - 1)), _handle->Size).LastIndexOf(item);
 
         /// <summary>
         ///     Last index of
@@ -546,7 +546,7 @@ namespace Native.Collections
         /// <param name="index">Index</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int LastIndexOf(T item, int index)
+        public int LastIndexOf(in T item, int index)
         {
             if (_handle->Size == 0)
                 return -1;
@@ -565,7 +565,7 @@ namespace Native.Collections
         /// <param name="count">Count</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int LastIndexOf(T item, int index, int count)
+        public int LastIndexOf(in T item, int index, int count)
         {
             if (_handle->Size == 0)
                 return -1;
@@ -621,7 +621,7 @@ namespace Native.Collections
             /// </summary>
             /// <param name="nativeList">NativeList</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(NativeList<T> nativeList)
+            internal Enumerator(in NativeList<T> nativeList)
             {
                 _nativeList = nativeList;
                 _index = 0;

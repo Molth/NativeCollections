@@ -138,7 +138,7 @@ namespace Native.Collections
         ///     Get or set value
         /// </summary>
         /// <param name="key">Key</param>
-        public TValue this[TKey key]
+        public TValue this[in TKey key]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
@@ -228,7 +228,7 @@ namespace Native.Collections
         /// <param name="key">Key</param>
         /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Add(TKey key, TValue value) => TryInsertThrowOnExisting(key, value);
+        public void Add(in TKey key, in TValue value) => TryInsertThrowOnExisting(key, value);
 
         /// <summary>
         ///     Try add
@@ -237,7 +237,7 @@ namespace Native.Collections
         /// <param name="value">Value</param>
         /// <returns>Added</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryAdd(TKey key, TValue value) => TryInsertNone(key, value);
+        public bool TryAdd(in TKey key, in TValue value) => TryInsertNone(key, value);
 
         /// <summary>
         ///     Remove
@@ -245,7 +245,7 @@ namespace Native.Collections
         /// <param name="key">Key</param>
         /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Remove(TKey key)
+        public bool Remove(in TKey key)
         {
             uint collisionCount = 0;
             var hashCode = (uint)key.GetHashCode();
@@ -284,7 +284,7 @@ namespace Native.Collections
         /// <param name="value">Value</param>
         /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Remove(TKey key, out TValue value)
+        public bool Remove(in TKey key, out TValue value)
         {
             uint collisionCount = 0;
             var hashCode = (uint)key.GetHashCode();
@@ -324,7 +324,7 @@ namespace Native.Collections
         /// <param name="key">Key</param>
         /// <returns>Contains key</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool ContainsKey(TKey key) => Unsafe.AsPointer(ref Unsafe.AsRef(in FindValue(key))) != null;
+        public bool ContainsKey(in TKey key) => Unsafe.AsPointer(ref Unsafe.AsRef(in FindValue(key))) != null;
 
         /// <summary>
         ///     Contains value
@@ -332,7 +332,7 @@ namespace Native.Collections
         /// <param name="value">Value</param>
         /// <returns>Contains value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool ContainsValue(TValue value)
+        public bool ContainsValue(in TValue value)
         {
             for (var i = 0; i < _handle->Count; ++i)
             {
@@ -350,7 +350,7 @@ namespace Native.Collections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValue(TKey key, out TValue value)
+        public bool TryGetValue(in TKey key, out TValue value)
         {
             ref var valRef = ref FindValue(key);
             if (Unsafe.AsPointer(ref Unsafe.AsRef(in valRef)) != null)
@@ -436,7 +436,7 @@ namespace Native.Collections
         /// <param name="key">Key</param>
         /// <returns>Value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ref TValue FindValue(TKey key)
+        private ref TValue FindValue(in TKey key)
         {
             var hashCode = (uint)key.GetHashCode();
             var i = GetBucket(hashCode);
@@ -519,7 +519,7 @@ namespace Native.Collections
         /// <param name="key">Key</param>
         /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void TryInsertOverwriteExisting(TKey key, TValue value)
+        private void TryInsertOverwriteExisting(in TKey key, in TValue value)
         {
             var hashCode = (uint)key.GetHashCode();
             uint collisionCount = 0;
@@ -576,7 +576,7 @@ namespace Native.Collections
         /// <param name="key">Key</param>
         /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool TryInsertThrowOnExisting(TKey key, TValue value)
+        private bool TryInsertThrowOnExisting(in TKey key, in TValue value)
         {
             var hashCode = (uint)key.GetHashCode();
             uint collisionCount = 0;
@@ -630,7 +630,7 @@ namespace Native.Collections
         /// <param name="key">Key</param>
         /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool TryInsertNone(TKey key, TValue value)
+        private bool TryInsertNone(in TKey key, in TValue value)
         {
             var hashCode = (uint)key.GetHashCode();
             uint collisionCount = 0;
@@ -758,7 +758,7 @@ namespace Native.Collections
             /// </summary>
             /// <param name="nativeDictionary">NativeDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(NativeDictionary<TKey, TValue> nativeDictionary)
+            internal Enumerator(in NativeDictionary<TKey, TValue> nativeDictionary)
             {
                 _nativeDictionary = nativeDictionary;
                 _version = nativeDictionary._handle->Version;
@@ -816,7 +816,7 @@ namespace Native.Collections
             /// </summary>
             /// <param name="nativeDictionary">NativeDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal KeyCollection(NativeDictionary<TKey, TValue> nativeDictionary) => _nativeDictionary = nativeDictionary;
+            internal KeyCollection(in NativeDictionary<TKey, TValue> nativeDictionary) => _nativeDictionary = nativeDictionary;
 
             /// <summary>
             ///     Get enumerator
@@ -854,7 +854,7 @@ namespace Native.Collections
                 /// </summary>
                 /// <param name="nativeDictionary">NativeDictionary</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(NativeDictionary<TKey, TValue> nativeDictionary)
+                internal Enumerator(in NativeDictionary<TKey, TValue> nativeDictionary)
                 {
                     _nativeDictionary = nativeDictionary;
                     _version = nativeDictionary._handle->Version;
@@ -913,7 +913,7 @@ namespace Native.Collections
             /// </summary>
             /// <param name="nativeDictionary">NativeDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal ValueCollection(NativeDictionary<TKey, TValue> nativeDictionary) => _nativeDictionary = nativeDictionary;
+            internal ValueCollection(in NativeDictionary<TKey, TValue> nativeDictionary) => _nativeDictionary = nativeDictionary;
 
             /// <summary>
             ///     Get enumerator
@@ -951,7 +951,7 @@ namespace Native.Collections
                 /// </summary>
                 /// <param name="nativeDictionary">NativeDictionary</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(NativeDictionary<TKey, TValue> nativeDictionary)
+                internal Enumerator(in NativeDictionary<TKey, TValue> nativeDictionary)
                 {
                     _nativeDictionary = nativeDictionary;
                     _version = nativeDictionary._handle->Version;

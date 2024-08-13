@@ -160,7 +160,7 @@ namespace Native.Collections
         /// </summary>
         /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Push(T item)
+        public void Push(in T item)
         {
             var size = _handle->Size;
             if ((uint)size < (uint)_handle->Length)
@@ -346,7 +346,7 @@ namespace Native.Collections
             /// </summary>
             /// <param name="nativeStack">NativeStack</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(NativeStack<T> nativeStack)
+            internal Enumerator(in NativeStack<T> nativeStack)
             {
                 _nativeStack = nativeStack;
                 _version = nativeStack._handle->Version;

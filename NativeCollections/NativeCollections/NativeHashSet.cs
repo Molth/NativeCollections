@@ -186,7 +186,7 @@ namespace Native.Collections
         /// <param name="item">Item</param>
         /// <returns>Added</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Add(T item)
+        public bool Add(in T item)
         {
             uint collisionCount = 0;
             var hashCode = item.GetHashCode();
@@ -238,7 +238,7 @@ namespace Native.Collections
         /// <param name="item">Item</param>
         /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Remove(T item)
+        public bool Remove(in T item)
         {
             uint collisionCount = 0;
             var last = -1;
@@ -276,7 +276,7 @@ namespace Native.Collections
         /// <param name="item">Item</param>
         /// <returns>Contains</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Contains(T item) => FindItemIndex(item) >= 0;
+        public bool Contains(in T item) => FindItemIndex(item) >= 0;
 
         /// <summary>
         ///     Try to get the actual value
@@ -285,7 +285,7 @@ namespace Native.Collections
         /// <param name="actualValue">Actual value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValue(T equalValue, out T actualValue)
+        public bool TryGetValue(in T equalValue, out T actualValue)
         {
             var index = FindItemIndex(equalValue);
             if (index >= 0)
@@ -420,7 +420,7 @@ namespace Native.Collections
         /// <param name="item">Item</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private int FindItemIndex(T item)
+        private int FindItemIndex(in T item)
         {
             uint collisionCount = 0;
             var hashCode = item.GetHashCode();
@@ -514,7 +514,7 @@ namespace Native.Collections
             /// </summary>
             /// <param name="nativeHashSet">NativeHashSet</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(NativeHashSet<T> nativeHashSet)
+            internal Enumerator(in NativeHashSet<T> nativeHashSet)
             {
                 _nativeHashSet = nativeHashSet;
                 _version = nativeHashSet._handle->Version;
