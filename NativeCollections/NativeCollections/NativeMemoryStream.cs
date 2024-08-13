@@ -302,9 +302,9 @@ namespace Native.Collections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Seek(int offset, SeekOrigin loc)
         {
-            EnsureNotClosed();
             if (offset > 2147483647)
                 throw new ArgumentOutOfRangeException(nameof(offset), offset, "StreamLength");
+            EnsureNotClosed();
             switch (loc)
             {
                 case SeekOrigin.Begin:
