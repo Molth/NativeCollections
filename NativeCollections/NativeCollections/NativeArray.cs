@@ -124,7 +124,12 @@ namespace Native.Collections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => NativeMemoryAllocator.Free(_array);
+        public void Dispose()
+        {
+            if (_array == null)
+                return;
+            NativeMemoryAllocator.Free(_array);
+        }
 
         /// <summary>
         ///     As span
