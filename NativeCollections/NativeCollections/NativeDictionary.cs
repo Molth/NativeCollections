@@ -145,7 +145,7 @@ namespace Native.Collections
                 ref var value = ref FindValue(key);
                 if (Unsafe.AsPointer(ref Unsafe.AsRef(in value)) != null)
                     return value;
-                throw new KeyNotFoundException($"Arg_KeyNotFoundWithKey, {key}");
+                throw new KeyNotFoundException(key.ToString());
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set => TryInsertOverwriteExisting(key, value);

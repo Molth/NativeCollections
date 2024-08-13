@@ -95,17 +95,17 @@ namespace Native.Collections
         /// <summary>
         ///     Can read
         /// </summary>
-        public bool CanRead => _handle != null;
+        public bool CanRead => IsCreated;
 
         /// <summary>
         ///     Can seek
         /// </summary>
-        public bool CanSeek => _handle != null;
+        public bool CanSeek => IsCreated;
 
         /// <summary>
         ///     Can write
         /// </summary>
-        public bool CanWrite => _handle != null;
+        public bool CanWrite => IsCreated;
 
         /// <summary>
         ///     Length
@@ -157,7 +157,7 @@ namespace Native.Collections
             {
                 EnsureNotClosed();
                 if (value < _handle->Length)
-                    throw new ArgumentOutOfRangeException(nameof(value), "SmallCapacity");
+                    throw new ArgumentOutOfRangeException(nameof(Capacity), value, "SmallCapacity");
                 if (value != _handle->Capacity)
                 {
                     if (value > 0)
@@ -304,7 +304,7 @@ namespace Native.Collections
         {
             EnsureNotClosed();
             if (offset > 2147483647)
-                throw new ArgumentOutOfRangeException(nameof(offset), "StreamLength");
+                throw new ArgumentOutOfRangeException(nameof(offset), offset, "StreamLength");
             switch (loc)
             {
                 case SeekOrigin.Begin:
@@ -316,7 +316,7 @@ namespace Native.Collections
                 }
                 case SeekOrigin.Current:
                 {
-                    var tempPosition = _handle->Position + offset;
+                    var tempPosition = unchecked(_handle->Position + offset);
                     if (tempPosition < 0)
                         throw new IOException("IO_SeekBeforeBegin");
                     _handle->Position = tempPosition;
@@ -324,7 +324,7 @@ namespace Native.Collections
                 }
                 case SeekOrigin.End:
                 {
-                    var tempPosition = _handle->Length + offset;
+                    var tempPosition = unchecked(_handle->Length + offset);
                     if (tempPosition < 0)
                         throw new IOException("IO_SeekBeforeBegin");
                     _handle->Position = tempPosition;
@@ -344,11 +344,9 @@ namespace Native.Collections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetLength(int length)
         {
-            if (length < 0 || length > int.MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(length), "StreamLength");
+            if (length < 0 || length > 2147483647)
+                throw new ArgumentOutOfRangeException(nameof(length), length, "StreamLength");
             EnsureNotClosed();
-            if (length > int.MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(length), "StreamLength");
             var allocatedNewArray = EnsureCapacity(length);
             if (!allocatedNewArray && length > _handle->Length)
                 Unsafe.InitBlock(_handle->Array + _handle->Length, 0, (uint)(length - _handle->Length));
@@ -554,64 +552,5 @@ namespace Native.Collections
         ///     Empty
         /// </summary>
         public static NativeMemoryStream Empty => new();
-
-        /// <summary>
-        ///     Get enumerator
-        /// </summary>
-        /// <returns>Enumerator</returns>
-        public Enumerator GetEnumerator() => new(this);
-
-        /// <summary>
-        ///     Enumerator
-        /// </summary>
-        public ref struct Enumerator
-        {
-            /// <summary>
-            ///     NativeArray
-            /// </summary>
-            private readonly NativeMemoryStream _nativeMemoryStream;
-
-            /// <summary>
-            ///     Index
-            /// </summary>
-            private int _index;
-
-            /// <summary>
-            ///     Structure
-            /// </summary>
-            /// <param name="nativeMemoryStream">NativeMemoryStream</param>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(NativeMemoryStream nativeMemoryStream)
-            {
-                _nativeMemoryStream = nativeMemoryStream;
-                _index = -1;
-            }
-
-            /// <summary>
-            ///     Move next
-            /// </summary>
-            /// <returns>Moved</returns>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool MoveNext()
-            {
-                var index = _index + 1;
-                if (index < _nativeMemoryStream._handle->Length)
-                {
-                    _index = index;
-                    return true;
-                }
-
-                return false;
-            }
-
-            /// <summary>
-            ///     Current
-            /// </summary>
-            public ref byte Current
-            {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => ref _nativeMemoryStream._handle->Array[_index];
-            }
-        }
     }
 }

@@ -189,11 +189,9 @@ namespace Native.Collections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Dequeue()
         {
-            var head = _handle->Head;
-            var array = _handle->Array;
             if (_handle->Size == 0)
                 throw new InvalidOperationException("EmptyQueue");
-            var removed = array[head];
+            var removed = _handle->Array[_handle->Head];
             MoveNext(ref _handle->Head);
             _handle->Size--;
             _handle->Version++;
@@ -208,15 +206,13 @@ namespace Native.Collections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDequeue(out T result)
         {
-            var head = _handle->Head;
-            var array = _handle->Array;
             if (_handle->Size == 0)
             {
                 result = default;
                 return false;
             }
 
-            result = array[head];
+            result = _handle->Array[_handle->Head];
             MoveNext(ref _handle->Head);
             _handle->Size--;
             _handle->Version++;

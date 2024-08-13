@@ -109,7 +109,7 @@ namespace Native.Collections
             set
             {
                 if (value < _handle->Size)
-                    throw new ArgumentOutOfRangeException(nameof(Capacity), "SmallCapacity");
+                    throw new ArgumentOutOfRangeException(nameof(Capacity), value, "SmallCapacity");
                 if (value != _handle->Length)
                 {
                     if (value > 0)
@@ -297,7 +297,7 @@ namespace Native.Collections
         public void Insert(int index, T item)
         {
             if ((uint)index > (uint)_handle->Size)
-                throw new ArgumentOutOfRangeException(nameof(index), "ListInsert");
+                throw new ArgumentOutOfRangeException(nameof(index), index, "ListInsert");
             if (_handle->Size == _handle->Length)
                 Grow(_handle->Size + 1);
             if (index < _handle->Size)
@@ -316,7 +316,7 @@ namespace Native.Collections
         public void InsertRange(int index, NativeList<T> collection)
         {
             if ((uint)index > (uint)_handle->Size)
-                throw new ArgumentOutOfRangeException(nameof(index), "IndexMustBeLessOrEqual");
+                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
             var count = collection._handle->Size;
             if (count > 0)
             {
@@ -365,7 +365,7 @@ namespace Native.Collections
         public void RemoveAt(int index)
         {
             if ((uint)index >= (uint)_handle->Size)
-                throw new ArgumentOutOfRangeException(nameof(index), "IndexMustBeLess");
+                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
             _handle->Size--;
             if (index < _handle->Size)
                 Unsafe.CopyBlockUnaligned(_handle->Array + index, _handle->Array + (index + 1), (uint)((_handle->Size - index) * sizeof(T)));
@@ -381,9 +381,9 @@ namespace Native.Collections
         public void RemoveRange(int index, int count)
         {
             if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), "NeedNonNegNum");
+                throw new ArgumentOutOfRangeException(nameof(index), index, "NeedNonNegNum");
             if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), "NeedNonNegNum");
+                throw new ArgumentOutOfRangeException(nameof(count), count, "NeedNonNegNum");
             var offset = _handle->Size - index;
             if (offset < count)
                 throw new ArgumentOutOfRangeException(offset.ToString(), "InvalidOffLen");
@@ -416,9 +416,9 @@ namespace Native.Collections
         public void Reverse(int index, int count)
         {
             if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), "NeedNonNegNum");
+                throw new ArgumentOutOfRangeException(nameof(index), index, "NeedNonNegNum");
             if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), "NeedNonNegNum");
+                throw new ArgumentOutOfRangeException(nameof(count), count, "NeedNonNegNum");
             var offset = _handle->Size - index;
             if (offset < count)
                 throw new ArgumentOutOfRangeException(offset.ToString(), "InvalidOffLen");
@@ -486,7 +486,7 @@ namespace Native.Collections
         /// <param name="item">Item</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int IndexOf(T item) => MemoryMarshal.CreateReadOnlySpan(ref *_handle->Array, _handle->Size).IndexOf(item);
+        public int IndexOf(T item) => _handle->Size == 0 ? -1 : MemoryMarshal.CreateReadOnlySpan(ref *_handle->Array, _handle->Size).IndexOf(item);
 
         /// <summary>
         ///     Index of
@@ -497,8 +497,12 @@ namespace Native.Collections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int IndexOf(T item, int index)
         {
+            if (_handle->Size == 0)
+                return -1;
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "NeedNonNegNum");
             if (index > _handle->Size)
-                throw new ArgumentOutOfRangeException(nameof(index), "IndexMustBeLessOrEqual");
+                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
             return MemoryMarshal.CreateReadOnlySpan(ref *(_handle->Array + index), _handle->Size - index).IndexOf(item);
         }
 
@@ -512,10 +516,16 @@ namespace Native.Collections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int IndexOf(T item, int index, int count)
         {
+            if (_handle->Size == 0)
+                return -1;
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "NeedNonNegNum");
+            if (count < 0)
+                throw new ArgumentOutOfRangeException(nameof(count), count, "NeedNonNegNum");
             if (index > _handle->Size)
-                throw new ArgumentOutOfRangeException(nameof(index), "IndexMustBeLessOrEqual");
-            if (count < 0 || index > _handle->Size - count)
-                throw new ArgumentOutOfRangeException(nameof(count));
+                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
+            if (index > _handle->Size - count)
+                throw new ArgumentOutOfRangeException(nameof(count), count, "BiggerThanCollection");
             return MemoryMarshal.CreateReadOnlySpan(ref *(_handle->Array + index), count).IndexOf(item);
         }
 
@@ -536,10 +546,12 @@ namespace Native.Collections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int LastIndexOf(T item, int index)
         {
+            if (_handle->Size == 0)
+                return -1;
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "NeedNonNegNum");
             if (index >= _handle->Size)
-                throw new ArgumentOutOfRangeException(nameof(index), "IndexMustBeLess");
-            if (_handle->Size != 0 && index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), "NeedNonNegNum");
+                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
             return MemoryMarshal.CreateReadOnlySpan(ref *(_handle->Array + index), index + 1).LastIndexOf(item);
         }
 
@@ -553,16 +565,16 @@ namespace Native.Collections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int LastIndexOf(T item, int index, int count)
         {
-            if (_handle->Size != 0 && index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), "NeedNonNegNum");
-            if (_handle->Size != 0 && count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), "NeedNonNegNum");
             if (_handle->Size == 0)
                 return -1;
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "NeedNonNegNum");
+            if (count < 0)
+                throw new ArgumentOutOfRangeException(nameof(count), count, "NeedNonNegNum");
             if (index >= _handle->Size)
-                throw new ArgumentOutOfRangeException(nameof(index), "BiggerThanCollection");
+                throw new ArgumentOutOfRangeException(nameof(index), index, "BiggerThanCollection");
             if (count > index + 1)
-                throw new ArgumentOutOfRangeException(nameof(count), "BiggerThanCollection");
+                throw new ArgumentOutOfRangeException(nameof(count), count, "BiggerThanCollection");
             return MemoryMarshal.CreateReadOnlySpan(ref *(_handle->Array + index), count).LastIndexOf(item);
         }
 
