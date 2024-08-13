@@ -316,16 +316,16 @@ namespace Native.Collections
                 }
                 case SeekOrigin.Current:
                 {
-                    var tempPosition = unchecked(_handle->Position + offset);
-                    if (unchecked(_handle->Position + offset) < 0 || tempPosition < 0)
+                    var tempPosition = _handle->Position + offset;
+                    if (tempPosition < 0)
                         throw new IOException("IO_SeekBeforeBegin");
                     _handle->Position = tempPosition;
                     break;
                 }
                 case SeekOrigin.End:
                 {
-                    var tempPosition = unchecked(_handle->Length + offset);
-                    if (unchecked(_handle->Length + offset) < 0 || tempPosition < 0)
+                    var tempPosition = _handle->Length + offset;
+                    if (tempPosition < 0)
                         throw new IOException("IO_SeekBeforeBegin");
                     _handle->Position = tempPosition;
                     break;
