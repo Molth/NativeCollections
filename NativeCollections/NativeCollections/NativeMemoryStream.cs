@@ -21,7 +21,7 @@ namespace Native.Collections
     ///     Native memory stream
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public unsafe struct NativeMemoryStream : IDisposable
+    public unsafe struct NativeMemoryStream : IDisposable, IEquatable<NativeMemoryStream>
     {
         /// <summary>
         ///     Handle
@@ -179,6 +179,13 @@ namespace Native.Collections
                 }
             }
         }
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public bool Equals(NativeMemoryStream other) => other == this;
 
         /// <summary>
         ///     Equals

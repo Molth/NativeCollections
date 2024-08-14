@@ -21,7 +21,7 @@ namespace Native.Collections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly unsafe struct NativeStack<T> : IDisposable where T : unmanaged
+    public readonly unsafe struct NativeStack<T> : IDisposable, IEquatable<NativeStack<T>> where T : unmanaged
     {
         /// <summary>
         ///     Handle
@@ -97,6 +97,13 @@ namespace Native.Collections
         ///     Count
         /// </summary>
         public int Count => _handle->Size;
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public bool Equals(NativeStack<T> other) => other == this;
 
         /// <summary>
         ///     Equals

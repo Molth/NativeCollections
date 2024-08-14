@@ -21,7 +21,7 @@ namespace Native.Collections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly unsafe struct NativeHashSet<T> : IDisposable where T : unmanaged, IEquatable<T>
+    public readonly unsafe struct NativeHashSet<T> : IDisposable, IEquatable<NativeHashSet<T>> where T : unmanaged, IEquatable<T>
     {
         /// <summary>
         ///     Handle
@@ -114,6 +114,13 @@ namespace Native.Collections
         ///     Count
         /// </summary>
         public int Count => _handle->Count - _handle->FreeCount;
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public bool Equals(NativeHashSet<T> other) => other == this;
 
         /// <summary>
         ///     Equals

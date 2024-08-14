@@ -21,7 +21,7 @@ namespace Native.Collections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly unsafe struct NativeList<T> : IDisposable where T : unmanaged, IEquatable<T>
+    public readonly unsafe struct NativeList<T> : IDisposable, IEquatable<NativeList<T>> where T : unmanaged, IEquatable<T>
     {
         /// <summary>
         ///     Handle
@@ -130,6 +130,13 @@ namespace Native.Collections
                 }
             }
         }
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public bool Equals(NativeList<T> other) => other == this;
 
         /// <summary>
         ///     Equals

@@ -21,7 +21,7 @@ namespace Native.Collections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly unsafe struct NativeArray<T> : IDisposable where T : unmanaged
+    public readonly unsafe struct NativeArray<T> : IDisposable, IEquatable<NativeArray<T>> where T : unmanaged
     {
         /// <summary>
         ///     Array
@@ -70,6 +70,13 @@ namespace Native.Collections
         ///     Length
         /// </summary>
         public int Length => _length;
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public bool Equals(NativeArray<T> other) => other == this;
 
         /// <summary>
         ///     Equals

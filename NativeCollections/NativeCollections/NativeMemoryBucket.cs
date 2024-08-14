@@ -20,7 +20,7 @@ namespace Native.Collections
     ///     Native memory bucket
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly unsafe struct NativeMemoryBucket : IDisposable
+    public readonly unsafe struct NativeMemoryBucket : IDisposable, IEquatable<NativeMemoryBucket>
     {
         /// <summary>
         ///     Handle
@@ -102,6 +102,13 @@ namespace Native.Collections
         ///     Count
         /// </summary>
         public int Count => _handle->Index;
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public bool Equals(NativeMemoryBucket other) => other == this;
 
         /// <summary>
         ///     Equals

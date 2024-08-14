@@ -20,7 +20,7 @@ namespace Native.Collections
     ///     Native memory pool
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly unsafe struct NativeMemoryPool : IDisposable
+    public readonly unsafe struct NativeMemoryPool : IDisposable, IEquatable<NativeMemoryPool>
     {
         /// <summary>
         ///     Handle
@@ -188,6 +188,13 @@ namespace Native.Collections
         ///     Length
         /// </summary>
         public int Length => _handle->Length;
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public bool Equals(NativeMemoryPool other) => other == this;
 
         /// <summary>
         ///     Equals

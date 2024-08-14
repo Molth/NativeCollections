@@ -23,7 +23,7 @@ namespace Native.Collections
     /// <typeparam name="TKey">Type</typeparam>
     /// <typeparam name="TValue">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly unsafe struct NativeDictionary<TKey, TValue> : IDisposable where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
+    public readonly unsafe struct NativeDictionary<TKey, TValue> : IDisposable, IEquatable<NativeDictionary<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
     {
         /// <summary>
         ///     Handle
@@ -156,6 +156,13 @@ namespace Native.Collections
         ///     Count
         /// </summary>
         public int Count => _handle->Count - _handle->FreeCount;
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public bool Equals(NativeDictionary<TKey, TValue> other) => other == this;
 
         /// <summary>
         ///     Equals
