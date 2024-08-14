@@ -62,8 +62,8 @@ namespace Native.Collections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeMemoryBucket(int size, int length)
         {
-            if (size < 0)
-                throw new ArgumentOutOfRangeException(nameof(size), size, "MustBeNonNegative");
+            if (size <= 0)
+                throw new ArgumentOutOfRangeException(nameof(size), size, "MustBePositive");
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
             _handle = (NativeMemoryBucketHandle*)NativeMemoryAllocator.Alloc(sizeof(NativeMemoryBucketHandle));
@@ -81,7 +81,12 @@ namespace Native.Collections
         /// <summary>
         ///     Is empty
         /// </summary>
-        public bool IsEmpty => _handle->Index == _handle->Size;
+        public bool IsEmpty => _handle->Index == 0;
+
+        /// <summary>
+        ///     Is full
+        /// </summary>
+        public bool IsFull => _handle->Index == _handle->Size;
 
         /// <summary>
         ///     Size
@@ -96,7 +101,7 @@ namespace Native.Collections
         /// <summary>
         ///     Count
         /// </summary>
-        public int Count => _handle->Size - _handle->Index;
+        public int Count => _handle->Index;
 
         /// <summary>
         ///     Equals
@@ -167,14 +172,14 @@ namespace Native.Collections
         /// <summary>
         ///     Return buffer
         /// </summary>
-        /// <param name="buffer">Buffer</param>
+        /// <param name="ptr">Pointer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Return(byte* buffer)
+        public void Return(byte* ptr)
         {
             if (_handle->Index != 0)
-                _handle->Array[--_handle->Index] = buffer;
+                _handle->Array[--_handle->Index] = ptr;
             else
-                NativeMemoryAllocator.Free(buffer);
+                NativeMemoryAllocator.Free(ptr);
         }
 
         /// <summary>
