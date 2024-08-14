@@ -978,7 +978,6 @@ namespace Native.Collections
                     while ((uint)_index < (uint)_nativeDictionary._handle->Count)
                     {
                         ref var entry = ref _nativeDictionary._handle->Entries[_index++];
-
                         if (entry.Next >= -1)
                         {
                             _currentValue = entry.Value;
