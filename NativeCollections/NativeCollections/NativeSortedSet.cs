@@ -279,6 +279,26 @@ namespace Native.Collections
         }
 
         /// <summary>
+        ///     Add
+        /// </summary>
+        /// <param name="equalValue">Equal value</param>
+        /// <param name="actualValue">Actual value</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Add(in T equalValue, in T actualValue)
+        {
+            var node = FindNode(equalValue);
+            if (node == null)
+            {
+                Add(actualValue);
+            }
+            else
+            {
+                node->Item = actualValue;
+                _handle->Version++;
+            }
+        }
+
+        /// <summary>
         ///     Remove
         /// </summary>
         /// <param name="item">Item</param>
