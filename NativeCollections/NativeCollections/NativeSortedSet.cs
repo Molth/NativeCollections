@@ -51,11 +51,6 @@ namespace Native.Collections
             ///     Node pool
             /// </summary>
             public NativeMemoryPool NodePool;
-
-            /// <summary>
-            ///     Node stack
-            /// </summary>
-            public NativeStack<nint> NodeStack;
         }
 
         /// <summary>
@@ -76,7 +71,6 @@ namespace Native.Collections
             _handle->Count = 0;
             _handle->Version = 0;
             _handle->NodePool = nodePool;
-            _handle->NodeStack = new NativeStack<nint>(0);
         }
 
         /// <summary>
@@ -177,7 +171,6 @@ namespace Native.Collections
             if (_handle == null)
                 return;
             _handle->NodePool.Dispose();
-            _handle->NodeStack.Dispose();
             NativeMemoryAllocator.Free(_handle);
         }
 
@@ -189,17 +182,19 @@ namespace Native.Collections
         {
             if (_handle->Root != null)
             {
-                _handle->NodeStack.EnsureCapacity(2 * Log2(_handle->Count + 1));
-                _handle->NodeStack.Push((nint)_handle->Root);
-                while (_handle->NodeStack.TryPop(out var node))
+                var nodeStack = new NativeStack<nint>(2 * Log2(_handle->Count + 1));
+                nodeStack.Push((nint)_handle->Root);
+                while (nodeStack.TryPop(out var node))
                 {
                     var currentNode = (Node*)node;
                     if (currentNode->Left != null)
-                        _handle->NodeStack.Push((nint)currentNode->Left);
+                        nodeStack.Push((nint)currentNode->Left);
                     if (currentNode->Right != null)
-                        _handle->NodeStack.Push((nint)currentNode->Right);
+                        nodeStack.Push((nint)currentNode->Right);
                     _handle->NodePool.Return(currentNode);
                 }
+
+                nodeStack.Dispose();
             }
 
             _handle->Root = null;
@@ -821,6 +816,11 @@ namespace Native.Collections
             private readonly int _version;
 
             /// <summary>
+            ///     Node stack
+            /// </summary>
+            private readonly NativeStack<nint> _nodeStack;
+
+            /// <summary>
             ///     Current
             /// </summary>
             private Node* _current;
@@ -834,13 +834,13 @@ namespace Native.Collections
             {
                 _nativeSortedSet = nativeSortedSet;
                 _version = nativeSortedSet._handle->Version;
-                _nativeSortedSet._handle->NodeStack.EnsureCapacity(2 * Log2(nativeSortedSet.Count + 1));
+                _nodeStack = new NativeStack<nint>(2 * Log2(nativeSortedSet.Count + 1));
                 _current = null;
                 var node = _nativeSortedSet._handle->Root;
                 while (node != null)
                 {
                     var next = node->Left;
-                    _nativeSortedSet._handle->NodeStack.Push((nint)node);
+                    _nodeStack.Push((nint)node);
                     node = next;
                 }
             }
@@ -854,18 +854,18 @@ namespace Native.Collections
             {
                 if (_version != _nativeSortedSet._handle->Version)
                     throw new InvalidOperationException("EnumFailedVersion");
-                if (_nativeSortedSet._handle->NodeStack.Count == 0)
+                if (_nodeStack.Count == 0)
                 {
                     _current = null;
                     return false;
                 }
 
-                _current = (Node*)_nativeSortedSet._handle->NodeStack.Pop();
+                _current = (Node*)_nodeStack.Pop();
                 var node = _current->Right;
                 while (node != null)
                 {
                     var next = node->Left;
-                    _nativeSortedSet._handle->NodeStack.Push((nint)node);
+                    _nodeStack.Push((nint)node);
                     node = next;
                 }
 
@@ -885,7 +885,7 @@ namespace Native.Collections
             ///     Dispose
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void Dispose() => _nativeSortedSet._handle->NodeStack.Clear();
+            public void Dispose() => _nodeStack.Dispose();
         }
 
         /// <summary>
