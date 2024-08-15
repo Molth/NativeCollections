@@ -802,7 +802,7 @@ namespace Native.Collections
             private readonly NativeDictionary<TKey, TValue> _nativeDictionary;
 
             /// <summary>
-            ///     Initialize
+            ///     Structure
             /// </summary>
             /// <param name="nativeDictionary">NativeDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -899,7 +899,7 @@ namespace Native.Collections
             private readonly NativeDictionary<TKey, TValue> _nativeDictionary;
 
             /// <summary>
-            ///     Initialize
+            ///     Structure
             /// </summary>
             /// <param name="nativeDictionary">NativeDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
