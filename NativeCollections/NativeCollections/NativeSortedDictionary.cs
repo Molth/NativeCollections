@@ -23,7 +23,7 @@ namespace Native.Collections
     /// <typeparam name="TKey">Type</typeparam>
     /// <typeparam name="TValue">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly unsafe struct NativeSortedDictionary<TKey, TValue> where TKey : unmanaged, IComparable<TKey> where TValue : unmanaged
+    public readonly unsafe struct NativeSortedDictionary<TKey, TValue> : IDisposable, IEquatable<NativeSortedDictionary<TKey, TValue>> where TKey : unmanaged, IComparable<TKey> where TValue : unmanaged
     {
         /// <summary>
         ///     Handle
