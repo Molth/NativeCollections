@@ -190,22 +190,15 @@ namespace Native.Collections
             if (_handle->Root != null)
             {
                 _handle->NodeStack.EnsureCapacity(2 * Log2(_handle->Count + 1));
-                try
+                _handle->NodeStack.Push((nint)_handle->Root);
+                while (_handle->NodeStack.TryPop(out var node))
                 {
-                    _handle->NodeStack.Push((nint)_handle->Root);
-                    while (_handle->NodeStack.TryPop(out var node))
-                    {
-                        var currentNode = (Node*)node;
-                        if (currentNode->Left != null)
-                            _handle->NodeStack.Push((nint)currentNode->Left);
-                        if (currentNode->Right != null)
-                            _handle->NodeStack.Push((nint)currentNode->Right);
-                        _handle->NodePool.Return(currentNode);
-                    }
-                }
-                finally
-                {
-                    _handle->NodeStack.Clear();
+                    var currentNode = (Node*)node;
+                    if (currentNode->Left != null)
+                        _handle->NodeStack.Push((nint)currentNode->Left);
+                    if (currentNode->Right != null)
+                        _handle->NodeStack.Push((nint)currentNode->Right);
+                    _handle->NodePool.Return(currentNode);
                 }
             }
 
