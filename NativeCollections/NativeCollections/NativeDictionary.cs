@@ -334,23 +334,6 @@ namespace Native.Collections
         public bool ContainsKey(in TKey key) => Unsafe.AsPointer(ref Unsafe.AsRef(in FindValue(key))) != null;
 
         /// <summary>
-        ///     Contains value
-        /// </summary>
-        /// <param name="value">Value</param>
-        /// <returns>Contains value</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool ContainsValue(in TValue value)
-        {
-            for (var i = 0; i < _handle->Count; ++i)
-            {
-                if (_handle->Entries[i].Next >= -1 && _handle->Entries[i].Value.Equals(value))
-                    return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
         ///     Try to get the value
         /// </summary>
         /// <param name="key">Key</param>
