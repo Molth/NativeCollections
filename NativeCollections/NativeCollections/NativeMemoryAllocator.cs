@@ -43,11 +43,11 @@ namespace Native.Collections
         /// </summary>
         /// <returns>Memory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void* Alloc<T>() where T : unmanaged =>
+        public static T* Alloc<T>() where T : unmanaged =>
 #if NET6_0_OR_GREATER
-            NativeMemory.Alloc((nuint)sizeof(T));
+            (T*)NativeMemory.Alloc((nuint)sizeof(T));
 #else
-            (void*)Marshal.AllocHGlobal(sizeof(T));
+            (T*)Marshal.AllocHGlobal(sizeof(T));
 #endif
 
         /// <summary>
@@ -55,12 +55,12 @@ namespace Native.Collections
         /// </summary>
         /// <returns>Memory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void* AllocZeroed<T>() where T : unmanaged
+        public static T* AllocZeroed<T>() where T : unmanaged
         {
 #if NET6_0_OR_GREATER
-            return NativeMemory.AllocZeroed((nuint)sizeof(T));
+            return (T*)NativeMemory.AllocZeroed((nuint)sizeof(T));
 #else
-            var ptr = (void*)Marshal.AllocHGlobal(sizeof(T));
+            var ptr = (T*)Marshal.AllocHGlobal(sizeof(T));
             Unsafe.InitBlockUnaligned(ptr, 0, (uint)sizeof(T));
             return ptr;
 #endif
@@ -72,11 +72,11 @@ namespace Native.Collections
         /// <param name="count">Count</param>
         /// <returns>Memory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void* Alloc<T>(int count) where T : unmanaged =>
+        public static T* Alloc<T>(int count) where T : unmanaged =>
 #if NET6_0_OR_GREATER
-            NativeMemory.Alloc((nuint)(count * sizeof(T)));
+            (T*)NativeMemory.Alloc((nuint)(count * sizeof(T)));
 #else
-            (void*)Marshal.AllocHGlobal(count * sizeof(T));
+            (T*)Marshal.AllocHGlobal(count * sizeof(T));
 #endif
 
         /// <summary>
@@ -85,12 +85,12 @@ namespace Native.Collections
         /// <param name="count">Count</param>
         /// <returns>Memory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void* AllocZeroed<T>(int count) where T : unmanaged
+        public static T* AllocZeroed<T>(int count) where T : unmanaged
         {
 #if NET6_0_OR_GREATER
-            return NativeMemory.AllocZeroed((nuint)(count * sizeof(T)));
+            return (T*)NativeMemory.AllocZeroed((nuint)(count * sizeof(T)));
 #else
-            var ptr = (void*)Marshal.AllocHGlobal(count * sizeof(T));
+            var ptr = (T*)Marshal.AllocHGlobal(count * sizeof(T));
             Unsafe.InitBlockUnaligned(ptr, 0, (uint)(count * sizeof(T)));
             return ptr;
 #endif
