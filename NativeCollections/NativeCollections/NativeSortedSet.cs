@@ -284,7 +284,7 @@ namespace Native.Collections
         /// <param name="item">Item</param>
         /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Remove(T item)
+        public bool Remove(in T item)
         {
             if (_handle->Root == null)
                 return false;
@@ -466,7 +466,7 @@ namespace Native.Collections
         /// <param name="item">Item</param>
         /// <returns>Node</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Node* FindNode(T item)
+        private Node* FindNode(in T item)
         {
             var current = _handle->Root;
             while (current != null)
