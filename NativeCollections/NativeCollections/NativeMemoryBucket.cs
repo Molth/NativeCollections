@@ -41,7 +41,7 @@ namespace Native.Collections
             /// <summary>
             ///     Array
             /// </summary>
-            public byte** Array;
+            public void** Array;
 
             /// <summary>
             ///     Index
@@ -69,7 +69,7 @@ namespace Native.Collections
             _handle = (NativeMemoryBucketHandle*)NativeMemoryAllocator.Alloc(sizeof(NativeMemoryBucketHandle));
             _handle->Size = size;
             _handle->Length = length;
-            _handle->Array = (byte**)NativeMemoryAllocator.AllocZeroed(size);
+            _handle->Array = (void**)NativeMemoryAllocator.AllocZeroed(size);
             _handle->Index = 0;
         }
 
@@ -169,9 +169,9 @@ namespace Native.Collections
         /// </summary>
         /// <returns>Buffer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public byte* Rent()
+        public void* Rent()
         {
-            byte* buffer = null;
+            void* buffer = null;
             if (_handle->Index < _handle->Size)
             {
                 buffer = _handle->Array[_handle->Index];
@@ -179,7 +179,7 @@ namespace Native.Collections
             }
 
             if (buffer == null)
-                buffer = (byte*)NativeMemoryAllocator.Alloc(_handle->Length);
+                buffer = NativeMemoryAllocator.Alloc(_handle->Length);
             return buffer;
         }
 
@@ -188,7 +188,7 @@ namespace Native.Collections
         /// </summary>
         /// <param name="ptr">Pointer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Return(byte* ptr)
+        public void Return(void* ptr)
         {
             if (_handle->Index != 0)
                 _handle->Array[--_handle->Index] = ptr;

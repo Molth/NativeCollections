@@ -260,7 +260,7 @@ namespace Native.Collections
         /// </summary>
         /// <returns>Buffer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public byte* Rent()
+        public void* Rent()
         {
             NativeMemoryNode* node;
             var slab = _handle->Slab;
@@ -316,9 +316,9 @@ namespace Native.Collections
         /// </summary>
         /// <param name="ptr">Pointer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Return(byte* ptr)
+        public void Return(void* ptr)
         {
-            var node = (NativeMemoryNode*)(ptr - sizeof(NativeMemoryNode));
+            var node = (NativeMemoryNode*)((byte*)ptr - sizeof(NativeMemoryNode));
             var slab = node->Slab;
             slab->Count++;
             if (slab->Count == _handle->Size && slab != _handle->Slab)
