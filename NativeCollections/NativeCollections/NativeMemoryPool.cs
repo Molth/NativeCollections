@@ -131,8 +131,8 @@ namespace Native.Collections
             var nodeSize = sizeof(NativeMemoryNode) + length;
             var array = (byte*)NativeMemoryAllocator.Alloc(sizeof(NativeMemorySlab) + size * nodeSize);
             var slab = (NativeMemorySlab*)array;
-            slab->Next = null;
-            slab->Previous = null;
+            slab->Next = slab;
+            slab->Previous = slab;
             array += sizeof(NativeMemorySlab);
             NativeMemoryNode* next = null;
             for (var i = size - 1; i >= 0; --i)
@@ -235,16 +235,18 @@ namespace Native.Collections
             if (_handle == null)
                 return;
             var node = _handle->Slab;
-            while (node != null)
+            while (_handle->Slabs > 0)
             {
+                _handle->Slabs--;
                 var temp = node;
                 node = node->Next;
                 NativeMemoryAllocator.Free(temp);
             }
 
             node = _handle->FreeSlab;
-            while (node != null)
+            while (_handle->FreeSlabs > 0)
             {
+                _handle->FreeSlabs--;
                 var temp = node;
                 node = node->Next;
                 NativeMemoryAllocator.Free(temp);
@@ -264,36 +266,42 @@ namespace Native.Collections
             var slab = _handle->Slab;
             if (slab->Count == 0)
             {
-                var size = _handle->Size;
-                if (_handle->FreeSlabs == 0)
+                _handle->Slab = slab->Next;
+                slab = _handle->Slab;
+                if (slab->Count == 0)
                 {
-                    var nodeSize = sizeof(NativeMemoryNode) + _handle->Length;
-                    var array = (byte*)NativeMemoryAllocator.Alloc(sizeof(NativeMemorySlab) + size * nodeSize);
-                    slab = (NativeMemorySlab*)array;
-                    array += sizeof(NativeMemorySlab);
-                    NativeMemoryNode* next = null;
-                    for (var i = size - 1; i >= 0; --i)
+                    var size = _handle->Size;
+                    if (_handle->FreeSlabs == 0)
                     {
-                        node = (NativeMemoryNode*)(array + i * nodeSize);
-                        node->Next = next;
-                        next = node;
+                        var nodeSize = sizeof(NativeMemoryNode) + _handle->Length;
+                        var array = (byte*)NativeMemoryAllocator.Alloc(sizeof(NativeMemorySlab) + size * nodeSize);
+                        slab = (NativeMemorySlab*)array;
+                        array += sizeof(NativeMemorySlab);
+                        NativeMemoryNode* next = null;
+                        for (var i = size - 1; i >= 0; --i)
+                        {
+                            node = (NativeMemoryNode*)(array + i * nodeSize);
+                            node->Next = next;
+                            next = node;
+                        }
+
+                        slab->Node = next;
+                    }
+                    else
+                    {
+                        slab = _handle->FreeSlab;
+                        _handle->FreeSlab = slab->Next;
+                        _handle->FreeSlabs--;
                     }
 
-                    slab->Node = next;
+                    slab->Next = _handle->Slab;
+                    slab->Previous = _handle->Slab->Previous;
+                    slab->Count = size;
+                    _handle->Slab->Previous->Next = slab;
+                    _handle->Slab->Previous = slab;
+                    _handle->Slab = slab;
+                    _handle->Slabs++;
                 }
-                else
-                {
-                    slab = _handle->FreeSlab;
-                    _handle->FreeSlab = slab->Next;
-                    _handle->FreeSlabs--;
-                }
-
-                slab->Next = _handle->Slab;
-                slab->Previous = null;
-                slab->Count = size;
-                _handle->Slab->Previous = slab;
-                _handle->Slab = slab;
-                _handle->Slabs++;
             }
 
             node = slab->Node;
@@ -315,10 +323,8 @@ namespace Native.Collections
             slab->Count++;
             if (slab->Count == _handle->Size && slab != _handle->Slab)
             {
-                if (slab->Previous != null)
-                    slab->Previous->Next = slab->Next;
-                if (slab->Next != null)
-                    slab->Next->Previous = slab->Previous;
+                slab->Previous->Next = slab->Next;
+                slab->Next->Previous = slab->Previous;
                 if (_handle->FreeSlabs == _handle->MaxFreeSlabs)
                 {
                     NativeMemoryAllocator.Free(slab);
@@ -346,17 +352,14 @@ namespace Native.Collections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void TrimExcess()
         {
-            if (_handle->FreeSlabs == 0)
-                return;
             var node = _handle->FreeSlab;
-            while (node != null)
+            while (_handle->FreeSlabs > 0)
             {
+                _handle->FreeSlabs--;
                 var temp = node;
                 node = node->Next;
                 NativeMemoryAllocator.Free(temp);
             }
-
-            _handle->FreeSlabs = 0;
         }
 
         /// <summary>
