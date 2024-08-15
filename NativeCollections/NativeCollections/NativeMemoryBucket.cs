@@ -153,6 +153,13 @@ namespace Native.Collections
         {
             if (_handle == null)
                 return;
+            for (var i = 0; i < _handle->Size; ++i)
+            {
+                var ptr = _handle->Array[i];
+                if (ptr != null)
+                    NativeMemoryAllocator.Free(ptr);
+            }
+
             NativeMemoryAllocator.Free(_handle->Array);
             NativeMemoryAllocator.Free(_handle);
         }
