@@ -28,6 +28,28 @@ namespace Native.Collections
         };
 
         /// <summary>
+        ///     Binary search
+        /// </summary>
+        /// <param name="min">Min</param>
+        /// <returns>Prime</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int BinarySearch(int min)
+        {
+            var left = 0;
+            var right = 71;
+            while (left <= right)
+            {
+                var mid = left + (right - left) / 2;
+                if (Primes[mid] >= min)
+                    right = mid - 1;
+                else
+                    left = mid + 1;
+            }
+
+            return Primes[left];
+        }
+
+        /// <summary>
         ///     Is prime
         /// </summary>
         /// <param name="candidate">Candidate</param>
@@ -60,12 +82,8 @@ namespace Native.Collections
         {
             if (min < 0)
                 throw new ArgumentException("Arg_HTCapacityOverflow");
-            foreach (var prime in Primes)
-            {
-                if (prime >= min)
-                    return prime;
-            }
-
+            if (min <= 7199369)
+                return BinarySearch(min);
             for (var i = min | 1; i < int.MaxValue; i += 2)
             {
                 if (IsPrime(i) && (i - 1) % 101 != 0)
