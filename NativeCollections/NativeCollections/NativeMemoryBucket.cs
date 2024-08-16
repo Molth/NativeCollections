@@ -47,6 +47,11 @@ namespace Native.Collections
             ///     Index
             /// </summary>
             public int Index;
+
+            /// <summary>
+            ///     Memory pool
+            /// </summary>
+            public NativeMemoryPool MemoryPool;
         }
 
         /// <summary>
@@ -71,6 +76,7 @@ namespace Native.Collections
             _handle->Length = length;
             _handle->Array = (void**)NativeMemoryAllocator.AllocZeroed(size);
             _handle->Index = 0;
+            _handle->MemoryPool = new NativeMemoryPool(size, length, 0);
         }
 
         /// <summary>
@@ -153,14 +159,8 @@ namespace Native.Collections
         {
             if (_handle == null)
                 return;
-            for (var i = 0; i < _handle->Size; ++i)
-            {
-                var ptr = _handle->Array[i];
-                if (ptr != null)
-                    NativeMemoryAllocator.Free(ptr);
-            }
-
             NativeMemoryAllocator.Free(_handle->Array);
+            _handle->MemoryPool.Dispose();
             NativeMemoryAllocator.Free(_handle);
         }
 
@@ -179,7 +179,7 @@ namespace Native.Collections
             }
 
             if (buffer == null)
-                buffer = NativeMemoryAllocator.Alloc(_handle->Length);
+                buffer = _handle->MemoryPool.Rent();
             return buffer;
         }
 
@@ -193,7 +193,7 @@ namespace Native.Collections
             if (_handle->Index != 0)
                 _handle->Array[--_handle->Index] = ptr;
             else
-                NativeMemoryAllocator.Free(ptr);
+                _handle->MemoryPool.Return(ptr);
         }
 
         /// <summary>
