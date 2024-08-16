@@ -918,7 +918,12 @@ namespace Native.Collections
             /// <summary>
             ///     Current
             /// </summary>
-            private Node* _current;
+            private Node* _currentNode;
+
+            /// <summary>
+            ///     Current
+            /// </summary>
+            private T _current;
 
             /// <summary>
             ///     Structure
@@ -930,7 +935,7 @@ namespace Native.Collections
                 _nativeSortedSet = nativeSortedSet;
                 _version = nativeSortedSet._handle->Version;
                 _nodeStack = new NativeStack<nint>(2 * Log2(nativeSortedSet.Count + 1));
-                _current = null;
+                _currentNode = null;
                 var node = _nativeSortedSet._handle->Root;
                 while (node != null)
                 {
@@ -949,14 +954,16 @@ namespace Native.Collections
             {
                 if (_version != _nativeSortedSet._handle->Version)
                     throw new InvalidOperationException("EnumFailedVersion");
-                if (_nodeStack.Count == 0)
+                if (!_nodeStack.TryPop(out var result))
                 {
-                    _current = null;
+                    _currentNode = null;
+                    _current = default;
                     return false;
                 }
 
-                _current = (Node*)_nodeStack.Pop();
-                var node = _current->Right;
+                _currentNode = (Node*)result;
+                _current = _currentNode->Item;
+                var node = _currentNode->Right;
                 while (node != null)
                 {
                     var next = node->Left;
@@ -973,7 +980,7 @@ namespace Native.Collections
             public T Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => _current != null ? _current->Item : default;
+                get => _current;
             }
 
             /// <summary>

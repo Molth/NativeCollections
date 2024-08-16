@@ -964,7 +964,12 @@ namespace Native.Collections
             /// <summary>
             ///     Current
             /// </summary>
-            private Node* _current;
+            private Node* _currentNode;
+
+            /// <summary>
+            ///     Current
+            /// </summary>
+            private KeyValuePair<TKey, TValue> _current;
 
             /// <summary>
             ///     Structure
@@ -976,7 +981,7 @@ namespace Native.Collections
                 _nativeSortedDictionary = nativeSortedDictionary;
                 _version = nativeSortedDictionary._handle->Version;
                 _nodeStack = new NativeStack<nint>(2 * Log2(nativeSortedDictionary.Count + 1));
-                _current = null;
+                _currentNode = null;
                 var node = _nativeSortedDictionary._handle->Root;
                 while (node != null)
                 {
@@ -995,14 +1000,16 @@ namespace Native.Collections
             {
                 if (_version != _nativeSortedDictionary._handle->Version)
                     throw new InvalidOperationException("EnumFailedVersion");
-                if (_nodeStack.Count == 0)
+                if (!_nodeStack.TryPop(out var result))
                 {
-                    _current = null;
+                    _currentNode = null;
+                    _current = default;
                     return false;
                 }
 
-                _current = (Node*)_nodeStack.Pop();
-                var node = _current->Right;
+                _currentNode = (Node*)result;
+                _current = new KeyValuePair<TKey, TValue>(_currentNode->Key, _currentNode->Value);
+                var node = _currentNode->Right;
                 while (node != null)
                 {
                     var next = node->Left;
@@ -1019,7 +1026,7 @@ namespace Native.Collections
             public KeyValuePair<TKey, TValue> Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => _current != null ? new KeyValuePair<TKey, TValue>(_current->Key, _current->Value) : default;
+                get => _current;
             }
 
             /// <summary>
@@ -1076,7 +1083,12 @@ namespace Native.Collections
                 /// <summary>
                 ///     Current
                 /// </summary>
-                private Node* _current;
+                private Node* _currentNode;
+
+                /// <summary>
+                ///     Current
+                /// </summary>
+                private TKey _current;
 
                 /// <summary>
                 ///     Structure
@@ -1088,7 +1100,7 @@ namespace Native.Collections
                     _nativeSortedDictionary = nativeSortedDictionary;
                     _version = nativeSortedDictionary._handle->Version;
                     _nodeStack = new NativeStack<nint>(2 * Log2(nativeSortedDictionary.Count + 1));
-                    _current = null;
+                    _currentNode = null;
                     var node = _nativeSortedDictionary._handle->Root;
                     while (node != null)
                     {
@@ -1107,14 +1119,16 @@ namespace Native.Collections
                 {
                     if (_version != _nativeSortedDictionary._handle->Version)
                         throw new InvalidOperationException("EnumFailedVersion");
-                    if (_nodeStack.Count == 0)
+                    if (!_nodeStack.TryPop(out var result))
                     {
-                        _current = null;
+                        _currentNode = null;
+                        _current = default;
                         return false;
                     }
 
-                    _current = (Node*)_nodeStack.Pop();
-                    var node = _current->Right;
+                    _currentNode = (Node*)result;
+                    _current = _currentNode->Key;
+                    var node = _currentNode->Right;
                     while (node != null)
                     {
                         var next = node->Left;
@@ -1131,7 +1145,7 @@ namespace Native.Collections
                 public TKey Current
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                    get => _current != null ? _current->Key : default;
+                    get => _current;
                 }
 
                 /// <summary>
@@ -1189,7 +1203,12 @@ namespace Native.Collections
                 /// <summary>
                 ///     Current
                 /// </summary>
-                private Node* _current;
+                private Node* _currentNode;
+
+                /// <summary>
+                ///     Current
+                /// </summary>
+                private TValue _current;
 
                 /// <summary>
                 ///     Structure
@@ -1201,7 +1220,7 @@ namespace Native.Collections
                     _nativeSortedDictionary = nativeSortedDictionary;
                     _version = nativeSortedDictionary._handle->Version;
                     _nodeStack = new NativeStack<nint>(2 * Log2(nativeSortedDictionary.Count + 1));
-                    _current = null;
+                    _currentNode = null;
                     var node = _nativeSortedDictionary._handle->Root;
                     while (node != null)
                     {
@@ -1220,14 +1239,16 @@ namespace Native.Collections
                 {
                     if (_version != _nativeSortedDictionary._handle->Version)
                         throw new InvalidOperationException("EnumFailedVersion");
-                    if (_nodeStack.Count == 0)
+                    if (!_nodeStack.TryPop(out var result))
                     {
-                        _current = null;
+                        _currentNode = null;
+                        _current = default;
                         return false;
                     }
 
-                    _current = (Node*)_nodeStack.Pop();
-                    var node = _current->Right;
+                    _currentNode = (Node*)result;
+                    _current = _currentNode->Value;
+                    var node = _currentNode->Right;
                     while (node != null)
                     {
                         var next = node->Left;
@@ -1244,7 +1265,7 @@ namespace Native.Collections
                 public TValue Current
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                    get => _current != null ? _current->Value : default;
+                    get => _current;
                 }
 
                 /// <summary>
