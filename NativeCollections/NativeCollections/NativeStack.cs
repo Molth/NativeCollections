@@ -186,6 +186,26 @@ namespace Native.Collections
         }
 
         /// <summary>
+        ///     Try push
+        /// </summary>
+        /// <param name="item">Item</param>
+        /// <returns>Pushed</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryPush(in T item)
+        {
+            var size = _handle->Size;
+            if ((uint)size < (uint)_handle->Length)
+            {
+                _handle->Array[size] = item;
+                _handle->Version++;
+                _handle->Size = size + 1;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         ///     Pop
         /// </summary>
         /// <returns>Item</returns>

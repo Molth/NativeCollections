@@ -192,6 +192,26 @@ namespace Native.Collections
         }
 
         /// <summary>
+        ///     Try enqueue
+        /// </summary>
+        /// <param name="item">Item</param>
+        /// <returns>Enqueued</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryEnqueue(in T item)
+        {
+            if (_handle->Size != _handle->Length)
+            {
+                _handle->Array[_handle->Tail] = item;
+                MoveNext(ref _handle->Tail);
+                _handle->Size++;
+                _handle->Version++;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         ///     Dequeue
         /// </summary>
         /// <returns>Item</returns>
