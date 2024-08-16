@@ -936,6 +936,7 @@ namespace Native.Collections
                 _version = nativeSortedSet._handle->Version;
                 _nodeStack = new NativeStack<nint>(2 * Log2(nativeSortedSet.Count + 1));
                 _currentNode = null;
+                _current = default;
                 var node = _nativeSortedSet._handle->Root;
                 while (node != null)
                 {

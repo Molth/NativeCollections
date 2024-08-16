@@ -1,5 +1,6 @@
 ﻿#if UNITY_2021_3_OR_NEWER || GODOT
 using System;
+using System.Collections.Generic;
 #endif
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -982,6 +983,7 @@ namespace Native.Collections
                 _version = nativeSortedDictionary._handle->Version;
                 _nodeStack = new NativeStack<nint>(2 * Log2(nativeSortedDictionary.Count + 1));
                 _currentNode = null;
+                _current = default;
                 var node = _nativeSortedDictionary._handle->Root;
                 while (node != null)
                 {
@@ -1101,6 +1103,7 @@ namespace Native.Collections
                     _version = nativeSortedDictionary._handle->Version;
                     _nodeStack = new NativeStack<nint>(2 * Log2(nativeSortedDictionary.Count + 1));
                     _currentNode = null;
+                    _current = default;
                     var node = _nativeSortedDictionary._handle->Root;
                     while (node != null)
                     {
@@ -1221,6 +1224,7 @@ namespace Native.Collections
                     _version = nativeSortedDictionary._handle->Version;
                     _nodeStack = new NativeStack<nint>(2 * Log2(nativeSortedDictionary.Count + 1));
                     _currentNode = null;
+                    _current = default;
                     var node = _nativeSortedDictionary._handle->Root;
                     while (node != null)
                     {

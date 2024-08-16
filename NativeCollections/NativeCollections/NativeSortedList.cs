@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 #if UNITY_2021_3_OR_NEWER || GODOT
 using System;
+using System.Collections.Generic;
 #endif
 
 #pragma warning disable CA2208
@@ -475,6 +476,7 @@ namespace Native.Collections
             internal Enumerator(NativeSortedList<TKey, TValue> nativeSortedList)
             {
                 _nativeSortedList = nativeSortedList;
+                _current = default;
                 _index = 0;
                 _version = _nativeSortedList._handle->Version;
             }
@@ -566,6 +568,7 @@ namespace Native.Collections
                 internal Enumerator(NativeSortedList<TKey, TValue> nativeSortedList)
                 {
                     _nativeSortedList = nativeSortedList;
+                    _current = default;
                     _index = 0;
                     _version = _nativeSortedList._handle->Version;
                 }
@@ -658,6 +661,7 @@ namespace Native.Collections
                 internal Enumerator(NativeSortedList<TKey, TValue> nativeSortedList)
                 {
                     _nativeSortedList = nativeSortedList;
+                    _current = default;
                     _index = 0;
                     _version = _nativeSortedList._handle->Version;
                 }
