@@ -372,6 +372,101 @@ namespace Native.Collections
         }
 
         /// <summary>
+        ///     Remove
+        /// </summary>
+        /// <param name="equalValue">Equal value</param>
+        /// <param name="actualValue">Actual value</param>
+        /// <returns>Removed</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Remove(in T equalValue, out T actualValue)
+        {
+            if (_handle->Root == null)
+            {
+                actualValue = default;
+                return false;
+            }
+
+            _handle->Version++;
+            var current = _handle->Root;
+            Node* parent = null;
+            Node* grandParent = null;
+            Node* match = null;
+            Node* parentOfMatch = null;
+            var foundMatch = false;
+            while (current != null)
+            {
+                if (current->Is2Node)
+                {
+                    if (parent == null)
+                    {
+                        current->ColorRed();
+                    }
+                    else
+                    {
+                        var sibling = parent->GetSibling(current);
+                        if (sibling->IsRed)
+                        {
+                            if (parent->Right == sibling)
+                                parent->RotateLeft();
+                            else
+                                parent->RotateRight();
+                            parent->ColorRed();
+                            sibling->ColorBlack();
+                            ReplaceChildOrRoot(grandParent, parent, sibling);
+                            grandParent = sibling;
+                            if (parent == match)
+                                parentOfMatch = sibling;
+                            sibling = parent->GetSibling(current);
+                        }
+
+                        if (sibling->Is2Node)
+                        {
+                            parent->Merge2Nodes();
+                        }
+                        else
+                        {
+                            var newGrandParent = parent->Rotate(parent->GetRotation(current, sibling));
+                            newGrandParent->Color = parent->Color;
+                            parent->ColorBlack();
+                            current->ColorRed();
+                            ReplaceChildOrRoot(grandParent, parent, newGrandParent);
+                            if (parent == match)
+                                parentOfMatch = newGrandParent;
+                        }
+                    }
+                }
+
+                var order = foundMatch ? -1 : equalValue.CompareTo(current->Item);
+                if (order == 0)
+                {
+                    foundMatch = true;
+                    match = current;
+                    parentOfMatch = parent;
+                }
+
+                grandParent = parent;
+                parent = current;
+                current = order < 0 ? current->Left : current->Right;
+            }
+
+            if (match != null)
+            {
+                actualValue = match->Item;
+                ReplaceNode(match, parentOfMatch, parent, grandParent);
+                --_handle->Count;
+                _handle->NodePool.Return(match);
+            }
+            else
+            {
+                actualValue = default;
+            }
+
+            if (_handle->Root != null)
+                _handle->Root->ColorBlack();
+            return foundMatch;
+        }
+
+        /// <summary>
         ///     Contains
         /// </summary>
         /// <param name="item">Item</param>

@@ -185,6 +185,25 @@ namespace Native.Collections
         public bool Remove(in TKey key) => _handle->SortedSet.Remove(new SortedKeyValuePair(key, default));
 
         /// <summary>
+        ///     Remove
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="value">Value</param>
+        /// <returns>Removed</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Remove(in TKey key, out TValue value)
+        {
+            if (_handle->SortedSet.Remove(new SortedKeyValuePair(key, default), out var keyValuePair))
+            {
+                value = keyValuePair.Value;
+                return true;
+            }
+
+            value = default;
+            return false;
+        }
+
+        /// <summary>
         ///     Contains key
         /// </summary>
         /// <param name="key">Key</param>
