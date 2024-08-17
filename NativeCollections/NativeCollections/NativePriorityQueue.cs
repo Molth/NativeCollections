@@ -94,10 +94,10 @@ namespace NativeCollections
         ///     Get reference
         /// </summary>
         /// <param name="index">Index</param>
-        public ref ValueTuple<TElement, TPriority> this[int index]
+        public (TElement Element, TPriority Priority) this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _handle->Nodes[index];
+            get => _handle->Nodes[index];
         }
 
         /// <summary>
@@ -180,7 +180,7 @@ namespace NativeCollections
         /// <param name="element">Element</param>
         /// <param name="priority">Priority</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Enqueue(TElement element, TPriority priority)
+        public void Enqueue(in TElement element, in TPriority priority)
         {
             var size = _handle->Size;
             ++_handle->Version;
@@ -197,7 +197,7 @@ namespace NativeCollections
         /// <param name="priority">Priority</param>
         /// <returns>Enqueued</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryEnqueue(TElement element, TPriority priority)
+        public bool TryEnqueue(in TElement element, in TPriority priority)
         {
             var size = _handle->Size;
             ++_handle->Version;
@@ -218,7 +218,7 @@ namespace NativeCollections
         /// <param name="priority">Priority</param>
         /// <returns>Element</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TElement EnqueueDequeue(TElement element, TPriority priority)
+        public TElement EnqueueDequeue(in TElement element, in TPriority priority)
         {
             if (_handle->Size != 0)
             {
@@ -242,7 +242,7 @@ namespace NativeCollections
         /// <param name="result">Element</param>
         /// <returns>Enqueued</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryEnqueueDequeue(TElement element, TPriority priority, out TElement result)
+        public bool TryEnqueueDequeue(in TElement element, in TPriority priority, out TElement result)
         {
             if (_handle->Size != 0)
             {
@@ -323,7 +323,7 @@ namespace NativeCollections
         /// <param name="element">Element</param>
         /// <param name="priority">Priority</param>
         /// <returns>Element</returns>
-        public TElement DequeueEnqueue(TElement element, TPriority priority)
+        public TElement DequeueEnqueue(in TElement element, in TPriority priority)
         {
             if (_handle->Size == 0)
                 throw new InvalidOperationException("EmptyQueue");
@@ -343,7 +343,7 @@ namespace NativeCollections
         /// <param name="priority">Priority</param>
         /// <param name="result">Element</param>
         /// <returns>Dequeued</returns>
-        public bool TryDequeueEnqueue(TElement element, TPriority priority, out TElement result)
+        public bool TryDequeueEnqueue(in TElement element, in TPriority priority, out TElement result)
         {
             if (_handle->Size == 0)
             {
@@ -468,7 +468,7 @@ namespace NativeCollections
         /// <param name="node">Node</param>
         /// <param name="nodeIndex">Node index</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void MoveUp(ValueTuple<TElement, TPriority> node, int nodeIndex)
+        private void MoveUp(in ValueTuple<TElement, TPriority> node, int nodeIndex)
         {
             var nodes = _handle->Nodes;
             int parentIndex;
@@ -491,7 +491,7 @@ namespace NativeCollections
         /// <param name="node">Node</param>
         /// <param name="nodeIndex">Node index</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void MoveDown(ValueTuple<TElement, TPriority> node, int nodeIndex)
+        private void MoveDown(in ValueTuple<TElement, TPriority> node, int nodeIndex)
         {
             var nodes = _handle->Nodes;
             int firstChildIndex;
