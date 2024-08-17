@@ -278,6 +278,26 @@ namespace Native.Collections
         ///     Try dequeue
         /// </summary>
         /// <param name="element">Element</param>
+        /// <returns>Dequeued</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryDequeue(out TElement element)
+        {
+            if (_handle->Size != 0)
+            {
+                var tuple = _handle->Nodes[0];
+                element = tuple.Item1;
+                RemoveRootNode();
+                return true;
+            }
+
+            element = default;
+            return false;
+        }
+
+        /// <summary>
+        ///     Try dequeue
+        /// </summary>
+        /// <param name="element">Element</param>
         /// <param name="priority">Priority</param>
         /// <returns>Dequeued</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -592,7 +612,7 @@ namespace Native.Collections
                 /// <summary>
                 ///     Current
                 /// </summary>
-                public ValueTuple<TElement, TPriority> Current
+                public (TElement Element, TPriority Priority) Current
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
                     get => _current;
