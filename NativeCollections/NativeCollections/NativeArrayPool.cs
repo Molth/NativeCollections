@@ -160,17 +160,17 @@ namespace Native.Collections
         /// <summary>
         ///     Return buffer
         /// </summary>
-        /// <param name="buffer">Buffer</param>
+        /// <param name="array">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Return(in NativeArray<T> buffer)
+        public void Return(in NativeArray<T> array)
         {
-            var length = buffer.Length;
+            var length = array.Length;
             if (length < 16 || (length & (length - 1)) != 0)
-                throw new ArgumentException("BufferNotFromPool");
+                throw new ArgumentException("BufferNotFromPool", nameof(array));
             var bucket = SelectBucketIndex(length);
             if (bucket >= _length)
-                throw new ArgumentException("BufferNotFromPool");
-            _buckets[bucket]->Return(length, buffer.Array);
+                throw new ArgumentException("BufferNotFromPool", nameof(array));
+            _buckets[bucket]->Return(length, array.Array);
         }
 
         /// <summary>
