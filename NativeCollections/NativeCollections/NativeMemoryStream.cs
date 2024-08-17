@@ -15,7 +15,7 @@ using System.IO;
 // ReSharper disable PossibleNullReferenceException
 // ReSharper disable MemberHidesStaticFromOuterClass
 
-namespace Native.Collections
+namespace NativeCollections
 {
     /// <summary>
     ///     Native memory stream

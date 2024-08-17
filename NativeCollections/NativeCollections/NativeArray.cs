@@ -14,7 +14,7 @@ using System;
 // ReSharper disable PossibleNullReferenceException
 // ReSharper disable MemberHidesStaticFromOuterClass
 
-namespace Native.Collections
+namespace NativeCollections
 {
     /// <summary>
     ///     Native array

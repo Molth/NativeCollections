@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace Native.Collections
+namespace NativeCollections
 {
     /// <summary>
     ///     Native memory allocator

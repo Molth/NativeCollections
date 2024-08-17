@@ -18,7 +18,7 @@ using System.Numerics;
 // ReSharper disable PossibleNullReferenceException
 // ReSharper disable MemberHidesStaticFromOuterClass
 
-namespace Native.Collections
+namespace NativeCollections
 {
     /// <summary>
     ///     NativeMemoryPool

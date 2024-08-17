@@ -8,7 +8,7 @@ using System.Runtime.CompilerServices;
 // ReSharper disable RedundantArrayCreationExpression
 // ReSharper disable RedundantExplicitArraySize
 
-namespace Native.Collections
+namespace NativeCollections
 {
     /// <summary>
     ///     Hash helpers
