@@ -81,6 +81,11 @@ namespace Native.Collections
         }
 
         /// <summary>
+        ///     Array
+        /// </summary>
+        public T* Array => _array;
+
+        /// <summary>
         ///     Length
         /// </summary>
         public int Length => _length;
