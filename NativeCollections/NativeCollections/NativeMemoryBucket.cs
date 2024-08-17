@@ -74,7 +74,7 @@ namespace Native.Collections
             _handle = (NativeMemoryBucketHandle*)NativeMemoryAllocator.Alloc(sizeof(NativeMemoryBucketHandle));
             _handle->Size = size;
             _handle->Length = length;
-            _handle->Array = (void**)NativeMemoryAllocator.AllocZeroed(size);
+            _handle->Array = (void**)NativeMemoryAllocator.AllocZeroed(size * sizeof(void*));
             _handle->Index = 0;
             _handle->MemoryPool = new NativeMemoryPool(size, length, 0);
         }
