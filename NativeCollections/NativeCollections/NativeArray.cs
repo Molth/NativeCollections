@@ -47,6 +47,20 @@ namespace Native.Collections
         }
 
         /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="array">Array</param>
+        /// <param name="length">Length</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeArray(T* array, int length)
+        {
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            _array = array;
+            _length = length;
+        }
+
+        /// <summary>
         ///     Is created
         /// </summary>
         public bool IsCreated => _array != null;
