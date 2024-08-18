@@ -81,7 +81,7 @@ namespace NativeCollections
         public static int GetPrime(int min)
         {
             if (min < 0)
-                throw new ArgumentException("Arg_HTCapacityOverflow");
+                throw new ArgumentException("HTCapacityOverflow");
             if (min <= 7199369)
                 return BinarySearch(min);
             for (var i = min | 1; i < int.MaxValue; i += 2)
