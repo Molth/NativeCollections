@@ -29,7 +29,7 @@ namespace NativeCollections
         /// <summary>
         ///     Buckets
         /// </summary>
-        private readonly NativeArrayPoolBucket** _buckets;
+        private readonly NativeArrayPoolBucket* _buckets;
 
         /// <summary>
         ///     Length
@@ -58,14 +58,9 @@ namespace NativeCollections
             else if (maxLength < 16)
                 maxLength = 16;
             var length = SelectBucketIndex(maxLength) + 1;
-            var buckets = (NativeArrayPoolBucket**)NativeMemoryAllocator.Alloc(length * sizeof(NativeArrayPoolBucket*));
+            var buckets = (NativeArrayPoolBucket*)NativeMemoryAllocator.Alloc(length * sizeof(NativeArrayPoolBucket));
             for (var i = 0; i < length; ++i)
-            {
-                var bucket = (NativeArrayPoolBucket*)NativeMemoryAllocator.Alloc(sizeof(NativeArrayPoolBucket));
-                bucket->Initialize(size, 16 << i);
-                buckets[i] = bucket;
-            }
-
+                buckets[i].Initialize(size, 16 << i);
             _buckets = buckets;
             _length = length;
             _size = size;
@@ -137,7 +132,7 @@ namespace NativeCollections
             if (_buckets == null)
                 return;
             for (var i = 0; i < _length; ++i)
-                _buckets[i]->Dispose();
+                _buckets[i].Dispose();
             NativeMemoryAllocator.Free(_buckets);
         }
 
@@ -153,7 +148,7 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(minimumLength), minimumLength, "MustBeNonNegative");
             var index = SelectBucketIndex(minimumLength);
             if (index < _length)
-                return _buckets[index]->Rent();
+                return _buckets[index].Rent();
             throw new ArgumentOutOfRangeException(nameof(minimumLength), minimumLength, "BiggerThanCollection");
         }
 
@@ -170,7 +165,7 @@ namespace NativeCollections
             var bucket = SelectBucketIndex(length);
             if (bucket >= _length)
                 throw new ArgumentException("BufferNotFromPool", nameof(array));
-            _buckets[bucket]->Return(length, array.Array);
+            _buckets[bucket].Return(length, array.Array);
         }
 
         /// <summary>
