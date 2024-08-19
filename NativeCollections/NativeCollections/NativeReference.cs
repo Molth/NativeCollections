@@ -87,18 +87,18 @@ namespace NativeCollections
         public override string ToString() => $"NativeReference<{typeof(T).Name}>[{*_handle}]";
 
         /// <summary>
-        ///     As item
-        /// </summary>
-        /// <returns>Item</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator T(NativeReference<T> nativeReference) => nativeReference.Value;
-
-        /// <summary>
         ///     As handle
         /// </summary>
         /// <returns>Handle</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator T*(NativeReference<T> nativeReference) => nativeReference._handle;
+
+        /// <summary>
+        ///     As item
+        /// </summary>
+        /// <returns>Item</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator T(NativeReference<T> nativeReference) => nativeReference.Value;
 
         /// <summary>
         ///     Equals
