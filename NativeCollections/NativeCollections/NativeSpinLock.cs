@@ -40,9 +40,9 @@ namespace NativeCollections
             public int NextSequenceNumber;
 
             /// <summary>
-            ///     Iterations
+            ///     Sleep threshold
             /// </summary>
-            public int Iterations;
+            public int SleepThreshold;
         }
 
         /// <summary>
@@ -51,26 +51,31 @@ namespace NativeCollections
         private readonly NativeSpinLockHandle* _handle;
 
         /// <summary>
-        ///     Iterations
-        /// </summary>
-        public int Iterations => _handle->Iterations;
-
-        /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="iterations">Iterations</param>
+        /// <param name="sleepThreshold">Sleep threshold</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeSpinLock(int iterations)
+        public NativeSpinLock(int sleepThreshold)
         {
-            if (iterations < 0)
-                throw new ArgumentOutOfRangeException(nameof(iterations), iterations, "MustBeNonNegative");
-            if (iterations == 0)
-                iterations = 1;
+            if (sleepThreshold < -1)
+                sleepThreshold = -1;
+            else if (sleepThreshold >= 0 && sleepThreshold < 10)
+                sleepThreshold = 10;
             _handle = (NativeSpinLockHandle*)NativeMemoryAllocator.Alloc(sizeof(NativeSpinLockHandle));
             _handle->SequenceNumber = 0;
             _handle->NextSequenceNumber = 1;
-            _handle->Iterations = iterations;
+            _handle->SleepThreshold = sleepThreshold;
         }
+
+        /// <summary>
+        ///     Is created
+        /// </summary>
+        public bool IsCreated => _handle != null;
+
+        /// <summary>
+        ///     Sleep threshold
+        /// </summary>
+        public int SleepThreshold => _handle->SleepThreshold;
 
         /// <summary>
         ///     Equals
@@ -134,10 +139,34 @@ namespace NativeCollections
             var sequenceNumber = Interlocked.Add(ref _handle->SequenceNumber, 1);
             if (sequenceNumber != _handle->NextSequenceNumber)
             {
-                var iterations = _handle->Iterations;
+                var count = 0;
+                var sleepThreshold = _handle->SleepThreshold;
                 do
                 {
-                    Thread.SpinWait(iterations);
+                    if ((count >= 10 && ((count >= sleepThreshold && sleepThreshold >= 0) || (count - 10) % 2 == 0)) || Environment.ProcessorCount == 1)
+                    {
+                        if (count >= sleepThreshold && sleepThreshold >= 0)
+                        {
+                            Thread.Sleep(1);
+                        }
+                        else
+                        {
+                            var yieldsSoFar = count >= 10 ? (count - 10) / 2 : count;
+                            if (yieldsSoFar % 5 == 4)
+                                Thread.Sleep(0);
+                            else
+                                Thread.Yield();
+                        }
+                    }
+                    else
+                    {
+                        var iterations = Environment.ProcessorCount / 2;
+                        if (count <= 30 && 1 << count < iterations)
+                            iterations = 1 << count;
+                        Thread.SpinWait(iterations);
+                    }
+
+                    count = count == int.MaxValue ? 10 : count + 1;
                 } while (sequenceNumber != _handle->NextSequenceNumber);
             }
         }
