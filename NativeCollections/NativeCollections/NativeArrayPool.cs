@@ -286,19 +286,19 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeArray<T> Rent()
             {
-                T* buffer = null;
+                T* ptr = null;
                 var lockTaken = false;
                 try
                 {
                     _lock.Enter(ref lockTaken);
                     if (_index < _size)
                     {
-                        buffer = _array[_index];
+                        ptr = _array[_index];
                         _array[_index++] = null;
                     }
 
-                    if (buffer == null)
-                        buffer = (T*)_memoryPool.Rent();
+                    if (ptr == null)
+                        ptr = (T*)_memoryPool.Rent();
                 }
                 finally
                 {
@@ -306,7 +306,7 @@ namespace NativeCollections
                         _lock.Exit(false);
                 }
 
-                return new NativeArray<T>(buffer, _length);
+                return new NativeArray<T>(ptr, _length);
             }
 
             /// <summary>
