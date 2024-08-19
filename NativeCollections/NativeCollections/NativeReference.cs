@@ -40,6 +40,11 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Handle
+        /// </summary>
+        public T* Handle => _handle;
+
+        /// <summary>
         ///     Value
         /// </summary>
         public T Value
@@ -87,6 +92,13 @@ namespace NativeCollections
         /// <returns>Item</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator T(NativeReference<T> nativeReference) => nativeReference.Value;
+
+        /// <summary>
+        ///     As handle
+        /// </summary>
+        /// <returns>Handle</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator T*(NativeReference<T> nativeReference) => nativeReference._handle;
 
         /// <summary>
         ///     Equals
