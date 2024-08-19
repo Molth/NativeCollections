@@ -98,7 +98,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Item</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator T(NativeReference<T> nativeReference) => nativeReference.Value;
+        public static implicit operator T(NativeReference<T> nativeReference) => *nativeReference._handle;
 
         /// <summary>
         ///     Equals
