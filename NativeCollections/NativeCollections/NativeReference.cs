@@ -94,13 +94,6 @@ namespace NativeCollections
         public static implicit operator T*(NativeReference<T> nativeReference) => nativeReference._handle;
 
         /// <summary>
-        ///     As item
-        /// </summary>
-        /// <returns>Item</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator T(NativeReference<T> nativeReference) => *nativeReference._handle;
-
-        /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="left">Left</param>
