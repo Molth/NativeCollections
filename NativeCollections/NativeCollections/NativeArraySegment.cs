@@ -176,7 +176,7 @@ namespace NativeCollections
         ///     As native array
         /// </summary>
         /// <param name="nativeArraySegment">Native array segment</param>
-        /// <returns>Native array</returns>
+        /// <returns>NativeArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator NativeArray<T>(NativeArraySegment<T> nativeArraySegment) => new(nativeArraySegment._array, nativeArraySegment._offset + nativeArraySegment._count);
 
@@ -184,7 +184,7 @@ namespace NativeCollections
         ///     As native array segment
         /// </summary>
         /// <param name="nativeArray">Native array</param>
-        /// <returns>Native array segment</returns>
+        /// <returns>NativeArraySegment</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator NativeArraySegment<T>(NativeArray<T> nativeArray) => new(nativeArray);
 
