@@ -31,6 +31,13 @@ namespace NativeCollections
         /// <summary>
         ///     Structure
         /// </summary>
+        /// <param name="handle">Handle</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeReference(T* handle) => _handle = handle;
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
         /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeReference(T value)
@@ -85,6 +92,13 @@ namespace NativeCollections
         /// </summary>
         /// <returns>String</returns>
         public override string ToString() => $"NativeReference<{typeof(T).Name}>[{*_handle}]";
+
+        /// <summary>
+        ///     As reference
+        /// </summary>
+        /// <returns>NativeReference</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator NativeReference<T>(T* nativeReference) => new(nativeReference);
 
         /// <summary>
         ///     As handle
