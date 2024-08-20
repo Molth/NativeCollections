@@ -98,7 +98,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>NativeReference</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeReference<T>(T* nativeReference) => new(nativeReference);
+        public static implicit operator NativeReference<T>(T* handle) => new(handle);
 
         /// <summary>
         ///     As handle
@@ -106,6 +106,20 @@ namespace NativeCollections
         /// <returns>Handle</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator T*(NativeReference<T> nativeReference) => nativeReference._handle;
+
+        /// <summary>
+        ///     As reference
+        /// </summary>
+        /// <returns>NativeReference</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator NativeReference<T>(nint handle) => new((T*)handle);
+
+        /// <summary>
+        ///     As handle
+        /// </summary>
+        /// <returns>Handle</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator nint(NativeReference<T> nativeReference) => (nint)nativeReference._handle;
 
         /// <summary>
         ///     Equals
