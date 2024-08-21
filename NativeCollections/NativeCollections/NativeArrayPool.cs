@@ -5,7 +5,6 @@ using System.Threading;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 #if NET5_0_OR_GREATER
-using System.Numerics;
 #endif
 
 #pragma warning disable CA2208
@@ -153,6 +152,32 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Rent buffer
+        /// </summary>
+        /// <param name="minimumLength">Minimum buffer length</param>
+        /// <param name="array">Buffer</param>
+        /// <returns>Rented</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryRent(int minimumLength, out NativeArray<T> array)
+        {
+            if (minimumLength < 0)
+            {
+                array = default;
+                return false;
+            }
+
+            var index = SelectBucketIndex(minimumLength);
+            if (index < _length)
+            {
+                array = _buckets[index].Rent();
+                return true;
+            }
+
+            array = default;
+            return false;
+        }
+
+        /// <summary>
         ///     Return buffer
         /// </summary>
         /// <param name="array">Buffer</param>
@@ -165,7 +190,59 @@ namespace NativeCollections
             var bucket = SelectBucketIndex(length);
             if (bucket >= _length)
                 throw new ArgumentException("BufferNotFromPool", nameof(array));
-            _buckets[bucket].Return(length, array.Array);
+            _buckets[bucket].Return(array.Array);
+        }
+
+        /// <summary>
+        ///     Try return buffer
+        /// </summary>
+        /// <param name="array">Buffer</param>
+        /// <returns>Returned</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryReturn(in NativeArray<T> array)
+        {
+            var length = array.Length;
+            if (length < 16 || (length & (length - 1)) != 0)
+                return false;
+            var bucket = SelectBucketIndex(length);
+            if (bucket >= _length)
+                return false;
+            _buckets[bucket].Return(array.Array);
+            return true;
+        }
+
+        /// <summary>
+        ///     Return buffer
+        /// </summary>
+        /// <param name="length">Length</param>
+        /// <param name="array">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Return(int length, T* array)
+        {
+            if (length < 16 || (length & (length - 1)) != 0)
+                throw new ArgumentException("BufferNotFromPool", nameof(array));
+            var bucket = SelectBucketIndex(length);
+            if (bucket >= _length)
+                throw new ArgumentException("BufferNotFromPool", nameof(array));
+            _buckets[bucket].Return(array);
+        }
+
+        /// <summary>
+        ///     Try return buffer
+        /// </summary>
+        /// <param name="length">Length</param>
+        /// <param name="array">Buffer</param>
+        /// <returns>Returned</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryReturn(int length, T* array)
+        {
+            if (length < 16 || (length & (length - 1)) != 0)
+                return false;
+            var bucket = SelectBucketIndex(length);
+            if (bucket >= _length)
+                return false;
+            _buckets[bucket].Return(array);
+            return true;
         }
 
         /// <summary>
@@ -174,43 +251,7 @@ namespace NativeCollections
         /// <param name="bufferSize">Buffer size</param>
         /// <returns>Bucket index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int SelectBucketIndex(int bufferSize)
-        {
-#if NET5_0_OR_GREATER
-            var value = (bufferSize - 1) | 15;
-            return BitOperations.Log2(Unsafe.As<int, uint>(ref value)) - 3;
-#else
-            var value = (bufferSize - 1) | 15 | 1;
-            var count = 0;
-            if ((value & -65536) == 0)
-            {
-                count += 16;
-                value <<= 16;
-            }
-
-            if ((value & -16777216) == 0)
-            {
-                count += 8;
-                value <<= 8;
-            }
-
-            if ((value & -268435456) == 0)
-            {
-                count += 4;
-                value <<= 4;
-            }
-
-            if ((value & -1073741824) == 0)
-            {
-                count += 2;
-                value <<= 2;
-            }
-
-            if ((value & -2147483648) == 0)
-                ++count;
-            return (31 ^ count) - 3;
-#endif
-        }
+        private static int SelectBucketIndex(int bufferSize) => BitOperationsHelper.Log2(((uint)bufferSize - 1) | 15) - 3;
 
         /// <summary>
         ///     Empty
@@ -312,10 +353,9 @@ namespace NativeCollections
             /// <summary>
             ///     Return buffer
             /// </summary>
-            /// <param name="length">Length</param>
             /// <param name="ptr">Pointer</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void Return(int length, T* ptr)
+            public void Return(T* ptr)
             {
                 var lockTaken = false;
                 try

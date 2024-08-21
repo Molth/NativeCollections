@@ -4,7 +4,6 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 #if NET5_0_OR_GREATER
-using System.Numerics;
 #endif
 
 #pragma warning disable CA2208
@@ -589,42 +588,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Log2</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int Log2(int value)
-        {
-#if NET5_0_OR_GREATER
-            return BitOperations.Log2(Unsafe.As<int, uint>(ref value));
-#else
-            value |= 1;
-            var count = 0;
-            if ((value & -65536) == 0)
-            {
-                count = 16;
-                value <<= 16;
-            }
-
-            if ((value & -16777216) == 0)
-            {
-                count += 8;
-                value <<= 8;
-            }
-
-            if ((value & -268435456) == 0)
-            {
-                count += 4;
-                value <<= 4;
-            }
-
-            if ((value & -1073741824) == 0)
-            {
-                count += 2;
-                value <<= 2;
-            }
-
-            if ((value & -2147483648) == 0)
-                ++count;
-            return 31 ^ count;
-#endif
-        }
+        private static int Log2(int value) => BitOperationsHelper.Log2(value);
 
         /// <summary>
         ///     Node
