@@ -14,7 +14,7 @@ namespace NativeCollections
     /// <summary>
     ///     BitOperations helper
     /// </summary>
-    public static class BitOperationsHelper
+    internal static class BitOperationsHelper
     {
 #if !NET5_0_OR_GREATER
         /// <summary>
