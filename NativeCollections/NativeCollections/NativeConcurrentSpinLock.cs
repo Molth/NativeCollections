@@ -18,16 +18,16 @@ using System.Threading;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native spinLock
+    ///     Native concurrent spinLock
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly unsafe struct NativeSpinLock : IDisposable, IEquatable<NativeSpinLock>
+    public readonly unsafe struct NativeConcurrentSpinLock : IDisposable, IEquatable<NativeConcurrentSpinLock>
     {
         /// <summary>
         ///     Handle
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        private struct NativeSpinLockHandle
+        private struct NativeConcurrentSpinLockHandle
         {
             /// <summary>
             ///     Sequence number
@@ -48,20 +48,20 @@ namespace NativeCollections
         /// <summary>
         ///     Handle
         /// </summary>
-        private readonly NativeSpinLockHandle* _handle;
+        private readonly NativeConcurrentSpinLockHandle* _handle;
 
         /// <summary>
         ///     Structure
         /// </summary>
         /// <param name="sleepThreshold">Sleep threshold</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeSpinLock(int sleepThreshold)
+        public NativeConcurrentSpinLock(int sleepThreshold)
         {
             if (sleepThreshold < -1)
                 sleepThreshold = -1;
             else if (sleepThreshold >= 0 && sleepThreshold < 10)
                 sleepThreshold = 10;
-            _handle = (NativeSpinLockHandle*)NativeMemoryAllocator.Alloc(sizeof(NativeSpinLockHandle));
+            _handle = (NativeConcurrentSpinLockHandle*)NativeMemoryAllocator.Alloc(sizeof(NativeConcurrentSpinLockHandle));
             _handle->SequenceNumber = 0;
             _handle->NextSequenceNumber = 1;
             _handle->SleepThreshold = sleepThreshold;
@@ -82,14 +82,14 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeSpinLock other) => other == this;
+        public bool Equals(NativeConcurrentSpinLock other) => other == this;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeSpinLock nativeSpinLock && nativeSpinLock == this;
+        public override bool Equals(object? obj) => obj is NativeConcurrentSpinLock nativeConcurrentSpinLock && nativeConcurrentSpinLock == this;
 
         /// <summary>
         ///     Get hashCode
@@ -101,7 +101,7 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => "NativeSpinLock";
+        public override string ToString() => "NativeConcurrentSpinLock";
 
         /// <summary>
         ///     Equals
@@ -109,7 +109,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeSpinLock left, NativeSpinLock right) => left._handle == right._handle;
+        public static bool operator ==(NativeConcurrentSpinLock left, NativeConcurrentSpinLock right) => left._handle == right._handle;
 
         /// <summary>
         ///     Not equals
@@ -117,7 +117,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeSpinLock left, NativeSpinLock right) => left._handle != right._handle;
+        public static bool operator !=(NativeConcurrentSpinLock left, NativeConcurrentSpinLock right) => left._handle != right._handle;
 
         /// <summary>
         ///     Dispose
