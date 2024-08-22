@@ -3,7 +3,6 @@ using System.Runtime.InteropServices;
 #if UNITY_2021_3_OR_NEWER || GODOT
 using System;
 using System.Threading;
-using System.Collections.Generic;
 #endif
 
 #pragma warning disable CA2208
@@ -23,19 +22,18 @@ using System.Collections.Generic;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native concurrentDictionary
-    ///     (Slower than ConcurrentDictionary)
+    ///     Native concurrentHashSet
+    ///     (Slower than ConcurrentHashSet)
     /// </summary>
-    /// <typeparam name="TKey">Type</typeparam>
-    /// <typeparam name="TValue">Type</typeparam>
+    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly unsafe struct NativeConcurrentDictionary<TKey, TValue> : IDisposable, IEquatable<NativeConcurrentDictionary<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged, IEquatable<TValue>
+    public readonly unsafe struct NativeConcurrentHashSet<T> : IDisposable, IEquatable<NativeConcurrentHashSet<T>> where T : unmanaged, IEquatable<T>
     {
         /// <summary>
         ///     Handle
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        private struct NativeConcurrentDictionaryHandle
+        private struct NativeConcurrentHashSetHandle
         {
             /// <summary>
             ///     Tables
@@ -61,32 +59,12 @@ namespace NativeCollections
             ///     Node lock
             /// </summary>
             public NativeConcurrentSpinLock NodeLock;
-
-            /// <summary>
-            ///     Keys
-            /// </summary>
-            public KeyCollection Keys;
-
-            /// <summary>
-            ///     Values
-            /// </summary>
-            public ValueCollection Values;
         }
 
         /// <summary>
         ///     Handle
         /// </summary>
-        private readonly NativeConcurrentDictionaryHandle* _handle;
-
-        /// <summary>
-        ///     Keys
-        /// </summary>
-        public KeyCollection Keys => _handle->Keys;
-
-        /// <summary>
-        ///     Values
-        /// </summary>
-        public ValueCollection Values => _handle->Values;
+        private readonly NativeConcurrentHashSetHandle* _handle;
 
         /// <summary>
         ///     Structure
@@ -97,7 +75,7 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         /// <param name="growLockArray">Grow lock array</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeConcurrentDictionary(int size, int maxFreeSlabs, int concurrencyLevel, int capacity, bool growLockArray)
+        public NativeConcurrentHashSet(int size, int maxFreeSlabs, int concurrencyLevel, int capacity, bool growLockArray)
         {
             var nodePool = new NativeMemoryPool(size, sizeof(Node), maxFreeSlabs);
             if (concurrencyLevel <= 0)
@@ -111,15 +89,13 @@ namespace NativeCollections
                 locks[i] = new NativeMonitorLock(new object());
             var countPerLock = new NativeArray<int>(locks.Length, true);
             var buckets = new NativeArray<VolatileNode>(capacity, true);
-            _handle = (NativeConcurrentDictionaryHandle*)NativeMemoryAllocator.Alloc(sizeof(NativeConcurrentDictionaryHandle));
+            _handle = (NativeConcurrentHashSetHandle*)NativeMemoryAllocator.Alloc(sizeof(NativeConcurrentHashSetHandle));
             _handle->Tables = (Tables*)NativeMemoryAllocator.Alloc(sizeof(Tables));
             _handle->Tables->Initialize(buckets, locks, countPerLock);
             _handle->GrowLockArray = growLockArray;
             _handle->Budget = buckets.Length / locks.Length;
             _handle->NodePool = nodePool;
             _handle->NodeLock = new NativeConcurrentSpinLock(-1);
-            _handle->Keys = new KeyCollection(this);
-            _handle->Values = new ValueCollection(this);
         }
 
         /// <summary>
@@ -151,23 +127,6 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get or set value
-        /// </summary>
-        /// <param name="key">Key</param>
-        public TValue this[in TKey key]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-                if (!TryGetValue(key, out var value))
-                    throw new KeyNotFoundException(key.ToString());
-                return value;
-            }
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => TryAddInternal(_handle->Tables, key, value, true, true, out _);
-        }
-
-        /// <summary>
         ///     Count
         /// </summary>
         public int Count
@@ -193,14 +152,14 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeConcurrentDictionary<TKey, TValue> other) => other == this;
+        public bool Equals(NativeConcurrentHashSet<T> other) => other == this;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeConcurrentDictionary<TKey, TValue> nativeConcurrentDictionary && nativeConcurrentDictionary == this;
+        public override bool Equals(object? obj) => obj is NativeConcurrentHashSet<T> nativeConcurrentHashSet && nativeConcurrentHashSet == this;
 
         /// <summary>
         ///     Get hashCode
@@ -212,7 +171,7 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => $"NativeConcurrentDictionary<{typeof(TKey).Name}, {typeof(TValue).Name}>";
+        public override string ToString() => $"NativeConcurrentHashSet<{typeof(T).Name}>";
 
         /// <summary>
         ///     Equals
@@ -220,7 +179,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeConcurrentDictionary<TKey, TValue> left, NativeConcurrentDictionary<TKey, TValue> right) => left._handle == right._handle;
+        public static bool operator ==(NativeConcurrentHashSet<T> left, NativeConcurrentHashSet<T> right) => left._handle == right._handle;
 
         /// <summary>
         ///     Not equals
@@ -228,7 +187,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeConcurrentDictionary<TKey, TValue> left, NativeConcurrentDictionary<TKey, TValue> right) => left._handle != right._handle;
+        public static bool operator !=(NativeConcurrentHashSet<T> left, NativeConcurrentHashSet<T> right) => left._handle != right._handle;
 
         /// <summary>
         ///     Dispose
@@ -281,22 +240,20 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try add
+        ///     Add
         /// </summary>
         /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
         /// <returns>Added</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryAdd(in TKey key, in TValue value) => TryAddInternal(_handle->Tables, key, value, false, true, out _);
+        public bool Add(in T key) => TryAddInternal(_handle->Tables, key);
 
         /// <summary>
-        ///     Try remove
+        ///     Remove
         /// </summary>
         /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
         /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryRemove(in TKey key, out TValue value)
+        public bool Remove(in T key)
         {
             var tables = _handle->Tables;
             var hashcode = key.GetHashCode();
@@ -320,66 +277,6 @@ namespace NativeCollections
                         {
                             if (hashcode == curr->Hashcode && curr->Key.Equals(key))
                             {
-                                if (prev == null)
-                                    Volatile.Write(ref bucket, (nint)curr->Next);
-                                else
-                                    prev->Next = curr->Next;
-                                value = curr->Value;
-                                _handle->NodeLock.Enter();
-                                _handle->NodePool.Return(curr);
-                                _handle->NodeLock.Exit();
-                                tables->CountPerLock[lockNo]--;
-                                return true;
-                            }
-
-                            prev = curr;
-                        }
-                    }
-                    finally
-                    {
-                        locks[lockNo].Exit();
-                    }
-                }
-
-                value = default;
-                return false;
-            }
-        }
-
-        /// <summary>
-        ///     Try remove
-        /// </summary>
-        /// <param name="keyValuePair">Key value pair</param>
-        /// <returns>Removed</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryRemove(in KeyValuePair<TKey, TValue> keyValuePair)
-        {
-            var key = keyValuePair.Key;
-            var oldValue = keyValuePair.Value;
-            var tables = _handle->Tables;
-            var hashcode = key.GetHashCode();
-            while (true)
-            {
-                var locks = tables->Locks;
-                ref var bucket = ref GetBucketAndLock(tables, hashcode, out var lockNo);
-                if (tables->CountPerLock[lockNo] != 0)
-                {
-                    locks[lockNo].Enter();
-                    try
-                    {
-                        if (tables != _handle->Tables)
-                        {
-                            tables = _handle->Tables;
-                            continue;
-                        }
-
-                        Node* prev = null;
-                        for (var curr = (Node*)bucket; curr != null; curr = curr->Next)
-                        {
-                            if (hashcode == curr->Hashcode && curr->Key.Equals(key))
-                            {
-                                if (!oldValue.Equals(curr->Value))
-                                    return false;
                                 if (prev == null)
                                     Volatile.Write(ref bucket, (nint)curr->Next);
                                 else
@@ -410,7 +307,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Contains key</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool ContainsKey(in TKey key)
+        public bool Contains(in T key)
         {
             var tables = _handle->Tables;
             var hashcode = key.GetHashCode();
@@ -424,52 +321,27 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try to get the value
+        ///     Try to get the actual value
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
+        /// <param name="equalValue">Equal value</param>
+        /// <param name="actualValue">Actual value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValue(in TKey key, out TValue value)
+        public bool TryGetValue(in T equalValue, out T actualValue)
         {
             var tables = _handle->Tables;
-            var hashcode = key.GetHashCode();
+            var hashcode = equalValue.GetHashCode();
             for (var n = (Node*)GetBucket(tables, hashcode); n != null; n = n->Next)
             {
-                if (hashcode == n->Hashcode && n->Key.Equals(key))
+                if (hashcode == n->Hashcode && n->Key.Equals(equalValue))
                 {
-                    value = n->Value;
+                    actualValue = n->Key;
                     return true;
                 }
             }
 
-            value = default;
+            actualValue = default;
             return false;
-        }
-
-        /// <summary>
-        ///     Try update
-        /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="newValue">New value</param>
-        /// <param name="comparisonValue">Comparison value</param>
-        /// <returns>Updated</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryUpdate(in TKey key, in TValue newValue, in TValue comparisonValue) => TryUpdateInternal(_handle->Tables, key, newValue, comparisonValue);
-
-        /// <summary>
-        ///     Get or add value
-        /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
-        /// <returns>Value</returns>
-        public TValue GetOrAdd(in TKey key, in TValue value)
-        {
-            var tables = _handle->Tables;
-            var hashcode = key.GetHashCode();
-            if (!TryGetValueInternal(tables, key, hashcode, out var resultingValue))
-                TryAddInternal(tables, key, value, false, true, out resultingValue);
-            return resultingValue;
         }
 
         /// <summary>
@@ -549,7 +421,7 @@ namespace NativeCollections
                         var next = current->Next;
                         ref var newBucket = ref GetBucketAndLock(newTables, hashCode, out var newLockNo);
                         var newNode = current;
-                        newNode->Initialize(current->Key, current->Value, hashCode, (Node*)newBucket);
+                        newNode->Initialize(current->Key, hashCode, (Node*)newBucket);
                         newBucket = (nint)newNode;
                         checked
                         {
@@ -627,7 +499,7 @@ namespace NativeCollections
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool TryAddInternal(Tables* tables, TKey key, TValue value, bool updateIfExists, bool acquireLock, out TValue resultingValue)
+        private bool TryAddInternal(Tables* tables, T key)
         {
             var hashcode = key.GetHashCode();
             while (true)
@@ -638,57 +510,23 @@ namespace NativeCollections
                 var lockTaken = false;
                 try
                 {
-                    if (acquireLock)
-                        locks[lockNo].Enter(ref lockTaken);
+                    locks[lockNo].Enter(ref lockTaken);
                     if (tables != _handle->Tables)
                     {
                         tables = _handle->Tables;
                         continue;
                     }
 
-                    Node* prev = null;
                     for (var node = (Node*)bucket; node != null; node = node->Next)
                     {
                         if (hashcode == node->Hashcode && node->Key.Equals(key))
-                        {
-                            if (updateIfExists)
-                            {
-                                if (NativeConcurrentDictionaryTypeProps<TValue>.IsWriteAtomic)
-                                {
-                                    node->Value = value;
-                                }
-                                else
-                                {
-                                    _handle->NodeLock.Enter();
-                                    var newNode = (Node*)_handle->NodePool.Rent();
-                                    _handle->NodeLock.Exit();
-                                    newNode->Initialize(node->Key, value, hashcode, node->Next);
-                                    if (prev == null)
-                                        Volatile.Write(ref bucket, (nint)newNode);
-                                    else
-                                        prev->Next = newNode;
-                                    _handle->NodeLock.Enter();
-                                    _handle->NodePool.Return(node);
-                                    _handle->NodeLock.Exit();
-                                }
-
-                                resultingValue = value;
-                            }
-                            else
-                            {
-                                resultingValue = node->Value;
-                            }
-
                             return false;
-                        }
-
-                        prev = node;
                     }
 
                     _handle->NodeLock.Enter();
                     var resultNode = (Node*)_handle->NodePool.Rent();
                     _handle->NodeLock.Exit();
-                    resultNode->Initialize(key, value, hashcode, (Node*)bucket);
+                    resultNode->Initialize(key, hashcode, (Node*)bucket);
                     Volatile.Write(ref bucket, (nint)resultNode);
                     checked
                     {
@@ -706,69 +544,7 @@ namespace NativeCollections
 
                 if (resizeDesired)
                     GrowTable(tables, resizeDesired);
-                resultingValue = value;
                 return true;
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool TryUpdateInternal(Tables* tables, TKey key, TValue newValue, TValue comparisonValue)
-        {
-            var hashcode = key.GetHashCode();
-            while (true)
-            {
-                var locks = tables->Locks;
-                ref var bucket = ref GetBucketAndLock(tables, hashcode, out var lockNo);
-                locks[lockNo].Enter();
-                try
-                {
-                    if (tables != _handle->Tables)
-                    {
-                        tables = _handle->Tables;
-                        continue;
-                    }
-
-                    Node* prev = null;
-                    for (var node = (Node*)bucket; node != null; node = node->Next)
-                    {
-                        if (hashcode == node->Hashcode && node->Key.Equals(key))
-                        {
-                            if (node->Value.Equals(comparisonValue))
-                            {
-                                if (NativeConcurrentDictionaryTypeProps<TValue>.IsWriteAtomic)
-                                {
-                                    node->Value = newValue;
-                                }
-                                else
-                                {
-                                    _handle->NodeLock.Enter();
-                                    var newNode = (Node*)_handle->NodePool.Rent();
-                                    _handle->NodeLock.Exit();
-                                    newNode->Initialize(node->Key, newValue, hashcode, node->Next);
-                                    if (prev == null)
-                                        Volatile.Write(ref bucket, (nint)newNode);
-                                    else
-                                        prev->Next = newNode;
-                                    _handle->NodeLock.Enter();
-                                    _handle->NodePool.Return(node);
-                                    _handle->NodeLock.Exit();
-                                }
-
-                                return true;
-                            }
-
-                            return false;
-                        }
-
-                        prev = node;
-                    }
-
-                    return false;
-                }
-                finally
-                {
-                    locks[lockNo].Exit();
-                }
             }
         }
 
@@ -785,30 +561,6 @@ namespace NativeCollections
             }
 
             return count;
-        }
-
-        /// <summary>
-        ///     Try to get the value
-        /// </summary>
-        /// <param name="tables">Tables</param>
-        /// <param name="key">Key</param>
-        /// <param name="hashcode">HashCode</param>
-        /// <param name="value">Value</param>
-        /// <returns>Got</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool TryGetValueInternal(Tables* tables, in TKey key, int hashcode, out TValue value)
-        {
-            for (var n = (Node*)GetBucket(tables, hashcode); n != null; n = n->Next)
-            {
-                if (hashcode == n->Hashcode && n->Key.Equals(key))
-                {
-                    value = n->Value;
-                    return true;
-                }
-            }
-
-            value = default;
-            return false;
         }
 
         /// <summary>
@@ -859,12 +611,7 @@ namespace NativeCollections
             /// <summary>
             ///     Key
             /// </summary>
-            public TKey Key;
-
-            /// <summary>
-            ///     Value
-            /// </summary>
-            public TValue Value;
+            public T Key;
 
             /// <summary>
             ///     Next
@@ -880,14 +627,12 @@ namespace NativeCollections
             ///     Initialize
             /// </summary>
             /// <param name="key">Key</param>
-            /// <param name="value">Value</param>
             /// <param name="hashcode">Hashcode</param>
             /// <param name="next">Next</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void Initialize(in TKey key, in TValue value, int hashcode, Node* next)
+            public void Initialize(in T key, int hashcode, Node* next)
             {
                 Key = key;
-                Value = value;
                 Next = next;
                 Hashcode = hashcode;
             }
@@ -959,9 +704,9 @@ namespace NativeCollections
         public struct Enumerator
         {
             /// <summary>
-            ///     NativeConcurrentDictionary
+            ///     NativeConcurrentHashSet
             /// </summary>
-            private readonly NativeConcurrentDictionary<TKey, TValue> _nativeConcurrentDictionary;
+            private readonly NativeConcurrentHashSet<T> _nativeConcurrentHashSet;
 
             /// <summary>
             ///     Buckets
@@ -1006,16 +751,16 @@ namespace NativeCollections
             /// <summary>
             ///     Current
             /// </summary>
-            private KeyValuePair<TKey, TValue> _current;
+            private T _current;
 
             /// <summary>
             ///     Structure
             /// </summary>
-            /// <param name="nativeConcurrentDictionary">NativeConcurrentDictionary</param>
+            /// <param name="nativeConcurrentHashSet">NativeConcurrentHashSet</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(NativeConcurrentDictionary<TKey, TValue> nativeConcurrentDictionary)
+            internal Enumerator(NativeConcurrentHashSet<T> nativeConcurrentHashSet)
             {
-                _nativeConcurrentDictionary = nativeConcurrentDictionary;
+                _nativeConcurrentHashSet = nativeConcurrentHashSet;
                 _index = -1;
                 _buckets = default;
                 _node = null;
@@ -1033,7 +778,7 @@ namespace NativeCollections
                 switch (_state)
                 {
                     case STATE_UNINITIALIZED:
-                        _buckets = _nativeConcurrentDictionary._handle->Tables->Buckets;
+                        _buckets = _nativeConcurrentHashSet._handle->Tables->Buckets;
                         _index = -1;
                         goto case STATE_OUTER_LOOP;
                     case STATE_OUTER_LOOP:
@@ -1051,7 +796,7 @@ namespace NativeCollections
                         if (_node != null)
                         {
                             var node = _node;
-                            _current = new KeyValuePair<TKey, TValue>(node->Key, node->Value);
+                            _current = node->Key;
                             _node = node->Next;
                             return true;
                         }
@@ -1066,309 +811,19 @@ namespace NativeCollections
             /// <summary>
             ///     Current
             /// </summary>
-            public KeyValuePair<TKey, TValue> Current
+            public T Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => _current;
             }
         }
-
-        /// <summary>
-        ///     Key collection
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential)]
-        public readonly struct KeyCollection
-        {
-            /// <summary>
-            ///     NativeConcurrentDictionary
-            /// </summary>
-            private readonly NativeConcurrentDictionary<TKey, TValue> _nativeConcurrentDictionary;
-
-            /// <summary>
-            ///     Structure
-            /// </summary>
-            /// <param name="nativeConcurrentDictionary">NativeConcurrentDictionary</param>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal KeyCollection(in NativeConcurrentDictionary<TKey, TValue> nativeConcurrentDictionary) => _nativeConcurrentDictionary = nativeConcurrentDictionary;
-
-            /// <summary>
-            ///     Get enumerator
-            /// </summary>
-            /// <returns>Enumerator</returns>
-            public Enumerator GetEnumerator() => new(_nativeConcurrentDictionary);
-
-            /// <summary>
-            ///     Enumerator
-            /// </summary>
-            public struct Enumerator
-            {
-                /// <summary>
-                ///     NativeConcurrentDictionary
-                /// </summary>
-                private readonly NativeConcurrentDictionary<TKey, TValue> _nativeConcurrentDictionary;
-
-                /// <summary>
-                ///     Buckets
-                /// </summary>
-                private NativeArray<VolatileNode> _buckets;
-
-                /// <summary>
-                ///     Node
-                /// </summary>
-                private Node* _node;
-
-                /// <summary>
-                ///     Index
-                /// </summary>
-                private int _index;
-
-                /// <summary>
-                ///     State
-                /// </summary>
-                private int _state;
-
-                /// <summary>
-                ///     State uninitialized
-                /// </summary>
-                private const int STATE_UNINITIALIZED = 0;
-
-                /// <summary>
-                ///     State outer loop
-                /// </summary>
-                private const int STATE_OUTER_LOOP = 1;
-
-                /// <summary>
-                ///     State inner loop
-                /// </summary>
-                private const int STATE_INNER_LOOP = 2;
-
-                /// <summary>
-                ///     State done
-                /// </summary>
-                private const int STATE_DONE = 3;
-
-                /// <summary>
-                ///     Current
-                /// </summary>
-                private TKey _current;
-
-                /// <summary>
-                ///     Structure
-                /// </summary>
-                /// <param name="nativeConcurrentDictionary">NativeConcurrentDictionary</param>
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(NativeConcurrentDictionary<TKey, TValue> nativeConcurrentDictionary)
-                {
-                    _nativeConcurrentDictionary = nativeConcurrentDictionary;
-                    _index = -1;
-                    _buckets = default;
-                    _node = null;
-                    _state = 0;
-                    _current = default;
-                }
-
-                /// <summary>
-                ///     Move next
-                /// </summary>
-                /// <returns>Moved</returns>
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public bool MoveNext()
-                {
-                    switch (_state)
-                    {
-                        case STATE_UNINITIALIZED:
-                            _buckets = _nativeConcurrentDictionary._handle->Tables->Buckets;
-                            _index = -1;
-                            goto case STATE_OUTER_LOOP;
-                        case STATE_OUTER_LOOP:
-                            var buckets = _buckets;
-                            var i = ++_index;
-                            if ((uint)i < (uint)buckets.Length)
-                            {
-                                _node = (Node*)buckets[i].Node;
-                                _state = STATE_INNER_LOOP;
-                                goto case STATE_INNER_LOOP;
-                            }
-
-                            goto default;
-                        case STATE_INNER_LOOP:
-                            if (_node != null)
-                            {
-                                var node = _node;
-                                _current = node->Key;
-                                _node = node->Next;
-                                return true;
-                            }
-
-                            goto case STATE_OUTER_LOOP;
-                        default:
-                            _state = STATE_DONE;
-                            return false;
-                    }
-                }
-
-                /// <summary>
-                ///     Current
-                /// </summary>
-                public TKey Current
-                {
-                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                    get => _current;
-                }
-            }
-        }
-
-        /// <summary>
-        ///     Value collection
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential)]
-        public readonly struct ValueCollection
-        {
-            /// <summary>
-            ///     NativeConcurrentDictionary
-            /// </summary>
-            private readonly NativeConcurrentDictionary<TKey, TValue> _nativeConcurrentDictionary;
-
-            /// <summary>
-            ///     Structure
-            /// </summary>
-            /// <param name="nativeConcurrentDictionary">NativeConcurrentDictionary</param>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal ValueCollection(in NativeConcurrentDictionary<TKey, TValue> nativeConcurrentDictionary) => _nativeConcurrentDictionary = nativeConcurrentDictionary;
-
-            /// <summary>
-            ///     Get enumerator
-            /// </summary>
-            /// <returns>Enumerator</returns>
-            public Enumerator GetEnumerator() => new(_nativeConcurrentDictionary);
-
-            /// <summary>
-            ///     Enumerator
-            /// </summary>
-            public struct Enumerator
-            {
-                /// <summary>
-                ///     NativeConcurrentDictionary
-                /// </summary>
-                private readonly NativeConcurrentDictionary<TKey, TValue> _nativeConcurrentDictionary;
-
-                /// <summary>
-                ///     Buckets
-                /// </summary>
-                private NativeArray<VolatileNode> _buckets;
-
-                /// <summary>
-                ///     Node
-                /// </summary>
-                private Node* _node;
-
-                /// <summary>
-                ///     Index
-                /// </summary>
-                private int _index;
-
-                /// <summary>
-                ///     State
-                /// </summary>
-                private int _state;
-
-                /// <summary>
-                ///     State uninitialized
-                /// </summary>
-                private const int STATE_UNINITIALIZED = 0;
-
-                /// <summary>
-                ///     State outer loop
-                /// </summary>
-                private const int STATE_OUTER_LOOP = 1;
-
-                /// <summary>
-                ///     State inner loop
-                /// </summary>
-                private const int STATE_INNER_LOOP = 2;
-
-                /// <summary>
-                ///     State done
-                /// </summary>
-                private const int STATE_DONE = 3;
-
-                /// <summary>
-                ///     Current
-                /// </summary>
-                private TValue _current;
-
-                /// <summary>
-                ///     Structure
-                /// </summary>
-                /// <param name="nativeConcurrentDictionary">NativeConcurrentDictionary</param>
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(NativeConcurrentDictionary<TKey, TValue> nativeConcurrentDictionary)
-                {
-                    _nativeConcurrentDictionary = nativeConcurrentDictionary;
-                    _index = -1;
-                    _buckets = default;
-                    _node = null;
-                    _state = 0;
-                    _current = default;
-                }
-
-                /// <summary>
-                ///     Move next
-                /// </summary>
-                /// <returns>Moved</returns>
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public bool MoveNext()
-                {
-                    switch (_state)
-                    {
-                        case STATE_UNINITIALIZED:
-                            _buckets = _nativeConcurrentDictionary._handle->Tables->Buckets;
-                            _index = -1;
-                            goto case STATE_OUTER_LOOP;
-                        case STATE_OUTER_LOOP:
-                            var buckets = _buckets;
-                            var i = ++_index;
-                            if ((uint)i < (uint)buckets.Length)
-                            {
-                                _node = (Node*)buckets[i].Node;
-                                _state = STATE_INNER_LOOP;
-                                goto case STATE_INNER_LOOP;
-                            }
-
-                            goto default;
-                        case STATE_INNER_LOOP:
-                            if (_node != null)
-                            {
-                                var node = _node;
-                                _current = node->Value;
-                                _node = node->Next;
-                                return true;
-                            }
-
-                            goto case STATE_OUTER_LOOP;
-                        default:
-                            _state = STATE_DONE;
-                            return false;
-                    }
-                }
-
-                /// <summary>
-                ///     Current
-                /// </summary>
-                public TValue Current
-                {
-                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                    get => _current;
-                }
-            }
-        }
     }
 
     /// <summary>
-    ///     Native concurrentDictionary type props
+    ///     Native concurrentHashSet type props
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
-    internal static class NativeConcurrentDictionaryTypeProps<T> where T : unmanaged, IEquatable<T>
+    internal static class NativeConcurrentHashSetTypeProps<T> where T : unmanaged, IEquatable<T>
     {
         /// <summary>
         ///     Is write atomic
