@@ -24,6 +24,7 @@ namespace NativeCollections
 {
     /// <summary>
     ///     Native concurrentDictionary
+    ///     (Slower than ConcurrentDictionary)
     /// </summary>
     /// <typeparam name="TKey">Type</typeparam>
     /// <typeparam name="TValue">Type</typeparam>
