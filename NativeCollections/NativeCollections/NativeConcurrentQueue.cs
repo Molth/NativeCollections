@@ -336,7 +336,12 @@ namespace NativeCollections
                     return true;
                 _handle->CrossSegmentLock.Enter();
                 if (head == _handle->Head)
+                {
                     _handle->Head = (NativeConcurrentQueueSegment<T>*)head->NextSegment;
+                    head->Dispose(_handle->SlotsPool);
+                    _handle->SegmentPool.Return(head);
+                }
+
                 _handle->CrossSegmentLock.Exit();
             }
         }
