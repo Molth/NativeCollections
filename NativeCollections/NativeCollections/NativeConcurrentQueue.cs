@@ -44,7 +44,7 @@ namespace NativeCollections
             /// <summary>
             ///     Slots pool
             /// </summary>
-            public NativeArrayPool<NativeConcurrentQueueSegment<T>.Slot> SlotsPool;
+            public NativeConcurrentQueueArrayPool<NativeConcurrentQueueSegment<T>.Slot> SlotsPool;
 
             /// <summary>
             ///     Tail
@@ -67,23 +67,32 @@ namespace NativeCollections
         /// </summary>
         /// <param name="size">Size</param>
         /// <param name="maxFreeSlabs">Max free slabs</param>
-        /// <param name="maxLength">Max length</param>
+        /// <param name="arrayPoolSize">Array pool size</param>
+        /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeConcurrentQueue(int size, int maxFreeSlabs, int maxLength)
+        public NativeConcurrentQueue(int size, int maxFreeSlabs, int arrayPoolSize, int capacity)
         {
             var segmentPool = new NativeMemoryPool(size, sizeof(NativeConcurrentQueueSegment<T>), maxFreeSlabs);
-            if (maxLength < 32)
-                maxLength = 32;
-            else if (maxLength > 1048576)
-                maxLength = 1048576;
-            var slotsPool = new NativeArrayPool<NativeConcurrentQueueSegment<T>.Slot>(1, maxLength);
+            if (arrayPoolSize < 1)
+                arrayPoolSize = 1;
+            else if (arrayPoolSize > 64)
+                arrayPoolSize = 64;
+            if (capacity < 32)
+                capacity = 32;
+#if NET5_0_OR_GREATER
+            var n = (int)Math.Ceiling(Math.Log2(capacity / 32.0 + 1.0));
+#else
+            var n = (int)Math.Ceiling(Math.Log(capacity / 32.0 + 1.0) / Math.Log(2));
+#endif
+            var maxLength = 32 * (2 << (n - 2));
+            var slotsPool = new NativeConcurrentQueueArrayPool<NativeConcurrentQueueSegment<T>.Slot>(arrayPoolSize, maxLength);
             _handle = (NativeConcurrentQueueHandle*)NativeMemoryAllocator.Alloc(sizeof(NativeConcurrentQueueHandle));
             _handle->CrossSegmentLock = new NativeMonitorLock(new object());
             _handle->SegmentPool = segmentPool;
             _handle->SlotsPool = slotsPool;
             var segment = (NativeConcurrentQueueSegment<T>*)_handle->SegmentPool.Rent();
             var slots = _handle->SlotsPool.Rent(32);
-            segment->Initialize(slots.Array, 32);
+            segment->Initialize(slots, 32);
             _handle->Tail = _handle->Head = segment;
         }
 
@@ -258,7 +267,7 @@ namespace NativeCollections
 
             var segment = (NativeConcurrentQueueSegment<T>*)NativeMemoryAllocator.Alloc(sizeof(NativeConcurrentQueueSegment<T>));
             var slots = _handle->SlotsPool.Rent(32);
-            segment->Initialize(slots.Array, 32);
+            segment->Initialize(slots, 32);
             _handle->Tail = _handle->Head = segment;
             _handle->CrossSegmentLock.Exit();
         }
@@ -284,10 +293,8 @@ namespace NativeCollections
                         var newSize = tail->Length * 2;
                         var nextSize = newSize <= 1048576 ? newSize : 1048576;
                         var newTail = (NativeConcurrentQueueSegment<T>*)_handle->SegmentPool.Rent();
-                        if (_handle->SlotsPool.TryRent(nextSize, out var array))
-                            newTail->Initialize(array.Array, nextSize);
-                        else
-                            newTail->Initialize(nextSize);
+                        var array = _handle->SlotsPool.Rent(nextSize);
+                        newTail->Initialize(array, nextSize);
                         tail->NextSegment = (nint)newTail;
                         _handle->Tail = newTail;
                     }
@@ -410,7 +417,7 @@ namespace NativeCollections
         /// <summary>
         ///     Head and tail
         /// </summary>
-        public PaddedHeadAndTail HeadAndTail;
+        public NativeConcurrentQueuePaddedHeadAndTail HeadAndTail;
 
         /// <summary>
         ///     Frozen for enqueues
@@ -425,23 +432,6 @@ namespace NativeCollections
         /// <summary>
         ///     Initialize
         /// </summary>
-        /// <param name="boundedLength">Length</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Initialize(int boundedLength)
-        {
-            Slots = (Slot*)NativeMemoryAllocator.Alloc(boundedLength * sizeof(Slot));
-            for (var i = 0; i < boundedLength; ++i)
-                Slots[i].SequenceNumber = i;
-            Length = boundedLength;
-            SlotsMask = boundedLength - 1;
-            HeadAndTail = new PaddedHeadAndTail();
-            FrozenForEnqueues = false;
-            NextSegment = IntPtr.Zero;
-        }
-
-        /// <summary>
-        ///     Initialize
-        /// </summary>
         /// <param name="slots">Slots</param>
         /// <param name="boundedLength">Length</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -452,7 +442,7 @@ namespace NativeCollections
                 Slots[i].SequenceNumber = i;
             Length = boundedLength;
             SlotsMask = boundedLength - 1;
-            HeadAndTail = new PaddedHeadAndTail();
+            HeadAndTail = new NativeConcurrentQueuePaddedHeadAndTail();
             FrozenForEnqueues = false;
             NextSegment = IntPtr.Zero;
         }
@@ -462,12 +452,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="arrayPool">Slots pool</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose(in NativeArrayPool<Slot> arrayPool)
-        {
-            if (arrayPool.TryReturn(Length, Slots))
-                return;
-            NativeMemoryAllocator.Free(Slots);
-        }
+        public void Dispose(in NativeConcurrentQueueArrayPool<Slot> arrayPool) => arrayPool.Return(Length, Slots);
 
         /// <summary>
         ///     Freeze offset
@@ -641,10 +626,10 @@ namespace NativeCollections
     }
 
     /// <summary>
-    ///     Padded head and tail
+    ///     NativeConcurrentQueue padded head and tail
     /// </summary>
     [StructLayout(LayoutKind.Explicit, Size = 3 * CACHE_LINE_SIZE)]
-    internal struct PaddedHeadAndTail
+    internal struct NativeConcurrentQueuePaddedHeadAndTail
     {
         /// <summary>
         ///     Head
@@ -664,5 +649,252 @@ namespace NativeCollections
 #else
         public const int CACHE_LINE_SIZE = 64;
 #endif
+    }
+
+    /// <summary>
+    ///     Native concurrentQueue array pool
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    internal readonly unsafe struct NativeConcurrentQueueArrayPool<T> : IDisposable, IEquatable<NativeConcurrentQueueArrayPool<T>> where T : unmanaged
+    {
+        /// <summary>
+        ///     Buckets
+        /// </summary>
+        private readonly NativeConcurrentQueueArrayPoolBucket* _buckets;
+
+        /// <summary>
+        ///     Length
+        /// </summary>
+        private readonly int _length;
+
+        /// <summary>
+        ///     Size
+        /// </summary>
+        private readonly int _size;
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="size">Size</param>
+        /// <param name="maxLength">Max length</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeConcurrentQueueArrayPool(int size, int maxLength)
+        {
+            if (maxLength > 1048576)
+                maxLength = 1048576;
+            else if (maxLength < 32)
+                maxLength = 32;
+            var length = SelectBucketIndex(maxLength) + 1;
+            var buckets = (NativeConcurrentQueueArrayPoolBucket*)NativeMemoryAllocator.Alloc(length * sizeof(NativeConcurrentQueueArrayPoolBucket));
+            for (var i = 0; i < length; ++i)
+                buckets[i].Initialize(size, 32 << i);
+            _buckets = buckets;
+            _length = length;
+            _size = size;
+        }
+
+        /// <summary>
+        ///     Is created
+        /// </summary>
+        public bool IsCreated => _buckets != null;
+
+        /// <summary>
+        ///     Size
+        /// </summary>
+        public int Size => _size;
+
+        /// <summary>
+        ///     Max length
+        /// </summary>
+        public int MaxLength => 32 << (_length - 1);
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public bool Equals(NativeConcurrentQueueArrayPool<T> other) => other == this;
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="obj">object</param>
+        /// <returns>Equals</returns>
+        public override bool Equals(object? obj) => obj is NativeConcurrentQueueArrayPool<T> nativeConcurrentQueueArrayPool && nativeConcurrentQueueArrayPool == this;
+
+        /// <summary>
+        ///     Get hashCode
+        /// </summary>
+        /// <returns>HashCode</returns>
+        public override int GetHashCode() => (int)(nint)_buckets;
+
+        /// <summary>
+        ///     To string
+        /// </summary>
+        /// <returns>String</returns>
+        public override string ToString() => $"NativeConcurrentQueueArrayPool<{typeof(T).Name}>";
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Equals</returns>
+        public static bool operator ==(NativeConcurrentQueueArrayPool<T> left, NativeConcurrentQueueArrayPool<T> right) => left._buckets == right._buckets;
+
+        /// <summary>
+        ///     Not equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Not equals</returns>
+        public static bool operator !=(NativeConcurrentQueueArrayPool<T> left, NativeConcurrentQueueArrayPool<T> right) => left._buckets != right._buckets;
+
+        /// <summary>
+        ///     Dispose
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Dispose()
+        {
+            if (_buckets == null)
+                return;
+            for (var i = 0; i < _length; ++i)
+                _buckets[i].Dispose();
+            NativeMemoryAllocator.Free(_buckets);
+        }
+
+        /// <summary>
+        ///     Rent buffer
+        /// </summary>
+        /// <param name="minimumLength">Minimum buffer length</param>
+        /// <returns>Buffer</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T* Rent(int minimumLength)
+        {
+            if (minimumLength < 0)
+                throw new ArgumentOutOfRangeException(nameof(minimumLength), minimumLength, "MustBeNonNegative");
+            var index = SelectBucketIndex(minimumLength);
+            return index < _length ? _buckets[index].Rent() : (T*)NativeMemoryAllocator.Alloc(minimumLength * sizeof(T));
+        }
+
+        /// <summary>
+        ///     Return buffer
+        /// </summary>
+        /// <param name="length">Length</param>
+        /// <param name="array">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Return(int length, T* array)
+        {
+            if (length < 32 || (length & (length - 1)) != 0)
+            {
+                NativeMemoryAllocator.Free(array);
+                return;
+            }
+
+            var bucket = SelectBucketIndex(length);
+            if (bucket >= _length)
+            {
+                NativeMemoryAllocator.Free(array);
+                return;
+            }
+
+            _buckets[bucket].Return(array);
+        }
+
+        /// <summary>
+        ///     Select bucket index
+        /// </summary>
+        /// <param name="bufferSize">Buffer size</param>
+        /// <returns>Bucket index</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int SelectBucketIndex(int bufferSize) => BitOperationsHelper.Log2(((uint)bufferSize - 1) | 15) - 4;
+
+        /// <summary>
+        ///     Empty
+        /// </summary>
+        public static NativeConcurrentQueueArrayPool<T> Empty => new();
+
+        /// <summary>
+        ///     NativeConcurrentQueueArrayPool bucket
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
+        private struct NativeConcurrentQueueArrayPoolBucket : IDisposable
+        {
+            /// <summary>
+            ///     Size
+            /// </summary>
+            private int _size;
+
+            /// <summary>
+            ///     Buffers
+            /// </summary>
+            private T** _array;
+
+            /// <summary>
+            ///     Index
+            /// </summary>
+            private int _index;
+
+            /// <summary>
+            ///     Memory pool
+            /// </summary>
+            private NativeMemoryPool _memoryPool;
+
+            /// <summary>
+            ///     Structure
+            /// </summary>
+            /// <param name="size">Size</param>
+            /// <param name="length">Length</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Initialize(int size, int length)
+            {
+                _size = size;
+                _array = (T**)NativeMemoryAllocator.AllocZeroed(size * sizeof(T*));
+                _index = 0;
+                _memoryPool = new NativeMemoryPool(size, length * sizeof(T), 0);
+            }
+
+            /// <summary>
+            ///     Dispose
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Dispose()
+            {
+                NativeMemoryAllocator.Free(_array);
+                _memoryPool.Dispose();
+            }
+
+            /// <summary>
+            ///     Rent buffer
+            /// </summary>
+            /// <returns>Buffer</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public T* Rent()
+            {
+                T* ptr = null;
+                if (_index < _size)
+                {
+                    ptr = _array[_index];
+                    _array[_index++] = null;
+                }
+
+                if (ptr == null)
+                    ptr = (T*)_memoryPool.Rent();
+                return ptr;
+            }
+
+            /// <summary>
+            ///     Return buffer
+            /// </summary>
+            /// <param name="ptr">Pointer</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Return(T* ptr)
+            {
+                if (_index != 0)
+                    _array[--_index] = ptr;
+                else
+                    _memoryPool.Return(ptr);
+            }
+        }
     }
 }
