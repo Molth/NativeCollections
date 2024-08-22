@@ -49,6 +49,20 @@ namespace NativeCollections
         /// <summary>
         ///     Structure
         /// </summary>
+        /// <param name="length">Length</param>
+        /// <param name="zeroed">Zeroed</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeArray(int length, bool zeroed)
+        {
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            _array = zeroed ? (T*)NativeMemoryAllocator.AllocZeroed(length * sizeof(T)) : (T*)NativeMemoryAllocator.Alloc(length * sizeof(T));
+            _length = length;
+        }
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
         /// <param name="array">Array</param>
         /// <param name="length">Length</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -75,6 +89,16 @@ namespace NativeCollections
         /// </summary>
         /// <param name="index">Index</param>
         public ref T this[int index]
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => ref _array[index];
+        }
+
+        /// <summary>
+        ///     Get reference
+        /// </summary>
+        /// <param name="index">Index</param>
+        public ref T this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => ref _array[index];
@@ -156,6 +180,12 @@ namespace NativeCollections
                 return;
             NativeMemoryAllocator.Free(_array);
         }
+
+        /// <summary>
+        ///     Clear
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Clear() => Unsafe.InitBlockUnaligned(_array, 0, (uint)(_length * sizeof(T)));
 
         /// <summary>
         ///     As span

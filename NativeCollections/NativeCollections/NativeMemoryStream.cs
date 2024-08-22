@@ -94,6 +94,16 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Get reference
+        /// </summary>
+        /// <param name="index">Index</param>
+        public ref byte this[uint index]
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => ref _handle->Array[index];
+        }
+
+        /// <summary>
         ///     Can read
         /// </summary>
         public bool CanRead => IsCreated;

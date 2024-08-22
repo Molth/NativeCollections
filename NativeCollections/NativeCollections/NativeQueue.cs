@@ -106,6 +106,16 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Get reference
+        /// </summary>
+        /// <param name="index">Index</param>
+        public ref T this[uint index]
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => ref _handle->Array[index];
+        }
+
+        /// <summary>
         ///     Count
         /// </summary>
         public int Count => _handle->Size;

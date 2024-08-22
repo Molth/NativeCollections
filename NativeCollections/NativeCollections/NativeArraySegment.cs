@@ -118,6 +118,16 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Get reference
+        /// </summary>
+        /// <param name="index">Index</param>
+        public ref T this[uint index]
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => ref _array[_offset + index];
+        }
+
+        /// <summary>
         ///     Array
         /// </summary>
         public T* Array => _array;

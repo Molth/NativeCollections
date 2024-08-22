@@ -169,7 +169,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeDictionary<TKey, TValue> nativeHashSet && nativeHashSet == this;
+        public override bool Equals(object? obj) => obj is NativeDictionary<TKey, TValue> nativeDictionary && nativeDictionary == this;
 
         /// <summary>
         ///     Get hashCode

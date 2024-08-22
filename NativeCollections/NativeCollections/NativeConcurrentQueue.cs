@@ -277,7 +277,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Enqueue(T item)
+        public void Enqueue(in T item)
         {
             if (!_handle->Tail->TryEnqueue(item))
             {
@@ -580,7 +580,7 @@ namespace NativeCollections
         /// <param name="item">Item</param>
         /// <returns>Enqueued</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryEnqueue(T item)
+        public bool TryEnqueue(in T item)
         {
             var slots = Slots;
             while (true)

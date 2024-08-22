@@ -174,7 +174,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Push(T item)
+        public void Push(in T item)
         {
             _handle->NodePoolLock.Enter();
             var ptr = _handle->NodePool.Rent();
