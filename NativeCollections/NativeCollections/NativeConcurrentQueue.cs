@@ -261,7 +261,7 @@ namespace NativeCollections
             {
                 var temp = node;
                 node = (NativeConcurrentQueueSegment<T>*)node->NextSegment;
-                temp->Dispose(_handle->SlotsPool);
+                _handle->SlotsPool.Return(temp->Length, temp->Slots);
                 _handle->SegmentPool.Return(temp);
             }
 
@@ -338,7 +338,7 @@ namespace NativeCollections
                 if (head == _handle->Head)
                 {
                     _handle->Head = (NativeConcurrentQueueSegment<T>*)head->NextSegment;
-                    head->Dispose(_handle->SlotsPool);
+                    _handle->SlotsPool.Return(head->Length, head->Slots);
                     _handle->SegmentPool.Return(head);
                 }
 
@@ -451,13 +451,6 @@ namespace NativeCollections
             FrozenForEnqueues = false;
             NextSegment = IntPtr.Zero;
         }
-
-        /// <summary>
-        ///     Dispose
-        /// </summary>
-        /// <param name="arrayPool">Slots pool</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose(in NativeConcurrentQueueArrayPool<Slot> arrayPool) => arrayPool.Return(Length, Slots);
 
         /// <summary>
         ///     Freeze offset
