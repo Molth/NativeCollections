@@ -162,5 +162,64 @@ namespace NativeCollections
         ///     Empty
         /// </summary>
         public static NativeArrayReference<T> Empty => new();
+
+        /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        /// <returns>Enumerator</returns>
+        public Enumerator GetEnumerator() => new(Array);
+
+        /// <summary>
+        ///     Enumerator
+        /// </summary>
+        public ref struct Enumerator
+        {
+            /// <summary>
+            ///     NativeArray
+            /// </summary>
+            private readonly T[] _array;
+
+            /// <summary>
+            ///     Index
+            /// </summary>
+            private int _index;
+
+            /// <summary>
+            ///     Structure
+            /// </summary>
+            /// <param name="array">Array</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            internal Enumerator(T[] array)
+            {
+                _array = array;
+                _index = -1;
+            }
+
+            /// <summary>
+            ///     Move next
+            /// </summary>
+            /// <returns>Moved</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool MoveNext()
+            {
+                var index = _index + 1;
+                if (index < _array.Length)
+                {
+                    _index = index;
+                    return true;
+                }
+
+                return false;
+            }
+
+            /// <summary>
+            ///     Current
+            /// </summary>
+            public ref T Current
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => ref _array[_index];
+            }
+        }
     }
 }
