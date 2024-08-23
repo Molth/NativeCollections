@@ -82,7 +82,7 @@ namespace NativeCollections
 #if NET5_0_OR_GREATER
             var n = (int)Math.Ceiling(Math.Log2(capacity / 32.0 + 1.0));
 #else
-            var n = (int)Math.Ceiling(Math.Log(capacity / 32.0 + 1.0) / Math.Log(2));
+            var n = (int)Math.Ceiling(Math.Log(2, capacity / 32.0 + 1.0));
 #endif
             var maxLength = 32 * (2 << (n - 2));
             var slotsPool = new NativeConcurrentQueueArrayPool<NativeConcurrentQueueSegment<T>.Slot>(arrayPoolSize, maxLength);

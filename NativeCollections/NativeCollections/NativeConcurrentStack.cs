@@ -177,9 +177,8 @@ namespace NativeCollections
         public void Push(in T item)
         {
             _handle->NodePoolLock.Enter();
-            var ptr = _handle->NodePool.Rent();
+            var newNode = (Node*)_handle->NodePool.Rent();
             _handle->NodePoolLock.Exit();
-            var newNode = (Node*)ptr;
             newNode->Value = item;
             newNode->Next = (Node*)_handle->Head;
             if (Interlocked.CompareExchange(ref _handle->Head, (nint)newNode, (nint)newNode->Next) == (nint)newNode->Next)

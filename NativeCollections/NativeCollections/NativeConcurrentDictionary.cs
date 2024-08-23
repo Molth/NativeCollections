@@ -256,6 +256,17 @@ namespace NativeCollections
                 AcquireAllLocks(ref locksAcquired);
                 if (AreAllBucketsEmpty())
                     return;
+                foreach (var bucket in _handle->Tables->Buckets)
+                {
+                    var node = (Node*)bucket.Node;
+                    while (node != null)
+                    {
+                        var temp = node;
+                        node = node->Next;
+                        _handle->NodePool.Return(temp);
+                    }
+                }
+
                 var length = HashHelpers.GetPrime(31);
                 if (_handle->Tables->Buckets.Length != length)
                 {
@@ -270,9 +281,6 @@ namespace NativeCollections
                 _handle->Tables->CountPerLock.Clear();
                 var budget = _handle->Tables->Buckets.Length / _handle->Tables->Locks.Length;
                 _handle->Budget = budget >= 1 ? budget : 1;
-                var nodePool = new NativeMemoryPool(_handle->NodePool.Size, sizeof(Node), _handle->NodePool.MaxFreeSlabs);
-                _handle->NodePool.Dispose();
-                _handle->NodePool = nodePool;
             }
             finally
             {
@@ -299,11 +307,11 @@ namespace NativeCollections
         public bool TryRemove(in TKey key, out TValue value)
         {
             var tables = _handle->Tables;
-            var hashcode = key.GetHashCode();
+            var hashCode = key.GetHashCode();
             while (true)
             {
                 var locks = tables->Locks;
-                ref var bucket = ref GetBucketAndLock(tables, hashcode, out var lockNo);
+                ref var bucket = ref GetBucketAndLock(tables, hashCode, out var lockNo);
                 if (tables->CountPerLock[lockNo] != 0)
                 {
                     locks[lockNo].Enter();
@@ -318,7 +326,7 @@ namespace NativeCollections
                         Node* prev = null;
                         for (var curr = (Node*)bucket; curr != null; curr = curr->Next)
                         {
-                            if (hashcode == curr->Hashcode && curr->Key.Equals(key))
+                            if (hashCode == curr->HashCode && curr->Key.Equals(key))
                             {
                                 if (prev == null)
                                     Volatile.Write(ref bucket, (nint)curr->Next);
@@ -357,11 +365,11 @@ namespace NativeCollections
             var key = keyValuePair.Key;
             var oldValue = keyValuePair.Value;
             var tables = _handle->Tables;
-            var hashcode = key.GetHashCode();
+            var hashCode = key.GetHashCode();
             while (true)
             {
                 var locks = tables->Locks;
-                ref var bucket = ref GetBucketAndLock(tables, hashcode, out var lockNo);
+                ref var bucket = ref GetBucketAndLock(tables, hashCode, out var lockNo);
                 if (tables->CountPerLock[lockNo] != 0)
                 {
                     locks[lockNo].Enter();
@@ -376,7 +384,7 @@ namespace NativeCollections
                         Node* prev = null;
                         for (var curr = (Node*)bucket; curr != null; curr = curr->Next)
                         {
-                            if (hashcode == curr->Hashcode && curr->Key.Equals(key))
+                            if (hashCode == curr->HashCode && curr->Key.Equals(key))
                             {
                                 if (!oldValue.Equals(curr->Value))
                                     return false;
@@ -413,10 +421,10 @@ namespace NativeCollections
         public bool ContainsKey(in TKey key)
         {
             var tables = _handle->Tables;
-            var hashcode = key.GetHashCode();
-            for (var n = (Node*)GetBucket(tables, hashcode); n != null; n = n->Next)
+            var hashCode = key.GetHashCode();
+            for (var node = (Node*)GetBucket(tables, hashCode); node != null; node = node->Next)
             {
-                if (hashcode == n->Hashcode && n->Key.Equals(key))
+                if (hashCode == node->HashCode && node->Key.Equals(key))
                     return true;
             }
 
@@ -433,12 +441,12 @@ namespace NativeCollections
         public bool TryGetValue(in TKey key, out TValue value)
         {
             var tables = _handle->Tables;
-            var hashcode = key.GetHashCode();
-            for (var n = (Node*)GetBucket(tables, hashcode); n != null; n = n->Next)
+            var hashCode = key.GetHashCode();
+            for (var node = (Node*)GetBucket(tables, hashCode); node != null; node = node->Next)
             {
-                if (hashcode == n->Hashcode && n->Key.Equals(key))
+                if (hashCode == node->HashCode && node->Key.Equals(key))
                 {
-                    value = n->Value;
+                    value = node->Value;
                     return true;
                 }
             }
@@ -466,8 +474,8 @@ namespace NativeCollections
         public TValue GetOrAdd(in TKey key, in TValue value)
         {
             var tables = _handle->Tables;
-            var hashcode = key.GetHashCode();
-            if (!TryGetValueInternal(tables, key, hashcode, out var resultingValue))
+            var hashCode = key.GetHashCode();
+            if (!TryGetValueInternal(tables, key, hashCode, out var resultingValue))
                 TryAddInternal(tables, key, value, false, true, out resultingValue);
             return resultingValue;
         }
@@ -545,7 +553,7 @@ namespace NativeCollections
                     var current = (Node*)bucket.Node;
                     while (current != null)
                     {
-                        var hashCode = current->Hashcode;
+                        var hashCode = current->HashCode;
                         var next = current->Next;
                         ref var newBucket = ref GetBucketAndLock(newTables, hashCode, out var newLockNo);
                         var newNode = current;
@@ -629,11 +637,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool TryAddInternal(Tables* tables, TKey key, TValue value, bool updateIfExists, bool acquireLock, out TValue resultingValue)
         {
-            var hashcode = key.GetHashCode();
+            var hashCode = key.GetHashCode();
             while (true)
             {
                 var locks = tables->Locks;
-                ref var bucket = ref GetBucketAndLock(tables, hashcode, out var lockNo);
+                ref var bucket = ref GetBucketAndLock(tables, hashCode, out var lockNo);
                 var resizeDesired = false;
                 var lockTaken = false;
                 try
@@ -649,7 +657,7 @@ namespace NativeCollections
                     Node* prev = null;
                     for (var node = (Node*)bucket; node != null; node = node->Next)
                     {
-                        if (hashcode == node->Hashcode && node->Key.Equals(key))
+                        if (hashCode == node->HashCode && node->Key.Equals(key))
                         {
                             if (updateIfExists)
                             {
@@ -662,7 +670,7 @@ namespace NativeCollections
                                     _handle->NodeLock.Enter();
                                     var newNode = (Node*)_handle->NodePool.Rent();
                                     _handle->NodeLock.Exit();
-                                    newNode->Initialize(node->Key, value, hashcode, node->Next);
+                                    newNode->Initialize(node->Key, value, hashCode, node->Next);
                                     if (prev == null)
                                         Volatile.Write(ref bucket, (nint)newNode);
                                     else
@@ -688,7 +696,7 @@ namespace NativeCollections
                     _handle->NodeLock.Enter();
                     var resultNode = (Node*)_handle->NodePool.Rent();
                     _handle->NodeLock.Exit();
-                    resultNode->Initialize(key, value, hashcode, (Node*)bucket);
+                    resultNode->Initialize(key, value, hashCode, (Node*)bucket);
                     Volatile.Write(ref bucket, (nint)resultNode);
                     checked
                     {
@@ -714,11 +722,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool TryUpdateInternal(Tables* tables, TKey key, TValue newValue, TValue comparisonValue)
         {
-            var hashcode = key.GetHashCode();
+            var hashCode = key.GetHashCode();
             while (true)
             {
                 var locks = tables->Locks;
-                ref var bucket = ref GetBucketAndLock(tables, hashcode, out var lockNo);
+                ref var bucket = ref GetBucketAndLock(tables, hashCode, out var lockNo);
                 locks[lockNo].Enter();
                 try
                 {
@@ -731,7 +739,7 @@ namespace NativeCollections
                     Node* prev = null;
                     for (var node = (Node*)bucket; node != null; node = node->Next)
                     {
-                        if (hashcode == node->Hashcode && node->Key.Equals(key))
+                        if (hashCode == node->HashCode && node->Key.Equals(key))
                         {
                             if (node->Value.Equals(comparisonValue))
                             {
@@ -744,7 +752,7 @@ namespace NativeCollections
                                     _handle->NodeLock.Enter();
                                     var newNode = (Node*)_handle->NodePool.Rent();
                                     _handle->NodeLock.Exit();
-                                    newNode->Initialize(node->Key, newValue, hashcode, node->Next);
+                                    newNode->Initialize(node->Key, newValue, hashCode, node->Next);
                                     if (prev == null)
                                         Volatile.Write(ref bucket, (nint)newNode);
                                     else
@@ -792,17 +800,17 @@ namespace NativeCollections
         /// </summary>
         /// <param name="tables">Tables</param>
         /// <param name="key">Key</param>
-        /// <param name="hashcode">HashCode</param>
+        /// <param name="hashCode">HashCode</param>
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool TryGetValueInternal(Tables* tables, in TKey key, int hashcode, out TValue value)
+        private static bool TryGetValueInternal(Tables* tables, in TKey key, int hashCode, out TValue value)
         {
-            for (var n = (Node*)GetBucket(tables, hashcode); n != null; n = n->Next)
+            for (var node = (Node*)GetBucket(tables, hashCode); node != null; node = node->Next)
             {
-                if (hashcode == n->Hashcode && n->Key.Equals(key))
+                if (hashCode == node->HashCode && node->Key.Equals(key))
                 {
-                    value = n->Value;
+                    value = node->Value;
                     return true;
                 }
             }
@@ -815,27 +823,27 @@ namespace NativeCollections
         ///     Get bucket
         /// </summary>
         /// <param name="tables">Tables</param>
-        /// <param name="hashcode">HashCode</param>
+        /// <param name="hashCode">HashCode</param>
         /// <returns>Bucket</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static nint GetBucket(Tables* tables, int hashcode)
+        private static nint GetBucket(Tables* tables, int hashCode)
         {
             var buckets = tables->Buckets;
-            return IntPtr.Size == 8 ? buckets[HashHelpers.FastMod((uint)hashcode, (uint)buckets.Length, tables->FastModBucketsMultiplier)].Node : buckets[(uint)hashcode % (uint)buckets.Length].Node;
+            return IntPtr.Size == 8 ? buckets[HashHelpers.FastMod((uint)hashCode, (uint)buckets.Length, tables->FastModBucketsMultiplier)].Node : buckets[(uint)hashCode % (uint)buckets.Length].Node;
         }
 
         /// <summary>
         ///     Get bucket and lock
         /// </summary>
         /// <param name="tables">Tables</param>
-        /// <param name="hashcode">HashCode</param>
+        /// <param name="hashCode">HashCode</param>
         /// <param name="lockNo">Lock no</param>
         /// <returns>Bucket</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static ref nint GetBucketAndLock(Tables* tables, int hashcode, out uint lockNo)
+        private static ref nint GetBucketAndLock(Tables* tables, int hashCode, out uint lockNo)
         {
             var buckets = tables->Buckets;
-            var bucketNo = IntPtr.Size == 8 ? HashHelpers.FastMod((uint)hashcode, (uint)buckets.Length, tables->FastModBucketsMultiplier) : (uint)hashcode % (uint)buckets.Length;
+            var bucketNo = IntPtr.Size == 8 ? HashHelpers.FastMod((uint)hashCode, (uint)buckets.Length, tables->FastModBucketsMultiplier) : (uint)hashCode % (uint)buckets.Length;
             lockNo = bucketNo % (uint)tables->Locks.Length;
             return ref buckets[bucketNo].Node;
         }
@@ -872,24 +880,24 @@ namespace NativeCollections
             public volatile Node* Next;
 
             /// <summary>
-            ///     Hashcode
+            ///     HashCode
             /// </summary>
-            public int Hashcode;
+            public int HashCode;
 
             /// <summary>
             ///     Initialize
             /// </summary>
             /// <param name="key">Key</param>
             /// <param name="value">Value</param>
-            /// <param name="hashcode">Hashcode</param>
+            /// <param name="hashCode">HashCode</param>
             /// <param name="next">Next</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void Initialize(in TKey key, in TValue value, int hashcode, Node* next)
+            public void Initialize(in TKey key, in TValue value, int hashCode, Node* next)
             {
                 Key = key;
                 Value = value;
                 Next = next;
-                Hashcode = hashcode;
+                HashCode = hashCode;
             }
         }
 
