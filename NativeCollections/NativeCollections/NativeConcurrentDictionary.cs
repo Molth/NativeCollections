@@ -333,8 +333,15 @@ namespace NativeCollections
                                     prev->Next = curr->Next;
                                 value = curr->Value;
                                 _handle->NodeLock.Enter();
-                                _handle->NodePool.Return(curr);
-                                _handle->NodeLock.Exit();
+                                try
+                                {
+                                    _handle->NodePool.Return(curr);
+                                }
+                                finally
+                                {
+                                    _handle->NodeLock.Exit();
+                                }
+
                                 tables->CountPerLock[lockNo]--;
                                 return true;
                             }
@@ -392,8 +399,15 @@ namespace NativeCollections
                                 else
                                     prev->Next = curr->Next;
                                 _handle->NodeLock.Enter();
-                                _handle->NodePool.Return(curr);
-                                _handle->NodeLock.Exit();
+                                try
+                                {
+                                    _handle->NodePool.Return(curr);
+                                }
+                                finally
+                                {
+                                    _handle->NodeLock.Exit();
+                                }
+
                                 tables->CountPerLock[lockNo]--;
                                 return true;
                             }
@@ -666,17 +680,31 @@ namespace NativeCollections
                                 }
                                 else
                                 {
+                                    Node* newNode;
                                     _handle->NodeLock.Enter();
-                                    var newNode = (Node*)_handle->NodePool.Rent();
-                                    _handle->NodeLock.Exit();
+                                    try
+                                    {
+                                        newNode = (Node*)_handle->NodePool.Rent();
+                                    }
+                                    finally
+                                    {
+                                        _handle->NodeLock.Exit();
+                                    }
+
                                     newNode->Initialize(node->Key, value, hashCode, node->Next);
                                     if (prev == null)
                                         Volatile.Write(ref bucket, (nint)newNode);
                                     else
                                         prev->Next = newNode;
                                     _handle->NodeLock.Enter();
-                                    _handle->NodePool.Return(node);
-                                    _handle->NodeLock.Exit();
+                                    try
+                                    {
+                                        _handle->NodePool.Return(node);
+                                    }
+                                    finally
+                                    {
+                                        _handle->NodeLock.Exit();
+                                    }
                                 }
 
                                 resultingValue = value;
@@ -692,9 +720,17 @@ namespace NativeCollections
                         prev = node;
                     }
 
+                    Node* resultNode;
                     _handle->NodeLock.Enter();
-                    var resultNode = (Node*)_handle->NodePool.Rent();
-                    _handle->NodeLock.Exit();
+                    try
+                    {
+                        resultNode = (Node*)_handle->NodePool.Rent();
+                    }
+                    finally
+                    {
+                        _handle->NodeLock.Exit();
+                    }
+
                     resultNode->Initialize(key, value, hashCode, (Node*)bucket);
                     Volatile.Write(ref bucket, (nint)resultNode);
                     checked
@@ -748,17 +784,31 @@ namespace NativeCollections
                                 }
                                 else
                                 {
+                                    Node* newNode;
                                     _handle->NodeLock.Enter();
-                                    var newNode = (Node*)_handle->NodePool.Rent();
-                                    _handle->NodeLock.Exit();
+                                    try
+                                    {
+                                        newNode = (Node*)_handle->NodePool.Rent();
+                                    }
+                                    finally
+                                    {
+                                        _handle->NodeLock.Exit();
+                                    }
+
                                     newNode->Initialize(node->Key, newValue, hashCode, node->Next);
                                     if (prev == null)
                                         Volatile.Write(ref bucket, (nint)newNode);
                                     else
                                         prev->Next = newNode;
                                     _handle->NodeLock.Enter();
-                                    _handle->NodePool.Return(node);
-                                    _handle->NodeLock.Exit();
+                                    try
+                                    {
+                                        _handle->NodePool.Return(node);
+                                    }
+                                    finally
+                                    {
+                                        _handle->NodeLock.Exit();
+                                    }
                                 }
 
                                 return true;

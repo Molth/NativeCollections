@@ -158,15 +158,20 @@ namespace NativeCollections
         public void Clear()
         {
             _handle->NodePoolLock.Enter();
-            var node = (Node*)_handle->Head;
-            while (node != null)
+            try
             {
-                var temp = node;
-                node = node->Next;
-                _handle->NodePool.Return(temp);
+                var node = (Node*)_handle->Head;
+                while (node != null)
+                {
+                    var temp = node;
+                    node = node->Next;
+                    _handle->NodePool.Return(temp);
+                }
             }
-
-            _handle->NodePoolLock.Exit();
+            finally
+            {
+                _handle->NodePoolLock.Exit();
+            }
         }
 
         /// <summary>
@@ -176,9 +181,17 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Push(in T item)
         {
+            Node* newNode;
             _handle->NodePoolLock.Enter();
-            var newNode = (Node*)_handle->NodePool.Rent();
-            _handle->NodePoolLock.Exit();
+            try
+            {
+                newNode = (Node*)_handle->NodePool.Rent();
+            }
+            finally
+            {
+                _handle->NodePoolLock.Exit();
+            }
+
             newNode->Value = item;
             newNode->Next = (Node*)_handle->Head;
             if (Interlocked.CompareExchange(ref _handle->Head, (nint)newNode, (nint)newNode->Next) == (nint)newNode->Next)
@@ -226,8 +239,15 @@ namespace NativeCollections
             {
                 result = head->Value;
                 _handle->NodePoolLock.Enter();
-                _handle->NodePool.Return(head);
-                _handle->NodePoolLock.Exit();
+                try
+                {
+                    _handle->NodePool.Return(head);
+                }
+                finally
+                {
+                    _handle->NodePoolLock.Exit();
+                }
+
                 return true;
             }
 
@@ -249,8 +269,15 @@ namespace NativeCollections
                 {
                     result = head->Value;
                     _handle->NodePoolLock.Enter();
-                    _handle->NodePool.Return(head);
-                    _handle->NodePoolLock.Exit();
+                    try
+                    {
+                        _handle->NodePool.Return(head);
+                    }
+                    finally
+                    {
+                        _handle->NodePoolLock.Exit();
+                    }
+
                     return true;
                 }
 

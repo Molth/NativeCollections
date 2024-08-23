@@ -289,8 +289,15 @@ namespace NativeCollections
                                 else
                                     prev->Next = curr->Next;
                                 _handle->NodeLock.Enter();
-                                _handle->NodePool.Return(curr);
-                                _handle->NodeLock.Exit();
+                                try
+                                {
+                                    _handle->NodePool.Return(curr);
+                                }
+                                finally
+                                {
+                                    _handle->NodeLock.Exit();
+                                }
+
                                 tables->CountPerLock[lockNo]--;
                                 return true;
                             }
@@ -530,9 +537,17 @@ namespace NativeCollections
                             return false;
                     }
 
+                    Node* resultNode;
                     _handle->NodeLock.Enter();
-                    var resultNode = (Node*)_handle->NodePool.Rent();
-                    _handle->NodeLock.Exit();
+                    try
+                    {
+                        resultNode = (Node*)_handle->NodePool.Rent();
+                    }
+                    finally
+                    {
+                        _handle->NodeLock.Exit();
+                    }
+
                     resultNode->Initialize(key, hashCode, (Node*)bucket);
                     Volatile.Write(ref bucket, (nint)resultNode);
                     checked

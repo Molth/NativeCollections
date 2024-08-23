@@ -280,20 +280,25 @@ namespace NativeCollections
                     else
                     {
                         _crossSegmentLock.Enter();
-                        if (head == _head && tail == _tail)
+                        try
                         {
-                            var tailHead = Volatile.Read(ref tail->HeadAndTail.Head);
-                            var tailTail = Volatile.Read(ref tail->HeadAndTail.Tail);
-                            if (headHead == Volatile.Read(ref head->HeadAndTail.Head) && headTail == Volatile.Read(ref head->HeadAndTail.Tail) && tailHead == Volatile.Read(ref tail->HeadAndTail.Head) && tailTail == Volatile.Read(ref tail->HeadAndTail.Tail))
+                            if (head == _head && tail == _tail)
                             {
-                                var count = GetCount(head, headHead, headTail) + GetCount(tail, tailHead, tailTail);
-                                for (var s = (NativeConcurrentQueueSegmentNotArm64<T>*)head->NextSegment; s != tail; s = (NativeConcurrentQueueSegmentNotArm64<T>*)s->NextSegment)
-                                    count += s->HeadAndTail.Tail - s->FreezeOffset;
-                                return count;
+                                var tailHead = Volatile.Read(ref tail->HeadAndTail.Head);
+                                var tailTail = Volatile.Read(ref tail->HeadAndTail.Tail);
+                                if (headHead == Volatile.Read(ref head->HeadAndTail.Head) && headTail == Volatile.Read(ref head->HeadAndTail.Tail) && tailHead == Volatile.Read(ref tail->HeadAndTail.Head) && tailTail == Volatile.Read(ref tail->HeadAndTail.Tail))
+                                {
+                                    var count = GetCount(head, headHead, headTail) + GetCount(tail, tailHead, tailTail);
+                                    for (var s = (NativeConcurrentQueueSegmentNotArm64<T>*)head->NextSegment; s != tail; s = (NativeConcurrentQueueSegmentNotArm64<T>*)s->NextSegment)
+                                        count += s->HeadAndTail.Tail - s->FreezeOffset;
+                                    return count;
+                                }
                             }
                         }
-
-                        _crossSegmentLock.Exit();
+                        finally
+                        {
+                            _crossSegmentLock.Exit();
+                        }
                     }
 
                     if ((spinCount >= 10 && (spinCount - 10) % 2 == 0) || Environment.ProcessorCount == 1)
@@ -368,21 +373,27 @@ namespace NativeCollections
         public void Clear()
         {
             _crossSegmentLock.Enter();
-            _tail->EnsureFrozenForEnqueues();
-            var node = _head;
-            while (node != null)
+            try
             {
-                var temp = node;
-                node = (NativeConcurrentQueueSegmentNotArm64<T>*)node->NextSegment;
-                _slotsPool.Return(temp->Length, temp->Slots);
-                _segmentPool.Return(temp);
-            }
+                _tail->EnsureFrozenForEnqueues();
+                var node = _head;
+                while (node != null)
+                {
+                    var temp = node;
+                    node = (NativeConcurrentQueueSegmentNotArm64<T>*)node->NextSegment;
+                    _slotsPool.Return(temp->Length, temp->Slots);
+                    _segmentPool.Return(temp);
+                }
 
-            var segment = (NativeConcurrentQueueSegmentNotArm64<T>*)NativeMemoryAllocator.Alloc(sizeof(NativeConcurrentQueueSegmentNotArm64<T>));
-            var slots = _slotsPool.Rent(32);
-            segment->Initialize(slots, 32);
-            _tail = _head = segment;
-            _crossSegmentLock.Exit();
+                var segment = (NativeConcurrentQueueSegmentNotArm64<T>*)NativeMemoryAllocator.Alloc(sizeof(NativeConcurrentQueueSegmentNotArm64<T>));
+                var slots = _slotsPool.Rent(32);
+                segment->Initialize(slots, 32);
+                _tail = _head = segment;
+            }
+            finally
+            {
+                _crossSegmentLock.Exit();
+            }
         }
 
         /// <summary>
@@ -400,19 +411,24 @@ namespace NativeCollections
                     if (tail->TryEnqueue(item))
                         return;
                     _crossSegmentLock.Enter();
-                    if (tail == _tail)
+                    try
                     {
-                        tail->EnsureFrozenForEnqueues();
-                        var newSize = tail->Length * 2;
-                        var nextSize = newSize <= 1048576 ? newSize : 1048576;
-                        var newTail = (NativeConcurrentQueueSegmentNotArm64<T>*)_segmentPool.Rent();
-                        var array = _slotsPool.Rent(nextSize);
-                        newTail->Initialize(array, nextSize);
-                        tail->NextSegment = (nint)newTail;
-                        _tail = newTail;
+                        if (tail == _tail)
+                        {
+                            tail->EnsureFrozenForEnqueues();
+                            var newSize = tail->Length * 2;
+                            var nextSize = newSize <= 1048576 ? newSize : 1048576;
+                            var newTail = (NativeConcurrentQueueSegmentNotArm64<T>*)_segmentPool.Rent();
+                            var array = _slotsPool.Rent(nextSize);
+                            newTail->Initialize(array, nextSize);
+                            tail->NextSegment = (nint)newTail;
+                            _tail = newTail;
+                        }
                     }
-
-                    _crossSegmentLock.Exit();
+                    finally
+                    {
+                        _crossSegmentLock.Exit();
+                    }
                 }
             }
         }
@@ -448,14 +464,19 @@ namespace NativeCollections
                 if (head->TryDequeue(out result))
                     return true;
                 _crossSegmentLock.Enter();
-                if (head == _head)
+                try
                 {
-                    _head = (NativeConcurrentQueueSegmentNotArm64<T>*)head->NextSegment;
-                    _slotsPool.Return(head->Length, head->Slots);
-                    _segmentPool.Return(head);
+                    if (head == _head)
+                    {
+                        _head = (NativeConcurrentQueueSegmentNotArm64<T>*)head->NextSegment;
+                        _slotsPool.Return(head->Length, head->Slots);
+                        _segmentPool.Return(head);
+                    }
                 }
-
-                _crossSegmentLock.Exit();
+                finally
+                {
+                    _crossSegmentLock.Exit();
+                }
             }
         }
 
@@ -845,20 +866,25 @@ namespace NativeCollections
                     else
                     {
                         _crossSegmentLock.Enter();
-                        if (head == _head && tail == _tail)
+                        try
                         {
-                            var tailHead = Volatile.Read(ref tail->HeadAndTail.Head);
-                            var tailTail = Volatile.Read(ref tail->HeadAndTail.Tail);
-                            if (headHead == Volatile.Read(ref head->HeadAndTail.Head) && headTail == Volatile.Read(ref head->HeadAndTail.Tail) && tailHead == Volatile.Read(ref tail->HeadAndTail.Head) && tailTail == Volatile.Read(ref tail->HeadAndTail.Tail))
+                            if (head == _head && tail == _tail)
                             {
-                                var count = GetCount(head, headHead, headTail) + GetCount(tail, tailHead, tailTail);
-                                for (var s = (NativeConcurrentQueueSegmentArm64<T>*)head->NextSegment; s != tail; s = (NativeConcurrentQueueSegmentArm64<T>*)s->NextSegment)
-                                    count += s->HeadAndTail.Tail - s->FreezeOffset;
-                                return count;
+                                var tailHead = Volatile.Read(ref tail->HeadAndTail.Head);
+                                var tailTail = Volatile.Read(ref tail->HeadAndTail.Tail);
+                                if (headHead == Volatile.Read(ref head->HeadAndTail.Head) && headTail == Volatile.Read(ref head->HeadAndTail.Tail) && tailHead == Volatile.Read(ref tail->HeadAndTail.Head) && tailTail == Volatile.Read(ref tail->HeadAndTail.Tail))
+                                {
+                                    var count = GetCount(head, headHead, headTail) + GetCount(tail, tailHead, tailTail);
+                                    for (var s = (NativeConcurrentQueueSegmentArm64<T>*)head->NextSegment; s != tail; s = (NativeConcurrentQueueSegmentArm64<T>*)s->NextSegment)
+                                        count += s->HeadAndTail.Tail - s->FreezeOffset;
+                                    return count;
+                                }
                             }
                         }
-
-                        _crossSegmentLock.Exit();
+                        finally
+                        {
+                            _crossSegmentLock.Exit();
+                        }
                     }
 
                     if ((spinCount >= 10 && (spinCount - 10) % 2 == 0) || Environment.ProcessorCount == 1)
@@ -933,21 +959,27 @@ namespace NativeCollections
         public void Clear()
         {
             _crossSegmentLock.Enter();
-            _tail->EnsureFrozenForEnqueues();
-            var node = _head;
-            while (node != null)
+            try
             {
-                var temp = node;
-                node = (NativeConcurrentQueueSegmentArm64<T>*)node->NextSegment;
-                _slotsPool.Return(temp->Length, temp->Slots);
-                _segmentPool.Return(temp);
-            }
+                _tail->EnsureFrozenForEnqueues();
+                var node = _head;
+                while (node != null)
+                {
+                    var temp = node;
+                    node = (NativeConcurrentQueueSegmentArm64<T>*)node->NextSegment;
+                    _slotsPool.Return(temp->Length, temp->Slots);
+                    _segmentPool.Return(temp);
+                }
 
-            var segment = (NativeConcurrentQueueSegmentArm64<T>*)NativeMemoryAllocator.Alloc(sizeof(NativeConcurrentQueueSegmentArm64<T>));
-            var slots = _slotsPool.Rent(32);
-            segment->Initialize(slots, 32);
-            _tail = _head = segment;
-            _crossSegmentLock.Exit();
+                var segment = (NativeConcurrentQueueSegmentArm64<T>*)NativeMemoryAllocator.Alloc(sizeof(NativeConcurrentQueueSegmentArm64<T>));
+                var slots = _slotsPool.Rent(32);
+                segment->Initialize(slots, 32);
+                _tail = _head = segment;
+            }
+            finally
+            {
+                _crossSegmentLock.Exit();
+            }
         }
 
         /// <summary>
@@ -965,19 +997,24 @@ namespace NativeCollections
                     if (tail->TryEnqueue(item))
                         return;
                     _crossSegmentLock.Enter();
-                    if (tail == _tail)
+                    try
                     {
-                        tail->EnsureFrozenForEnqueues();
-                        var newSize = tail->Length * 2;
-                        var nextSize = newSize <= 1048576 ? newSize : 1048576;
-                        var newTail = (NativeConcurrentQueueSegmentArm64<T>*)_segmentPool.Rent();
-                        var array = _slotsPool.Rent(nextSize);
-                        newTail->Initialize(array, nextSize);
-                        tail->NextSegment = (nint)newTail;
-                        _tail = newTail;
+                        if (tail == _tail)
+                        {
+                            tail->EnsureFrozenForEnqueues();
+                            var newSize = tail->Length * 2;
+                            var nextSize = newSize <= 1048576 ? newSize : 1048576;
+                            var newTail = (NativeConcurrentQueueSegmentArm64<T>*)_segmentPool.Rent();
+                            var array = _slotsPool.Rent(nextSize);
+                            newTail->Initialize(array, nextSize);
+                            tail->NextSegment = (nint)newTail;
+                            _tail = newTail;
+                        }
                     }
-
-                    _crossSegmentLock.Exit();
+                    finally
+                    {
+                        _crossSegmentLock.Exit();
+                    }
                 }
             }
         }
@@ -1013,14 +1050,19 @@ namespace NativeCollections
                 if (head->TryDequeue(out result))
                     return true;
                 _crossSegmentLock.Enter();
-                if (head == _head)
+                try
                 {
-                    _head = (NativeConcurrentQueueSegmentArm64<T>*)head->NextSegment;
-                    _slotsPool.Return(head->Length, head->Slots);
-                    _segmentPool.Return(head);
+                    if (head == _head)
+                    {
+                        _head = (NativeConcurrentQueueSegmentArm64<T>*)head->NextSegment;
+                        _slotsPool.Return(head->Length, head->Slots);
+                        _segmentPool.Return(head);
+                    }
                 }
-
-                _crossSegmentLock.Exit();
+                finally
+                {
+                    _crossSegmentLock.Exit();
+                }
             }
         }
 
