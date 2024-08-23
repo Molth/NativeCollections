@@ -106,8 +106,7 @@ namespace NativeCollections
                 capacity = concurrencyLevel;
             capacity = HashHelpers.GetPrime(capacity);
             var locks = new NativeArrayReference<object>(concurrencyLevel);
-            locks[0] = locks;
-            for (var i = 1; i < locks.Length; ++i)
+            for (var i = 0; i < locks.Length; ++i)
                 locks[i] = new object();
             var countPerLock = new NativeArray<int>(locks.Length, true);
             var buckets = new NativeArray<VolatileNode>(capacity, true);
