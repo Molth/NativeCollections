@@ -395,6 +395,11 @@ namespace NativeCollections
 
             return count;
         }
+
+        /// <summary>
+        ///     Empty
+        /// </summary>
+        public static NativeConcurrentQueue<T> Empty => new();
     }
 
     /// <summary>

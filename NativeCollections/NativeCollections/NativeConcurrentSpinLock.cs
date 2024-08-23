@@ -176,5 +176,10 @@ namespace NativeCollections
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Exit() => Interlocked.Add(ref _handle->NextSequenceNumber, 1);
+
+        /// <summary>
+        ///     Empty
+        /// </summary>
+        public static NativeConcurrentSpinLock Empty => new();
     }
 }

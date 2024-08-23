@@ -229,5 +229,10 @@ namespace NativeCollections
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Exit() => Monitor.Exit(_handle.Target);
+
+        /// <summary>
+        ///     Empty
+        /// </summary>
+        public static NativeMonitorLock Empty => new();
     }
 }

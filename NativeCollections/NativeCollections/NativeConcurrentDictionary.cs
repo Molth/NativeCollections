@@ -956,6 +956,11 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Empty
+        /// </summary>
+        public static NativeConcurrentDictionary<TKey, TValue> Empty => new();
+
+        /// <summary>
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>

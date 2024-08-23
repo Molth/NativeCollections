@@ -292,6 +292,11 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Empty
+        /// </summary>
+        public static NativeConcurrentStack<T> Empty => new();
+
+        /// <summary>
         ///     Node
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]

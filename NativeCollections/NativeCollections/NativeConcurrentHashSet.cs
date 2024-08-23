@@ -701,6 +701,11 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Empty
+        /// </summary>
+        public static NativeConcurrentHashSet<T> Empty => new();
+
+        /// <summary>
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
