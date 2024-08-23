@@ -51,12 +51,10 @@ namespace NativeCollections
             /// </summary>
             public int EntriesLength;
 
-#if TARGET_64BIT
             /// <summary>
             ///     FastModMultiplier
             /// </summary>
             public ulong FastModMultiplier;
-#endif
 
             /// <summary>
             ///     Count
@@ -460,9 +458,7 @@ namespace NativeCollections
             _handle->Entries = (Entry*)NativeMemoryAllocator.AllocZeroed(size * sizeof(Entry));
             _handle->BucketsLength = size;
             _handle->EntriesLength = size;
-#if TARGET_64BIT
-            _handle->FastModMultiplier = HashHelpers.GetFastModMultiplier((uint)size);
-#endif
+            _handle->FastModMultiplier = IntPtr.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)size) : 0;
         }
 
         /// <summary>
@@ -485,9 +481,7 @@ namespace NativeCollections
             NativeMemoryAllocator.Free(_handle->Buckets);
             _handle->Buckets = buckets;
             _handle->BucketsLength = newSize;
-#if TARGET_64BIT
-            _handle->FastModMultiplier = HashHelpers.GetFastModMultiplier((uint)newSize);
-#endif
+            _handle->FastModMultiplier = IntPtr.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)newSize) : 0;
             for (var i = 0; i < count; i++)
             {
                 if (entries[i].Next >= -1)
@@ -674,12 +668,7 @@ namespace NativeCollections
         /// <param name="hashCode">HashCode</param>
         /// <returns>Bucket ref</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ref int GetBucket(uint hashCode) =>
-#if TARGET_64BIT
-            ref _handle->Buckets[HashHelpers.FastMod(hashCode, (uint)_handle->BucketsLength, _handle->FastModMultiplier)];
-#else
-            ref _handle->Buckets[hashCode % _handle->BucketsLength];
-#endif
+        private ref int GetBucket(uint hashCode) => ref IntPtr.Size == 8 ? ref _handle->Buckets[HashHelpers.FastMod(hashCode, (uint)_handle->BucketsLength, _handle->FastModMultiplier)] : ref _handle->Buckets[hashCode % _handle->BucketsLength];
 
         /// <summary>
         ///     Entry
