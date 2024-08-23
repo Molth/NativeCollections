@@ -588,7 +588,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Log2</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int Log2(int value) => BitOperationsHelper.Log2(value);
+        private static int Log2(int value) => BitOperationsHelpers.Log2(value);
 
         /// <summary>
         ///     Node

@@ -805,7 +805,7 @@ namespace NativeCollections
         /// <param name="bufferSize">Buffer size</param>
         /// <returns>Bucket index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int SelectBucketIndex(int bufferSize) => BitOperationsHelper.Log2(((uint)bufferSize - 1) | 15) - 4;
+        private static int SelectBucketIndex(int bufferSize) => BitOperationsHelpers.Log2(((uint)bufferSize - 1) | 15) - 4;
 
         /// <summary>
         ///     Empty

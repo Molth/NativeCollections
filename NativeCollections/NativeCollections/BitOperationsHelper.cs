@@ -12,9 +12,9 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     BitOperations helper
+    ///     BitOperations helpers
     /// </summary>
-    internal static class BitOperationsHelper
+    internal static class BitOperationsHelpers
     {
 #if !NET5_0_OR_GREATER
         /// <summary>
