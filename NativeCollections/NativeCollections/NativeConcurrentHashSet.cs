@@ -83,10 +83,10 @@ namespace NativeCollections
             if (capacity < concurrencyLevel)
                 capacity = concurrencyLevel;
             capacity = HashHelpers.GetPrime(capacity);
-            var locks = new NativeArray<NativeMonitorLock>(concurrencyLevel);
-            locks[0] = new NativeMonitorLock(locks);
+            var locks = new NativeArrayReference<object>(concurrencyLevel);
+            locks[0] = locks;
             for (var i = 1; i < locks.Length; ++i)
-                locks[i] = new NativeMonitorLock(new object());
+                locks[i] = new object();
             var countPerLock = new NativeArray<int>(locks.Length, true);
             var buckets = new NativeArray<VolatileNode>(capacity, true);
             _handle = (NativeConcurrentHashSetHandle*)NativeMemoryAllocator.Alloc(sizeof(NativeConcurrentHashSetHandle));
@@ -271,7 +271,7 @@ namespace NativeCollections
                 ref var bucket = ref GetBucketAndLock(tables, hashCode, out var lockNo);
                 if (tables->CountPerLock[lockNo] != 0)
                 {
-                    locks[lockNo].Enter();
+                    Monitor.Enter(locks[lockNo]);
                     try
                     {
                         if (tables != _handle->Tables)
@@ -301,7 +301,7 @@ namespace NativeCollections
                     }
                     finally
                     {
-                        locks[lockNo].Exit();
+                        Monitor.Exit(locks[lockNo]);
                     }
                 }
 
@@ -409,8 +409,8 @@ namespace NativeCollections
                 var newLocks = tables->Locks;
                 if (_handle->GrowLockArray && tables->Locks.Length < 1024)
                 {
-                    newLocks = new NativeArray<NativeMonitorLock>(tables->Locks.Length * 2);
-                    Unsafe.CopyBlockUnaligned(newLocks.Array, tables->Locks.Array, (uint)(tables->Locks.Length * sizeof(NativeMonitorLock)));
+                    newLocks = new NativeArrayReference<object>(tables->Locks.Length * 2);
+                    Array.Copy(tables->Locks.Array, newLocks.Array, tables->Locks.Length);
                     for (var i = tables->Locks.Length; i < newLocks.Length; ++i)
                         newLocks[i] = new NativeMonitorLock(new object());
                 }
@@ -474,7 +474,7 @@ namespace NativeCollections
         private void AcquireFirstLock(ref int locksAcquired)
         {
             var locks = _handle->Tables->Locks;
-            locks[0].Enter();
+            Monitor.Enter(locks[0]);
             locksAcquired = 1;
         }
 
@@ -489,7 +489,7 @@ namespace NativeCollections
             var locks = tables->Locks;
             for (var i = 1; i < locks.Length; ++i)
             {
-                locks[i].Enter();
+                Monitor.Enter(locks[i]);
                 locksAcquired++;
             }
         }
@@ -503,7 +503,7 @@ namespace NativeCollections
         {
             var locks = _handle->Tables->Locks;
             for (var i = 0; i < locksAcquired; ++i)
-                locks[i].Exit();
+                Monitor.Exit(locks[i]);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -518,7 +518,7 @@ namespace NativeCollections
                 var lockTaken = false;
                 try
                 {
-                    locks[lockNo].Enter(ref lockTaken);
+                    Monitor.Enter(locks[lockNo], ref lockTaken);
                     if (tables != _handle->Tables)
                     {
                         tables = _handle->Tables;
@@ -547,7 +547,7 @@ namespace NativeCollections
                 finally
                 {
                     if (lockTaken)
-                        locks[lockNo].Exit();
+                        Monitor.Exit(locks[lockNo]);
                 }
 
                 if (resizeDesired)
@@ -664,7 +664,7 @@ namespace NativeCollections
             /// <summary>
             ///     Locks
             /// </summary>
-            public NativeArray<NativeMonitorLock> Locks;
+            public NativeArrayReference<object> Locks;
 
             /// <summary>
             ///     Count per lock
@@ -678,7 +678,7 @@ namespace NativeCollections
             /// <param name="locks">Locks</param>
             /// <param name="countPerLock">Count per lock</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void Initialize(in NativeArray<VolatileNode> buckets, in NativeArray<NativeMonitorLock> locks, in NativeArray<int> countPerLock)
+            public void Initialize(in NativeArray<VolatileNode> buckets, in NativeArrayReference<object> locks, in NativeArray<int> countPerLock)
             {
                 Buckets = buckets;
                 Locks = locks;
@@ -693,8 +693,6 @@ namespace NativeCollections
             public void Dispose()
             {
                 Buckets.Dispose();
-                for (var i = 0; i < Locks.Length; ++i)
-                    Locks[i].Dispose();
                 Locks.Dispose();
                 CountPerLock.Dispose();
             }
