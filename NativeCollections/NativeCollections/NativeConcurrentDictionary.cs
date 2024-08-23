@@ -635,7 +635,7 @@ namespace NativeCollections
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool TryAddInternal(Tables* tables, TKey key, TValue value, bool updateIfExists, bool acquireLock, out TValue resultingValue)
+        private bool TryAddInternal(Tables* tables, in TKey key, in TValue value, bool updateIfExists, bool acquireLock, out TValue resultingValue)
         {
             var hashCode = key.GetHashCode();
             while (true)
@@ -720,7 +720,7 @@ namespace NativeCollections
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool TryUpdateInternal(Tables* tables, TKey key, TValue newValue, TValue comparisonValue)
+        private bool TryUpdateInternal(Tables* tables, in TKey key, in TValue newValue, in TValue comparisonValue)
         {
             var hashCode = key.GetHashCode();
             while (true)
@@ -780,21 +780,6 @@ namespace NativeCollections
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private int GetCountNoLocks()
-        {
-            var count = 0;
-            foreach (var value in _handle->Tables->CountPerLock)
-            {
-                checked
-                {
-                    count += value;
-                }
-            }
-
-            return count;
-        }
-
         /// <summary>
         ///     Try to get the value
         /// </summary>
@@ -817,6 +802,21 @@ namespace NativeCollections
 
             value = default;
             return false;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private int GetCountNoLocks()
+        {
+            var count = 0;
+            foreach (var value in _handle->Tables->CountPerLock)
+            {
+                checked
+                {
+                    count += value;
+                }
+            }
+
+            return count;
         }
 
         /// <summary>

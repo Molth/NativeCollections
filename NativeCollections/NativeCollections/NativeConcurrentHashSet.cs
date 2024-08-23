@@ -507,7 +507,7 @@ namespace NativeCollections
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool TryAddInternal(Tables* tables, T key)
+        private bool TryAddInternal(Tables* tables, in T key)
         {
             var hashCode = key.GetHashCode();
             while (true)
