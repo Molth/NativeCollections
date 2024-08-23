@@ -234,7 +234,7 @@ namespace NativeCollections
             var count = 0;
             var backoff = 1;
 #if !NET6_0_OR_GREATER
-            Span<byte> randomNumber = stackalloc byte[1];
+            Span<byte> random = stackalloc byte[1];
 #endif
             while (true)
             {
@@ -280,8 +280,8 @@ namespace NativeCollections
 #if NET6_0_OR_GREATER
                     backoff = Random.Shared.Next(1, 8);
 #else
-                    RandomNumberGenerator.Fill(randomNumber);
-                    backoff = randomNumber[0] % 7 + 1;
+                    RandomNumberGenerator.Fill(random);
+                    backoff = random[0] % 7 + 1;
 #endif
                 }
                 else
