@@ -32,11 +32,22 @@ namespace NativeCollections
         private GCHandle _handle;
 
         /// <summary>
+        ///     Length
+        /// </summary>
+        private readonly int _length;
+
+        /// <summary>
         ///     Structure
         /// </summary>
         /// <param name="length">Length</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeArrayReference(int length) => _handle = GCHandle.Alloc(new T[length], GCHandleType.Normal);
+        public NativeArrayReference(int length)
+        {
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            _handle = GCHandle.Alloc(new T[length], GCHandleType.Normal);
+            _length = length;
+        }
 
         /// <summary>
         ///     Structure
@@ -44,14 +55,26 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <param name="type">GCHandle type</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeArrayReference(int length, GCHandleType type) => _handle = GCHandle.Alloc(new T[length], type);
+        public NativeArrayReference(int length, GCHandleType type)
+        {
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            _handle = GCHandle.Alloc(new T[length], type);
+            _length = length;
+        }
 
         /// <summary>
         ///     Structure
         /// </summary>
         /// <param name="array">Array</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeArrayReference(T[] array) => _handle = GCHandle.Alloc(array, GCHandleType.Normal);
+        public NativeArrayReference(T[] array)
+        {
+            if (array == null)
+                throw new ArgumentNullException(nameof(array), "MustBeNotNull");
+            _handle = GCHandle.Alloc(array, GCHandleType.Normal);
+            _length = array.Length;
+        }
 
         /// <summary>
         ///     Structure
@@ -59,7 +82,13 @@ namespace NativeCollections
         /// <param name="array">Array</param>
         /// <param name="type">GCHandle type</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeArrayReference(T[] array, GCHandleType type) => _handle = GCHandle.Alloc(array, type);
+        public NativeArrayReference(T[] array, GCHandleType type)
+        {
+            if (array == null)
+                throw new ArgumentNullException(nameof(array), "MustBeNotNull");
+            _handle = GCHandle.Alloc(array, type);
+            _length = array.Length;
+        }
 
         /// <summary>
         ///     Is created
@@ -69,7 +98,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is empty
         /// </summary>
-        public bool IsEmpty => Array.Length == 0;
+        public bool IsEmpty => _length == 0;
 
         /// <summary>
         ///     Get reference
@@ -103,7 +132,7 @@ namespace NativeCollections
         /// <summary>
         ///     Length
         /// </summary>
-        public int Length => Array.Length;
+        public int Length => _length;
 
         /// <summary>
         ///     Equals
