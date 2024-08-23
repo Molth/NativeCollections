@@ -175,7 +175,7 @@ namespace NativeCollections
         public ref struct Enumerator
         {
             /// <summary>
-            ///     NativeArray
+            ///     Array
             /// </summary>
             private readonly T[] _array;
 
