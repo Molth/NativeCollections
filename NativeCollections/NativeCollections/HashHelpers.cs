@@ -18,7 +18,7 @@ namespace NativeCollections
         /// <summary>
         ///     Primes
         /// </summary>
-        private static readonly int[] Primes = new int[72]
+        private static ReadOnlySpan<int> Primes => new int[72]
         {
             3, 7, 11, 17, 23, 29, 37, 47, 59, 71, 89, 107, 131, 163, 197, 239, 293, 353, 431, 521, 631, 761, 919,
             1103, 1327, 1597, 1931, 2333, 2801, 3371, 4049, 4861, 5839, 7013, 8419, 10103, 12143, 14591,
