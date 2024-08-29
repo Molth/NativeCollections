@@ -130,7 +130,7 @@ namespace NativeCollections
         /// <summary>
         ///     Array
         /// </summary>
-        public NativeArray<T> Array => new(_array, _offset + _count);
+        public T* Array => _array;
 
         /// <summary>
         ///     Offset
