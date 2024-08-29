@@ -56,19 +56,17 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeConcurrentQueue(int size, int maxFreeSlabs)
         {
-            if (size < 1)
-                size = 1;
-            if (maxFreeSlabs < 0)
-                maxFreeSlabs = 0;
             if (RuntimeInformation.ProcessArchitecture != Architecture.Arm64)
             {
+                var segmentPool = new NativeMemoryPool(size, sizeof(NativeConcurrentQueueSegmentNotArm64<T>) + NativeConcurrentQueueSegmentNotArm64<T>.LENGTH * sizeof(NativeConcurrentQueueSegmentNotArm64<T>.Slot), maxFreeSlabs);
                 _handle = (nint)NativeMemoryAllocator.Alloc(sizeof(NativeConcurrentQueueNotArm64<T>));
-                NotArm64Handle->Initialize(size, maxFreeSlabs);
+                NotArm64Handle->Initialize(segmentPool);
             }
             else
             {
+                var segmentPool = new NativeMemoryPool(size, sizeof(NativeConcurrentQueueSegmentArm64<T>) + NativeConcurrentQueueSegmentArm64<T>.LENGTH * sizeof(NativeConcurrentQueueSegmentArm64<T>.Slot), maxFreeSlabs);
                 _handle = (nint)NativeMemoryAllocator.Alloc(sizeof(NativeConcurrentQueueArm64<T>));
-                Arm64Handle->Initialize(size, maxFreeSlabs);
+                Arm64Handle->Initialize(segmentPool);
             }
         }
 
@@ -318,12 +316,10 @@ namespace NativeCollections
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="size">Size</param>
-        /// <param name="maxFreeSlabs">Max free slabs</param>
+        /// <param name="segmentPool">Segment pool</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Initialize(int size, int maxFreeSlabs)
+        public void Initialize(NativeMemoryPool segmentPool)
         {
-            var segmentPool = new NativeMemoryPool(size, sizeof(NativeConcurrentQueueSegmentNotArm64<T>) + NativeConcurrentQueueSegmentNotArm64<T>.LENGTH * sizeof(NativeConcurrentQueueSegmentNotArm64<T>.Slot), maxFreeSlabs);
             _crossSegmentLock = new NativeMonitorLock(new object());
             _segmentPool = segmentPool;
             var segment = (NativeConcurrentQueueSegmentNotArm64<T>*)_segmentPool.Rent();
@@ -871,12 +867,10 @@ namespace NativeCollections
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="size">Size</param>
-        /// <param name="maxFreeSlabs">Max free slabs</param>
+        /// <param name="segmentPool">Segment pool</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Initialize(int size, int maxFreeSlabs)
+        public void Initialize(NativeMemoryPool segmentPool)
         {
-            var segmentPool = new NativeMemoryPool(size, sizeof(NativeConcurrentQueueSegmentArm64<T>) + NativeConcurrentQueueSegmentArm64<T>.LENGTH * sizeof(NativeConcurrentQueueSegmentArm64<T>.Slot), maxFreeSlabs);
             _crossSegmentLock = new NativeMonitorLock(new object());
             _segmentPool = segmentPool;
             var segment = (NativeConcurrentQueueSegmentArm64<T>*)_segmentPool.Rent();
