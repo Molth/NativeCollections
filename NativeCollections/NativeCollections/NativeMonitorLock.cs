@@ -49,13 +49,6 @@ namespace NativeCollections
         public NativeMonitorLock(object value, GCHandleType type) => _handle = GCHandle.Alloc(value, type);
 
         /// <summary>
-        ///     Structure
-        /// </summary>
-        /// <param name="type">GCHandle type</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeMonitorLock(GCHandleType type) => _handle = GCHandle.Alloc(new object(), type);
-
-        /// <summary>
         ///     Is created
         /// </summary>
         public bool IsCreated => _handle.IsAllocated;
