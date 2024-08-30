@@ -7,12 +7,7 @@ using System;
 #pragma warning disable CA2208
 #pragma warning disable CS8632
 
-// ReSharper disable ConvertToAutoProperty
-// ReSharper disable ConvertToAutoPropertyWhenPossible
-// ReSharper disable ConvertToAutoPropertyWithPrivateSetter
-// ReSharper disable ConvertIfStatementToSwitchStatement
-// ReSharper disable PossibleNullReferenceException
-// ReSharper disable MemberHidesStaticFromOuterClass
+// ReSharper disable ALL
 
 namespace NativeCollections
 {

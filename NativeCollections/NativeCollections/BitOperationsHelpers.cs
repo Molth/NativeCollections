@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 #endif
 
-// ReSharper disable RedundantExplicitArraySize
+// ReSharper disable ALL
 
 namespace NativeCollections
 {

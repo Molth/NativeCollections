@@ -3,10 +3,7 @@ using System;
 #endif
 using System.Runtime.CompilerServices;
 
-// ReSharper disable UseCollectionExpression
-// ReSharper disable RedundantExplicitArrayCreation
-// ReSharper disable RedundantArrayCreationExpression
-// ReSharper disable RedundantExplicitArraySize
+// ReSharper disable ALL
 
 namespace NativeCollections
 {

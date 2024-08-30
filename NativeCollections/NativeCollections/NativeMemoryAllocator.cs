@@ -1,6 +1,8 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+// ReSharper disable ALL
+
 namespace NativeCollections
 {
     /// <summary>
