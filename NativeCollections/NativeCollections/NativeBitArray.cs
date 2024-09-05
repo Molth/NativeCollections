@@ -15,7 +15,7 @@ namespace NativeCollections
     ///     Native bit array
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly unsafe struct NativeBitArray
+    public readonly unsafe struct NativeBitArray : IDisposable, IEquatable<NativeBitArray>
     {
         /// <summary>
         ///     Handle
@@ -96,7 +96,8 @@ namespace NativeCollections
                 if (newLength > _handle->Array.Length || newLength + 256 < _handle->Array.Length)
                 {
                     var array = new NativeArray<int>(newLength);
-                    Unsafe.CopyBlockUnaligned(array.Array, _handle->Array.Array, (uint)_handle->Array.Length);
+                    Unsafe.CopyBlockUnaligned(array.Array, _handle->Array.Array, (uint)(_handle->Array.Length * sizeof(int)));
+                    Unsafe.InitBlockUnaligned(array.Array + _handle->Array.Length, 0, (uint)(newLength - _handle->Array.Length));
                     _handle->Array.Dispose();
                     _handle->Array = array;
                 }
@@ -120,7 +121,9 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         public bool this[int index]
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => Get(index);
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set => Set(index, value);
         }
 
@@ -235,6 +238,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="value">Value</param>
         /// <returns>NativeBitArray</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeBitArray And(NativeBitArray value)
         {
             if (!value.IsCreated)
@@ -251,6 +255,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="value">Value</param>
         /// <returns>NativeBitArray</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeBitArray Or(NativeBitArray value)
         {
             if (!value.IsCreated)
@@ -267,6 +272,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="value">Value</param>
         /// <returns>NativeBitArray</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeBitArray Xor(NativeBitArray value)
         {
             if (!value.IsCreated)
@@ -282,6 +288,7 @@ namespace NativeCollections
         ///     Not
         /// </summary>
         /// <returns>NativeBitArray</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeBitArray Not()
         {
             var count = GetInt32ArrayLengthFromBitLength(Length);
@@ -294,6 +301,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="count">Count</param>
         /// <returns>NativeBitArray</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeBitArray RightShift(int count)
         {
             if (count < 0)
@@ -314,7 +322,7 @@ namespace NativeCollections
                         _handle->Array[length - 1] &= (int)mask;
                     }
 
-                    Unsafe.CopyBlockUnaligned(_handle->Array.Array, _handle->Array.Array + fromIndex, (uint)(length - fromIndex));
+                    Unsafe.CopyBlockUnaligned(_handle->Array.Array, _handle->Array.Array + fromIndex, (uint)((length - fromIndex) * sizeof(int)));
                     toIndex = length - fromIndex;
                 }
                 else
@@ -345,6 +353,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="count">Count</param>
         /// <returns>NativeBitArray</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeBitArray LeftShift(int count)
         {
             if (count < 0)
@@ -358,7 +367,7 @@ namespace NativeCollections
                 lengthToClear = Div32Rem(count, out var shiftCount);
                 if (shiftCount == 0)
                 {
-                    Unsafe.CopyBlockUnaligned(_handle->Array.Array + lengthToClear, _handle->Array.Array, (uint)(lastIndex + 1 - lengthToClear));
+                    Unsafe.CopyBlockUnaligned(_handle->Array.Array + lengthToClear, _handle->Array.Array, (uint)((lastIndex + 1 - lengthToClear) * sizeof(int)));
                 }
                 else
                 {
@@ -390,6 +399,7 @@ namespace NativeCollections
         ///     Has all set
         /// </summary>
         /// <returns>All set</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool HasAllSet()
         {
             Div32Rem(_handle->Length, out var extraBits);
@@ -419,6 +429,7 @@ namespace NativeCollections
         ///     Has any set
         /// </summary>
         /// <returns>Any set</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool HasAnySet()
         {
             Div32Rem(_handle->Length, out var extraBits);
@@ -448,6 +459,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="n"></param>
         /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetInt32ArrayLengthFromBitLength(int n)
         {
 #if NET7_0_OR_GREATER
@@ -463,6 +475,7 @@ namespace NativeCollections
         /// <param name="number">Number</param>
         /// <param name="remainder">Remainder</param>
         /// <returns>Quotient</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int Div32Rem(int number, out int remainder)
         {
             var quotient = (uint)number / 32;
