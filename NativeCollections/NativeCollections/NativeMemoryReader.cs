@@ -106,10 +106,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Read<T>(T* obj, int count) where T : unmanaged
         {
-            if (Position + (count * sizeof(T)) > Length)
-                throw new ArgumentOutOfRangeException(nameof(T), $"Requires size is {count * sizeof(T)}, but buffer length is {Remaining}.");
-            Unsafe.CopyBlockUnaligned(obj, Array + Position, (uint)(count * sizeof(T)));
-            Position += (count * sizeof(T));
+            count *= sizeof(T);
+            if (Position + count > Length)
+                throw new ArgumentOutOfRangeException(nameof(T), $"Requires size is {count}, but buffer length is {Remaining}.");
+            Unsafe.CopyBlockUnaligned(obj, Array + Position, (uint)count);
+            Position += count;
         }
 
         /// <summary>

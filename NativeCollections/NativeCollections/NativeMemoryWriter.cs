@@ -106,10 +106,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write<T>(T* obj, int count) where T : unmanaged
         {
-            if (Position + (count * sizeof(T)) > Length)
-                throw new ArgumentOutOfRangeException(nameof(T), $"Requires size is {count * sizeof(T)}, but buffer length is {Remaining}.");
-            Unsafe.CopyBlockUnaligned(Array + Position, obj, (uint)(count * sizeof(T)));
-            Position += (count * sizeof(T));
+            count *= sizeof(T);
+            if (Position + count > Length)
+                throw new ArgumentOutOfRangeException(nameof(T), $"Requires size is {count}, but buffer length is {Remaining}.");
+            Unsafe.CopyBlockUnaligned(Array + Position, obj, (uint)count);
+            Position += count;
         }
 
         /// <summary>
