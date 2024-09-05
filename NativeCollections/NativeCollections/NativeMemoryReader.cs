@@ -48,22 +48,6 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
-        /// </summary>
-        /// <param name="array">Array</param>
-        /// <param name="offset">Offset</param>
-        /// <param name="length">Length</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeMemoryReader(byte* array, int offset, int length)
-        {
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            Array = array + offset;
-            Length = length;
-            Position = 0;
-        }
-
-        /// <summary>
         ///     Remaining
         /// </summary>
         public int Remaining => Length - Position;
