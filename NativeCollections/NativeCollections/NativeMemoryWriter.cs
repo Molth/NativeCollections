@@ -40,6 +40,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeMemoryWriter(byte* array, int length)
         {
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
             Array = array;
             Length = length;
             Position = 0;
@@ -54,6 +56,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeMemoryWriter(byte* array, int offset, int length)
         {
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
             Array = array + offset;
             Length = length;
             Position = 0;
