@@ -76,9 +76,96 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="array">Array</param>
+        /// <param name="length">Length</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeBitArray(int* array, int length)
+        {
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            _handle = (NativeBitArrayHandle*)NativeMemoryAllocator.Alloc(sizeof(NativeBitArrayHandle));
+            _handle->Array = new NativeArray<int>(array, GetInt32ArrayLengthFromBitLength(length));
+            _handle->Length = length;
+        }
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="array">Array</param>
+        /// <param name="length">Length</param>
+        /// <param name="defaultValue">Default value</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeBitArray(int* array, int length, bool defaultValue)
+        {
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            _handle = (NativeBitArrayHandle*)NativeMemoryAllocator.Alloc(sizeof(NativeBitArrayHandle));
+            _handle->Array = new NativeArray<int>(array, GetInt32ArrayLengthFromBitLength(length));
+            _handle->Length = length;
+            if (defaultValue)
+            {
+                _handle->Array.AsSpan().Fill(-1);
+                Div32Rem(length, out var extraBits);
+                if (extraBits > 0)
+                    _handle->Array[^1] = (1 << extraBits) - 1;
+            }
+        }
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="array">Array</param>
+        /// <param name="length">Length</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeBitArray(NativeArray<int> array, int length)
+        {
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            var intCount = GetInt32ArrayLengthFromBitLength(length);
+            if (array.Length < intCount)
+                throw new ArgumentOutOfRangeException(nameof(array), array.Length, $"Requires size is {intCount}, but buffer length is {array.Length}.");
+            _handle = (NativeBitArrayHandle*)NativeMemoryAllocator.Alloc(sizeof(NativeBitArrayHandle));
+            _handle->Array = array;
+            _handle->Length = length;
+        }
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="array">Array</param>
+        /// <param name="length">Length</param>
+        /// <param name="defaultValue">Default value</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeBitArray(NativeArray<int> array, int length, bool defaultValue)
+        {
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            var intCount = GetInt32ArrayLengthFromBitLength(length);
+            if (array.Length < intCount)
+                throw new ArgumentOutOfRangeException(nameof(array), array.Length, $"Requires size is {intCount}, but buffer length is {array.Length}.");
+            _handle = (NativeBitArrayHandle*)NativeMemoryAllocator.Alloc(sizeof(NativeBitArrayHandle));
+            _handle->Array = array;
+            _handle->Length = length;
+            if (defaultValue)
+            {
+                _handle->Array.AsSpan().Fill(-1);
+                Div32Rem(length, out var extraBits);
+                if (extraBits > 0)
+                    _handle->Array[^1] = (1 << extraBits) - 1;
+            }
+        }
+
+        /// <summary>
         ///     Is created
         /// </summary>
         public bool IsCreated => _handle != null;
+
+        /// <summary>
+        ///     Array
+        /// </summary>
+        public NativeArray<int> Array => _handle->Array;
 
         /// <summary>
         ///     Length

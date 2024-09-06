@@ -53,6 +53,26 @@ namespace NativeCollections
         public int Remaining => Length - Position;
 
         /// <summary>
+        ///     Get reference
+        /// </summary>
+        /// <param name="index">Index</param>
+        public byte* this[int index]
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => Array + index;
+        }
+
+        /// <summary>
+        ///     Get reference
+        /// </summary>
+        /// <param name="index">Index</param>
+        public byte* this[uint index]
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => Array + index;
+        }
+
+        /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
