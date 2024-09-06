@@ -92,6 +92,21 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Try advance
+        /// </summary>
+        /// <param name="count">Count</param>
+        /// <returns>Advanced</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryAdvance(int count)
+        {
+            var newPosition = Position + count;
+            if (newPosition < 0 || newPosition > Length)
+                return false;
+            Position = newPosition;
+            return true;
+        }
+
+        /// <summary>
         ///     Write
         /// </summary>
         /// <param name="obj">object</param>
@@ -103,6 +118,22 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(T), $"Requires size is {sizeof(T)}, but buffer length is {Remaining}.");
             Unsafe.CopyBlockUnaligned(Array + Position, obj, (uint)sizeof(T));
             Position += sizeof(T);
+        }
+
+        /// <summary>
+        ///     Try write
+        /// </summary>
+        /// <param name="obj">object</param>
+        /// <typeparam name="T">Type</typeparam>
+        /// <returns>Wrote</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryWrite<T>(T* obj) where T : unmanaged
+        {
+            if (Position + sizeof(T) > Length)
+                return false;
+            Unsafe.CopyBlockUnaligned(Array + Position, obj, (uint)sizeof(T));
+            Position += sizeof(T);
+            return true;
         }
 
         /// <summary>
@@ -122,6 +153,24 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Try write
+        /// </summary>
+        /// <param name="obj">object</param>
+        /// <param name="count">Count</param>
+        /// <typeparam name="T">Type</typeparam>
+        /// <returns>Wrote</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryWrite<T>(T* obj, int count) where T : unmanaged
+        {
+            count *= sizeof(T);
+            if (Position + count > Length)
+                return false;
+            Unsafe.CopyBlockUnaligned(Array + Position, obj, (uint)count);
+            Position += count;
+            return true;
+        }
+
+        /// <summary>
         ///     Write
         /// </summary>
         /// <param name="obj">object</param>
@@ -136,6 +185,22 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Try write
+        /// </summary>
+        /// <param name="obj">object</param>
+        /// <typeparam name="T">Type</typeparam>
+        /// <returns>Wrote</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryWrite<T>(in T obj) where T : unmanaged
+        {
+            if (Position + sizeof(T) > Length)
+                return false;
+            Unsafe.WriteUnaligned(Array + Position, obj);
+            Position += sizeof(T);
+            return true;
+        }
+
+        /// <summary>
         ///     Write bytes
         /// </summary>
         /// <param name="buffer">Buffer</param>
@@ -147,6 +212,22 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(length), $"Requires size is {length}, but buffer length is {Remaining}.");
             Unsafe.CopyBlockUnaligned(Array + Position, buffer, (uint)length);
             Position += length;
+        }
+
+        /// <summary>
+        ///     Try write bytes
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <param name="length">Length</param>
+        /// <returns>Wrote</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryWriteBytes(byte* buffer, int length)
+        {
+            if (Position + length > Length)
+                return false;
+            Unsafe.CopyBlockUnaligned(Array + Position, buffer, (uint)length);
+            Position += length;
+            return true;
         }
 
         /// <summary>

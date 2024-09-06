@@ -92,6 +92,21 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Try advance
+        /// </summary>
+        /// <param name="count">Count</param>
+        /// <returns>Advanced</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryAdvance(int count)
+        {
+            var newPosition = Position + count;
+            if (newPosition < 0 || newPosition > Length)
+                return false;
+            Position = newPosition;
+            return true;
+        }
+
+        /// <summary>
         ///     Read
         /// </summary>
         /// <param name="obj">object</param>
@@ -103,6 +118,22 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(T), $"Requires size is {sizeof(T)}, but buffer length is {Remaining}.");
             Unsafe.CopyBlockUnaligned(obj, Array + Position, (uint)sizeof(T));
             Position += sizeof(T);
+        }
+
+        /// <summary>
+        ///     Try read
+        /// </summary>
+        /// <param name="obj">object</param>
+        /// <typeparam name="T">Type</typeparam>
+        /// <returns>Read</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryRead<T>(T* obj) where T : unmanaged
+        {
+            if (Position + sizeof(T) > Length)
+                return false;
+            Unsafe.CopyBlockUnaligned(obj, Array + Position, (uint)sizeof(T));
+            Position += sizeof(T);
+            return true;
         }
 
         /// <summary>
@@ -122,6 +153,24 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Try read
+        /// </summary>
+        /// <param name="obj">object</param>
+        /// <param name="count">Count</param>
+        /// <typeparam name="T">Type</typeparam>
+        /// <returns>Read</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryRead<T>(T* obj, int count) where T : unmanaged
+        {
+            count *= sizeof(T);
+            if (Position + count > Length)
+                return false;
+            Unsafe.CopyBlockUnaligned(obj, Array + Position, (uint)count);
+            Position += count;
+            return true;
+        }
+
+        /// <summary>
         ///     Read
         /// </summary>
         /// <param name="obj">object</param>
@@ -136,18 +185,19 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Read
+        ///     Try read
         /// </summary>
+        /// <param name="obj">object</param>
         /// <typeparam name="T">Type</typeparam>
-        /// <returns>object</returns>
+        /// <returns>Read</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T Read<T>() where T : unmanaged
+        public bool TryRead<T>(ref T obj) where T : unmanaged
         {
             if (Position + sizeof(T) > Length)
-                throw new ArgumentOutOfRangeException(nameof(T), $"Requires size is {sizeof(T)}, but buffer length is {Remaining}.");
-            var obj = Unsafe.ReadUnaligned<T>(Array + Position);
+                return false;
+            obj = Unsafe.ReadUnaligned<T>(Array + Position);
             Position += sizeof(T);
-            return obj;
+            return true;
         }
 
         /// <summary>
@@ -162,6 +212,22 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(length), $"Requires size is {length}, but buffer length is {Remaining}.");
             Unsafe.CopyBlockUnaligned(buffer, Array + Position, (uint)length);
             Position += length;
+        }
+
+        /// <summary>
+        ///     Try read bytes
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <param name="length">Length</param>
+        /// <returns>Read</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryReadBytes(byte* buffer, int length)
+        {
+            if (Position + length > Length)
+                return false;
+            Unsafe.CopyBlockUnaligned(buffer, Array + Position, (uint)length);
+            Position += length;
+            return true;
         }
     }
 }
