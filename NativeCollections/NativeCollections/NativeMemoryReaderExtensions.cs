@@ -22,12 +22,13 @@ namespace NativeCollections
         /// <typeparam name="T">Type</typeparam>
         /// <returns>object</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T Read<T>(this NativeMemoryReader reader) where T : unmanaged
+        public static T Read<T>(this in NativeMemoryReader reader) where T : unmanaged
         {
-            if (reader.Position + sizeof(T) > reader.Length)
-                throw new ArgumentOutOfRangeException(nameof(T), $"Requires size is {sizeof(T)}, but buffer length is {reader.Remaining}.");
-            var obj = Unsafe.ReadUnaligned<T>(reader.Array + reader.Position);
-            reader.Position += sizeof(T);
+            ref var value = ref Unsafe.AsRef(in reader);
+            if (value.Position + sizeof(T) > value.Length)
+                throw new ArgumentOutOfRangeException(nameof(T), $"Requires size is {sizeof(T)}, but buffer length is {value.Remaining}.");
+            var obj = Unsafe.ReadUnaligned<T>(value.Array + value.Position);
+            value.Position += sizeof(T);
             return obj;
         }
 
@@ -39,16 +40,17 @@ namespace NativeCollections
         /// <typeparam name="T">Type</typeparam>
         /// <returns>Read</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool TryRead<T>(this NativeMemoryReader reader, out T obj) where T : unmanaged
+        public static bool TryRead<T>(this in NativeMemoryReader reader, out T obj) where T : unmanaged
         {
-            if (reader.Position + sizeof(T) > reader.Length)
+            ref var value = ref Unsafe.AsRef(in reader);
+            if (value.Position + sizeof(T) > value.Length)
             {
                 obj = default;
                 return false;
             }
 
-            obj = Unsafe.ReadUnaligned<T>(reader.Array + reader.Position);
-            reader.Position += sizeof(T);
+            obj = Unsafe.ReadUnaligned<T>(value.Array + value.Position);
+            value.Position += sizeof(T);
             return true;
         }
     }
