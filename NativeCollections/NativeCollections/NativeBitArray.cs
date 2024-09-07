@@ -73,6 +73,10 @@ namespace NativeCollections
                 if (extraBits > 0)
                     _handle->Array[^1] = (1 << extraBits) - 1;
             }
+            else
+            {
+                _handle->Array.Clear();
+            }
         }
 
         /// <summary>
@@ -110,6 +114,10 @@ namespace NativeCollections
                 Div32Rem(length, out var extraBits);
                 if (extraBits > 0)
                     _handle->Array[^1] = (1 << extraBits) - 1;
+            }
+            else
+            {
+                _handle->Array.Clear();
             }
         }
 
@@ -154,6 +162,10 @@ namespace NativeCollections
                 Div32Rem(length, out var extraBits);
                 if (extraBits > 0)
                     _handle->Array[^1] = (1 << extraBits) - 1;
+            }
+            else
+            {
+                _handle->Array.Clear();
             }
         }
 
