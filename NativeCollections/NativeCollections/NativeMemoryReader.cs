@@ -15,7 +15,7 @@ namespace NativeCollections
     ///     Native memory reader
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public unsafe struct NativeMemoryReader
+    public unsafe ref struct NativeMemoryReader
     {
         /// <summary>
         ///     Array
