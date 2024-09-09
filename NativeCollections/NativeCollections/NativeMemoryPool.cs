@@ -358,6 +358,25 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Trim excess
+        /// </summary>
+        /// <param name="capacity">Remaining free slabs</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void TrimExcess(int capacity)
+        {
+            if (capacity < 0)
+                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            var node = _handle->FreeSlab;
+            while (_handle->FreeSlabs > capacity)
+            {
+                _handle->FreeSlabs--;
+                var temp = node;
+                node = node->Next;
+                NativeMemoryAllocator.Free(temp);
+            }
+        }
+
+        /// <summary>
         ///     Empty
         /// </summary>
         public static NativeMemoryPool Empty => new();
