@@ -581,5 +581,10 @@ namespace NativeCollections
             remainder = number & (32 - 1);
             return (int)quotient;
         }
+
+        /// <summary>
+        ///     Empty
+        /// </summary>
+        public static NativeBitArray Empty => new();
     }
 }

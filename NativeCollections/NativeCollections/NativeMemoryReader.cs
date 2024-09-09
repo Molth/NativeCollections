@@ -73,10 +73,46 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public bool Equals(NativeMemoryReader other) => other == this;
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="obj">object</param>
+        /// <returns>Equals</returns>
+        public override bool Equals(object? obj) => throw new NotSupportedException("Cannot call Equals on NativeMemoryReader");
+
+        /// <summary>
+        ///     Get hashCode
+        /// </summary>
+        /// <returns>HashCode</returns>
+        public override int GetHashCode() => HashCode.Combine((int)(nint)Array, Length, Position);
+
+        /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
         public override string ToString() => "NativeMemoryReader";
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Equals</returns>
+        public static bool operator ==(NativeMemoryReader left, NativeMemoryReader right) => left.Array == right.Array && left.Length == right.Length && left.Position == right.Position;
+
+        /// <summary>
+        ///     Not equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Not equals</returns>
+        public static bool operator !=(NativeMemoryReader left, NativeMemoryReader right) => left.Array != right.Array || left.Length != right.Length || left.Position != right.Position;
 
         /// <summary>
         ///     Advance
@@ -229,5 +265,10 @@ namespace NativeCollections
             Position += length;
             return true;
         }
+
+        /// <summary>
+        ///     Empty
+        /// </summary>
+        public static NativeMemoryReader Empty => new();
     }
 }
