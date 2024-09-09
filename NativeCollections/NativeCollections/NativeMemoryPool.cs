@@ -355,6 +355,8 @@ namespace NativeCollections
                 node = node->Next;
                 NativeMemoryAllocator.Free(temp);
             }
+
+            _handle->FreeSlab = null;
         }
 
         /// <summary>
@@ -374,6 +376,8 @@ namespace NativeCollections
                 node = node->Next;
                 NativeMemoryAllocator.Free(temp);
             }
+
+            _handle->FreeSlab = node;
         }
 
         /// <summary>
