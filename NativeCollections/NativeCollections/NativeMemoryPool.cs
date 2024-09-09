@@ -356,7 +356,7 @@ namespace NativeCollections
                 NativeMemoryAllocator.Free(temp);
             }
 
-            _handle->FreeSlab = null;
+            _handle->FreeSlab = node;
         }
 
         /// <summary>
