@@ -267,6 +267,12 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Clear
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Clear() => Position = 0;
+
+        /// <summary>
         ///     As span
         /// </summary>
         /// <returns>Span</returns>
@@ -274,11 +280,45 @@ namespace NativeCollections
         public Span<byte> AsSpan() => MemoryMarshal.CreateSpan(ref *Array, Position);
 
         /// <summary>
+        ///     As span
+        /// </summary>
+        /// <param name="length">Length</param>
+        /// <returns>Span</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Span<byte> AsSpan(int length) => MemoryMarshal.CreateSpan(ref *Array, length);
+
+        /// <summary>
+        ///     As span
+        /// </summary>
+        /// <param name="start">Start</param>
+        /// <param name="length">Length</param>
+        /// <returns>Span</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Span<byte> AsSpan(int start, int length) => MemoryMarshal.CreateSpan(ref *(Array + start), length);
+
+        /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ReadOnlySpan<byte> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref *Array, Position);
+
+        /// <summary>
+        ///     As readOnly span
+        /// </summary>
+        /// <param name="length">Length</param>
+        /// <returns>ReadOnlySpan</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ReadOnlySpan<byte> AsReadOnlySpan(int length) => MemoryMarshal.CreateReadOnlySpan(ref *Array, length);
+
+        /// <summary>
+        ///     As readOnly span
+        /// </summary>
+        /// <param name="start">Start</param>
+        /// <param name="length">Length</param>
+        /// <returns>ReadOnlySpan</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ReadOnlySpan<byte> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref *(Array + start), length);
 
         /// <summary>
         ///     As span
@@ -300,6 +340,27 @@ namespace NativeCollections
         /// <returns>NativeMemoryReader</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator NativeMemoryReader(NativeMemoryWriter writer) => new NativeMemoryReader(writer.Array, writer.Position);
+
+        /// <summary>
+        ///     As native memory writer
+        /// </summary>
+        /// <returns>NativeMemoryWriter</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator NativeMemoryWriter(NativeArray<byte> writer) => new(writer.Array, writer.Length);
+
+        /// <summary>
+        ///     As native memory writer
+        /// </summary>
+        /// <returns>NativeMemoryWriter</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator NativeMemoryWriter(NativeMemoryArray<byte> writer) => new(writer.Array, writer.Length);
+
+        /// <summary>
+        ///     As native memory writer
+        /// </summary>
+        /// <returns>NativeMemoryWriter</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator NativeMemoryWriter(NativeArraySegment<byte> writer) => new(writer.Array + writer.Offset, writer.Count);
 
         /// <summary>
         ///     Empty
