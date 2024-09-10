@@ -393,7 +393,7 @@ namespace NativeCollections
             Initialize(newSize);
             var newEntries = _handle->Entries;
             var newCount = 0;
-            for (var i = 0; i < oldCount; i++)
+            for (var i = 0; i < oldCount; ++i)
             {
                 var hashCode = oldEntries[i].HashCode;
                 if (oldEntries[i].Next >= -1)
@@ -477,7 +477,7 @@ namespace NativeCollections
             _handle->Buckets = buckets;
             _handle->BucketsLength = newSize;
             _handle->FastModMultiplier = IntPtr.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)newSize) : 0;
-            for (var i = 0; i < count; i++)
+            for (var i = 0; i < count; ++i)
             {
                 if (entries[i].Next >= -1)
                 {

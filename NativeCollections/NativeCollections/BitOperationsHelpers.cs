@@ -115,10 +115,10 @@ namespace NativeCollections
                 }
             }
 
-            for (; i < count; i++)
+            for (; i < count; ++i)
                 Unsafe.Add(ref left, i) &= Unsafe.Add(ref right, i);
 #else
-            for (var i = 0; i < count; i++)
+            for (var i = 0; i < count; ++i)
                 destination[i] &= source[i];
 #endif
         }
@@ -181,10 +181,10 @@ namespace NativeCollections
                 }
             }
 
-            for (; i < count; i++)
+            for (; i < count; ++i)
                 Unsafe.Add(ref left, i) |= Unsafe.Add(ref right, i);
 #else
-            for (var i = 0; i < count; i++)
+            for (var i = 0; i < count; ++i)
                 destination[i] |= source[i];
 #endif
         }
@@ -247,10 +247,10 @@ namespace NativeCollections
                 }
             }
 
-            for (; i < count; i++)
+            for (; i < count; ++i)
                 Unsafe.Add(ref left, i) ^= Unsafe.Add(ref right, i);
 #else
-            for (var i = 0; i < count; i++)
+            for (var i = 0; i < count; ++i)
                 destination[i] ^= source[i];
 #endif
         }
@@ -311,10 +311,10 @@ namespace NativeCollections
                 }
             }
 
-            for (; i < count; i++)
+            for (; i < count; ++i)
                 Unsafe.Add(ref value, i) = ~ Unsafe.Add(ref value, i);
 #else
-            for (var i = 0; i < count; i++)
+            for (var i = 0; i < count; ++i)
                 destination[i] = ~ destination[i];
 #endif
         }
