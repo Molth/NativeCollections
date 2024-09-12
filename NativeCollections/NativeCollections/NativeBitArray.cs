@@ -48,7 +48,7 @@ namespace NativeCollections
         {
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            _handle = (NativeBitArrayHandle*)NativeMemoryAllocator.Alloc(sizeof(NativeBitArrayHandle));
+            _handle = (NativeBitArrayHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeBitArrayHandle));
             _handle->Array = new NativeArray<int>(GetInt32ArrayLengthFromBitLength(length));
             _handle->Length = length;
         }
@@ -63,7 +63,7 @@ namespace NativeCollections
         {
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            _handle = (NativeBitArrayHandle*)NativeMemoryAllocator.Alloc(sizeof(NativeBitArrayHandle));
+            _handle = (NativeBitArrayHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeBitArrayHandle));
             _handle->Array = new NativeArray<int>(GetInt32ArrayLengthFromBitLength(length));
             _handle->Length = length;
             if (defaultValue)
@@ -89,7 +89,7 @@ namespace NativeCollections
         {
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            _handle = (NativeBitArrayHandle*)NativeMemoryAllocator.Alloc(sizeof(NativeBitArrayHandle));
+            _handle = (NativeBitArrayHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeBitArrayHandle));
             _handle->Array = new NativeArray<int>(array, GetInt32ArrayLengthFromBitLength(length));
             _handle->Length = length;
         }
@@ -105,7 +105,7 @@ namespace NativeCollections
         {
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            _handle = (NativeBitArrayHandle*)NativeMemoryAllocator.Alloc(sizeof(NativeBitArrayHandle));
+            _handle = (NativeBitArrayHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeBitArrayHandle));
             _handle->Array = new NativeArray<int>(array, GetInt32ArrayLengthFromBitLength(length));
             _handle->Length = length;
             if (defaultValue)
@@ -134,7 +134,7 @@ namespace NativeCollections
             var intCount = GetInt32ArrayLengthFromBitLength(length);
             if (array.Length < intCount)
                 throw new ArgumentOutOfRangeException(nameof(array), array.Length, $"Requires size is {intCount}, but buffer length is {array.Length}.");
-            _handle = (NativeBitArrayHandle*)NativeMemoryAllocator.Alloc(sizeof(NativeBitArrayHandle));
+            _handle = (NativeBitArrayHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeBitArrayHandle));
             _handle->Array = array;
             _handle->Length = length;
         }
@@ -153,7 +153,7 @@ namespace NativeCollections
             var intCount = GetInt32ArrayLengthFromBitLength(length);
             if (array.Length < intCount)
                 throw new ArgumentOutOfRangeException(nameof(array), array.Length, $"Requires size is {intCount}, but buffer length is {array.Length}.");
-            _handle = (NativeBitArrayHandle*)NativeMemoryAllocator.Alloc(sizeof(NativeBitArrayHandle));
+            _handle = (NativeBitArrayHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeBitArrayHandle));
             _handle->Array = array;
             _handle->Length = length;
             if (defaultValue)

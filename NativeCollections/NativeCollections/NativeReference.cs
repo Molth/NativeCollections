@@ -44,7 +44,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeReference(in T value)
         {
-            _handle = (T*)NativeMemoryAllocator.Alloc(sizeof(T));
+            _handle = (T*)NativeMemoryAllocator.Alloc((uint)sizeof(T));
             Unsafe.WriteUnaligned(_handle, value);
         }
 

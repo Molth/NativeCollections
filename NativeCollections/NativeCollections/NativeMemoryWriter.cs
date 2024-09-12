@@ -339,7 +339,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>NativeMemoryReader</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeMemoryReader(NativeMemoryWriter writer) => new NativeMemoryReader(writer.Array, writer.Position);
+        public static implicit operator NativeMemoryReader(NativeMemoryWriter writer) => new(writer.Array, writer.Position);
 
         /// <summary>
         ///     As native memory writer

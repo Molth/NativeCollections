@@ -61,8 +61,8 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
             if (capacity < 4)
                 capacity = 4;
-            _handle = (NativeMemoryStreamHandle*)NativeMemoryAllocator.Alloc(sizeof(NativeMemoryStreamHandle));
-            _handle->Array = (byte*)NativeMemoryAllocator.Alloc(capacity);
+            _handle = (NativeMemoryStreamHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeMemoryStreamHandle));
+            _handle->Array = (byte*)NativeMemoryAllocator.Alloc((uint)capacity);
             _handle->Position = 0;
             _handle->Length = 0;
             _handle->Capacity = capacity;
@@ -168,7 +168,7 @@ namespace NativeCollections
                 {
                     if (value > 0)
                     {
-                        var newBuffer = (byte*)NativeMemoryAllocator.Alloc(value);
+                        var newBuffer = (byte*)NativeMemoryAllocator.Alloc((uint)value);
                         if (_handle->Length > 0)
                             Unsafe.CopyBlock(newBuffer, _handle->Array, (uint)_handle->Length);
                         NativeMemoryAllocator.Free(_handle->Array);

@@ -37,7 +37,7 @@ namespace NativeCollections
         {
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            _array = (T*)NativeMemoryAllocator.Alloc(length * sizeof(T));
+            _array = (T*)NativeMemoryAllocator.Alloc((uint)(length * sizeof(T)));
             _length = length;
         }
 
@@ -51,7 +51,7 @@ namespace NativeCollections
         {
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            _array = zeroed ? (T*)NativeMemoryAllocator.AllocZeroed(length * sizeof(T)) : (T*)NativeMemoryAllocator.Alloc(length * sizeof(T));
+            _array = zeroed ? (T*)NativeMemoryAllocator.AllocZeroed((uint)(length * sizeof(T))) : (T*)NativeMemoryAllocator.Alloc((uint)(length * sizeof(T)));
             _length = length;
         }
 

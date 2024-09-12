@@ -60,7 +60,7 @@ namespace NativeCollections
         public NativeSortedSet(int size, int maxFreeSlabs)
         {
             var nodePool = new NativeMemoryPool(size, sizeof(Node), maxFreeSlabs);
-            _handle = (NativeSortedSetHandle*)NativeMemoryAllocator.Alloc(sizeof(NativeSortedSetHandle));
+            _handle = (NativeSortedSetHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeSortedSetHandle));
             _handle->Root = null;
             _handle->Count = 0;
             _handle->Version = 0;

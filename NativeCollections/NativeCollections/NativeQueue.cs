@@ -71,8 +71,8 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
             if (capacity < 4)
                 capacity = 4;
-            _handle = (NativeQueueHandle*)NativeMemoryAllocator.Alloc(sizeof(NativeQueueHandle));
-            _handle->Array = (T*)NativeMemoryAllocator.Alloc(capacity * sizeof(T));
+            _handle = (NativeQueueHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeQueueHandle));
+            _handle->Array = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
             _handle->Length = capacity;
             _handle->Head = 0;
             _handle->Tail = 0;
@@ -313,7 +313,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void SetCapacity(int capacity)
         {
-            var newArray = (T*)NativeMemoryAllocator.Alloc(capacity * sizeof(T));
+            var newArray = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
             if (_handle->Size > 0)
             {
                 if (_handle->Head < _handle->Tail)

@@ -1,7 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 #if NET7_0_OR_GREATER
-using System.Runtime.Versioning;
 #endif
 
 #if UNITY_2021_3_OR_NEWER || GODOT
@@ -146,9 +145,6 @@ namespace NativeCollections
         /// <summary>
         ///     Wait
         /// </summary>
-#if NET7_0_OR_GREATER
-        [UnsupportedOSPlatform("browser")]
-#endif
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Wait(int millisecondsTimeout) => Monitor.Wait(_handle.Target, millisecondsTimeout);
 
@@ -179,36 +175,24 @@ namespace NativeCollections
         /// <summary>
         ///     Wait
         /// </summary>
-#if NET7_0_OR_GREATER
-        [UnsupportedOSPlatform("browser")]
-#endif
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Wait(TimeSpan timeout) => Monitor.Wait(_handle.Target, timeout);
 
         /// <summary>
         ///     Wait
         /// </summary>
-#if NET7_0_OR_GREATER
-        [UnsupportedOSPlatform("browser")]
-#endif
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Wait() => Monitor.Wait(_handle.Target);
 
         /// <summary>
         ///     Wait
         /// </summary>
-#if NET7_0_OR_GREATER
-        [UnsupportedOSPlatform("browser")]
-#endif
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Wait(int millisecondsTimeout, bool exitContext) => Monitor.Wait(_handle.Target, millisecondsTimeout, exitContext);
 
         /// <summary>
         ///     Wait
         /// </summary>
-#if NET7_0_OR_GREATER
-        [UnsupportedOSPlatform("browser")]
-#endif
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Wait(TimeSpan timeout, bool exitContext) => Monitor.Wait(_handle.Target, timeout, exitContext);
 

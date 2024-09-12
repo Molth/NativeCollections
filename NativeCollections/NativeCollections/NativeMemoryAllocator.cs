@@ -22,12 +22,12 @@ namespace NativeCollections
         /// <param name="byteCount">Byte count</param>
         /// <returns>Memory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void* Alloc(int byteCount)
+        public static void* Alloc(uint byteCount)
         {
 #if NET6_0_OR_GREATER
-            return NativeMemory.Alloc((nuint)byteCount);
+            return NativeMemory.Alloc(byteCount);
 #else
-            return (void*)Marshal.AllocHGlobal(byteCount);
+            return (void*)Marshal.AllocHGlobal((nint)byteCount);
 #endif
         }
 
@@ -37,13 +37,13 @@ namespace NativeCollections
         /// <param name="byteCount">Byte count</param>
         /// <returns>Memory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void* AllocZeroed(int byteCount)
+        public static void* AllocZeroed(uint byteCount)
         {
 #if NET6_0_OR_GREATER
-            return NativeMemory.AllocZeroed((nuint)byteCount, 1);
+            return NativeMemory.AllocZeroed(byteCount, 1);
 #else
-            var ptr = (void*)Marshal.AllocHGlobal(byteCount);
-            Unsafe.InitBlockUnaligned(ptr, 0, (uint)byteCount);
+            var ptr = (void*)Marshal.AllocHGlobal((nint)byteCount);
+            Unsafe.InitBlockUnaligned(ptr, 0, byteCount);
             return ptr;
 #endif
         }

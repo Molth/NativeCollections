@@ -82,7 +82,7 @@ namespace NativeCollections
         public NativeSortedDictionary(int size, int maxFreeSlabs)
         {
             var nodePool = new NativeMemoryPool(size, sizeof(Node), maxFreeSlabs);
-            _handle = (NativeSortedDictionaryHandle*)NativeMemoryAllocator.Alloc(sizeof(NativeSortedDictionaryHandle));
+            _handle = (NativeSortedDictionaryHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeSortedDictionaryHandle));
             _handle->Root = null;
             _handle->Count = 0;
             _handle->Version = 0;

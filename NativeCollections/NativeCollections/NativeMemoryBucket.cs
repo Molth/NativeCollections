@@ -66,10 +66,10 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(size), size, "MustBePositive");
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            _handle = (NativeMemoryBucketHandle*)NativeMemoryAllocator.Alloc(sizeof(NativeMemoryBucketHandle));
+            _handle = (NativeMemoryBucketHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeMemoryBucketHandle));
             _handle->Size = size;
             _handle->Length = length;
-            _handle->Array = (void**)NativeMemoryAllocator.AllocZeroed(size * sizeof(void*));
+            _handle->Array = (void**)NativeMemoryAllocator.AllocZeroed((uint)(size * sizeof(void*)));
             _handle->Index = 0;
             _handle->MemoryPool = new NativeMemoryPool(size, length, 0);
         }

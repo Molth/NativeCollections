@@ -60,7 +60,7 @@ namespace NativeCollections
         public NativeConcurrentStack(int size, int maxFreeSlabs)
         {
             var nodePool = new NativeMemoryPool(size, sizeof(Node), maxFreeSlabs);
-            _handle = (NativeConcurrentStackHandle*)NativeMemoryAllocator.Alloc(sizeof(NativeConcurrentStackHandle));
+            _handle = (NativeConcurrentStackHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeConcurrentStackHandle));
             _handle->Head = IntPtr.Zero;
             _handle->NodePool = nodePool;
             _handle->NodePoolLock = new NativeConcurrentSpinLock(-1);

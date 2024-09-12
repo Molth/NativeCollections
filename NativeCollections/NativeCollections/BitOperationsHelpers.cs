@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 #if NET7_0_OR_GREATER
 using System.Numerics;
 using System.Runtime.Intrinsics;
+
 #else
 using System;
 #endif
