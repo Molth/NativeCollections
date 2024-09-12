@@ -1,9 +1,8 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-#if NET5_0_OR_GREATER
+#if NET7_0_OR_GREATER
 using System.Numerics;
 using System.Runtime.Intrinsics;
-
 #else
 using System;
 #endif
@@ -17,7 +16,7 @@ namespace NativeCollections
     /// </summary>
     internal static class BitOperationsHelpers
     {
-#if !NET5_0_OR_GREATER
+#if !NET7_0_OR_GREATER
         /// <summary>
         ///     DeBruijn sequence
         /// </summary>
@@ -44,7 +43,7 @@ namespace NativeCollections
         /// <returns>Log2</returns>
         public static int Log2(uint value)
         {
-#if NET5_0_OR_GREATER
+#if NET7_0_OR_GREATER
             return BitOperations.Log2(value);
 #else
             value |= 1;
@@ -92,7 +91,7 @@ namespace NativeCollections
                     return;
             }
 
-#if NET5_0_OR_GREATER
+#if NET7_0_OR_GREATER
             uint i = 0;
             ref var left = ref MemoryMarshal.GetReference(destination);
             ref var right = ref MemoryMarshal.GetReference(source);
@@ -158,7 +157,7 @@ namespace NativeCollections
                     return;
             }
 
-#if NET5_0_OR_GREATER
+#if NET7_0_OR_GREATER
             uint i = 0;
             ref var left = ref MemoryMarshal.GetReference(destination);
             ref var right = ref MemoryMarshal.GetReference(source);
@@ -224,7 +223,7 @@ namespace NativeCollections
                     return;
             }
 
-#if NET5_0_OR_GREATER
+#if NET7_0_OR_GREATER
             uint i = 0;
             ref var left = ref MemoryMarshal.GetReference(destination);
             ref var right = ref MemoryMarshal.GetReference(source);
@@ -289,7 +288,7 @@ namespace NativeCollections
                     return;
             }
 
-#if NET5_0_OR_GREATER
+#if NET7_0_OR_GREATER
             uint i = 0;
             ref var value = ref MemoryMarshal.GetReference(destination);
             if (Vector256.IsHardwareAccelerated)
