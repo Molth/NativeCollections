@@ -33,12 +33,19 @@ namespace NativeCollections
         /// <summary>
         ///     Structure
         /// </summary>
+        /// <param name="handle">Handle</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeReference(nint handle) => _handle = (T*)handle;
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
         /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeReference(T value)
+        public NativeReference(in T value)
         {
             _handle = (T*)NativeMemoryAllocator.Alloc(sizeof(T));
-            *_handle = value;
+            Unsafe.WriteUnaligned(_handle, value);
         }
 
         /// <summary>
@@ -49,12 +56,10 @@ namespace NativeCollections
         /// <summary>
         ///     Value
         /// </summary>
-        public T Value
+        public ref T Value
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => *_handle;
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => *_handle = value;
+            get => ref *_handle;
         }
 
         /// <summary>
