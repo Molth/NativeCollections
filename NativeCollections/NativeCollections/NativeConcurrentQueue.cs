@@ -142,7 +142,7 @@ namespace NativeCollections
                 NotArm64Handle->Dispose();
             else
                 Arm64Handle->Dispose();
-            NativeMemoryAllocator.Free(_handle);
+            NativeMemoryAllocator.Free((void*)_handle);
         }
 
         /// <summary>

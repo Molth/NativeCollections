@@ -63,20 +63,6 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Free
-        /// </summary>
-        /// <param name="ptr">Pointer</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Free(nint ptr)
-        {
-#if NET6_0_OR_GREATER
-            NativeMemory.Free((void*)ptr);
-#else
-            Marshal.FreeHGlobal(ptr);
-#endif
-        }
-
-        /// <summary>
         ///     Copy
         /// </summary>
         /// <param name="destination">Destination</param>
