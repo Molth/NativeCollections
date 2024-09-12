@@ -83,7 +83,7 @@ namespace NativeCollections
         /// <param name="source">Source</param>
         /// <param name="byteCount">Byte count</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void MemCopy(void* destination, void* source, uint byteCount) => Unsafe.CopyBlockUnaligned(destination, source, byteCount);
+        public static void Copy(void* destination, void* source, uint byteCount) => Unsafe.CopyBlockUnaligned(destination, source, byteCount);
 
         /// <summary>
         ///     Move
@@ -92,7 +92,7 @@ namespace NativeCollections
         /// <param name="source">Source</param>
         /// <param name="byteCount">Byte count</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void MemMove(void* destination, void* source, uint byteCount) => Buffer.MemoryCopy(source, destination, byteCount, byteCount);
+        public static void Move(void* destination, void* source, uint byteCount) => Buffer.MemoryCopy(source, destination, byteCount, byteCount);
 
         /// <summary>
         ///     Set
@@ -101,7 +101,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <param name="byteCount">Byte count</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void MemSet(void* startAddress, byte value, uint byteCount) => Unsafe.InitBlockUnaligned(startAddress, value, byteCount);
+        public static void Set(void* startAddress, byte value, uint byteCount) => Unsafe.InitBlockUnaligned(startAddress, value, byteCount);
 
         /// <summary>
         ///     Compare
@@ -111,7 +111,7 @@ namespace NativeCollections
         /// <param name="byteCount">Byte count</param>
         /// <returns>Sequences equal</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool MemCmp(void* left, void* right, uint byteCount)
+        public static bool Compare(void* left, void* right, uint byteCount)
         {
 #if !NET7_0_OR_GREATER
             return MemoryMarshal.CreateReadOnlySpan(ref *(byte*)left, (int)byteCount).SequenceEqual(MemoryMarshal.CreateReadOnlySpan(ref *(byte*)right, (int)byteCount));
