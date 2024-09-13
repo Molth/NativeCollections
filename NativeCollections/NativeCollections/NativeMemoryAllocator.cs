@@ -100,7 +100,52 @@ namespace NativeCollections
         public static bool Compare(void* left, void* right, uint byteCount)
         {
 #if !NET7_0_OR_GREATER
-            return MemoryMarshal.CreateReadOnlySpan(ref *(byte*)left, (int)byteCount).SequenceEqual(MemoryMarshal.CreateReadOnlySpan(ref *(byte*)right, (int)byteCount));
+            ref var first = ref *(byte*)left;
+            ref var second = ref *(byte*)right;
+            nuint length = byteCount;
+            if (length >= (nuint)sizeof(nuint))
+            {
+                if (!Unsafe.AreSame(ref first, ref second))
+                {
+                    nuint offset = 0;
+                    var lengthToExamine = length - (nuint)sizeof(nuint);
+                    if (lengthToExamine > 0)
+                    {
+                        do
+                        {
+                            if (Unsafe.ReadUnaligned<nuint>(ref Unsafe.AddByteOffset(ref first, (nint)offset)) != Unsafe.ReadUnaligned<nuint>(ref Unsafe.AddByteOffset(ref second, (nint)offset)))
+                                return false;
+                            offset += (nuint)sizeof(nuint);
+                        } while (lengthToExamine > offset);
+                    }
+
+                    return Unsafe.ReadUnaligned<nuint>(ref Unsafe.AddByteOffset(ref first, (nint)lengthToExamine)) == Unsafe.ReadUnaligned<nuint>(ref Unsafe.AddByteOffset(ref second, (nint)lengthToExamine));
+                }
+
+                return true;
+            }
+
+            if (length < sizeof(uint) || IntPtr.Size != 8)
+            {
+                uint differentBits = 0;
+                var offset = length & 2;
+                if (offset != 0)
+                {
+                    differentBits = Unsafe.ReadUnaligned<ushort>(ref first);
+                    differentBits -= Unsafe.ReadUnaligned<ushort>(ref second);
+                }
+
+                if ((length & 1) != 0)
+                    differentBits |= Unsafe.AddByteOffset(ref first, (nint)offset) - (uint)Unsafe.AddByteOffset(ref second, (nint)offset);
+                return differentBits == 0;
+            }
+            else
+            {
+                var offset = length - sizeof(uint);
+                var differentBits = Unsafe.ReadUnaligned<uint>(ref first) - Unsafe.ReadUnaligned<uint>(ref second);
+                differentBits |= Unsafe.ReadUnaligned<uint>(ref Unsafe.AddByteOffset(ref first, (nint)offset)) - Unsafe.ReadUnaligned<uint>(ref Unsafe.AddByteOffset(ref second, (nint)offset));
+                return differentBits == 0;
+            }
 #else
             ref var first = ref *(byte*)left;
             ref var second = ref *(byte*)right;

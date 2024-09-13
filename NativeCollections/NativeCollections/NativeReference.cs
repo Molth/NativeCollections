@@ -45,7 +45,11 @@ namespace NativeCollections
         /// <summary>
         ///     Handle
         /// </summary>
-        public T* Handle => _handle;
+        public T* Handle
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _handle;
+        }
 
         /// <summary>
         ///     Value
