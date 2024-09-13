@@ -38,14 +38,42 @@ namespace NativeCollections
         public NativeReference(nint handle) => _handle = (T*)handle;
 
         /// <summary>
-        ///     Structure
+        ///     Alloc
         /// </summary>
         /// <param name="value">Value</param>
+        /// <returns>NativeReference</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeReference(in T value)
+        public static NativeReference<T> Alloc(T* value)
         {
-            _handle = (T*)NativeMemoryAllocator.Alloc((uint)sizeof(T));
-            Unsafe.WriteUnaligned(_handle, value);
+            var handle = (T*)NativeMemoryAllocator.Alloc((uint)sizeof(T));
+            Unsafe.CopyBlockUnaligned(handle, value, (uint)sizeof(T));
+            return new NativeReference<T>(handle);
+        }
+
+        /// <summary>
+        ///     Alloc
+        /// </summary>
+        /// <param name="value">Value</param>
+        /// <returns>NativeReference</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeReference<T> Alloc(nint value)
+        {
+            var handle = (T*)NativeMemoryAllocator.Alloc((uint)sizeof(T));
+            Unsafe.CopyBlockUnaligned(handle, (void*)value, (uint)sizeof(T));
+            return new NativeReference<T>(handle);
+        }
+
+        /// <summary>
+        ///     Alloc
+        /// </summary>
+        /// <param name="value">Value</param>
+        /// <returns>NativeReference</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeReference<T> Alloc(in T value)
+        {
+            var handle = (T*)NativeMemoryAllocator.Alloc((uint)sizeof(T));
+            Unsafe.WriteUnaligned(handle, value);
+            return new NativeReference<T>(handle);
         }
 
         /// <summary>
