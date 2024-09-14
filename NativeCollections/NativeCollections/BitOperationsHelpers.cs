@@ -3,7 +3,6 @@ using System.Runtime.InteropServices;
 #if NET7_0_OR_GREATER
 using System.Numerics;
 using System.Runtime.Intrinsics;
-
 #else
 using System;
 #endif
@@ -92,10 +91,10 @@ namespace NativeCollections
                     return;
             }
 
-#if NET7_0_OR_GREATER
-            uint i = 0;
             ref var left = ref MemoryMarshal.GetReference(destination);
             ref var right = ref MemoryMarshal.GetReference(source);
+#if NET7_0_OR_GREATER
+            uint i = 0;
             if (Vector256.IsHardwareAccelerated)
             {
                 var n = count - 7;
@@ -118,8 +117,9 @@ namespace NativeCollections
             for (; i < count; ++i)
                 Unsafe.Add(ref left, i) &= Unsafe.Add(ref right, i);
 #else
-            for (var i = 0; i < count; ++i)
-                destination[i] &= source[i];
+            var i = 0;
+            for (; i < count; ++i)
+                Unsafe.Add(ref left, i) &= Unsafe.Add(ref right, i);
 #endif
         }
 
@@ -158,10 +158,10 @@ namespace NativeCollections
                     return;
             }
 
-#if NET7_0_OR_GREATER
-            uint i = 0;
             ref var left = ref MemoryMarshal.GetReference(destination);
             ref var right = ref MemoryMarshal.GetReference(source);
+#if NET7_0_OR_GREATER
+            uint i = 0;
             if (Vector256.IsHardwareAccelerated)
             {
                 var n = count - 7;
@@ -184,8 +184,9 @@ namespace NativeCollections
             for (; i < count; ++i)
                 Unsafe.Add(ref left, i) |= Unsafe.Add(ref right, i);
 #else
-            for (var i = 0; i < count; ++i)
-                destination[i] |= source[i];
+            var i = 0;
+            for (; i < count; ++i)
+                Unsafe.Add(ref left, i) |= Unsafe.Add(ref right, i);
 #endif
         }
 
@@ -224,10 +225,10 @@ namespace NativeCollections
                     return;
             }
 
-#if NET7_0_OR_GREATER
-            uint i = 0;
             ref var left = ref MemoryMarshal.GetReference(destination);
             ref var right = ref MemoryMarshal.GetReference(source);
+#if NET7_0_OR_GREATER
+            uint i = 0;
             if (Vector256.IsHardwareAccelerated)
             {
                 var n = count - 7;
@@ -250,8 +251,9 @@ namespace NativeCollections
             for (; i < count; ++i)
                 Unsafe.Add(ref left, i) ^= Unsafe.Add(ref right, i);
 #else
-            for (var i = 0; i < count; ++i)
-                destination[i] ^= source[i];
+            var i = 0;
+            for (; i < count; ++i)
+                Unsafe.Add(ref left, i) ^= Unsafe.Add(ref right, i);
 #endif
         }
 
@@ -289,9 +291,9 @@ namespace NativeCollections
                     return;
             }
 
+            ref var value = ref MemoryMarshal.GetReference(destination);
 #if NET7_0_OR_GREATER
             uint i = 0;
-            ref var value = ref MemoryMarshal.GetReference(destination);
             if (Vector256.IsHardwareAccelerated)
             {
                 var n = count - 7;
@@ -314,8 +316,9 @@ namespace NativeCollections
             for (; i < count; ++i)
                 Unsafe.Add(ref value, i) = ~ Unsafe.Add(ref value, i);
 #else
-            for (var i = 0; i < count; ++i)
-                destination[i] = ~ destination[i];
+            var i = 0;
+            for (; i < count; ++i)
+                Unsafe.Add(ref value, i) = ~ Unsafe.Add(ref value, i);
 #endif
         }
     }

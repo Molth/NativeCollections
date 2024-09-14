@@ -106,7 +106,7 @@ namespace NativeCollections
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => (int)_handle;
+        public override int GetHashCode() => (int)(nint)_handle;
 
         /// <summary>
         ///     To string

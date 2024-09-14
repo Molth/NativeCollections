@@ -166,25 +166,19 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void MergeBlocks(int layer, int index)
         {
-            while (true)
+            while (layer != 0)
             {
-                if (layer == 0)
-                    return;
                 var buddyIndex = index % 2 == 0 ? index + 1 : index - 1;
                 var bitMask = buddyIndex % 32;
                 ref var segment = ref _bitmap[buddyIndex / 32];
-                if ((segment & (1 << bitMask)) == 0)
-                {
-                    var parentIndex = index / 2 + ((1 << (layer - 1)) - 1);
-                    _bitmap[index / 32] &= ~(1 << (index % 32));
-                    segment &= ~(1 << bitMask);
-                    _bitmap[parentIndex / 32] |= 1 << (parentIndex % 32);
-                    layer--;
-                    index = parentIndex;
-                    continue;
-                }
-
-                return;
+                if ((segment & (1 << bitMask)) != 0)
+                    break;
+                var parentIndex = index / 2 + ((1 << (layer - 1)) - 1);
+                (*(_bitmap + index / 32)) &= ~(1 << (index % 32));
+                segment &= ~(1 << bitMask);
+                (*(_bitmap + parentIndex / 32)) |= 1 << (parentIndex % 32);
+                --layer;
+                index = parentIndex;
             }
         }
 
@@ -197,8 +191,8 @@ namespace NativeCollections
         {
             if (size > _maxBlockSize)
                 throw new ArgumentOutOfRangeException(nameof(size), $"{size} cannot be greater than {_maxBlockSize}.");
-            if (size < 0)
-                throw new ArgumentOutOfRangeException(nameof(size), size, "MustBeNonNegative");
+            if (size <= 0)
+                throw new ArgumentOutOfRangeException(nameof(size), size, "MustBePositive");
             var layer = GetLayer(size);
             var blockIndex = FindFreeBlock(layer);
             if (blockIndex == -1)
@@ -217,8 +211,8 @@ namespace NativeCollections
         {
             if (size > _maxBlockSize)
                 throw new ArgumentOutOfRangeException(nameof(size), $"{size} cannot be greater than {_maxBlockSize}.");
-            if (size < 0)
-                throw new ArgumentOutOfRangeException(nameof(size), size, "MustBeNonNegative");
+            if (size <= 0)
+                throw new ArgumentOutOfRangeException(nameof(size), size, "MustBePositive");
             var layer = GetLayer(size);
             var blockIndex = (int)((byte*)ptr - _memory) / (_minBlockSize << layer) + ((1 << layer) - 1);
             _bitmap[blockIndex / 32] &= ~(1 << (blockIndex % 32));
