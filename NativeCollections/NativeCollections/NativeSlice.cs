@@ -12,11 +12,11 @@ using System;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native array segment
+    ///     Native slice
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    public readonly unsafe struct NativeArraySegment<T> : IDisposable, IEquatable<NativeArraySegment<T>> where T : unmanaged
+    public readonly unsafe struct NativeSlice<T> : IDisposable, IEquatable<NativeSlice<T>> where T : unmanaged
     {
         /// <summary>
         ///     Array
@@ -39,7 +39,7 @@ namespace NativeCollections
         /// <param name="array">Array</param>
         /// <param name="count">Count</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeArraySegment(T* array, int count)
+        public NativeSlice(T* array, int count)
         {
             if (count < 0)
                 throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeNonNegative");
@@ -55,7 +55,7 @@ namespace NativeCollections
         /// <param name="offset">Offset</param>
         /// <param name="count">Count</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeArraySegment(T* array, int offset, int count)
+        public NativeSlice(T* array, int offset, int count)
         {
             if (offset < 0)
                 throw new ArgumentOutOfRangeException(nameof(offset), offset, "MustBeNonNegative");
@@ -69,25 +69,25 @@ namespace NativeCollections
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="array">Array</param>
+        /// <param name="nativeArray">Array</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeArraySegment(NativeArray<T> array)
+        public NativeSlice(NativeArray<T> nativeArray)
         {
-            _array = array.Array;
+            _array = nativeArray.Array;
             _offset = 0;
-            _count = array.Length;
+            _count = nativeArray.Length;
         }
 
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="array">Array</param>
+        /// <param name="nativeArray">Array</param>
         /// <param name="offset">Offset</param>
         /// <param name="count">Count</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeArraySegment(NativeArray<T> array, int offset, int count)
+        public NativeSlice(NativeArray<T> nativeArray, int offset, int count)
         {
-            _array = array.Array;
+            _array = nativeArray.Array;
             _offset = offset;
             _count = count;
         }
@@ -95,25 +95,25 @@ namespace NativeCollections
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="array">Array</param>
+        /// <param name="nativeMemoryArray">Array</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeArraySegment(NativeMemoryArray<T> array)
+        public NativeSlice(NativeMemoryArray<T> nativeMemoryArray)
         {
-            _array = array.Array;
+            _array = nativeMemoryArray.Array;
             _offset = 0;
-            _count = array.Length;
+            _count = nativeMemoryArray.Length;
         }
 
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="array">Array</param>
+        /// <param name="nativeMemoryArray">Array</param>
         /// <param name="offset">Offset</param>
         /// <param name="count">Count</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeArraySegment(NativeMemoryArray<T> array, int offset, int count)
+        public NativeSlice(NativeMemoryArray<T> nativeMemoryArray, int offset, int count)
         {
-            _array = array.Array;
+            _array = nativeMemoryArray.Array;
             _offset = offset;
             _count = count;
         }
@@ -168,14 +168,14 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeArraySegment<T> other) => other == this;
+        public bool Equals(NativeSlice<T> other) => other == this;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeArraySegment<T> nativeArraySegment && nativeArraySegment == this;
+        public override bool Equals(object? obj) => obj is NativeSlice<T> nativeSlice && nativeSlice == this;
 
         /// <summary>
         ///     Get hashCode
@@ -187,45 +187,53 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => $"NativeArraySegment<{typeof(T).Name}>[{_offset}, {_count}]";
+        public override string ToString() => $"NativeSlice<{typeof(T).Name}>[{_offset}, {_count}]";
 
         /// <summary>
         ///     As span
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<T>(NativeArraySegment<T> nativeArraySegment) => nativeArraySegment.AsSpan();
+        public static implicit operator Span<T>(NativeSlice<T> nativeSlice) => nativeSlice.AsSpan();
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<T>(NativeArraySegment<T> nativeArraySegment) => nativeArraySegment.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<T>(NativeSlice<T> nativeSlice) => nativeSlice.AsReadOnlySpan();
 
         /// <summary>
         ///     As native array
         /// </summary>
-        /// <param name="nativeArraySegment">Native array segment</param>
+        /// <param name="nativeSlice">Native slice</param>
         /// <returns>NativeArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeArray<T>(NativeArraySegment<T> nativeArraySegment) => new(nativeArraySegment._array, nativeArraySegment._offset + nativeArraySegment._count);
+        public static implicit operator NativeArray<T>(NativeSlice<T> nativeSlice) => new(nativeSlice._array, nativeSlice._offset + nativeSlice._count);
 
         /// <summary>
-        ///     As native array segment
+        ///     As native slice
         /// </summary>
         /// <param name="nativeArray">Native array</param>
-        /// <returns>NativeArraySegment</returns>
+        /// <returns>NativeSlice</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeArraySegment<T>(NativeArray<T> nativeArray) => new(nativeArray);
+        public static implicit operator NativeSlice<T>(NativeArray<T> nativeArray) => new(nativeArray);
 
         /// <summary>
-        ///     As native array segment
+        ///     As native memory array
         /// </summary>
-        /// <param name="nativeArray">Native array</param>
-        /// <returns>NativeArraySegment</returns>
+        /// <param name="nativeSlice">Native slice</param>
+        /// <returns>NativeMemoryArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeArraySegment<T>(NativeMemoryArray<T> nativeArray) => new(nativeArray);
+        public static implicit operator NativeMemoryArray<T>(NativeSlice<T> nativeSlice) => new(nativeSlice._array, nativeSlice._offset + nativeSlice._count);
+
+        /// <summary>
+        ///     As native slice
+        /// </summary>
+        /// <param name="nativeMemoryArray">Native memory array</param>
+        /// <returns>NativeSlice</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator NativeSlice<T>(NativeMemoryArray<T> nativeMemoryArray) => new(nativeMemoryArray);
 
         /// <summary>
         ///     Equals
@@ -233,7 +241,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeArraySegment<T> left, NativeArraySegment<T> right) => left._offset == right._offset && left._count == right._count && left._array == right._array;
+        public static bool operator ==(NativeSlice<T> left, NativeSlice<T> right) => left._offset == right._offset && left._count == right._count && left._array == right._array;
 
         /// <summary>
         ///     Not equals
@@ -241,7 +249,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeArraySegment<T> left, NativeArraySegment<T> right) => left._offset != right._offset || left._count != right._count || left._array != right._array;
+        public static bool operator !=(NativeSlice<T> left, NativeSlice<T> right) => left._offset != right._offset || left._count != right._count || left._array != right._array;
 
         /// <summary>
         ///     Dispose
@@ -306,23 +314,23 @@ namespace NativeCollections
         ///     Slice
         /// </summary>
         /// <param name="start">Start</param>
-        /// <returns>NativeArraySegment</returns>
+        /// <returns>NativeSlice</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeArraySegment<T> Slice(int start) => new(_array, _offset + start, _count - start);
+        public NativeSlice<T> Slice(int start) => new(_array, _offset + start, _count - start);
 
         /// <summary>
         ///     Slice
         /// </summary>
         /// <param name="start">Start</param>
         /// <param name="count">Count</param>
-        /// <returns>NativeArraySegment</returns>
+        /// <returns>NativeSlice</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeArraySegment<T> Slice(int start, int count) => new(_array, _offset + start, count);
+        public NativeSlice<T> Slice(int start, int count) => new(_array, _offset + start, count);
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeArraySegment<T> Empty => new();
+        public static NativeSlice<T> Empty => new();
 
         /// <summary>
         ///     Get enumerator
@@ -336,9 +344,9 @@ namespace NativeCollections
         public ref struct Enumerator
         {
             /// <summary>
-            ///     NativeArraySegment
+            ///     NativeSlice
             /// </summary>
-            private readonly NativeArraySegment<T> _nativeArraySegment;
+            private readonly NativeSlice<T> _nativeSlice;
 
             /// <summary>
             ///     Index
@@ -348,11 +356,11 @@ namespace NativeCollections
             /// <summary>
             ///     Structure
             /// </summary>
-            /// <param name="nativeArraySegment">NativeArraySegment</param>
+            /// <param name="nativeSlice">NativeSlice</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(NativeArraySegment<T> nativeArraySegment)
+            internal Enumerator(NativeSlice<T> nativeSlice)
             {
-                _nativeArraySegment = nativeArraySegment;
+                _nativeSlice = nativeSlice;
                 _index = -1;
             }
 
@@ -364,7 +372,7 @@ namespace NativeCollections
             public bool MoveNext()
             {
                 var index = _index + 1;
-                if (index < _nativeArraySegment._count)
+                if (index < _nativeSlice._count)
                 {
                     _index = index;
                     return true;
@@ -379,7 +387,7 @@ namespace NativeCollections
             public ref T Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => ref _nativeArraySegment[_index];
+                get => ref _nativeSlice[_index];
             }
         }
     }

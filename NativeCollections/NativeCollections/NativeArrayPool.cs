@@ -150,59 +150,59 @@ namespace NativeCollections
         ///     Rent buffer
         /// </summary>
         /// <param name="minimumLength">Minimum buffer length</param>
-        /// <param name="array">Buffer</param>
+        /// <param name="nativeArray">Buffer</param>
         /// <returns>Rented</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryRent(int minimumLength, out NativeArray<T> array)
+        public bool TryRent(int minimumLength, out NativeArray<T> nativeArray)
         {
             if (minimumLength < 0)
             {
-                array = default;
+                nativeArray = default;
                 return false;
             }
 
             var index = SelectBucketIndex(minimumLength);
             if (index < _length)
             {
-                array = _buckets[index].Rent();
+                nativeArray = _buckets[index].Rent();
                 return true;
             }
 
-            array = default;
+            nativeArray = default;
             return false;
         }
 
         /// <summary>
         ///     Return buffer
         /// </summary>
-        /// <param name="array">Buffer</param>
+        /// <param name="nativeArray">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Return(in NativeArray<T> array)
+        public void Return(in NativeArray<T> nativeArray)
         {
-            var length = array.Length;
+            var length = nativeArray.Length;
             if (length < 16 || (length & (length - 1)) != 0)
-                throw new ArgumentException("BufferNotFromPool", nameof(array));
+                throw new ArgumentException("BufferNotFromPool", nameof(nativeArray));
             var bucket = SelectBucketIndex(length);
             if (bucket >= _length)
-                throw new ArgumentException("BufferNotFromPool", nameof(array));
-            _buckets[bucket].Return(array.Array);
+                throw new ArgumentException("BufferNotFromPool", nameof(nativeArray));
+            _buckets[bucket].Return(nativeArray.Array);
         }
 
         /// <summary>
         ///     Try return buffer
         /// </summary>
-        /// <param name="array">Buffer</param>
+        /// <param name="nativeArray">Buffer</param>
         /// <returns>Returned</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryReturn(in NativeArray<T> array)
+        public bool TryReturn(in NativeArray<T> nativeArray)
         {
-            var length = array.Length;
+            var length = nativeArray.Length;
             if (length < 16 || (length & (length - 1)) != 0)
                 return false;
             var bucket = SelectBucketIndex(length);
             if (bucket >= _length)
                 return false;
-            _buckets[bucket].Return(array.Array);
+            _buckets[bucket].Return(nativeArray.Array);
             return true;
         }
 

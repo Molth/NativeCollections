@@ -325,42 +325,49 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<byte>(NativeMemoryWriter writer) => writer.AsSpan();
+        public static implicit operator Span<byte>(NativeMemoryWriter nativeMemoryWriter) => nativeMemoryWriter.AsSpan();
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<byte>(NativeMemoryWriter writer) => writer.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<byte>(NativeMemoryWriter nativeMemoryWriter) => nativeMemoryWriter.AsReadOnlySpan();
 
         /// <summary>
         ///     As native memory reader
         /// </summary>
         /// <returns>NativeMemoryReader</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeMemoryReader(NativeMemoryWriter writer) => new(writer.Array, writer.Position);
+        public static implicit operator NativeMemoryReader(NativeMemoryWriter nativeMemoryWriter) => new(nativeMemoryWriter.Array, nativeMemoryWriter.Position);
 
         /// <summary>
         ///     As native memory writer
         /// </summary>
         /// <returns>NativeMemoryWriter</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeMemoryWriter(NativeArray<byte> writer) => new(writer.Array, writer.Length);
+        public static implicit operator NativeMemoryWriter(NativeArray<byte> nativeArray) => new(nativeArray.Array, nativeArray.Length);
 
         /// <summary>
         ///     As native memory writer
         /// </summary>
         /// <returns>NativeMemoryWriter</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeMemoryWriter(NativeMemoryArray<byte> writer) => new(writer.Array, writer.Length);
+        public static implicit operator NativeMemoryWriter(NativeMemoryArray<byte> nativeMemoryArray) => new(nativeMemoryArray.Array, nativeMemoryArray.Length);
 
         /// <summary>
         ///     As native memory writer
         /// </summary>
         /// <returns>NativeMemoryWriter</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeMemoryWriter(NativeArraySegment<byte> writer) => new(writer.Array + writer.Offset, writer.Count);
+        public static implicit operator NativeMemoryWriter(NativeSlice<byte> nativeSlice) => new(nativeSlice.Array + nativeSlice.Offset, nativeSlice.Count);
+
+        /// <summary>
+        ///     As native slice
+        /// </summary>
+        /// <returns>NativeSlice</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator NativeSlice<byte>(NativeMemoryWriter nativeMemoryWriter) => new(nativeMemoryWriter.Array, 0, nativeMemoryWriter.Position);
 
         /// <summary>
         ///     Empty

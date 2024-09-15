@@ -166,22 +166,6 @@ namespace NativeCollections
         public static implicit operator NativeMemoryArray<T>(NativeArray<T> nativeArray) => new(nativeArray.Array, nativeArray.Length);
 
         /// <summary>
-        ///     As native array segment
-        /// </summary>
-        /// <param name="nativeMemoryArray">Native memory array</param>
-        /// <returns>NativeArraySegment</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeArraySegment<T>(NativeMemoryArray<T> nativeMemoryArray) => new(nativeMemoryArray._array, nativeMemoryArray._length);
-
-        /// <summary>
-        ///     As native memory array
-        /// </summary>
-        /// <param name="nativeArraySegment">Native array segment</param>
-        /// <returns>NativeMemoryArray</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeMemoryArray<T>(NativeArraySegment<T> nativeArraySegment) => new(nativeArraySegment.Array, nativeArraySegment.Offset + nativeArraySegment.Count);
-
-        /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="left">Left</param>
