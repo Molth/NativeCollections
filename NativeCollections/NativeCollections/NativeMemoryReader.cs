@@ -267,6 +267,20 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     As native memory reader
+        /// </summary>
+        /// <returns>NativeMemoryReader</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator NativeMemoryReader(Span<byte> span) => new((byte*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(span)), span.Length);
+
+        /// <summary>
+        ///     As native memory reader
+        /// </summary>
+        /// <returns>NativeMemoryReader</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator NativeMemoryReader(ReadOnlySpan<byte> readOnlySpan) => new((byte*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(readOnlySpan)), readOnlySpan.Length);
+
+        /// <summary>
         ///     Empty
         /// </summary>
         public static NativeMemoryReader Empty => new();

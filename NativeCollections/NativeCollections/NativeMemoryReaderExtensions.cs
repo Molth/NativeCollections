@@ -18,37 +18,37 @@ namespace NativeCollections
         /// <summary>
         ///     Read
         /// </summary>
-        /// <param name="reader">Reader</param>
+        /// <param name="nativeMemoryReader">Native memory reader</param>
         /// <typeparam name="T">Type</typeparam>
         /// <returns>object</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T Read<T>(this ref NativeMemoryReader reader) where T : unmanaged
+        public static T Read<T>(this ref NativeMemoryReader nativeMemoryReader) where T : unmanaged
         {
-            if (reader.Position + sizeof(T) > reader.Length)
-                throw new ArgumentOutOfRangeException(nameof(T), $"Requires size is {sizeof(T)}, but buffer length is {reader.Remaining}.");
-            var obj = Unsafe.ReadUnaligned<T>(reader.Array + reader.Position);
-            reader.Position += sizeof(T);
+            if (nativeMemoryReader.Position + sizeof(T) > nativeMemoryReader.Length)
+                throw new ArgumentOutOfRangeException(nameof(T), $"Requires size is {sizeof(T)}, but buffer length is {nativeMemoryReader.Remaining}.");
+            var obj = Unsafe.ReadUnaligned<T>(nativeMemoryReader.Array + nativeMemoryReader.Position);
+            nativeMemoryReader.Position += sizeof(T);
             return obj;
         }
 
         /// <summary>
         ///     Try read
         /// </summary>
-        /// <param name="reader">Reader</param>
+        /// <param name="nativeMemoryReader">Native memory reader</param>
         /// <param name="obj">object</param>
         /// <typeparam name="T">Type</typeparam>
         /// <returns>Read</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool TryRead<T>(this ref NativeMemoryReader reader, out T obj) where T : unmanaged
+        public static bool TryRead<T>(this ref NativeMemoryReader nativeMemoryReader, out T obj) where T : unmanaged
         {
-            if (reader.Position + sizeof(T) > reader.Length)
+            if (nativeMemoryReader.Position + sizeof(T) > nativeMemoryReader.Length)
             {
                 obj = default;
                 return false;
             }
 
-            obj = Unsafe.ReadUnaligned<T>(reader.Array + reader.Position);
-            reader.Position += sizeof(T);
+            obj = Unsafe.ReadUnaligned<T>(nativeMemoryReader.Array + nativeMemoryReader.Position);
+            nativeMemoryReader.Position += sizeof(T);
             return true;
         }
     }

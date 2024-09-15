@@ -197,6 +197,14 @@ namespace NativeCollections
         public static implicit operator Span<T>(NativeSlice<T> nativeSlice) => nativeSlice.AsSpan();
 
         /// <summary>
+        ///     As native slice
+        /// </summary>
+        /// <param name="span">Span</param>
+        /// <returns>NativeSlice</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator NativeSlice<T>(Span<T> span) => new((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(span)), 0, span.Length);
+
+        /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
@@ -204,9 +212,15 @@ namespace NativeCollections
         public static implicit operator ReadOnlySpan<T>(NativeSlice<T> nativeSlice) => nativeSlice.AsReadOnlySpan();
 
         /// <summary>
+        ///     As native slice
+        /// </summary>
+        /// <returns>NativeSlice</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator NativeSlice<T>(ReadOnlySpan<T> readOnlySpan) => new((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(readOnlySpan)), 0, readOnlySpan.Length);
+
+        /// <summary>
         ///     As native array
         /// </summary>
-        /// <param name="nativeSlice">Native slice</param>
         /// <returns>NativeArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator NativeArray<T>(NativeSlice<T> nativeSlice) => new(nativeSlice._array, nativeSlice._offset + nativeSlice._count);
@@ -214,7 +228,6 @@ namespace NativeCollections
         /// <summary>
         ///     As native slice
         /// </summary>
-        /// <param name="nativeArray">Native array</param>
         /// <returns>NativeSlice</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator NativeSlice<T>(NativeArray<T> nativeArray) => new(nativeArray);
@@ -222,7 +235,6 @@ namespace NativeCollections
         /// <summary>
         ///     As native memory array
         /// </summary>
-        /// <param name="nativeSlice">Native slice</param>
         /// <returns>NativeMemoryArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator NativeMemoryArray<T>(NativeSlice<T> nativeSlice) => new(nativeSlice._array, nativeSlice._offset + nativeSlice._count);
@@ -230,7 +242,6 @@ namespace NativeCollections
         /// <summary>
         ///     As native slice
         /// </summary>
-        /// <param name="nativeMemoryArray">Native memory array</param>
         /// <returns>NativeSlice</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator NativeSlice<T>(NativeMemoryArray<T> nativeMemoryArray) => new(nativeMemoryArray);

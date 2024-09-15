@@ -152,7 +152,6 @@ namespace NativeCollections
         /// <summary>
         ///     As native array
         /// </summary>
-        /// <param name="nativeMemoryArray">Native memory array</param>
         /// <returns>NativeArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator NativeArray<T>(NativeMemoryArray<T> nativeMemoryArray) => new(nativeMemoryArray._array, nativeMemoryArray._length);
@@ -160,10 +159,23 @@ namespace NativeCollections
         /// <summary>
         ///     As native memory array
         /// </summary>
-        /// <param name="nativeArray">Native array</param>
         /// <returns>NativeMemoryArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator NativeMemoryArray<T>(NativeArray<T> nativeArray) => new(nativeArray.Array, nativeArray.Length);
+
+        /// <summary>
+        ///     As native memory array
+        /// </summary>
+        /// <returns>NativeMemoryArray</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator NativeMemoryArray<T>(Span<T> span) => new((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(span)), span.Length);
+
+        /// <summary>
+        ///     As native memory array
+        /// </summary>
+        /// <returns>NativeMemoryArray</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator NativeMemoryArray<T>(ReadOnlySpan<T> readOnlySpan) => new((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(readOnlySpan)), readOnlySpan.Length);
 
         /// <summary>
         ///     Equals

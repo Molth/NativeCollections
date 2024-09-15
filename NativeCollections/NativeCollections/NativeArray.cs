@@ -150,6 +150,20 @@ namespace NativeCollections
         public static implicit operator ReadOnlySpan<T>(NativeArray<T> nativeArray) => nativeArray.AsReadOnlySpan();
 
         /// <summary>
+        ///     As native array
+        /// </summary>
+        /// <returns>NativeArray</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator NativeArray<T>(Span<T> span) => new((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(span)), span.Length);
+
+        /// <summary>
+        ///     As native array
+        /// </summary>
+        /// <returns>NativeArray</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator NativeArray<T>(ReadOnlySpan<T> readOnlySpan) => new((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(readOnlySpan)), readOnlySpan.Length);
+
+        /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="left">Left</param>
