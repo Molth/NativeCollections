@@ -16,24 +16,37 @@ namespace NativeCollections
     /// </summary>
     internal static class BitOperationsHelpers
     {
-#if !NET7_0_OR_GREATER
         /// <summary>
-        ///     DeBruijn sequence
+        ///     Count the number of trailing zero bits in an integer value
+        ///     Similar in behavior to the x86 instruction TZCNT
         /// </summary>
-        private static ReadOnlySpan<byte> Log2DeBruijn => new byte[32]
+        /// <param name="value">Value</param>
+        /// <returns>Trailing zero count</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int TrailingZeroCount(int value) => TrailingZeroCount((uint)value);
+
+        /// <summary>
+        ///     Count the number of trailing zero bits in an integer value
+        ///     Similar in behavior to the x86 instruction TZCNT
+        /// </summary>
+        /// <param name="value">Value</param>
+        /// <returns>Trailing zero count</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int TrailingZeroCount(uint value)
         {
-            0, 9, 1, 10, 13, 21, 2, 29,
-            11, 14, 16, 18, 22, 25, 3, 30,
-            8, 12, 20, 28, 15, 17, 24, 7,
-            19, 27, 23, 6, 26, 5, 4, 31
-        };
+#if NET7_0_OR_GREATER
+            return BitOperations.TrailingZeroCount(value);
+#else
+            return value == 0 ? 32 : Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(TrailingZeroCountDeBruijn), (nint)(int)(((value & (uint)-(int)value) * 0x077CB531u) >> 27));
 #endif
+        }
 
         /// <summary>
         ///     Log2
         /// </summary>
         /// <param name="value">Value</param>
         /// <returns>Log2</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Log2(int value) => Log2((uint)value);
 
         /// <summary>
@@ -41,6 +54,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="value">Value</param>
         /// <returns>Log2</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Log2(uint value)
         {
 #if NET7_0_OR_GREATER
@@ -62,6 +76,7 @@ namespace NativeCollections
         /// <param name="destination">Destination</param>
         /// <param name="source">Source</param>
         /// <param name="count">Count</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void And(Span<int> destination, Span<int> source, uint count)
         {
             switch (count)
@@ -129,6 +144,7 @@ namespace NativeCollections
         /// <param name="destination">Destination</param>
         /// <param name="source">Source</param>
         /// <param name="count">Count</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Or(Span<int> destination, Span<int> source, uint count)
         {
             switch (count)
@@ -196,6 +212,7 @@ namespace NativeCollections
         /// <param name="destination">Destination</param>
         /// <param name="source">Source</param>
         /// <param name="count">Count</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Xor(Span<int> destination, Span<int> source, uint count)
         {
             switch (count)
@@ -262,6 +279,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="destination">Destination</param>
         /// <param name="count">Count</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Not(Span<int> destination, uint count)
         {
             switch (count)
@@ -321,5 +339,29 @@ namespace NativeCollections
                 Unsafe.Add(ref value, i) = ~ Unsafe.Add(ref value, i);
 #endif
         }
+
+#if !NET7_0_OR_GREATER
+        /// <summary>
+        ///     DeBruijn sequence
+        /// </summary>
+        private static ReadOnlySpan<byte> TrailingZeroCountDeBruijn => new byte[32]
+        {
+            0, 1, 28, 2, 29, 14, 24, 3,
+            30, 22, 20, 15, 25, 17, 4, 8,
+            31, 27, 13, 23, 21, 19, 16, 7,
+            26, 12, 18, 6, 11, 5, 10, 9
+        };
+
+        /// <summary>
+        ///     DeBruijn sequence
+        /// </summary>
+        private static ReadOnlySpan<byte> Log2DeBruijn => new byte[32]
+        {
+            0, 9, 1, 10, 13, 21, 2, 29,
+            11, 14, 16, 18, 22, 25, 3, 30,
+            8, 12, 20, 28, 15, 17, 24, 7,
+            19, 27, 23, 6, 26, 5, 4, 31
+        };
+#endif
     }
 }
