@@ -342,6 +342,43 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Ensure capacity
+        /// </summary>
+        /// <param name="capacity">Capacity</param>
+        /// <returns>New capacity</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int EnsureCapacity(int capacity)
+        {
+            if (capacity < 0)
+                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            if (capacity > _handle->MaxFreeSlabs)
+                capacity = _handle->MaxFreeSlabs;
+            var size = _handle->Size;
+            var nodeSize = sizeof(NativeMemoryNode) + _handle->Length;
+            while (_handle->FreeSlabs < capacity)
+            {
+                _handle->FreeSlabs++;
+                var array = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemorySlab) + size * nodeSize));
+                var slab = (NativeMemorySlab*)array;
+                array += sizeof(NativeMemorySlab);
+                NativeMemoryNode* next = null;
+                for (var i = size - 1; i >= 0; --i)
+                {
+                    var node = (NativeMemoryNode*)(array + i * nodeSize);
+                    node->Next = next;
+                    next = node;
+                }
+
+                slab->Node = next;
+                slab->Count = size;
+                slab->Next = _handle->FreeSlab;
+                _handle->FreeSlab = slab;
+            }
+
+            return _handle->FreeSlabs;
+        }
+
+        /// <summary>
         ///     Trim excess
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

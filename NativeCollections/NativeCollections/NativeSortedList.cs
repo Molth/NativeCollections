@@ -349,7 +349,7 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         /// <returns>New capacity</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void EnsureCapacity(int capacity)
+        public int EnsureCapacity(int capacity)
         {
             if (_handle->Capacity < capacity)
             {
@@ -362,6 +362,8 @@ namespace NativeCollections
                     newCapacity = capacity;
                 Capacity = newCapacity;
             }
+
+            return _handle->Capacity;
         }
 
         /// <summary>
