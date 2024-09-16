@@ -1,10 +1,13 @@
-﻿using System.Runtime.CompilerServices;
+﻿#if UNITY_2021_3_OR_NEWER || GODOT
+using System;
+#endif
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 #if NET7_0_OR_GREATER
-using System.Numerics;
 using System.Runtime.Intrinsics;
-#else
-using System;
+#endif
+#if NET5_0_OR_GREATER
+using System.Numerics;
 #endif
 
 // ReSharper disable ALL
@@ -12,7 +15,7 @@ using System;
 namespace NativeCollections
 {
     /// <summary>
-    ///     BitOperations helpers
+    ///     Bit operations helpers
     /// </summary>
     internal static class BitOperationsHelpers
     {
@@ -34,7 +37,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int TrailingZeroCount(ulong value)
         {
-#if NET7_0_OR_GREATER
+#if NET5_0_OR_GREATER
             return BitOperations.TrailingZeroCount(value);
 #else
             var low = (uint)value;
@@ -60,7 +63,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int TrailingZeroCount(uint value)
         {
-#if NET7_0_OR_GREATER
+#if NET5_0_OR_GREATER
             return BitOperations.TrailingZeroCount(value);
 #else
             return value == 0 ? 32 : Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(TrailingZeroCountDeBruijn), (nint)(int)(((value & (uint)-(int)value) * 125613361U) >> 27));
@@ -83,7 +86,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Log2(uint value)
         {
-#if NET7_0_OR_GREATER
+#if NET5_0_OR_GREATER
             return BitOperations.Log2(value);
 #else
             value |= 1;
