@@ -63,7 +63,7 @@ namespace NativeCollections
 #if NET7_0_OR_GREATER
             return BitOperations.TrailingZeroCount(value);
 #else
-            return value == 0 ? 32 : Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(TrailingZeroCountDeBruijn), (nint)(int)(((value & (uint)-(int)value) * 0x077CB531u) >> 27));
+            return value == 0 ? 32 : Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(TrailingZeroCountDeBruijn), (nint)(int)(((value & (uint)-(int)value) * 125613361U) >> 27));
 #endif
         }
 
