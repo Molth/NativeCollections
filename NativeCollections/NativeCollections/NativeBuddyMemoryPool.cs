@@ -149,12 +149,29 @@ namespace NativeCollections
             var offset = (1 << layer) - 1;
             if ((_bitmap[offset / 32] & (1 << (offset % 32))) == 0)
                 return offset;
-            if (layer > 5)
+            if (layer > 6)
+            {
+                var blocksInLayer = (1 << (layer + 1)) - 64;
+                for (var i = offset + 1; i < blocksInLayer; i += 64)
+                {
+                    var value = *((ulong*)_bitmap + i / 64);
+                    if (value != ulong.MaxValue)
+                        return i + BitOperationsHelpers.TrailingZeroCount(~value);
+                }
+
+                var endLayer = blocksInLayer + 63;
+                for (var i = blocksInLayer; i < endLayer; ++i)
+                {
+                    if ((_bitmap[i / 64] & (1 << (i % 64))) == 0)
+                        return i;
+                }
+            }
+            else if (layer > 4)
             {
                 var blocksInLayer = (1 << (layer + 1)) - 32;
                 for (var i = offset + 1; i < blocksInLayer; i += 32)
                 {
-                    var value = (uint)_bitmap[i / 32];
+                    var value = *((uint*)_bitmap + i / 32);
                     if (value != uint.MaxValue)
                         return i + BitOperationsHelpers.TrailingZeroCount(~value);
                 }

@@ -17,6 +17,32 @@ namespace NativeCollections
     internal static class BitOperationsHelpers
     {
         /// <summary>
+        ///     Count the number of trailing zero bits in a mask
+        ///     Similar in behavior to the x86 instruction TZCNT
+        /// </summary>
+        /// <param name="value">Value</param>
+        /// <returns>Trailing zero count</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int TrailingZeroCount(long value) => TrailingZeroCount((ulong)value);
+
+        /// <summary>
+        ///     Count the number of trailing zero bits in a mask
+        ///     Similar in behavior to the x86 instruction TZCNT
+        /// </summary>
+        /// <param name="value">Value</param>
+        /// <returns>Trailing zero count</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int TrailingZeroCount(ulong value)
+        {
+#if NET7_0_OR_GREATER
+            return BitOperations.TrailingZeroCount(value);
+#else
+            uint low = (uint)value;
+            return low == 0 ? 32 + TrailingZeroCount((uint)(value >> 32)) : TrailingZeroCount(low);
+#endif
+        }
+
+        /// <summary>
         ///     Count the number of trailing zero bits in an integer value
         ///     Similar in behavior to the x86 instruction TZCNT
         /// </summary>
