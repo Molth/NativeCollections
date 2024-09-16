@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿#if NET7_0_OR_GREATER
+using System.Runtime.CompilerServices;
 #if UNITY_2021_3_OR_NEWER || GODOT
 using System;
 #endif
@@ -53,3 +54,4 @@ namespace NativeCollections
         }
     }
 }
+#endif

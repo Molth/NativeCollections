@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿#if NET7_0_OR_GREATER
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 #if UNITY_2021_3_OR_NEWER || GODOT
 using System;
@@ -433,3 +434,4 @@ namespace NativeCollections
         public static NativeWriter Empty => new();
     }
 }
+#endif
