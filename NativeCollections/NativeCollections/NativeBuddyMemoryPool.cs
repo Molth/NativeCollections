@@ -185,11 +185,20 @@ namespace NativeCollections
             }
             else
             {
-                var blocksInLayer = (1 << (layer + 1)) - 1;
-                for (var i = offset; i < blocksInLayer; ++i)
+                var value = *(uint*)_bitmap;
+                if (value != uint.MaxValue)
                 {
-                    if ((_bitmap[i / 32] & (1 << (i % 32))) == 0)
-                        return i;
+                    var blocksInLayer = (1 << layer) + offset;
+                    var result = BitOperationsHelpers.TrailingZeroCount(~value);
+                    if (result >= blocksInLayer)
+                        return -1;
+                    if (result > offset)
+                        return result;
+                    for (var i = offset + 1; i < blocksInLayer; ++i)
+                    {
+                        if ((_bitmap[i / 32] & (1 << (i % 32))) == 0)
+                            return i;
+                    }
                 }
             }
 
