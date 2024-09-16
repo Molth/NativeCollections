@@ -37,8 +37,8 @@ namespace NativeCollections
 #if NET7_0_OR_GREATER
             return BitOperations.TrailingZeroCount(value);
 #else
-            uint low = (uint)value;
-            return low == 0 ? 32 + TrailingZeroCount((uint)(value >> 32)) : TrailingZeroCount(low);
+            var low = (uint)value;
+            return low == 0 ? 32 + TrailingZeroCount((uint)(value >> 32)) : Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(TrailingZeroCountDeBruijn), (nint)(int)(((low & (uint)-(int)low) * 125613361U) >> 27));
 #endif
         }
 
