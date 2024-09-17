@@ -409,16 +409,17 @@ namespace NativeCollections
         /// </summary>
         /// <returns>New capacity</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void TrimExcess()
+        public int TrimExcess()
         {
             if (_handle->Size >= (int)(_handle->Length * 0.9))
-                return;
+                return _handle->Length;
             var nodes = (ValueTuple<TElement, TPriority>*)NativeMemoryAllocator.Alloc((uint)(_handle->Size * sizeof(ValueTuple<TElement, TPriority>)));
             Unsafe.CopyBlockUnaligned(nodes, _handle->Nodes, (uint)_handle->Size);
             NativeMemoryAllocator.Free(_handle->Nodes);
             _handle->Nodes = nodes;
             _handle->Length = _handle->Size;
             ++_handle->Version;
+            return _handle->Length;
         }
 
         /// <summary>
