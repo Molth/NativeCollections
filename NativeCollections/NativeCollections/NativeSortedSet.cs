@@ -176,7 +176,7 @@ namespace NativeCollections
         {
             if (_handle->Root != null)
             {
-                var nodeStack = new NativeStack<nint>(2 * Log2(_handle->Count + 1));
+                var nodeStack = new NativeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(_handle->Count + 1)));
                 nodeStack.Push((nint)_handle->Root);
                 while (nodeStack.TryPop(out var node))
                 {
@@ -578,14 +578,6 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Log2
-        /// </summary>
-        /// <param name="value">Value</param>
-        /// <returns>Log2</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int Log2(int value) => BitOperationsHelpers.Log2(value);
-
-        /// <summary>
         ///     Node
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
@@ -893,7 +885,7 @@ namespace NativeCollections
             {
                 _nativeSortedSet = nativeSortedSet;
                 _version = nativeSortedSet._handle->Version;
-                _nodeStack = new NativeStack<nint>(2 * Log2(nativeSortedSet.Count + 1));
+                _nodeStack = new NativeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(nativeSortedSet.Count + 1)));
                 _currentNode = null;
                 _current = default;
                 var node = _nativeSortedSet._handle->Root;

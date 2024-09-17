@@ -55,7 +55,7 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(maxBlockSize), maxBlockSize, "MustBePowOf2");
             _minBlockSize = minBlockSize;
             _maxBlockSize = maxBlockSize;
-            var bitmapSize = ((1 << (BitOperationsHelpers.Log2(maxBlockSize / minBlockSize) + 1)) + 31) / 32 * sizeof(int);
+            var bitmapSize = ((1 << (BitOperationsHelpers.Log2((uint)(maxBlockSize / minBlockSize)) + 1)) + 31) / 32 * sizeof(int);
             var array = (byte*)NativeMemoryAllocator.Alloc((uint)(bitmapSize + maxBlockSize));
             _bitmap = (int*)array;
             _memory = array + bitmapSize;
