@@ -311,7 +311,7 @@ namespace NativeCollections
         public void Insert(int index, in T item)
         {
             if ((uint)index > (uint)_handle->Size)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "ListInsert");
+                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
             if (_handle->Size == _handle->Length)
                 Grow(_handle->Size + 1);
             if (index < _handle->Size)
