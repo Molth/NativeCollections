@@ -267,6 +267,21 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Write bytes
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void WriteBytes(ReadOnlySpan<byte> buffer) => WriteBytes((byte*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)), buffer.Length);
+
+        /// <summary>
+        ///     Try write bytes
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <returns>Wrote</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryWriteBytes(ReadOnlySpan<byte> buffer) => TryWriteBytes((byte*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)), buffer.Length);
+
+        /// <summary>
         ///     Clear
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
