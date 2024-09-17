@@ -146,11 +146,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int FindFreeBlock(int layer)
         {
-            var offset = (1 << layer) - 1;
-            if ((_bitmap[offset / 32] & (1 << (offset % 32))) == 0)
-                return offset;
-            var blocksInLayer = (1 << layer) + offset;
-            for (var i = offset + 1; i < blocksInLayer; ++i)
+            var start = (1 << layer) - 1;
+            if ((_bitmap[start / 32] & (1 << (start % 32))) == 0)
+                return start;
+            var count = (1 << (layer + 1)) - 1;
+            for (var i = start + 1; i < count; ++i)
             {
                 if ((_bitmap[i / 32] & (1 << (i % 32))) == 0)
                     return i;
