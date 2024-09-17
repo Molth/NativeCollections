@@ -89,7 +89,7 @@ namespace NativeCollections
         /// <summary>
         ///     Node
         /// </summary>
-        [StructLayout(LayoutKind.Explicit)]
+        [StructLayout(LayoutKind.Explicit, Size = 8)]
         private struct NativeMemoryNode
         {
             /// <summary>
