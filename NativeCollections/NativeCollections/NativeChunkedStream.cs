@@ -148,16 +148,6 @@ namespace NativeCollections
         public int Size => _handle->Size;
 
         /// <summary>
-        ///     Read offset
-        /// </summary>
-        public int ReadOffset => _handle->ReadOffset;
-
-        /// <summary>
-        ///     Write offset
-        /// </summary>
-        public int WriteOffset => _handle->WriteOffset;
-
-        /// <summary>
         ///     Length
         /// </summary>
         public int Length => _handle->Length;
