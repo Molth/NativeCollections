@@ -234,8 +234,12 @@ namespace NativeCollections
         {
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            if (length > _handle->Length)
+            if (length >= _handle->Length)
+            {
                 length = _handle->Length;
+                _handle->WriteOffset = 0;
+            }
+
             var bytesRead = 0;
             while (bytesRead < length)
             {
@@ -250,28 +254,23 @@ namespace NativeCollections
 
                 Unsafe.CopyBlockUnaligned(buffer + bytesRead, _handle->Head->Array + _handle->ReadOffset, (uint)slice);
                 _handle->ReadOffset = 0;
-                if (_handle->Chunks != 1)
+                if (_handle->Chunks == 1)
+                    break;
+                bytesRead += slice;
+                var chunk = _handle->Head;
+                _handle->Head = chunk->Next;
+                if (_handle->FreeChunks == _handle->MaxFreeChunks)
                 {
-                    bytesRead += slice;
-                    var chunk = _handle->Head;
-                    _handle->Head = chunk->Next;
-                    if (_handle->FreeChunks == _handle->MaxFreeChunks)
-                    {
-                        NativeMemoryAllocator.Free(chunk);
-                    }
-                    else
-                    {
-                        chunk->Next = _handle->FreeList;
-                        _handle->FreeList = chunk;
-                        _handle->FreeChunks++;
-                    }
-
-                    _handle->Chunks--;
-                    continue;
+                    NativeMemoryAllocator.Free(chunk);
+                }
+                else
+                {
+                    chunk->Next = _handle->FreeList;
+                    _handle->FreeList = chunk;
+                    _handle->FreeChunks++;
                 }
 
-                _handle->WriteOffset = 0;
-                break;
+                _handle->Chunks--;
             }
 
             _handle->Length -= length;
@@ -301,6 +300,7 @@ namespace NativeCollections
                 }
 
                 Unsafe.CopyBlockUnaligned(_handle->Tail->Array + _handle->WriteOffset, buffer + bytesWritten, (uint)slice);
+                _handle->WriteOffset = 0;
                 bytesWritten += slice;
                 NativeMemoryChunk* chunk;
                 if (_handle->FreeChunks == 0)
@@ -317,7 +317,6 @@ namespace NativeCollections
                 _handle->Tail->Next = chunk;
                 _handle->Tail = chunk;
                 _handle->Chunks++;
-                _handle->WriteOffset = 0;
             }
 
             _handle->Length += length;
