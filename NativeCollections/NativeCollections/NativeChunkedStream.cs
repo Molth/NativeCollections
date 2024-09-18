@@ -237,43 +237,134 @@ namespace NativeCollections
             if (length >= _handle->Length)
             {
                 length = _handle->Length;
-                _handle->WriteOffset = 0;
-            }
-
-            var bytesRead = 0;
-            while (bytesRead < length)
-            {
-                var slice = _handle->Size - _handle->ReadOffset;
-                var remaining = length - bytesRead;
-                if (slice > remaining)
+                if (length <= 0)
+                    return 0;
+                var size = _handle->Size;
+                var byteCount = size - _handle->ReadOffset;
+                if (byteCount > length)
                 {
-                    Unsafe.CopyBlockUnaligned(buffer + bytesRead, _handle->Head->Array + _handle->ReadOffset, (uint)remaining);
-                    _handle->ReadOffset += remaining;
-                    break;
-                }
-
-                Unsafe.CopyBlockUnaligned(buffer + bytesRead, _handle->Head->Array + _handle->ReadOffset, (uint)slice);
-                _handle->ReadOffset = 0;
-                if (_handle->Chunks == 1)
-                    break;
-                bytesRead += slice;
-                var chunk = _handle->Head;
-                _handle->Head = chunk->Next;
-                if (_handle->FreeChunks == _handle->MaxFreeChunks)
-                {
-                    NativeMemoryAllocator.Free(chunk);
+                    Unsafe.CopyBlockUnaligned(buffer, _handle->Head->Array + _handle->ReadOffset, (uint)length);
                 }
                 else
                 {
-                    chunk->Next = _handle->FreeList;
-                    _handle->FreeList = chunk;
-                    _handle->FreeChunks++;
+                    Unsafe.CopyBlockUnaligned(buffer, _handle->Head->Array + _handle->ReadOffset, (uint)byteCount);
+                    if (_handle->Chunks != 1)
+                    {
+                        var chunk = _handle->Head;
+                        _handle->Head = chunk->Next;
+                        if (_handle->FreeChunks == _handle->MaxFreeChunks)
+                        {
+                            NativeMemoryAllocator.Free(chunk);
+                        }
+                        else
+                        {
+                            chunk->Next = _handle->FreeList;
+                            _handle->FreeList = chunk;
+                            ++_handle->FreeChunks;
+                        }
+
+                        --_handle->Chunks;
+                        while (byteCount < length)
+                        {
+                            var remaining = length - byteCount;
+                            if (size > remaining)
+                            {
+                                Unsafe.CopyBlockUnaligned(buffer + byteCount, _handle->Head->Array, (uint)remaining);
+                                break;
+                            }
+
+                            Unsafe.CopyBlockUnaligned(buffer + byteCount, _handle->Head->Array, (uint)size);
+                            if (_handle->Chunks != 1)
+                            {
+                                byteCount += size;
+                                chunk = _handle->Head;
+                                _handle->Head = chunk->Next;
+                                if (_handle->FreeChunks == _handle->MaxFreeChunks)
+                                {
+                                    NativeMemoryAllocator.Free(chunk);
+                                }
+                                else
+                                {
+                                    chunk->Next = _handle->FreeList;
+                                    _handle->FreeList = chunk;
+                                    ++_handle->FreeChunks;
+                                }
+
+                                --_handle->Chunks;
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                    }
                 }
 
-                _handle->Chunks--;
+                _handle->ReadOffset = 0;
+                _handle->WriteOffset = 0;
+                _handle->Length = 0;
+            }
+            else
+            {
+                if (length <= 0)
+                    return 0;
+                var size = _handle->Size;
+                var byteCount = size - _handle->ReadOffset;
+                if (byteCount > length)
+                {
+                    Unsafe.CopyBlockUnaligned(buffer, _handle->Head->Array + _handle->ReadOffset, (uint)length);
+                    _handle->ReadOffset += length;
+                }
+                else
+                {
+                    Unsafe.CopyBlockUnaligned(buffer, _handle->Head->Array + _handle->ReadOffset, (uint)byteCount);
+                    _handle->ReadOffset = 0;
+                    var chunk = _handle->Head;
+                    _handle->Head = chunk->Next;
+                    if (_handle->FreeChunks == _handle->MaxFreeChunks)
+                    {
+                        NativeMemoryAllocator.Free(chunk);
+                    }
+                    else
+                    {
+                        chunk->Next = _handle->FreeList;
+                        _handle->FreeList = chunk;
+                        ++_handle->FreeChunks;
+                    }
+
+                    --_handle->Chunks;
+                    while (byteCount < length)
+                    {
+                        var remaining = length - byteCount;
+                        if (size > remaining)
+                        {
+                            Unsafe.CopyBlockUnaligned(buffer + byteCount, _handle->Head->Array, (uint)remaining);
+                            _handle->ReadOffset += remaining;
+                            break;
+                        }
+
+                        Unsafe.CopyBlockUnaligned(buffer + byteCount, _handle->Head->Array, (uint)size);
+                        byteCount += size;
+                        chunk = _handle->Head;
+                        _handle->Head = chunk->Next;
+                        if (_handle->FreeChunks == _handle->MaxFreeChunks)
+                        {
+                            NativeMemoryAllocator.Free(chunk);
+                        }
+                        else
+                        {
+                            chunk->Next = _handle->FreeList;
+                            _handle->FreeList = chunk;
+                            ++_handle->FreeChunks;
+                        }
+
+                        --_handle->Chunks;
+                    }
+                }
+
+                _handle->Length -= length;
             }
 
-            _handle->Length -= length;
             return length;
         }
 
@@ -287,36 +378,61 @@ namespace NativeCollections
         {
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            var bytesWritten = 0;
-            while (bytesWritten < length)
+            if (length == 0)
+                return;
+            var size = _handle->Size;
+            var byteCount = size - _handle->WriteOffset;
+            if (byteCount >= length)
             {
-                var slice = _handle->Size - _handle->WriteOffset;
-                var remaining = length - bytesWritten;
-                if (slice >= remaining)
-                {
-                    Unsafe.CopyBlockUnaligned(_handle->Tail->Array + _handle->WriteOffset, buffer + bytesWritten, (uint)remaining);
-                    _handle->WriteOffset += remaining;
-                    break;
-                }
-
-                Unsafe.CopyBlockUnaligned(_handle->Tail->Array + _handle->WriteOffset, buffer + bytesWritten, (uint)slice);
+                Unsafe.CopyBlockUnaligned(_handle->Tail->Array + _handle->WriteOffset, buffer, (uint)length);
+                _handle->WriteOffset += length;
+            }
+            else
+            {
+                Unsafe.CopyBlockUnaligned(_handle->Tail->Array + _handle->WriteOffset, buffer, (uint)byteCount);
                 _handle->WriteOffset = 0;
-                bytesWritten += slice;
                 NativeMemoryChunk* chunk;
                 if (_handle->FreeChunks == 0)
                 {
-                    chunk = (NativeMemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemoryChunk) + _handle->Size));
+                    chunk = (NativeMemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemoryChunk) + size));
                 }
                 else
                 {
                     chunk = _handle->FreeList;
                     _handle->FreeList = chunk->Next;
-                    _handle->FreeChunks--;
+                    --_handle->FreeChunks;
                 }
 
                 _handle->Tail->Next = chunk;
                 _handle->Tail = chunk;
-                _handle->Chunks++;
+                ++_handle->Chunks;
+                while (byteCount < length)
+                {
+                    var remaining = length - byteCount;
+                    if (size >= remaining)
+                    {
+                        Unsafe.CopyBlockUnaligned(_handle->Tail->Array, buffer + byteCount, (uint)remaining);
+                        _handle->WriteOffset += remaining;
+                        break;
+                    }
+
+                    Unsafe.CopyBlockUnaligned(_handle->Tail->Array, buffer + byteCount, (uint)size);
+                    byteCount += size;
+                    if (_handle->FreeChunks == 0)
+                    {
+                        chunk = (NativeMemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemoryChunk) + size));
+                    }
+                    else
+                    {
+                        chunk = _handle->FreeList;
+                        _handle->FreeList = chunk->Next;
+                        --_handle->FreeChunks;
+                    }
+
+                    _handle->Tail->Next = chunk;
+                    _handle->Tail = chunk;
+                    ++_handle->Chunks;
+                }
             }
 
             _handle->Length += length;
