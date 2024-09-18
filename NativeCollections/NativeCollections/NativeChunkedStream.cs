@@ -237,7 +237,7 @@ namespace NativeCollections
             if (length >= _handle->Length)
             {
                 length = _handle->Length;
-                if (length <= 0)
+                if (length == 0)
                     return 0;
                 var size = _handle->Size;
                 var byteCount = size - _handle->ReadOffset;
@@ -306,7 +306,7 @@ namespace NativeCollections
             }
             else
             {
-                if (length <= 0)
+                if (length == 0)
                     return 0;
                 var size = _handle->Size;
                 var byteCount = size - _handle->ReadOffset;
