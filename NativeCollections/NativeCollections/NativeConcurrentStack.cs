@@ -1,7 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 #if !NET6_0_OR_GREATER
-using System.Security.Cryptography;
+using System.Diagnostics;
 #endif
 
 #if UNITY_2021_3_OR_NEWER || GODOT
@@ -249,7 +249,7 @@ namespace NativeCollections
             var count = 0;
             var backoff = 1;
 #if !NET6_0_OR_GREATER
-            Span<byte> random = stackalloc byte[1];
+            var random = (uint)Stopwatch.GetTimestamp();
 #endif
             while (true)
             {
@@ -302,8 +302,10 @@ namespace NativeCollections
 #if NET6_0_OR_GREATER
                     backoff = Random.Shared.Next(1, 8);
 #else
-                    RandomNumberGenerator.Fill(random);
-                    backoff = random[0] % 7 + 1;
+                    backoff = (int)(random % 7 + 1);
+                    random ^= random << 13;
+                    random ^= random >> 17;
+                    random ^= random << 5;
 #endif
                 }
                 else
