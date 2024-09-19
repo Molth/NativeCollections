@@ -318,7 +318,6 @@ namespace NativeCollections
                 else
                 {
                     Unsafe.CopyBlockUnaligned(buffer, _handle->Head->Array + _handle->ReadOffset, (uint)byteCount);
-                    _handle->ReadOffset = 0;
                     var chunk = _handle->Head;
                     _handle->Head = chunk->Next;
                     if (_handle->FreeChunks == _handle->MaxFreeChunks)
@@ -339,7 +338,7 @@ namespace NativeCollections
                         if (size > remaining)
                         {
                             Unsafe.CopyBlockUnaligned(buffer + byteCount, _handle->Head->Array, (uint)remaining);
-                            _handle->ReadOffset += remaining;
+                            _handle->ReadOffset = remaining;
                             break;
                         }
 
@@ -390,7 +389,6 @@ namespace NativeCollections
             else
             {
                 Unsafe.CopyBlockUnaligned(_handle->Tail->Array + _handle->WriteOffset, buffer, (uint)byteCount);
-                _handle->WriteOffset = 0;
                 NativeMemoryChunk* chunk;
                 if (_handle->FreeChunks == 0)
                 {
@@ -412,7 +410,7 @@ namespace NativeCollections
                     if (size >= remaining)
                     {
                         Unsafe.CopyBlockUnaligned(_handle->Tail->Array, buffer + byteCount, (uint)remaining);
-                        _handle->WriteOffset += remaining;
+                        _handle->WriteOffset = remaining;
                         break;
                     }
 
