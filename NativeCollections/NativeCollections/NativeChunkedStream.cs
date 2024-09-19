@@ -248,7 +248,7 @@ namespace NativeCollections
                 else
                 {
                     Unsafe.CopyBlockUnaligned(buffer, _handle->Head->Array + _handle->ReadOffset, (uint)byteCount);
-                    if (_handle->Chunks != 1)
+                    if (byteCount != length)
                     {
                         NativeMemoryChunk* chunk;
                         var count = length - byteCount;
