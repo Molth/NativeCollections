@@ -50,6 +50,11 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Is created
+        /// </summary>
+        public bool IsCreated => Unsafe.AsPointer(ref Unsafe.AsRef(in Array)) != null;
+
+        /// <summary>
         ///     Remaining
         /// </summary>
         public int Remaining => Length - Position;

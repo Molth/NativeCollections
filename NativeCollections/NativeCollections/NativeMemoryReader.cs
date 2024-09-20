@@ -49,6 +49,11 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Is created
+        /// </summary>
+        public bool IsCreated => Array != null;
+
+        /// <summary>
         ///     Remaining
         /// </summary>
         public int Remaining => Length - Position;
