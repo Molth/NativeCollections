@@ -548,9 +548,7 @@ namespace NativeCollections
                     return true;
             }
 #endif
-            if (extraBits == 0)
-                return false;
-            return (_handle->Array[intCount] & ((1 << extraBits) - 1)) != 0;
+            return extraBits != 0 && (_handle->Array[intCount] & ((1 << extraBits) - 1)) != 0;
         }
 
         /// <summary>
