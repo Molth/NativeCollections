@@ -16,6 +16,7 @@ namespace NativeCollections
     ///     Native writer
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
+    [NativeCollection]
     public unsafe ref struct NativeWriter
     {
         /// <summary>

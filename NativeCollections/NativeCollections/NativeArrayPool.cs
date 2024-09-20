@@ -18,6 +18,7 @@ namespace NativeCollections
     ///     NativeMemoryPool
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
+    [NativeCollection]
     public readonly unsafe struct NativeArrayPool<T> : IDisposable, IEquatable<NativeArrayPool<T>> where T : unmanaged
     {
         /// <summary>

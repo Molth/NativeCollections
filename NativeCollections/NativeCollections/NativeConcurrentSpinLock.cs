@@ -16,6 +16,7 @@ namespace NativeCollections
     ///     Native concurrent spinLock
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
+    [NativeCollection]
     public readonly unsafe struct NativeConcurrentSpinLock : IDisposable, IEquatable<NativeConcurrentSpinLock>
     {
         /// <summary>

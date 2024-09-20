@@ -16,6 +16,7 @@ namespace NativeCollections
     ///     Native memory stream
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
+    [NativeCollection]
     public unsafe struct NativeMemoryStream : IDisposable, IEquatable<NativeMemoryStream>
     {
         /// <summary>

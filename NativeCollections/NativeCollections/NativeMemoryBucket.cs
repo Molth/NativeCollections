@@ -15,6 +15,7 @@ namespace NativeCollections
     ///     Native memory bucket
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
+    [NativeCollection]
     public readonly unsafe struct NativeMemoryBucket : IDisposable, IEquatable<NativeMemoryBucket>
     {
         /// <summary>

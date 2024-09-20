@@ -15,6 +15,7 @@ namespace NativeCollections
     ///     Native memory reader
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
+    [NativeCollection]
     public unsafe ref struct NativeMemoryReader
     {
         /// <summary>
@@ -140,6 +141,21 @@ namespace NativeCollections
                 return false;
             Position = newPosition;
             return true;
+        }
+
+        /// <summary>
+        ///     Read
+        /// </summary>
+        /// <typeparam name="T">Type</typeparam>
+        /// <returns>object</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T Read<T>() where T : unmanaged
+        {
+            if (Position + sizeof(T) > Length)
+                throw new ArgumentOutOfRangeException(nameof(T), $"Requires size is {sizeof(T)}, but buffer length is {Remaining}.");
+            var obj = Unsafe.ReadUnaligned<T>(Array + Position);
+            Position += sizeof(T);
+            return obj;
         }
 
         /// <summary>

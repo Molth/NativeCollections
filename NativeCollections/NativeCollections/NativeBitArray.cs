@@ -15,6 +15,7 @@ namespace NativeCollections
     ///     Native bit array
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
+    [NativeCollection]
     public readonly unsafe struct NativeBitArray : IDisposable, IEquatable<NativeBitArray>
     {
         /// <summary>

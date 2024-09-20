@@ -15,6 +15,7 @@ namespace NativeCollections
     ///     Native buddy memory pool
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
+    [NativeCollection]
     public readonly unsafe struct NativeBuddyMemoryPool : IDisposable, IEquatable<NativeBuddyMemoryPool>
     {
         /// <summary>
