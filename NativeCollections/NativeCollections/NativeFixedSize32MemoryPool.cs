@@ -27,27 +27,27 @@ namespace NativeCollections
             /// <summary>
             ///     Sentinel
             /// </summary>
-            public NativeFixedSize32MemoryBlock* Sentinel;
+            public NativeFixedSize32MemorySlab* Sentinel;
 
             /// <summary>
             ///     Free list
             /// </summary>
-            public NativeFixedSize32MemoryBlock* FreeList;
+            public NativeFixedSize32MemorySlab* FreeList;
 
             /// <summary>
-            ///     Blocks
+            ///     Slabs
             /// </summary>
-            public int Blocks;
+            public int Slabs;
 
             /// <summary>
-            ///     Free blocks
+            ///     Free slabs
             /// </summary>
-            public int FreeBlocks;
+            public int FreeSlabs;
 
             /// <summary>
-            ///     Max free blocks
+            ///     Max free slabs
             /// </summary>
-            public int MaxFreeBlocks;
+            public int MaxFreeSlabs;
 
             /// <summary>
             ///     Length
@@ -56,20 +56,20 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Block
+        ///     Slab
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        private struct NativeFixedSize32MemoryBlock
+        private struct NativeFixedSize32MemorySlab
         {
             /// <summary>
             ///     Next
             /// </summary>
-            public NativeFixedSize32MemoryBlock* Next;
+            public NativeFixedSize32MemorySlab* Next;
 
             /// <summary>
             ///     Previous
             /// </summary>
-            public NativeFixedSize32MemoryBlock* Previous;
+            public NativeFixedSize32MemorySlab* Previous;
 
             /// <summary>
             ///     Bitmap
@@ -86,29 +86,29 @@ namespace NativeCollections
         ///     Structure
         /// </summary>
         /// <param name="length">Length</param>
-        /// <param name="maxFreeBlocks">Max free blocks</param>
+        /// <param name="maxFreeSlabs">Max free slabs</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeFixedSize32MemoryPool(int length, int maxFreeBlocks)
+        public NativeFixedSize32MemoryPool(int length, int maxFreeSlabs)
         {
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            if (maxFreeBlocks < 0)
-                throw new ArgumentOutOfRangeException(nameof(maxFreeBlocks), maxFreeBlocks, "MustBeNonNegative");
+            if (maxFreeSlabs < 0)
+                throw new ArgumentOutOfRangeException(nameof(maxFreeSlabs), maxFreeSlabs, "MustBeNonNegative");
             var nodeSize = 1 + length;
-            var array = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeFixedSize32MemoryBlock) + 32 * nodeSize));
-            var block = (NativeFixedSize32MemoryBlock*)array;
-            block->Next = block;
-            block->Previous = block;
-            block->Bitmap = 0U;
-            array += sizeof(NativeFixedSize32MemoryBlock);
+            var array = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeFixedSize32MemorySlab) + 32 * nodeSize));
+            var slab = (NativeFixedSize32MemorySlab*)array;
+            slab->Next = slab;
+            slab->Previous = slab;
+            slab->Bitmap = 0U;
+            array += sizeof(NativeFixedSize32MemorySlab);
             for (byte i = 0; i < 32; ++i)
                 *(array + i * nodeSize) = i;
             _handle = (NativeFixedSize32MemoryPoolHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeFixedSize32MemoryPoolHandle));
-            _handle->Sentinel = block;
+            _handle->Sentinel = slab;
             _handle->FreeList = null;
-            _handle->Blocks = 1;
-            _handle->FreeBlocks = 0;
-            _handle->MaxFreeBlocks = maxFreeBlocks;
+            _handle->Slabs = 1;
+            _handle->FreeSlabs = 0;
+            _handle->MaxFreeSlabs = maxFreeSlabs;
             _handle->Length = length;
         }
 
@@ -118,19 +118,19 @@ namespace NativeCollections
         public bool IsCreated => _handle != null;
 
         /// <summary>
-        ///     Blocks
+        ///     Slabs
         /// </summary>
-        public int Blocks => _handle->Blocks;
+        public int Slabs => _handle->Slabs;
 
         /// <summary>
-        ///     Free blocks
+        ///     Free slabs
         /// </summary>
-        public int FreeBlocks => _handle->FreeBlocks;
+        public int FreeSlabs => _handle->FreeSlabs;
 
         /// <summary>
-        ///     Max free blocks
+        ///     Max free slabs
         /// </summary>
-        public int MaxFreeBlocks => _handle->MaxFreeBlocks;
+        public int MaxFreeSlabs => _handle->MaxFreeSlabs;
 
         /// <summary>
         ///     Length
@@ -188,18 +188,18 @@ namespace NativeCollections
             if (_handle == null)
                 return;
             var node = _handle->Sentinel;
-            while (_handle->Blocks > 0)
+            while (_handle->Slabs > 0)
             {
-                _handle->Blocks--;
+                _handle->Slabs--;
                 var temp = node;
                 node = node->Next;
                 NativeMemoryAllocator.Free(temp);
             }
 
             node = _handle->FreeList;
-            while (_handle->FreeBlocks > 0)
+            while (_handle->FreeSlabs > 0)
             {
-                _handle->FreeBlocks--;
+                _handle->FreeSlabs--;
                 var temp = node;
                 node = node->Next;
                 NativeMemoryAllocator.Free(temp);
@@ -215,43 +215,43 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void* Rent()
         {
-            var block = _handle->Sentinel;
+            var slab = _handle->Sentinel;
             var nodeSize = 1 + _handle->Length;
-            if (block->Bitmap == uint.MaxValue)
+            if (slab->Bitmap == uint.MaxValue)
             {
-                _handle->Sentinel = block->Next;
-                block = _handle->Sentinel;
-                if (block->Bitmap == uint.MaxValue)
+                _handle->Sentinel = slab->Next;
+                slab = _handle->Sentinel;
+                if (slab->Bitmap == uint.MaxValue)
                 {
-                    if (_handle->FreeBlocks == 0)
+                    if (_handle->FreeSlabs == 0)
                     {
-                        var array = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeFixedSize32MemoryBlock) + 32 * nodeSize));
-                        block = (NativeFixedSize32MemoryBlock*)array;
-                        block->Bitmap = 0U;
-                        array += sizeof(NativeFixedSize32MemoryBlock);
+                        var array = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeFixedSize32MemorySlab) + 32 * nodeSize));
+                        slab = (NativeFixedSize32MemorySlab*)array;
+                        slab->Bitmap = 0U;
+                        array += sizeof(NativeFixedSize32MemorySlab);
                         for (byte i = 0; i < 32; ++i)
                             *(array + i * nodeSize) = i;
                     }
                     else
                     {
-                        block = _handle->FreeList;
-                        _handle->FreeList = block->Next;
-                        _handle->FreeBlocks--;
+                        slab = _handle->FreeList;
+                        _handle->FreeList = slab->Next;
+                        _handle->FreeSlabs--;
                     }
 
-                    block->Next = _handle->Sentinel;
-                    block->Previous = _handle->Sentinel->Previous;
-                    _handle->Sentinel->Previous->Next = block;
-                    _handle->Sentinel->Previous = block;
-                    _handle->Sentinel = block;
-                    _handle->Blocks++;
+                    slab->Next = _handle->Sentinel;
+                    slab->Previous = _handle->Sentinel->Previous;
+                    _handle->Sentinel->Previous->Next = slab;
+                    _handle->Sentinel->Previous = slab;
+                    _handle->Sentinel = slab;
+                    _handle->Slabs++;
                 }
             }
 
-            ref var segment = ref block->Bitmap;
+            ref var segment = ref slab->Bitmap;
             var id = BitOperationsHelpers.TrailingZeroCount(~segment);
             segment |= 1U << id;
-            return (byte*)block + sizeof(NativeFixedSize32MemoryBlock) + id * nodeSize + 1;
+            return (byte*)slab + sizeof(NativeFixedSize32MemorySlab) + id * nodeSize + 1;
         }
 
         /// <summary>
@@ -263,26 +263,26 @@ namespace NativeCollections
         {
             var array = (byte*)ptr;
             var id = *(array - 1);
-            array -= sizeof(NativeFixedSize32MemoryBlock) + id * (1 + _handle->Length) + 1;
-            var block = (NativeFixedSize32MemoryBlock*)array;
-            ref var segment = ref block->Bitmap;
+            array -= sizeof(NativeFixedSize32MemorySlab) + id * (1 + _handle->Length) + 1;
+            var slab = (NativeFixedSize32MemorySlab*)array;
+            ref var segment = ref slab->Bitmap;
             segment &= ~(1U << id);
-            if (segment == 0 && block != _handle->Sentinel)
+            if (segment == 0 && slab != _handle->Sentinel)
             {
-                block->Previous->Next = block->Next;
-                block->Next->Previous = block->Previous;
-                if (_handle->FreeBlocks == _handle->MaxFreeBlocks)
+                slab->Previous->Next = slab->Next;
+                slab->Next->Previous = slab->Previous;
+                if (_handle->FreeSlabs == _handle->MaxFreeSlabs)
                 {
-                    NativeMemoryAllocator.Free(block);
+                    NativeMemoryAllocator.Free(slab);
                 }
                 else
                 {
-                    block->Next = _handle->FreeList;
-                    _handle->FreeList = block;
-                    _handle->FreeBlocks++;
+                    slab->Next = _handle->FreeList;
+                    _handle->FreeList = slab;
+                    _handle->FreeSlabs++;
                 }
 
-                _handle->Blocks--;
+                _handle->Slabs--;
             }
         }
 
@@ -296,23 +296,23 @@ namespace NativeCollections
         {
             if (capacity < 0)
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            if (capacity > _handle->MaxFreeBlocks)
-                capacity = _handle->MaxFreeBlocks;
+            if (capacity > _handle->MaxFreeSlabs)
+                capacity = _handle->MaxFreeSlabs;
             var nodeSize = 1 + _handle->Length;
-            while (_handle->FreeBlocks < capacity)
+            while (_handle->FreeSlabs < capacity)
             {
-                _handle->FreeBlocks++;
-                var array = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeFixedSize32MemoryBlock) + 32 * nodeSize));
-                var block = (NativeFixedSize32MemoryBlock*)array;
-                block->Bitmap = 0U;
-                array += sizeof(NativeFixedSize32MemoryBlock);
+                _handle->FreeSlabs++;
+                var array = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeFixedSize32MemorySlab) + 32 * nodeSize));
+                var slab = (NativeFixedSize32MemorySlab*)array;
+                slab->Bitmap = 0U;
+                array += sizeof(NativeFixedSize32MemorySlab);
                 for (byte i = 0; i < 32; ++i)
                     *(array + i * nodeSize) = i;
-                block->Next = _handle->FreeList;
-                _handle->FreeList = block;
+                slab->Next = _handle->FreeList;
+                _handle->FreeList = slab;
             }
 
-            return _handle->FreeBlocks;
+            return _handle->FreeSlabs;
         }
 
         /// <summary>
@@ -322,9 +322,9 @@ namespace NativeCollections
         public void TrimExcess()
         {
             var node = _handle->FreeList;
-            while (_handle->FreeBlocks > 0)
+            while (_handle->FreeSlabs > 0)
             {
-                _handle->FreeBlocks--;
+                _handle->FreeSlabs--;
                 var temp = node;
                 node = node->Next;
                 NativeMemoryAllocator.Free(temp);
@@ -343,16 +343,16 @@ namespace NativeCollections
             if (capacity < 0)
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
             var node = _handle->FreeList;
-            while (_handle->FreeBlocks > capacity)
+            while (_handle->FreeSlabs > capacity)
             {
-                _handle->FreeBlocks--;
+                _handle->FreeSlabs--;
                 var temp = node;
                 node = node->Next;
                 NativeMemoryAllocator.Free(temp);
             }
 
             _handle->FreeList = node;
-            return _handle->FreeBlocks;
+            return _handle->FreeSlabs;
         }
 
         /// <summary>
