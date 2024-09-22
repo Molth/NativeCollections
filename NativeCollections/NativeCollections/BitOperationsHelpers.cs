@@ -20,6 +20,39 @@ namespace NativeCollections
     internal static class BitOperationsHelpers
     {
         /// <summary>
+        ///     Count the number of leading zero bits in a mask.
+        ///     Similar in behavior to the x86 instruction LZCNT.
+        /// </summary>
+        /// <param name="value">Value</param>
+        /// <returns>Leading zero count</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int LeadingZeroCount(ulong value)
+        {
+#if NET5_0_OR_GREATER
+            return BitOperations.LeadingZeroCount(value);
+#else
+            uint high = (uint)(value >> 32);
+            return high == 0 ? 32 + LeadingZeroCount((uint)value) : 31 ^ Log2(high);
+#endif
+        }
+
+        /// <summary>
+        ///     Count the number of leading zero bits in a mask.
+        ///     Similar in behavior to the x86 instruction LZCNT.
+        /// </summary>
+        /// <param name="value">Value</param>
+        /// <returns>Leading zero count</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int LeadingZeroCount(uint value)
+        {
+#if NET5_0_OR_GREATER
+            return BitOperations.LeadingZeroCount(value);
+#else
+            return value == 0 ? 32 : 31 ^ Log2(value);
+#endif
+        }
+
+        /// <summary>
         ///     Count the number of trailing zero bits in an integer value
         ///     Similar in behavior to the x86 instruction TZCNT
         /// </summary>
