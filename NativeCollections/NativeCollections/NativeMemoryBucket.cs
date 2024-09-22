@@ -60,19 +60,17 @@ namespace NativeCollections
         /// </summary>
         /// <param name="size">Size</param>
         /// <param name="length">Length</param>
+        /// <param name="maxFreeSlabs">Max free slabs</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeMemoryBucket(int size, int length)
+        public NativeMemoryBucket(int size, int length, int maxFreeSlabs)
         {
-            if (size <= 0)
-                throw new ArgumentOutOfRangeException(nameof(size), size, "MustBePositive");
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            var memoryPool = new NativeMemoryPool(size, length, maxFreeSlabs);
             _handle = (NativeMemoryBucketHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeMemoryBucketHandle));
             _handle->Size = size;
             _handle->Length = length;
             _handle->Array = (void**)NativeMemoryAllocator.AllocZeroed((uint)(size * sizeof(void*)));
             _handle->Index = 0;
-            _handle->MemoryPool = new NativeMemoryPool(size, length, 0);
+            _handle->MemoryPool = memoryPool;
         }
 
         /// <summary>
