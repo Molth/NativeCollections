@@ -107,7 +107,7 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => "NativeTlsfMemoryPool";
+        public override string ToString() => $"NativeDynamicMemoryPool[{_size}]";
 
         /// <summary>
         ///     Equals
