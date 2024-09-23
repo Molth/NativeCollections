@@ -12,7 +12,7 @@ using System;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native dynamic (Two-Level Segregated Fit) memory pool
+    ///     Native dynamic heap (Two-Level Segregated Fit) memory pool
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection]
@@ -40,7 +40,7 @@ namespace NativeCollections
             void* handle;
             if (IntPtr.Size == 8)
             {
-                actualSize = Tlsf64.align_up(Tlsf64.tlsf_size() + Tlsf64.tlsf_pool_overhead() + 3 * Tlsf64.block_header_overhead + size, 8);
+                actualSize = TLSF64.align_up(TLSF64.tlsf_size() + TLSF64.tlsf_pool_overhead() + size, 8);
 #if NET6_0_OR_GREATER
                 if (actualSize > uint.MaxValue)
 #else
@@ -48,7 +48,7 @@ namespace NativeCollections
 #endif
                     throw new ArgumentOutOfRangeException(nameof(size), size, "MustBeLess.");
                 array = NativeMemoryAllocator.Alloc((uint)actualSize);
-                handle = Tlsf64.tlsf_create_with_pool(array, actualSize);
+                handle = TLSF64.tlsf_create_with_pool(array, actualSize);
                 if (handle == null)
                 {
                     NativeMemoryAllocator.Free(array);
@@ -57,16 +57,15 @@ namespace NativeCollections
             }
             else
             {
-                actualSize = Tlsf32.align_up(Tlsf32.tlsf_size() + Tlsf32.tlsf_pool_overhead() + 3 * Tlsf32.block_header_overhead + size, 4);
+                actualSize = TLSF32.align_up(TLSF32.tlsf_size() + TLSF32.tlsf_pool_overhead() + size, 4);
 #if NET6_0_OR_GREATER
                 if (actualSize > uint.MaxValue)
 #else
                 if (actualSize > int.MaxValue)
 #endif
                     throw new ArgumentOutOfRangeException(nameof(size), size, "MustBeLess.");
-
                 array = NativeMemoryAllocator.Alloc((uint)actualSize);
-                handle = Tlsf32.tlsf_create_with_pool(array, actualSize);
+                handle = TLSF32.tlsf_create_with_pool(array, actualSize);
                 if (handle == null)
                 {
                     NativeMemoryAllocator.Free(array);
@@ -143,10 +142,6 @@ namespace NativeCollections
         {
             if (_handle == null)
                 return;
-            if (IntPtr.Size == 8)
-                Tlsf64.tlsf_destroy(_handle);
-            else
-                Tlsf32.tlsf_destroy(_handle);
             NativeMemoryAllocator.Free(_handle);
         }
 
@@ -156,7 +151,7 @@ namespace NativeCollections
         /// <param name="size">Size</param>
         /// <returns>Buffer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void* Rent(ulong size) => IntPtr.Size == 8 ? Tlsf64.tlsf_malloc(_handle, size) : Tlsf32.tlsf_malloc(_handle, size);
+        public void* Rent(ulong size) => IntPtr.Size == 8 ? TLSF64.tlsf_malloc(_handle, size) : TLSF32.tlsf_malloc(_handle, size);
 
         /// <summary>
         ///     Rent buffer
@@ -169,14 +164,14 @@ namespace NativeCollections
         {
             if (IntPtr.Size == 8)
             {
-                var ptr = Tlsf64.tlsf_malloc(_handle, size);
-                actualSize = ptr != null ? Tlsf64.tlsf_block_size(ptr) : 0;
+                var ptr = TLSF64.tlsf_malloc(_handle, size);
+                actualSize = ptr != null ? TLSF64.tlsf_block_size(ptr) : 0;
                 return ptr;
             }
             else
             {
-                var ptr = Tlsf32.tlsf_malloc(_handle, size);
-                actualSize = ptr != null ? Tlsf32.tlsf_block_size(ptr) : 0;
+                var ptr = TLSF32.tlsf_malloc(_handle, size);
+                actualSize = ptr != null ? TLSF32.tlsf_block_size(ptr) : 0;
                 return ptr;
             }
         }
@@ -189,9 +184,9 @@ namespace NativeCollections
         public void Return(void* ptr)
         {
             if (IntPtr.Size == 8)
-                Tlsf64.tlsf_free(_handle, ptr);
+                TLSF64.tlsf_free(_handle, ptr);
             else
-                Tlsf32.tlsf_free(_handle, ptr);
+                TLSF32.tlsf_free(_handle, ptr);
         }
 
         /// <summary>
@@ -202,7 +197,7 @@ namespace NativeCollections
         /// <summary>
         ///     Two-Level Segregated Fit memory allocator 64
         /// </summary>
-        private static class Tlsf64
+        private static class TLSF64
         {
             public const int SL_INDEX_COUNT_LOG2 = 5;
             public const int ALIGN_SIZE_LOG2 = 3;
@@ -401,7 +396,7 @@ namespace NativeCollections
 
                 sl = tlsf_ffs(sl_map);
                 *sli = sl;
-                return control->blocks[fl][sl];
+                return get_blocks(control, fl)[sl];
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -411,9 +406,9 @@ namespace NativeCollections
                 var next = block->next_free;
                 next->prev_free = prev;
                 prev->next_free = next;
-                if (control->blocks[fl][sl] == block)
+                if (get_blocks(control, fl)[sl] == block)
                 {
-                    control->blocks[fl][sl] = next;
+                    get_blocks(control, fl)[sl] = next;
                     if (next == &control->block_null)
                     {
                         control->sl_bitmap[fl] &= ~(1U << sl);
@@ -426,11 +421,11 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static void insert_free_block(control_t* control, block_header_t* block, int fl, int sl)
             {
-                var current = control->blocks[fl][sl];
+                var current = get_blocks(control, fl)[sl];
                 block->next_free = current;
                 block->prev_free = &control->block_null;
                 current->prev_free = block;
-                control->blocks[fl][sl] = block;
+                get_blocks(control, fl)[sl] = block;
                 control->fl_bitmap |= 1U << fl;
                 control->sl_bitmap[fl] |= 1U << sl;
             }
@@ -573,7 +568,6 @@ namespace NativeCollections
             public static void control_construct(control_t* control)
             {
                 int i, j;
-                control->Initialize();
                 control->block_null.next_free = &control->block_null;
                 control->block_null.prev_free = &control->block_null;
                 control->fl_bitmap = 0;
@@ -581,7 +575,7 @@ namespace NativeCollections
                 {
                     control->sl_bitmap[i] = 0;
                     for (j = 0; j < SL_INDEX_COUNT; ++j)
-                        control->blocks[i][j] = &control->block_null;
+                        get_blocks(control, i)[j] = &control->block_null;
                 }
             }
 
@@ -665,9 +659,6 @@ namespace NativeCollections
                 tlsf_add_pool(tlsf, (byte*)mem + tlsf_size(), bytes - tlsf_size());
                 return tlsf;
             }
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void tlsf_destroy(void* tlsf) => ((control_t*)tlsf)->Dispose();
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static void* tlsf_get_pool(void* tlsf) => (byte*)tlsf + tlsf_size();
@@ -767,6 +758,10 @@ namespace NativeCollections
                 return p;
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static block_header_t** get_blocks(control_t* control, int i) => (block_header_t**)control->blocks + i * SL_INDEX_COUNT;
+
+            [StructLayout(LayoutKind.Sequential)]
             public struct block_header_t
             {
                 public block_header_t* prev_phys_block;
@@ -775,33 +770,20 @@ namespace NativeCollections
                 public block_header_t* prev_free;
             }
 
+            [StructLayout(LayoutKind.Sequential)]
             public struct control_t
             {
                 public block_header_t block_null;
                 public uint fl_bitmap;
                 public fixed uint sl_bitmap[FL_INDEX_COUNT];
-                public block_header_t*** blocks;
-
-                public void Initialize()
-                {
-                    blocks = (block_header_t***)NativeMemoryAllocator.Alloc((uint)(FL_INDEX_COUNT * sizeof(block_header_t**)));
-                    for (var i = 0; i < FL_INDEX_COUNT; ++i)
-                        blocks[i] = (block_header_t**)NativeMemoryAllocator.Alloc((uint)(SL_INDEX_COUNT * sizeof(block_header_t*)));
-                }
-
-                public void Dispose()
-                {
-                    for (var i = 0; i < FL_INDEX_COUNT; ++i)
-                        NativeMemoryAllocator.Free(blocks[i]);
-                    NativeMemoryAllocator.Free(blocks);
-                }
+                public fixed ulong blocks[FL_INDEX_COUNT * SL_INDEX_COUNT];
             }
         }
 
         /// <summary>
         ///     Two-Level Segregated Fit memory allocator 32
         /// </summary>
-        private static class Tlsf32
+        private static class TLSF32
         {
             public const int SL_INDEX_COUNT_LOG2 = 5;
             public const int ALIGN_SIZE_LOG2 = 2;
@@ -1000,7 +982,7 @@ namespace NativeCollections
 
                 sl = tlsf_ffs(sl_map);
                 *sli = sl;
-                return control->blocks[fl][sl];
+                return get_blocks(control, fl)[sl];
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1010,9 +992,9 @@ namespace NativeCollections
                 var next = block->next_free;
                 next->prev_free = prev;
                 prev->next_free = next;
-                if (control->blocks[fl][sl] == block)
+                if (get_blocks(control, fl)[sl] == block)
                 {
-                    control->blocks[fl][sl] = next;
+                    get_blocks(control, fl)[sl] = next;
                     if (next == &control->block_null)
                     {
                         control->sl_bitmap[fl] &= ~(1U << sl);
@@ -1025,11 +1007,11 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static void insert_free_block(control_t* control, block_header_t* block, int fl, int sl)
             {
-                var current = control->blocks[fl][sl];
+                var current = get_blocks(control, fl)[sl];
                 block->next_free = current;
                 block->prev_free = &control->block_null;
                 current->prev_free = block;
-                control->blocks[fl][sl] = block;
+                get_blocks(control, fl)[sl] = block;
                 control->fl_bitmap |= 1U << fl;
                 control->sl_bitmap[fl] |= 1U << sl;
             }
@@ -1172,7 +1154,6 @@ namespace NativeCollections
             public static void control_construct(control_t* control)
             {
                 int i, j;
-                control->Initialize();
                 control->block_null.next_free = &control->block_null;
                 control->block_null.prev_free = &control->block_null;
                 control->fl_bitmap = 0;
@@ -1180,7 +1161,7 @@ namespace NativeCollections
                 {
                     control->sl_bitmap[i] = 0;
                     for (j = 0; j < SL_INDEX_COUNT; ++j)
-                        control->blocks[i][j] = &control->block_null;
+                        get_blocks(control, i)[j] = &control->block_null;
                 }
             }
 
@@ -1264,9 +1245,6 @@ namespace NativeCollections
                 tlsf_add_pool(tlsf, (byte*)mem + tlsf_size(), bytes - tlsf_size());
                 return tlsf;
             }
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void tlsf_destroy(void* tlsf) => ((control_t*)tlsf)->Dispose();
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static void* tlsf_get_pool(void* tlsf) => (byte*)tlsf + tlsf_size();
@@ -1366,6 +1344,10 @@ namespace NativeCollections
                 return p;
             }
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static block_header_t** get_blocks(control_t* control, int i) => (block_header_t**)control->blocks + i * SL_INDEX_COUNT;
+
+            [StructLayout(LayoutKind.Sequential)]
             public struct block_header_t
             {
                 public block_header_t* prev_phys_block;
@@ -1374,26 +1356,13 @@ namespace NativeCollections
                 public block_header_t* prev_free;
             }
 
+            [StructLayout(LayoutKind.Sequential)]
             public struct control_t
             {
                 public block_header_t block_null;
                 public uint fl_bitmap;
                 public fixed uint sl_bitmap[FL_INDEX_COUNT];
-                public block_header_t*** blocks;
-
-                public void Initialize()
-                {
-                    blocks = (block_header_t***)NativeMemoryAllocator.Alloc((uint)(FL_INDEX_COUNT * sizeof(block_header_t**)));
-                    for (var i = 0; i < FL_INDEX_COUNT; ++i)
-                        blocks[i] = (block_header_t**)NativeMemoryAllocator.Alloc((uint)(SL_INDEX_COUNT * sizeof(block_header_t*)));
-                }
-
-                public void Dispose()
-                {
-                    for (var i = 0; i < FL_INDEX_COUNT; ++i)
-                        NativeMemoryAllocator.Free(blocks[i]);
-                    NativeMemoryAllocator.Free(blocks);
-                }
+                public fixed uint blocks[FL_INDEX_COUNT * SL_INDEX_COUNT];
             }
         }
     }
