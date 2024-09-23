@@ -58,11 +58,7 @@ namespace NativeCollections
             else
             {
                 actualSize = TLSF32.align_up(TLSF32.tlsf_size() + TLSF32.tlsf_pool_overhead() + size, 4);
-#if NET6_0_OR_GREATER
-                if (actualSize > uint.MaxValue)
-#else
-                if (actualSize > int.MaxValue)
-#endif
+                if (actualSize > TLSF32.block_size_max)
                     throw new ArgumentOutOfRangeException(nameof(size), size, "MustBeLess.");
                 array = NativeMemoryAllocator.Alloc((uint)actualSize);
                 handle = TLSF32.tlsf_create_with_pool(array, actualSize);
