@@ -79,11 +79,6 @@ namespace NativeCollections
         public bool IsCreated => _handle != null;
 
         /// <summary>
-        ///     Handle
-        /// </summary>
-        public void* Handle => _handle;
-
-        /// <summary>
         ///     Size
         /// </summary>
         public ulong Size => _size;
