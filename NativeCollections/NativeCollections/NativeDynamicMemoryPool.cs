@@ -57,11 +57,11 @@ namespace NativeCollections
             }
             else
             {
-                actualSize = TLSF32.align_up(TLSF32.tlsf_size() + TLSF32.tlsf_pool_overhead() + 7 * TLSF32.tlsf_alloc_overhead() + size, 4);
+                actualSize = TLSF32.align_up((uint)(TLSF32.tlsf_size() + TLSF32.tlsf_pool_overhead() + 7 * TLSF32.tlsf_alloc_overhead() + size), 4);
                 if (actualSize > TLSF32.block_size_max)
                     throw new ArgumentOutOfRangeException(nameof(size), size, "MustBeLess");
                 array = NativeMemoryAllocator.Alloc((uint)actualSize);
-                handle = TLSF32.tlsf_create_with_pool(array, actualSize);
+                handle = TLSF32.tlsf_create_with_pool(array, (uint)actualSize);
                 if (handle == null)
                 {
                     NativeMemoryAllocator.Free(array);
@@ -142,7 +142,7 @@ namespace NativeCollections
         /// <param name="size">Size</param>
         /// <returns>Buffer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void* Rent(ulong size) => IntPtr.Size == 8 ? TLSF64.tlsf_malloc(_tlsf, size) : TLSF32.tlsf_malloc(_tlsf, size);
+        public void* Rent(ulong size) => IntPtr.Size == 8 ? TLSF64.tlsf_malloc(_tlsf, size) : TLSF32.tlsf_malloc(_tlsf, (uint)size);
 
         /// <summary>
         ///     Rent buffer
@@ -161,7 +161,7 @@ namespace NativeCollections
             }
             else
             {
-                var ptr = TLSF32.tlsf_malloc(_tlsf, size);
+                var ptr = TLSF32.tlsf_malloc(_tlsf, (uint)size);
                 actualSize = ptr != null ? TLSF32.tlsf_block_size(ptr) : 0;
                 return ptr;
             }
@@ -784,15 +784,15 @@ namespace NativeCollections
             public const int FL_INDEX_SHIFT = SL_INDEX_COUNT_LOG2 + ALIGN_SIZE_LOG2;
             public const int FL_INDEX_COUNT = FL_INDEX_MAX - FL_INDEX_SHIFT + 1;
             public const int SMALL_BLOCK_SIZE = 1 << FL_INDEX_SHIFT;
-            public const ulong block_header_free_bit = 1 << 0;
-            public const ulong block_header_prev_free_bit = 1 << 1;
-            public const ulong block_header_overhead = sizeof(ulong);
-            public static readonly ulong block_start_offset = (ulong)(sizeof(block_header_t*) + sizeof(ulong));
-            public static readonly ulong block_size_min = (ulong)(sizeof(block_header_t) - sizeof(block_header_t*));
-            public const ulong block_size_max = (ulong)1 << FL_INDEX_MAX;
+            public const uint block_header_free_bit = 1 << 0;
+            public const uint block_header_prev_free_bit = 1 << 1;
+            public const uint block_header_overhead = sizeof(uint);
+            public static readonly uint block_start_offset = (uint)(sizeof(block_header_t*) + sizeof(uint));
+            public static readonly uint block_size_min = (uint)(sizeof(block_header_t) - sizeof(block_header_t*));
+            public const uint block_size_max = (uint)1 << FL_INDEX_MAX;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void memcpy(void* dst, void* src, ulong size) => Unsafe.CopyBlock(dst, src, (uint)size);
+            public static void memcpy(void* dst, void* src, uint size) => Unsafe.CopyBlock(dst, src, size);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static int tlsf_fls(uint word)
@@ -810,23 +810,23 @@ namespace NativeCollections
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static int tlsf_fls_sizet(ulong size)
+            public static int tlsf_fls_sizet(uint size)
             {
                 var bit = BitOperationsHelpers.LeadingZeroCount(size);
                 return bit == 64 ? -1 : 63 - bit;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static ulong tlsf_min(ulong a, ulong b) => a < b ? a : b;
+            public static uint tlsf_min(uint a, uint b) => a < b ? a : b;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static ulong tlsf_max(ulong a, ulong b) => a > b ? a : b;
+            public static uint tlsf_max(uint a, uint b) => a > b ? a : b;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static ulong block_size(block_header_t* block) => block->size & ~(block_header_free_bit | block_header_prev_free_bit);
+            public static uint block_size(block_header_t* block) => block->size & ~(block_header_free_bit | block_header_prev_free_bit);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void block_set_size(block_header_t* block, ulong size)
+            public static void block_set_size(block_header_t* block, uint size)
             {
                 var oldsize = block->size;
                 block->size = size | (oldsize & (block_header_free_bit | block_header_prev_free_bit));
@@ -860,7 +860,7 @@ namespace NativeCollections
             public static void* block_to_ptr(block_header_t* block) => (byte*)block + block_start_offset;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static block_header_t* offset_to_block(void* ptr, ulong size) => (block_header_t*)((nint)ptr + (nint)size);
+            public static block_header_t* offset_to_block(void* ptr, uint size) => (block_header_t*)((nint)ptr + (nint)size);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static block_header_t* block_prev(block_header_t* block) => block->prev_phys_block;
@@ -897,22 +897,22 @@ namespace NativeCollections
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static ulong align_up(ulong x, ulong align) => (x + (align - 1)) & ~(align - 1);
+            public static uint align_up(uint x, uint align) => (x + (align - 1)) & ~(align - 1);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static ulong align_down(ulong x, ulong align) => x - (x & (align - 1));
+            public static uint align_down(uint x, uint align) => x - (x & (align - 1));
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void* align_ptr(void* ptr, ulong align)
+            public static void* align_ptr(void* ptr, uint align)
             {
                 var aligned = ((nint)ptr + (nint)(align - 1)) & ~ (nint)(align - 1);
                 return (void*)aligned;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static ulong adjust_request_size(ulong size, ulong align)
+            public static uint adjust_request_size(uint size, uint align)
             {
-                ulong adjust = 0;
+                uint adjust = 0;
                 if (size != 0)
                 {
                     var aligned = align_up(size, align);
@@ -924,7 +924,7 @@ namespace NativeCollections
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void mapping_insert(ulong size, int* fli, int* sli)
+            public static void mapping_insert(uint size, int* fli, int* sli)
             {
                 int fl, sl;
                 if (size < SMALL_BLOCK_SIZE)
@@ -944,11 +944,11 @@ namespace NativeCollections
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void mapping_search(ulong size, int* fli, int* sli)
+            public static void mapping_search(uint size, int* fli, int* sli)
             {
                 if (size >= SMALL_BLOCK_SIZE)
                 {
-                    var round = (ulong)((1 << (tlsf_fls_sizet(size) - SL_INDEX_COUNT_LOG2)) - 1);
+                    var round = (uint)((1 << (tlsf_fls_sizet(size) - SL_INDEX_COUNT_LOG2)) - 1);
                     size += round;
                 }
 
@@ -1024,10 +1024,10 @@ namespace NativeCollections
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static int block_can_split(block_header_t* block, ulong size) => block_size(block) >= (ulong)sizeof(block_header_t) + size ? 1 : 0;
+            public static int block_can_split(block_header_t* block, uint size) => block_size(block) >= (uint)sizeof(block_header_t) + size ? 1 : 0;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static block_header_t* block_split(block_header_t* block, ulong size)
+            public static block_header_t* block_split(block_header_t* block, uint size)
             {
                 var remaining = offset_to_block(block_to_ptr(block), size - block_header_overhead);
                 var remain_size = block_size(block) - (size + block_header_overhead);
@@ -1072,7 +1072,7 @@ namespace NativeCollections
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void block_trim_free(control_t* control, block_header_t* block, ulong size)
+            public static void block_trim_free(control_t* control, block_header_t* block, uint size)
             {
                 if (block_can_split(block, size) != 0)
                 {
@@ -1084,7 +1084,7 @@ namespace NativeCollections
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void block_trim_used(control_t* control, block_header_t* block, ulong size)
+            public static void block_trim_used(control_t* control, block_header_t* block, uint size)
             {
                 if (block_can_split(block, size) != 0)
                 {
@@ -1096,7 +1096,7 @@ namespace NativeCollections
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static block_header_t* block_trim_free_leading(control_t* control, block_header_t* block, ulong size)
+            public static block_header_t* block_trim_free_leading(control_t* control, block_header_t* block, uint size)
             {
                 var remaining_block = block;
                 if (block_can_split(block, size) != 0)
@@ -1111,7 +1111,7 @@ namespace NativeCollections
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static block_header_t* block_locate_free(control_t* control, ulong size)
+            public static block_header_t* block_locate_free(control_t* control, uint size)
             {
                 int fl = 0, sl = 0;
                 block_header_t* block = null;
@@ -1128,7 +1128,7 @@ namespace NativeCollections
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void* block_prepare_used(control_t* control, block_header_t* block, ulong size)
+            public static void* block_prepare_used(control_t* control, block_header_t* block, uint size)
             {
                 void* p = null;
                 if (block != null)
@@ -1157,9 +1157,9 @@ namespace NativeCollections
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static ulong tlsf_block_size(void* ptr)
+            public static uint tlsf_block_size(void* ptr)
             {
-                ulong size = 0;
+                uint size = 0;
                 if (ptr != null)
                 {
                     var block = block_from_ptr(ptr);
@@ -1170,25 +1170,25 @@ namespace NativeCollections
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static ulong tlsf_size() => (ulong)sizeof(control_t);
+            public static uint tlsf_size() => (uint)sizeof(control_t);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static ulong tlsf_align_size() => ALIGN_SIZE;
+            public static uint tlsf_align_size() => ALIGN_SIZE;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static ulong tlsf_block_size_min() => block_size_min;
+            public static uint tlsf_block_size_min() => block_size_min;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static ulong tlsf_block_size_max() => block_size_max;
+            public static uint tlsf_block_size_max() => block_size_max;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static ulong tlsf_pool_overhead() => 2 * block_header_overhead;
+            public static uint tlsf_pool_overhead() => 2 * block_header_overhead;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static ulong tlsf_alloc_overhead() => block_header_overhead;
+            public static uint tlsf_alloc_overhead() => block_header_overhead;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void* tlsf_add_pool(void* tlsf, void* mem, ulong bytes)
+            public static void* tlsf_add_pool(void* tlsf, void* mem, uint bytes)
             {
                 block_header_t* block;
                 block_header_t* next;
@@ -1198,7 +1198,7 @@ namespace NativeCollections
                     return null;
                 if (pool_bytes < block_size_min || pool_bytes > block_size_max)
                     return null;
-                block = offset_to_block(mem, unchecked((ulong)-(nint)block_header_overhead));
+                block = offset_to_block(mem, unchecked((uint)-(nint)block_header_overhead));
                 block_set_size(block, pool_bytes);
                 block_set_free(block);
                 block_set_prev_used(block);
@@ -1214,7 +1214,7 @@ namespace NativeCollections
             public static void tlsf_remove_pool(void* tlsf, void* pool)
             {
                 var control = (control_t*)tlsf;
-                var block = offset_to_block(pool, unchecked((ulong)-(int)block_header_overhead));
+                var block = offset_to_block(pool, unchecked((uint)-(int)block_header_overhead));
                 int fl = 0, sl = 0;
                 mapping_insert(block_size(block), &fl, &sl);
                 remove_free_block(control, block, fl, sl);
@@ -1230,7 +1230,7 @@ namespace NativeCollections
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void* tlsf_create_with_pool(void* mem, ulong bytes)
+            public static void* tlsf_create_with_pool(void* mem, uint bytes)
             {
                 var tlsf = tlsf_create(mem);
                 tlsf_add_pool(tlsf, (byte*)mem + tlsf_size(), bytes - tlsf_size());
@@ -1241,7 +1241,7 @@ namespace NativeCollections
             public static void* tlsf_get_pool(void* tlsf) => (byte*)tlsf + tlsf_size();
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void* tlsf_malloc(void* tlsf, ulong size)
+            public static void* tlsf_malloc(void* tlsf, uint size)
             {
                 var control = (control_t*)tlsf;
                 var adjust = adjust_request_size(size, ALIGN_SIZE);
@@ -1250,11 +1250,11 @@ namespace NativeCollections
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void* tlsf_memalign(void* tlsf, ulong align, ulong size)
+            public static void* tlsf_memalign(void* tlsf, uint align, uint size)
             {
                 var control = (control_t*)tlsf;
                 var adjust = adjust_request_size(size, ALIGN_SIZE);
-                var gap_minimum = (ulong)sizeof(block_header_t);
+                var gap_minimum = (uint)sizeof(block_header_t);
                 var size_with_gap = adjust_request_size(adjust + align + gap_minimum, align);
                 var aligned_size = adjust != 0 && align > ALIGN_SIZE ? size_with_gap : adjust;
                 var block = block_locate_free(control, aligned_size);
@@ -1262,14 +1262,14 @@ namespace NativeCollections
                 {
                     var ptr = block_to_ptr(block);
                     var aligned = align_ptr(ptr, align);
-                    var gap = (ulong)((nint)aligned - (nint)ptr);
+                    var gap = (uint)((nint)aligned - (nint)ptr);
                     if (gap != 0 && gap < gap_minimum)
                     {
                         var gap_remain = gap_minimum - gap;
                         var offset = tlsf_max(gap_remain, align);
                         var next_aligned = (void*)((nint)aligned + (nint)offset);
                         aligned = align_ptr(next_aligned, align);
-                        gap = (ulong)((nint)aligned - (nint)ptr);
+                        gap = (uint)((nint)aligned - (nint)ptr);
                     }
 
                     if (gap != 0)
@@ -1294,7 +1294,7 @@ namespace NativeCollections
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void* tlsf_realloc(void* tlsf, void* ptr, ulong size)
+            public static void* tlsf_realloc(void* tlsf, void* ptr, uint size)
             {
                 var control = (control_t*)tlsf;
                 void* p = null;
@@ -1342,7 +1342,7 @@ namespace NativeCollections
             public struct block_header_t
             {
                 public block_header_t* prev_phys_block;
-                public ulong size;
+                public uint size;
                 public block_header_t* next_free;
                 public block_header_t* prev_free;
             }
