@@ -48,6 +48,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeMatrix3(int rows, int columns, int depth)
         {
+            if (rows < 0)
+                throw new ArgumentOutOfRangeException(nameof(rows), rows, "MustBeNonNegative");
+            if (columns < 0)
+                throw new ArgumentOutOfRangeException(nameof(columns), columns, "MustBeNonNegative");
+            if (depth < 0)
+                throw new ArgumentOutOfRangeException(nameof(depth), depth, "MustBeNonNegative");
             _array = (T*)NativeMemoryAllocator.Alloc((uint)(rows * columns * depth * sizeof(T)));
             _rows = rows;
             _columns = columns;
@@ -64,6 +70,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeMatrix3(int rows, int columns, int depth, bool zeroed)
         {
+            if (rows < 0)
+                throw new ArgumentOutOfRangeException(nameof(rows), rows, "MustBeNonNegative");
+            if (columns < 0)
+                throw new ArgumentOutOfRangeException(nameof(columns), columns, "MustBeNonNegative");
+            if (depth < 0)
+                throw new ArgumentOutOfRangeException(nameof(depth), depth, "MustBeNonNegative");
             _array = zeroed ? (T*)NativeMemoryAllocator.AllocZeroed((uint)(rows * columns * depth * sizeof(T))) : (T*)NativeMemoryAllocator.Alloc((uint)(rows * columns * depth * sizeof(T)));
             _rows = rows;
             _columns = columns;
@@ -80,6 +92,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeMatrix3(T* array, int rows, int columns, int depth)
         {
+            if (rows < 0)
+                throw new ArgumentOutOfRangeException(nameof(rows), rows, "MustBeNonNegative");
+            if (columns < 0)
+                throw new ArgumentOutOfRangeException(nameof(columns), columns, "MustBeNonNegative");
+            if (depth < 0)
+                throw new ArgumentOutOfRangeException(nameof(depth), depth, "MustBeNonNegative");
             _array = array;
             _rows = rows;
             _columns = columns;
