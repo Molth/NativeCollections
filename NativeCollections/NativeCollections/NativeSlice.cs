@@ -191,6 +191,13 @@ namespace NativeCollections
         public override string ToString() => $"NativeSlice<{typeof(T).Name}>[{_offset}, {_count}]";
 
         /// <summary>
+        ///     As pointer
+        /// </summary>
+        /// <returns>Pointer</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator T*(NativeSlice<T> nativeSlice) => nativeSlice._array;
+
+        /// <summary>
         ///     As span
         /// </summary>
         /// <returns>Span</returns>

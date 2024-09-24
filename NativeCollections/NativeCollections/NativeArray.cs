@@ -137,6 +137,13 @@ namespace NativeCollections
         public override string ToString() => $"NativeArray<{typeof(T).Name}>[{_length}]";
 
         /// <summary>
+        ///     As pointer
+        /// </summary>
+        /// <returns>Pointer</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator T*(NativeArray<T> nativeArray) => nativeArray._array;
+
+        /// <summary>
         ///     As span
         /// </summary>
         /// <returns>Span</returns>
