@@ -20,8 +20,8 @@ namespace NativeCollections
     internal static class BitOperationsHelpers
     {
         /// <summary>
-        ///     Count the number of leading zero bits in a mask.
-        ///     Similar in behavior to the x86 instruction LZCNT.
+        ///     Count the number of leading zero bits in a mask
+        ///     Similar in behavior to the x86 instruction LZCNT
         /// </summary>
         /// <param name="value">Value</param>
         /// <returns>Leading zero count</returns>
@@ -37,8 +37,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Count the number of leading zero bits in a mask.
-        ///     Similar in behavior to the x86 instruction LZCNT.
+        ///     Count the number of leading zero bits in a mask
+        ///     Similar in behavior to the x86 instruction LZCNT
         /// </summary>
         /// <param name="value">Value</param>
         /// <returns>Leading zero count</returns>
