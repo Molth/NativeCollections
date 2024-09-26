@@ -201,7 +201,7 @@ namespace NativeCollections
             public const ulong block_header_free_bit = 1 << 0;
             public const ulong block_header_prev_free_bit = 1 << 1;
             public const ulong block_header_overhead = sizeof(ulong);
-            public const ulong block_start_offset = (ulong)(sizeof(ulong) + sizeof(ulong));
+            public const ulong block_start_offset = sizeof(ulong) + sizeof(ulong);
             public static readonly ulong block_size_min = (ulong)(sizeof(block_header_t) - sizeof(ulong));
             public const ulong block_size_max = (ulong)1 << FL_INDEX_MAX;
 
@@ -787,7 +787,7 @@ namespace NativeCollections
             public const uint block_header_free_bit = 1 << 0;
             public const uint block_header_prev_free_bit = 1 << 1;
             public const uint block_header_overhead = sizeof(uint);
-            public const uint block_start_offset = (uint)(sizeof(uint) + sizeof(uint));
+            public const uint block_start_offset = sizeof(uint) + sizeof(uint);
             public static readonly uint block_size_min = (uint)(sizeof(block_header_t) - sizeof(uint));
             public const uint block_size_max = (uint)1 << FL_INDEX_MAX;
 
@@ -810,11 +810,7 @@ namespace NativeCollections
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static int tlsf_fls_sizet(uint size)
-            {
-                var bit = BitOperationsHelpers.LeadingZeroCount(size);
-                return bit == 64 ? -1 : 63 - bit;
-            }
+            public static int tlsf_fls_sizet(uint size) => tlsf_fls(size);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static uint tlsf_min(uint a, uint b) => a < b ? a : b;
