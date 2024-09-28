@@ -12,11 +12,11 @@ using System;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native memory reader
+    ///     Native memory linear allocator
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection]
-    public unsafe ref struct NativeMemoryReader
+    public unsafe ref struct NativeMemoryLinearAllocator
     {
         /// <summary>
         ///     Array
@@ -39,7 +39,7 @@ namespace NativeCollections
         /// <param name="array">Array</param>
         /// <param name="length">Length</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeMemoryReader(byte* array, int length)
+        public NativeMemoryLinearAllocator(byte* array, int length)
         {
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
@@ -88,14 +88,14 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeMemoryReader other) => other == this;
+        public bool Equals(NativeMemoryLinearAllocator other) => other == this;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => throw new NotSupportedException("Cannot call Equals on NativeMemoryReader");
+        public override bool Equals(object? obj) => throw new NotSupportedException("Cannot call Equals on NativeMemoryLinearAllocator");
 
         /// <summary>
         ///     Get hashCode
@@ -107,7 +107,7 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => "NativeMemoryReader";
+        public override string ToString() => "NativeMemoryLinearAllocator";
 
         /// <summary>
         ///     Equals
@@ -115,7 +115,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeMemoryReader left, NativeMemoryReader right) => left.Array == right.Array && left.Length == right.Length && left._position == right._position;
+        public static bool operator ==(NativeMemoryLinearAllocator left, NativeMemoryLinearAllocator right) => left.Array == right.Array && left.Length == right.Length && left._position == right._position;
 
         /// <summary>
         ///     Not equals
@@ -123,7 +123,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeMemoryReader left, NativeMemoryReader right) => left.Array != right.Array || left.Length != right.Length || left._position != right._position;
+        public static bool operator !=(NativeMemoryLinearAllocator left, NativeMemoryLinearAllocator right) => left.Array != right.Array || left.Length != right.Length || left._position != right._position;
 
         /// <summary>
         ///     Advance
@@ -180,158 +180,41 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Read
+        ///     Alloc
         /// </summary>
-        /// <typeparam name="T">Type</typeparam>
-        /// <returns>object</returns>
+        /// <param name="byteCount">Byte count</param>
+        /// <returns>Memory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T Read<T>() where T : unmanaged
+        public void* Alloc(int byteCount)
         {
-            if (_position + sizeof(T) > Length)
-                throw new ArgumentOutOfRangeException(nameof(T), $"Requires size is {sizeof(T)}, but buffer length is {Remaining}.");
-            var obj = Unsafe.ReadUnaligned<T>(Array + _position);
-            _position += sizeof(T);
-            return obj;
+            if (byteCount < 0)
+                throw new ArgumentOutOfRangeException(nameof(byteCount), byteCount, "MustBeNonNegative");
+            var newPosition = _position + byteCount;
+            if (newPosition > Length)
+                return null;
+            var ptr = Array + _position;
+            _position = newPosition;
+            return ptr;
         }
 
         /// <summary>
-        ///     Read
+        ///     Alloc zeroed
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <typeparam name="T">Type</typeparam>
+        /// <param name="byteCount">Byte count</param>
+        /// <returns>Memory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Read<T>(T* obj) where T : unmanaged
+        public void* AllocZeroed(int byteCount)
         {
-            if (_position + sizeof(T) > Length)
-                throw new ArgumentOutOfRangeException(nameof(T), $"Requires size is {sizeof(T)}, but buffer length is {Remaining}.");
-            Unsafe.CopyBlockUnaligned(obj, Array + _position, (uint)sizeof(T));
-            _position += sizeof(T);
+            if (byteCount < 0)
+                throw new ArgumentOutOfRangeException(nameof(byteCount), byteCount, "MustBeNonNegative");
+            var newPosition = _position + byteCount;
+            if (newPosition > Length)
+                return null;
+            var ptr = Array + _position;
+            _position = newPosition;
+            Unsafe.InitBlockUnaligned(ptr, 0, (uint)byteCount);
+            return ptr;
         }
-
-        /// <summary>
-        ///     Try read
-        /// </summary>
-        /// <param name="obj">object</param>
-        /// <typeparam name="T">Type</typeparam>
-        /// <returns>Read</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryRead<T>(T* obj) where T : unmanaged
-        {
-            if (_position + sizeof(T) > Length)
-                return false;
-            Unsafe.CopyBlockUnaligned(obj, Array + _position, (uint)sizeof(T));
-            _position += sizeof(T);
-            return true;
-        }
-
-        /// <summary>
-        ///     Read
-        /// </summary>
-        /// <param name="obj">object</param>
-        /// <param name="count">Count</param>
-        /// <typeparam name="T">Type</typeparam>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Read<T>(T* obj, int count) where T : unmanaged
-        {
-            count *= sizeof(T);
-            if (_position + count > Length)
-                throw new ArgumentOutOfRangeException(nameof(T), $"Requires size is {count}, but buffer length is {Remaining}.");
-            Unsafe.CopyBlockUnaligned(obj, Array + _position, (uint)count);
-            _position += count;
-        }
-
-        /// <summary>
-        ///     Try read
-        /// </summary>
-        /// <param name="obj">object</param>
-        /// <param name="count">Count</param>
-        /// <typeparam name="T">Type</typeparam>
-        /// <returns>Read</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryRead<T>(T* obj, int count) where T : unmanaged
-        {
-            count *= sizeof(T);
-            if (_position + count > Length)
-                return false;
-            Unsafe.CopyBlockUnaligned(obj, Array + _position, (uint)count);
-            _position += count;
-            return true;
-        }
-
-        /// <summary>
-        ///     Read
-        /// </summary>
-        /// <param name="obj">object</param>
-        /// <typeparam name="T">Type</typeparam>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Read<T>(ref T obj) where T : unmanaged
-        {
-            if (_position + sizeof(T) > Length)
-                throw new ArgumentOutOfRangeException(nameof(T), $"Requires size is {sizeof(T)}, but buffer length is {Remaining}.");
-            obj = Unsafe.ReadUnaligned<T>(Array + _position);
-            _position += sizeof(T);
-        }
-
-        /// <summary>
-        ///     Try read
-        /// </summary>
-        /// <param name="obj">object</param>
-        /// <typeparam name="T">Type</typeparam>
-        /// <returns>Read</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryRead<T>(ref T obj) where T : unmanaged
-        {
-            if (_position + sizeof(T) > Length)
-                return false;
-            obj = Unsafe.ReadUnaligned<T>(Array + _position);
-            _position += sizeof(T);
-            return true;
-        }
-
-        /// <summary>
-        ///     Read bytes
-        /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="length">Length</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void ReadBytes(byte* buffer, int length)
-        {
-            if (_position + length > Length)
-                throw new ArgumentOutOfRangeException(nameof(length), $"Requires size is {length}, but buffer length is {Remaining}.");
-            Unsafe.CopyBlockUnaligned(buffer, Array + _position, (uint)length);
-            _position += length;
-        }
-
-        /// <summary>
-        ///     Try read bytes
-        /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="length">Length</param>
-        /// <returns>Read</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryReadBytes(byte* buffer, int length)
-        {
-            if (_position + length > Length)
-                return false;
-            Unsafe.CopyBlockUnaligned(buffer, Array + _position, (uint)length);
-            _position += length;
-            return true;
-        }
-
-        /// <summary>
-        ///     Read bytes
-        /// </summary>
-        /// <param name="buffer">Buffer</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void ReadBytes(Span<byte> buffer) => ReadBytes((byte*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)), buffer.Length);
-
-        /// <summary>
-        ///     Try read bytes
-        /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <returns>Read</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryReadBytes(Span<byte> buffer) => TryReadBytes((byte*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)), buffer.Length);
 
         /// <summary>
         ///     As span
@@ -382,36 +265,36 @@ namespace NativeCollections
         public ReadOnlySpan<byte> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref *(Array + start), length);
 
         /// <summary>
-        ///     As native memory reader
+        ///     As native memory linear allocator
         /// </summary>
-        /// <returns>NativeMemoryReader</returns>
+        /// <returns>NativeMemoryLinearAllocator</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeMemoryReader(Span<byte> span) => new((byte*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(span)), span.Length);
+        public static implicit operator NativeMemoryLinearAllocator(Span<byte> span) => new((byte*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(span)), span.Length);
 
         /// <summary>
         ///     As span
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<byte>(NativeMemoryReader nativeMemoryReader) => nativeMemoryReader.AsSpan();
+        public static implicit operator Span<byte>(NativeMemoryLinearAllocator nativeMemoryLinearAllocator) => nativeMemoryLinearAllocator.AsSpan();
 
         /// <summary>
-        ///     As native memory reader
+        ///     As native memory linear allocator
         /// </summary>
-        /// <returns>NativeMemoryReader</returns>
+        /// <returns>NativeMemoryLinearAllocator</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeMemoryReader(ReadOnlySpan<byte> readOnlySpan) => new((byte*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(readOnlySpan)), readOnlySpan.Length);
+        public static implicit operator NativeMemoryLinearAllocator(ReadOnlySpan<byte> readOnlySpan) => new((byte*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(readOnlySpan)), readOnlySpan.Length);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<byte>(NativeMemoryReader nativeMemoryReader) => nativeMemoryReader.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<byte>(NativeMemoryLinearAllocator nativeMemoryLinearAllocator) => nativeMemoryLinearAllocator.AsReadOnlySpan();
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeMemoryReader Empty => new();
+        public static NativeMemoryLinearAllocator Empty => new();
     }
 }

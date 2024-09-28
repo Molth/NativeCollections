@@ -32,7 +32,7 @@ namespace NativeCollections
         /// <summary>
         ///     Position
         /// </summary>
-        public int Position;
+        private int _position;
 
         /// <summary>
         ///     Structure
@@ -46,7 +46,7 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
             Array = ref *array;
             Length = length;
-            Position = 0;
+            _position = 0;
         }
 
         /// <summary>
@@ -55,9 +55,14 @@ namespace NativeCollections
         public bool IsCreated => Unsafe.AsPointer(ref Unsafe.AsRef(in Array)) != null;
 
         /// <summary>
+        ///     Position
+        /// </summary>
+        public int Position => _position;
+
+        /// <summary>
         ///     Remaining
         /// </summary>
-        public int Remaining => Length - Position;
+        public int Remaining => Length - _position;
 
         /// <summary>
         ///     Get reference
@@ -97,7 +102,7 @@ namespace NativeCollections
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => HashCode.Combine((int)(nint)Unsafe.AsPointer(ref Array), Length, Position);
+        public override int GetHashCode() => HashCode.Combine((int)(nint)Unsafe.AsPointer(ref Array), Length, _position);
 
         /// <summary>
         ///     To string
@@ -111,7 +116,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeReader left, NativeReader right) => left.Array == right.Array && left.Length == right.Length && left.Position == right.Position;
+        public static bool operator ==(NativeReader left, NativeReader right) => left.Array == right.Array && left.Length == right.Length && left._position == right._position;
 
         /// <summary>
         ///     Not equals
@@ -119,7 +124,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeReader left, NativeReader right) => left.Array != right.Array || left.Length != right.Length || left.Position != right.Position;
+        public static bool operator !=(NativeReader left, NativeReader right) => left.Array != right.Array || left.Length != right.Length || left._position != right._position;
 
         /// <summary>
         ///     Advance
@@ -128,10 +133,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Advance(int count)
         {
-            var newPosition = Position + count;
+            var newPosition = _position + count;
             if (newPosition < 0 || newPosition > Length)
                 throw new ArgumentOutOfRangeException(nameof(count), "Cannot advance past the end of the buffer.");
-            Position = newPosition;
+            _position = newPosition;
         }
 
         /// <summary>
@@ -142,10 +147,36 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryAdvance(int count)
         {
-            var newPosition = Position + count;
+            var newPosition = _position + count;
             if (newPosition < 0 || newPosition > Length)
                 return false;
-            Position = newPosition;
+            _position = newPosition;
+            return true;
+        }
+
+        /// <summary>
+        ///     Set position
+        /// </summary>
+        /// <param name="position">Position</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetPosition(int position)
+        {
+            if (position < 0 || position > Length)
+                throw new ArgumentOutOfRangeException(nameof(position), "Cannot advance past the end of the buffer.");
+            _position = position;
+        }
+
+        /// <summary>
+        ///     Try set position
+        /// </summary>
+        /// <param name="position">Position</param>
+        /// <returns>Set</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TrySetPosition(int position)
+        {
+            if (position < 0 || position > Length)
+                return false;
+            _position = position;
             return true;
         }
 
@@ -157,10 +188,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Read<T>() where T : unmanaged
         {
-            if (Position + sizeof(T) > Length)
+            if (_position + sizeof(T) > Length)
                 throw new ArgumentOutOfRangeException(nameof(T), $"Requires size is {sizeof(T)}, but buffer length is {Remaining}.");
-            var obj = Unsafe.ReadUnaligned<T>(ref Unsafe.AddByteOffset(ref Array, Position));
-            Position += sizeof(T);
+            var obj = Unsafe.ReadUnaligned<T>(ref Unsafe.AddByteOffset(ref Array, _position));
+            _position += sizeof(T);
             return obj;
         }
 
@@ -172,10 +203,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Read<T>(T* obj) where T : unmanaged
         {
-            if (Position + sizeof(T) > Length)
+            if (_position + sizeof(T) > Length)
                 throw new ArgumentOutOfRangeException(nameof(T), $"Requires size is {sizeof(T)}, but buffer length is {Remaining}.");
-            Unsafe.CopyBlockUnaligned(obj, Unsafe.AsPointer(ref Unsafe.AddByteOffset(ref Array, Position)), (uint)sizeof(T));
-            Position += sizeof(T);
+            Unsafe.CopyBlockUnaligned(obj, Unsafe.AsPointer(ref Unsafe.AddByteOffset(ref Array, _position)), (uint)sizeof(T));
+            _position += sizeof(T);
         }
 
         /// <summary>
@@ -187,10 +218,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryRead<T>(T* obj) where T : unmanaged
         {
-            if (Position + sizeof(T) > Length)
+            if (_position + sizeof(T) > Length)
                 return false;
-            Unsafe.CopyBlockUnaligned(obj, Unsafe.AsPointer(ref Unsafe.AddByteOffset(ref Array, Position)), (uint)sizeof(T));
-            Position += sizeof(T);
+            Unsafe.CopyBlockUnaligned(obj, Unsafe.AsPointer(ref Unsafe.AddByteOffset(ref Array, _position)), (uint)sizeof(T));
+            _position += sizeof(T);
             return true;
         }
 
@@ -204,10 +235,10 @@ namespace NativeCollections
         public void Read<T>(T* obj, int count) where T : unmanaged
         {
             count *= sizeof(T);
-            if (Position + count > Length)
+            if (_position + count > Length)
                 throw new ArgumentOutOfRangeException(nameof(T), $"Requires size is {count}, but buffer length is {Remaining}.");
-            Unsafe.CopyBlockUnaligned(obj, Unsafe.AsPointer(ref Unsafe.AddByteOffset(ref Array, Position)), (uint)count);
-            Position += count;
+            Unsafe.CopyBlockUnaligned(obj, Unsafe.AsPointer(ref Unsafe.AddByteOffset(ref Array, _position)), (uint)count);
+            _position += count;
         }
 
         /// <summary>
@@ -221,10 +252,10 @@ namespace NativeCollections
         public bool TryRead<T>(T* obj, int count) where T : unmanaged
         {
             count *= sizeof(T);
-            if (Position + count > Length)
+            if (_position + count > Length)
                 return false;
-            Unsafe.CopyBlockUnaligned(obj, Unsafe.AsPointer(ref Unsafe.AddByteOffset(ref Array, Position)), (uint)count);
-            Position += count;
+            Unsafe.CopyBlockUnaligned(obj, Unsafe.AsPointer(ref Unsafe.AddByteOffset(ref Array, _position)), (uint)count);
+            _position += count;
             return true;
         }
 
@@ -236,10 +267,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Read<T>(ref T obj) where T : unmanaged
         {
-            if (Position + sizeof(T) > Length)
+            if (_position + sizeof(T) > Length)
                 throw new ArgumentOutOfRangeException(nameof(T), $"Requires size is {sizeof(T)}, but buffer length is {Remaining}.");
-            obj = Unsafe.ReadUnaligned<T>(ref Unsafe.AddByteOffset(ref Array, Position));
-            Position += sizeof(T);
+            obj = Unsafe.ReadUnaligned<T>(ref Unsafe.AddByteOffset(ref Array, _position));
+            _position += sizeof(T);
         }
 
         /// <summary>
@@ -251,10 +282,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryRead<T>(ref T obj) where T : unmanaged
         {
-            if (Position + sizeof(T) > Length)
+            if (_position + sizeof(T) > Length)
                 return false;
-            obj = Unsafe.ReadUnaligned<T>(ref Unsafe.AddByteOffset(ref Array, Position));
-            Position += sizeof(T);
+            obj = Unsafe.ReadUnaligned<T>(ref Unsafe.AddByteOffset(ref Array, _position));
+            _position += sizeof(T);
             return true;
         }
 
@@ -266,10 +297,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ReadBytes(byte* buffer, int length)
         {
-            if (Position + length > Length)
+            if (_position + length > Length)
                 throw new ArgumentOutOfRangeException(nameof(length), $"Requires size is {length}, but buffer length is {Remaining}.");
-            Unsafe.CopyBlockUnaligned(buffer, Unsafe.AsPointer(ref Unsafe.AddByteOffset(ref Array, Position)), (uint)length);
-            Position += length;
+            Unsafe.CopyBlockUnaligned(buffer, Unsafe.AsPointer(ref Unsafe.AddByteOffset(ref Array, _position)), (uint)length);
+            _position += length;
         }
 
         /// <summary>
@@ -281,10 +312,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryReadBytes(byte* buffer, int length)
         {
-            if (Position + length > Length)
+            if (_position + length > Length)
                 return false;
-            Unsafe.CopyBlockUnaligned(buffer, Unsafe.AsPointer(ref Unsafe.AddByteOffset(ref Array, Position)), (uint)length);
-            Position += length;
+            Unsafe.CopyBlockUnaligned(buffer, Unsafe.AsPointer(ref Unsafe.AddByteOffset(ref Array, _position)), (uint)length);
+            _position += length;
             return true;
         }
 
@@ -296,10 +327,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ReadBytes(ref byte buffer, int length)
         {
-            if (Position + length > Length)
+            if (_position + length > Length)
                 throw new ArgumentOutOfRangeException(nameof(length), $"Requires size is {length}, but buffer length is {Remaining}.");
-            Unsafe.CopyBlockUnaligned(ref buffer, ref Unsafe.AddByteOffset(ref Array, Position), (uint)length);
-            Position += length;
+            Unsafe.CopyBlockUnaligned(ref buffer, ref Unsafe.AddByteOffset(ref Array, _position), (uint)length);
+            _position += length;
         }
 
         /// <summary>
@@ -311,12 +342,60 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryReadBytes(ref byte buffer, int length)
         {
-            if (Position + length > Length)
+            if (_position + length > Length)
                 return false;
-            Unsafe.CopyBlockUnaligned(ref buffer, ref Unsafe.AddByteOffset(ref Array, Position), (uint)length);
-            Position += length;
+            Unsafe.CopyBlockUnaligned(ref buffer, ref Unsafe.AddByteOffset(ref Array, _position), (uint)length);
+            _position += length;
             return true;
         }
+
+        /// <summary>
+        ///     As span
+        /// </summary>
+        /// <returns>Span</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Span<byte> AsSpan() => MemoryMarshal.CreateSpan(ref Array, Length);
+
+        /// <summary>
+        ///     As span
+        /// </summary>
+        /// <param name="length">Length</param>
+        /// <returns>Span</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Span<byte> AsSpan(int length) => MemoryMarshal.CreateSpan(ref Array, length);
+
+        /// <summary>
+        ///     As span
+        /// </summary>
+        /// <param name="start">Start</param>
+        /// <param name="length">Length</param>
+        /// <returns>Span</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Span<byte> AsSpan(int start, int length) => MemoryMarshal.CreateSpan(ref (Unsafe.AddByteOffset(ref Array, start)), length);
+
+        /// <summary>
+        ///     As readOnly span
+        /// </summary>
+        /// <returns>ReadOnlySpan</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ReadOnlySpan<byte> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Array, Length);
+
+        /// <summary>
+        ///     As readOnly span
+        /// </summary>
+        /// <param name="length">Length</param>
+        /// <returns>ReadOnlySpan</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ReadOnlySpan<byte> AsReadOnlySpan(int length) => MemoryMarshal.CreateReadOnlySpan(ref Array, length);
+
+        /// <summary>
+        ///     As readOnly span
+        /// </summary>
+        /// <param name="start">Start</param>
+        /// <param name="length">Length</param>
+        /// <returns>ReadOnlySpan</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ReadOnlySpan<byte> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref (Unsafe.AddByteOffset(ref Array, start)), length);
 
         /// <summary>
         ///     As native reader
@@ -326,11 +405,25 @@ namespace NativeCollections
         public static implicit operator NativeReader(Span<byte> span) => new NativeWriter((byte*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(span)), span.Length);
 
         /// <summary>
+        ///     As span
+        /// </summary>
+        /// <returns>Span</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator Span<byte>(NativeReader nativeReader) => nativeReader.AsSpan();
+
+        /// <summary>
         ///     As native reader
         /// </summary>
         /// <returns>NativeReader</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator NativeReader(ReadOnlySpan<byte> readOnlySpan) => new NativeWriter((byte*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(readOnlySpan)), readOnlySpan.Length);
+
+        /// <summary>
+        ///     As readOnly span
+        /// </summary>
+        /// <returns>ReadOnlySpan</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator ReadOnlySpan<byte>(NativeReader nativeReader) => nativeReader.AsReadOnlySpan();
 
         /// <summary>
         ///     As native reader
@@ -344,7 +437,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>NativeMemoryReader</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeMemoryReader(NativeReader nativeReader) => new((byte*)Unsafe.AsPointer(ref nativeReader.Array), nativeReader.Position);
+        public static implicit operator NativeMemoryReader(NativeReader nativeReader) => new((byte*)Unsafe.AsPointer(ref nativeReader.Array), nativeReader._position);
 
         /// <summary>
         ///     Empty
