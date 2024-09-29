@@ -261,6 +261,13 @@ namespace NativeCollections
         public ReadOnlySpan<byte> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref *(Array + start), length);
 
         /// <summary>
+        ///     As pointer
+        /// </summary>
+        /// <returns>Pointer</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator byte*(NativeMemoryLinearAllocator nativeMemoryLinearAllocator) => nativeMemoryLinearAllocator.Array;
+
+        /// <summary>
         ///     As native memory linear allocator
         /// </summary>
         /// <returns>NativeMemoryLinearAllocator</returns>
