@@ -185,15 +185,13 @@ namespace NativeCollections
         /// <param name="byteCount">Byte count</param>
         /// <returns>Memory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void* Alloc(int byteCount)
+        public void* Alloc(uint byteCount)
         {
-            if (byteCount < 0)
-                throw new ArgumentOutOfRangeException(nameof(byteCount), byteCount, "MustBeNonNegative");
             var newPosition = _position + byteCount;
             if (newPosition > Length)
                 return null;
             var ptr = Array + _position;
-            _position = newPosition;
+            _position = (int)newPosition;
             return ptr;
         }
 
@@ -203,16 +201,14 @@ namespace NativeCollections
         /// <param name="byteCount">Byte count</param>
         /// <returns>Memory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void* AllocZeroed(int byteCount)
+        public void* AllocZeroed(uint byteCount)
         {
-            if (byteCount < 0)
-                throw new ArgumentOutOfRangeException(nameof(byteCount), byteCount, "MustBeNonNegative");
             var newPosition = _position + byteCount;
             if (newPosition > Length)
                 return null;
             var ptr = Array + _position;
-            _position = newPosition;
-            Unsafe.InitBlockUnaligned(ptr, 0, (uint)byteCount);
+            _position = (int)newPosition;
+            Unsafe.InitBlockUnaligned(ptr, 0, byteCount);
             return ptr;
         }
 
