@@ -12,7 +12,7 @@ using System;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native dynamic heap (Two-Level Segregated Fit) memory pool
+    ///     Native dynamic (Two-Level Segregated Fit) memory pool
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection]

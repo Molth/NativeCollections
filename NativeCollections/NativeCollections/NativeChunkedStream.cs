@@ -227,6 +227,139 @@ namespace NativeCollections
         /// <summary>
         ///     Read
         /// </summary>
+        /// <param name="length">Length</param>
+        /// <returns>Bytes</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int Read(int length)
+        {
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            if (length >= _handle->Length)
+            {
+                length = _handle->Length;
+                if (length == 0)
+                    return 0;
+                var size = _handle->Size;
+                var byteCount = size - _handle->ReadOffset;
+                if (byteCount < length)
+                {
+                    NativeMemoryChunk* chunk;
+                    var count = length - byteCount;
+                    var chunks = (count + size - 1) / size | 0;
+                    for (var i = 0; i < chunks; ++i)
+                    {
+                        chunk = _handle->Head;
+                        _handle->Head = chunk->Next;
+                        if (_handle->FreeChunks == _handle->MaxFreeChunks)
+                        {
+                            NativeMemoryAllocator.Free(chunk);
+                        }
+                        else
+                        {
+                            chunk->Next = _handle->FreeList;
+                            _handle->FreeList = chunk;
+                            ++_handle->FreeChunks;
+                        }
+
+                        --_handle->Chunks;
+                    }
+                }
+
+                _handle->ReadOffset = 0;
+                _handle->WriteOffset = 0;
+                _handle->Length = 0;
+            }
+            else
+            {
+                if (length == 0)
+                    return 0;
+                var size = _handle->Size;
+                var byteCount = size - _handle->ReadOffset;
+                if (byteCount > length)
+                {
+                    _handle->ReadOffset += length;
+                }
+                else
+                {
+                    NativeMemoryChunk* chunk;
+                    var count = length - byteCount;
+                    var chunks = (count + size - 1) / size | 0;
+                    for (var i = 0; i < chunks; ++i)
+                    {
+                        chunk = _handle->Head;
+                        _handle->Head = chunk->Next;
+                        if (_handle->FreeChunks == _handle->MaxFreeChunks)
+                        {
+                            NativeMemoryAllocator.Free(chunk);
+                        }
+                        else
+                        {
+                            chunk->Next = _handle->FreeList;
+                            _handle->FreeList = chunk;
+                            ++_handle->FreeChunks;
+                        }
+
+                        --_handle->Chunks;
+                    }
+
+                    _handle->ReadOffset = count % size;
+                }
+
+                _handle->Length -= length;
+            }
+
+            return length;
+        }
+
+        /// <summary>
+        ///     Write
+        /// </summary>
+        /// <param name="length">Length</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write(int length)
+        {
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            if (length == 0)
+                return;
+            var size = _handle->Size;
+            var byteCount = size - _handle->WriteOffset;
+            if (byteCount >= length)
+            {
+                _handle->WriteOffset += length;
+            }
+            else
+            {
+                NativeMemoryChunk* chunk;
+                var count = length - byteCount;
+                var chunks = (count + size - 1) / size | 0;
+                for (var i = 0; i < chunks; ++i)
+                {
+                    if (_handle->FreeChunks == 0)
+                    {
+                        chunk = (NativeMemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemoryChunk) + size));
+                    }
+                    else
+                    {
+                        chunk = _handle->FreeList;
+                        _handle->FreeList = chunk->Next;
+                        --_handle->FreeChunks;
+                    }
+
+                    _handle->Tail->Next = chunk;
+                    _handle->Tail = chunk;
+                    ++_handle->Chunks;
+                }
+
+                _handle->WriteOffset = count % size;
+            }
+
+            _handle->Length += length;
+        }
+
+        /// <summary>
+        ///     Read
+        /// </summary>
         /// <param name="buffer">Buffer</param>
         /// <param name="length">Length</param>
         /// <returns>Bytes</returns>
