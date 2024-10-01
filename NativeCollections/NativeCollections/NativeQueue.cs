@@ -98,7 +98,7 @@ namespace NativeCollections
         public ref T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _handle->Array[index];
+            get => ref _handle->Array[(_handle->Head + index) % _handle->Length];
         }
 
         /// <summary>
@@ -108,7 +108,7 @@ namespace NativeCollections
         public ref T this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _handle->Array[index];
+            get => ref _handle->Array[(_handle->Head + index) % _handle->Length];
         }
 
         /// <summary>
