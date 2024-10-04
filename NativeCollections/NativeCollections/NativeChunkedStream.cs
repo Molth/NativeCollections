@@ -129,6 +129,11 @@ namespace NativeCollections
         public bool IsCreated => _handle != null;
 
         /// <summary>
+        ///     Is empty
+        /// </summary>
+        public bool IsEmpty => _handle->Length == 0;
+
+        /// <summary>
         ///     Chunks
         /// </summary>
         public int Chunks => _handle->Chunks;
