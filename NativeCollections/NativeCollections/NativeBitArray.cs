@@ -50,7 +50,7 @@ namespace NativeCollections
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
             _handle = (NativeBitArrayHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeBitArrayHandle));
-            _handle->Array = new NativeArray<int>(GetInt32ArrayLengthFromBitLength(length));
+            _handle->Array = new NativeArray<int>(GetInt32ArrayLengthFromBitLength(length), true);
             _handle->Length = length;
         }
 
