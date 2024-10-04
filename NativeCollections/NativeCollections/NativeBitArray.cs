@@ -228,6 +228,18 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Get or set value
+        /// </summary>
+        /// <param name="index">Index</param>
+        public bool this[uint index]
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => Get(index);
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set => Set(index, value);
+        }
+
+        /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="other">Other</param>
@@ -304,6 +316,36 @@ namespace NativeCollections
             if ((uint)index >= (uint)_handle->Length)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
             var bitMask = 1 << index;
+            ref var segment = ref _handle->Array[index >> 5];
+            if (value)
+                segment |= bitMask;
+            else
+                segment &= ~bitMask;
+        }
+
+        /// <summary>
+        ///     Get
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <returns>Value</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Get(uint index)
+        {
+            if (index >= (uint)_handle->Length)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
+            return (_handle->Array[index >> 5] & (1 << (int)index)) != 0;
+        }
+
+        /// <summary>
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="value">Value</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Set(uint index, bool value)
+        {
+            if (index >= (uint)_handle->Length)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
+            var bitMask = 1 << (int)index;
             ref var segment = ref _handle->Array[index >> 5];
             if (value)
                 segment |= bitMask;
