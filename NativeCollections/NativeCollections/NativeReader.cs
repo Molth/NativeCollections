@@ -440,6 +440,27 @@ namespace NativeCollections
         public static implicit operator NativeMemoryReader(NativeReader nativeReader) => new((byte*)Unsafe.AsPointer(ref nativeReader.Array), nativeReader._position);
 
         /// <summary>
+        ///     As native memory reader
+        /// </summary>
+        /// <returns>NativeMemoryReader</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator NativeReader(NativeArray<byte> nativeArray) => new(nativeArray.Array, nativeArray.Length);
+
+        /// <summary>
+        ///     As native memory reader
+        /// </summary>
+        /// <returns>NativeMemoryReader</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator NativeReader(NativeMemoryArray<byte> nativeMemoryArray) => new(nativeMemoryArray.Array, nativeMemoryArray.Length);
+
+        /// <summary>
+        ///     As native memory writer
+        /// </summary>
+        /// <returns>NativeMemoryWriter</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator NativeReader(NativeSlice<byte> nativeSlice) => new(nativeSlice.Array + nativeSlice.Offset, nativeSlice.Count);
+
+        /// <summary>
         ///     Empty
         /// </summary>
         public static NativeReader Empty => new();

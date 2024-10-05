@@ -410,6 +410,27 @@ namespace NativeCollections
         public static implicit operator ReadOnlySpan<byte>(NativeMemoryReader nativeMemoryReader) => nativeMemoryReader.AsReadOnlySpan();
 
         /// <summary>
+        ///     As native memory reader
+        /// </summary>
+        /// <returns>NativeMemoryReader</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator NativeMemoryReader(NativeArray<byte> nativeArray) => new(nativeArray.Array, nativeArray.Length);
+
+        /// <summary>
+        ///     As native memory reader
+        /// </summary>
+        /// <returns>NativeMemoryReader</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator NativeMemoryReader(NativeMemoryArray<byte> nativeMemoryArray) => new(nativeMemoryArray.Array, nativeMemoryArray.Length);
+
+        /// <summary>
+        ///     As native memory writer
+        /// </summary>
+        /// <returns>NativeMemoryWriter</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator NativeMemoryReader(NativeSlice<byte> nativeSlice) => new(nativeSlice.Array + nativeSlice.Offset, nativeSlice.Count);
+
+        /// <summary>
         ///     Empty
         /// </summary>
         public static NativeMemoryReader Empty => new();
