@@ -567,7 +567,7 @@ namespace NativeCollections
                 if ((uint)i >= (uint)_handle->EntriesLength)
                     break;
                 if (_handle->Entries[i].HashCode == hashCode && _handle->Entries[i].Key.Equals(key))
-                    throw new ArgumentException($"Argument_AddingDuplicateWithKey, {key}");
+                    throw new ArgumentException($"AddingDuplicateWithKey, {key}");
                 i = _handle->Entries[i].Next;
                 collisionCount++;
                 if (collisionCount > (uint)_handle->EntriesLength)
