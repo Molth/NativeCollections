@@ -116,46 +116,12 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Push
+        ///     Try rent
         /// </summary>
-        /// <param name="item">Item</param>
+        /// <param name="index">Index</param>
+        /// <returns>Rented</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Push(int item)
-        {
-            var count = 0;
-            var array = _array;
-            var id = Interlocked.Increment(ref array[1]) - 1;
-            ref var segment = ref array[id + 2];
-            var value = item + 1;
-            while (Interlocked.CompareExchange(ref segment, value, 0) != 0)
-            {
-                if ((count >= 10 && (count - 10) % 2 == 0) || Environment.ProcessorCount == 1)
-                {
-                    var yieldsSoFar = count >= 10 ? (count - 10) / 2 : count;
-                    if (yieldsSoFar % 5 == 4)
-                        Thread.Sleep(0);
-                    else
-                        Thread.Yield();
-                }
-                else
-                {
-                    var iterations = Environment.ProcessorCount / 2;
-                    if (count <= 30 && 1 << count < iterations)
-                        iterations = 1 << count;
-                    Thread.SpinWait(iterations);
-                }
-
-                count = count == int.MaxValue ? 10 : count + 1;
-            }
-        }
-
-        /// <summary>
-        ///     Try pop
-        /// </summary>
-        /// <param name="result">Item</param>
-        /// <returns>Popped</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryPop(out int result)
+        public bool TryRent(out int index)
         {
             var count = 0;
             var array = _array;
@@ -210,7 +176,7 @@ namespace NativeCollections
                     count = count == int.MaxValue ? 10 : count + 1;
                 }
 
-                result = value - 1;
+                index = value - 1;
                 return true;
             }
 
@@ -219,12 +185,46 @@ namespace NativeCollections
             if (id >= _length)
             {
                 Interlocked.Decrement(ref segment);
-                result = -1;
+                index = -1;
                 return false;
             }
 
-            result = id;
+            index = id;
             return true;
+        }
+
+        /// <summary>
+        ///     Return
+        /// </summary>
+        /// <param name="index">Index</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Return(int index)
+        {
+            var count = 0;
+            var array = _array;
+            var id = Interlocked.Increment(ref array[1]) - 1;
+            ref var segment = ref array[id + 2];
+            var value = index + 1;
+            while (Interlocked.CompareExchange(ref segment, value, 0) != 0)
+            {
+                if ((count >= 10 && (count - 10) % 2 == 0) || Environment.ProcessorCount == 1)
+                {
+                    var yieldsSoFar = count >= 10 ? (count - 10) / 2 : count;
+                    if (yieldsSoFar % 5 == 4)
+                        Thread.Sleep(0);
+                    else
+                        Thread.Yield();
+                }
+                else
+                {
+                    var iterations = Environment.ProcessorCount / 2;
+                    if (count <= 30 && 1 << count < iterations)
+                        iterations = 1 << count;
+                    Thread.SpinWait(iterations);
+                }
+
+                count = count == int.MaxValue ? 10 : count + 1;
+            }
         }
     }
 }
