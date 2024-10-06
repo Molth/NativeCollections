@@ -222,9 +222,17 @@ namespace NativeCollections
         public bool this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => Get(index);
+            get => (_handle->Array[index >> 5] & (1 << index)) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Set(index, value);
+            set
+            {
+                var bitMask = 1 << index;
+                ref var segment = ref _handle->Array[index >> 5];
+                if (value)
+                    segment |= bitMask;
+                else
+                    segment &= ~bitMask;
+            }
         }
 
         /// <summary>
@@ -234,9 +242,17 @@ namespace NativeCollections
         public bool this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => Get(index);
+            get => (_handle->Array[index >> 5] & (1 << (int)index)) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Set(index, value);
+            set
+            {
+                var bitMask = 1 << (int)index;
+                ref var segment = ref _handle->Array[index >> 5];
+                if (value)
+                    segment |= bitMask;
+                else
+                    segment &= ~bitMask;
+            }
         }
 
         /// <summary>
