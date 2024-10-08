@@ -79,16 +79,6 @@ namespace NativeCollections
         public bool IsCreated => _handle != null;
 
         /// <summary>
-        ///     Is empty
-        /// </summary>
-        public bool IsEmpty => _handle->Index == 0;
-
-        /// <summary>
-        ///     Is full
-        /// </summary>
-        public bool IsFull => _handle->Index == _handle->Size;
-
-        /// <summary>
         ///     Size
         /// </summary>
         public int Size => _handle->Size;
@@ -97,11 +87,6 @@ namespace NativeCollections
         ///     Length
         /// </summary>
         public int Length => _handle->Length;
-
-        /// <summary>
-        ///     Count
-        /// </summary>
-        public int Count => _handle->Index;
 
         /// <summary>
         ///     Equals

@@ -13,16 +13,16 @@ using System.Threading;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native concurrentBucket
+    ///     Native concurrentFixedSizeBucket
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection]
-    public readonly unsafe struct NativeConcurrentBucket : IDisposable, IEquatable<NativeConcurrentBucket>
+    public readonly unsafe struct NativeConcurrentFixedSizeBucket : IDisposable, IEquatable<NativeConcurrentFixedSizeBucket>
     {
         /// <summary>
-        ///     Array
+        ///     Buffer
         /// </summary>
-        private readonly int* _array;
+        private readonly int* _buffer;
 
         /// <summary>
         ///     Length
@@ -34,23 +34,37 @@ namespace NativeCollections
         /// </summary>
         /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeConcurrentBucket(int capacity)
+        public NativeConcurrentFixedSizeBucket(int capacity)
         {
             if (capacity < 0)
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            _array = (int*)NativeMemoryAllocator.AllocZeroed((uint)((2 + capacity) * sizeof(int)));
+            _buffer = (int*)NativeMemoryAllocator.AllocZeroed((uint)((2 + capacity) * sizeof(int)));
+            _length = capacity;
+        }
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <param name="capacity">Capacity</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeConcurrentFixedSizeBucket(int* buffer, int capacity)
+        {
+            if (capacity < 0)
+                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            _buffer = buffer;
             _length = capacity;
         }
 
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => _array != null;
+        public bool IsCreated => _buffer != null;
 
         /// <summary>
         ///     Is empty
         /// </summary>
-        public bool IsEmpty => _array[0] - _array[1] == _length;
+        public bool IsEmpty => (_buffer[0] - _buffer[1]) == _length;
 
         /// <summary>
         ///     Capacity
@@ -58,35 +72,40 @@ namespace NativeCollections
         public int Capacity => _length;
 
         /// <summary>
+        ///     Count
+        /// </summary>
+        public int Count => (_buffer[0] - _buffer[1]);
+
+        /// <summary>
         ///     Remaining
         /// </summary>
-        public int Remaining => _length - (_array[0] - _array[1]);
+        public int Remaining => _length - (_buffer[0] - _buffer[1]);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeConcurrentBucket other) => other == this;
+        public bool Equals(NativeConcurrentFixedSizeBucket other) => other == this;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeConcurrentBucket nativeConcurrentBucket && nativeConcurrentBucket == this;
+        public override bool Equals(object? obj) => obj is NativeConcurrentFixedSizeBucket nativeConcurrentFixedSizeBucket && nativeConcurrentFixedSizeBucket == this;
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => (int)(nint)_array;
+        public override int GetHashCode() => (int)(nint)_buffer;
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => $"NativeConcurrentBucket[{_length}]";
+        public override string ToString() => $"NativeConcurrentFixedSizeBucket[{_length}]";
 
         /// <summary>
         ///     Equals
@@ -94,7 +113,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeConcurrentBucket left, NativeConcurrentBucket right) => left._array == right._array;
+        public static bool operator ==(NativeConcurrentFixedSizeBucket left, NativeConcurrentFixedSizeBucket right) => left._buffer == right._buffer;
 
         /// <summary>
         ///     Not equals
@@ -102,7 +121,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeConcurrentBucket left, NativeConcurrentBucket right) => left._array != right._array;
+        public static bool operator !=(NativeConcurrentFixedSizeBucket left, NativeConcurrentFixedSizeBucket right) => left._buffer != right._buffer;
 
         /// <summary>
         ///     Dispose
@@ -110,9 +129,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            if (_array == null)
+            if (_buffer == null)
                 return;
-            NativeMemoryAllocator.Free(_array);
+            NativeMemoryAllocator.Free(_buffer);
         }
 
         /// <summary>
@@ -124,12 +143,12 @@ namespace NativeCollections
         public bool TryRent(out int index)
         {
             var count = 0;
-            var array = _array;
-            ref var segment = ref array[1];
-            var id = segment - 1;
-            while (id >= 0 && Interlocked.CompareExchange(ref segment, id, id + 1) != id + 1)
+            var buffer = _buffer;
+            ref var location = ref buffer[1];
+            var id = location - 1;
+            while (id >= 0 && Interlocked.CompareExchange(ref location, id, id + 1) != id + 1)
             {
-                id = segment - 1;
+                id = location - 1;
                 if ((count >= 10 && (count - 10) % 2 == 0) || Environment.ProcessorCount == 1)
                 {
                     var yieldsSoFar = count >= 10 ? (count - 10) / 2 : count;
@@ -153,10 +172,10 @@ namespace NativeCollections
             {
                 count = 0;
                 var value = 0;
-                segment = ref array[2 + id];
+                location = ref buffer[2 + id];
                 while (value == 0)
                 {
-                    value = Interlocked.Exchange(ref segment, 0);
+                    value = Interlocked.Exchange(ref location, 0);
                     if ((count >= 10 && (count - 10) % 2 == 0) || Environment.ProcessorCount == 1)
                     {
                         var yieldsSoFar = count >= 10 ? (count - 10) / 2 : count;
@@ -180,11 +199,11 @@ namespace NativeCollections
                 return true;
             }
 
-            segment = ref array[0];
-            id = Interlocked.Increment(ref segment) - 1;
+            location = ref buffer[0];
+            id = Interlocked.Increment(ref location) - 1;
             if (id >= _length)
             {
-                Interlocked.Decrement(ref segment);
+                Interlocked.Decrement(ref location);
                 index = -1;
                 return false;
             }
@@ -201,11 +220,11 @@ namespace NativeCollections
         public void Return(int index)
         {
             var count = 0;
-            var array = _array;
-            var id = Interlocked.Increment(ref array[1]) - 1;
-            ref var segment = ref array[id + 2];
+            var buffer = _buffer;
+            var id = Interlocked.Increment(ref buffer[1]) - 1;
+            ref var location = ref buffer[id + 2];
             var value = index + 1;
-            while (Interlocked.CompareExchange(ref segment, value, 0) != 0)
+            while (Interlocked.CompareExchange(ref location, value, 0) != 0)
             {
                 if ((count >= 10 && (count - 10) % 2 == 0) || Environment.ProcessorCount == 1)
                 {
