@@ -1,6 +1,4 @@
-#if UNITY_2021_3_OR_NEWER || GODOT
 using System;
-#endif
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 

@@ -1,6 +1,4 @@
-﻿#if UNITY_2021_3_OR_NEWER || GODOT
-using System;
-#endif
+﻿using System;
 
 // ReSharper disable ALL
 

@@ -1,12 +1,9 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 #if !NET6_0_OR_GREATER
 using System.Diagnostics;
-#endif
-
-#if UNITY_2021_3_OR_NEWER || GODOT
-using System;
-using System.Threading;
 #endif
 
 #pragma warning disable CA2208

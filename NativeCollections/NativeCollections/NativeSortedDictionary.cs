@@ -1,11 +1,7 @@
-﻿#if UNITY_2021_3_OR_NEWER || GODOT
-using System;
+﻿using System;
 using System.Collections.Generic;
-#endif
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-#if NET5_0_OR_GREATER
-#endif
 
 #pragma warning disable CA2208
 #pragma warning disable CS8632
