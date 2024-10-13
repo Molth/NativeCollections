@@ -289,10 +289,10 @@ namespace NativeCollections
         /// <summary>
         ///     As span
         /// </summary>
-        /// <param name="count">Count</param>
+        /// <param name="start">Start</param>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<T> AsSpan(int count) => MemoryMarshal.CreateSpan(ref *(_array + _offset), count);
+        public Span<T> AsSpan(int start) => MemoryMarshal.CreateSpan(ref *(_array + _offset + start), _count - start);
 
         /// <summary>
         ///     As span
@@ -313,10 +313,10 @@ namespace NativeCollections
         /// <summary>
         ///     As readOnly span
         /// </summary>
-        /// <param name="count">Count</param>
+        /// <param name="start">Start</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<T> AsReadOnlySpan(int count) => MemoryMarshal.CreateReadOnlySpan(ref *(_array + _offset), count);
+        public ReadOnlySpan<T> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref *(_array + _offset + start), _count - start);
 
         /// <summary>
         ///     As readOnly span
