@@ -216,7 +216,7 @@ namespace NativeCollections
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => (int)(nint)_array;
+        public override int GetHashCode() => ((nint)_array).GetHashCode();
 
         /// <summary>
         ///     To string

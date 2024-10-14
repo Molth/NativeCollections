@@ -100,7 +100,7 @@ namespace NativeCollections
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => HashCode.Combine((int)(nint)Unsafe.AsPointer(ref Array), Length, _position);
+        public override int GetHashCode() => HashCode.Combine((nint)Unsafe.AsPointer(ref Array), Length, _position);
 
         /// <summary>
         ///     To string

@@ -97,7 +97,7 @@ namespace NativeCollections
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => (int)(nint)_buffer;
+        public override int GetHashCode() => ((nint)_buffer).GetHashCode();
 
         /// <summary>
         ///     To string

@@ -90,7 +90,7 @@ namespace NativeCollections
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => (int)(nint)_buckets;
+        public override int GetHashCode() => ((nint)_buckets).GetHashCode();
 
         /// <summary>
         ///     To string

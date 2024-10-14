@@ -99,7 +99,7 @@ namespace NativeCollections
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => (int)(nint)_tlsf;
+        public override int GetHashCode() => ((nint)_tlsf).GetHashCode();
 
         /// <summary>
         ///     To string
