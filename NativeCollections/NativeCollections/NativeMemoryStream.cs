@@ -60,11 +60,12 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
             if (capacity < 4)
                 capacity = 4;
-            _handle = (NativeMemoryStreamHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeMemoryStreamHandle));
-            _handle->Array = (byte*)NativeMemoryAllocator.Alloc((uint)capacity);
-            _handle->Position = 0;
-            _handle->Length = 0;
-            _handle->Capacity = capacity;
+            var handle = (NativeMemoryStreamHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeMemoryStreamHandle));
+            handle->Array = (byte*)NativeMemoryAllocator.Alloc((uint)capacity);
+            handle->Position = 0;
+            handle->Length = 0;
+            handle->Capacity = capacity;
+            _handle = handle;
         }
 
         /// <summary>
@@ -161,25 +162,26 @@ namespace NativeCollections
             set
             {
                 EnsureNotClosed();
-                if (value < _handle->Length)
+                var handle = _handle;
+                if (value < handle->Length)
                     throw new ArgumentOutOfRangeException(nameof(Capacity), value, "SmallCapacity");
-                if (value != _handle->Capacity)
+                if (value != handle->Capacity)
                 {
                     if (value > 0)
                     {
                         var newBuffer = (byte*)NativeMemoryAllocator.Alloc((uint)value);
-                        if (_handle->Length > 0)
-                            Unsafe.CopyBlockUnaligned(newBuffer, _handle->Array, (uint)_handle->Length);
-                        NativeMemoryAllocator.Free(_handle->Array);
-                        _handle->Array = newBuffer;
+                        if (handle->Length > 0)
+                            Unsafe.CopyBlockUnaligned(newBuffer, handle->Array, (uint)handle->Length);
+                        NativeMemoryAllocator.Free(handle->Array);
+                        handle->Array = newBuffer;
                     }
                     else
                     {
-                        NativeMemoryAllocator.Free(_handle->Array);
-                        _handle->Array = (byte*)NativeMemoryAllocator.Alloc(0);
+                        NativeMemoryAllocator.Free(handle->Array);
+                        handle->Array = (byte*)NativeMemoryAllocator.Alloc(0);
                     }
 
-                    _handle->Capacity = value;
+                    handle->Capacity = value;
                 }
             }
         }
@@ -208,7 +210,7 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => $"NativeMemoryStream<{_handle->Length}>";
+        public override string ToString() => "NativeMemoryStream";
 
         /// <summary>
         ///     As span
@@ -246,10 +248,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            if (_handle == null)
+            var handle = _handle;
+            if (handle == null)
                 return;
-            NativeMemoryAllocator.Free(_handle->Array);
-            NativeMemoryAllocator.Free(_handle);
+            NativeMemoryAllocator.Free(handle->Array);
+            NativeMemoryAllocator.Free(handle);
         }
 
         /// <summary>
@@ -257,7 +260,11 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<byte> AsSpan() => MemoryMarshal.CreateSpan(ref *_handle->Array, _handle->Length);
+        public Span<byte> AsSpan()
+        {
+            var handle = _handle;
+            return MemoryMarshal.CreateSpan(ref *handle->Array, handle->Length);
+        }
 
         /// <summary>
         ///     As span
@@ -265,7 +272,11 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<byte> AsSpan(int start) => MemoryMarshal.CreateSpan(ref *(_handle->Array + start), _handle->Length - start);
+        public Span<byte> AsSpan(int start)
+        {
+            var handle = _handle;
+            return MemoryMarshal.CreateSpan(ref *(handle->Array + start), handle->Length - start);
+        }
 
         /// <summary>
         ///     As span
@@ -274,14 +285,22 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<byte> AsSpan(int start, int length) => MemoryMarshal.CreateSpan(ref *(_handle->Array + start), length);
+        public Span<byte> AsSpan(int start, int length)
+        {
+            var handle = _handle;
+            return MemoryMarshal.CreateSpan(ref *(handle->Array + start), length);
+        }
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<byte> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref *_handle->Array, _handle->Length);
+        public ReadOnlySpan<byte> AsReadOnlySpan()
+        {
+            var handle = _handle;
+            return MemoryMarshal.CreateReadOnlySpan(ref *handle->Array, handle->Length);
+        }
 
         /// <summary>
         ///     As readOnly span
@@ -289,7 +308,11 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<byte> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref *(_handle->Array + start), _handle->Length - start);
+        public ReadOnlySpan<byte> AsReadOnlySpan(int start)
+        {
+            var handle = _handle;
+            return MemoryMarshal.CreateReadOnlySpan(ref *(handle->Array + start), handle->Length - start);
+        }
 
         /// <summary>
         ///     As readOnly span
@@ -298,7 +321,11 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<byte> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref *(_handle->Array + start), length);
+        public ReadOnlySpan<byte> AsReadOnlySpan(int start, int length)
+        {
+            var handle = _handle;
+            return MemoryMarshal.CreateReadOnlySpan(ref *(handle->Array + start), length);
+        }
 
         /// <summary>
         ///     Get buffer
@@ -319,36 +346,37 @@ namespace NativeCollections
             if (offset > 2147483647)
                 throw new ArgumentOutOfRangeException(nameof(offset), offset, "StreamLength");
             EnsureNotClosed();
+            var handle = _handle;
             switch (loc)
             {
                 case SeekOrigin.Begin:
                 {
                     if (offset < 0)
                         throw new IOException("IO_SeekBeforeBegin");
-                    _handle->Position = offset;
+                    handle->Position = offset;
                     break;
                 }
                 case SeekOrigin.Current:
                 {
-                    var tempPosition = unchecked(_handle->Position + offset);
+                    var tempPosition = unchecked(handle->Position + offset);
                     if (tempPosition < 0)
                         throw new IOException("IO_SeekBeforeBegin");
-                    _handle->Position = tempPosition;
+                    handle->Position = tempPosition;
                     break;
                 }
                 case SeekOrigin.End:
                 {
-                    var tempPosition = unchecked(_handle->Length + offset);
+                    var tempPosition = unchecked(handle->Length + offset);
                     if (tempPosition < 0)
                         throw new IOException("IO_SeekBeforeBegin");
-                    _handle->Position = tempPosition;
+                    handle->Position = tempPosition;
                     break;
                 }
                 default:
                     throw new ArgumentException("InvalidSeekOrigin");
             }
 
-            return _handle->Position;
+            return handle->Position;
         }
 
         /// <summary>
@@ -361,12 +389,13 @@ namespace NativeCollections
             if (length < 0 || length > 2147483647)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "StreamLength");
             EnsureNotClosed();
+            var handle = _handle;
             var allocatedNewArray = EnsureCapacity(length);
-            if (!allocatedNewArray && length > _handle->Length)
-                Unsafe.InitBlock(_handle->Array + _handle->Length, 0, (uint)(length - _handle->Length));
-            _handle->Length = length;
-            if (_handle->Position > length)
-                _handle->Position = length;
+            if (!allocatedNewArray && length > handle->Length)
+                Unsafe.InitBlock(handle->Array + handle->Length, 0, (uint)(length - handle->Length));
+            handle->Length = length;
+            if (handle->Position > length)
+                handle->Position = length;
         }
 
         /// <summary>
@@ -380,7 +409,8 @@ namespace NativeCollections
         public int Read(byte* buffer, int offset, int count)
         {
             EnsureNotClosed();
-            var n = _handle->Length - _handle->Position;
+            var handle = _handle;
+            var n = handle->Length - handle->Position;
             if (n > count)
                 n = count;
             if (n <= 0)
@@ -389,14 +419,14 @@ namespace NativeCollections
             {
                 var byteCount = n;
                 while (--byteCount >= 0)
-                    buffer[offset + byteCount] = _handle->Array[_handle->Position + byteCount];
+                    buffer[offset + byteCount] = handle->Array[handle->Position + byteCount];
             }
             else
             {
-                Unsafe.CopyBlockUnaligned(buffer + offset, _handle->Array + _handle->Position, (uint)n);
+                Unsafe.CopyBlockUnaligned(buffer + offset, handle->Array + handle->Position, (uint)n);
             }
 
-            _handle->Position += n;
+            handle->Position += n;
             return n;
         }
 
@@ -409,12 +439,13 @@ namespace NativeCollections
         public int Read(Span<byte> buffer)
         {
             EnsureNotClosed();
-            var size = _handle->Length - _handle->Position;
+            var handle = _handle;
+            var size = handle->Length - handle->Position;
             var n = size < buffer.Length ? size : buffer.Length;
             if (n <= 0)
                 return 0;
-            Unsafe.CopyBlockUnaligned(ref buffer[0], ref *(_handle->Array + _handle->Position), (uint)n);
-            _handle->Position += n;
+            Unsafe.CopyBlockUnaligned(ref buffer[0], ref *(handle->Array + handle->Position), (uint)n);
+            handle->Position += n;
             return n;
         }
 
@@ -426,7 +457,8 @@ namespace NativeCollections
         public int ReadByte()
         {
             EnsureNotClosed();
-            return _handle->Position >= _handle->Length ? -1 : _handle->Array[_handle->Position++];
+            var handle = _handle;
+            return handle->Position >= handle->Length ? -1 : handle->Array[handle->Position++];
         }
 
         /// <summary>
@@ -439,13 +471,14 @@ namespace NativeCollections
         public void Write(byte* buffer, int offset, int count)
         {
             EnsureNotClosed();
-            var i = _handle->Position + count;
+            var handle = _handle;
+            var i = handle->Position + count;
             if (i < 0)
                 throw new IOException("IO_StreamTooLong");
-            if (i > _handle->Length)
+            if (i > handle->Length)
             {
-                var mustZero = _handle->Position > _handle->Length;
-                if (i > _handle->Capacity)
+                var mustZero = handle->Position > handle->Length;
+                if (i > handle->Capacity)
                 {
                     var allocatedNewArray = EnsureCapacity(i);
                     if (allocatedNewArray)
@@ -453,22 +486,22 @@ namespace NativeCollections
                 }
 
                 if (mustZero)
-                    Unsafe.InitBlock(_handle->Array + _handle->Length, 0, (uint)(i - _handle->Length));
-                _handle->Length = i;
+                    Unsafe.InitBlock(handle->Array + handle->Length, 0, (uint)(i - handle->Length));
+                handle->Length = i;
             }
 
-            if (count <= 8 && buffer != _handle->Array)
+            if (count <= 8 && buffer != handle->Array)
             {
                 var byteCount = count;
                 while (--byteCount >= 0)
-                    _handle->Array[_handle->Position + byteCount] = buffer[offset + byteCount];
+                    handle->Array[handle->Position + byteCount] = buffer[offset + byteCount];
             }
             else
             {
-                Unsafe.CopyBlockUnaligned(_handle->Array + _handle->Position, buffer + offset, (uint)count);
+                Unsafe.CopyBlockUnaligned(handle->Array + handle->Position, buffer + offset, (uint)count);
             }
 
-            _handle->Position = i;
+            handle->Position = i;
         }
 
         /// <summary>
@@ -479,13 +512,14 @@ namespace NativeCollections
         public void Write(ReadOnlySpan<byte> buffer)
         {
             EnsureNotClosed();
-            var i = _handle->Position + buffer.Length;
+            var handle = _handle;
+            var i = handle->Position + buffer.Length;
             if (i < 0)
                 throw new IOException("IO_StreamTooLong");
-            if (i > _handle->Length)
+            if (i > handle->Length)
             {
-                var mustZero = _handle->Position > _handle->Length;
-                if (i > _handle->Capacity)
+                var mustZero = handle->Position > handle->Length;
+                if (i > handle->Capacity)
                 {
                     var allocatedNewArray = EnsureCapacity(i);
                     if (allocatedNewArray)
@@ -493,12 +527,12 @@ namespace NativeCollections
                 }
 
                 if (mustZero)
-                    Unsafe.InitBlock(_handle->Array + _handle->Length, 0, (uint)(i - _handle->Length));
-                _handle->Length = i;
+                    Unsafe.InitBlock(handle->Array + handle->Length, 0, (uint)(i - handle->Length));
+                handle->Length = i;
             }
 
-            Unsafe.CopyBlockUnaligned(ref *(_handle->Array + _handle->Position), ref MemoryMarshal.GetReference(buffer), (uint)buffer.Length);
-            _handle->Position = i;
+            Unsafe.CopyBlockUnaligned(ref *(handle->Array + handle->Position), ref MemoryMarshal.GetReference(buffer), (uint)buffer.Length);
+            handle->Position = i;
         }
 
         /// <summary>
@@ -509,11 +543,12 @@ namespace NativeCollections
         public void WriteByte(byte value)
         {
             EnsureNotClosed();
-            if (_handle->Position >= _handle->Length)
+            var handle = _handle;
+            if (handle->Position >= handle->Length)
             {
-                var newLength = _handle->Position + 1;
-                var mustZero = _handle->Position > _handle->Length;
-                if (newLength >= _handle->Capacity)
+                var newLength = handle->Position + 1;
+                var mustZero = handle->Position > handle->Length;
+                if (newLength >= handle->Capacity)
                 {
                     var allocatedNewArray = EnsureCapacity(newLength);
                     if (allocatedNewArray)
@@ -521,11 +556,11 @@ namespace NativeCollections
                 }
 
                 if (mustZero)
-                    Unsafe.InitBlock(_handle->Array + _handle->Length, 0, (uint)(_handle->Position - _handle->Length));
-                _handle->Length = newLength;
+                    Unsafe.InitBlock(handle->Array + handle->Length, 0, (uint)(handle->Position - handle->Length));
+                handle->Length = newLength;
             }
 
-            _handle->Array[_handle->Position++] = value;
+            handle->Array[handle->Position++] = value;
         }
 
         /// <summary>
@@ -538,12 +573,13 @@ namespace NativeCollections
         {
             if (capacity < 0)
                 throw new IOException("IO_StreamTooLong");
-            if (capacity > _handle->Capacity)
+            var handle = _handle;
+            if (capacity > handle->Capacity)
             {
                 var newCapacity = capacity > 256 ? capacity : 256;
-                if (newCapacity < _handle->Capacity * 2)
-                    newCapacity = _handle->Capacity * 2;
-                if ((uint)(_handle->Capacity * 2) > 2147483591)
+                if (newCapacity < handle->Capacity * 2)
+                    newCapacity = handle->Capacity * 2;
+                if ((uint)(handle->Capacity * 2) > 2147483591)
                     newCapacity = capacity > 2147483591 ? capacity : 2147483591;
                 Capacity = newCapacity;
                 return true;

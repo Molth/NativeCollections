@@ -135,9 +135,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            if (_handle == null)
+            var handle = _handle;
+            if (handle == null)
                 return;
-            NativeMemoryAllocator.Free(_handle);
+            NativeMemoryAllocator.Free(handle);
         }
 
         /// <summary>

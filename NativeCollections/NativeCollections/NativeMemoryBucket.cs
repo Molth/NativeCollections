@@ -63,12 +63,13 @@ namespace NativeCollections
         public NativeMemoryBucket(int size, int length, int maxFreeSlabs)
         {
             var memoryPool = new NativeMemoryPool(size, length, maxFreeSlabs);
-            _handle = (NativeMemoryBucketHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeMemoryBucketHandle));
-            _handle->Size = size;
-            _handle->Length = length;
-            _handle->Array = (void**)NativeMemoryAllocator.AllocZeroed((uint)(size * sizeof(void*)));
-            _handle->Index = 0;
-            _handle->MemoryPool = memoryPool;
+            var handle = (NativeMemoryBucketHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeMemoryBucketHandle));
+            handle->Size = size;
+            handle->Length = length;
+            handle->Array = (void**)NativeMemoryAllocator.AllocZeroed((uint)(size * sizeof(void*)));
+            handle->Index = 0;
+            handle->MemoryPool = memoryPool;
+            _handle = handle;
         }
 
         /// <summary>
@@ -134,11 +135,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            if (_handle == null)
+            var handle = _handle;
+            if (handle == null)
                 return;
-            NativeMemoryAllocator.Free(_handle->Array);
-            _handle->MemoryPool.Dispose();
-            NativeMemoryAllocator.Free(_handle);
+            NativeMemoryAllocator.Free(handle->Array);
+            handle->MemoryPool.Dispose();
+            NativeMemoryAllocator.Free(handle);
         }
 
         /// <summary>
@@ -148,15 +150,16 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void* Rent()
         {
+            var handle = _handle;
             void* buffer = null;
-            if (_handle->Index < _handle->Size)
+            if (handle->Index < handle->Size)
             {
-                buffer = _handle->Array[_handle->Index];
-                _handle->Array[_handle->Index++] = null;
+                buffer = handle->Array[handle->Index];
+                handle->Array[handle->Index++] = null;
             }
 
             if (buffer == null)
-                buffer = _handle->MemoryPool.Rent();
+                buffer = handle->MemoryPool.Rent();
             return buffer;
         }
 
@@ -167,10 +170,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Return(void* ptr)
         {
-            if (_handle->Index != 0)
-                _handle->Array[--_handle->Index] = ptr;
+            var handle = _handle;
+            if (handle->Index != 0)
+                handle->Array[--handle->Index] = ptr;
             else
-                _handle->MemoryPool.Return(ptr);
+                handle->MemoryPool.Return(ptr);
         }
 
         /// <summary>

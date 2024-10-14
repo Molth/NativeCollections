@@ -60,11 +60,12 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
             if (capacity < 4)
                 capacity = 4;
-            _handle = (NativeListHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeListHandle));
-            _handle->Array = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
-            _handle->Length = capacity;
-            _handle->Size = 0;
-            _handle->Version = 0;
+            var handle = (NativeListHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeListHandle));
+            handle->Array = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
+            handle->Length = capacity;
+            handle->Size = 0;
+            handle->Version = 0;
+            _handle = handle;
         }
 
         /// <summary>
@@ -112,24 +113,25 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                if (value < _handle->Size)
+                var handle = _handle;
+                if (value < handle->Size)
                     throw new ArgumentOutOfRangeException(nameof(Capacity), value, "SmallCapacity");
-                if (value != _handle->Length)
+                if (value != handle->Length)
                 {
                     if (value > 0)
                     {
                         var newItems = (T*)NativeMemoryAllocator.Alloc((uint)(value * sizeof(T)));
-                        if (_handle->Size > 0)
-                            Unsafe.CopyBlockUnaligned(newItems, _handle->Array, (uint)(_handle->Size * sizeof(T)));
-                        NativeMemoryAllocator.Free(_handle->Array);
-                        _handle->Array = newItems;
-                        _handle->Length = value;
+                        if (handle->Size > 0)
+                            Unsafe.CopyBlockUnaligned(newItems, handle->Array, (uint)(handle->Size * sizeof(T)));
+                        NativeMemoryAllocator.Free(handle->Array);
+                        handle->Array = newItems;
+                        handle->Length = value;
                     }
                     else
                     {
-                        NativeMemoryAllocator.Free(_handle->Array);
-                        _handle->Array = (T*)NativeMemoryAllocator.Alloc(0);
-                        _handle->Length = 0;
+                        NativeMemoryAllocator.Free(handle->Array);
+                        handle->Array = (T*)NativeMemoryAllocator.Alloc(0);
+                        handle->Length = 0;
                     }
                 }
             }
@@ -197,10 +199,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            if (_handle == null)
+            var handle = _handle;
+            if (handle == null)
                 return;
-            NativeMemoryAllocator.Free(_handle->Array);
-            NativeMemoryAllocator.Free(_handle);
+            NativeMemoryAllocator.Free(handle->Array);
+            NativeMemoryAllocator.Free(handle);
         }
 
         /// <summary>
@@ -208,7 +211,11 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<T> AsSpan() => MemoryMarshal.CreateSpan(ref *_handle->Array, _handle->Length);
+        public Span<T> AsSpan()
+        {
+            var handle = _handle;
+            return MemoryMarshal.CreateSpan(ref *handle->Array, handle->Length);
+        }
 
         /// <summary>
         ///     As span
@@ -216,7 +223,11 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<T> AsSpan(int start) => MemoryMarshal.CreateSpan(ref *(_handle->Array + start), _handle->Length - start);
+        public Span<T> AsSpan(int start)
+        {
+            var handle = _handle;
+            return MemoryMarshal.CreateSpan(ref *(handle->Array + start), handle->Length - start);
+        }
 
         /// <summary>
         ///     As span
@@ -225,14 +236,22 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<T> AsSpan(int start, int length) => MemoryMarshal.CreateSpan(ref *(_handle->Array + start), length);
+        public Span<T> AsSpan(int start, int length)
+        {
+            var handle = _handle;
+            return MemoryMarshal.CreateSpan(ref *(handle->Array + start), length);
+        }
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref *_handle->Array, _handle->Length);
+        public ReadOnlySpan<T> AsReadOnlySpan()
+        {
+            var handle = _handle;
+            return MemoryMarshal.CreateReadOnlySpan(ref *handle->Array, handle->Length);
+        }
 
         /// <summary>
         ///     As readOnly span
@@ -240,7 +259,11 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<T> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref *(_handle->Array + start), _handle->Length - start);
+        public ReadOnlySpan<T> AsReadOnlySpan(int start)
+        {
+            var handle = _handle;
+            return MemoryMarshal.CreateReadOnlySpan(ref *(handle->Array + start), handle->Length - start);
+        }
 
         /// <summary>
         ///     As readOnly span
@@ -249,7 +272,11 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<T> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref *(_handle->Array + start), length);
+        public ReadOnlySpan<T> AsReadOnlySpan(int start, int length)
+        {
+            var handle = _handle;
+            return MemoryMarshal.CreateReadOnlySpan(ref *(handle->Array + start), length);
+        }
 
         /// <summary>
         ///     Clear
@@ -257,8 +284,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
-            _handle->Version++;
-            _handle->Size = 0;
+            var handle = _handle;
+            handle->Version++;
+            handle->Size = 0;
         }
 
         /// <summary>
@@ -268,18 +296,19 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Add(in T item)
         {
-            _handle->Version++;
-            var size = _handle->Size;
-            if ((uint)size < (uint)_handle->Length)
+            var handle = _handle;
+            handle->Version++;
+            var size = handle->Size;
+            if ((uint)size < (uint)handle->Length)
             {
-                _handle->Size = size + 1;
-                _handle->Array[size] = item;
+                handle->Size = size + 1;
+                handle->Array[size] = item;
             }
             else
             {
                 Grow(size + 1);
-                _handle->Size = size + 1;
-                _handle->Array[size] = item;
+                handle->Size = size + 1;
+                handle->Array[size] = item;
             }
         }
 
@@ -290,14 +319,15 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AddRange(in NativeList<T> collection)
         {
+            var handle = _handle;
             var count = collection._handle->Size;
             if (count > 0)
             {
-                if (_handle->Length - _handle->Size < count)
-                    Grow(checked(_handle->Size + count));
-                Unsafe.CopyBlockUnaligned(_handle->Array + _handle->Size, collection._handle->Array, (uint)(collection._handle->Size * sizeof(T)));
-                _handle->Size += count;
-                _handle->Version++;
+                if (handle->Length - handle->Size < count)
+                    Grow(checked(handle->Size + count));
+                Unsafe.CopyBlockUnaligned(handle->Array + handle->Size, collection._handle->Array, (uint)(collection._handle->Size * sizeof(T)));
+                handle->Size += count;
+                handle->Version++;
             }
         }
 
@@ -309,15 +339,16 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Insert(int index, in T item)
         {
-            if ((uint)index > (uint)_handle->Size)
+            var handle = _handle;
+            if ((uint)index > (uint)handle->Size)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
-            if (_handle->Size == _handle->Length)
-                Grow(_handle->Size + 1);
-            if (index < _handle->Size)
-                Unsafe.CopyBlockUnaligned(_handle->Array + (index + 1), _handle->Array + index, (uint)((_handle->Size - index) * sizeof(T)));
-            _handle->Array[index] = item;
-            _handle->Size++;
-            _handle->Version++;
+            if (handle->Size == handle->Length)
+                Grow(handle->Size + 1);
+            if (index < handle->Size)
+                Unsafe.CopyBlockUnaligned(handle->Array + (index + 1), handle->Array + index, (uint)((handle->Size - index) * sizeof(T)));
+            handle->Array[index] = item;
+            handle->Size++;
+            handle->Version++;
         }
 
         /// <summary>
@@ -328,27 +359,28 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void InsertRange(int index, in NativeList<T> collection)
         {
-            if ((uint)index > (uint)_handle->Size)
+            var handle = _handle;
+            if ((uint)index > (uint)handle->Size)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
             var count = collection._handle->Size;
             if (count > 0)
             {
-                if (_handle->Length - _handle->Size < count)
-                    Grow(checked(_handle->Size + count));
-                if (index < _handle->Size)
-                    Unsafe.CopyBlockUnaligned(_handle->Array + index + count, _handle->Array + index, (uint)((_handle->Size - index) * sizeof(T)));
+                if (handle->Length - handle->Size < count)
+                    Grow(checked(handle->Size + count));
+                if (index < handle->Size)
+                    Unsafe.CopyBlockUnaligned(handle->Array + index + count, handle->Array + index, (uint)((handle->Size - index) * sizeof(T)));
                 if (this == collection)
                 {
-                    Unsafe.CopyBlockUnaligned(_handle->Array + index, _handle->Array, (uint)(index * sizeof(T)));
-                    Unsafe.CopyBlockUnaligned(_handle->Array + index * 2, _handle->Array + index + count, (uint)((_handle->Size - index) * sizeof(T)));
+                    Unsafe.CopyBlockUnaligned(handle->Array + index, handle->Array, (uint)(index * sizeof(T)));
+                    Unsafe.CopyBlockUnaligned(handle->Array + index * 2, handle->Array + index + count, (uint)((handle->Size - index) * sizeof(T)));
                 }
                 else
                 {
-                    Unsafe.CopyBlockUnaligned(_handle->Array + index, collection._handle->Array, (uint)(collection._handle->Size * sizeof(T)));
+                    Unsafe.CopyBlockUnaligned(handle->Array + index, collection._handle->Array, (uint)(collection._handle->Size * sizeof(T)));
                 }
 
-                _handle->Size += count;
-                _handle->Version++;
+                handle->Size += count;
+                handle->Version++;
             }
         }
 
@@ -377,12 +409,13 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveAt(int index)
         {
-            if ((uint)index >= (uint)_handle->Size)
+            var handle = _handle;
+            if ((uint)index >= (uint)handle->Size)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
-            _handle->Size--;
-            if (index < _handle->Size)
-                Unsafe.CopyBlockUnaligned(_handle->Array + index, _handle->Array + (index + 1), (uint)((_handle->Size - index) * sizeof(T)));
-            _handle->Version++;
+            handle->Size--;
+            if (index < handle->Size)
+                Unsafe.CopyBlockUnaligned(handle->Array + index, handle->Array + (index + 1), (uint)((handle->Size - index) * sizeof(T)));
+            handle->Version++;
         }
 
         /// <summary>
@@ -397,15 +430,16 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(index), index, "NeedNonNegNum");
             if (count < 0)
                 throw new ArgumentOutOfRangeException(nameof(count), count, "NeedNonNegNum");
-            var offset = _handle->Size - index;
+            var handle = _handle;
+            var offset = handle->Size - index;
             if (offset < count)
                 throw new ArgumentOutOfRangeException(offset.ToString(), "InvalidOffLen");
             if (count > 0)
             {
-                _handle->Size -= count;
-                if (index < _handle->Size)
-                    Unsafe.CopyBlockUnaligned(_handle->Array + index, _handle->Array + (index + count), (uint)((_handle->Size - index) * sizeof(T)));
-                _handle->Version++;
+                handle->Size -= count;
+                if (index < handle->Size)
+                    Unsafe.CopyBlockUnaligned(handle->Array + index, handle->Array + (index + count), (uint)((handle->Size - index) * sizeof(T)));
+                handle->Version++;
             }
         }
 
@@ -415,9 +449,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reverse()
         {
-            if (_handle->Size > 1)
-                MemoryMarshal.CreateSpan(ref *_handle->Array, _handle->Size).Reverse();
-            _handle->Version++;
+            var handle = _handle;
+            if (handle->Size > 1)
+                MemoryMarshal.CreateSpan(ref *handle->Array, handle->Size).Reverse();
+            handle->Version++;
         }
 
         /// <summary>
@@ -432,12 +467,13 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(index), index, "NeedNonNegNum");
             if (count < 0)
                 throw new ArgumentOutOfRangeException(nameof(count), count, "NeedNonNegNum");
-            var offset = _handle->Size - index;
+            var handle = _handle;
+            var offset = handle->Size - index;
             if (offset < count)
                 throw new ArgumentOutOfRangeException(offset.ToString(), "InvalidOffLen");
             if (count > 1)
-                MemoryMarshal.CreateSpan(ref *(_handle->Array + index), count).Reverse();
-            _handle->Version++;
+                MemoryMarshal.CreateSpan(ref *(handle->Array + index), count).Reverse();
+            handle->Version++;
         }
 
         /// <summary>
@@ -458,9 +494,10 @@ namespace NativeCollections
         {
             if (capacity < 0)
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            if (_handle->Length < capacity)
+            var handle = _handle;
+            if (handle->Length < capacity)
                 Grow(capacity);
-            return _handle->Length;
+            return handle->Length;
         }
 
         /// <summary>
@@ -470,10 +507,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess()
         {
-            var threshold = (int)(_handle->Length * 0.9);
-            if (_handle->Size < threshold)
-                Capacity = _handle->Size;
-            return _handle->Length;
+            var handle = _handle;
+            var threshold = (int)(handle->Length * 0.9);
+            if (handle->Size < threshold)
+                Capacity = handle->Size;
+            return handle->Length;
         }
 
         /// <summary>
@@ -483,10 +521,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Grow(int capacity)
         {
-            var newCapacity = 2 * _handle->Length;
+            var handle = _handle;
+            var newCapacity = 2 * handle->Length;
             if ((uint)newCapacity > 2147483591)
                 newCapacity = 2147483591;
-            var expected = _handle->Length + 4;
+            var expected = handle->Length + 4;
             newCapacity = newCapacity > expected ? newCapacity : expected;
             if (newCapacity < capacity)
                 newCapacity = capacity;
@@ -499,7 +538,11 @@ namespace NativeCollections
         /// <param name="item">Item</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int IndexOf(in T item) => _handle->Size == 0 ? -1 : MemoryMarshal.CreateReadOnlySpan(ref *_handle->Array, _handle->Size).IndexOf(item);
+        public int IndexOf(in T item)
+        {
+            var handle = _handle;
+            return handle->Size == 0 ? -1 : MemoryMarshal.CreateReadOnlySpan(ref *handle->Array, handle->Size).IndexOf(item);
+        }
 
         /// <summary>
         ///     Index of
@@ -510,13 +553,14 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int IndexOf(in T item, int index)
         {
-            if (_handle->Size == 0)
+            var handle = _handle;
+            if (handle->Size == 0)
                 return -1;
             if (index < 0)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "NeedNonNegNum");
-            if (index > _handle->Size)
+            if (index > handle->Size)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
-            return MemoryMarshal.CreateReadOnlySpan(ref *(_handle->Array + index), _handle->Size - index).IndexOf(item);
+            return MemoryMarshal.CreateReadOnlySpan(ref *(handle->Array + index), handle->Size - index).IndexOf(item);
         }
 
         /// <summary>
@@ -529,17 +573,18 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int IndexOf(in T item, int index, int count)
         {
-            if (_handle->Size == 0)
+            var handle = _handle;
+            if (handle->Size == 0)
                 return -1;
             if (index < 0)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "NeedNonNegNum");
             if (count < 0)
                 throw new ArgumentOutOfRangeException(nameof(count), count, "NeedNonNegNum");
-            if (index > _handle->Size)
+            if (index > handle->Size)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
-            if (index > _handle->Size - count)
+            if (index > handle->Size - count)
                 throw new ArgumentOutOfRangeException(nameof(count), count, "BiggerThanCollection");
-            return MemoryMarshal.CreateReadOnlySpan(ref *(_handle->Array + index), count).IndexOf(item);
+            return MemoryMarshal.CreateReadOnlySpan(ref *(handle->Array + index), count).IndexOf(item);
         }
 
         /// <summary>
@@ -548,7 +593,11 @@ namespace NativeCollections
         /// <param name="item">Item</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int LastIndexOf(in T item) => _handle->Size == 0 ? -1 : MemoryMarshal.CreateReadOnlySpan(ref *(_handle->Array + (_handle->Size - 1)), _handle->Size).LastIndexOf(item);
+        public int LastIndexOf(in T item)
+        {
+            var handle = _handle;
+            return handle->Size == 0 ? -1 : MemoryMarshal.CreateReadOnlySpan(ref *(handle->Array + (handle->Size - 1)), handle->Size).LastIndexOf(item);
+        }
 
         /// <summary>
         ///     Last index of
@@ -559,13 +608,14 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int LastIndexOf(in T item, int index)
         {
-            if (_handle->Size == 0)
+            var handle = _handle;
+            if (handle->Size == 0)
                 return -1;
             if (index < 0)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "NeedNonNegNum");
-            if (index >= _handle->Size)
+            if (index >= handle->Size)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
-            return MemoryMarshal.CreateReadOnlySpan(ref *(_handle->Array + index), index + 1).LastIndexOf(item);
+            return MemoryMarshal.CreateReadOnlySpan(ref *(handle->Array + index), index + 1).LastIndexOf(item);
         }
 
         /// <summary>
@@ -578,17 +628,18 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int LastIndexOf(in T item, int index, int count)
         {
-            if (_handle->Size == 0)
+            var handle = _handle;
+            if (handle->Size == 0)
                 return -1;
             if (index < 0)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "NeedNonNegNum");
             if (count < 0)
                 throw new ArgumentOutOfRangeException(nameof(count), count, "NeedNonNegNum");
-            if (index >= _handle->Size)
+            if (index >= handle->Size)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "BiggerThanCollection");
             if (count > index + 1)
                 throw new ArgumentOutOfRangeException(nameof(count), count, "BiggerThanCollection");
-            return MemoryMarshal.CreateReadOnlySpan(ref *(_handle->Array + index), count).LastIndexOf(item);
+            return MemoryMarshal.CreateReadOnlySpan(ref *(handle->Array + index), count).LastIndexOf(item);
         }
 
         /// <summary>
@@ -647,17 +698,17 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext()
             {
-                var localList = _nativeList;
-                if (_version == localList._handle->Version && (uint)_index < (uint)localList._handle->Size)
+                var handle = _nativeList._handle;
+                if (_version == handle->Version && (uint)_index < (uint)handle->Size)
                 {
-                    _current = localList._handle->Array[_index];
+                    _current = handle->Array[_index];
                     _index++;
                     return true;
                 }
 
-                if (_version != _nativeList._handle->Version)
+                if (_version != handle->Version)
                     throw new InvalidOperationException("EnumFailedVersion");
-                _index = _nativeList._handle->Size + 1;
+                _index = handle->Size + 1;
                 _current = default;
                 return false;
             }

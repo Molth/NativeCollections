@@ -100,15 +100,16 @@ namespace NativeCollections
                 locks[i] = new object();
             var countPerLock = new NativeArray<int>(locks.Length, true);
             var buckets = new NativeArray<VolatileNode>(capacity, true);
-            _handle = (NativeConcurrentDictionaryHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeConcurrentDictionaryHandle));
-            _handle->Tables = (Tables*)NativeMemoryAllocator.Alloc((uint)sizeof(Tables));
-            _handle->Tables->Initialize(buckets, locks, countPerLock);
-            _handle->GrowLockArray = growLockArray;
-            _handle->Budget = buckets.Length / locks.Length;
-            _handle->NodePool = nodePool;
-            _handle->NodeLock = new NativeConcurrentSpinLock(-1);
-            _handle->Keys = new KeyCollection(this);
-            _handle->Values = new ValueCollection(this);
+            var handle = (NativeConcurrentDictionaryHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeConcurrentDictionaryHandle));
+            handle->Tables = (Tables*)NativeMemoryAllocator.Alloc((uint)sizeof(Tables));
+            handle->Tables->Initialize(buckets, locks, countPerLock);
+            handle->GrowLockArray = growLockArray;
+            handle->Budget = buckets.Length / locks.Length;
+            handle->NodePool = nodePool;
+            handle->NodeLock = new NativeConcurrentSpinLock(-1);
+            handle->Keys = new KeyCollection(this);
+            handle->Values = new ValueCollection(this);
+            _handle = handle;
         }
 
         /// <summary>
@@ -225,12 +226,13 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            if (_handle == null)
+            var handle = _handle;
+            if (handle == null)
                 return;
-            _handle->Tables->Dispose();
-            _handle->NodePool.Dispose();
-            _handle->NodeLock.Dispose();
-            NativeMemoryAllocator.Free(_handle);
+            handle->Tables->Dispose();
+            handle->NodePool.Dispose();
+            handle->NodeLock.Dispose();
+            NativeMemoryAllocator.Free(handle);
         }
 
         /// <summary>
@@ -239,37 +241,38 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
+            var handle = _handle;
             var locksAcquired = 0;
             try
             {
                 AcquireAllLocks(ref locksAcquired);
                 if (AreAllBucketsEmpty())
                     return;
-                foreach (var bucket in _handle->Tables->Buckets)
+                foreach (var bucket in handle->Tables->Buckets)
                 {
                     var node = (Node*)bucket.Node;
                     while (node != null)
                     {
                         var temp = node;
                         node = node->Next;
-                        _handle->NodePool.Return(temp);
+                        handle->NodePool.Return(temp);
                     }
                 }
 
                 var length = HashHelpers.GetPrime(31);
-                if (_handle->Tables->Buckets.Length != length)
+                if (handle->Tables->Buckets.Length != length)
                 {
-                    _handle->Tables->Buckets.Dispose();
-                    _handle->Tables->Buckets = new NativeArray<VolatileNode>(length, true);
+                    handle->Tables->Buckets.Dispose();
+                    handle->Tables->Buckets = new NativeArray<VolatileNode>(length, true);
                 }
                 else
                 {
-                    _handle->Tables->Buckets.Clear();
+                    handle->Tables->Buckets.Clear();
                 }
 
-                _handle->Tables->CountPerLock.Clear();
-                var budget = _handle->Tables->Buckets.Length / _handle->Tables->Locks.Length;
-                _handle->Budget = budget >= 1 ? budget : 1;
+                handle->Tables->CountPerLock.Clear();
+                var budget = handle->Tables->Buckets.Length / handle->Tables->Locks.Length;
+                handle->Budget = budget >= 1 ? budget : 1;
             }
             finally
             {
@@ -295,7 +298,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryRemove(in TKey key, out TValue value)
         {
-            var tables = _handle->Tables;
+            var handle = _handle;
+            var tables = handle->Tables;
             var hashCode = key.GetHashCode();
             while (true)
             {
@@ -306,9 +310,9 @@ namespace NativeCollections
                     Monitor.Enter(locks[lockNo]);
                     try
                     {
-                        if (tables != _handle->Tables)
+                        if (tables != handle->Tables)
                         {
-                            tables = _handle->Tables;
+                            tables = handle->Tables;
                             continue;
                         }
 
@@ -322,14 +326,14 @@ namespace NativeCollections
                                 else
                                     prev->Next = curr->Next;
                                 value = curr->Value;
-                                _handle->NodeLock.Enter();
+                                handle->NodeLock.Enter();
                                 try
                                 {
-                                    _handle->NodePool.Return(curr);
+                                    handle->NodePool.Return(curr);
                                 }
                                 finally
                                 {
-                                    _handle->NodeLock.Exit();
+                                    handle->NodeLock.Exit();
                                 }
 
                                 tables->CountPerLock[lockNo]--;
@@ -358,9 +362,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryRemove(in KeyValuePair<TKey, TValue> keyValuePair)
         {
+            var handle = _handle;
             var key = keyValuePair.Key;
             var oldValue = keyValuePair.Value;
-            var tables = _handle->Tables;
+            var tables = handle->Tables;
             var hashCode = key.GetHashCode();
             while (true)
             {
@@ -371,9 +376,9 @@ namespace NativeCollections
                     Monitor.Enter(locks[lockNo]);
                     try
                     {
-                        if (tables != _handle->Tables)
+                        if (tables != handle->Tables)
                         {
-                            tables = _handle->Tables;
+                            tables = handle->Tables;
                             continue;
                         }
 
@@ -388,14 +393,14 @@ namespace NativeCollections
                                     Volatile.Write(ref bucket, (nint)curr->Next);
                                 else
                                     prev->Next = curr->Next;
-                                _handle->NodeLock.Enter();
+                                handle->NodeLock.Enter();
                                 try
                                 {
-                                    _handle->NodePool.Return(curr);
+                                    handle->NodePool.Return(curr);
                                 }
                                 finally
                                 {
-                                    _handle->NodeLock.Exit();
+                                    handle->NodeLock.Exit();
                                 }
 
                                 tables->CountPerLock[lockNo]--;
@@ -490,14 +495,15 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool AreAllBucketsEmpty()
         {
+            var handle = _handle;
 #if NET8_0_OR_GREATER
-            return !_handle->Tables->CountPerLock.AsSpan().ContainsAnyExcept(0);
+            return !handle->Tables->CountPerLock.AsSpan().ContainsAnyExcept(0);
 #elif NET7_0_OR_GREATER
-            return !(_handle->Tables->CountPerLock.AsSpan().IndexOfAnyExcept(0) >= 0);
+            return !(handle->Tables->CountPerLock.AsSpan().IndexOfAnyExcept(0) >= 0);
 #else
-            for (var i = 0; i < _handle->Tables->CountPerLock.Length; ++i)
+            for (var i = 0; i < handle->Tables->CountPerLock.Length; ++i)
             {
-                if (_handle->Tables->CountPerLock[i] != 0)
+                if (handle->Tables->CountPerLock[i] != 0)
                     return false;
             }
 
@@ -513,32 +519,33 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void GrowTable(Tables* tables, bool resizeDesired)
         {
+            var handle = _handle;
             var locksAcquired = 0;
             try
             {
                 AcquireFirstLock(ref locksAcquired);
-                if (tables != _handle->Tables)
+                if (tables != handle->Tables)
                     return;
                 var newLength = tables->Buckets.Length;
                 if (resizeDesired)
                 {
                     if (GetCountNoLocks() < tables->Buckets.Length / 4)
                     {
-                        _handle->Budget = 2 * _handle->Budget;
-                        if (_handle->Budget < 0)
-                            _handle->Budget = int.MaxValue;
+                        handle->Budget = 2 * handle->Budget;
+                        if (handle->Budget < 0)
+                            handle->Budget = int.MaxValue;
                         return;
                     }
 
                     if ((newLength = tables->Buckets.Length * 2) < 0 || (newLength = HashHelpers.GetPrime(newLength)) > 2147483591)
                     {
                         newLength = 2147483591;
-                        _handle->Budget = int.MaxValue;
+                        handle->Budget = int.MaxValue;
                     }
                 }
 
                 var newLocks = tables->Locks;
-                if (_handle->GrowLockArray && tables->Locks.Length < 1024)
+                if (handle->GrowLockArray && tables->Locks.Length < 1024)
                 {
                     newLocks = new NativeArrayReference<object>(tables->Locks.Length * 2);
                     Array.Copy(tables->Locks.Array, newLocks.Array, tables->Locks.Length);
@@ -572,13 +579,13 @@ namespace NativeCollections
                 }
 
                 var budget = newBuckets.Length / newLocks.Length;
-                _handle->Budget = budget >= 1 ? budget : 1;
-                _handle->Tables->Buckets.Dispose();
-                if (_handle->Tables->Locks != newLocks)
-                    _handle->Tables->Locks.Dispose();
-                _handle->Tables->CountPerLock.Dispose();
-                NativeMemoryAllocator.Free(_handle->Tables);
-                _handle->Tables = newTables;
+                handle->Budget = budget >= 1 ? budget : 1;
+                handle->Tables->Buckets.Dispose();
+                if (handle->Tables->Locks != newLocks)
+                    handle->Tables->Locks.Dispose();
+                handle->Tables->CountPerLock.Dispose();
+                NativeMemoryAllocator.Free(handle->Tables);
+                handle->Tables = newTables;
             }
             finally
             {
@@ -640,6 +647,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool TryAddInternal(Tables* tables, in TKey key, in TValue value, bool updateIfExists, bool acquireLock, out TValue resultingValue)
         {
+            var handle = _handle;
             var hashCode = key.GetHashCode();
             while (true)
             {
@@ -651,9 +659,9 @@ namespace NativeCollections
                 {
                     if (acquireLock)
                         Monitor.Enter(locks[lockNo], ref lockTaken);
-                    if (tables != _handle->Tables)
+                    if (tables != handle->Tables)
                     {
-                        tables = _handle->Tables;
+                        tables = handle->Tables;
                         continue;
                     }
 
@@ -671,14 +679,14 @@ namespace NativeCollections
                                 else
                                 {
                                     Node* newNode;
-                                    _handle->NodeLock.Enter();
+                                    handle->NodeLock.Enter();
                                     try
                                     {
-                                        newNode = (Node*)_handle->NodePool.Rent();
+                                        newNode = (Node*)handle->NodePool.Rent();
                                     }
                                     finally
                                     {
-                                        _handle->NodeLock.Exit();
+                                        handle->NodeLock.Exit();
                                     }
 
                                     newNode->Initialize(node->Key, value, hashCode, node->Next);
@@ -686,14 +694,14 @@ namespace NativeCollections
                                         Volatile.Write(ref bucket, (nint)newNode);
                                     else
                                         prev->Next = newNode;
-                                    _handle->NodeLock.Enter();
+                                    handle->NodeLock.Enter();
                                     try
                                     {
-                                        _handle->NodePool.Return(node);
+                                        handle->NodePool.Return(node);
                                     }
                                     finally
                                     {
-                                        _handle->NodeLock.Exit();
+                                        handle->NodeLock.Exit();
                                     }
                                 }
 
@@ -711,14 +719,14 @@ namespace NativeCollections
                     }
 
                     Node* resultNode;
-                    _handle->NodeLock.Enter();
+                    handle->NodeLock.Enter();
                     try
                     {
-                        resultNode = (Node*)_handle->NodePool.Rent();
+                        resultNode = (Node*)handle->NodePool.Rent();
                     }
                     finally
                     {
-                        _handle->NodeLock.Exit();
+                        handle->NodeLock.Exit();
                     }
 
                     resultNode->Initialize(key, value, hashCode, (Node*)bucket);
@@ -728,7 +736,7 @@ namespace NativeCollections
                         tables->CountPerLock[lockNo]++;
                     }
 
-                    if (tables->CountPerLock[lockNo] > _handle->Budget)
+                    if (tables->CountPerLock[lockNo] > handle->Budget)
                         resizeDesired = true;
                 }
                 finally
@@ -747,6 +755,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool TryUpdateInternal(Tables* tables, in TKey key, in TValue newValue, in TValue comparisonValue)
         {
+            var handle = _handle;
             var hashCode = key.GetHashCode();
             while (true)
             {
@@ -755,9 +764,9 @@ namespace NativeCollections
                 Monitor.Enter(locks[lockNo]);
                 try
                 {
-                    if (tables != _handle->Tables)
+                    if (tables != handle->Tables)
                     {
-                        tables = _handle->Tables;
+                        tables = handle->Tables;
                         continue;
                     }
 
@@ -775,14 +784,14 @@ namespace NativeCollections
                                 else
                                 {
                                     Node* newNode;
-                                    _handle->NodeLock.Enter();
+                                    handle->NodeLock.Enter();
                                     try
                                     {
-                                        newNode = (Node*)_handle->NodePool.Rent();
+                                        newNode = (Node*)handle->NodePool.Rent();
                                     }
                                     finally
                                     {
-                                        _handle->NodeLock.Exit();
+                                        handle->NodeLock.Exit();
                                     }
 
                                     newNode->Initialize(node->Key, newValue, hashCode, node->Next);
@@ -790,14 +799,14 @@ namespace NativeCollections
                                         Volatile.Write(ref bucket, (nint)newNode);
                                     else
                                         prev->Next = newNode;
-                                    _handle->NodeLock.Enter();
+                                    handle->NodeLock.Enter();
                                     try
                                     {
-                                        _handle->NodePool.Return(node);
+                                        handle->NodePool.Return(node);
                                     }
                                     finally
                                     {
-                                        _handle->NodeLock.Exit();
+                                        handle->NodeLock.Exit();
                                     }
                                 }
 
@@ -846,8 +855,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int GetCountNoLocks()
         {
+            var handle = _handle;
             var count = 0;
-            foreach (var value in _handle->Tables->CountPerLock)
+            foreach (var value in handle->Tables->CountPerLock)
             {
                 checked
                 {

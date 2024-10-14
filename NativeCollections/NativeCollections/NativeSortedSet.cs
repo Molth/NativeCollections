@@ -57,11 +57,12 @@ namespace NativeCollections
         public NativeSortedSet(int size, int maxFreeSlabs)
         {
             var nodePool = new NativeMemoryPool(size, sizeof(Node), maxFreeSlabs);
-            _handle = (NativeSortedSetHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeSortedSetHandle));
-            _handle->Root = null;
-            _handle->Count = 0;
-            _handle->Version = 0;
-            _handle->NodePool = nodePool;
+            var handle = (NativeSortedSetHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeSortedSetHandle));
+            handle->Root = null;
+            handle->Count = 0;
+            handle->Version = 0;
+            handle->NodePool = nodePool;
+            _handle = handle;
         }
 
         /// <summary>
@@ -86,9 +87,10 @@ namespace NativeCollections
         {
             get
             {
-                if (_handle->Root == null)
+                var handle = _handle;
+                if (handle->Root == null)
                     return default;
-                var current = _handle->Root;
+                var current = handle->Root;
                 while (current->Left != null)
                     current = current->Left;
                 return current->Item;
@@ -102,9 +104,10 @@ namespace NativeCollections
         {
             get
             {
-                if (_handle->Root == null)
+                var handle = _handle;
+                if (handle->Root == null)
                     return default;
-                var current = _handle->Root;
+                var current = handle->Root;
                 while (current->Right != null)
                     current = current->Right;
                 return current->Item;
@@ -159,10 +162,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            if (_handle == null)
+            var handle = _handle;
+            if (handle == null)
                 return;
-            _handle->NodePool.Dispose();
-            NativeMemoryAllocator.Free(_handle);
+            handle->NodePool.Dispose();
+            NativeMemoryAllocator.Free(handle);
         }
 
         /// <summary>
@@ -171,10 +175,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
-            if (_handle->Root != null)
+            var handle = _handle;
+            if (handle->Root != null)
             {
-                var nodeStack = new NativeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(_handle->Count + 1)));
-                nodeStack.Push((nint)_handle->Root);
+                var nodeStack = new NativeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(handle->Count + 1)));
+                nodeStack.Push((nint)handle->Root);
                 while (nodeStack.TryPop(out var node))
                 {
                     var currentNode = (Node*)node;
@@ -182,15 +187,15 @@ namespace NativeCollections
                         nodeStack.Push((nint)currentNode->Left);
                     if (currentNode->Right != null)
                         nodeStack.Push((nint)currentNode->Right);
-                    _handle->NodePool.Return(currentNode);
+                    handle->NodePool.Return(currentNode);
                 }
 
                 nodeStack.Dispose();
             }
 
-            _handle->Root = null;
-            _handle->Count = 0;
-            ++_handle->Version;
+            handle->Root = null;
+            handle->Count = 0;
+            ++handle->Version;
         }
 
         /// <summary>
@@ -201,30 +206,31 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Add(in T item)
         {
-            if (_handle->Root == null)
+            var handle = _handle;
+            if (handle->Root == null)
             {
-                _handle->Root = (Node*)_handle->NodePool.Rent();
-                _handle->Root->Item = item;
-                _handle->Root->Left = null;
-                _handle->Root->Right = null;
-                _handle->Root->Color = NodeColor.Black;
-                _handle->Count = 1;
-                _handle->Version++;
+                handle->Root = (Node*)handle->NodePool.Rent();
+                handle->Root->Item = item;
+                handle->Root->Left = null;
+                handle->Root->Right = null;
+                handle->Root->Color = NodeColor.Black;
+                handle->Count = 1;
+                handle->Version++;
                 return true;
             }
 
-            var current = _handle->Root;
+            var current = handle->Root;
             Node* parent = null;
             Node* grandParent = null;
             Node* greatGrandParent = null;
-            _handle->Version++;
+            handle->Version++;
             var order = 0;
             while (current != null)
             {
                 order = item.CompareTo(current->Item);
                 if (order == 0)
                 {
-                    _handle->Root->ColorBlack();
+                    handle->Root->ColorBlack();
                     return false;
                 }
 
@@ -241,7 +247,7 @@ namespace NativeCollections
                 current = order < 0 ? current->Left : current->Right;
             }
 
-            var node = (Node*)_handle->NodePool.Rent();
+            var node = (Node*)handle->NodePool.Rent();
             node->Item = item;
             node->Left = null;
             node->Right = null;
@@ -252,8 +258,8 @@ namespace NativeCollections
                 parent->Left = node;
             if (parent->IsRed)
                 InsertionBalance(node, parent, grandParent, greatGrandParent);
-            _handle->Root->ColorBlack();
-            ++_handle->Count;
+            handle->Root->ColorBlack();
+            ++handle->Count;
             return true;
         }
 
@@ -285,10 +291,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(in T item)
         {
-            if (_handle->Root == null)
+            var handle = _handle;
+            if (handle->Root == null)
                 return false;
-            _handle->Version++;
-            var current = _handle->Root;
+            handle->Version++;
+            var current = handle->Root;
             Node* parent = null;
             Node* grandParent = null;
             Node* match = null;
@@ -353,12 +360,12 @@ namespace NativeCollections
             if (match != null)
             {
                 ReplaceNode(match, parentOfMatch, parent, grandParent);
-                --_handle->Count;
-                _handle->NodePool.Return(match);
+                --handle->Count;
+                handle->NodePool.Return(match);
             }
 
-            if (_handle->Root != null)
-                _handle->Root->ColorBlack();
+            if (handle->Root != null)
+                handle->Root->ColorBlack();
             return foundMatch;
         }
 
@@ -371,14 +378,15 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(in T equalValue, out T actualValue)
         {
-            if (_handle->Root == null)
+            var handle = _handle;
+            if (handle->Root == null)
             {
                 actualValue = default;
                 return false;
             }
 
-            _handle->Version++;
-            var current = _handle->Root;
+            handle->Version++;
+            var current = handle->Root;
             Node* parent = null;
             Node* grandParent = null;
             Node* match = null;
@@ -444,16 +452,16 @@ namespace NativeCollections
             {
                 actualValue = match->Item;
                 ReplaceNode(match, parentOfMatch, parent, grandParent);
-                --_handle->Count;
-                _handle->NodePool.Return(match);
+                --handle->Count;
+                handle->NodePool.Return(match);
             }
             else
             {
                 actualValue = default;
             }
 
-            if (_handle->Root != null)
-                _handle->Root->ColorBlack();
+            if (handle->Root != null)
+                handle->Root->ColorBlack();
             return foundMatch;
         }
 
@@ -562,7 +570,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Node* FindNode(in T item)
         {
-            var current = _handle->Root;
+            var handle = _handle;
+            var current = handle->Root;
             while (current != null)
             {
                 var order = item.CompareTo(current->Item);
@@ -881,11 +890,12 @@ namespace NativeCollections
             internal Enumerator(NativeSortedSet<T> nativeSortedSet)
             {
                 _nativeSortedSet = nativeSortedSet;
-                _version = nativeSortedSet._handle->Version;
+                var handle = nativeSortedSet._handle;
+                _version = handle->Version;
                 _nodeStack = new NativeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(nativeSortedSet.Count + 1)));
                 _currentNode = null;
                 _current = default;
-                var node = _nativeSortedSet._handle->Root;
+                var node = handle->Root;
                 while (node != null)
                 {
                     var next = node->Left;

@@ -47,9 +47,10 @@ namespace NativeCollections
         {
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            _handle = (NativeBitArrayHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeBitArrayHandle));
-            _handle->Array = new NativeArray<int>(GetInt32ArrayLengthFromBitLength(length), true);
-            _handle->Length = length;
+            var handle = (NativeBitArrayHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeBitArrayHandle));
+            handle->Array = new NativeArray<int>(GetInt32ArrayLengthFromBitLength(length), true);
+            handle->Length = length;
+            _handle = handle;
         }
 
         /// <summary>
@@ -62,20 +63,22 @@ namespace NativeCollections
         {
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            _handle = (NativeBitArrayHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeBitArrayHandle));
-            _handle->Array = new NativeArray<int>(GetInt32ArrayLengthFromBitLength(length));
-            _handle->Length = length;
+            var handle = (NativeBitArrayHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeBitArrayHandle));
+            handle->Array = new NativeArray<int>(GetInt32ArrayLengthFromBitLength(length));
+            handle->Length = length;
             if (defaultValue)
             {
-                _handle->Array.AsSpan().Fill(-1);
+                handle->Array.AsSpan().Fill(-1);
                 Div32Rem(length, out var extraBits);
                 if (extraBits > 0)
-                    _handle->Array[^1] = (1 << extraBits) - 1;
+                    handle->Array[^1] = (1 << extraBits) - 1;
             }
             else
             {
-                _handle->Array.Clear();
+                handle->Array.Clear();
             }
+
+            _handle = handle;
         }
 
         /// <summary>
@@ -88,9 +91,10 @@ namespace NativeCollections
         {
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            _handle = (NativeBitArrayHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeBitArrayHandle));
-            _handle->Array = new NativeArray<int>(array, GetInt32ArrayLengthFromBitLength(length));
-            _handle->Length = length;
+            var handle = (NativeBitArrayHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeBitArrayHandle));
+            handle->Array = new NativeArray<int>(array, GetInt32ArrayLengthFromBitLength(length));
+            handle->Length = length;
+            _handle = handle;
         }
 
         /// <summary>
@@ -104,20 +108,22 @@ namespace NativeCollections
         {
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            _handle = (NativeBitArrayHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeBitArrayHandle));
-            _handle->Array = new NativeArray<int>(array, GetInt32ArrayLengthFromBitLength(length));
-            _handle->Length = length;
+            var handle = (NativeBitArrayHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeBitArrayHandle));
+            handle->Array = new NativeArray<int>(array, GetInt32ArrayLengthFromBitLength(length));
+            handle->Length = length;
             if (defaultValue)
             {
-                _handle->Array.AsSpan().Fill(-1);
+                handle->Array.AsSpan().Fill(-1);
                 Div32Rem(length, out var extraBits);
                 if (extraBits > 0)
-                    _handle->Array[^1] = (1 << extraBits) - 1;
+                    handle->Array[^1] = (1 << extraBits) - 1;
             }
             else
             {
-                _handle->Array.Clear();
+                handle->Array.Clear();
             }
+
+            _handle = handle;
         }
 
         /// <summary>
@@ -133,9 +139,10 @@ namespace NativeCollections
             var intCount = GetInt32ArrayLengthFromBitLength(length);
             if (array.Length < intCount)
                 throw new ArgumentOutOfRangeException(nameof(array), array.Length, $"Requires size is {intCount}, but buffer length is {array.Length}.");
-            _handle = (NativeBitArrayHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeBitArrayHandle));
-            _handle->Array = array;
-            _handle->Length = length;
+            var handle = (NativeBitArrayHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeBitArrayHandle));
+            handle->Array = array;
+            handle->Length = length;
+            _handle = handle;
         }
 
         /// <summary>
@@ -152,20 +159,22 @@ namespace NativeCollections
             var intCount = GetInt32ArrayLengthFromBitLength(length);
             if (array.Length < intCount)
                 throw new ArgumentOutOfRangeException(nameof(array), array.Length, $"Requires size is {intCount}, but buffer length is {array.Length}.");
-            _handle = (NativeBitArrayHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeBitArrayHandle));
-            _handle->Array = array;
-            _handle->Length = length;
+            var handle = (NativeBitArrayHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeBitArrayHandle));
+            handle->Array = array;
+            handle->Length = length;
             if (defaultValue)
             {
-                _handle->Array.AsSpan().Fill(-1);
+                handle->Array.AsSpan().Fill(-1);
                 Div32Rem(length, out var extraBits);
                 if (extraBits > 0)
-                    _handle->Array[^1] = (1 << extraBits) - 1;
+                    handle->Array[^1] = (1 << extraBits) - 1;
             }
             else
             {
-                _handle->Array.Clear();
+                handle->Array.Clear();
             }
+
+            _handle = handle;
         }
 
         /// <summary>
@@ -190,26 +199,27 @@ namespace NativeCollections
             {
                 if (value < 0)
                     throw new ArgumentOutOfRangeException(nameof(value), value, "MustBeNonNegative");
+                var handle = _handle;
                 var newLength = GetInt32ArrayLengthFromBitLength(value);
-                if (newLength > _handle->Array.Length || newLength + 256 < _handle->Array.Length)
+                if (newLength > handle->Array.Length || newLength + 256 < handle->Array.Length)
                 {
                     var array = new NativeArray<int>(newLength);
-                    Unsafe.CopyBlockUnaligned(array.Array, _handle->Array.Array, (uint)(_handle->Array.Length * sizeof(int)));
-                    Unsafe.InitBlockUnaligned(array.Array + _handle->Array.Length, 0, (uint)(newLength - _handle->Array.Length));
-                    _handle->Array.Dispose();
-                    _handle->Array = array;
+                    Unsafe.CopyBlockUnaligned(array.Array, handle->Array.Array, (uint)(handle->Array.Length * sizeof(int)));
+                    Unsafe.InitBlockUnaligned(array.Array + handle->Array.Length, 0, (uint)(newLength - handle->Array.Length));
+                    handle->Array.Dispose();
+                    handle->Array = array;
                 }
 
-                if (value > _handle->Length)
+                if (value > handle->Length)
                 {
-                    var last = (_handle->Length - 1) >> 5;
-                    Div32Rem(_handle->Length, out var bits);
+                    var last = (handle->Length - 1) >> 5;
+                    Div32Rem(handle->Length, out var bits);
                     if (bits > 0)
-                        _handle->Array[last] &= (1 << bits) - 1;
-                    _handle->Array.AsSpan(last + 1, newLength - last - 1).Clear();
+                        handle->Array[last] &= (1 << bits) - 1;
+                    handle->Array.AsSpan(last + 1, newLength - last - 1).Clear();
                 }
 
-                _handle->Length = value;
+                handle->Length = value;
             }
         }
 
@@ -301,10 +311,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            if (_handle == null)
+            var handle = _handle;
+            if (handle == null)
                 return;
-            _handle->Array.Dispose();
-            NativeMemoryAllocator.Free(_handle);
+            handle->Array.Dispose();
+            NativeMemoryAllocator.Free(handle);
         }
 
         /// <summary>
@@ -315,9 +326,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Get(int index)
         {
-            if ((uint)index >= (uint)_handle->Length)
+            var handle = _handle;
+            if ((uint)index >= (uint)handle->Length)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
-            return (_handle->Array[index >> 5] & (1 << index)) != 0;
+            return (handle->Array[index >> 5] & (1 << index)) != 0;
         }
 
         /// <summary>
@@ -327,10 +339,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Set(int index, bool value)
         {
-            if ((uint)index >= (uint)_handle->Length)
+            var handle = _handle;
+            if ((uint)index >= (uint)handle->Length)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
             var bitMask = 1 << index;
-            ref var segment = ref _handle->Array[index >> 5];
+            ref var segment = ref handle->Array[index >> 5];
             if (value)
                 segment |= bitMask;
             else
@@ -345,9 +358,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Get(uint index)
         {
-            if (index >= (uint)_handle->Length)
+            var handle = _handle;
+            if (index >= (uint)handle->Length)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
-            return (_handle->Array[index >> 5] & (1 << (int)index)) != 0;
+            return (handle->Array[index >> 5] & (1 << (int)index)) != 0;
         }
 
         /// <summary>
@@ -357,10 +371,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Set(uint index, bool value)
         {
-            if (index >= (uint)_handle->Length)
+            var handle = _handle;
+            if (index >= (uint)handle->Length)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
             var bitMask = 1 << (int)index;
-            ref var segment = ref _handle->Array[index >> 5];
+            ref var segment = ref handle->Array[index >> 5];
             if (value)
                 segment |= bitMask;
             else
@@ -374,12 +389,13 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetAll(bool value)
         {
+            var handle = _handle;
             var arrayLength = GetInt32ArrayLengthFromBitLength(Length);
-            var span = _handle->Array.AsSpan(0, arrayLength);
+            var span = handle->Array.AsSpan(0, arrayLength);
             if (value)
             {
                 span.Fill(-1);
-                Div32Rem(_handle->Length, out var extraBits);
+                Div32Rem(handle->Length, out var extraBits);
                 if (extraBits > 0)
                     span[^1] &= (1 << extraBits) - 1;
             }
@@ -399,10 +415,11 @@ namespace NativeCollections
         {
             if (!value.IsCreated)
                 throw new ArgumentNullException(nameof(value));
+            var handle = _handle;
             var count = GetInt32ArrayLengthFromBitLength(Length);
-            if (Length != value.Length || (uint)count > (uint)_handle->Array.Length || (uint)count > (uint)value._handle->Array.Length)
+            if (Length != value.Length || (uint)count > (uint)handle->Array.Length || (uint)count > (uint)value._handle->Array.Length)
                 throw new ArgumentException("ArrayLengthsDiffer");
-            BitOperationsHelpers.And(_handle->Array, value._handle->Array, (uint)count);
+            BitOperationsHelpers.And(handle->Array, value._handle->Array, (uint)count);
             return this;
         }
 
@@ -416,10 +433,11 @@ namespace NativeCollections
         {
             if (!value.IsCreated)
                 throw new ArgumentNullException(nameof(value));
+            var handle = _handle;
             var count = GetInt32ArrayLengthFromBitLength(Length);
-            if (Length != value.Length || (uint)count > (uint)_handle->Array.Length || (uint)count > (uint)value._handle->Array.Length)
+            if (Length != value.Length || (uint)count > (uint)handle->Array.Length || (uint)count > (uint)value._handle->Array.Length)
                 throw new ArgumentException("ArrayLengthsDiffer");
-            BitOperationsHelpers.Or(_handle->Array, value._handle->Array, (uint)count);
+            BitOperationsHelpers.Or(handle->Array, value._handle->Array, (uint)count);
             return this;
         }
 
@@ -433,10 +451,11 @@ namespace NativeCollections
         {
             if (!value.IsCreated)
                 throw new ArgumentNullException(nameof(value));
+            var handle = _handle;
             var count = GetInt32ArrayLengthFromBitLength(Length);
-            if (Length != value.Length || (uint)count > (uint)_handle->Array.Length || (uint)count > (uint)value._handle->Array.Length)
+            if (Length != value.Length || (uint)count > (uint)handle->Array.Length || (uint)count > (uint)value._handle->Array.Length)
                 throw new ArgumentException("ArrayLengthsDiffer");
-            BitOperationsHelpers.Xor(_handle->Array, value._handle->Array, (uint)count);
+            BitOperationsHelpers.Xor(handle->Array, value._handle->Array, (uint)count);
             return this;
         }
 
@@ -447,8 +466,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeBitArray Not()
         {
+            var handle = _handle;
             var count = GetInt32ArrayLengthFromBitLength(Length);
-            BitOperationsHelpers.Not(_handle->Array, (uint)count);
+            BitOperationsHelpers.Not(handle->Array, (uint)count);
             return this;
         }
 
@@ -464,21 +484,22 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeNonNegative");
             if (count == 0)
                 return this;
+            var handle = _handle;
             var toIndex = 0;
-            var length = GetInt32ArrayLengthFromBitLength(_handle->Length);
-            if (count < _handle->Length)
+            var length = GetInt32ArrayLengthFromBitLength(handle->Length);
+            if (count < handle->Length)
             {
                 var fromIndex = Div32Rem(count, out var shiftCount);
-                Div32Rem(_handle->Length, out var extraBits);
+                Div32Rem(handle->Length, out var extraBits);
                 if (shiftCount == 0)
                 {
                     unchecked
                     {
                         var mask = uint.MaxValue >> (32 - extraBits);
-                        _handle->Array[length - 1] &= (int)mask;
+                        handle->Array[length - 1] &= (int)mask;
                     }
 
-                    Unsafe.CopyBlockUnaligned(_handle->Array.Array, _handle->Array.Array + fromIndex, (uint)((length - fromIndex) * sizeof(int)));
+                    Unsafe.CopyBlockUnaligned(handle->Array.Array, handle->Array.Array + fromIndex, (uint)((length - fromIndex) * sizeof(int)));
                     toIndex = length - fromIndex;
                 }
                 else
@@ -488,19 +509,19 @@ namespace NativeCollections
                     {
                         while (fromIndex < lastIndex)
                         {
-                            var right = (uint)_handle->Array[fromIndex] >> shiftCount;
-                            var left = _handle->Array[++fromIndex] << (32 - shiftCount);
-                            _handle->Array[toIndex++] = left | (int)right;
+                            var right = (uint)handle->Array[fromIndex] >> shiftCount;
+                            var left = handle->Array[++fromIndex] << (32 - shiftCount);
+                            handle->Array[toIndex++] = left | (int)right;
                         }
 
                         var mask = uint.MaxValue >> (32 - extraBits);
-                        mask &= (uint)_handle->Array[fromIndex];
-                        _handle->Array[toIndex++] = (int)(mask >> shiftCount);
+                        mask &= (uint)handle->Array[fromIndex];
+                        handle->Array[toIndex++] = (int)(mask >> shiftCount);
                     }
                 }
             }
 
-            _handle->Array.AsSpan(toIndex, length - toIndex).Clear();
+            handle->Array.AsSpan(toIndex, length - toIndex).Clear();
             return this;
         }
 
@@ -516,14 +537,15 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeNonNegative");
             if (count == 0)
                 return this;
+            var handle = _handle;
             int lengthToClear;
-            if (count < _handle->Length)
+            if (count < handle->Length)
             {
-                var lastIndex = (_handle->Length - 1) >> 5;
+                var lastIndex = (handle->Length - 1) >> 5;
                 lengthToClear = Div32Rem(count, out var shiftCount);
                 if (shiftCount == 0)
                 {
-                    Unsafe.CopyBlockUnaligned(_handle->Array.Array + lengthToClear, _handle->Array.Array, (uint)((lastIndex + 1 - lengthToClear) * sizeof(int)));
+                    Unsafe.CopyBlockUnaligned(handle->Array.Array + lengthToClear, handle->Array.Array, (uint)((lastIndex + 1 - lengthToClear) * sizeof(int)));
                 }
                 else
                 {
@@ -532,22 +554,22 @@ namespace NativeCollections
                     {
                         while (fromIndex > 0)
                         {
-                            var left = _handle->Array[fromIndex] << shiftCount;
-                            var right = (uint)_handle->Array[--fromIndex] >> (32 - shiftCount);
-                            _handle->Array[lastIndex] = left | (int)right;
+                            var left = handle->Array[fromIndex] << shiftCount;
+                            var right = (uint)handle->Array[--fromIndex] >> (32 - shiftCount);
+                            handle->Array[lastIndex] = left | (int)right;
                             lastIndex--;
                         }
 
-                        _handle->Array[lastIndex] = _handle->Array[fromIndex] << shiftCount;
+                        handle->Array[lastIndex] = handle->Array[fromIndex] << shiftCount;
                     }
                 }
             }
             else
             {
-                lengthToClear = GetInt32ArrayLengthFromBitLength(_handle->Length);
+                lengthToClear = GetInt32ArrayLengthFromBitLength(handle->Length);
             }
 
-            _handle->Array.AsSpan(0, lengthToClear).Clear();
+            handle->Array.AsSpan(0, lengthToClear).Clear();
             return this;
         }
 
@@ -558,27 +580,28 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool HasAllSet()
         {
-            Div32Rem(_handle->Length, out var extraBits);
-            var intCount = GetInt32ArrayLengthFromBitLength(_handle->Length);
+            var handle = _handle;
+            Div32Rem(handle->Length, out var extraBits);
+            var intCount = GetInt32ArrayLengthFromBitLength(handle->Length);
             if (extraBits != 0)
                 intCount--;
 #if NET8_0_OR_GREATER
-            if (_handle->Array.AsSpan(0, intCount).ContainsAnyExcept(-1))
+            if (handle->Array.AsSpan(0, intCount).ContainsAnyExcept(-1))
                 return false;
 #elif NET7_0_OR_GREATER
-            if (_handle->Array.AsSpan(0, intCount).IndexOfAnyExcept(-1) >= 0)
+            if (handle->Array.AsSpan(0, intCount).IndexOfAnyExcept(-1) >= 0)
                 return false;
 #else
             for (var i = 0; i < intCount; ++i)
             {
-                if (_handle->Array[i] != -1)
+                if (handle->Array[i] != -1)
                     return false;
             }
 #endif
             if (extraBits == 0)
                 return true;
             var mask = (1 << extraBits) - 1;
-            return (_handle->Array[intCount] & mask) == mask;
+            return (handle->Array[intCount] & mask) == mask;
         }
 
         /// <summary>
@@ -588,24 +611,25 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool HasAnySet()
         {
-            Div32Rem(_handle->Length, out var extraBits);
-            var intCount = GetInt32ArrayLengthFromBitLength(_handle->Length);
+            var handle = _handle;
+            Div32Rem(handle->Length, out var extraBits);
+            var intCount = GetInt32ArrayLengthFromBitLength(handle->Length);
             if (extraBits != 0)
                 intCount--;
 #if NET8_0_OR_GREATER
-            if (_handle->Array.AsSpan(0, intCount).ContainsAnyExcept(0))
+            if (handle->Array.AsSpan(0, intCount).ContainsAnyExcept(0))
                 return true;
 #elif NET7_0_OR_GREATER
-            if (_handle->Array.AsSpan(0, intCount).IndexOfAnyExcept(0) >= 0)
+            if (handle->Array.AsSpan(0, intCount).IndexOfAnyExcept(0) >= 0)
                 return true;
 #else
             for (var i = 0; i < intCount; ++i)
             {
-                if (_handle->Array[i] != 0)
+                if (handle->Array[i] != 0)
                     return true;
             }
 #endif
-            return extraBits != 0 && (_handle->Array[intCount] & ((1 << extraBits) - 1)) != 0;
+            return extraBits != 0 && (handle->Array[intCount] & ((1 << extraBits) - 1)) != 0;
         }
 
         /// <summary>

@@ -66,12 +66,13 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
             if (capacity < 4)
                 capacity = 4;
-            _handle = (NativePriorityQueueHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativePriorityQueueHandle));
-            _handle->Nodes = (ValueTuple<TElement, TPriority>*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(ValueTuple<TElement, TPriority>)));
-            _handle->Length = capacity;
-            _handle->UnorderedItems = new UnorderedItemsCollection(this);
-            _handle->Size = 0;
-            _handle->Version = 0;
+            var handle = (NativePriorityQueueHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativePriorityQueueHandle));
+            handle->Nodes = (ValueTuple<TElement, TPriority>*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(ValueTuple<TElement, TPriority>)));
+            handle->Length = capacity;
+            handle->UnorderedItems = new UnorderedItemsCollection(this);
+            handle->Size = 0;
+            handle->Version = 0;
+            _handle = handle;
         }
 
         /// <summary>
@@ -152,10 +153,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            if (_handle == null)
+            var handle = _handle;
+            if (handle == null)
                 return;
-            NativeMemoryAllocator.Free(_handle->Nodes);
-            NativeMemoryAllocator.Free(_handle);
+            NativeMemoryAllocator.Free(handle->Nodes);
+            NativeMemoryAllocator.Free(handle);
         }
 
         /// <summary>
@@ -164,8 +166,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
-            _handle->Size = 0;
-            ++_handle->Version;
+            var handle = _handle;
+            handle->Size = 0;
+            ++handle->Version;
         }
 
         /// <summary>
@@ -176,11 +179,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Enqueue(in TElement element, in TPriority priority)
         {
-            var size = _handle->Size;
-            ++_handle->Version;
-            if (_handle->Length == size)
+            var handle = _handle;
+            var size = handle->Size;
+            ++handle->Version;
+            if (handle->Length == size)
                 Grow(size + 1);
-            _handle->Size = size + 1;
+            handle->Size = size + 1;
             MoveUp(new ValueTuple<TElement, TPriority>(element, priority), size);
         }
 
@@ -193,11 +197,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryEnqueue(in TElement element, in TPriority priority)
         {
-            var size = _handle->Size;
-            ++_handle->Version;
-            if (_handle->Length != size)
+            var handle = _handle;
+            var size = handle->Size;
+            ++handle->Version;
+            if (handle->Length != size)
             {
-                _handle->Size = size + 1;
+                handle->Size = size + 1;
                 MoveUp(new ValueTuple<TElement, TPriority>(element, priority), size);
                 return true;
             }
@@ -214,13 +219,14 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TElement EnqueueDequeue(in TElement element, in TPriority priority)
         {
-            if (_handle->Size != 0)
+            var handle = _handle;
+            if (handle->Size != 0)
             {
-                var node = _handle->Nodes[0];
+                var node = handle->Nodes[0];
                 if (priority.CompareTo(node.Item2) > 0)
                 {
                     MoveDown(new ValueTuple<TElement, TPriority>(element, priority), 0);
-                    ++_handle->Version;
+                    ++handle->Version;
                     return node.Item1;
                 }
             }
@@ -238,13 +244,14 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryEnqueueDequeue(in TElement element, in TPriority priority, out TElement result)
         {
-            if (_handle->Size != 0)
+            var handle = _handle;
+            if (handle->Size != 0)
             {
-                var node = _handle->Nodes[0];
+                var node = handle->Nodes[0];
                 if (priority.CompareTo(node.Item2) > 0)
                 {
                     MoveDown(new ValueTuple<TElement, TPriority>(element, priority), 0);
-                    ++_handle->Version;
+                    ++handle->Version;
                     result = node.Item1;
                     return true;
                 }
@@ -261,9 +268,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TElement Dequeue()
         {
-            if (_handle->Size == 0)
+            var handle = _handle;
+            if (handle->Size == 0)
                 throw new InvalidOperationException("EmptyQueue");
-            var element = _handle->Nodes[0].Item1;
+            var element = handle->Nodes[0].Item1;
             RemoveRootNode();
             return element;
         }
@@ -276,9 +284,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDequeue(out TElement element)
         {
-            if (_handle->Size != 0)
+            var handle = _handle;
+            if (handle->Size != 0)
             {
-                var tuple = _handle->Nodes[0];
+                var tuple = handle->Nodes[0];
                 element = tuple.Item1;
                 RemoveRootNode();
                 return true;
@@ -297,9 +306,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDequeue(out TElement element, out TPriority priority)
         {
-            if (_handle->Size != 0)
+            var handle = _handle;
+            if (handle->Size != 0)
             {
-                var tuple = _handle->Nodes[0];
+                var tuple = handle->Nodes[0];
                 element = tuple.Item1;
                 priority = tuple.Item2;
                 RemoveRootNode();
@@ -319,14 +329,15 @@ namespace NativeCollections
         /// <returns>Element</returns>
         public TElement DequeueEnqueue(in TElement element, in TPriority priority)
         {
-            if (_handle->Size == 0)
+            var handle = _handle;
+            if (handle->Size == 0)
                 throw new InvalidOperationException("EmptyQueue");
-            var node = _handle->Nodes[0];
+            var node = handle->Nodes[0];
             if (priority.CompareTo(node.Item2) > 0)
                 MoveDown(new ValueTuple<TElement, TPriority>(element, priority), 0);
             else
-                _handle->Nodes[0] = new ValueTuple<TElement, TPriority>(element, priority);
-            ++_handle->Version;
+                handle->Nodes[0] = new ValueTuple<TElement, TPriority>(element, priority);
+            ++handle->Version;
             return node.Item1;
         }
 
@@ -339,18 +350,19 @@ namespace NativeCollections
         /// <returns>Dequeued</returns>
         public bool TryDequeueEnqueue(in TElement element, in TPriority priority, out TElement result)
         {
-            if (_handle->Size == 0)
+            var handle = _handle;
+            if (handle->Size == 0)
             {
                 result = default;
                 return false;
             }
 
-            var node = _handle->Nodes[0];
+            var node = handle->Nodes[0];
             if (priority.CompareTo(node.Item2) > 0)
                 MoveDown(new ValueTuple<TElement, TPriority>(element, priority), 0);
             else
-                _handle->Nodes[0] = new ValueTuple<TElement, TPriority>(element, priority);
-            ++_handle->Version;
+                handle->Nodes[0] = new ValueTuple<TElement, TPriority>(element, priority);
+            ++handle->Version;
             result = node.Item1;
             return true;
         }
@@ -360,7 +372,11 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Item</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TElement Peek() => _handle->Size == 0 ? throw new InvalidOperationException("EmptyQueue") : _handle->Nodes[0].Item1;
+        public TElement Peek()
+        {
+            var handle = _handle;
+            return handle->Size == 0 ? throw new InvalidOperationException("EmptyQueue") : handle->Nodes[0].Item1;
+        }
 
         /// <summary>
         ///     Try peek
@@ -371,9 +387,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryPeek(out TElement element, out TPriority priority)
         {
-            if (_handle->Size != 0)
+            var handle = _handle;
+            if (handle->Size != 0)
             {
-                var tuple = _handle->Nodes[0];
+                var tuple = handle->Nodes[0];
                 element = tuple.Item1;
                 priority = tuple.Item2;
                 return true;
@@ -394,13 +411,14 @@ namespace NativeCollections
         {
             if (capacity < 0)
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            if (_handle->Length < capacity)
+            var handle = _handle;
+            if (handle->Length < capacity)
             {
                 Grow(capacity);
-                ++_handle->Version;
+                ++handle->Version;
             }
 
-            return _handle->Length;
+            return handle->Length;
         }
 
         /// <summary>
@@ -410,15 +428,16 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess()
         {
-            if (_handle->Size >= (int)(_handle->Length * 0.9))
-                return _handle->Length;
-            var nodes = (ValueTuple<TElement, TPriority>*)NativeMemoryAllocator.Alloc((uint)(_handle->Size * sizeof(ValueTuple<TElement, TPriority>)));
-            Unsafe.CopyBlockUnaligned(nodes, _handle->Nodes, (uint)_handle->Size);
-            NativeMemoryAllocator.Free(_handle->Nodes);
-            _handle->Nodes = nodes;
-            _handle->Length = _handle->Size;
-            ++_handle->Version;
-            return _handle->Length;
+            var handle = _handle;
+            if (handle->Size >= (int)(handle->Length * 0.9))
+                return handle->Length;
+            var nodes = (ValueTuple<TElement, TPriority>*)NativeMemoryAllocator.Alloc((uint)(handle->Size * sizeof(ValueTuple<TElement, TPriority>)));
+            Unsafe.CopyBlockUnaligned(nodes, handle->Nodes, (uint)handle->Size);
+            NativeMemoryAllocator.Free(handle->Nodes);
+            handle->Nodes = nodes;
+            handle->Length = handle->Size;
+            ++handle->Version;
+            return handle->Length;
         }
 
         /// <summary>
@@ -428,18 +447,19 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Grow(int capacity)
         {
-            var newCapacity = 2 * _handle->Length;
+            var handle = _handle;
+            var newCapacity = 2 * handle->Length;
             if ((uint)newCapacity > 2147483591)
                 newCapacity = 2147483591;
-            var expected = _handle->Length + 4;
+            var expected = handle->Length + 4;
             newCapacity = newCapacity > expected ? newCapacity : expected;
             if (newCapacity < capacity)
                 newCapacity = capacity;
             var nodes = (ValueTuple<TElement, TPriority>*)NativeMemoryAllocator.Alloc((uint)(newCapacity * sizeof(ValueTuple<TElement, TPriority>)));
-            Unsafe.CopyBlockUnaligned(nodes, _handle->Nodes, (uint)_handle->Size);
-            NativeMemoryAllocator.Free(_handle->Nodes);
-            _handle->Nodes = nodes;
-            _handle->Length = newCapacity;
+            Unsafe.CopyBlockUnaligned(nodes, handle->Nodes, (uint)handle->Size);
+            NativeMemoryAllocator.Free(handle->Nodes);
+            handle->Nodes = nodes;
+            handle->Length = newCapacity;
         }
 
         /// <summary>
@@ -448,11 +468,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void RemoveRootNode()
         {
-            var index = --_handle->Size;
-            ++_handle->Version;
+            var handle = _handle;
+            var index = --handle->Size;
+            ++handle->Version;
             if (index > 0)
             {
-                var node = _handle->Nodes[index];
+                var node = handle->Nodes[index];
                 MoveDown(node, 0);
             }
         }
@@ -465,7 +486,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void MoveUp(in ValueTuple<TElement, TPriority> node, int nodeIndex)
         {
-            var nodes = _handle->Nodes;
+            var handle = _handle;
+            var nodes = handle->Nodes;
             int parentIndex;
             for (; nodeIndex > 0; nodeIndex = parentIndex)
             {
@@ -488,10 +510,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void MoveDown(in ValueTuple<TElement, TPriority> node, int nodeIndex)
         {
-            var nodes = _handle->Nodes;
+            var handle = _handle;
+            var nodes = handle->Nodes;
             int firstChildIndex;
             int first;
-            for (var size = _handle->Size; (firstChildIndex = (nodeIndex << 2) + 1) < size; nodeIndex = first)
+            for (var size = handle->Size; (firstChildIndex = (nodeIndex << 2) + 1) < size; nodeIndex = first)
             {
                 var valueTuple = nodes[firstChildIndex];
                 first = firstChildIndex;
@@ -590,16 +613,17 @@ namespace NativeCollections
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public bool MoveNext()
                 {
-                    if (_version != _nativePriorityQueue._handle->Version)
+                    var handle = _nativePriorityQueue._handle;
+                    if (_version != handle->Version)
                         throw new InvalidOperationException("EnumFailedVersion");
-                    if ((uint)_index >= (uint)_nativePriorityQueue._handle->Size)
+                    if ((uint)_index >= (uint)handle->Size)
                     {
-                        _index = _nativePriorityQueue._handle->Size + 1;
+                        _index = handle->Size + 1;
                         _current = default;
                         return false;
                     }
 
-                    _current = _nativePriorityQueue._handle->Nodes[_index];
+                    _current = handle->Nodes[_index];
                     ++_index;
                     return true;
                 }

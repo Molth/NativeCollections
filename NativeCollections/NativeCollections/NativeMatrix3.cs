@@ -246,9 +246,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            if (_array == null)
+            var array = _array;
+            if (array == null)
                 return;
-            NativeMemoryAllocator.Free(_array);
+            NativeMemoryAllocator.Free(array);
         }
 
         /// <summary>

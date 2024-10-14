@@ -60,11 +60,12 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
             if (capacity < 4)
                 capacity = 4;
-            _handle = (NativeStackHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeStackHandle));
-            _handle->Array = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
-            _handle->Length = capacity;
-            _handle->Size = 0;
-            _handle->Version = 0;
+            var handle = (NativeStackHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeStackHandle));
+            handle->Array = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
+            handle->Length = capacity;
+            handle->Size = 0;
+            handle->Version = 0;
+            _handle = handle;
         }
 
         /// <summary>
@@ -150,10 +151,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            if (_handle == null)
+            var handle = _handle;
+            if (handle == null)
                 return;
-            NativeMemoryAllocator.Free(_handle->Array);
-            NativeMemoryAllocator.Free(_handle);
+            NativeMemoryAllocator.Free(handle->Array);
+            NativeMemoryAllocator.Free(handle);
         }
 
         /// <summary>
@@ -162,8 +164,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
-            _handle->Size = 0;
-            _handle->Version++;
+            var handle = _handle;
+            handle->Size = 0;
+            handle->Version++;
         }
 
         /// <summary>
@@ -173,19 +176,20 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Push(in T item)
         {
-            var size = _handle->Size;
-            if ((uint)size < (uint)_handle->Length)
+            var handle = _handle;
+            var size = handle->Size;
+            if ((uint)size < (uint)handle->Length)
             {
-                _handle->Array[size] = item;
-                _handle->Version++;
-                _handle->Size = size + 1;
+                handle->Array[size] = item;
+                handle->Version++;
+                handle->Size = size + 1;
             }
             else
             {
-                Grow(_handle->Size + 1);
-                _handle->Array[_handle->Size] = item;
-                _handle->Version++;
-                _handle->Size++;
+                Grow(handle->Size + 1);
+                handle->Array[handle->Size] = item;
+                handle->Version++;
+                handle->Size++;
             }
         }
 
@@ -197,12 +201,13 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryPush(in T item)
         {
-            var size = _handle->Size;
-            if ((uint)size < (uint)_handle->Length)
+            var handle = _handle;
+            var size = handle->Size;
+            if ((uint)size < (uint)handle->Length)
             {
-                _handle->Array[size] = item;
-                _handle->Version++;
-                _handle->Size = size + 1;
+                handle->Array[size] = item;
+                handle->Version++;
+                handle->Size = size + 1;
                 return true;
             }
 
@@ -216,12 +221,13 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Pop()
         {
-            var size = _handle->Size - 1;
-            if ((uint)size >= (uint)_handle->Length)
+            var handle = _handle;
+            var size = handle->Size - 1;
+            if ((uint)size >= (uint)handle->Length)
                 throw new InvalidOperationException("EmptyStack");
-            _handle->Version++;
-            _handle->Size = size;
-            var item = _handle->Array[size];
+            handle->Version++;
+            handle->Size = size;
+            var item = handle->Array[size];
             return item;
         }
 
@@ -233,16 +239,17 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryPop(out T result)
         {
-            var size = _handle->Size - 1;
-            if ((uint)size >= (uint)_handle->Length)
+            var handle = _handle;
+            var size = handle->Size - 1;
+            if ((uint)size >= (uint)handle->Length)
             {
                 result = default;
                 return false;
             }
 
-            _handle->Version++;
-            _handle->Size = size;
-            result = _handle->Array[size];
+            handle->Version++;
+            handle->Size = size;
+            result = handle->Array[size];
             return true;
         }
 
@@ -253,8 +260,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Peek()
         {
-            var size = _handle->Size - 1;
-            return (uint)size >= (uint)_handle->Length ? throw new InvalidOperationException("EmptyStack") : _handle->Array[size];
+            var handle = _handle;
+            var size = handle->Size - 1;
+            return (uint)size >= (uint)handle->Length ? throw new InvalidOperationException("EmptyStack") : handle->Array[size];
         }
 
         /// <summary>
@@ -265,14 +273,15 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryPeek(out T result)
         {
-            var size = _handle->Size - 1;
-            if ((uint)size >= (uint)_handle->Length)
+            var handle = _handle;
+            var size = handle->Size - 1;
+            if ((uint)size >= (uint)handle->Length)
             {
                 result = default;
                 return false;
             }
 
-            result = _handle->Array[size];
+            result = handle->Array[size];
             return true;
         }
 
@@ -286,9 +295,11 @@ namespace NativeCollections
         {
             if (capacity < 0)
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            if (_handle->Length < capacity)
+
+            var handle = _handle;
+            if (handle->Length < capacity)
                 Grow(capacity);
-            return _handle->Length;
+            return handle->Length;
         }
 
         /// <summary>
@@ -298,10 +309,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess()
         {
-            var threshold = (int)(_handle->Length * 0.9);
-            if (_handle->Size < threshold)
-                SetCapacity(_handle->Size);
-            return _handle->Length;
+            var handle = _handle;
+            var threshold = (int)(handle->Length * 0.9);
+            if (handle->Size < threshold)
+                SetCapacity(handle->Size);
+            return handle->Length;
         }
 
         /// <summary>
@@ -311,12 +323,13 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void SetCapacity(int capacity)
         {
+            var handle = _handle;
             var newArray = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
-            if (_handle->Size > 0)
-                Unsafe.CopyBlockUnaligned(newArray, _handle->Array, (uint)(_handle->Length * sizeof(T)));
-            NativeMemoryAllocator.Free(_handle->Array);
-            _handle->Array = newArray;
-            _handle->Length = capacity;
+            if (handle->Size > 0)
+                Unsafe.CopyBlockUnaligned(newArray, handle->Array, (uint)(handle->Length * sizeof(T)));
+            NativeMemoryAllocator.Free(handle->Array);
+            handle->Array = newArray;
+            handle->Length = capacity;
         }
 
         /// <summary>
@@ -326,10 +339,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Grow(int capacity)
         {
-            var newCapacity = 2 * _handle->Length;
+            var handle = _handle;
+            var newCapacity = 2 * handle->Length;
             if ((uint)newCapacity > 2147483591)
                 newCapacity = 2147483591;
-            var expected = _handle->Length + 4;
+            var expected = handle->Length + 4;
             newCapacity = newCapacity > expected ? newCapacity : expected;
             if (newCapacity < capacity)
                 newCapacity = capacity;
@@ -392,22 +406,23 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext()
             {
-                if (_version != _nativeStack._handle->Version)
+                var handle = _nativeStack._handle;
+                if (_version != handle->Version)
                     throw new InvalidOperationException("EnumFailedVersion");
                 bool returned;
                 if (_index == -2)
                 {
-                    _index = _nativeStack._handle->Size - 1;
+                    _index = handle->Size - 1;
                     returned = _index >= 0;
                     if (returned)
-                        _currentElement = _nativeStack._handle->Array[_index];
+                        _currentElement = handle->Array[_index];
                     return returned;
                 }
 
                 if (_index == -1)
                     return false;
                 returned = --_index >= 0;
-                _currentElement = returned ? _nativeStack._handle->Array[_index] : default;
+                _currentElement = returned ? handle->Array[_index] : default;
                 return returned;
             }
 

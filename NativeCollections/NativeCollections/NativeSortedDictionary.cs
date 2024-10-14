@@ -79,13 +79,14 @@ namespace NativeCollections
         public NativeSortedDictionary(int size, int maxFreeSlabs)
         {
             var nodePool = new NativeMemoryPool(size, sizeof(Node), maxFreeSlabs);
-            _handle = (NativeSortedDictionaryHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeSortedDictionaryHandle));
-            _handle->Root = null;
-            _handle->Count = 0;
-            _handle->Version = 0;
-            _handle->NodePool = nodePool;
-            _handle->Keys = new KeyCollection(this);
-            _handle->Values = new ValueCollection(this);
+            var handle = (NativeSortedDictionaryHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeSortedDictionaryHandle));
+            handle->Root = null;
+            handle->Count = 0;
+            handle->Version = 0;
+            handle->NodePool = nodePool;
+            handle->Keys = new KeyCollection(this);
+            handle->Values = new ValueCollection(this);
+            _handle = handle;
         }
 
         /// <summary>
@@ -110,9 +111,10 @@ namespace NativeCollections
         {
             get
             {
-                if (_handle->Root == null)
+                var handle = _handle;
+                if (handle->Root == null)
                     return default;
-                var current = _handle->Root;
+                var current = handle->Root;
                 while (current->Left != null)
                     current = current->Left;
                 return new KeyValuePair<TKey, TValue>(current->Key, current->Value);
@@ -126,9 +128,10 @@ namespace NativeCollections
         {
             get
             {
-                if (_handle->Root == null)
+                var handle = _handle;
+                if (handle->Root == null)
                     return default;
-                var current = _handle->Root;
+                var current = handle->Root;
                 while (current->Right != null)
                     current = current->Right;
                 return new KeyValuePair<TKey, TValue>(current->Key, current->Value);
@@ -212,10 +215,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            if (_handle == null)
+            var handle = _handle;
+            if (handle == null)
                 return;
-            _handle->NodePool.Dispose();
-            NativeMemoryAllocator.Free(_handle);
+            handle->NodePool.Dispose();
+            NativeMemoryAllocator.Free(handle);
         }
 
         /// <summary>
@@ -224,10 +228,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
-            if (_handle->Root != null)
+            var handle = _handle;
+            if (handle->Root != null)
             {
-                var nodeStack = new NativeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(_handle->Count + 1)));
-                nodeStack.Push((nint)_handle->Root);
+                var nodeStack = new NativeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(handle->Count + 1)));
+                nodeStack.Push((nint)handle->Root);
                 while (nodeStack.TryPop(out var node))
                 {
                     var currentNode = (Node*)node;
@@ -235,15 +240,15 @@ namespace NativeCollections
                         nodeStack.Push((nint)currentNode->Left);
                     if (currentNode->Right != null)
                         nodeStack.Push((nint)currentNode->Right);
-                    _handle->NodePool.Return(currentNode);
+                    handle->NodePool.Return(currentNode);
                 }
 
                 nodeStack.Dispose();
             }
 
-            _handle->Root = null;
-            _handle->Count = 0;
-            ++_handle->Version;
+            handle->Root = null;
+            handle->Count = 0;
+            ++handle->Version;
         }
 
         /// <summary>
@@ -255,31 +260,32 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Add(in TKey key, in TValue value)
         {
-            if (_handle->Root == null)
+            var handle = _handle;
+            if (handle->Root == null)
             {
-                _handle->Root = (Node*)_handle->NodePool.Rent();
-                _handle->Root->Key = key;
-                _handle->Root->Value = value;
-                _handle->Root->Left = null;
-                _handle->Root->Right = null;
-                _handle->Root->Color = NodeColor.Black;
-                _handle->Count = 1;
-                _handle->Version++;
+                handle->Root = (Node*)handle->NodePool.Rent();
+                handle->Root->Key = key;
+                handle->Root->Value = value;
+                handle->Root->Left = null;
+                handle->Root->Right = null;
+                handle->Root->Color = NodeColor.Black;
+                handle->Count = 1;
+                handle->Version++;
                 return true;
             }
 
-            var current = _handle->Root;
+            var current = handle->Root;
             Node* parent = null;
             Node* grandParent = null;
             Node* greatGrandParent = null;
-            _handle->Version++;
+            handle->Version++;
             var order = 0;
             while (current != null)
             {
                 order = key.CompareTo(current->Key);
                 if (order == 0)
                 {
-                    _handle->Root->ColorBlack();
+                    handle->Root->ColorBlack();
                     return false;
                 }
 
@@ -296,7 +302,7 @@ namespace NativeCollections
                 current = order < 0 ? current->Left : current->Right;
             }
 
-            var node = (Node*)_handle->NodePool.Rent();
+            var node = (Node*)handle->NodePool.Rent();
             node->Key = key;
             node->Value = value;
             node->Left = null;
@@ -308,8 +314,8 @@ namespace NativeCollections
                 parent->Left = node;
             if (parent->IsRed)
                 InsertionBalance(node, parent, grandParent, greatGrandParent);
-            _handle->Root->ColorBlack();
-            ++_handle->Count;
+            handle->Root->ColorBlack();
+            ++handle->Count;
             return true;
         }
 
@@ -321,10 +327,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(in TKey key)
         {
-            if (_handle->Root == null)
+            var handle = _handle;
+            if (handle->Root == null)
                 return false;
-            _handle->Version++;
-            var current = _handle->Root;
+            handle->Version++;
+            var current = handle->Root;
             Node* parent = null;
             Node* grandParent = null;
             Node* match = null;
@@ -389,12 +396,12 @@ namespace NativeCollections
             if (match != null)
             {
                 ReplaceNode(match, parentOfMatch, parent, grandParent);
-                --_handle->Count;
-                _handle->NodePool.Return(match);
+                --handle->Count;
+                handle->NodePool.Return(match);
             }
 
-            if (_handle->Root != null)
-                _handle->Root->ColorBlack();
+            if (handle->Root != null)
+                handle->Root->ColorBlack();
             return foundMatch;
         }
 
@@ -407,14 +414,15 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(in TKey key, out TValue value)
         {
-            if (_handle->Root == null)
+            var handle = _handle;
+            if (handle->Root == null)
             {
                 value = default;
                 return false;
             }
 
-            _handle->Version++;
-            var current = _handle->Root;
+            handle->Version++;
+            var current = handle->Root;
             Node* parent = null;
             Node* grandParent = null;
             Node* match = null;
@@ -480,16 +488,16 @@ namespace NativeCollections
             {
                 value = match->Value;
                 ReplaceNode(match, parentOfMatch, parent, grandParent);
-                --_handle->Count;
-                _handle->NodePool.Return(match);
+                --handle->Count;
+                handle->NodePool.Return(match);
             }
             else
             {
                 value = default;
             }
 
-            if (_handle->Root != null)
-                _handle->Root->ColorBlack();
+            if (handle->Root != null)
+                handle->Root->ColorBlack();
             return foundMatch;
         }
 
@@ -598,7 +606,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Node* FindNode(in TKey key)
         {
-            var current = _handle->Root;
+            var handle = _handle;
+            var current = handle->Root;
             while (current != null)
             {
                 var order = key.CompareTo(current->Key);
@@ -928,11 +937,12 @@ namespace NativeCollections
             internal Enumerator(NativeSortedDictionary<TKey, TValue> nativeSortedDictionary)
             {
                 _nativeSortedDictionary = nativeSortedDictionary;
-                _version = nativeSortedDictionary._handle->Version;
+                var handle = nativeSortedDictionary._handle;
+                _version = handle->Version;
                 _nodeStack = new NativeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(nativeSortedDictionary.Count + 1)));
                 _currentNode = null;
                 _current = default;
-                var node = _nativeSortedDictionary._handle->Root;
+                var node = handle->Root;
                 while (node != null)
                 {
                     var next = node->Left;
@@ -1048,11 +1058,12 @@ namespace NativeCollections
                 internal Enumerator(NativeSortedDictionary<TKey, TValue> nativeSortedDictionary)
                 {
                     _nativeSortedDictionary = nativeSortedDictionary;
-                    _version = nativeSortedDictionary._handle->Version;
+                    var handle = nativeSortedDictionary._handle;
+                    _version = handle->Version;
                     _nodeStack = new NativeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(nativeSortedDictionary.Count + 1)));
                     _currentNode = null;
                     _current = default;
-                    var node = _nativeSortedDictionary._handle->Root;
+                    var node = handle->Root;
                     while (node != null)
                     {
                         var next = node->Left;
@@ -1169,11 +1180,12 @@ namespace NativeCollections
                 internal Enumerator(NativeSortedDictionary<TKey, TValue> nativeSortedDictionary)
                 {
                     _nativeSortedDictionary = nativeSortedDictionary;
-                    _version = nativeSortedDictionary._handle->Version;
+                    var handle = nativeSortedDictionary._handle;
+                    _version = handle->Version;
                     _nodeStack = new NativeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(nativeSortedDictionary.Count + 1)));
                     _currentNode = null;
                     _current = default;
-                    var node = _nativeSortedDictionary._handle->Root;
+                    var node = handle->Root;
                     while (node != null)
                     {
                         var next = node->Left;

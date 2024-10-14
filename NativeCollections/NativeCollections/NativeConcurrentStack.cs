@@ -58,10 +58,11 @@ namespace NativeCollections
         public NativeConcurrentStack(int size, int maxFreeSlabs)
         {
             var nodePool = new NativeMemoryPool(size, sizeof(Node), maxFreeSlabs);
-            _handle = (NativeConcurrentStackHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeConcurrentStackHandle));
-            _handle->Head = IntPtr.Zero;
-            _handle->NodePool = nodePool;
-            _handle->NodePoolLock = new NativeConcurrentSpinLock(-1);
+            var handle = (NativeConcurrentStackHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeConcurrentStackHandle));
+            handle->Head = IntPtr.Zero;
+            handle->NodePool = nodePool;
+            handle->NodePoolLock = new NativeConcurrentSpinLock(-1);
+            _handle = handle;
         }
 
         /// <summary>
@@ -82,8 +83,9 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
+                var handle = _handle;
                 var count = 0;
-                for (var node = (Node*)_handle->Head; node != null; node = node->Next)
+                for (var node = (Node*)handle->Head; node != null; node = node->Next)
                     count++;
                 return count;
             }
@@ -137,11 +139,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            if (_handle == null)
+            var handle = _handle;
+            if (handle == null)
                 return;
-            _handle->NodePool.Dispose();
-            _handle->NodePoolLock.Dispose();
-            NativeMemoryAllocator.Free(_handle);
+            handle->NodePool.Dispose();
+            handle->NodePoolLock.Dispose();
+            NativeMemoryAllocator.Free(handle);
         }
 
         /// <summary>
@@ -150,20 +153,21 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
-            _handle->NodePoolLock.Enter();
+            var handle = _handle;
+            handle->NodePoolLock.Enter();
             try
             {
-                var node = (Node*)_handle->Head;
+                var node = (Node*)handle->Head;
                 while (node != null)
                 {
                     var temp = node;
                     node = node->Next;
-                    _handle->NodePool.Return(temp);
+                    handle->NodePool.Return(temp);
                 }
             }
             finally
             {
-                _handle->NodePoolLock.Exit();
+                handle->NodePoolLock.Exit();
             }
         }
 
@@ -174,20 +178,21 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Push(in T item)
         {
+            var handle = _handle;
             Node* newNode;
-            _handle->NodePoolLock.Enter();
+            handle->NodePoolLock.Enter();
             try
             {
-                newNode = (Node*)_handle->NodePool.Rent();
+                newNode = (Node*)handle->NodePool.Rent();
             }
             finally
             {
-                _handle->NodePoolLock.Exit();
+                handle->NodePoolLock.Exit();
             }
 
             newNode->Value = item;
-            newNode->Next = (Node*)_handle->Head;
-            if (Interlocked.CompareExchange(ref _handle->Head, (nint)newNode, (nint)newNode->Next) == (nint)newNode->Next)
+            newNode->Next = (Node*)handle->Head;
+            if (Interlocked.CompareExchange(ref handle->Head, (nint)newNode, (nint)newNode->Next) == (nint)newNode->Next)
                 return;
             var count = 0;
             do
@@ -209,8 +214,8 @@ namespace NativeCollections
                 }
 
                 count = count == int.MaxValue ? 10 : count + 1;
-                newNode->Next = (Node*)_handle->Head;
-            } while (Interlocked.CompareExchange(ref _handle->Head, (nint)newNode, (nint)newNode->Next) != (nint)newNode->Next);
+                newNode->Next = (Node*)handle->Head;
+            } while (Interlocked.CompareExchange(ref handle->Head, (nint)newNode, (nint)newNode->Next) != (nint)newNode->Next);
         }
 
         /// <summary>
@@ -221,24 +226,25 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryPop(out T result)
         {
-            var head = (Node*)_handle->Head;
+            var handle = _handle;
+            var head = (Node*)handle->Head;
             if (head == null)
             {
                 result = default;
                 return false;
             }
 
-            if (Interlocked.CompareExchange(ref _handle->Head, (nint)head->Next, (nint)head) == (nint)head)
+            if (Interlocked.CompareExchange(ref handle->Head, (nint)head->Next, (nint)head) == (nint)head)
             {
                 result = head->Value;
-                _handle->NodePoolLock.Enter();
+                handle->NodePoolLock.Enter();
                 try
                 {
-                    _handle->NodePool.Return(head);
+                    handle->NodePool.Return(head);
                 }
                 finally
                 {
-                    _handle->NodePoolLock.Exit();
+                    handle->NodePoolLock.Exit();
                 }
 
                 return true;
@@ -251,24 +257,24 @@ namespace NativeCollections
 #endif
             while (true)
             {
-                head = (Node*)_handle->Head;
+                head = (Node*)handle->Head;
                 if (head == null)
                 {
                     result = default;
                     return false;
                 }
 
-                if (Interlocked.CompareExchange(ref _handle->Head, (nint)head->Next, (nint)head) == (nint)head)
+                if (Interlocked.CompareExchange(ref handle->Head, (nint)head->Next, (nint)head) == (nint)head)
                 {
                     result = head->Value;
-                    _handle->NodePoolLock.Enter();
+                    handle->NodePoolLock.Enter();
                     try
                     {
-                        _handle->NodePool.Return(head);
+                        handle->NodePool.Return(head);
                     }
                     finally
                     {
-                        _handle->NodePoolLock.Exit();
+                        handle->NodePoolLock.Exit();
                     }
 
                     return true;

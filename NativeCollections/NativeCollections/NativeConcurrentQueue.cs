@@ -135,13 +135,14 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            if (_handle == null)
+            var handle = _handle;
+            if (handle == null)
                 return;
             if (RuntimeInformation.ProcessArchitecture != Architecture.Arm64)
                 NotArm64Handle->Dispose();
             else
                 Arm64Handle->Dispose();
-            NativeMemoryAllocator.Free(_handle);
+            NativeMemoryAllocator.Free(handle);
         }
 
         /// <summary>

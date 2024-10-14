@@ -85,10 +85,11 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
             if (capacity < 4)
                 capacity = 4;
-            _handle = (NativeHashSetHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeHashSetHandle));
-            _handle->Count = 0;
-            _handle->FreeCount = 0;
-            _handle->Version = 0;
+            var handle = (NativeHashSetHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeHashSetHandle));
+            handle->Count = 0;
+            handle->FreeCount = 0;
+            handle->Version = 0;
+            _handle = handle;
             Initialize(capacity);
         }
 
@@ -100,12 +101,26 @@ namespace NativeCollections
         /// <summary>
         ///     Is empty
         /// </summary>
-        public bool IsEmpty => _handle->Count - _handle->FreeCount == 0;
+        public bool IsEmpty
+        {
+            get
+            {
+                var handle = _handle;
+                return handle->Count - handle->FreeCount == 0;
+            }
+        }
 
         /// <summary>
         ///     Count
         /// </summary>
-        public int Count => _handle->Count - _handle->FreeCount;
+        public int Count
+        {
+            get
+            {
+                var handle = _handle;
+                return handle->Count - handle->FreeCount;
+            }
+        }
 
         /// <summary>
         ///     Equals
@@ -155,11 +170,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            if (_handle == null)
+            var handle = _handle;
+            if (handle == null)
                 return;
-            NativeMemoryAllocator.Free(_handle->Buckets);
-            NativeMemoryAllocator.Free(_handle->Entries);
-            NativeMemoryAllocator.Free(_handle);
+            NativeMemoryAllocator.Free(handle->Buckets);
+            NativeMemoryAllocator.Free(handle->Entries);
+            NativeMemoryAllocator.Free(handle);
         }
 
         /// <summary>
@@ -168,14 +184,15 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
-            var count = _handle->Count;
+            var handle = _handle;
+            var count = handle->Count;
             if (count > 0)
             {
-                Unsafe.InitBlockUnaligned(_handle->Buckets, 0, (uint)(_handle->BucketsLength * sizeof(int)));
-                _handle->Count = 0;
-                _handle->FreeList = -1;
-                _handle->FreeCount = 0;
-                Unsafe.InitBlockUnaligned(_handle->Entries, 0, (uint)(count * sizeof(Entry)));
+                Unsafe.InitBlockUnaligned(handle->Buckets, 0, (uint)(handle->BucketsLength * sizeof(int)));
+                handle->Count = 0;
+                handle->FreeList = -1;
+                handle->FreeCount = 0;
+                Unsafe.InitBlockUnaligned(handle->Entries, 0, (uint)(count * sizeof(Entry)));
             }
         }
 
@@ -187,47 +204,48 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Add(in T item)
         {
+            var handle = _handle;
             uint collisionCount = 0;
             var hashCode = item.GetHashCode();
             ref var bucket = ref GetBucketRef(hashCode);
             var i = bucket - 1;
             while (i >= 0)
             {
-                ref var entry = ref _handle->Entries[i];
+                ref var entry = ref handle->Entries[i];
                 if (entry.HashCode == hashCode && entry.Value.Equals(item))
                     return false;
                 i = entry.Next;
                 collisionCount++;
-                if (collisionCount > (uint)_handle->EntriesLength)
+                if (collisionCount > (uint)handle->EntriesLength)
                     throw new InvalidOperationException("ConcurrentOperationsNotSupported");
             }
 
             int index;
-            if (_handle->FreeCount > 0)
+            if (handle->FreeCount > 0)
             {
-                index = _handle->FreeList;
-                _handle->FreeCount--;
-                _handle->FreeList = -3 - _handle->Entries[_handle->FreeList].Next;
+                index = handle->FreeList;
+                handle->FreeCount--;
+                handle->FreeList = -3 - handle->Entries[handle->FreeList].Next;
             }
             else
             {
-                var count = _handle->Count;
-                if (count == _handle->EntriesLength)
+                var count = handle->Count;
+                if (count == handle->EntriesLength)
                 {
                     Resize();
                     bucket = ref GetBucketRef(hashCode);
                 }
 
                 index = count;
-                _handle->Count = count + 1;
+                handle->Count = count + 1;
             }
 
-            ref var newEntry = ref _handle->Entries[index];
+            ref var newEntry = ref handle->Entries[index];
             newEntry.HashCode = hashCode;
             newEntry.Next = bucket - 1;
             newEntry.Value = item;
             bucket = index + 1;
-            _handle->Version++;
+            handle->Version++;
             return true;
         }
 
@@ -239,6 +257,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(in T item)
         {
+            var handle = _handle;
             uint collisionCount = 0;
             var last = -1;
             var hashCode = item.GetHashCode();
@@ -246,23 +265,23 @@ namespace NativeCollections
             var i = bucket - 1;
             while (i >= 0)
             {
-                ref var entry = ref _handle->Entries[i];
+                ref var entry = ref handle->Entries[i];
                 if (entry.HashCode == hashCode && entry.Value.Equals(item))
                 {
                     if (last < 0)
                         bucket = entry.Next + 1;
                     else
-                        _handle->Entries[last].Next = entry.Next;
-                    entry.Next = -3 - _handle->FreeList;
-                    _handle->FreeList = i;
-                    _handle->FreeCount++;
+                        handle->Entries[last].Next = entry.Next;
+                    entry.Next = -3 - handle->FreeList;
+                    handle->FreeList = i;
+                    handle->FreeCount++;
                     return true;
                 }
 
                 last = i;
                 i = entry.Next;
                 collisionCount++;
-                if (collisionCount > (uint)_handle->EntriesLength)
+                if (collisionCount > (uint)handle->EntriesLength)
                     throw new InvalidOperationException("ConcurrentOperationsNotSupported");
             }
 
@@ -322,17 +341,18 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess()
         {
-            var capacity = _handle->Count - _handle->FreeCount;
+            var handle = _handle;
+            var capacity = handle->Count - handle->FreeCount;
             var newSize = HashHelpers.GetPrime(capacity);
-            var oldEntries = _handle->Entries;
-            var currentCapacity = _handle->EntriesLength;
+            var oldEntries = handle->Entries;
+            var currentCapacity = handle->EntriesLength;
             if (newSize >= currentCapacity)
                 return currentCapacity;
-            var oldCount = _handle->Count;
-            _handle->Version++;
-            NativeMemoryAllocator.Free(_handle->Buckets);
+            var oldCount = handle->Count;
+            handle->Version++;
+            NativeMemoryAllocator.Free(handle->Buckets);
             Initialize(newSize);
-            var newEntries = _handle->Entries;
+            var newEntries = handle->Entries;
             var count = 0;
             for (var i = 0; i < oldCount; ++i)
             {
@@ -349,8 +369,8 @@ namespace NativeCollections
             }
 
             NativeMemoryAllocator.Free(oldEntries);
-            _handle->Count = capacity;
-            _handle->FreeCount = 0;
+            handle->Count = capacity;
+            handle->FreeCount = 0;
             return newSize;
         }
 
@@ -362,13 +382,14 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int Initialize(int capacity)
         {
+            var handle = _handle;
             var size = HashHelpers.GetPrime(capacity);
-            _handle->FreeList = -1;
-            _handle->Buckets = (int*)NativeMemoryAllocator.AllocZeroed((uint)(size * sizeof(int)));
-            _handle->Entries = (Entry*)NativeMemoryAllocator.AllocZeroed((uint)(size * sizeof(Entry)));
-            _handle->BucketsLength = size;
-            _handle->EntriesLength = size;
-            _handle->FastModMultiplier = IntPtr.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)size) : 0;
+            handle->FreeList = -1;
+            handle->Buckets = (int*)NativeMemoryAllocator.AllocZeroed((uint)(size * sizeof(int)));
+            handle->Entries = (Entry*)NativeMemoryAllocator.AllocZeroed((uint)(size * sizeof(Entry)));
+            handle->BucketsLength = size;
+            handle->EntriesLength = size;
+            handle->FastModMultiplier = IntPtr.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)size) : 0;
             return size;
         }
 
@@ -385,14 +406,15 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Resize(int newSize)
         {
+            var handle = _handle;
             var entries = (Entry*)NativeMemoryAllocator.AllocZeroed((uint)(newSize * sizeof(Entry)));
-            var count = _handle->Count;
-            Unsafe.CopyBlockUnaligned(entries, _handle->Entries, (uint)(_handle->EntriesLength * sizeof(Entry)));
+            var count = handle->Count;
+            Unsafe.CopyBlockUnaligned(entries, handle->Entries, (uint)(handle->EntriesLength * sizeof(Entry)));
             var buckets = (int*)NativeMemoryAllocator.AllocZeroed((uint)(newSize * sizeof(int)));
-            NativeMemoryAllocator.Free(_handle->Buckets);
-            _handle->Buckets = buckets;
-            _handle->BucketsLength = newSize;
-            _handle->FastModMultiplier = IntPtr.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)newSize) : 0;
+            NativeMemoryAllocator.Free(handle->Buckets);
+            handle->Buckets = buckets;
+            handle->BucketsLength = newSize;
+            handle->FastModMultiplier = IntPtr.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)newSize) : 0;
             for (var i = 0; i < count; ++i)
             {
                 ref var entry = ref entries[i];
@@ -404,9 +426,9 @@ namespace NativeCollections
                 }
             }
 
-            NativeMemoryAllocator.Free(_handle->Entries);
-            _handle->Entries = entries;
-            _handle->EntriesLength = newSize;
+            NativeMemoryAllocator.Free(handle->Entries);
+            handle->Entries = entries;
+            handle->EntriesLength = newSize;
         }
 
         /// <summary>
@@ -417,17 +439,18 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int FindItemIndex(in T item)
         {
+            var handle = _handle;
             uint collisionCount = 0;
             var hashCode = item.GetHashCode();
             var i = GetBucketRef(hashCode) - 1;
             while (i >= 0)
             {
-                ref var entry = ref _handle->Entries[i];
+                ref var entry = ref handle->Entries[i];
                 if (entry.HashCode == hashCode && entry.Value.Equals(item))
                     return i;
                 i = entry.Next;
                 collisionCount++;
-                if (collisionCount > (uint)_handle->EntriesLength)
+                if (collisionCount > (uint)handle->EntriesLength)
                     throw new InvalidOperationException("ConcurrentOperationsNotSupported");
             }
 
@@ -440,7 +463,11 @@ namespace NativeCollections
         /// <param name="hashCode">HashCode</param>
         /// <returns>Bucket ref</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ref int GetBucketRef(int hashCode) => ref IntPtr.Size == 8 ? ref _handle->Buckets[HashHelpers.FastMod((uint)hashCode, (uint)_handle->BucketsLength, _handle->FastModMultiplier)] : ref _handle->Buckets[(uint)hashCode % (uint)_handle->BucketsLength];
+        private ref int GetBucketRef(int hashCode)
+        {
+            var handle = _handle;
+            return ref IntPtr.Size == 8 ? ref handle->Buckets[HashHelpers.FastMod((uint)hashCode, (uint)handle->BucketsLength, handle->FastModMultiplier)] : ref handle->Buckets[(uint)hashCode % (uint)handle->BucketsLength];
+        }
 
         /// <summary>
         ///     Entry
@@ -519,11 +546,12 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext()
             {
-                if (_version != _nativeHashSet._handle->Version)
+                var handle = _nativeHashSet._handle;
+                if (_version != handle->Version)
                     throw new InvalidOperationException("EnumFailedVersion");
-                while ((uint)_index < (uint)_nativeHashSet._handle->Count)
+                while ((uint)_index < (uint)handle->Count)
                 {
-                    ref var entry = ref _nativeHashSet._handle->Entries[_index++];
+                    ref var entry = ref handle->Entries[_index++];
                     if (entry.Next >= -1)
                     {
                         _current = entry.Value;
@@ -531,7 +559,7 @@ namespace NativeCollections
                     }
                 }
 
-                _index = _nativeHashSet._handle->Count + 1;
+                _index = handle->Count + 1;
                 _current = default;
                 return false;
             }

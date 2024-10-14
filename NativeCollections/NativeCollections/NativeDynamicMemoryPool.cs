@@ -19,7 +19,7 @@ namespace NativeCollections
         /// <summary>
         ///     Handle
         /// </summary>
-        private readonly void* _tlsf;
+        private readonly void* _handle;
 
         /// <summary>
         ///     Size
@@ -67,14 +67,14 @@ namespace NativeCollections
                 }
             }
 
-            _tlsf = handle;
+            _handle = handle;
             _size = size;
         }
 
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => _tlsf != null;
+        public bool IsCreated => _handle != null;
 
         /// <summary>
         ///     Size
@@ -99,7 +99,7 @@ namespace NativeCollections
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => ((nint)_tlsf).GetHashCode();
+        public override int GetHashCode() => ((nint)_handle).GetHashCode();
 
         /// <summary>
         ///     To string
@@ -113,7 +113,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeDynamicMemoryPool left, NativeDynamicMemoryPool right) => left._tlsf == right._tlsf;
+        public static bool operator ==(NativeDynamicMemoryPool left, NativeDynamicMemoryPool right) => left._handle == right._handle;
 
         /// <summary>
         ///     Not equals
@@ -121,7 +121,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeDynamicMemoryPool left, NativeDynamicMemoryPool right) => left._tlsf != right._tlsf;
+        public static bool operator !=(NativeDynamicMemoryPool left, NativeDynamicMemoryPool right) => left._handle != right._handle;
 
         /// <summary>
         ///     Dispose
@@ -129,9 +129,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            if (_tlsf == null)
+            var handle = _handle;
+            if (handle == null)
                 return;
-            NativeMemoryAllocator.Free(_tlsf);
+            NativeMemoryAllocator.Free(handle);
         }
 
         /// <summary>
@@ -140,7 +141,7 @@ namespace NativeCollections
         /// <param name="size">Size</param>
         /// <returns>Buffer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void* Rent(ulong size) => IntPtr.Size == 8 ? TLSF64.tlsf_malloc(_tlsf, size) : TLSF32.tlsf_malloc(_tlsf, (uint)size);
+        public void* Rent(ulong size) => IntPtr.Size == 8 ? TLSF64.tlsf_malloc(_handle, size) : TLSF32.tlsf_malloc(_handle, (uint)size);
 
         /// <summary>
         ///     Rent buffer
@@ -153,13 +154,13 @@ namespace NativeCollections
         {
             if (IntPtr.Size == 8)
             {
-                var ptr = TLSF64.tlsf_malloc(_tlsf, size);
+                var ptr = TLSF64.tlsf_malloc(_handle, size);
                 actualSize = ptr != null ? TLSF64.tlsf_block_size(ptr) : 0;
                 return ptr;
             }
             else
             {
-                var ptr = TLSF32.tlsf_malloc(_tlsf, (uint)size);
+                var ptr = TLSF32.tlsf_malloc(_handle, (uint)size);
                 actualSize = ptr != null ? TLSF32.tlsf_block_size(ptr) : 0;
                 return ptr;
             }
@@ -173,9 +174,9 @@ namespace NativeCollections
         public void Return(void* ptr)
         {
             if (IntPtr.Size == 8)
-                TLSF64.tlsf_free(_tlsf, ptr);
+                TLSF64.tlsf_free(_handle, ptr);
             else
-                TLSF32.tlsf_free(_tlsf, ptr);
+                TLSF32.tlsf_free(_handle, ptr);
         }
 
         /// <summary>

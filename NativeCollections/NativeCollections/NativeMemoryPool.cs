@@ -138,14 +138,15 @@ namespace NativeCollections
 
             slab->Sentinel = next;
             slab->Count = size;
-            _handle = (NativeMemoryPoolHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeMemoryPoolHandle));
-            _handle->Sentinel = slab;
-            _handle->FreeList = null;
-            _handle->Slabs = 1;
-            _handle->FreeSlabs = 0;
-            _handle->MaxFreeSlabs = maxFreeSlabs;
-            _handle->Size = size;
-            _handle->Length = length;
+            var handle = (NativeMemoryPoolHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeMemoryPoolHandle));
+            handle->Sentinel = slab;
+            handle->FreeList = null;
+            handle->Slabs = 1;
+            handle->FreeSlabs = 0;
+            handle->MaxFreeSlabs = maxFreeSlabs;
+            handle->Size = size;
+            handle->Length = length;
+            _handle = handle;
         }
 
         /// <summary>
@@ -226,27 +227,28 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            if (_handle == null)
+            var handle = _handle;
+            if (handle == null)
                 return;
-            var node = _handle->Sentinel;
-            while (_handle->Slabs > 0)
+            var node = handle->Sentinel;
+            while (handle->Slabs > 0)
             {
-                _handle->Slabs--;
+                handle->Slabs--;
                 var temp = node;
                 node = node->Next;
                 NativeMemoryAllocator.Free(temp);
             }
 
-            node = _handle->FreeList;
-            while (_handle->FreeSlabs > 0)
+            node = handle->FreeList;
+            while (handle->FreeSlabs > 0)
             {
-                _handle->FreeSlabs--;
+                handle->FreeSlabs--;
                 var temp = node;
                 node = node->Next;
                 NativeMemoryAllocator.Free(temp);
             }
 
-            NativeMemoryAllocator.Free(_handle);
+            NativeMemoryAllocator.Free(handle);
         }
 
         /// <summary>
@@ -256,18 +258,19 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void* Rent()
         {
+            var handle = _handle;
             NativeMemoryNode* node;
-            var slab = _handle->Sentinel;
+            var slab = handle->Sentinel;
             if (slab->Count == 0)
             {
-                _handle->Sentinel = slab->Next;
-                slab = _handle->Sentinel;
+                handle->Sentinel = slab->Next;
+                slab = handle->Sentinel;
                 if (slab->Count == 0)
                 {
-                    var size = _handle->Size;
-                    if (_handle->FreeSlabs == 0)
+                    var size = handle->Size;
+                    if (handle->FreeSlabs == 0)
                     {
-                        var nodeSize = sizeof(NativeMemoryNode) + _handle->Length;
+                        var nodeSize = sizeof(NativeMemoryNode) + handle->Length;
                         var array = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemorySlab) + size * nodeSize));
                         slab = (NativeMemorySlab*)array;
                         array += sizeof(NativeMemorySlab);
@@ -283,18 +286,18 @@ namespace NativeCollections
                     }
                     else
                     {
-                        slab = _handle->FreeList;
-                        _handle->FreeList = slab->Next;
-                        _handle->FreeSlabs--;
+                        slab = handle->FreeList;
+                        handle->FreeList = slab->Next;
+                        handle->FreeSlabs--;
                     }
 
-                    slab->Next = _handle->Sentinel;
-                    slab->Previous = _handle->Sentinel->Previous;
+                    slab->Next = handle->Sentinel;
+                    slab->Previous = handle->Sentinel->Previous;
                     slab->Count = size;
-                    _handle->Sentinel->Previous->Next = slab;
-                    _handle->Sentinel->Previous = slab;
-                    _handle->Sentinel = slab;
-                    _handle->Slabs++;
+                    handle->Sentinel->Previous->Next = slab;
+                    handle->Sentinel->Previous = slab;
+                    handle->Sentinel = slab;
+                    handle->Slabs++;
                 }
             }
 
@@ -312,14 +315,15 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Return(void* ptr)
         {
+            var handle = _handle;
             var node = (NativeMemoryNode*)((byte*)ptr - sizeof(NativeMemoryNode));
             var slab = node->Slab;
             slab->Count++;
-            if (slab->Count == _handle->Size && slab != _handle->Sentinel)
+            if (slab->Count == handle->Size && slab != handle->Sentinel)
             {
                 slab->Previous->Next = slab->Next;
                 slab->Next->Previous = slab->Previous;
-                if (_handle->FreeSlabs == _handle->MaxFreeSlabs)
+                if (handle->FreeSlabs == handle->MaxFreeSlabs)
                 {
                     NativeMemoryAllocator.Free(slab);
                 }
@@ -327,12 +331,12 @@ namespace NativeCollections
                 {
                     node->Next = slab->Sentinel;
                     slab->Sentinel = node;
-                    slab->Next = _handle->FreeList;
-                    _handle->FreeList = slab;
-                    _handle->FreeSlabs++;
+                    slab->Next = handle->FreeList;
+                    handle->FreeList = slab;
+                    handle->FreeSlabs++;
                 }
 
-                _handle->Slabs--;
+                handle->Slabs--;
                 return;
             }
 
@@ -350,13 +354,14 @@ namespace NativeCollections
         {
             if (capacity < 0)
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            if (capacity > _handle->MaxFreeSlabs)
-                capacity = _handle->MaxFreeSlabs;
-            var size = _handle->Size;
-            var nodeSize = sizeof(NativeMemoryNode) + _handle->Length;
-            while (_handle->FreeSlabs < capacity)
+            var handle = _handle;
+            if (capacity > handle->MaxFreeSlabs)
+                capacity = handle->MaxFreeSlabs;
+            var size = handle->Size;
+            var nodeSize = sizeof(NativeMemoryNode) + handle->Length;
+            while (handle->FreeSlabs < capacity)
             {
-                _handle->FreeSlabs++;
+                handle->FreeSlabs++;
                 var array = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemorySlab) + size * nodeSize));
                 var slab = (NativeMemorySlab*)array;
                 array += sizeof(NativeMemorySlab);
@@ -370,11 +375,11 @@ namespace NativeCollections
 
                 slab->Sentinel = next;
                 slab->Count = size;
-                slab->Next = _handle->FreeList;
-                _handle->FreeList = slab;
+                slab->Next = handle->FreeList;
+                handle->FreeList = slab;
             }
 
-            return _handle->FreeSlabs;
+            return handle->FreeSlabs;
         }
 
         /// <summary>
@@ -383,16 +388,17 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void TrimExcess()
         {
-            var node = _handle->FreeList;
-            while (_handle->FreeSlabs > 0)
+            var handle = _handle;
+            var node = handle->FreeList;
+            while (handle->FreeSlabs > 0)
             {
-                _handle->FreeSlabs--;
+                handle->FreeSlabs--;
                 var temp = node;
                 node = node->Next;
                 NativeMemoryAllocator.Free(temp);
             }
 
-            _handle->FreeList = node;
+            handle->FreeList = node;
         }
 
         /// <summary>
@@ -404,17 +410,18 @@ namespace NativeCollections
         {
             if (capacity < 0)
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            var node = _handle->FreeList;
-            while (_handle->FreeSlabs > capacity)
+            var handle = _handle;
+            var node = handle->FreeList;
+            while (handle->FreeSlabs > capacity)
             {
-                _handle->FreeSlabs--;
+                handle->FreeSlabs--;
                 var temp = node;
                 node = node->Next;
                 NativeMemoryAllocator.Free(temp);
             }
 
-            _handle->FreeList = node;
-            return _handle->FreeSlabs;
+            handle->FreeList = node;
+            return handle->FreeSlabs;
         }
 
         /// <summary>

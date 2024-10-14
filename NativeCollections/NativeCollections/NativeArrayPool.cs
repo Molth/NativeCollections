@@ -120,11 +120,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            if (_buckets == null)
+            var buckets = _buckets;
+            if (buckets == null)
                 return;
             for (var i = 0; i < _length; ++i)
-                _buckets[i].Dispose();
-            NativeMemoryAllocator.Free(_buckets);
+                buckets[i].Dispose();
+            NativeMemoryAllocator.Free(buckets);
         }
 
         /// <summary>
