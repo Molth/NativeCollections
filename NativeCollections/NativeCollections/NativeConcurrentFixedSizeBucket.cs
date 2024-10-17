@@ -67,7 +67,7 @@ namespace NativeCollections
             get
             {
                 var buffer = _buffer;
-                return (buffer[0] - buffer[1]) == _length;
+                return buffer[0] - buffer[1] == _length;
             }
         }
 
@@ -84,7 +84,7 @@ namespace NativeCollections
             get
             {
                 var buffer = _buffer;
-                return (buffer[0] - buffer[1]);
+                return buffer[0] - buffer[1];
             }
         }
 

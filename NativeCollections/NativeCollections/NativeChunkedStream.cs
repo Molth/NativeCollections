@@ -76,18 +76,18 @@ namespace NativeCollections
         /// <summary>
         ///     Chunk
         /// </summary>
-        [StructLayout(LayoutKind.Explicit, Size = 16)]
+        [StructLayout(LayoutKind.Sequential)]
         private struct NativeMemoryChunk
         {
             /// <summary>
             ///     Next
             /// </summary>
-            [FieldOffset(0)] public NativeMemoryChunk* Next;
+            public NativeMemoryChunk* Next;
 
             /// <summary>
             ///     Array
             /// </summary>
-            [FieldOffset(8)] public fixed byte Array[1];
+            public fixed byte Array[1];
         }
 
         /// <summary>
@@ -251,7 +251,7 @@ namespace NativeCollections
                 {
                     NativeMemoryChunk* chunk;
                     var count = length - byteCount;
-                    var chunks = (count + size - 1) / size | 0;
+                    var chunks = ((count + size - 1) / size) | 0;
                     for (var i = 0; i < chunks; ++i)
                     {
                         chunk = handle->Head;
@@ -289,7 +289,7 @@ namespace NativeCollections
                 {
                     NativeMemoryChunk* chunk;
                     var count = length - byteCount;
-                    var chunks = (count + size - 1) / size | 0;
+                    var chunks = ((count + size - 1) / size) | 0;
                     for (var i = 0; i < chunks; ++i)
                     {
                         chunk = handle->Head;
@@ -339,7 +339,7 @@ namespace NativeCollections
             {
                 NativeMemoryChunk* chunk;
                 var count = length - byteCount;
-                var chunks = (count + size - 1) / size | 0;
+                var chunks = ((count + size - 1) / size) | 0;
                 for (var i = 0; i < chunks; ++i)
                 {
                     if (handle->FreeChunks == 0)

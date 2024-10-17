@@ -320,15 +320,18 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeArray<T> Rent()
             {
+                var array = _array;
                 T* ptr = null;
+                ref var spinLock = ref _lock;
+                ref var index = ref _index;
                 var lockTaken = false;
                 try
                 {
-                    _lock.Enter(ref lockTaken);
-                    if (_index < _size)
+                    spinLock.Enter(ref lockTaken);
+                    if (index < _size)
                     {
-                        ptr = _array[_index];
-                        _array[_index++] = null;
+                        ptr = array[index];
+                        array[index++] = null;
                     }
 
                     if (ptr == null)
@@ -337,7 +340,7 @@ namespace NativeCollections
                 finally
                 {
                     if (lockTaken)
-                        _lock.Exit(false);
+                        spinLock.Exit(false);
                 }
 
                 return new NativeArray<T>(ptr, _length);
@@ -350,19 +353,21 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Return(T* ptr)
             {
+                ref var spinLock = ref _lock;
+                ref var index = ref _index;
                 var lockTaken = false;
                 try
                 {
-                    _lock.Enter(ref lockTaken);
-                    if (_index != 0)
-                        _array[--_index] = ptr;
+                    spinLock.Enter(ref lockTaken);
+                    if (index != 0)
+                        _array[--index] = ptr;
                     else
                         _memoryPool.Return(ptr);
                 }
                 finally
                 {
                     if (lockTaken)
-                        _lock.Exit(false);
+                        spinLock.Exit(false);
                 }
             }
         }

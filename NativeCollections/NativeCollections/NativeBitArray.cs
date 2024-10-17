@@ -416,10 +416,11 @@ namespace NativeCollections
             if (!value.IsCreated)
                 throw new ArgumentNullException(nameof(value));
             var handle = _handle;
+            var other = value._handle;
             var count = GetInt32ArrayLengthFromBitLength(Length);
-            if (Length != value.Length || (uint)count > (uint)handle->Array.Length || (uint)count > (uint)value._handle->Array.Length)
+            if (Length != value.Length || (uint)count > (uint)handle->Array.Length || (uint)count > (uint)other->Array.Length)
                 throw new ArgumentException("ArrayLengthsDiffer");
-            BitOperationsHelpers.And(handle->Array, value._handle->Array, (uint)count);
+            BitOperationsHelpers.And(handle->Array, other->Array, (uint)count);
             return this;
         }
 
@@ -434,10 +435,11 @@ namespace NativeCollections
             if (!value.IsCreated)
                 throw new ArgumentNullException(nameof(value));
             var handle = _handle;
+            var other = value._handle;
             var count = GetInt32ArrayLengthFromBitLength(Length);
-            if (Length != value.Length || (uint)count > (uint)handle->Array.Length || (uint)count > (uint)value._handle->Array.Length)
+            if (Length != value.Length || (uint)count > (uint)handle->Array.Length || (uint)count > (uint)other->Array.Length)
                 throw new ArgumentException("ArrayLengthsDiffer");
-            BitOperationsHelpers.Or(handle->Array, value._handle->Array, (uint)count);
+            BitOperationsHelpers.Or(handle->Array, other->Array, (uint)count);
             return this;
         }
 
@@ -452,10 +454,11 @@ namespace NativeCollections
             if (!value.IsCreated)
                 throw new ArgumentNullException(nameof(value));
             var handle = _handle;
+            var other = value._handle;
             var count = GetInt32ArrayLengthFromBitLength(Length);
-            if (Length != value.Length || (uint)count > (uint)handle->Array.Length || (uint)count > (uint)value._handle->Array.Length)
+            if (Length != value.Length || (uint)count > (uint)handle->Array.Length || (uint)count > (uint)other->Array.Length)
                 throw new ArgumentException("ArrayLengthsDiffer");
-            BitOperationsHelpers.Xor(handle->Array, value._handle->Array, (uint)count);
+            BitOperationsHelpers.Xor(handle->Array, other->Array, (uint)count);
             return this;
         }
 
@@ -466,9 +469,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeBitArray Not()
         {
-            var handle = _handle;
             var count = GetInt32ArrayLengthFromBitLength(Length);
-            BitOperationsHelpers.Not(handle->Array, (uint)count);
+            BitOperationsHelpers.Not(_handle->Array, (uint)count);
             return this;
         }
 

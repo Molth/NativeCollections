@@ -392,7 +392,7 @@ namespace NativeCollections
             var handle = _handle;
             var allocatedNewArray = EnsureCapacity(length);
             if (!allocatedNewArray && length > handle->Length)
-                Unsafe.InitBlock(handle->Array + handle->Length, 0, (uint)(length - handle->Length));
+                Unsafe.InitBlockUnaligned(handle->Array + handle->Length, 0, (uint)(length - handle->Length));
             handle->Length = length;
             if (handle->Position > length)
                 handle->Position = length;
@@ -486,7 +486,7 @@ namespace NativeCollections
                 }
 
                 if (mustZero)
-                    Unsafe.InitBlock(handle->Array + handle->Length, 0, (uint)(i - handle->Length));
+                    Unsafe.InitBlockUnaligned(handle->Array + handle->Length, 0, (uint)(i - handle->Length));
                 handle->Length = i;
             }
 
@@ -527,7 +527,7 @@ namespace NativeCollections
                 }
 
                 if (mustZero)
-                    Unsafe.InitBlock(handle->Array + handle->Length, 0, (uint)(i - handle->Length));
+                    Unsafe.InitBlockUnaligned(handle->Array + handle->Length, 0, (uint)(i - handle->Length));
                 handle->Length = i;
             }
 
@@ -556,7 +556,7 @@ namespace NativeCollections
                 }
 
                 if (mustZero)
-                    Unsafe.InitBlock(handle->Array + handle->Length, 0, (uint)(handle->Position - handle->Length));
+                    Unsafe.InitBlockUnaligned(handle->Array + handle->Length, 0, (uint)(handle->Position - handle->Length));
                 handle->Length = newLength;
             }
 

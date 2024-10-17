@@ -228,7 +228,6 @@ namespace NativeCollections
                     {
                         var array = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeFixedSize64MemorySlab) + 64 * nodeSize));
                         slab = (NativeFixedSize64MemorySlab*)array;
-                        slab->Bitmap = 0UL;
                         array += sizeof(NativeFixedSize64MemorySlab);
                         for (byte i = 0; i < 64; ++i)
                             *(array + i * nodeSize) = i;
@@ -242,6 +241,7 @@ namespace NativeCollections
 
                     slab->Next = handle->Sentinel;
                     slab->Previous = handle->Sentinel->Previous;
+                    slab->Bitmap = 0UL;
                     handle->Sentinel->Previous->Next = slab;
                     handle->Sentinel->Previous = slab;
                     handle->Sentinel = slab;
@@ -307,7 +307,6 @@ namespace NativeCollections
                 handle->FreeSlabs++;
                 var array = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeFixedSize64MemorySlab) + 64 * nodeSize));
                 var slab = (NativeFixedSize64MemorySlab*)array;
-                slab->Bitmap = 0UL;
                 array += sizeof(NativeFixedSize64MemorySlab);
                 for (byte i = 0; i < 64; ++i)
                     *(array + i * nodeSize) = i;

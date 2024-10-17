@@ -88,7 +88,7 @@ namespace NativeCollections
         /// <summary>
         ///     Node
         /// </summary>
-        [StructLayout(LayoutKind.Explicit, Size = 8)]
+        [StructLayout(LayoutKind.Explicit)]
         private struct NativeMemoryNode
         {
             /// <summary>
@@ -374,7 +374,6 @@ namespace NativeCollections
                 }
 
                 slab->Sentinel = next;
-                slab->Count = size;
                 slab->Next = handle->FreeList;
                 handle->FreeList = slab;
             }

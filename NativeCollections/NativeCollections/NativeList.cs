@@ -320,12 +320,13 @@ namespace NativeCollections
         public void AddRange(in NativeList<T> collection)
         {
             var handle = _handle;
-            var count = collection._handle->Size;
+            var other = collection._handle;
+            var count = other->Size;
             if (count > 0)
             {
                 if (handle->Length - handle->Size < count)
                     Grow(checked(handle->Size + count));
-                Unsafe.CopyBlockUnaligned(handle->Array + handle->Size, collection._handle->Array, (uint)(collection._handle->Size * sizeof(T)));
+                Unsafe.CopyBlockUnaligned(handle->Array + handle->Size, other->Array, (uint)(other->Size * sizeof(T)));
                 handle->Size += count;
                 handle->Version++;
             }
@@ -362,7 +363,8 @@ namespace NativeCollections
             var handle = _handle;
             if ((uint)index > (uint)handle->Size)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
-            var count = collection._handle->Size;
+            var other = collection._handle;
+            var count = other->Size;
             if (count > 0)
             {
                 if (handle->Length - handle->Size < count)
@@ -376,7 +378,7 @@ namespace NativeCollections
                 }
                 else
                 {
-                    Unsafe.CopyBlockUnaligned(handle->Array + index, collection._handle->Array, (uint)(collection._handle->Size * sizeof(T)));
+                    Unsafe.CopyBlockUnaligned(handle->Array + index, other->Array, (uint)(other->Size * sizeof(T)));
                 }
 
                 handle->Size += count;

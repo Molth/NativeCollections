@@ -10,27 +10,27 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native fixed size 32 memory pool
+    ///     Native linear memory pool
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection]
-    public readonly unsafe struct NativeFixedSize32MemoryPool : IDisposable, IEquatable<NativeFixedSize32MemoryPool>
+    public readonly unsafe struct NativeLinearMemoryPool : IDisposable, IEquatable<NativeLinearMemoryPool>
     {
         /// <summary>
         ///     Handle
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        private struct NativeFixedSize32MemoryPoolHandle
+        private struct NativeLinearMemoryPoolHandle
         {
             /// <summary>
             ///     Sentinel
             /// </summary>
-            public NativeFixedSize32MemorySlab* Sentinel;
+            public NativeMemorySlab* Sentinel;
 
             /// <summary>
             ///     Free list
             /// </summary>
-            public NativeFixedSize32MemorySlab* FreeList;
+            public NativeMemorySlab* FreeList;
 
             /// <summary>
             ///     Slabs
@@ -48,66 +48,81 @@ namespace NativeCollections
             public int MaxFreeSlabs;
 
             /// <summary>
-            ///     Length
+            ///     Size
             /// </summary>
-            public int Length;
+            public int Size;
         }
 
         /// <summary>
         ///     Slab
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        private struct NativeFixedSize32MemorySlab
+        private struct NativeMemorySlab
         {
             /// <summary>
             ///     Next
             /// </summary>
-            public NativeFixedSize32MemorySlab* Next;
+            public NativeMemorySlab* Next;
 
             /// <summary>
             ///     Previous
             /// </summary>
-            public NativeFixedSize32MemorySlab* Previous;
+            public NativeMemorySlab* Previous;
 
             /// <summary>
-            ///     Bitmap
+            ///     Nodes
             /// </summary>
-            public uint Bitmap;
+            public int Nodes;
+
+            /// <summary>
+            ///     Length
+            /// </summary>
+            public int Length;
+        }
+
+        /// <summary>
+        ///     Node
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
+        private struct NativeMemoryNode
+        {
+            /// <summary>
+            ///     Slab
+            /// </summary>
+            public NativeMemorySlab* Slab;
         }
 
         /// <summary>
         ///     Handle
         /// </summary>
-        private readonly NativeFixedSize32MemoryPoolHandle* _handle;
+        private readonly NativeLinearMemoryPoolHandle* _handle;
 
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="length">Length</param>
+        /// <param name="maxLength">Max length</param>
         /// <param name="maxFreeSlabs">Max free slabs</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeFixedSize32MemoryPool(int length, int maxFreeSlabs)
+        public NativeLinearMemoryPool(int maxLength, int maxFreeSlabs)
         {
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            if (maxLength <= 0)
+                throw new ArgumentOutOfRangeException(nameof(maxLength), maxLength, "MustBePositive");
             if (maxFreeSlabs < 0)
                 throw new ArgumentOutOfRangeException(nameof(maxFreeSlabs), maxFreeSlabs, "MustBeNonNegative");
-            var nodeSize = 1 + length;
-            var array = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeFixedSize32MemorySlab) + 32 * nodeSize));
-            var slab = (NativeFixedSize32MemorySlab*)array;
+            var size = sizeof(NativeMemoryNode) + maxLength;
+            var array = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemorySlab) + size));
+            var slab = (NativeMemorySlab*)array;
             slab->Next = slab;
             slab->Previous = slab;
-            slab->Bitmap = 0U;
-            array += sizeof(NativeFixedSize32MemorySlab);
-            for (byte i = 0; i < 32; ++i)
-                *(array + i * nodeSize) = i;
-            var handle = (NativeFixedSize32MemoryPoolHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeFixedSize32MemoryPoolHandle));
+            slab->Nodes = 0;
+            slab->Length = 0;
+            var handle = (NativeLinearMemoryPoolHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeLinearMemoryPoolHandle));
             handle->Sentinel = slab;
             handle->FreeList = null;
             handle->Slabs = 1;
             handle->FreeSlabs = 0;
             handle->MaxFreeSlabs = maxFreeSlabs;
-            handle->Length = length;
+            handle->Size = size;
             _handle = handle;
         }
 
@@ -132,23 +147,23 @@ namespace NativeCollections
         public int MaxFreeSlabs => _handle->MaxFreeSlabs;
 
         /// <summary>
-        ///     Length
+        ///     Max length
         /// </summary>
-        public int Length => _handle->Length;
+        public int MaxLength => _handle->Size - sizeof(NativeMemoryNode);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeFixedSize32MemoryPool other) => other == this;
+        public bool Equals(NativeLinearMemoryPool other) => other == this;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeFixedSize32MemoryPool nativeFixedSize32MemoryPool && nativeFixedSize32MemoryPool == this;
+        public override bool Equals(object? obj) => obj is NativeLinearMemoryPool nativeLinearMemoryPool && nativeLinearMemoryPool == this;
 
         /// <summary>
         ///     Get hashCode
@@ -160,7 +175,7 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => "NativeFixedSize32MemoryPool";
+        public override string ToString() => "NativeLinearMemoryPool";
 
         /// <summary>
         ///     Equals
@@ -168,7 +183,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeFixedSize32MemoryPool left, NativeFixedSize32MemoryPool right) => left._handle == right._handle;
+        public static bool operator ==(NativeLinearMemoryPool left, NativeLinearMemoryPool right) => left._handle == right._handle;
 
         /// <summary>
         ///     Not equals
@@ -176,7 +191,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeFixedSize32MemoryPool left, NativeFixedSize32MemoryPool right) => left._handle != right._handle;
+        public static bool operator !=(NativeLinearMemoryPool left, NativeLinearMemoryPool right) => left._handle != right._handle;
 
         /// <summary>
         ///     Dispose
@@ -211,48 +226,47 @@ namespace NativeCollections
         /// <summary>
         ///     Rent buffer
         /// </summary>
+        /// <param name="length">Length</param>
         /// <returns>Buffer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void* Rent()
+        public void* Rent(int length)
         {
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
             var handle = _handle;
+            var size = handle->Size;
+            if (length + sizeof(NativeMemoryNode) > size)
+                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeLessOrEqual");
             var slab = handle->Sentinel;
-            var nodeSize = 1 + handle->Length;
-            if (slab->Bitmap == uint.MaxValue)
+            if (slab->Length + sizeof(NativeMemoryNode) + length > size)
             {
-                handle->Sentinel = slab->Next;
-                slab = handle->Sentinel;
-                if (slab->Bitmap == uint.MaxValue)
+                if (handle->FreeSlabs == 0)
                 {
-                    if (handle->FreeSlabs == 0)
-                    {
-                        var array = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeFixedSize32MemorySlab) + 32 * nodeSize));
-                        slab = (NativeFixedSize32MemorySlab*)array;
-                        array += sizeof(NativeFixedSize32MemorySlab);
-                        for (byte i = 0; i < 32; ++i)
-                            *(array + i * nodeSize) = i;
-                    }
-                    else
-                    {
-                        slab = handle->FreeList;
-                        handle->FreeList = slab->Next;
-                        handle->FreeSlabs--;
-                    }
-
-                    slab->Next = handle->Sentinel;
-                    slab->Previous = handle->Sentinel->Previous;
-                    slab->Bitmap = 0U;
-                    handle->Sentinel->Previous->Next = slab;
-                    handle->Sentinel->Previous = slab;
-                    handle->Sentinel = slab;
-                    handle->Slabs++;
+                    var array = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemorySlab) + size));
+                    slab = (NativeMemorySlab*)array;
                 }
+                else
+                {
+                    slab = handle->FreeList;
+                    handle->FreeList = slab->Next;
+                    handle->FreeSlabs--;
+                }
+
+                slab->Next = handle->Sentinel;
+                slab->Previous = handle->Sentinel->Previous;
+                slab->Nodes = 0;
+                slab->Length = 0;
+                handle->Sentinel->Previous->Next = slab;
+                handle->Sentinel->Previous = slab;
+                handle->Sentinel = slab;
+                handle->Slabs++;
             }
 
-            ref var segment = ref slab->Bitmap;
-            var id = BitOperationsHelpers.TrailingZeroCount(~segment);
-            segment |= 1U << id;
-            return (byte*)slab + sizeof(NativeFixedSize32MemorySlab) + id * nodeSize + 1;
+            var node = (NativeMemoryNode*)((byte*)slab + sizeof(NativeMemorySlab) + slab->Length);
+            node->Slab = slab;
+            slab->Nodes++;
+            slab->Length += sizeof(NativeMemoryNode) + length;
+            return (byte*)node + sizeof(NativeMemoryNode);
         }
 
         /// <summary>
@@ -263,13 +277,10 @@ namespace NativeCollections
         public void Return(void* ptr)
         {
             var handle = _handle;
-            var array = (byte*)ptr;
-            var id = *(array - 1);
-            array -= sizeof(NativeFixedSize32MemorySlab) + id * (1 + handle->Length) + 1;
-            var slab = (NativeFixedSize32MemorySlab*)array;
-            ref var segment = ref slab->Bitmap;
-            segment &= ~(1U << id);
-            if (segment == 0 && slab != handle->Sentinel)
+            var node = (NativeMemoryNode*)((byte*)ptr - sizeof(NativeMemoryNode));
+            var slab = node->Slab;
+            slab->Nodes--;
+            if (slab->Nodes == 0 && slab != handle->Sentinel)
             {
                 slab->Previous->Next = slab->Next;
                 slab->Next->Previous = slab->Previous;
@@ -301,15 +312,12 @@ namespace NativeCollections
             var handle = _handle;
             if (capacity > handle->MaxFreeSlabs)
                 capacity = handle->MaxFreeSlabs;
-            var nodeSize = 1 + handle->Length;
+            var size = handle->Size;
             while (handle->FreeSlabs < capacity)
             {
                 handle->FreeSlabs++;
-                var array = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeFixedSize32MemorySlab) + 32 * nodeSize));
-                var slab = (NativeFixedSize32MemorySlab*)array;
-                array += sizeof(NativeFixedSize32MemorySlab);
-                for (byte i = 0; i < 32; ++i)
-                    *(array + i * nodeSize) = i;
+                var array = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemorySlab) + size));
+                var slab = (NativeMemorySlab*)array;
                 slab->Next = handle->FreeList;
                 handle->FreeList = slab;
             }
@@ -362,6 +370,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeFixedSize32MemoryPool Empty => new();
+        public static NativeLinearMemoryPool Empty => new();
     }
 }

@@ -1441,7 +1441,7 @@ namespace NativeCollections
         /// <returns>Is write atomic</returns>
         private static bool IsWriteAtomicPrivate()
         {
-            if (typeof(T) == typeof(IntPtr) || typeof(T) == typeof(UIntPtr))
+            if (typeof(T) == typeof(nint) || typeof(T) == typeof(nuint))
                 return true;
             switch (Type.GetTypeCode(typeof(T)))
             {
