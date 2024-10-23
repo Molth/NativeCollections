@@ -194,26 +194,10 @@ namespace NativeCollections
             newNode->Next = (Node*)handle->Head;
             if (Interlocked.CompareExchange(ref handle->Head, (nint)newNode, (nint)newNode->Next) == (nint)newNode->Next)
                 return;
-            var count = 0;
+            var spinWait = new FastSpinWait();
             do
             {
-                if ((count >= 10 && (count - 10) % 2 == 0) || Environment.ProcessorCount == 1)
-                {
-                    var yieldsSoFar = count >= 10 ? (count - 10) / 2 : count;
-                    if (yieldsSoFar % 5 == 4)
-                        Thread.Sleep(0);
-                    else
-                        Thread.Yield();
-                }
-                else
-                {
-                    var iterations = Environment.ProcessorCount / 2;
-                    if (count <= 30 && 1 << count < iterations)
-                        iterations = 1 << count;
-                    Thread.SpinWait(iterations);
-                }
-
-                count = count == int.MaxValue ? 10 : count + 1;
+                spinWait.SpinOnce();
                 newNode->Next = (Node*)handle->Head;
             } while (Interlocked.CompareExchange(ref handle->Head, (nint)newNode, (nint)newNode->Next) != (nint)newNode->Next);
         }
@@ -250,7 +234,7 @@ namespace NativeCollections
                 return true;
             }
 
-            var count = 0;
+            var spinWait = new FastSpinWait();
             var backoff = 1;
 #if !NET6_0_OR_GREATER
             var random = (uint)Stopwatch.GetTimestamp();
@@ -281,27 +265,8 @@ namespace NativeCollections
                 }
 
                 for (var i = 0; i < backoff; ++i)
-                {
-                    if ((count >= 10 && (count - 10) % 2 == 0) || Environment.ProcessorCount == 1)
-                    {
-                        var yieldsSoFar = count >= 10 ? (count - 10) / 2 : count;
-                        if (yieldsSoFar % 5 == 4)
-                            Thread.Sleep(0);
-                        else
-                            Thread.Yield();
-                    }
-                    else
-                    {
-                        var iterations = Environment.ProcessorCount / 2;
-                        if (count <= 30 && 1 << count < iterations)
-                            iterations = 1 << count;
-                        Thread.SpinWait(iterations);
-                    }
-
-                    count = count == int.MaxValue ? 10 : count + 1;
-                }
-
-                if (count >= 10 || Environment.ProcessorCount == 1)
+                    spinWait.SpinOnce();
+                if (spinWait.Count >= 10 || Environment.ProcessorCount == 1)
                 {
 #if NET6_0_OR_GREATER
                     backoff = Random.Shared.Next(1, 8);

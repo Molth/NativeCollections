@@ -162,57 +162,25 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryRent(out int index)
         {
-            var count = 0;
+            var spinWait = new FastSpinWait();
             var buffer = _buffer;
             ref var location = ref buffer[1];
             var id = location - 1;
             while (id >= 0 && Interlocked.CompareExchange(ref location, id, id + 1) != id + 1)
             {
                 id = location - 1;
-                if ((count >= 10 && (count - 10) % 2 == 0) || Environment.ProcessorCount == 1)
-                {
-                    var yieldsSoFar = count >= 10 ? (count - 10) / 2 : count;
-                    if (yieldsSoFar % 5 == 4)
-                        Thread.Sleep(0);
-                    else
-                        Thread.Yield();
-                }
-                else
-                {
-                    var iterations = Environment.ProcessorCount / 2;
-                    if (count <= 30 && 1 << count < iterations)
-                        iterations = 1 << count;
-                    Thread.SpinWait(iterations);
-                }
-
-                count = count == int.MaxValue ? 10 : count + 1;
+                spinWait.SpinOnce();
             }
 
             if (id >= 0)
             {
-                count = 0;
+                spinWait.Reset();
                 var value = 0;
                 location = ref buffer[2 + id];
                 while (value == 0)
                 {
                     value = Interlocked.Exchange(ref location, 0);
-                    if ((count >= 10 && (count - 10) % 2 == 0) || Environment.ProcessorCount == 1)
-                    {
-                        var yieldsSoFar = count >= 10 ? (count - 10) / 2 : count;
-                        if (yieldsSoFar % 5 == 4)
-                            Thread.Sleep(0);
-                        else
-                            Thread.Yield();
-                    }
-                    else
-                    {
-                        var iterations = Environment.ProcessorCount / 2;
-                        if (count <= 30 && 1 << count < iterations)
-                            iterations = 1 << count;
-                        Thread.SpinWait(iterations);
-                    }
-
-                    count = count == int.MaxValue ? 10 : count + 1;
+                    spinWait.SpinOnce();
                 }
 
                 index = value - 1;
@@ -239,31 +207,13 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Return(int index)
         {
-            var count = 0;
+            var spinWait = new FastSpinWait();
             var buffer = _buffer;
             var id = Interlocked.Increment(ref buffer[1]) - 1;
             ref var location = ref buffer[id + 2];
             var value = index + 1;
             while (Interlocked.CompareExchange(ref location, value, 0) != 0)
-            {
-                if ((count >= 10 && (count - 10) % 2 == 0) || Environment.ProcessorCount == 1)
-                {
-                    var yieldsSoFar = count >= 10 ? (count - 10) / 2 : count;
-                    if (yieldsSoFar % 5 == 4)
-                        Thread.Sleep(0);
-                    else
-                        Thread.Yield();
-                }
-                else
-                {
-                    var iterations = Environment.ProcessorCount / 2;
-                    if (count <= 30 && 1 << count < iterations)
-                        iterations = 1 << count;
-                    Thread.SpinWait(iterations);
-                }
-
-                count = count == int.MaxValue ? 10 : count + 1;
-            }
+                spinWait.SpinOnce();
         }
     }
 }
