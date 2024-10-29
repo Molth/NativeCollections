@@ -299,7 +299,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Initialize(NativeMemoryPool segmentPool)
         {
-            _crossSegmentLock = new NativeMonitorLock(new object());
+            _crossSegmentLock = new NativeMonitorLock(GCHandleType.Normal);
             _segmentPool = segmentPool;
             var segment = (NativeConcurrentQueueSegmentNotArm64<T>*)_segmentPool.Rent();
             var array = (byte*)segment + sizeof(NativeConcurrentQueueSegmentNotArm64<T>);
@@ -802,7 +802,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Initialize(NativeMemoryPool segmentPool)
         {
-            _crossSegmentLock = new NativeMonitorLock(new object());
+            _crossSegmentLock = new NativeMonitorLock(GCHandleType.Normal);
             _segmentPool = segmentPool;
             var segment = (NativeConcurrentQueueSegmentArm64<T>*)_segmentPool.Rent();
             var array = (byte*)segment + sizeof(NativeConcurrentQueueSegmentArm64<T>);

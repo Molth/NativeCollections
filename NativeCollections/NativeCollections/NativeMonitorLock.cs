@@ -26,17 +26,9 @@ namespace NativeCollections
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="value">Value</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeMonitorLock(object value) => _handle = GCHandle.Alloc(value, GCHandleType.Normal);
-
-        /// <summary>
-        ///     Structure
-        /// </summary>
-        /// <param name="value">Value</param>
         /// <param name="type">GCHandle type</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeMonitorLock(object value, GCHandleType type) => _handle = GCHandle.Alloc(value, type);
+        public NativeMonitorLock(GCHandleType type) => _handle = GCHandle.Alloc(new object(), type);
 
         /// <summary>
         ///     Is created

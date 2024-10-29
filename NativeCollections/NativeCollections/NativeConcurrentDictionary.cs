@@ -550,7 +550,7 @@ namespace NativeCollections
                     newLocks = new NativeArrayReference<object>(tables->Locks.Length * 2);
                     Array.Copy(tables->Locks.Array, newLocks.Array, tables->Locks.Length);
                     for (var i = tables->Locks.Length; i < newLocks.Length; ++i)
-                        newLocks[i] = new NativeMonitorLock(new object());
+                        newLocks[i] = new object();
                 }
 
                 var newBuckets = new NativeArray<VolatileNode>(newLength, true);
