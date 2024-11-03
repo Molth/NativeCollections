@@ -8,10 +8,10 @@ using System.Threading;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Fast spin wait
+    ///     Native spin wait
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public ref struct FastSpinWait
+    public ref struct NativeSpinWait
     {
         /// <summary>
         ///     Count
@@ -57,6 +57,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static FastSpinWait Empty => new();
+        public static NativeSpinWait Empty => new();
     }
 }

@@ -162,7 +162,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryRent(out int index)
         {
-            var spinWait = new FastSpinWait();
+            var spinWait = new NativeSpinWait();
             var buffer = _buffer;
             ref var location = ref buffer[1];
             var id = location - 1;
@@ -207,7 +207,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Return(int index)
         {
-            var spinWait = new FastSpinWait();
+            var spinWait = new NativeSpinWait();
             var buffer = _buffer;
             var id = Interlocked.Increment(ref buffer[1]) - 1;
             ref var location = ref buffer[id + 2];

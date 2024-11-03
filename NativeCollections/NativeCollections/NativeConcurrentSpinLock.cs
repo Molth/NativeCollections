@@ -121,7 +121,7 @@ namespace NativeCollections
         public void Enter()
         {
             var handle = _handle;
-            var spinWait = new FastSpinWait();
+            var spinWait = new NativeSpinWait();
             var sequenceNumber = Interlocked.Add(ref handle->SequenceNumber, 1);
             while (sequenceNumber != handle->NextSequenceNumber)
                 spinWait.SpinOnce();
@@ -138,7 +138,21 @@ namespace NativeCollections
         /// </summary>
         /// <returns>NativeConcurrentSpinLock</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeConcurrentSpinLock(void* buffer) => new NativeConcurrentSpinLock(buffer);
+        public static implicit operator NativeConcurrentSpinLock(void* buffer) => new(buffer);
+
+        /// <summary>
+        ///     As native concurrent spinLock
+        /// </summary>
+        /// <returns>NativeConcurrentSpinLock</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator NativeConcurrentSpinLock(Span<byte> span) => new(Unsafe.AsPointer(ref MemoryMarshal.GetReference(span)));
+
+        /// <summary>
+        ///     As native concurrent spinLock
+        /// </summary>
+        /// <returns>NativeConcurrentSpinLock</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator NativeConcurrentSpinLock(ReadOnlySpan<byte> readOnlySpan) => new(Unsafe.AsPointer(ref MemoryMarshal.GetReference(readOnlySpan)));
 
         /// <summary>
         ///     Empty

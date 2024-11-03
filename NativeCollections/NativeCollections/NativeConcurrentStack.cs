@@ -196,7 +196,7 @@ namespace NativeCollections
             newNode->Next = (Node*)handle->Head;
             if (Interlocked.CompareExchange(ref handle->Head, (nint)newNode, (nint)newNode->Next) == (nint)newNode->Next)
                 return;
-            var spinWait = new FastSpinWait();
+            var spinWait = new NativeSpinWait();
             do
             {
                 spinWait.SpinOnce();
@@ -237,7 +237,7 @@ namespace NativeCollections
                 return true;
             }
 
-            var spinWait = new FastSpinWait();
+            var spinWait = new NativeSpinWait();
             var backoff = 1;
 #if !NET6_0_OR_GREATER
             var random = (uint)Stopwatch.GetTimestamp();
