@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 
 #pragma warning disable CA2208
+#pragma warning disable CS8602
 #pragma warning disable CS8632
 
 // ReSharper disable ALL
@@ -195,7 +196,7 @@ namespace NativeCollections
         /// <summary>
         ///     Cross segment lock
         /// </summary>
-        private NativeMonitorLock _crossSegmentLock;
+        private GCHandle _crossSegmentLock;
 
         /// <summary>
         ///     Segment pool
@@ -226,9 +227,9 @@ namespace NativeCollections
                     var next = Volatile.Read(ref segment->NextSegment);
                     if (segment->TryPeek())
                         return false;
-                    if (next != nint.Zero)
+                    if (next != IntPtr.Zero)
                         segment = (NativeConcurrentQueueSegmentNotArm64<T>*)next;
-                    else if (Volatile.Read(ref segment->NextSegment) == nint.Zero)
+                    else if (Volatile.Read(ref segment->NextSegment) == IntPtr.Zero)
                         break;
                 }
 
@@ -265,8 +266,7 @@ namespace NativeCollections
                     }
                     else
                     {
-                        _crossSegmentLock.Enter();
-                        try
+                        lock (_crossSegmentLock.Target)
                         {
                             if (head == _head && tail == _tail)
                             {
@@ -280,10 +280,6 @@ namespace NativeCollections
                                     return count;
                                 }
                             }
-                        }
-                        finally
-                        {
-                            _crossSegmentLock.Exit();
                         }
                     }
 
@@ -299,7 +295,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Initialize(NativeMemoryPool segmentPool)
         {
-            _crossSegmentLock = new NativeMonitorLock(GCHandleType.Normal);
+            _crossSegmentLock = GCHandle.Alloc(new object(), GCHandleType.Normal);
             _segmentPool = segmentPool;
             var segment = (NativeConcurrentQueueSegmentNotArm64<T>*)_segmentPool.Rent();
             var array = (byte*)segment + sizeof(NativeConcurrentQueueSegmentNotArm64<T>);
@@ -313,7 +309,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            _crossSegmentLock.Dispose();
+            _crossSegmentLock.Free();
             _segmentPool.Dispose();
         }
 
@@ -323,8 +319,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
-            _crossSegmentLock.Enter();
-            try
+            lock (_crossSegmentLock.Target)
             {
                 _tail->EnsureFrozenForEnqueues();
                 var node = _head;
@@ -339,10 +334,6 @@ namespace NativeCollections
                 var array = (byte*)segment + sizeof(NativeConcurrentQueueSegmentNotArm64<T>);
                 segment->Initialize((NativeConcurrentQueueSegmentNotArm64<T>.Slot*)array);
                 _tail = _head = segment;
-            }
-            finally
-            {
-                _crossSegmentLock.Exit();
             }
         }
 
@@ -360,8 +351,7 @@ namespace NativeCollections
                     var tail = _tail;
                     if (tail->TryEnqueue(item))
                         return;
-                    _crossSegmentLock.Enter();
-                    try
+                    lock (_crossSegmentLock.Target)
                     {
                         if (tail == _tail)
                         {
@@ -372,10 +362,6 @@ namespace NativeCollections
                             tail->NextSegment = (nint)newTail;
                             _tail = newTail;
                         }
-                    }
-                    finally
-                    {
-                        _crossSegmentLock.Exit();
                     }
                 }
             }
@@ -392,7 +378,7 @@ namespace NativeCollections
             var head = _head;
             if (head->TryDequeue(out result))
                 return true;
-            if (head->NextSegment == nint.Zero)
+            if (head->NextSegment == IntPtr.Zero)
             {
                 result = default;
                 return false;
@@ -403,7 +389,7 @@ namespace NativeCollections
                 head = _head;
                 if (head->TryDequeue(out result))
                     return true;
-                if (head->NextSegment == nint.Zero)
+                if (head->NextSegment == IntPtr.Zero)
                 {
                     result = default;
                     return false;
@@ -411,18 +397,13 @@ namespace NativeCollections
 
                 if (head->TryDequeue(out result))
                     return true;
-                _crossSegmentLock.Enter();
-                try
+                lock (_crossSegmentLock.Target)
                 {
                     if (head == _head)
                     {
                         _head = (NativeConcurrentQueueSegmentNotArm64<T>*)head->NextSegment;
                         _segmentPool.Return(head);
                     }
-                }
-                finally
-                {
-                    _crossSegmentLock.Exit();
                 }
             }
         }
@@ -527,7 +508,7 @@ namespace NativeCollections
                 Slots[i].SequenceNumber = i;
             HeadAndTail = new NativeConcurrentQueuePaddedHeadAndTailNotArm64();
             FrozenForEnqueues = false;
-            NextSegment = nint.Zero;
+            NextSegment = IntPtr.Zero;
         }
 
         /// <summary>
@@ -698,7 +679,7 @@ namespace NativeCollections
         /// <summary>
         ///     Cross segment lock
         /// </summary>
-        private NativeMonitorLock _crossSegmentLock;
+        private GCHandle _crossSegmentLock;
 
         /// <summary>
         ///     Segment pool
@@ -729,9 +710,9 @@ namespace NativeCollections
                     var next = Volatile.Read(ref segment->NextSegment);
                     if (segment->TryPeek())
                         return false;
-                    if (next != nint.Zero)
+                    if (next != IntPtr.Zero)
                         segment = (NativeConcurrentQueueSegmentArm64<T>*)next;
-                    else if (Volatile.Read(ref segment->NextSegment) == nint.Zero)
+                    else if (Volatile.Read(ref segment->NextSegment) == IntPtr.Zero)
                         break;
                 }
 
@@ -768,8 +749,7 @@ namespace NativeCollections
                     }
                     else
                     {
-                        _crossSegmentLock.Enter();
-                        try
+                        lock (_crossSegmentLock.Target)
                         {
                             if (head == _head && tail == _tail)
                             {
@@ -783,10 +763,6 @@ namespace NativeCollections
                                     return count;
                                 }
                             }
-                        }
-                        finally
-                        {
-                            _crossSegmentLock.Exit();
                         }
                     }
 
@@ -802,7 +778,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Initialize(NativeMemoryPool segmentPool)
         {
-            _crossSegmentLock = new NativeMonitorLock(GCHandleType.Normal);
+            _crossSegmentLock = GCHandle.Alloc(new object(), GCHandleType.Normal);
             _segmentPool = segmentPool;
             var segment = (NativeConcurrentQueueSegmentArm64<T>*)_segmentPool.Rent();
             var array = (byte*)segment + sizeof(NativeConcurrentQueueSegmentArm64<T>);
@@ -816,7 +792,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            _crossSegmentLock.Dispose();
+            _crossSegmentLock.Free();
             _segmentPool.Dispose();
         }
 
@@ -826,8 +802,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
-            _crossSegmentLock.Enter();
-            try
+            lock (_crossSegmentLock.Target)
             {
                 _tail->EnsureFrozenForEnqueues();
                 var node = _head;
@@ -842,10 +817,6 @@ namespace NativeCollections
                 var array = (byte*)segment + sizeof(NativeConcurrentQueueSegmentArm64<T>);
                 segment->Initialize((NativeConcurrentQueueSegmentArm64<T>.Slot*)array);
                 _tail = _head = segment;
-            }
-            finally
-            {
-                _crossSegmentLock.Exit();
             }
         }
 
@@ -863,8 +834,7 @@ namespace NativeCollections
                     var tail = _tail;
                     if (tail->TryEnqueue(item))
                         return;
-                    _crossSegmentLock.Enter();
-                    try
+                    lock (_crossSegmentLock.Target)
                     {
                         if (tail == _tail)
                         {
@@ -875,10 +845,6 @@ namespace NativeCollections
                             tail->NextSegment = (nint)newTail;
                             _tail = newTail;
                         }
-                    }
-                    finally
-                    {
-                        _crossSegmentLock.Exit();
                     }
                 }
             }
@@ -895,7 +861,7 @@ namespace NativeCollections
             var head = _head;
             if (head->TryDequeue(out result))
                 return true;
-            if (head->NextSegment == nint.Zero)
+            if (head->NextSegment == IntPtr.Zero)
             {
                 result = default;
                 return false;
@@ -906,7 +872,7 @@ namespace NativeCollections
                 head = _head;
                 if (head->TryDequeue(out result))
                     return true;
-                if (head->NextSegment == nint.Zero)
+                if (head->NextSegment == IntPtr.Zero)
                 {
                     result = default;
                     return false;
@@ -914,18 +880,13 @@ namespace NativeCollections
 
                 if (head->TryDequeue(out result))
                     return true;
-                _crossSegmentLock.Enter();
-                try
+                lock (_crossSegmentLock.Target)
                 {
                     if (head == _head)
                     {
                         _head = (NativeConcurrentQueueSegmentArm64<T>*)head->NextSegment;
                         _segmentPool.Return(head);
                     }
-                }
-                finally
-                {
-                    _crossSegmentLock.Exit();
                 }
             }
         }
@@ -1030,7 +991,7 @@ namespace NativeCollections
                 Slots[i].SequenceNumber = i;
             HeadAndTail = new NativeConcurrentQueuePaddedHeadAndTailArm64();
             FrozenForEnqueues = false;
-            NextSegment = nint.Zero;
+            NextSegment = IntPtr.Zero;
         }
 
         /// <summary>

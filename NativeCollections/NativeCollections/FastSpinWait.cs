@@ -53,5 +53,10 @@ namespace NativeCollections
 
             _count = _count == int.MaxValue ? 10 : _count + 1;
         }
+
+        /// <summary>
+        ///     Empty
+        /// </summary>
+        public static FastSpinWait Empty => new();
     }
 }

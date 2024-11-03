@@ -15,28 +15,23 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection]
-    public readonly unsafe struct NativeConcurrentSpinLock : IDisposable, IEquatable<NativeConcurrentSpinLock>
+    public readonly unsafe ref struct NativeConcurrentSpinLock
     {
         /// <summary>
         ///     Handle
         /// </summary>
-        [StructLayout(LayoutKind.Sequential)]
+        [StructLayout(LayoutKind.Explicit, Size = 8)]
         private struct NativeConcurrentSpinLockHandle
         {
             /// <summary>
             ///     Sequence number
             /// </summary>
-            public int SequenceNumber;
+            [FieldOffset(0)] public int SequenceNumber;
 
             /// <summary>
             ///     Next sequence number
             /// </summary>
-            public int NextSequenceNumber;
-
-            /// <summary>
-            ///     Sleep threshold
-            /// </summary>
-            public int SleepThreshold;
+            [FieldOffset(4)] public int NextSequenceNumber;
         }
 
         /// <summary>
@@ -47,20 +42,9 @@ namespace NativeCollections
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="sleepThreshold">Sleep threshold</param>
+        /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeConcurrentSpinLock(int sleepThreshold)
-        {
-            if (sleepThreshold < -1)
-                sleepThreshold = -1;
-            else if (sleepThreshold >= 0 && sleepThreshold < 10)
-                sleepThreshold = 10;
-            var handle = (NativeConcurrentSpinLockHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeConcurrentSpinLockHandle));
-            handle->SequenceNumber = 0;
-            handle->NextSequenceNumber = 1;
-            handle->SleepThreshold = sleepThreshold;
-            _handle = handle;
-        }
+        public NativeConcurrentSpinLock(void* buffer) => _handle = (NativeConcurrentSpinLockHandle*)buffer;
 
         /// <summary>
         ///     Is created
@@ -68,9 +52,14 @@ namespace NativeCollections
         public bool IsCreated => _handle != null;
 
         /// <summary>
-        ///     Sleep threshold
+        ///     Sequence number
         /// </summary>
-        public int SleepThreshold => _handle->SleepThreshold;
+        public int SequenceNumber => _handle->SequenceNumber;
+
+        /// <summary>
+        ///     Next sequence number
+        /// </summary>
+        public int NextSequenceNumber => _handle->NextSequenceNumber;
 
         /// <summary>
         ///     Equals
@@ -84,7 +73,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeConcurrentSpinLock nativeConcurrentSpinLock && nativeConcurrentSpinLock == this;
+        public override bool Equals(object? obj) => throw new NotSupportedException("Cannot call Equals on NativeConcurrentSpinLock");
 
         /// <summary>
         ///     Get hashCode
@@ -115,15 +104,14 @@ namespace NativeCollections
         public static bool operator !=(NativeConcurrentSpinLock left, NativeConcurrentSpinLock right) => left._handle != right._handle;
 
         /// <summary>
-        ///     Dispose
+        ///     Reset
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
+        public void Reset()
         {
             var handle = _handle;
-            if (handle == null)
-                return;
-            NativeMemoryAllocator.Free(handle);
+            handle->SequenceNumber = 0;
+            handle->NextSequenceNumber = 1;
         }
 
         /// <summary>
@@ -133,39 +121,10 @@ namespace NativeCollections
         public void Enter()
         {
             var handle = _handle;
+            var spinWait = new FastSpinWait();
             var sequenceNumber = Interlocked.Add(ref handle->SequenceNumber, 1);
-            if (sequenceNumber != handle->NextSequenceNumber)
-            {
-                var count = 0;
-                var sleepThreshold = handle->SleepThreshold;
-                do
-                {
-                    if ((count >= 10 && ((count >= sleepThreshold && sleepThreshold >= 0) || (count - 10) % 2 == 0)) || Environment.ProcessorCount == 1)
-                    {
-                        if (count >= sleepThreshold && sleepThreshold >= 0)
-                        {
-                            Thread.Sleep(1);
-                        }
-                        else
-                        {
-                            var yieldsSoFar = count >= 10 ? (count - 10) / 2 : count;
-                            if (yieldsSoFar % 5 == 4)
-                                Thread.Sleep(0);
-                            else
-                                Thread.Yield();
-                        }
-                    }
-                    else
-                    {
-                        var iterations = Environment.ProcessorCount / 2;
-                        if (count <= 30 && 1 << count < iterations)
-                            iterations = 1 << count;
-                        Thread.SpinWait(iterations);
-                    }
-
-                    count = count == int.MaxValue ? 10 : count + 1;
-                } while (sequenceNumber != handle->NextSequenceNumber);
-            }
+            while (sequenceNumber != handle->NextSequenceNumber)
+                spinWait.SpinOnce();
         }
 
         /// <summary>
@@ -173,6 +132,13 @@ namespace NativeCollections
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Exit() => Interlocked.Add(ref _handle->NextSequenceNumber, 1);
+
+        /// <summary>
+        ///     As native concurrent spinLock
+        /// </summary>
+        /// <returns>NativeConcurrentSpinLock</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator NativeConcurrentSpinLock(void* buffer) => new NativeConcurrentSpinLock(buffer);
 
         /// <summary>
         ///     Empty

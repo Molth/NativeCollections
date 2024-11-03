@@ -48,7 +48,7 @@ namespace NativeCollections
             /// <summary>
             ///     Node lock
             /// </summary>
-            public NativeConcurrentSpinLock NodeLock;
+            public fixed byte NodeLock[8];
         }
 
         /// <summary>
@@ -84,7 +84,8 @@ namespace NativeCollections
             handle->GrowLockArray = growLockArray;
             handle->Budget = buckets.Length / locks.Length;
             handle->NodePool = nodePool;
-            handle->NodeLock = new NativeConcurrentSpinLock(-1);
+            NativeConcurrentSpinLock nodeLock = handle->NodeLock;
+            nodeLock.Reset();
             _handle = handle;
         }
 
@@ -190,7 +191,6 @@ namespace NativeCollections
                 return;
             handle->Tables->Dispose();
             handle->NodePool.Dispose();
-            handle->NodeLock.Dispose();
             NativeMemoryAllocator.Free(handle);
         }
 
@@ -256,6 +256,7 @@ namespace NativeCollections
         public bool Remove(in T key)
         {
             var handle = _handle;
+            NativeConcurrentSpinLock nodeLock = handle->NodeLock;
             var tables = handle->Tables;
             var hashCode = key.GetHashCode();
             while (true)
@@ -282,14 +283,14 @@ namespace NativeCollections
                                     Volatile.Write(ref bucket, (nint)curr->Next);
                                 else
                                     prev->Next = curr->Next;
-                                handle->NodeLock.Enter();
+                                nodeLock.Enter();
                                 try
                                 {
                                     handle->NodePool.Return(curr);
                                 }
                                 finally
                                 {
-                                    handle->NodeLock.Exit();
+                                    nodeLock.Exit();
                                 }
 
                                 tables->CountPerLock[lockNo]--;
@@ -512,6 +513,7 @@ namespace NativeCollections
         private bool TryAddInternal(Tables* tables, in T key)
         {
             var handle = _handle;
+            NativeConcurrentSpinLock nodeLock = handle->NodeLock;
             var hashCode = key.GetHashCode();
             while (true)
             {
@@ -535,14 +537,14 @@ namespace NativeCollections
                     }
 
                     Node* resultNode;
-                    handle->NodeLock.Enter();
+                    nodeLock.Enter();
                     try
                     {
                         resultNode = (Node*)handle->NodePool.Rent();
                     }
                     finally
                     {
-                        handle->NodeLock.Exit();
+                        nodeLock.Exit();
                     }
 
                     resultNode->Initialize(key, hashCode, (Node*)bucket);
