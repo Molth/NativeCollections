@@ -451,14 +451,217 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <returns>Bytes</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int Read(Span<byte> buffer) => Read((byte*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)), buffer.Length);
+        public int Read(Span<byte> buffer)
+        {
+            var length = buffer.Length;
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            ref var reference = ref MemoryMarshal.GetReference(buffer);
+            var handle = _handle;
+            if (length >= handle->Length)
+            {
+                length = handle->Length;
+                if (length == 0)
+                    return 0;
+                var size = handle->Size;
+                var byteCount = size - handle->ReadOffset;
+                if (byteCount > length)
+                {
+                    Unsafe.CopyBlockUnaligned(ref reference, ref *(handle->Head->Array + handle->ReadOffset), (uint)length);
+                }
+                else
+                {
+                    Unsafe.CopyBlockUnaligned(ref reference, ref *(handle->Head->Array + handle->ReadOffset), (uint)byteCount);
+                    if (byteCount != length)
+                    {
+                        NativeMemoryChunk* chunk;
+                        var count = length - byteCount;
+                        var chunks = count / size;
+                        var remaining = count % size;
+                        for (var i = 0; i < chunks; ++i)
+                        {
+                            chunk = handle->Head;
+                            handle->Head = chunk->Next;
+                            if (handle->FreeChunks == handle->MaxFreeChunks)
+                            {
+                                NativeMemoryAllocator.Free(chunk);
+                            }
+                            else
+                            {
+                                chunk->Next = handle->FreeList;
+                                handle->FreeList = chunk;
+                                ++handle->FreeChunks;
+                            }
+
+                            --handle->Chunks;
+                            Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteCount), ref *handle->Head->Array, (uint)size);
+                            byteCount += size;
+                        }
+
+                        if (remaining != 0)
+                        {
+                            chunk = handle->Head;
+                            handle->Head = chunk->Next;
+                            if (handle->FreeChunks == handle->MaxFreeChunks)
+                            {
+                                NativeMemoryAllocator.Free(chunk);
+                            }
+                            else
+                            {
+                                chunk->Next = handle->FreeList;
+                                handle->FreeList = chunk;
+                                ++handle->FreeChunks;
+                            }
+
+                            --handle->Chunks;
+                            Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteCount), ref *handle->Head->Array, (uint)remaining);
+                        }
+                    }
+                }
+
+                handle->ReadOffset = 0;
+                handle->WriteOffset = 0;
+                handle->Length = 0;
+            }
+            else
+            {
+                if (length == 0)
+                    return 0;
+                var size = handle->Size;
+                var byteCount = size - handle->ReadOffset;
+                if (byteCount > length)
+                {
+                    Unsafe.CopyBlockUnaligned(ref reference, ref *(handle->Head->Array + handle->ReadOffset), (uint)length);
+                    handle->ReadOffset += length;
+                }
+                else
+                {
+                    Unsafe.CopyBlockUnaligned(ref reference, ref *(handle->Head->Array + handle->ReadOffset), (uint)byteCount);
+                    NativeMemoryChunk* chunk;
+                    var count = length - byteCount;
+                    var chunks = count / size;
+                    var remaining = count % size;
+                    for (var i = 0; i < chunks; ++i)
+                    {
+                        chunk = handle->Head;
+                        handle->Head = chunk->Next;
+                        if (handle->FreeChunks == handle->MaxFreeChunks)
+                        {
+                            NativeMemoryAllocator.Free(chunk);
+                        }
+                        else
+                        {
+                            chunk->Next = handle->FreeList;
+                            handle->FreeList = chunk;
+                            ++handle->FreeChunks;
+                        }
+
+                        --handle->Chunks;
+                        Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteCount), ref *handle->Head->Array, (uint)size);
+                        byteCount += size;
+                    }
+
+                    if (remaining != 0)
+                    {
+                        chunk = handle->Head;
+                        handle->Head = chunk->Next;
+                        if (handle->FreeChunks == handle->MaxFreeChunks)
+                        {
+                            NativeMemoryAllocator.Free(chunk);
+                        }
+                        else
+                        {
+                            chunk->Next = handle->FreeList;
+                            handle->FreeList = chunk;
+                            ++handle->FreeChunks;
+                        }
+
+                        --handle->Chunks;
+                        Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteCount), ref *handle->Head->Array, (uint)remaining);
+                    }
+
+                    handle->ReadOffset = remaining;
+                }
+
+                handle->Length -= length;
+            }
+
+            return length;
+        }
 
         /// <summary>
         ///     Write
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(ReadOnlySpan<byte> buffer) => Write((byte*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)), buffer.Length);
+        public void Write(ReadOnlySpan<byte> buffer)
+        {
+            var length = buffer.Length;
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            if (length == 0)
+                return;
+            ref var reference = ref MemoryMarshal.GetReference(buffer);
+            var handle = _handle;
+            var size = handle->Size;
+            var byteCount = size - handle->WriteOffset;
+            if (byteCount >= length)
+            {
+                Unsafe.CopyBlockUnaligned(ref *(handle->Tail->Array + handle->WriteOffset), ref reference, (uint)length);
+                handle->WriteOffset += length;
+            }
+            else
+            {
+                if (byteCount != 0)
+                    Unsafe.CopyBlockUnaligned(ref *(handle->Tail->Array + handle->WriteOffset), ref reference, (uint)byteCount);
+                NativeMemoryChunk* chunk;
+                var count = length - byteCount;
+                var chunks = count / size;
+                var remaining = count % size;
+                for (var i = 0; i < chunks; ++i)
+                {
+                    if (handle->FreeChunks == 0)
+                    {
+                        chunk = (NativeMemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemoryChunk) + size));
+                    }
+                    else
+                    {
+                        chunk = handle->FreeList;
+                        handle->FreeList = chunk->Next;
+                        --handle->FreeChunks;
+                    }
+
+                    handle->Tail->Next = chunk;
+                    handle->Tail = chunk;
+                    ++handle->Chunks;
+                    Unsafe.CopyBlockUnaligned(ref *handle->Tail->Array, ref Unsafe.AddByteOffset(ref reference, byteCount), (uint)size);
+                    byteCount += size;
+                }
+
+                if (remaining != 0)
+                {
+                    if (handle->FreeChunks == 0)
+                    {
+                        chunk = (NativeMemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemoryChunk) + size));
+                    }
+                    else
+                    {
+                        chunk = handle->FreeList;
+                        handle->FreeList = chunk->Next;
+                        --handle->FreeChunks;
+                    }
+
+                    handle->Tail->Next = chunk;
+                    handle->Tail = chunk;
+                    ++handle->Chunks;
+                    Unsafe.CopyBlockUnaligned(ref *handle->Tail->Array, ref Unsafe.AddByteOffset(ref reference, byteCount), (uint)remaining);
+                }
+
+                handle->WriteOffset = remaining;
+            }
+
+            handle->Length += length;
+        }
 
         /// <summary>
         ///     Ensure capacity
