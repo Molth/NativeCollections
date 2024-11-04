@@ -254,7 +254,11 @@ namespace NativeCollections
             {
                 length = handle->Length;
                 if (length == 0)
+                {
+                    spinLock.Exit();
                     return 0;
+                }
+
                 var size = handle->Size;
                 var byteCount = size - handle->ReadOffset;
                 if (byteCount > length)
@@ -318,7 +322,11 @@ namespace NativeCollections
             else
             {
                 if (length == 0)
+                {
+                    spinLock.Exit();
                     return 0;
+                }
+
                 var size = handle->Size;
                 var byteCount = size - handle->ReadOffset;
                 if (byteCount > length)
@@ -477,7 +485,11 @@ namespace NativeCollections
             {
                 length = handle->Length;
                 if (length == 0)
+                {
+                    spinLock.Exit();
                     return 0;
+                }
+
                 var size = handle->Size;
                 var byteCount = size - handle->ReadOffset;
                 if (byteCount > length)
@@ -541,7 +553,11 @@ namespace NativeCollections
             else
             {
                 if (length == 0)
+                {
+                    spinLock.Exit();
                     return 0;
+                }
+
                 var size = handle->Size;
                 var byteCount = size - handle->ReadOffset;
                 if (byteCount > length)
