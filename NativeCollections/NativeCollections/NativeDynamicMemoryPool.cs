@@ -766,12 +766,14 @@ namespace NativeCollections
                 public blocks_t blocks;
             }
 
+            [StructLayout(LayoutKind.Sequential)]
             [InlineArray(FL_INDEX_COUNT)]
             public struct blocks_t
             {
                 private block_headers_t headers;
             }
 
+            [StructLayout(LayoutKind.Sequential)]
             [InlineArray(SL_INDEX_COUNT)]
             public struct block_headers_t
             {
@@ -1357,12 +1359,14 @@ namespace NativeCollections
                 public blocks_t blocks;
             }
 
+            [StructLayout(LayoutKind.Sequential)]
             [InlineArray(FL_INDEX_COUNT)]
             public struct blocks_t
             {
                 private block_headers_t headers;
             }
 
+            [StructLayout(LayoutKind.Sequential)]
             [InlineArray(SL_INDEX_COUNT)]
             public struct block_headers_t
             {
