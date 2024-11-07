@@ -386,7 +386,7 @@ namespace NativeCollections
 
                 sl = tlsf_ffs(sl_map);
                 *sli = sl;
-                return get_blocks(control, fl)[sl];
+                return (block_header_t*)control->blocks[fl][sl];
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -396,9 +396,9 @@ namespace NativeCollections
                 var next = block->next_free;
                 next->prev_free = prev;
                 prev->next_free = next;
-                if (get_blocks(control, fl)[sl] == block)
+                if ((block_header_t*)control->blocks[fl][sl] == block)
                 {
-                    get_blocks(control, fl)[sl] = next;
+                    control->blocks[fl][sl] = (nint)next;
                     if (next == &control->block_null)
                     {
                         control->sl_bitmap[fl] &= ~(1U << sl);
@@ -411,11 +411,11 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static void insert_free_block(control_t* control, block_header_t* block, int fl, int sl)
             {
-                var current = get_blocks(control, fl)[sl];
+                var current = (block_header_t*)control->blocks[fl][sl];
                 block->next_free = current;
                 block->prev_free = &control->block_null;
                 current->prev_free = block;
-                get_blocks(control, fl)[sl] = block;
+                control->blocks[fl][sl] = (nint)block;
                 control->fl_bitmap |= 1U << fl;
                 control->sl_bitmap[fl] |= 1U << sl;
             }
@@ -565,7 +565,7 @@ namespace NativeCollections
                 {
                     control->sl_bitmap[i] = 0;
                     for (j = 0; j < SL_INDEX_COUNT; ++j)
-                        get_blocks(control, i)[j] = &control->block_null;
+                        control->blocks[i][j] = (nint)(&control->block_null);
                 }
             }
 
@@ -748,9 +748,6 @@ namespace NativeCollections
                 return p;
             }
 
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static block_header_t** get_blocks(control_t* control, int i) => (block_header_t**)control->blocks + i * SL_INDEX_COUNT;
-
             [StructLayout(LayoutKind.Sequential)]
             public struct block_header_t
             {
@@ -766,7 +763,19 @@ namespace NativeCollections
                 public block_header_t block_null;
                 public uint fl_bitmap;
                 public fixed uint sl_bitmap[FL_INDEX_COUNT];
-                public fixed ulong blocks[FL_INDEX_COUNT * SL_INDEX_COUNT];
+                public blocks_t blocks;
+            }
+
+            [InlineArray(FL_INDEX_COUNT)]
+            public struct blocks_t
+            {
+                private block_headers_t headers;
+            }
+
+            [InlineArray(SL_INDEX_COUNT)]
+            public struct block_headers_t
+            {
+                private nint header;
             }
         }
 
@@ -968,7 +977,7 @@ namespace NativeCollections
 
                 sl = tlsf_ffs(sl_map);
                 *sli = sl;
-                return get_blocks(control, fl)[sl];
+                return (block_header_t*)control->blocks[fl][sl];
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -978,9 +987,9 @@ namespace NativeCollections
                 var next = block->next_free;
                 next->prev_free = prev;
                 prev->next_free = next;
-                if (get_blocks(control, fl)[sl] == block)
+                if ((block_header_t*)control->blocks[fl][sl] == block)
                 {
-                    get_blocks(control, fl)[sl] = next;
+                    control->blocks[fl][sl] = (nint)next;
                     if (next == &control->block_null)
                     {
                         control->sl_bitmap[fl] &= ~(1U << sl);
@@ -993,11 +1002,11 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static void insert_free_block(control_t* control, block_header_t* block, int fl, int sl)
             {
-                var current = get_blocks(control, fl)[sl];
+                var current = (block_header_t*)control->blocks[fl][sl];
                 block->next_free = current;
                 block->prev_free = &control->block_null;
                 current->prev_free = block;
-                get_blocks(control, fl)[sl] = block;
+                control->blocks[fl][sl] = (nint)block;
                 control->fl_bitmap |= 1U << fl;
                 control->sl_bitmap[fl] |= 1U << sl;
             }
@@ -1147,7 +1156,7 @@ namespace NativeCollections
                 {
                     control->sl_bitmap[i] = 0;
                     for (j = 0; j < SL_INDEX_COUNT; ++j)
-                        get_blocks(control, i)[j] = &control->block_null;
+                        control->blocks[i][j] = (nint)(&control->block_null);
                 }
             }
 
@@ -1330,9 +1339,6 @@ namespace NativeCollections
                 return p;
             }
 
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static block_header_t** get_blocks(control_t* control, int i) => (block_header_t**)control->blocks + i * SL_INDEX_COUNT;
-
             [StructLayout(LayoutKind.Sequential)]
             public struct block_header_t
             {
@@ -1348,7 +1354,19 @@ namespace NativeCollections
                 public block_header_t block_null;
                 public uint fl_bitmap;
                 public fixed uint sl_bitmap[FL_INDEX_COUNT];
-                public fixed uint blocks[FL_INDEX_COUNT * SL_INDEX_COUNT];
+                public blocks_t blocks;
+            }
+
+            [InlineArray(FL_INDEX_COUNT)]
+            public struct blocks_t
+            {
+                private block_headers_t headers;
+            }
+
+            [InlineArray(SL_INDEX_COUNT)]
+            public struct block_headers_t
+            {
+                private nint header;
             }
         }
     }

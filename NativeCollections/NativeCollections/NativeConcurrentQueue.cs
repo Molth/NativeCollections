@@ -53,13 +53,13 @@ namespace NativeCollections
         {
             if (RuntimeInformation.ProcessArchitecture != Architecture.Arm64)
             {
-                var segmentPool = new NativeMemoryPool(size, sizeof(NativeConcurrentQueueSegmentNotArm64<T>) + NativeConcurrentQueueSegmentNotArm64<T>.LENGTH * sizeof(NativeConcurrentQueueSegmentNotArm64<T>.Slot), maxFreeSlabs);
+                var segmentPool = new NativeMemoryPool(size, sizeof(NativeConcurrentQueueSegmentNotArm64<T>), maxFreeSlabs);
                 _handle = NativeMemoryAllocator.Alloc((uint)sizeof(NativeConcurrentQueueNotArm64<T>));
                 NotArm64Handle->Initialize(segmentPool);
             }
             else
             {
-                var segmentPool = new NativeMemoryPool(size, sizeof(NativeConcurrentQueueSegmentArm64<T>) + NativeConcurrentQueueSegmentArm64<T>.LENGTH * sizeof(NativeConcurrentQueueSegmentArm64<T>.Slot), maxFreeSlabs);
+                var segmentPool = new NativeMemoryPool(size, sizeof(NativeConcurrentQueueSegmentArm64<T>), maxFreeSlabs);
                 _handle = NativeMemoryAllocator.Alloc((uint)sizeof(NativeConcurrentQueueArm64<T>));
                 Arm64Handle->Initialize(segmentPool);
             }
@@ -276,7 +276,7 @@ namespace NativeCollections
                                 {
                                     var count = GetCount(head, headHead, headTail) + GetCount(tail, tailHead, tailTail);
                                     for (var s = (NativeConcurrentQueueSegmentNotArm64<T>*)head->NextSegment; s != tail; s = (NativeConcurrentQueueSegmentNotArm64<T>*)s->NextSegment)
-                                        count += s->HeadAndTail.Tail - NativeConcurrentQueueSegmentNotArm64<T>.FREEZE_OFFSET;
+                                        count += s->HeadAndTail.Tail - NativeConcurrentQueue.FREEZE_OFFSET;
                                     return count;
                                 }
                             }
@@ -298,8 +298,7 @@ namespace NativeCollections
             _crossSegmentLock = GCHandle.Alloc(new object(), GCHandleType.Normal);
             _segmentPool = segmentPool;
             var segment = (NativeConcurrentQueueSegmentNotArm64<T>*)_segmentPool.Rent();
-            var array = (byte*)segment + sizeof(NativeConcurrentQueueSegmentNotArm64<T>);
-            segment->Initialize((NativeConcurrentQueueSegmentNotArm64<T>.Slot*)array);
+            segment->Initialize();
             _tail = _head = segment;
         }
 
@@ -331,8 +330,7 @@ namespace NativeCollections
                 }
 
                 var segment = (NativeConcurrentQueueSegmentNotArm64<T>*)_segmentPool.Rent();
-                var array = (byte*)segment + sizeof(NativeConcurrentQueueSegmentNotArm64<T>);
-                segment->Initialize((NativeConcurrentQueueSegmentNotArm64<T>.Slot*)array);
+                segment->Initialize();
                 _tail = _head = segment;
             }
         }
@@ -357,8 +355,7 @@ namespace NativeCollections
                         {
                             tail->EnsureFrozenForEnqueues();
                             var newTail = (NativeConcurrentQueueSegmentNotArm64<T>*)_segmentPool.Rent();
-                            var array = (byte*)newTail + sizeof(NativeConcurrentQueueSegmentNotArm64<T>);
-                            newTail->Initialize((NativeConcurrentQueueSegmentNotArm64<T>.Slot*)array);
+                            newTail->Initialize();
                             tail->NextSegment = (nint)newTail;
                             _tail = newTail;
                         }
@@ -418,11 +415,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetCount(NativeConcurrentQueueSegmentNotArm64<T>* segment, int head, int tail)
         {
-            if (head != tail && head != tail - NativeConcurrentQueueSegmentNotArm64<T>.FREEZE_OFFSET)
+            if (head != tail && head != tail - NativeConcurrentQueue.FREEZE_OFFSET)
             {
-                head &= NativeConcurrentQueueSegmentNotArm64<T>.SLOTS_MASK;
-                tail &= NativeConcurrentQueueSegmentNotArm64<T>.SLOTS_MASK;
-                return head < tail ? tail - head : NativeConcurrentQueueSegmentNotArm64<T>.LENGTH - head + tail;
+                head &= NativeConcurrentQueue.SLOTS_MASK;
+                tail &= NativeConcurrentQueue.SLOTS_MASK;
+                return head < tail ? tail - head : NativeConcurrentQueue.LENGTH - head + tail;
             }
 
             return 0;
@@ -440,19 +437,19 @@ namespace NativeCollections
         private static long GetCount(NativeConcurrentQueueSegmentNotArm64<T>* head, int headHead, NativeConcurrentQueueSegmentNotArm64<T>* tail, int tailTail)
         {
             long count = 0;
-            var headTail = (head == tail ? tailTail : Volatile.Read(ref head->HeadAndTail.Tail)) - NativeConcurrentQueueSegmentNotArm64<T>.FREEZE_OFFSET;
+            var headTail = (head == tail ? tailTail : Volatile.Read(ref head->HeadAndTail.Tail)) - NativeConcurrentQueue.FREEZE_OFFSET;
             if (headHead < headTail)
             {
-                headHead &= NativeConcurrentQueueSegmentNotArm64<T>.SLOTS_MASK;
-                headTail &= NativeConcurrentQueueSegmentNotArm64<T>.SLOTS_MASK;
-                count += headHead < headTail ? headTail - headHead : NativeConcurrentQueueSegmentNotArm64<T>.LENGTH - headHead + headTail;
+                headHead &= NativeConcurrentQueue.SLOTS_MASK;
+                headTail &= NativeConcurrentQueue.SLOTS_MASK;
+                count += headHead < headTail ? headTail - headHead : NativeConcurrentQueue.LENGTH - headHead + headTail;
             }
 
             if (head != tail)
             {
                 for (var s = (NativeConcurrentQueueSegmentNotArm64<T>*)head->NextSegment; s != tail; s = (NativeConcurrentQueueSegmentNotArm64<T>*)s->NextSegment)
-                    count += s->HeadAndTail.Tail - NativeConcurrentQueueSegmentNotArm64<T>.FREEZE_OFFSET;
-                count += tailTail - NativeConcurrentQueueSegmentNotArm64<T>.FREEZE_OFFSET;
+                    count += s->HeadAndTail.Tail - NativeConcurrentQueue.FREEZE_OFFSET;
+                count += tailTail - NativeConcurrentQueue.FREEZE_OFFSET;
             }
 
             return count;
@@ -464,22 +461,12 @@ namespace NativeCollections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    internal unsafe struct NativeConcurrentQueueSegmentNotArm64<T> where T : unmanaged
+    internal struct NativeConcurrentQueueSegmentNotArm64<T> where T : unmanaged
     {
         /// <summary>
         ///     Slots
         /// </summary>
-        public Slot* Slots;
-
-        /// <summary>
-        ///     Length
-        /// </summary>
-        public const int LENGTH = 1024;
-
-        /// <summary>
-        ///     Slots mask
-        /// </summary>
-        public const int SLOTS_MASK = LENGTH - 1;
+        public Slots<T> Slots;
 
         /// <summary>
         ///     Head and tail
@@ -499,22 +486,15 @@ namespace NativeCollections
         /// <summary>
         ///     Initialize
         /// </summary>
-        /// <param name="slots">Slots</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Initialize(Slot* slots)
+        public void Initialize()
         {
-            Slots = slots;
-            for (var i = 0; i < LENGTH; ++i)
+            for (var i = 0; i < NativeConcurrentQueue.LENGTH; ++i)
                 Slots[i].SequenceNumber = i;
             HeadAndTail = new NativeConcurrentQueuePaddedHeadAndTailNotArm64();
             FrozenForEnqueues = false;
             NextSegment = IntPtr.Zero;
         }
-
-        /// <summary>
-        ///     Freeze offset
-        /// </summary>
-        public const int FREEZE_OFFSET = LENGTH * 2;
 
         /// <summary>
         ///     Ensure frozen for enqueues
@@ -525,7 +505,7 @@ namespace NativeCollections
             if (!FrozenForEnqueues)
             {
                 FrozenForEnqueues = true;
-                Interlocked.Add(ref HeadAndTail.Tail, FREEZE_OFFSET);
+                Interlocked.Add(ref HeadAndTail.Tail, NativeConcurrentQueue.FREEZE_OFFSET);
             }
         }
 
@@ -542,7 +522,7 @@ namespace NativeCollections
             while (true)
             {
                 var currentHead = Volatile.Read(ref HeadAndTail.Head);
-                var slotsIndex = currentHead & SLOTS_MASK;
+                var slotsIndex = currentHead & NativeConcurrentQueue.SLOTS_MASK;
                 var sequenceNumber = Volatile.Read(ref slots[slotsIndex].SequenceNumber);
                 var diff = sequenceNumber - (currentHead + 1);
                 if (diff == 0)
@@ -550,7 +530,7 @@ namespace NativeCollections
                     if (Interlocked.CompareExchange(ref HeadAndTail.Head, currentHead + 1, currentHead) == currentHead)
                     {
                         result = slots[slotsIndex].Item;
-                        Volatile.Write(ref slots[slotsIndex].SequenceNumber, currentHead + LENGTH);
+                        Volatile.Write(ref slots[slotsIndex].SequenceNumber, currentHead + NativeConcurrentQueue.LENGTH);
                         return true;
                     }
                 }
@@ -558,7 +538,7 @@ namespace NativeCollections
                 {
                     var frozen = FrozenForEnqueues;
                     var currentTail = Volatile.Read(ref HeadAndTail.Tail);
-                    if (currentTail - currentHead <= 0 || (frozen && currentTail - FREEZE_OFFSET - currentHead <= 0))
+                    if (currentTail - currentHead <= 0 || (frozen && currentTail - NativeConcurrentQueue.FREEZE_OFFSET - currentHead <= 0))
                     {
                         result = default;
                         return false;
@@ -581,7 +561,7 @@ namespace NativeCollections
             while (true)
             {
                 var currentHead = Volatile.Read(ref HeadAndTail.Head);
-                var slotsIndex = currentHead & SLOTS_MASK;
+                var slotsIndex = currentHead & NativeConcurrentQueue.SLOTS_MASK;
                 var sequenceNumber = Volatile.Read(ref slots[slotsIndex].SequenceNumber);
                 var diff = sequenceNumber - (currentHead + 1);
                 if (diff == 0)
@@ -590,7 +570,7 @@ namespace NativeCollections
                 {
                     var frozen = FrozenForEnqueues;
                     var currentTail = Volatile.Read(ref HeadAndTail.Tail);
-                    if (currentTail - currentHead <= 0 || (frozen && currentTail - FREEZE_OFFSET - currentHead <= 0))
+                    if (currentTail - currentHead <= 0 || (frozen && currentTail - NativeConcurrentQueue.FREEZE_OFFSET - currentHead <= 0))
                         return false;
                     spinWait.SpinOnce();
                 }
@@ -609,7 +589,7 @@ namespace NativeCollections
             while (true)
             {
                 var currentTail = Volatile.Read(ref HeadAndTail.Tail);
-                var slotsIndex = currentTail & SLOTS_MASK;
+                var slotsIndex = currentTail & NativeConcurrentQueue.SLOTS_MASK;
                 var sequenceNumber = Volatile.Read(ref slots[slotsIndex].SequenceNumber);
                 var diff = sequenceNumber - currentTail;
                 if (diff == 0)
@@ -626,23 +606,6 @@ namespace NativeCollections
                     return false;
                 }
             }
-        }
-
-        /// <summary>
-        ///     Slot
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential)]
-        public struct Slot
-        {
-            /// <summary>
-            ///     Item
-            /// </summary>
-            public T Item;
-
-            /// <summary>
-            ///     Sequence number
-            /// </summary>
-            public int SequenceNumber;
         }
     }
 
@@ -759,7 +722,7 @@ namespace NativeCollections
                                 {
                                     var count = GetCount(head, headHead, headTail) + GetCount(tail, tailHead, tailTail);
                                     for (var s = (NativeConcurrentQueueSegmentArm64<T>*)head->NextSegment; s != tail; s = (NativeConcurrentQueueSegmentArm64<T>*)s->NextSegment)
-                                        count += s->HeadAndTail.Tail - NativeConcurrentQueueSegmentArm64<T>.FREEZE_OFFSET;
+                                        count += s->HeadAndTail.Tail - NativeConcurrentQueue.FREEZE_OFFSET;
                                     return count;
                                 }
                             }
@@ -781,8 +744,7 @@ namespace NativeCollections
             _crossSegmentLock = GCHandle.Alloc(new object(), GCHandleType.Normal);
             _segmentPool = segmentPool;
             var segment = (NativeConcurrentQueueSegmentArm64<T>*)_segmentPool.Rent();
-            var array = (byte*)segment + sizeof(NativeConcurrentQueueSegmentArm64<T>);
-            segment->Initialize((NativeConcurrentQueueSegmentArm64<T>.Slot*)array);
+            segment->Initialize();
             _tail = _head = segment;
         }
 
@@ -814,8 +776,7 @@ namespace NativeCollections
                 }
 
                 var segment = (NativeConcurrentQueueSegmentArm64<T>*)_segmentPool.Rent();
-                var array = (byte*)segment + sizeof(NativeConcurrentQueueSegmentArm64<T>);
-                segment->Initialize((NativeConcurrentQueueSegmentArm64<T>.Slot*)array);
+                segment->Initialize();
                 _tail = _head = segment;
             }
         }
@@ -840,8 +801,7 @@ namespace NativeCollections
                         {
                             tail->EnsureFrozenForEnqueues();
                             var newTail = (NativeConcurrentQueueSegmentArm64<T>*)_segmentPool.Rent();
-                            var array = (byte*)newTail + sizeof(NativeConcurrentQueueSegmentArm64<T>);
-                            newTail->Initialize((NativeConcurrentQueueSegmentArm64<T>.Slot*)array);
+                            newTail->Initialize();
                             tail->NextSegment = (nint)newTail;
                             _tail = newTail;
                         }
@@ -901,11 +861,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetCount(NativeConcurrentQueueSegmentArm64<T>* segment, int head, int tail)
         {
-            if (head != tail && head != tail - NativeConcurrentQueueSegmentArm64<T>.FREEZE_OFFSET)
+            if (head != tail && head != tail - NativeConcurrentQueue.FREEZE_OFFSET)
             {
-                head &= NativeConcurrentQueueSegmentArm64<T>.SLOTS_MASK;
-                tail &= NativeConcurrentQueueSegmentArm64<T>.SLOTS_MASK;
-                return head < tail ? tail - head : NativeConcurrentQueueSegmentArm64<T>.LENGTH - head + tail;
+                head &= NativeConcurrentQueue.SLOTS_MASK;
+                tail &= NativeConcurrentQueue.SLOTS_MASK;
+                return head < tail ? tail - head : NativeConcurrentQueue.LENGTH - head + tail;
             }
 
             return 0;
@@ -923,19 +883,19 @@ namespace NativeCollections
         private static long GetCount(NativeConcurrentQueueSegmentArm64<T>* head, int headHead, NativeConcurrentQueueSegmentArm64<T>* tail, int tailTail)
         {
             long count = 0;
-            var headTail = (head == tail ? tailTail : Volatile.Read(ref head->HeadAndTail.Tail)) - NativeConcurrentQueueSegmentArm64<T>.FREEZE_OFFSET;
+            var headTail = (head == tail ? tailTail : Volatile.Read(ref head->HeadAndTail.Tail)) - NativeConcurrentQueue.FREEZE_OFFSET;
             if (headHead < headTail)
             {
-                headHead &= NativeConcurrentQueueSegmentArm64<T>.SLOTS_MASK;
-                headTail &= NativeConcurrentQueueSegmentArm64<T>.SLOTS_MASK;
-                count += headHead < headTail ? headTail - headHead : NativeConcurrentQueueSegmentArm64<T>.LENGTH - headHead + headTail;
+                headHead &= NativeConcurrentQueue.SLOTS_MASK;
+                headTail &= NativeConcurrentQueue.SLOTS_MASK;
+                count += headHead < headTail ? headTail - headHead : NativeConcurrentQueue.LENGTH - headHead + headTail;
             }
 
             if (head != tail)
             {
                 for (var s = (NativeConcurrentQueueSegmentArm64<T>*)head->NextSegment; s != tail; s = (NativeConcurrentQueueSegmentArm64<T>*)s->NextSegment)
-                    count += s->HeadAndTail.Tail - NativeConcurrentQueueSegmentArm64<T>.FREEZE_OFFSET;
-                count += tailTail - NativeConcurrentQueueSegmentArm64<T>.FREEZE_OFFSET;
+                    count += s->HeadAndTail.Tail - NativeConcurrentQueue.FREEZE_OFFSET;
+                count += tailTail - NativeConcurrentQueue.FREEZE_OFFSET;
             }
 
             return count;
@@ -947,22 +907,12 @@ namespace NativeCollections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    internal unsafe struct NativeConcurrentQueueSegmentArm64<T> where T : unmanaged
+    internal struct NativeConcurrentQueueSegmentArm64<T> where T : unmanaged
     {
         /// <summary>
         ///     Slots
         /// </summary>
-        public Slot* Slots;
-
-        /// <summary>
-        ///     Length
-        /// </summary>
-        public const int LENGTH = 1024;
-
-        /// <summary>
-        ///     Slots mask
-        /// </summary>
-        public const int SLOTS_MASK = LENGTH - 1;
+        public Slots<T> Slots;
 
         /// <summary>
         ///     Head and tail
@@ -982,22 +932,15 @@ namespace NativeCollections
         /// <summary>
         ///     Initialize
         /// </summary>
-        /// <param name="slots">Slots</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Initialize(Slot* slots)
+        public void Initialize()
         {
-            Slots = slots;
-            for (var i = 0; i < LENGTH; ++i)
+            for (var i = 0; i < NativeConcurrentQueue.LENGTH; ++i)
                 Slots[i].SequenceNumber = i;
             HeadAndTail = new NativeConcurrentQueuePaddedHeadAndTailArm64();
             FrozenForEnqueues = false;
             NextSegment = IntPtr.Zero;
         }
-
-        /// <summary>
-        ///     Freeze offset
-        /// </summary>
-        public const int FREEZE_OFFSET = LENGTH * 2;
 
         /// <summary>
         ///     Ensure frozen for enqueues
@@ -1008,7 +951,7 @@ namespace NativeCollections
             if (!FrozenForEnqueues)
             {
                 FrozenForEnqueues = true;
-                Interlocked.Add(ref HeadAndTail.Tail, FREEZE_OFFSET);
+                Interlocked.Add(ref HeadAndTail.Tail, NativeConcurrentQueue.FREEZE_OFFSET);
             }
         }
 
@@ -1025,7 +968,7 @@ namespace NativeCollections
             while (true)
             {
                 var currentHead = Volatile.Read(ref HeadAndTail.Head);
-                var slotsIndex = currentHead & SLOTS_MASK;
+                var slotsIndex = currentHead & NativeConcurrentQueue.SLOTS_MASK;
                 var sequenceNumber = Volatile.Read(ref slots[slotsIndex].SequenceNumber);
                 var diff = sequenceNumber - (currentHead + 1);
                 if (diff == 0)
@@ -1033,7 +976,7 @@ namespace NativeCollections
                     if (Interlocked.CompareExchange(ref HeadAndTail.Head, currentHead + 1, currentHead) == currentHead)
                     {
                         result = slots[slotsIndex].Item;
-                        Volatile.Write(ref slots[slotsIndex].SequenceNumber, currentHead + LENGTH);
+                        Volatile.Write(ref slots[slotsIndex].SequenceNumber, currentHead + NativeConcurrentQueue.LENGTH);
                         return true;
                     }
                 }
@@ -1041,7 +984,7 @@ namespace NativeCollections
                 {
                     var frozen = FrozenForEnqueues;
                     var currentTail = Volatile.Read(ref HeadAndTail.Tail);
-                    if (currentTail - currentHead <= 0 || (frozen && currentTail - FREEZE_OFFSET - currentHead <= 0))
+                    if (currentTail - currentHead <= 0 || (frozen && currentTail - NativeConcurrentQueue.FREEZE_OFFSET - currentHead <= 0))
                     {
                         result = default;
                         return false;
@@ -1064,7 +1007,7 @@ namespace NativeCollections
             while (true)
             {
                 var currentHead = Volatile.Read(ref HeadAndTail.Head);
-                var slotsIndex = currentHead & SLOTS_MASK;
+                var slotsIndex = currentHead & NativeConcurrentQueue.SLOTS_MASK;
                 var sequenceNumber = Volatile.Read(ref slots[slotsIndex].SequenceNumber);
                 var diff = sequenceNumber - (currentHead + 1);
                 if (diff == 0)
@@ -1073,7 +1016,7 @@ namespace NativeCollections
                 {
                     var frozen = FrozenForEnqueues;
                     var currentTail = Volatile.Read(ref HeadAndTail.Tail);
-                    if (currentTail - currentHead <= 0 || (frozen && currentTail - FREEZE_OFFSET - currentHead <= 0))
+                    if (currentTail - currentHead <= 0 || (frozen && currentTail - NativeConcurrentQueue.FREEZE_OFFSET - currentHead <= 0))
                         return false;
                     spinWait.SpinOnce();
                 }
@@ -1092,7 +1035,7 @@ namespace NativeCollections
             while (true)
             {
                 var currentTail = Volatile.Read(ref HeadAndTail.Tail);
-                var slotsIndex = currentTail & SLOTS_MASK;
+                var slotsIndex = currentTail & NativeConcurrentQueue.SLOTS_MASK;
                 var sequenceNumber = Volatile.Read(ref slots[slotsIndex].SequenceNumber);
                 var diff = sequenceNumber - currentTail;
                 if (diff == 0)
@@ -1109,23 +1052,6 @@ namespace NativeCollections
                     return false;
                 }
             }
-        }
-
-        /// <summary>
-        ///     Slot
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential)]
-        public struct Slot
-        {
-            /// <summary>
-            ///     Item
-            /// </summary>
-            public T Item;
-
-            /// <summary>
-            ///     Sequence number
-            /// </summary>
-            public int SequenceNumber;
         }
     }
 
@@ -1149,5 +1075,57 @@ namespace NativeCollections
         ///     Catch line size
         /// </summary>
         public const int CACHE_LINE_SIZE = 128;
+    }
+
+    /// <summary>
+    ///     Native concurrentQueue
+    ///     (Slower than ConcurrentQueue, disable Enumerator, try peek either)
+    /// </summary>
+    internal static class NativeConcurrentQueue
+    {
+        /// <summary>
+        ///     Length
+        /// </summary>
+        public const int LENGTH = 1024;
+
+        /// <summary>
+        ///     Slots mask
+        /// </summary>
+        public const int SLOTS_MASK = LENGTH - 1;
+
+        /// <summary>
+        ///     Freeze offset
+        /// </summary>
+        public const int FREEZE_OFFSET = LENGTH * 2;
+    }
+
+    /// <summary>
+    ///     Slots
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    [InlineArray(NativeConcurrentQueue.LENGTH)]
+    internal struct Slots<T> where T : unmanaged
+    {
+        /// <summary>
+        ///     Slot
+        /// </summary>
+        private Slot<T> _slot;
+    }
+
+    /// <summary>
+    ///     Slot
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct Slot<T> where T : unmanaged
+    {
+        /// <summary>
+        ///     Item
+        /// </summary>
+        public T Item;
+
+        /// <summary>
+        ///     Sequence number
+        /// </summary>
+        public int SequenceNumber;
     }
 }
