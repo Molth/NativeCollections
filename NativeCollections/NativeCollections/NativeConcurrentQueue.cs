@@ -517,7 +517,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDequeue(out T result)
         {
-            var slots = Slots;
+            ref var slots = ref Slots;
             var spinWait = new NativeSpinWait();
             while (true)
             {
@@ -556,7 +556,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryPeek()
         {
-            var slots = Slots;
+            ref var slots = ref Slots;
             var spinWait = new NativeSpinWait();
             while (true)
             {
@@ -585,7 +585,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryEnqueue(in T item)
         {
-            var slots = Slots;
+            ref var slots = ref Slots;
             while (true)
             {
                 var currentTail = Volatile.Read(ref HeadAndTail.Tail);
@@ -963,7 +963,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDequeue(out T result)
         {
-            var slots = Slots;
+            ref var slots = ref Slots;
             var spinWait = new NativeSpinWait();
             while (true)
             {
@@ -1002,7 +1002,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryPeek()
         {
-            var slots = Slots;
+            ref var slots = ref Slots;
             var spinWait = new NativeSpinWait();
             while (true)
             {
@@ -1031,7 +1031,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryEnqueue(in T item)
         {
-            var slots = Slots;
+            ref var slots = ref Slots;
             while (true)
             {
                 var currentTail = Volatile.Read(ref HeadAndTail.Tail);
