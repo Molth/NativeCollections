@@ -396,7 +396,7 @@ namespace NativeCollections
                 var next = block->next_free;
                 next->prev_free = prev;
                 prev->next_free = next;
-                if ((block_header_t*)control->blocks[fl][sl] == block)
+                if (control->blocks[fl][sl] == (nint)block)
                 {
                     control->blocks[fl][sl] = (nint)next;
                     if (next == &control->block_null)
@@ -989,7 +989,7 @@ namespace NativeCollections
                 var next = block->next_free;
                 next->prev_free = prev;
                 prev->next_free = next;
-                if ((block_header_t*)control->blocks[fl][sl] == block)
+                if (control->blocks[fl][sl] == (nint)block)
                 {
                     control->blocks[fl][sl] = (nint)next;
                     if (next == &control->block_null)
