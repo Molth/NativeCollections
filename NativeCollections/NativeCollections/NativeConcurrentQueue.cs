@@ -466,7 +466,7 @@ namespace NativeCollections
         /// <summary>
         ///     Slots
         /// </summary>
-        public Slots<T> Slots;
+        public NativeConcurrentQueueSegmentSlots<T> Slots;
 
         /// <summary>
         ///     Head and tail
@@ -517,7 +517,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDequeue(out T result)
         {
-            ref var slots = ref Slots;
+            Span<NativeConcurrentQueueSegmentSlot<T>> slots = Slots;
             var spinWait = new NativeSpinWait();
             while (true)
             {
@@ -556,7 +556,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryPeek()
         {
-            ref var slots = ref Slots;
+            Span<NativeConcurrentQueueSegmentSlot<T>> slots = Slots;
             var spinWait = new NativeSpinWait();
             while (true)
             {
@@ -585,7 +585,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryEnqueue(in T item)
         {
-            ref var slots = ref Slots;
+            Span<NativeConcurrentQueueSegmentSlot<T>> slots = Slots;
             while (true)
             {
                 var currentTail = Volatile.Read(ref HeadAndTail.Tail);
@@ -912,7 +912,7 @@ namespace NativeCollections
         /// <summary>
         ///     Slots
         /// </summary>
-        public Slots<T> Slots;
+        public NativeConcurrentQueueSegmentSlots<T> Slots;
 
         /// <summary>
         ///     Head and tail
@@ -963,7 +963,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDequeue(out T result)
         {
-            ref var slots = ref Slots;
+            Span<NativeConcurrentQueueSegmentSlot<T>> slots = Slots;
             var spinWait = new NativeSpinWait();
             while (true)
             {
@@ -1002,7 +1002,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryPeek()
         {
-            ref var slots = ref Slots;
+            Span<NativeConcurrentQueueSegmentSlot<T>> slots = Slots;
             var spinWait = new NativeSpinWait();
             while (true)
             {
@@ -1031,7 +1031,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryEnqueue(in T item)
         {
-            ref var slots = ref Slots;
+            Span<NativeConcurrentQueueSegmentSlot<T>> slots = Slots;
             while (true)
             {
                 var currentTail = Volatile.Read(ref HeadAndTail.Tail);
@@ -1104,19 +1104,19 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [InlineArray(NativeConcurrentQueue.LENGTH)]
-    internal struct Slots<T> where T : unmanaged
+    internal struct NativeConcurrentQueueSegmentSlots<T> where T : unmanaged
     {
         /// <summary>
         ///     Slot
         /// </summary>
-        private Slot<T> _slot;
+        private NativeConcurrentQueueSegmentSlot<T> _slot;
     }
 
     /// <summary>
     ///     Slot
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct Slot<T> where T : unmanaged
+    internal struct NativeConcurrentQueueSegmentSlot<T> where T : unmanaged
     {
         /// <summary>
         ///     Item
