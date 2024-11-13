@@ -49,16 +49,6 @@ namespace NativeCollections
             ///     Capacity
             /// </summary>
             public int Capacity;
-
-            /// <summary>
-            ///     Keys
-            /// </summary>
-            public KeyCollection Keys;
-
-            /// <summary>
-            ///     Values
-            /// </summary>
-            public ValueCollection Values;
         }
 
         /// <summary>
@@ -69,12 +59,12 @@ namespace NativeCollections
         /// <summary>
         ///     Keys
         /// </summary>
-        public KeyCollection Keys => _handle->Keys;
+        public KeyCollection Keys => new(this);
 
         /// <summary>
         ///     Values
         /// </summary>
-        public ValueCollection Values => _handle->Values;
+        public ValueCollection Values => new(this);
 
         /// <summary>
         ///     Structure
@@ -93,8 +83,6 @@ namespace NativeCollections
             handle->Size = 0;
             handle->Version = 0;
             handle->Capacity = capacity;
-            handle->Keys = new KeyCollection(this);
-            handle->Values = new ValueCollection(this);
             _handle = handle;
         }
 

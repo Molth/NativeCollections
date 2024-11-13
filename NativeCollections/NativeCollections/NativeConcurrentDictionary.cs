@@ -51,16 +51,6 @@ namespace NativeCollections
             ///     Node lock
             /// </summary>
             public fixed byte NodeLock[8];
-
-            /// <summary>
-            ///     Keys
-            /// </summary>
-            public KeyCollection Keys;
-
-            /// <summary>
-            ///     Values
-            /// </summary>
-            public ValueCollection Values;
         }
 
         /// <summary>
@@ -71,12 +61,12 @@ namespace NativeCollections
         /// <summary>
         ///     Keys
         /// </summary>
-        public KeyCollection Keys => _handle->Keys;
+        public KeyCollection Keys => new(this);
 
         /// <summary>
         ///     Values
         /// </summary>
-        public ValueCollection Values => _handle->Values;
+        public ValueCollection Values => new(this);
 
         /// <summary>
         ///     Structure
@@ -108,8 +98,6 @@ namespace NativeCollections
             handle->NodePool = nodePool;
             NativeConcurrentSpinLock nodeLock = handle->NodeLock;
             nodeLock.Reset();
-            handle->Keys = new KeyCollection(this);
-            handle->Values = new ValueCollection(this);
             _handle = handle;
         }
 

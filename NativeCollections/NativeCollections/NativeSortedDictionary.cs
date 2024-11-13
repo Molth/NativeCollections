@@ -44,16 +44,6 @@ namespace NativeCollections
             ///     Node pool
             /// </summary>
             public NativeMemoryPool NodePool;
-
-            /// <summary>
-            ///     Keys
-            /// </summary>
-            public KeyCollection Keys;
-
-            /// <summary>
-            ///     Values
-            /// </summary>
-            public ValueCollection Values;
         }
 
         /// <summary>
@@ -64,12 +54,12 @@ namespace NativeCollections
         /// <summary>
         ///     Keys
         /// </summary>
-        public KeyCollection Keys => _handle->Keys;
+        public KeyCollection Keys => new(this);
 
         /// <summary>
         ///     Values
         /// </summary>
-        public ValueCollection Values => _handle->Values;
+        public ValueCollection Values => new(this);
 
         /// <summary>
         ///     Structure
@@ -84,8 +74,6 @@ namespace NativeCollections
             handle->Count = 0;
             handle->Version = 0;
             handle->NodePool = nodePool;
-            handle->Keys = new KeyCollection(this);
-            handle->Values = new ValueCollection(this);
             _handle = handle;
         }
 

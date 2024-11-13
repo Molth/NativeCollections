@@ -35,11 +35,6 @@ namespace NativeCollections
             public int Length;
 
             /// <summary>
-            ///     Unordered items
-            /// </summary>
-            public UnorderedItemsCollection UnorderedItems;
-
-            /// <summary>
             ///     Size
             /// </summary>
             public int Size;
@@ -69,7 +64,6 @@ namespace NativeCollections
             var handle = (NativePriorityQueueHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativePriorityQueueHandle));
             handle->Nodes = (ValueTuple<TElement, TPriority>*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(ValueTuple<TElement, TPriority>)));
             handle->Length = capacity;
-            handle->UnorderedItems = new UnorderedItemsCollection(this);
             handle->Size = 0;
             handle->Version = 0;
             _handle = handle;
@@ -103,7 +97,7 @@ namespace NativeCollections
         /// <summary>
         ///     Unordered items
         /// </summary>
-        public UnorderedItemsCollection UnorderedItems => _handle->UnorderedItems;
+        public UnorderedItemsCollection UnorderedItems => new(this);
 
         /// <summary>
         ///     Equals
