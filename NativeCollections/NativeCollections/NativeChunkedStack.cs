@@ -25,9 +25,9 @@ namespace NativeCollections
         private struct NativeChunkedStackHandle
         {
             /// <summary>
-            ///     Head
+            ///     Sentinel
             /// </summary>
-            public NativeMemoryChunk* Head;
+            public NativeMemoryChunk* Sentinel;
 
             /// <summary>
             ///     Free list
@@ -74,7 +74,7 @@ namespace NativeCollections
             /// <summary>
             ///     Array
             /// </summary>
-            public fixed byte Array[1];
+            public nint Array;
         }
 
         /// <summary>
@@ -96,7 +96,7 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(maxFreeChunks), maxFreeChunks, "MustBeNonNegative");
             var handle = (NativeChunkedStackHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeChunkedStackHandle));
             var chunk = (NativeMemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemoryChunk) + size * sizeof(T)));
-            handle->Head = chunk;
+            handle->Sentinel = chunk;
             handle->FreeList = null;
             handle->Chunks = 1;
             handle->FreeChunks = 0;
@@ -192,7 +192,7 @@ namespace NativeCollections
             var handle = _handle;
             if (handle == null)
                 return;
-            var node = handle->Head;
+            var node = handle->Sentinel;
             while (handle->Chunks > 0)
             {
                 handle->Chunks--;
@@ -224,7 +224,7 @@ namespace NativeCollections
             {
                 handle->FreeChunks += handle->Chunks - 1;
                 handle->Chunks = 1;
-                var chunk = handle->Head->Next;
+                var chunk = handle->Sentinel->Next;
                 chunk->Next = handle->FreeList;
                 handle->FreeList = chunk;
                 TrimExcess(handle->MaxFreeChunks);
@@ -256,13 +256,13 @@ namespace NativeCollections
                     --handle->FreeChunks;
                 }
 
-                chunk->Next = handle->Head;
-                handle->Head = chunk;
+                chunk->Next = handle->Sentinel;
+                handle->Sentinel = chunk;
                 ++handle->Chunks;
             }
 
             ++handle->Count;
-            ((T*)handle->Head->Array)[index] = item;
+            ((T*)&handle->Sentinel->Array)[index] = item;
         }
 
         /// <summary>
@@ -282,11 +282,11 @@ namespace NativeCollections
 
             --handle->Count;
             var index = handle->Count % handle->Size;
-            result = ((T*)handle->Head->Array)[index];
+            result = ((T*)&handle->Sentinel->Array)[index];
             if (index == 0 && handle->Chunks != 1)
             {
-                var chunk = handle->Head;
-                handle->Head = chunk->Next;
+                var chunk = handle->Sentinel;
+                handle->Sentinel = chunk->Next;
                 if (handle->FreeChunks == handle->MaxFreeChunks)
                 {
                     NativeMemoryAllocator.Free(chunk);

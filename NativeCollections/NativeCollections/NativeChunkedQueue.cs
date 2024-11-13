@@ -89,7 +89,7 @@ namespace NativeCollections
             /// <summary>
             ///     Array
             /// </summary>
-            public fixed byte Array[1];
+            public nint Array;
         }
 
         /// <summary>
@@ -283,7 +283,7 @@ namespace NativeCollections
             }
 
             ++handle->Count;
-            ((T*)handle->Tail->Array)[handle->WriteOffset++] = item;
+            ((T*)&handle->Tail->Array)[handle->WriteOffset++] = item;
         }
 
         /// <summary>
@@ -302,7 +302,7 @@ namespace NativeCollections
             }
 
             --handle->Count;
-            result = ((T*)handle->Head->Array)[handle->ReadOffset++];
+            result = ((T*)&handle->Head->Array)[handle->ReadOffset++];
             if (handle->ReadOffset == handle->Size)
             {
                 handle->ReadOffset = 0;
