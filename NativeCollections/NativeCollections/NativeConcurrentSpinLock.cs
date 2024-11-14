@@ -26,12 +26,12 @@ namespace NativeCollections
             /// <summary>
             ///     Sequence number
             /// </summary>
-            [FieldOffset(0)] public int SequenceNumber;
+            [FieldOffset(0)] public volatile int SequenceNumber;
 
             /// <summary>
             ///     Next sequence number
             /// </summary>
-            [FieldOffset(4)] public int NextSequenceNumber;
+            [FieldOffset(4)] public volatile int NextSequenceNumber;
         }
 
         /// <summary>
