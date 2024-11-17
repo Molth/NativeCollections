@@ -386,7 +386,7 @@ namespace NativeCollections
 
                 sl = tlsf_ffs(sl_map);
                 *sli = sl;
-                return (block_header_t*)control->blocks[fl][sl];
+                return control->blocks[fl][sl];
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -396,9 +396,9 @@ namespace NativeCollections
                 var next = block->next_free;
                 next->prev_free = prev;
                 prev->next_free = next;
-                if (control->blocks[fl][sl] == (nint)block)
+                if (control->blocks[fl][sl] == block)
                 {
-                    control->blocks[fl][sl] = (nint)next;
+                    control->blocks[fl][sl] = next;
                     if (next == &control->block_null)
                     {
                         control->sl_bitmap[fl] &= ~(1U << sl);
@@ -415,7 +415,7 @@ namespace NativeCollections
                 block->next_free = current;
                 block->prev_free = &control->block_null;
                 current->prev_free = block;
-                control->blocks[fl][sl] = (nint)block;
+                control->blocks[fl][sl] = block;
                 control->fl_bitmap |= 1U << fl;
                 control->sl_bitmap[fl] |= 1U << sl;
             }
@@ -565,7 +565,7 @@ namespace NativeCollections
                 {
                     control->sl_bitmap[i] = 0;
                     for (j = 0; j < SL_INDEX_COUNT; ++j)
-                        control->blocks[i][j] = (nint)(&control->block_null);
+                        control->blocks[i][j] = &control->block_null;
                 }
             }
 
@@ -767,17 +767,30 @@ namespace NativeCollections
             }
 
             [StructLayout(LayoutKind.Sequential)]
-            [InlineArray(FL_INDEX_COUNT)]
             public struct blocks_t
             {
-                private block_headers_t headers;
+                public fixed ulong headers[FL_INDEX_COUNT * SL_INDEX_COUNT];
+
+                public Span<block_header_t_ptr> this[int i]
+                {
+                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                    get => MemoryMarshal.CreateSpan(ref Unsafe.Add(ref Unsafe.AsRef<block_header_t_ptr>(Unsafe.AsPointer(ref this)), i * SL_INDEX_COUNT), SL_INDEX_COUNT);
+                }
             }
 
             [StructLayout(LayoutKind.Sequential)]
-            [InlineArray(SL_INDEX_COUNT)]
-            public struct block_headers_t
+            public struct block_header_t_ptr
             {
-                private nint header;
+                public block_header_t* value;
+
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                private block_header_t_ptr(block_header_t* value) => this.value = value;
+
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public static implicit operator block_header_t_ptr(block_header_t* ptr) => new(ptr);
+
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public static implicit operator block_header_t*(block_header_t_ptr ptr) => ptr.value;
             }
         }
 
@@ -979,7 +992,7 @@ namespace NativeCollections
 
                 sl = tlsf_ffs(sl_map);
                 *sli = sl;
-                return (block_header_t*)control->blocks[fl][sl];
+                return control->blocks[fl][sl];
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -989,9 +1002,9 @@ namespace NativeCollections
                 var next = block->next_free;
                 next->prev_free = prev;
                 prev->next_free = next;
-                if (control->blocks[fl][sl] == (nint)block)
+                if (control->blocks[fl][sl] == block)
                 {
-                    control->blocks[fl][sl] = (nint)next;
+                    control->blocks[fl][sl] = next;
                     if (next == &control->block_null)
                     {
                         control->sl_bitmap[fl] &= ~(1U << sl);
@@ -1008,7 +1021,7 @@ namespace NativeCollections
                 block->next_free = current;
                 block->prev_free = &control->block_null;
                 current->prev_free = block;
-                control->blocks[fl][sl] = (nint)block;
+                control->blocks[fl][sl] = block;
                 control->fl_bitmap |= 1U << fl;
                 control->sl_bitmap[fl] |= 1U << sl;
             }
@@ -1158,7 +1171,7 @@ namespace NativeCollections
                 {
                     control->sl_bitmap[i] = 0;
                     for (j = 0; j < SL_INDEX_COUNT; ++j)
-                        control->blocks[i][j] = (nint)(&control->block_null);
+                        control->blocks[i][j] = &control->block_null;
                 }
             }
 
@@ -1360,17 +1373,30 @@ namespace NativeCollections
             }
 
             [StructLayout(LayoutKind.Sequential)]
-            [InlineArray(FL_INDEX_COUNT)]
             public struct blocks_t
             {
-                private block_headers_t headers;
+                public fixed uint headers[FL_INDEX_COUNT * SL_INDEX_COUNT];
+
+                public Span<block_header_t_ptr> this[int i]
+                {
+                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                    get => MemoryMarshal.CreateSpan(ref Unsafe.Add(ref Unsafe.AsRef<block_header_t_ptr>(Unsafe.AsPointer(ref this)), i * SL_INDEX_COUNT), SL_INDEX_COUNT);
+                }
             }
 
             [StructLayout(LayoutKind.Sequential)]
-            [InlineArray(SL_INDEX_COUNT)]
-            public struct block_headers_t
+            public struct block_header_t_ptr
             {
-                private nint header;
+                public block_header_t* value;
+
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                private block_header_t_ptr(block_header_t* value) => this.value = value;
+
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public static implicit operator block_header_t_ptr(block_header_t* ptr) => new(ptr);
+
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public static implicit operator block_header_t*(block_header_t_ptr ptr) => ptr.value;
             }
         }
     }
