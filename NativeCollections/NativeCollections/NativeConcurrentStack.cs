@@ -2,9 +2,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
-#if !NET6_0_OR_GREATER
-using System.Diagnostics;
-#endif
 
 #pragma warning disable CA2208
 #pragma warning disable CS8632
@@ -240,7 +237,8 @@ namespace NativeCollections
             var spinWait = new NativeSpinWait();
             var backoff = 1;
 #if !NET6_0_OR_GREATER
-            var random = (uint)Stopwatch.GetTimestamp();
+            var random = new NativeXoshiro();
+            random.Initialize();
 #endif
             while (true)
             {
@@ -274,10 +272,7 @@ namespace NativeCollections
 #if NET6_0_OR_GREATER
                     backoff = Random.Shared.Next(1, 8);
 #else
-                    backoff = (int)(random % 7 + 1);
-                    random ^= random << 13;
-                    random ^= random >> 17;
-                    random ^= random << 5;
+                    backoff = random.NextInt32(1, 8);
 #endif
                 }
                 else
