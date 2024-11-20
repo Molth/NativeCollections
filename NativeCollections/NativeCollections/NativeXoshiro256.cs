@@ -2,6 +2,9 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+#if NET7_0_OR_GREATER
+using System.Runtime.Intrinsics;
+#endif
 
 #pragma warning disable CA2208
 #pragma warning disable CS8632
@@ -15,7 +18,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection]
-    public unsafe ref struct NativeXoshiro256
+    public unsafe struct NativeXoshiro256 : IEquatable<NativeXoshiro256>
     {
         /// <summary>
         ///     State0
@@ -40,21 +43,57 @@ namespace NativeCollections
         /// <summary>
         ///     Equals
         /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public bool Equals(NativeXoshiro256 other)
+        {
+#if NET7_0_OR_GREATER
+            if (Vector256.IsHardwareAccelerated)
+                return Vector256.LoadUnsafe(ref Unsafe.As<NativeXoshiro256, byte>(ref this)) == Vector256.LoadUnsafe(ref Unsafe.As<NativeXoshiro256, byte>(ref other));
+#endif
+            ref var left = ref Unsafe.As<NativeXoshiro256, ulong>(ref this);
+            ref var right = ref Unsafe.As<NativeXoshiro256, ulong>(ref other);
+            return left == right && Unsafe.Add(ref left, 1) == Unsafe.Add(ref right, 1) && Unsafe.Add(ref left, 2) == Unsafe.Add(ref right, 2) && Unsafe.Add(ref left, 3) == Unsafe.Add(ref right, 3);
+        }
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => throw new NotSupportedException("Cannot call Equals on NativeXoshiro256");
+        public override bool Equals(object? obj) => obj is NativeXoshiro256 nativeXoshiro256 && nativeXoshiro256 == this;
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => throw new NotSupportedException("Cannot call GetHashCode on NativeXoshiro256");
+        public override int GetHashCode()
+        {
+            ref var local = ref Unsafe.As<NativeXoshiro256, int>(ref this);
+            return local ^ Unsafe.Add(ref local, 1) ^ Unsafe.Add(ref local, 2) ^ Unsafe.Add(ref local, 3) ^ Unsafe.Add(ref local, 4) ^ Unsafe.Add(ref local, 5) ^ Unsafe.Add(ref local, 6) ^ Unsafe.Add(ref local, 7);
+        }
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
         public override string ToString() => "NativeXoshiro256";
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Equals</returns>
+        public static bool operator ==(NativeXoshiro256 left, NativeXoshiro256 right) => left.Equals(right);
+
+        /// <summary>
+        ///     Not equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Not equals</returns>
+        public static bool operator !=(NativeXoshiro256 left, NativeXoshiro256 right) => !left.Equals(right);
 
         /// <summary>
         ///     Initialize
@@ -397,7 +436,7 @@ namespace NativeCollections
             {
                 var num7 = s1 * 5UL;
                 var num8 = ((num7 << 7) | (num7 >> 57)) * 9UL;
-                Unsafe.CopyBlockUnaligned(ref MemoryMarshal.GetReference<byte>(buffer), ref *(byte*)&num8, (uint)buffer.Length);
+                Unsafe.CopyBlockUnaligned(ref MemoryMarshal.GetReference(buffer), ref *(byte*)&num8, (uint)buffer.Length);
                 var num9 = s1 << 17;
                 var num10 = num1 ^ s0;
                 var num11 = num2 ^ s1;

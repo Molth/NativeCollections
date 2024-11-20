@@ -15,7 +15,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection]
-    public unsafe ref struct NativeXorshift32
+    public unsafe struct NativeXorshift32 : IEquatable<NativeXorshift32>
     {
         /// <summary>
         ///     State
@@ -25,21 +25,44 @@ namespace NativeCollections
         /// <summary>
         ///     Equals
         /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public bool Equals(NativeXorshift32 other) => _state == other._state;
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => throw new NotSupportedException("Cannot call Equals on NativeXorshift32");
+        public override bool Equals(object? obj) => obj is NativeXorshift32 nativeXorshift32 && nativeXorshift32 == this;
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => throw new NotSupportedException("Cannot call GetHashCode on NativeXorshift32");
+        public override int GetHashCode() => (int)_state;
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
         public override string ToString() => "NativeXorshift32";
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Equals</returns>
+        public static bool operator ==(NativeXorshift32 left, NativeXorshift32 right) => left.Equals(right);
+
+        /// <summary>
+        ///     Not equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Not equals</returns>
+        public static bool operator !=(NativeXorshift32 left, NativeXorshift32 right) => !left.Equals(right);
 
         /// <summary>
         ///     Initialize
