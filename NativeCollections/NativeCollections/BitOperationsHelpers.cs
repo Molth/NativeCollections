@@ -128,7 +128,7 @@ namespace NativeCollections
 #else
             value |= 1UL;
             uint num = (uint)(value >> 32);
-            return num == 0U ? BitOperations.Log2((uint)value) : 32 + BitOperations.Log2(num);
+            return num == 0U ? Log2((uint)value) : 32 + Log2(num);
 #endif
         }
 
