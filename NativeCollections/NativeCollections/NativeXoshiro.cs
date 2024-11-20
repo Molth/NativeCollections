@@ -87,7 +87,18 @@ namespace NativeCollections
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="maxValue" /> is less than 0.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public uint NextUInt32(uint maxValue) => (uint)(NextUInt64() % maxValue);
+        public uint NextUInt32(uint maxValue)
+        {
+            var num1 = maxValue * (ulong)NextUInt32();
+            var num2 = (uint)num1;
+            if (num2 < maxValue)
+            {
+                for (var index = (uint)-(int)maxValue % maxValue; num2 < index; num2 = (uint)num1)
+                    num1 = maxValue * (ulong)NextUInt32();
+            }
+
+            return (uint)(num1 >> 32);
+        }
 
         /// <summary>Returns a random integer that is within a specified range.</summary>
         /// <param name="minValue">The inclusive lower bound of the random number returned.</param>
@@ -109,15 +120,15 @@ namespace NativeCollections
         public uint NextUInt32(uint minValue, uint maxValue)
         {
             var num1 = maxValue - minValue;
-            var num2 = (uint)(num1 * (ulong)NextUInt32());
-            if (num2 < num1)
+            var num2 = num1 * (ulong)NextUInt32();
+            var num3 = (uint)num2;
+            if (num3 < num1)
             {
-                var num3 = (uint)-(int)num1 % num1;
-                while (num2 < num3)
-                    num2 = (uint)(num1 * (ulong)NextUInt32());
+                for (var index = (uint)-(int)num1 % num1; num3 < index; num3 = (uint)num2)
+                    num2 = num1 * (ulong)NextUInt32();
             }
 
-            return num2 + minValue;
+            return (uint)(num2 >> 32) + minValue;
         }
 
         /// <summary>Returns a non-negative random integer.</summary>
@@ -161,14 +172,16 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ulong NextUInt64(ulong maxValue)
         {
-            var num1 = maxValue;
-            ulong num2;
-            do
+            ulong low;
+            var num1 = MathHelpers.BigMul(maxValue, NextUInt64(), out low);
+            if (low < maxValue)
             {
-                num2 = NextUInt64() % num1;
-            } while (num2 >= num1);
+                var num2 = unchecked(0UL - maxValue) % maxValue;
+                while (low < num2)
+                    num1 = MathHelpers.BigMul(maxValue, NextUInt64(), out low);
+            }
 
-            return num2;
+            return num1;
         }
 
         /// <summary>Returns a random integer that is within a specified range.</summary>
@@ -190,14 +203,17 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ulong NextUInt64(ulong minValue, ulong maxValue)
         {
-            var num1 = maxValue - minValue;
-            ulong num2;
-            do
+            var a = maxValue - minValue;
+            ulong low;
+            var num1 = MathHelpers.BigMul(a, NextUInt64(), out low);
+            if (low < a)
             {
-                num2 = NextUInt64() % num1;
-            } while (num2 >= num1);
+                var num2 = unchecked(0UL - a) % a;
+                while (low < num2)
+                    num1 = MathHelpers.BigMul(a, NextUInt64(), out low);
+            }
 
-            return num2 + minValue;
+            return num1 + minValue;
         }
 
         /// <summary>Returns a non-negative random integer.</summary>
