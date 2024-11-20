@@ -45,7 +45,13 @@ namespace NativeCollections
         ///     Initialize
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Initialize() => _state = (uint)Stopwatch.GetTimestamp();
+        public void Initialize()
+        {
+            do
+            {
+                _state = (uint)Stopwatch.GetTimestamp();
+            } while (_state == 0);
+        }
 
         /// <summary>Returns a non-negative random integer.</summary>
         /// <returns>A 32-bit unsigned integer that is greater than or equal to 0 and less than <see cref="uint.MaxValue" />.</returns>
