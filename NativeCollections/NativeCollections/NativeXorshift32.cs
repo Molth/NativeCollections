@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 
 #pragma warning disable CA2208
 #pragma warning disable CS8632
@@ -15,64 +15,49 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection]
-    public unsafe ref struct NativeXoshiro
+    public unsafe ref struct NativeXorshift32
     {
         /// <summary>
-        ///     State0
+        ///     State
         /// </summary>
-        private ulong _s0;
-
-        /// <summary>
-        ///     State1
-        /// </summary>
-        private ulong _s1;
-
-        /// <summary>
-        ///     State2
-        /// </summary>
-        private ulong _s2;
-
-        /// <summary>
-        ///     State3
-        /// </summary>
-        private ulong _s3;
+        private uint _state;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => throw new NotSupportedException("Cannot call Equals on NativeXoshiro");
+        public override bool Equals(object? obj) => throw new NotSupportedException("Cannot call Equals on NativeXorshift32");
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => throw new NotSupportedException("Cannot call GetHashCode on NativeXoshiro");
+        public override int GetHashCode() => throw new NotSupportedException("Cannot call GetHashCode on NativeXorshift32");
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => "NativeXoshiro";
+        public override string ToString() => "NativeXorshift32";
 
         /// <summary>
         ///     Initialize
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Initialize()
-        {
-            var data = MemoryMarshal.CreateSpan(ref Unsafe.As<ulong, byte>(ref _s0), 32);
-            do
-            {
-                RandomNumberGenerator.Fill(data);
-            } while (((long)_s0 | (long)_s1 | (long)_s2 | (long)_s3) == 0L);
-        }
+        public void Initialize() => _state = (uint)Stopwatch.GetTimestamp();
 
         /// <summary>Returns a non-negative random integer.</summary>
         /// <returns>A 32-bit unsigned integer that is greater than or equal to 0 and less than <see cref="uint.MaxValue" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public uint NextUInt32() => (uint)(NextUInt64() >> 32);
+        public uint NextUInt32()
+        {
+            var state = (int)_state;
+            _state ^= _state << 13;
+            _state ^= _state >> 17;
+            _state ^= _state << 5;
+            return (uint)state;
+        }
 
         /// <summary>Returns a non-negative random integer that is less than the specified maximum.</summary>
         /// <param name="maxValue">
@@ -134,28 +119,7 @@ namespace NativeCollections
         /// <summary>Returns a non-negative random integer.</summary>
         /// <returns>A 64-bit unsigned integer that is greater than or equal to 0 and less than <see cref="ulong.MaxValue" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ulong NextUInt64()
-        {
-            var s0 = (long)_s0;
-            var s1 = _s1;
-            var s2 = (long)_s2;
-            var s3 = _s3;
-            var num1 = s1 * 5UL;
-            var num2 = ((num1 << 7) | (num1 >> 57)) * 9UL;
-            var num3 = s1 << 17;
-            var num4 = s0;
-            var num5 = (ulong)(s2 ^ num4);
-            var num6 = s3 ^ s1;
-            var num7 = s1 ^ num5;
-            var num8 = (ulong)s0 ^ num6;
-            var num9 = num5 ^ num3;
-            var num10 = (num6 << 45) | (num6 >> 19);
-            _s0 = num8;
-            _s1 = num7;
-            _s2 = num9;
-            _s3 = num10;
-            return num2;
-        }
+        public ulong NextUInt64() => ((ulong)NextUInt32() << 32) | NextUInt32();
 
         /// <summary>Returns a non-negative random integer that is less than the specified maximum.</summary>
         /// <param name="maxValue">
@@ -221,10 +185,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int NextInt32()
         {
-            ulong num;
+            uint num;
             do
             {
-                num = NextUInt64() >> 33;
+                num = NextUInt32() >> 1;
             } while (num == int.MaxValue);
 
             return (int)num;
@@ -243,18 +207,7 @@ namespace NativeCollections
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="maxValue" /> is less than 0.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int NextInt32(int maxValue)
-        {
-            var num1 = (ulong)maxValue * NextUInt32();
-            var num2 = (uint)num1;
-            if (num2 < maxValue)
-            {
-                for (var index = (uint)((uint)-maxValue % (ulong)maxValue); num2 < index; num2 = (uint)num1)
-                    num1 = (ulong)maxValue * NextUInt32();
-            }
-
-            return (int)(num1 >> 32);
-        }
+        public int NextInt32(int maxValue) => (int)NextUInt32((uint)maxValue);
 
         /// <summary>Returns a random integer that is within a specified range.</summary>
         /// <param name="minValue">The inclusive lower bound of the random number returned.</param>
@@ -273,19 +226,7 @@ namespace NativeCollections
         ///     .
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int NextInt32(int minValue, int maxValue)
-        {
-            var num1 = (uint)(maxValue - minValue);
-            var num2 = num1 * (ulong)NextUInt32();
-            var num3 = (uint)num2;
-            if (num3 < num1)
-            {
-                for (var index = (uint)-(int)num1 % num1; num3 < index; num3 = (uint)num2)
-                    num2 = num1 * (ulong)NextUInt32();
-            }
-
-            return (int)(uint)(num2 >> 32) + minValue;
-        }
+        public int NextInt32(int minValue, int maxValue) => (int)NextUInt32((uint)(maxValue - minValue)) + minValue;
 
         /// <summary>Returns a non-negative random integer.</summary>
         /// <returns>A 64-bit signed integer that is greater than or equal to 0 and less than <see cref="long.MaxValue" />.</returns>
@@ -316,17 +257,18 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public long NextInt64(long maxValue)
         {
-            var a = (ulong)maxValue;
-            ulong low;
-            var num1 = MathHelpers.BigMul(a, NextUInt64(), out low);
-            if (low < a)
+            if (maxValue <= int.MaxValue)
+                return NextInt32((int)maxValue);
+            if (maxValue <= 1L)
+                return 0;
+            var num1 = BitOperationsHelpers.Log2Ceiling((ulong)maxValue);
+            ulong num2;
+            do
             {
-                var num2 = unchecked(0UL - a) % a;
-                while (low < num2)
-                    num1 = MathHelpers.BigMul(a, NextUInt64(), out low);
-            }
+                num2 = NextUInt64() >> (64 - num1);
+            } while (num2 >= (ulong)maxValue);
 
-            return (long)num1;
+            return (long)num2;
         }
 
         /// <summary>Returns a random integer that is within a specified range.</summary>
@@ -348,23 +290,25 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public long NextInt64(long minValue, long maxValue)
         {
-            var a = (ulong)(maxValue - minValue);
-            ulong low;
-            var num1 = MathHelpers.BigMul(a, NextUInt64(), out low);
-            if (low < a)
+            var maxValue1 = (ulong)(maxValue - minValue);
+            if (maxValue1 <= int.MaxValue)
+                return NextInt32((int)maxValue1) + minValue;
+            if (maxValue1 <= 1UL)
+                return minValue;
+            var num1 = BitOperationsHelpers.Log2Ceiling(maxValue1);
+            ulong num2;
+            do
             {
-                var num2 = unchecked(0UL - a) % a;
-                while (low < num2)
-                    num1 = MathHelpers.BigMul(a, NextUInt64(), out low);
-            }
+                num2 = NextUInt64() >> (64 - num1);
+            } while (num2 >= maxValue1);
 
-            return (long)num1 + minValue;
+            return (long)num2 + minValue;
         }
 
         /// <summary>Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.</summary>
         /// <returns>A single-precision floating point number that is greater than or equal to 0.0, and less than 1.0.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float NextSingle() => (NextUInt64() >> 40) * 5.9604645E-08f;
+        public float NextSingle() => (NextUInt32() >> 8) * 5.9604645E-08f;
 
         /// <summary>Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.</summary>
         /// <returns>A double-precision floating point number that is greater than or equal to 0.0, and less than 1.0.</returns>
@@ -376,41 +320,42 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void NextBytes(Span<byte> buffer)
         {
-            var s0 = _s0;
-            var s1 = _s1;
-            var num1 = _s2;
-            var num2 = _s3;
-            for (; buffer.Length >= 8; buffer = buffer.Slice(8))
+            var span = MemoryMarshal.CreateSpan(ref Unsafe.As<uint, byte>(ref _state), 4);
+            uint num1 = span[0];
+            uint num2 = span[1];
+            uint num3 = span[2];
+            uint num4 = span[3];
+            for (; buffer.Length >= 4; buffer = buffer.Slice(4))
             {
-                var num3 = s1 * 5UL;
-                Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(buffer), ((num3 << 7) | (num3 >> 57)) * 9UL);
-                var num4 = s1 << 17;
-                var num5 = num1 ^ s0;
-                var num6 = num2 ^ s1;
-                s1 ^= num5;
-                s0 ^= num6;
-                num1 = num5 ^ num4;
-                num2 = (num6 << 45) | (num6 >> 19);
+                var num5 = num2 * 5U;
+                Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(buffer), (uint)((((int)num5 << 7) | (int)(num5 >> 25)) * 9));
+                var num6 = num2 << 9;
+                var num7 = num3 ^ num1;
+                var num8 = num4 ^ num2;
+                num2 ^= num7;
+                num1 ^= num8;
+                num3 = num7 ^ num6;
+                num4 = (num8 << 11) | (num8 >> 21);
             }
 
             if (!buffer.IsEmpty)
             {
-                var num7 = s1 * 5UL;
-                var num8 = ((num7 << 7) | (num7 >> 57)) * 9UL;
-                Unsafe.CopyBlockUnaligned(Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)), &num8, (uint)buffer.Length);
-                var num9 = s1 << 17;
-                var num10 = num1 ^ s0;
-                var num11 = num2 ^ s1;
-                s1 ^= num10;
-                s0 ^= num11;
-                num1 = num10 ^ num9;
-                num2 = (num11 << 45) | (num11 >> 19);
+                var num9 = num2 * 5U;
+                var num10 = (uint)((((int)num9 << 7) | (int)(num9 >> 25)) * 9);
+                Unsafe.CopyBlockUnaligned(ref MemoryMarshal.GetReference(buffer), ref *(byte*)&num10, (uint)buffer.Length);
+                var num11 = num2 << 9;
+                var num12 = num3 ^ num1;
+                var num13 = num4 ^ num2;
+                num2 ^= num12;
+                num1 ^= num13;
+                num3 = num12 ^ num11;
+                num4 = (num13 << 11) | (num13 >> 21);
             }
 
-            _s0 = s0;
-            _s1 = s1;
-            _s2 = num1;
-            _s3 = num2;
+            span[0] = (byte)num1;
+            span[1] = (byte)num2;
+            span[2] = (byte)num3;
+            span[3] = (byte)num4;
         }
     }
 }

@@ -18,6 +18,38 @@ namespace NativeCollections
     internal static class BitOperationsHelpers
     {
         /// <summary>
+        ///     Log2 ceiling
+        /// </summary>
+        /// <param name="value">Value</param>
+        /// <returns>Log2 ceiling</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Log2Ceiling(ulong value)
+        {
+            int num = Log2(value);
+            if (PopCount(value) != 1)
+                ++num;
+            return num;
+        }
+
+        /// <summary>
+        ///     Returns the population count (number of bits set) of an unsigned 64-bit integer mask
+        /// </summary>
+        /// <param name="value">The mask</param>
+        /// <returns>The population count of the mask</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int PopCount(ulong value)
+        {
+#if NET5_0_OR_GREATER
+            return BitOperations.PopCount(value);
+#else
+            value -= value >> 1 & 6148914691236517205UL;
+            value = (ulong)(((long)value & 3689348814741910323L) + ((long)(value >> 2) & 3689348814741910323L));
+            value = (ulong)(((long)value + (long)(value >> 4) & 1085102592571150095L) * 72340172838076673L >>> 56);
+            return (int)value;
+#endif
+        }
+
+        /// <summary>
         ///     Count the number of leading zero bits in a mask
         ///     Similar in behavior to the x86 instruction LZCNT
         /// </summary>
@@ -80,6 +112,23 @@ namespace NativeCollections
             return BitOperations.TrailingZeroCount(value);
 #else
             return value == 0 ? 32 : Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(TrailingZeroCountDeBruijn), (nint)(int)(((value & (uint)-(int)value) * 125613361U) >> 27));
+#endif
+        }
+
+        /// <summary>
+        ///     Log2
+        /// </summary>
+        /// <param name="value">Value</param>
+        /// <returns>Log2</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Log2(ulong value)
+        {
+#if NET5_0_OR_GREATER
+            return BitOperations.Log2(value);
+#else
+            value |= 1UL;
+            uint num = (uint)(value >> 32);
+            return num == 0U ? BitOperations.Log2((uint)value) : 32 + BitOperations.Log2(num);
 #endif
         }
 
