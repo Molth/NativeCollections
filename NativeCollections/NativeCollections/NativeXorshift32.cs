@@ -369,5 +369,10 @@ namespace NativeCollections
 
             _state = num1;
         }
+
+        /// <summary>
+        ///     Empty
+        /// </summary>
+        public static NativeXorshift32 Empty => new();
     }
 }

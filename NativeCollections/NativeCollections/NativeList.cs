@@ -313,6 +313,29 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Try add
+        /// </summary>
+        /// <param name="item">Item</param>
+        /// <returns>Added</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryAdd(in T item)
+        {
+            var handle = _handle;
+            var size = handle->Size;
+            if ((uint)size < (uint)handle->Length)
+            {
+                handle->Version++;
+                handle->Size = size + 1;
+                handle->Array[size] = item;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
         ///     Add range
         /// </summary>
         /// <param name="collection">Collection</param>

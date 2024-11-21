@@ -451,5 +451,10 @@ namespace NativeCollections
             _s2 = num1;
             _s3 = num2;
         }
+
+        /// <summary>
+        ///     Empty
+        /// </summary>
+        public static NativeXoshiro256 Empty => new();
     }
 }
