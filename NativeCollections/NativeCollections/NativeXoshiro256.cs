@@ -452,6 +452,11 @@ namespace NativeCollections
             _s3 = num2;
         }
 
+        /// <summary>Returns a boolean.</summary>
+        /// <returns>True, or false.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool NextBoolean() => (NextUInt64() & 1) == 0;
+
         /// <summary>
         ///     Empty
         /// </summary>
