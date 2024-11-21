@@ -82,12 +82,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public uint NextUInt32()
         {
-            var state1 = (int)_state;
-            var state2 = (int)_state;
-            var num1 = state2 ^ (state2 << 13);
+            var state = (int)_state;
+            var num1 = state ^ (state << 13);
             var num2 = (uint)(num1 ^ (num1 >>> 17));
             _state = num2 ^ (num2 << 5);
-            return (uint)state1;
+            return (uint)state;
         }
 
         /// <summary>Returns a non-negative random integer that is less than the specified maximum.</summary>
