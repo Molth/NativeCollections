@@ -18,41 +18,41 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection]
-    public unsafe struct NativeXoshiro256 : IEquatable<NativeXoshiro256>
+    public unsafe struct NativeXoshiro128 : IEquatable<NativeXoshiro128>
     {
         /// <summary>
         ///     State0
         /// </summary>
-        private ulong _s0;
+        private uint _s0;
 
         /// <summary>
         ///     State1
         /// </summary>
-        private ulong _s1;
+        private uint _s1;
 
         /// <summary>
         ///     State2
         /// </summary>
-        private ulong _s2;
+        private uint _s2;
 
         /// <summary>
         ///     State3
         /// </summary>
-        private ulong _s3;
+        private uint _s3;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeXoshiro256 other)
+        public bool Equals(NativeXoshiro128 other)
         {
 #if NET7_0_OR_GREATER
-            if (Vector256.IsHardwareAccelerated)
-                return Vector256.LoadUnsafe(ref Unsafe.As<NativeXoshiro256, byte>(ref this)) == Vector256.LoadUnsafe(ref Unsafe.As<NativeXoshiro256, byte>(ref other));
+            if (Vector128.IsHardwareAccelerated)
+                return Vector128.LoadUnsafe(ref Unsafe.As<NativeXoshiro128, byte>(ref this)) == Vector128.LoadUnsafe(ref Unsafe.As<NativeXoshiro128, byte>(ref other));
 #endif
-            ref var left = ref Unsafe.As<NativeXoshiro256, long>(ref this);
-            ref var right = ref Unsafe.As<NativeXoshiro256, long>(ref other);
+            ref var left = ref Unsafe.As<NativeXoshiro128, int>(ref this);
+            ref var right = ref Unsafe.As<NativeXoshiro128, int>(ref other);
             return left == right && Unsafe.Add(ref left, 1) == Unsafe.Add(ref right, 1) && Unsafe.Add(ref left, 2) == Unsafe.Add(ref right, 2) && Unsafe.Add(ref left, 3) == Unsafe.Add(ref right, 3);
         }
 
@@ -61,7 +61,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeXoshiro256 nativeXoshiro256 && nativeXoshiro256 == this;
+        public override bool Equals(object? obj) => obj is NativeXoshiro128 nativeXoshiro128 && nativeXoshiro128 == this;
 
         /// <summary>
         ///     Get hashCode
@@ -69,15 +69,15 @@ namespace NativeCollections
         /// <returns>HashCode</returns>
         public override int GetHashCode()
         {
-            ref var local = ref Unsafe.As<NativeXoshiro256, int>(ref this);
-            return local ^ Unsafe.Add(ref local, 1) ^ Unsafe.Add(ref local, 2) ^ Unsafe.Add(ref local, 3) ^ Unsafe.Add(ref local, 4) ^ Unsafe.Add(ref local, 5) ^ Unsafe.Add(ref local, 6) ^ Unsafe.Add(ref local, 7);
+            ref var local = ref Unsafe.As<NativeXoshiro128, int>(ref this);
+            return local ^ Unsafe.Add(ref local, 1) ^ Unsafe.Add(ref local, 2) ^ Unsafe.Add(ref local, 3);
         }
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => "NativeXoshiro256";
+        public override string ToString() => "NativeXoshiro128";
 
         /// <summary>
         ///     Equals
@@ -85,7 +85,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeXoshiro256 left, NativeXoshiro256 right) => left.Equals(right);
+        public static bool operator ==(NativeXoshiro128 left, NativeXoshiro128 right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -93,7 +93,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeXoshiro256 left, NativeXoshiro256 right) => !left.Equals(right);
+        public static bool operator !=(NativeXoshiro128 left, NativeXoshiro128 right) => !left.Equals(right);
 
         /// <summary>
         ///     Initialize
@@ -101,17 +101,37 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Initialize()
         {
-            var data = MemoryMarshal.CreateSpan(ref Unsafe.As<ulong, byte>(ref _s0), 32);
+            var data = MemoryMarshal.CreateSpan(ref Unsafe.As<uint, byte>(ref _s0), 16);
             do
             {
                 RandomNumberGenerator.Fill(data);
-            } while (((long)_s0 | (long)_s1 | (long)_s2 | (long)_s3) == 0L);
+            } while (((int)_s0 | (int)_s1 | (int)_s2 | (int)_s3) == 0);
         }
 
         /// <summary>Returns a non-negative random integer.</summary>
         /// <returns>A 32-bit unsigned integer that is greater than or equal to 0 and less than <see cref="uint.MaxValue" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public uint NextUInt32() => (uint)(NextUInt64() >> 32);
+        public uint NextUInt32()
+        {
+            var s0 = _s0;
+            var s1 = _s1;
+            var s2 = _s2;
+            var s3 = _s3;
+            var num1 = s1 * 5U;
+            var num2 = (((int)num1 << 7) | (int)(num1 >> 25)) * 9;
+            var num3 = s1 << 9;
+            var num4 = s2 ^ s0;
+            var num5 = s3 ^ s1;
+            var num6 = s1 ^ num4;
+            var num7 = s0 ^ num5;
+            var num8 = num4 ^ num3;
+            var num9 = (num5 << 11) | (num5 >> 21);
+            _s0 = num7;
+            _s1 = num6;
+            _s2 = num8;
+            _s3 = num9;
+            return (uint)num2;
+        }
 
         /// <summary>Returns a non-negative random integer that is less than the specified maximum.</summary>
         /// <param name="maxValue">
@@ -173,28 +193,7 @@ namespace NativeCollections
         /// <summary>Returns a non-negative random integer.</summary>
         /// <returns>A 64-bit unsigned integer that is greater than or equal to 0 and less than <see cref="ulong.MaxValue" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ulong NextUInt64()
-        {
-            var s0 = (long)_s0;
-            var s1 = _s1;
-            var s2 = (long)_s2;
-            var s3 = _s3;
-            var num1 = s1 * 5UL;
-            var num2 = ((num1 << 7) | (num1 >> 57)) * 9UL;
-            var num3 = s1 << 17;
-            var num4 = s0;
-            var num5 = (ulong)(s2 ^ num4);
-            var num6 = s3 ^ s1;
-            var num7 = s1 ^ num5;
-            var num8 = (ulong)s0 ^ num6;
-            var num9 = num5 ^ num3;
-            var num10 = (num6 << 45) | (num6 >> 19);
-            _s0 = num8;
-            _s1 = num7;
-            _s2 = num9;
-            _s3 = num10;
-            return num2;
-        }
+        public ulong NextUInt64() => ((ulong)NextUInt32() << 32) | NextUInt32();
 
         /// <summary>Returns a non-negative random integer that is less than the specified maximum.</summary>
         /// <param name="maxValue">
@@ -260,10 +259,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int NextInt32()
         {
-            ulong num;
+            uint num;
             do
             {
-                num = NextUInt64() >> 33;
+                num = NextUInt32() >> 1;
             } while (num == int.MaxValue);
 
             return (int)num;
@@ -282,18 +281,7 @@ namespace NativeCollections
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="maxValue" /> is less than 0.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int NextInt32(int maxValue)
-        {
-            var num1 = (ulong)maxValue * NextUInt32();
-            var num2 = (uint)num1;
-            if (num2 < maxValue)
-            {
-                for (var index = (uint)((uint)-maxValue % (ulong)maxValue); num2 < index; num2 = (uint)num1)
-                    num1 = (ulong)maxValue * NextUInt32();
-            }
-
-            return (int)(num1 >> 32);
-        }
+        public int NextInt32(int maxValue) => (int)NextUInt32((uint)maxValue);
 
         /// <summary>Returns a random integer that is within a specified range.</summary>
         /// <param name="minValue">The inclusive lower bound of the random number returned.</param>
@@ -312,19 +300,7 @@ namespace NativeCollections
         ///     .
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int NextInt32(int minValue, int maxValue)
-        {
-            var num1 = (uint)(maxValue - minValue);
-            var num2 = num1 * (ulong)NextUInt32();
-            var num3 = (uint)num2;
-            if (num3 < num1)
-            {
-                for (var index = (uint)-(int)num1 % num1; num3 < index; num3 = (uint)num2)
-                    num2 = num1 * (ulong)NextUInt32();
-            }
-
-            return (int)(uint)(num2 >> 32) + minValue;
-        }
+        public int NextInt32(int minValue, int maxValue) => (int)NextUInt32((uint)(maxValue - minValue)) + minValue;
 
         /// <summary>Returns a non-negative random integer.</summary>
         /// <returns>A 64-bit signed integer that is greater than or equal to 0 and less than <see cref="long.MaxValue" />.</returns>
@@ -355,17 +331,18 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public long NextInt64(long maxValue)
         {
-            var a = (ulong)maxValue;
-            ulong low;
-            var num1 = MathHelpers.BigMul(a, NextUInt64(), out low);
-            if (low < a)
+            if (maxValue <= int.MaxValue)
+                return NextInt32((int)maxValue);
+            if (maxValue <= 1L)
+                return 0;
+            var num1 = BitOperationsHelpers.Log2Ceiling((ulong)maxValue);
+            ulong num2;
+            do
             {
-                var num2 = unchecked(0UL - a) % a;
-                while (low < num2)
-                    num1 = MathHelpers.BigMul(a, NextUInt64(), out low);
-            }
+                num2 = NextUInt64() >> (64 - num1);
+            } while (num2 >= (ulong)maxValue);
 
-            return (long)num1;
+            return (long)num2;
         }
 
         /// <summary>Returns a random integer that is within a specified range.</summary>
@@ -387,17 +364,19 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public long NextInt64(long minValue, long maxValue)
         {
-            var a = (ulong)(maxValue - minValue);
-            ulong low;
-            var num1 = MathHelpers.BigMul(a, NextUInt64(), out low);
-            if (low < a)
+            var maxValue1 = (ulong)(maxValue - minValue);
+            if (maxValue1 <= int.MaxValue)
+                return NextInt32((int)maxValue1) + minValue;
+            if (maxValue1 <= 1UL)
+                return minValue;
+            var num1 = BitOperationsHelpers.Log2Ceiling(maxValue1);
+            ulong num2;
+            do
             {
-                var num2 = unchecked(0UL - a) % a;
-                while (low < num2)
-                    num1 = MathHelpers.BigMul(a, NextUInt64(), out low);
-            }
+                num2 = NextUInt64() >> (64 - num1);
+            } while (num2 >= maxValue1);
 
-            return (long)num1 + minValue;
+            return (long)num2 + minValue;
         }
 
         /// <summary>Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.</summary>
@@ -408,7 +387,7 @@ namespace NativeCollections
         /// <summary>Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.</summary>
         /// <returns>A single-precision floating point number that is greater than or equal to 0.0, and less than 1.0.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float NextSingle() => (NextUInt64() >> 40) * 5.9604645E-08f;
+        public float NextSingle() => (NextUInt32() >> 8) * 5.9604645E-08f;
 
         /// <summary>Fills the elements of a specified span of bytes with random numbers.</summary>
         /// <param name="buffer">The array to be filled with random numbers.</param>
@@ -419,31 +398,31 @@ namespace NativeCollections
             var s1 = _s1;
             var num1 = _s2;
             var num2 = _s3;
-            for (; buffer.Length >= 8; buffer = buffer.Slice(8))
+            for (; buffer.Length >= 4; buffer = buffer.Slice(4))
             {
-                var num3 = s1 * 5UL;
-                Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(buffer), ((num3 << 7) | (num3 >> 57)) * 9UL);
-                var num4 = s1 << 17;
+                var num3 = s1 * 5U;
+                Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(buffer), (uint)((((int)num3 << 7) | (int)(num3 >> 25)) * 9));
+                var num4 = s1 << 9;
                 var num5 = num1 ^ s0;
                 var num6 = num2 ^ s1;
                 s1 ^= num5;
                 s0 ^= num6;
                 num1 = num5 ^ num4;
-                num2 = (num6 << 45) | (num6 >> 19);
+                num2 = (num6 << 11) | (num6 >> 21);
             }
 
             if (!buffer.IsEmpty)
             {
-                var num7 = s1 * 5UL;
-                var num8 = ((num7 << 7) | (num7 >> 57)) * 9UL;
+                var num7 = s1 * 5U;
+                var num8 = (uint)((((int)num7 << 7) | (int)(num7 >> 25)) * 9);
                 Unsafe.CopyBlockUnaligned(ref MemoryMarshal.GetReference(buffer), ref *(byte*)&num8, (uint)buffer.Length);
-                var num9 = s1 << 17;
+                var num9 = s1 << 9;
                 var num10 = num1 ^ s0;
                 var num11 = num2 ^ s1;
                 s1 ^= num10;
                 s0 ^= num11;
                 num1 = num10 ^ num9;
-                num2 = (num11 << 45) | (num11 >> 19);
+                num2 = (num11 << 11) | (num11 >> 21);
             }
 
             _s0 = s0;
@@ -455,6 +434,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeXoshiro256 Empty => new();
+        public static NativeXoshiro128 Empty => new();
     }
 }

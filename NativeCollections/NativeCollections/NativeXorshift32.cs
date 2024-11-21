@@ -82,11 +82,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public uint NextUInt32()
         {
-            var state = _state;
-            _state ^= _state << 13;
-            _state ^= _state >> 17;
-            _state ^= _state << 5;
-            return state;
+            var state1 = (int)_state;
+            var state2 = (int)_state;
+            var num1 = state2 ^ (state2 << 13);
+            var num2 = (uint)(num1 ^ (num1 >>> 17));
+            _state = num2 ^ (num2 << 5);
+            return (uint)state1;
         }
 
         /// <summary>Returns a non-negative random integer that is less than the specified maximum.</summary>
@@ -336,14 +337,14 @@ namespace NativeCollections
         }
 
         /// <summary>Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.</summary>
-        /// <returns>A single-precision floating point number that is greater than or equal to 0.0, and less than 1.0.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float NextSingle() => (NextUInt32() >> 8) * 5.9604645E-08f;
-
-        /// <summary>Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.</summary>
         /// <returns>A double-precision floating point number that is greater than or equal to 0.0, and less than 1.0.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public double NextDouble() => (NextUInt64() >> 11) * 1.1102230246251565E-16;
+
+        /// <summary>Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.</summary>
+        /// <returns>A single-precision floating point number that is greater than or equal to 0.0, and less than 1.0.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public float NextSingle() => (NextUInt32() >> 8) * 5.9604645E-08f;
 
         /// <summary>Fills the elements of a specified span of bytes with random numbers.</summary>
         /// <param name="buffer">The array to be filled with random numbers.</param>
