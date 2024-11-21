@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 
 #pragma warning disable CA2208
 #pragma warning disable CS8632
@@ -70,10 +70,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Initialize()
         {
+            var data = MemoryMarshal.CreateSpan(ref Unsafe.As<uint, byte>(ref _state), 4);
             do
             {
-                _state = (uint)Stopwatch.GetTimestamp();
-            } while (_state == 0);
+                RandomNumberGenerator.Fill(data);
+            } while (_state == 0U);
         }
 
         /// <summary>Returns a non-negative random integer.</summary>
@@ -349,42 +350,24 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void NextBytes(Span<byte> buffer)
         {
-            var span = MemoryMarshal.CreateSpan(ref Unsafe.As<uint, byte>(ref _state), 4);
-            uint num1 = span[0];
-            uint num2 = span[1];
-            uint num3 = span[2];
-            uint num4 = span[3];
+            var num1 = _state;
             for (; buffer.Length >= 4; buffer = buffer.Slice(4))
             {
-                var num5 = num2 * 5U;
-                Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(buffer), (uint)((((int)num5 << 7) | (int)(num5 >> 25)) * 9));
-                var num6 = num2 << 9;
-                var num7 = num3 ^ num1;
-                var num8 = num4 ^ num2;
-                num2 ^= num7;
-                num1 ^= num8;
-                num3 = num7 ^ num6;
-                num4 = (num8 << 11) | (num8 >> 21);
+                Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(buffer), num1);
+                var num2 = num1 ^ (num1 << 13);
+                var num3 = num2 ^ (num2 >> 17);
+                num1 = num3 ^ (num3 << 5);
             }
 
             if (!buffer.IsEmpty)
             {
-                var num9 = num2 * 5U;
-                var num10 = (uint)((((int)num9 << 7) | (int)(num9 >> 25)) * 9);
-                Unsafe.CopyBlockUnaligned(ref MemoryMarshal.GetReference(buffer), ref *(byte*)&num10, (uint)buffer.Length);
-                var num11 = num2 << 9;
-                var num12 = num3 ^ num1;
-                var num13 = num4 ^ num2;
-                num2 ^= num12;
-                num1 ^= num13;
-                num3 = num12 ^ num11;
-                num4 = (num13 << 11) | (num13 >> 21);
+                Unsafe.CopyBlockUnaligned(ref MemoryMarshal.GetReference(buffer), ref *(byte*)&num1, (uint)buffer.Length);
+                num1 ^= num1 << 13;
+                num1 ^= num1 >> 17;
+                num1 ^= num1 << 5;
             }
 
-            span[0] = (byte)num1;
-            span[1] = (byte)num2;
-            span[2] = (byte)num3;
-            span[3] = (byte)num4;
+            _state = num1;
         }
     }
 }
