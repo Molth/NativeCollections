@@ -84,7 +84,11 @@ namespace NativeCollections
         {
             var state = (int)_state;
             var num1 = state ^ (state << 13);
+#if NET7_0_OR_GREATER
             var num2 = (uint)(num1 ^ (num1 >>> 17));
+#else
+            var num2 = (uint)(num1 ^ (int)((uint)num1 >> 17));
+#endif
             _state = num2 ^ (num2 << 5);
             return (uint)state;
         }

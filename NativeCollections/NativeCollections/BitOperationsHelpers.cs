@@ -8,8 +8,6 @@ using System.Runtime.Intrinsics;
 using System.Numerics;
 #endif
 
-// ReSharper disable ALL
-
 namespace NativeCollections
 {
     /// <summary>
@@ -25,7 +23,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Log2Ceiling(ulong value)
         {
-            int num = Log2(value);
+            var num = Log2(value);
             if (PopCount(value) != 1)
                 ++num;
             return num;
@@ -42,9 +40,9 @@ namespace NativeCollections
 #if NET5_0_OR_GREATER
             return BitOperations.PopCount(value);
 #else
-            value -= value >> 1 & 6148914691236517205UL;
+            value -= (value >> 1) & 6148914691236517205UL;
             value = (ulong)(((long)value & 3689348814741910323L) + ((long)(value >> 2) & 3689348814741910323L));
-            value = (ulong)(((long)value + (long)(value >> 4) & 1085102592571150095L) * 72340172838076673L >>> 56);
+            value = (ulong)(long)((ulong)((((long)value + (long)(value >> 4)) & 1085102592571150095L) * 72340172838076673L) >> 56);
             return (int)value;
 #endif
         }
