@@ -237,7 +237,7 @@ namespace NativeCollections
             var spinWait = new NativeSpinWait();
             var backoff = 1;
 #if !NET6_0_OR_GREATER
-            var random = new NativeXorshift32();
+            var random = new NativeXoshiro256();
             random.Initialize();
 #endif
             while (true)
