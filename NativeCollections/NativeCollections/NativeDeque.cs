@@ -91,6 +91,34 @@ namespace NativeCollections
         public bool IsEmpty => _handle->Size == 0;
 
         /// <summary>
+        ///     Get reference
+        /// </summary>
+        /// <param name="index">Index</param>
+        public ref T this[int index]
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                var handle = _handle;
+                return ref handle->Array[(handle->Head + index) % handle->Length];
+            }
+        }
+
+        /// <summary>
+        ///     Get reference
+        /// </summary>
+        /// <param name="index">Index</param>
+        public ref T this[uint index]
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                var handle = _handle;
+                return ref handle->Array[(handle->Head + index) % handle->Length];
+            }
+        }
+
+        /// <summary>
         ///     Count
         /// </summary>
         public int Count => _handle->Size;
@@ -164,11 +192,47 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Add
+        ///     Enqueue head
         /// </summary>
         /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Add(in T item)
+        public void EnqueueHead(in T item)
+        {
+            var handle = _handle;
+            if (handle->Size == handle->Length)
+                Grow(handle->Size + 1);
+            if (--handle->Head == -1)
+                handle->Head = handle->Length - 1;
+            handle->Array[handle->Head] = item;
+            ++handle->Size;
+            ++handle->Version;
+        }
+
+        /// <summary>
+        ///     Try enqueue head
+        /// </summary>
+        /// <param name="item">Item</param>
+        /// <returns>Enqueued</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryEnqueueHead(in T item)
+        {
+            var handle = _handle;
+            if (handle->Size == handle->Length)
+                return false;
+            if (--handle->Head == -1)
+                handle->Head = handle->Length - 1;
+            handle->Array[handle->Head] = item;
+            ++handle->Size;
+            ++handle->Version;
+            return true;
+        }
+
+        /// <summary>
+        ///     Enqueue tail
+        /// </summary>
+        /// <param name="item">Item</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void EnqueueTail(in T item)
         {
             var handle = _handle;
             if (handle->Size == handle->Length)
@@ -181,12 +245,12 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try add
+        ///     Try enqueue tail
         /// </summary>
         /// <param name="item">Item</param>
-        /// <returns>Added</returns>
+        /// <returns>Enqueued</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryAdd(in T item)
+        public bool TryEnqueueTail(in T item)
         {
             var handle = _handle;
             if (handle->Size == handle->Length)
@@ -205,7 +269,7 @@ namespace NativeCollections
         /// <param name="result">Item</param>
         /// <returns>Dequeued</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDequeue(out T result)
+        public bool TryDequeueHead(out T result)
         {
             var handle = _handle;
             if (handle->Size == 0)
@@ -223,12 +287,12 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try pop
+        ///     Try dequeue
         /// </summary>
         /// <param name="result">Item</param>
-        /// <returns>Popped</returns>
+        /// <returns>Dequeued</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryPop(out T result)
+        public bool TryDequeueTail(out T result)
         {
             var handle = _handle;
             if (handle->Size == 0)
@@ -242,6 +306,45 @@ namespace NativeCollections
             result = handle->Array[handle->Tail];
             --handle->Size;
             ++handle->Version;
+            return true;
+        }
+
+        /// <summary>
+        ///     Try peek head
+        /// </summary>
+        /// <param name="result">Item</param>
+        /// <returns>Peeked</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryPeekHead(out T result)
+        {
+            var handle = _handle;
+            if (handle->Size == 0)
+            {
+                result = default;
+                return false;
+            }
+
+            result = handle->Array[handle->Head];
+            return true;
+        }
+
+        /// <summary>
+        ///     Try peek tail
+        /// </summary>
+        /// <param name="result">Item</param>
+        /// <returns>Peeked</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryPeekTail(out T result)
+        {
+            var handle = _handle;
+            var size = handle->Size - 1;
+            if ((uint)size >= (uint)handle->Length)
+            {
+                result = default;
+                return false;
+            }
+
+            result = handle->Array[size];
             return true;
         }
 
@@ -283,22 +386,26 @@ namespace NativeCollections
         private void SetCapacity(int capacity)
         {
             var handle = _handle;
-            var destinationArray = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
-            if (handle->Head == 0)
+            var newArray = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
+            if (handle->Size > 0)
             {
-                Unsafe.CopyBlockUnaligned(destinationArray, handle->Array, (uint)(handle->Size * sizeof(T)));
-            }
-            else
-            {
-                Unsafe.CopyBlockUnaligned(destinationArray, handle->Array + handle->Head, (uint)((handle->Length - handle->Head) * sizeof(T)));
-                Unsafe.CopyBlockUnaligned(destinationArray + (handle->Length - handle->Head), handle->Array, (uint)(handle->Tail * sizeof(T)));
+                if (handle->Head == 0)
+                {
+                    Unsafe.CopyBlockUnaligned(newArray, handle->Array, (uint)(handle->Size * sizeof(T)));
+                }
+                else
+                {
+                    Unsafe.CopyBlockUnaligned(newArray, handle->Array + handle->Head, (uint)((handle->Length - handle->Head) * sizeof(T)));
+                    Unsafe.CopyBlockUnaligned(newArray + handle->Length - handle->Head, handle->Array, (uint)(handle->Tail * sizeof(T)));
+                }
             }
 
             NativeMemoryAllocator.Free(handle->Array);
-            handle->Array = destinationArray;
+            handle->Array = newArray;
             handle->Length = capacity;
             handle->Head = 0;
             handle->Tail = handle->Size;
+            handle->Version++;
         }
 
         /// <summary>
