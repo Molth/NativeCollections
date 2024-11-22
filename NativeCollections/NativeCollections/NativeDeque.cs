@@ -389,9 +389,9 @@ namespace NativeCollections
             var newArray = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
             if (handle->Size > 0)
             {
-                if (handle->Head == 0)
+                if (handle->Head < handle->Tail)
                 {
-                    Unsafe.CopyBlockUnaligned(newArray, handle->Array, (uint)(handle->Size * sizeof(T)));
+                    Unsafe.CopyBlockUnaligned(newArray, handle->Array + handle->Head, (uint)(handle->Size * sizeof(T)));
                 }
                 else
                 {
@@ -404,7 +404,7 @@ namespace NativeCollections
             handle->Array = newArray;
             handle->Length = capacity;
             handle->Head = 0;
-            handle->Tail = handle->Size;
+            handle->Tail = handle->Size == capacity ? 0 : handle->Size;
             handle->Version++;
         }
 
