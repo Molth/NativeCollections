@@ -28,12 +28,12 @@ namespace NativeCollections
             /// <summary>
             ///     Keys
             /// </summary>
-            public TKey* Buckets;
+            public TKey* Keys;
 
             /// <summary>
             ///     Values
             /// </summary>
-            public TValue* Entries;
+            public TValue* Values;
 
             /// <summary>
             ///     Size
@@ -78,8 +78,8 @@ namespace NativeCollections
             if (capacity < 4)
                 capacity = 4;
             var handle = (NativeSortedListHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeSortedListHandle));
-            handle->Buckets = (TKey*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(TKey)));
-            handle->Entries = (TValue*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(TValue)));
+            handle->Keys = (TKey*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(TKey)));
+            handle->Values = (TValue*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(TValue)));
             handle->Size = 0;
             handle->Version = 0;
             handle->Capacity = capacity;
@@ -106,17 +106,17 @@ namespace NativeCollections
             get
             {
                 var handle = _handle;
-                var index = BinarySearch(handle->Buckets, handle->Size, key);
-                return index >= 0 ? handle->Entries[index] : throw new KeyNotFoundException(key.ToString());
+                var index = BinarySearch(handle->Keys, handle->Size, key);
+                return index >= 0 ? handle->Values[index] : throw new KeyNotFoundException(key.ToString());
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
                 var handle = _handle;
-                var index = BinarySearch(handle->Buckets, handle->Size, key);
+                var index = BinarySearch(handle->Keys, handle->Size, key);
                 if (index >= 0)
                 {
-                    handle->Entries[index] = value;
+                    handle->Values[index] = value;
                     ++handle->Version;
                 }
                 else
@@ -152,21 +152,21 @@ namespace NativeCollections
                         var values = (TValue*)NativeMemoryAllocator.Alloc((uint)(value * sizeof(TValue)));
                         if (handle->Size > 0)
                         {
-                            Unsafe.CopyBlockUnaligned(keys, handle->Buckets, (uint)(handle->Size * sizeof(TKey)));
-                            Unsafe.CopyBlockUnaligned(values, handle->Entries, (uint)(handle->Size * sizeof(TValue)));
+                            Unsafe.CopyBlockUnaligned(keys, handle->Keys, (uint)(handle->Size * sizeof(TKey)));
+                            Unsafe.CopyBlockUnaligned(values, handle->Values, (uint)(handle->Size * sizeof(TValue)));
                         }
 
-                        NativeMemoryAllocator.Free(handle->Buckets);
-                        NativeMemoryAllocator.Free(handle->Entries);
-                        handle->Buckets = keys;
-                        handle->Entries = values;
+                        NativeMemoryAllocator.Free(handle->Keys);
+                        NativeMemoryAllocator.Free(handle->Values);
+                        handle->Keys = keys;
+                        handle->Values = values;
                     }
                     else
                     {
-                        NativeMemoryAllocator.Free(handle->Buckets);
-                        NativeMemoryAllocator.Free(handle->Entries);
-                        handle->Buckets = (TKey*)NativeMemoryAllocator.Alloc(0);
-                        handle->Entries = (TValue*)NativeMemoryAllocator.Alloc(0);
+                        NativeMemoryAllocator.Free(handle->Keys);
+                        NativeMemoryAllocator.Free(handle->Values);
+                        handle->Keys = (TKey*)NativeMemoryAllocator.Alloc(0);
+                        handle->Values = (TValue*)NativeMemoryAllocator.Alloc(0);
                     }
 
                     handle->Capacity = value;
@@ -225,8 +225,8 @@ namespace NativeCollections
             var handle = _handle;
             if (handle == null)
                 return;
-            NativeMemoryAllocator.Free(handle->Buckets);
-            NativeMemoryAllocator.Free(handle->Entries);
+            NativeMemoryAllocator.Free(handle->Keys);
+            NativeMemoryAllocator.Free(handle->Values);
             NativeMemoryAllocator.Free(handle);
         }
 
@@ -250,7 +250,7 @@ namespace NativeCollections
         public void Add(in TKey key, in TValue value)
         {
             var handle = _handle;
-            var num = BinarySearch(handle->Buckets, handle->Size, key);
+            var num = BinarySearch(handle->Keys, handle->Size, key);
             if (num >= 0)
                 throw new ArgumentException($"AddingDuplicate, {key}", nameof(key));
             Insert(~num, key, value);
@@ -265,14 +265,14 @@ namespace NativeCollections
         public bool Remove(in TKey key)
         {
             var handle = _handle;
-            var index = BinarySearch(handle->Buckets, handle->Size, key);
+            var index = BinarySearch(handle->Keys, handle->Size, key);
             if (index >= 0)
             {
                 --handle->Size;
                 if (index < handle->Size)
                 {
-                    Unsafe.CopyBlockUnaligned(handle->Buckets + index, handle->Buckets + index + 1, (uint)((handle->Size - index) * sizeof(TKey)));
-                    Unsafe.CopyBlockUnaligned(handle->Entries + index, handle->Entries + index + 1, (uint)((handle->Size - index) * sizeof(TValue)));
+                    Unsafe.CopyBlockUnaligned(handle->Keys + index, handle->Keys + index + 1, (uint)((handle->Size - index) * sizeof(TKey)));
+                    Unsafe.CopyBlockUnaligned(handle->Values + index, handle->Values + index + 1, (uint)((handle->Size - index) * sizeof(TValue)));
                 }
 
                 ++handle->Version;
@@ -292,15 +292,15 @@ namespace NativeCollections
         public bool Remove(in TKey key, out TValue value)
         {
             var handle = _handle;
-            var index = BinarySearch(handle->Buckets, handle->Size, key);
+            var index = BinarySearch(handle->Keys, handle->Size, key);
             if (index >= 0)
             {
-                value = handle->Entries[index];
+                value = handle->Values[index];
                 --handle->Size;
                 if (index < handle->Size)
                 {
-                    Unsafe.CopyBlockUnaligned(handle->Buckets + index, handle->Buckets + index + 1, (uint)((handle->Size - index) * sizeof(TKey)));
-                    Unsafe.CopyBlockUnaligned(handle->Entries + index, handle->Entries + index + 1, (uint)((handle->Size - index) * sizeof(TValue)));
+                    Unsafe.CopyBlockUnaligned(handle->Keys + index, handle->Keys + index + 1, (uint)((handle->Size - index) * sizeof(TKey)));
+                    Unsafe.CopyBlockUnaligned(handle->Values + index, handle->Values + index + 1, (uint)((handle->Size - index) * sizeof(TValue)));
                 }
 
                 ++handle->Version;
@@ -312,6 +312,29 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Remove at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <returns>Removed</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void RemoveAt(int index)
+        {
+            var handle = _handle;
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
+            if (index >= handle->Size)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
+            --handle->Size;
+            if (index < handle->Size)
+            {
+                Unsafe.CopyBlockUnaligned(handle->Keys + index, handle->Keys + index + 1, (uint)((handle->Size - index) * sizeof(TKey)));
+                Unsafe.CopyBlockUnaligned(handle->Values + index, handle->Values + index + 1, (uint)((handle->Size - index) * sizeof(TValue)));
+            }
+
+            ++handle->Version;
+        }
+
+        /// <summary>
         ///     Contains key
         /// </summary>
         /// <param name="key">Key</param>
@@ -320,7 +343,7 @@ namespace NativeCollections
         public bool ContainsKey(in TKey key)
         {
             var handle = _handle;
-            return BinarySearch(handle->Buckets, handle->Size, key) >= 0;
+            return BinarySearch(handle->Keys, handle->Size, key) >= 0;
         }
 
         /// <summary>
@@ -333,10 +356,10 @@ namespace NativeCollections
         public bool TryGetValue(in TKey key, out TValue value)
         {
             var handle = _handle;
-            var index = BinarySearch(handle->Buckets, handle->Size, key);
+            var index = BinarySearch(handle->Keys, handle->Size, key);
             if (index >= 0)
             {
-                value = handle->Entries[index];
+                value = handle->Values[index];
                 return true;
             }
 
@@ -396,12 +419,12 @@ namespace NativeCollections
                 EnsureCapacity(handle->Size + 1);
             if (index < handle->Size)
             {
-                Unsafe.CopyBlockUnaligned(handle->Buckets + index + 1, handle->Buckets + index, (uint)((handle->Size - index) * sizeof(TKey)));
-                Unsafe.CopyBlockUnaligned(handle->Entries + index + 1, handle->Entries + index, (uint)((handle->Size - index) * sizeof(TValue)));
+                Unsafe.CopyBlockUnaligned(handle->Keys + index + 1, handle->Keys + index, (uint)((handle->Size - index) * sizeof(TKey)));
+                Unsafe.CopyBlockUnaligned(handle->Values + index + 1, handle->Values + index, (uint)((handle->Size - index) * sizeof(TValue)));
             }
 
-            handle->Buckets[index] = key;
-            handle->Entries[index] = value;
+            handle->Keys[index] = key;
+            handle->Values[index] = value;
             ++handle->Size;
             ++handle->Version;
         }
@@ -494,7 +517,7 @@ namespace NativeCollections
                     throw new InvalidOperationException("EnumFailedVersion");
                 if ((uint)_index < (uint)handle->Size)
                 {
-                    _current = new KeyValuePair<TKey, TValue>(handle->Buckets[_index], handle->Entries[_index]);
+                    _current = new KeyValuePair<TKey, TValue>(handle->Keys[_index], handle->Values[_index]);
                     ++_index;
                     return true;
                 }
@@ -530,6 +553,17 @@ namespace NativeCollections
             /// <param name="nativeSortedList">NativeSortedList</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal KeyCollection(NativeSortedList<TKey, TValue> nativeSortedList) => _nativeSortedList = nativeSortedList;
+
+            /// <summary>
+            ///     As span
+            /// </summary>
+            /// <returns>Span</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static implicit operator ReadOnlySpan<TKey>(KeyCollection keyCollection)
+            {
+                var handle = keyCollection._nativeSortedList._handle;
+                return MemoryMarshal.CreateReadOnlySpan(ref *handle->Keys, handle->Size);
+            }
 
             /// <summary>
             ///     Get enumerator
@@ -587,7 +621,7 @@ namespace NativeCollections
                         throw new InvalidOperationException("EnumFailedVersion");
                     if ((uint)_index < (uint)handle->Size)
                     {
-                        _current = handle->Buckets[_index];
+                        _current = handle->Keys[_index];
                         ++_index;
                         return true;
                     }
@@ -624,6 +658,17 @@ namespace NativeCollections
             /// <param name="nativeSortedList">NativeSortedList</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal ValueCollection(NativeSortedList<TKey, TValue> nativeSortedList) => _nativeSortedList = nativeSortedList;
+
+            /// <summary>
+            ///     As span
+            /// </summary>
+            /// <returns>Span</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static implicit operator Span<TValue>(ValueCollection valueCollection)
+            {
+                var handle = valueCollection._nativeSortedList._handle;
+                return MemoryMarshal.CreateSpan(ref *handle->Values, handle->Size);
+            }
 
             /// <summary>
             ///     Get enumerator
@@ -681,7 +726,7 @@ namespace NativeCollections
                         throw new InvalidOperationException("EnumFailedVersion");
                     if ((uint)_index < (uint)handle->Size)
                     {
-                        _current = handle->Entries[_index];
+                        _current = handle->Values[_index];
                         ++_index;
                         return true;
                     }
