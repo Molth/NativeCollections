@@ -319,9 +319,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveAt(int index)
         {
-            var handle = _handle;
             if (index < 0)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
+            var handle = _handle;
             if (index >= handle->Size)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
             --handle->Size;
@@ -331,6 +331,55 @@ namespace NativeCollections
                 Unsafe.CopyBlockUnaligned(handle->Values + index, handle->Values + index + 1, (uint)((handle->Size - index) * sizeof(TValue)));
             }
 
+            ++handle->Version;
+        }
+
+        /// <summary>
+        ///     Get key at index
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <returns>Key</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public TKey GetKeyAtIndex(int index)
+        {
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
+            var handle = _handle;
+            if (index >= handle->Size)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
+            return handle->Keys[index];
+        }
+
+        /// <summary>
+        ///     Get value at index
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <returns>Value</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public TValue GetValueAtIndex(int index)
+        {
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
+            var handle = _handle;
+            if (index >= handle->Size)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
+            return handle->Values[index];
+        }
+
+        /// <summary>
+        ///     Set value at index
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="value">Value</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetValueAtIndex(int index, in TValue value)
+        {
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
+            var handle = _handle;
+            if (index >= handle->Size)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
+            handle->Values[index] = value;
             ++handle->Version;
         }
 
