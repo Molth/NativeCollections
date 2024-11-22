@@ -454,6 +454,30 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Try to get the value
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="value">Value</param>
+        /// <returns>Got</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetValueReference(in TKey key, out NativeReference<TValue> value)
+        {
+            var tables = _handle->Tables;
+            var hashCode = key.GetHashCode();
+            for (var node = (Node*)GetBucket(tables, hashCode); node != null; node = node->Next)
+            {
+                if (hashCode == node->HashCode && node->Key.Equals(key))
+                {
+                    value = new NativeReference<TValue>(Unsafe.AsPointer(ref node->Value));
+                    return true;
+                }
+            }
+
+            value = default;
+            return false;
+        }
+
+        /// <summary>
         ///     Try update
         /// </summary>
         /// <param name="key">Key</param>

@@ -354,6 +354,30 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Try to get the actual value
+        /// </summary>
+        /// <param name="equalValue">Equal value</param>
+        /// <param name="actualValue">Actual value</param>
+        /// <returns>Got</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetValueReference(in T equalValue, out NativeReference<T> actualValue)
+        {
+            var tables = _handle->Tables;
+            var hashCode = equalValue.GetHashCode();
+            for (var node = (Node*)GetBucket(tables, hashCode); node != null; node = node->Next)
+            {
+                if (hashCode == node->HashCode && node->Key.Equals(equalValue))
+                {
+                    actualValue = new NativeReference<T>(Unsafe.AsPointer(ref node->Key));
+                    return true;
+                }
+            }
+
+            actualValue = default;
+            return false;
+        }
+
+        /// <summary>
         ///     Check all buckets are empty
         /// </summary>
         /// <returns>All buckets are empty</returns>

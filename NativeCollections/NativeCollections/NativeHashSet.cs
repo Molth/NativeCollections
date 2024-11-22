@@ -317,6 +317,26 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Try to get the actual value
+        /// </summary>
+        /// <param name="equalValue">Equal value</param>
+        /// <param name="actualValue">Actual value</param>
+        /// <returns>Got</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetValueReference(in T equalValue, out NativeReference<T> actualValue)
+        {
+            var index = FindItemIndex(equalValue);
+            if (index >= 0)
+            {
+                actualValue = new NativeReference<T>(Unsafe.AsPointer(ref _handle->Entries[index].Value));
+                return true;
+            }
+
+            actualValue = default;
+            return false;
+        }
+
+        /// <summary>
         ///     Ensure capacity
         /// </summary>
         /// <param name="capacity">Capacity</param>
@@ -389,7 +409,7 @@ namespace NativeCollections
             handle->Entries = (Entry*)NativeMemoryAllocator.AllocZeroed((uint)(size * sizeof(Entry)));
             handle->BucketsLength = size;
             handle->EntriesLength = size;
-            handle->FastModMultiplier = IntPtr.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)size) : 0;
+            handle->FastModMultiplier = nint.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)size) : 0;
             return size;
         }
 
@@ -414,7 +434,7 @@ namespace NativeCollections
             NativeMemoryAllocator.Free(handle->Buckets);
             handle->Buckets = buckets;
             handle->BucketsLength = newSize;
-            handle->FastModMultiplier = IntPtr.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)newSize) : 0;
+            handle->FastModMultiplier = nint.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)newSize) : 0;
             for (var i = 0; i < count; ++i)
             {
                 ref var entry = ref entries[i];
@@ -466,7 +486,7 @@ namespace NativeCollections
         private ref int GetBucketRef(int hashCode)
         {
             var handle = _handle;
-            return ref IntPtr.Size == 8 ? ref handle->Buckets[HashHelpers.FastMod((uint)hashCode, (uint)handle->BucketsLength, handle->FastModMultiplier)] : ref handle->Buckets[(uint)hashCode % (uint)handle->BucketsLength];
+            return ref nint.Size == 8 ? ref handle->Buckets[HashHelpers.FastMod((uint)hashCode, (uint)handle->BucketsLength, handle->FastModMultiplier)] : ref handle->Buckets[(uint)hashCode % (uint)handle->BucketsLength];
         }
 
         /// <summary>

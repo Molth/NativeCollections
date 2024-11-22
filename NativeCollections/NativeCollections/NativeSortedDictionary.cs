@@ -518,6 +518,26 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Try to get the actual value
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="value">Value</param>
+        /// <returns>Got</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetValueReference(in TKey key, out NativeReference<TValue> value)
+        {
+            var node = FindNode(key);
+            if (node != null)
+            {
+                value = new NativeReference<TValue>(Unsafe.AsPointer(ref node->Value));
+                return true;
+            }
+
+            value = default;
+            return false;
+        }
+
+        /// <summary>
         ///     Insertion balance
         /// </summary>
         /// <param name="current">Current</param>
@@ -632,57 +652,27 @@ namespace NativeCollections
             /// <summary>
             ///     Key
             /// </summary>
-            public TKey Key
-            {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get;
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                set;
-            }
+            public TKey Key;
 
             /// <summary>
             ///     Value
             /// </summary>
-            public TValue Value
-            {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get;
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                set;
-            }
+            public TValue Value;
 
             /// <summary>
             ///     Left
             /// </summary>
-            public Node* Left
-            {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get;
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                set;
-            }
+            public Node* Left;
 
             /// <summary>
             ///     Right
             /// </summary>
-            public Node* Right
-            {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get;
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                set;
-            }
+            public Node* Right;
 
             /// <summary>
             ///     Color
             /// </summary>
-            public NodeColor Color
-            {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get;
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                set;
-            }
+            public NodeColor Color;
 
             /// <summary>
             ///     Is black

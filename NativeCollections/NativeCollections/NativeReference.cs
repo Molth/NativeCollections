@@ -27,7 +27,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="handle">Handle</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeReference(T* handle) => _handle = handle;
+        public NativeReference(void* handle) => _handle = (T*)handle;
 
         /// <summary>
         ///     Structure
@@ -86,11 +86,25 @@ namespace NativeCollections
         public override string ToString() => $"NativeReference<{typeof(T).Name}>";
 
         /// <summary>
+        ///     As span
+        /// </summary>
+        /// <returns>Span</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Span<T> AsSpan() => MemoryMarshal.CreateSpan(ref *_handle, 1);
+
+        /// <summary>
+        ///     As readOnly span
+        /// </summary>
+        /// <returns>ReadOnlySpan</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref *_handle, 1);
+
+        /// <summary>
         ///     As reference
         /// </summary>
         /// <returns>NativeReference</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeReference<T>(T* handle) => new(handle);
+        public static implicit operator NativeReference<T>(void* handle) => new(handle);
 
         /// <summary>
         ///     As handle
@@ -112,6 +126,20 @@ namespace NativeCollections
         /// <returns>Handle</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator nint(NativeReference<T> nativeReference) => (nint)nativeReference._handle;
+
+        /// <summary>
+        ///     As span
+        /// </summary>
+        /// <returns>Span</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator Span<T>(NativeReference<T> nativeReference) => nativeReference.AsSpan();
+
+        /// <summary>
+        ///     As readOnly span
+        /// </summary>
+        /// <returns>ReadOnlySpan</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator ReadOnlySpan<T>(NativeReference<T> nativeReference) => nativeReference.AsReadOnlySpan();
 
         /// <summary>
         ///     Equals

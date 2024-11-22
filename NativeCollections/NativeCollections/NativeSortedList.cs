@@ -417,6 +417,27 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Try to get the value
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="value">Value</param>
+        /// <returns>Got</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetValueReference(in TKey key, out NativeReference<TValue> value)
+        {
+            var handle = _handle;
+            var index = BinarySearch(handle->Keys, handle->Size, key);
+            if (index >= 0)
+            {
+                value = new NativeReference<TValue>(Unsafe.AsPointer(ref handle->Values[index]));
+                return true;
+            }
+
+            value = default;
+            return false;
+        }
+
+        /// <summary>
         ///     Ensure capacity
         /// </summary>
         /// <param name="capacity">Capacity</param>
@@ -604,15 +625,22 @@ namespace NativeCollections
             internal KeyCollection(NativeSortedList<TKey, TValue> nativeSortedList) => _nativeSortedList = nativeSortedList;
 
             /// <summary>
+            ///     As readOnly span
+            /// </summary>
+            /// <returns>ReadOnlySpan</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public ReadOnlySpan<TKey> AsReadOnlySpan()
+            {
+                var handle = _nativeSortedList._handle;
+                return MemoryMarshal.CreateReadOnlySpan(ref *handle->Keys, handle->Size);
+            }
+
+            /// <summary>
             ///     As span
             /// </summary>
             /// <returns>Span</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static implicit operator ReadOnlySpan<TKey>(KeyCollection keyCollection)
-            {
-                var handle = keyCollection._nativeSortedList._handle;
-                return MemoryMarshal.CreateReadOnlySpan(ref *handle->Keys, handle->Size);
-            }
+            public static implicit operator ReadOnlySpan<TKey>(KeyCollection keyCollection) => keyCollection.AsReadOnlySpan();
 
             /// <summary>
             ///     Get enumerator
@@ -713,11 +741,18 @@ namespace NativeCollections
             /// </summary>
             /// <returns>Span</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static implicit operator Span<TValue>(ValueCollection valueCollection)
+            public Span<TValue> AsSpan()
             {
-                var handle = valueCollection._nativeSortedList._handle;
+                var handle = _nativeSortedList._handle;
                 return MemoryMarshal.CreateSpan(ref *handle->Values, handle->Size);
             }
+
+            /// <summary>
+            ///     As span
+            /// </summary>
+            /// <returns>Span</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static implicit operator Span<TValue>(ValueCollection valueCollection) => valueCollection.AsSpan();
 
             /// <summary>
             ///     Get enumerator
