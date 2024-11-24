@@ -335,6 +335,33 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Remove range
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="count">Count</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void RemoveRange(int index, int count)
+        {
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
+            if (count < 0)
+                throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeNonNegative");
+            if (count == 0)
+                return;
+            var handle = _handle;
+            if (index + count > handle->Size)
+                throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeLess");
+            handle->Size -= count;
+            if (index < handle->Size)
+            {
+                Unsafe.CopyBlockUnaligned(handle->Keys + index, handle->Keys + index + count, (uint)((handle->Size - index) * sizeof(TKey)));
+                Unsafe.CopyBlockUnaligned(handle->Values + index, handle->Values + index + count, (uint)((handle->Size - index) * sizeof(TValue)));
+            }
+
+            ++handle->Version;
+        }
+
+        /// <summary>
         ///     Get key at index
         /// </summary>
         /// <param name="index">Index</param>

@@ -458,7 +458,7 @@ namespace NativeCollections
             var handle = _handle;
             var offset = handle->Size - index;
             if (offset < count)
-                throw new ArgumentOutOfRangeException(offset.ToString(), "InvalidOffLen");
+                throw new ArgumentOutOfRangeException(nameof(count), "MustBeLess");
             if (count > 0)
             {
                 handle->Size -= count;
@@ -495,7 +495,7 @@ namespace NativeCollections
             var handle = _handle;
             var offset = handle->Size - index;
             if (offset < count)
-                throw new ArgumentOutOfRangeException(offset.ToString(), "InvalidOffLen");
+                throw new ArgumentOutOfRangeException(nameof(count), "MustBeLess");
             if (count > 1)
                 MemoryMarshal.CreateSpan(ref *(handle->Array + index), count).Reverse();
             handle->Version++;
