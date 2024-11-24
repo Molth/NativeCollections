@@ -252,6 +252,23 @@ namespace NativeCollections
         public ReadOnlySpan<T> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref *(_array + start), length);
 
         /// <summary>
+        ///     Slice
+        /// </summary>
+        /// <param name="start">Start</param>
+        /// <returns>NativeSlice</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeSlice<T> Slice(int start) => new(_array + start, _length - start);
+
+        /// <summary>
+        ///     Slice
+        /// </summary>
+        /// <param name="start">Start</param>
+        /// <param name="count">Count</param>
+        /// <returns>NativeSlice</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeSlice<T> Slice(int start, int count) => new(_array + start, count);
+
+        /// <summary>
         ///     Empty
         /// </summary>
         public static NativeArray<T> Empty => new();
