@@ -23,6 +23,11 @@ namespace NativeCollections
         private uint _state;
 
         /// <summary>
+        ///     Is created
+        /// </summary>
+        public bool IsCreated => !(_state == 0U);
+
+        /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="other">Other</param>

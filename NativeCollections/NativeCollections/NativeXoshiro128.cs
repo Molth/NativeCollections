@@ -41,6 +41,11 @@ namespace NativeCollections
         private uint _s3;
 
         /// <summary>
+        ///     Is created
+        /// </summary>
+        public bool IsCreated => !(((int)_s0 | (int)_s1 | (int)_s2 | (int)_s3) == 0);
+
+        /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="other">Other</param>

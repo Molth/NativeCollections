@@ -41,6 +41,11 @@ namespace NativeCollections
         private ulong _s3;
 
         /// <summary>
+        ///     Is created
+        /// </summary>
+        public bool IsCreated => !(((long)_s0 | (long)_s1 | (long)_s2 | (long)_s3) == 0L);
+
+        /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="other">Other</param>
