@@ -257,7 +257,7 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <returns>NativeSlice</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeSlice<T> Slice(int start) => new(_array + start, _length - start);
+        public NativeArray<T> Slice(int start) => new(_array + start, _length - start);
 
         /// <summary>
         ///     Slice
@@ -266,7 +266,7 @@ namespace NativeCollections
         /// <param name="count">Count</param>
         /// <returns>NativeSlice</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeSlice<T> Slice(int start, int count) => new(_array + start, count);
+        public NativeArray<T> Slice(int start, int count) => new(_array + start, count);
 
         /// <summary>
         ///     Empty
