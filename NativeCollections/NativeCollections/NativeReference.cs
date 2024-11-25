@@ -118,7 +118,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>NativeReference</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeReference<T>(nint handle) => new((T*)handle);
+        public static implicit operator NativeReference<T>(nint handle) => new((void*)handle);
 
         /// <summary>
         ///     As handle
