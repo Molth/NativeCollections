@@ -23,66 +23,66 @@ namespace NativeCollections
         private readonly T* _array;
 
         /// <summary>
-        ///     Rows
+        ///     X
         /// </summary>
-        private readonly int _rows;
+        private readonly int _x;
 
         /// <summary>
-        ///     Columns
+        ///     Y
         /// </summary>
-        private readonly int _columns;
+        private readonly int _y;
 
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="rows">Rows</param>
-        /// <param name="columns">Columns</param>
+        /// <param name="x">X</param>
+        /// <param name="y">Y</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeArray2(int rows, int columns)
+        public NativeArray2(int x, int y)
         {
-            if (rows < 0)
-                throw new ArgumentOutOfRangeException(nameof(rows), rows, "MustBeNonNegative");
-            if (columns < 0)
-                throw new ArgumentOutOfRangeException(nameof(columns), columns, "MustBeNonNegative");
-            _array = (T*)NativeMemoryAllocator.Alloc((uint)(rows * columns * sizeof(T)));
-            _rows = rows;
-            _columns = columns;
+            if (x < 0)
+                throw new ArgumentOutOfRangeException(nameof(x), x, "MustBeNonNegative");
+            if (y < 0)
+                throw new ArgumentOutOfRangeException(nameof(y), y, "MustBeNonNegative");
+            _array = (T*)NativeMemoryAllocator.Alloc((uint)(x * y * sizeof(T)));
+            _x = x;
+            _y = y;
         }
 
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="rows">Rows</param>
-        /// <param name="columns">Columns</param>
+        /// <param name="x">X</param>
+        /// <param name="y">Y</param>
         /// <param name="zeroed">Zeroed</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeArray2(int rows, int columns, bool zeroed)
+        public NativeArray2(int x, int y, bool zeroed)
         {
-            if (rows < 0)
-                throw new ArgumentOutOfRangeException(nameof(rows), rows, "MustBeNonNegative");
-            if (columns < 0)
-                throw new ArgumentOutOfRangeException(nameof(columns), columns, "MustBeNonNegative");
-            _array = zeroed ? (T*)NativeMemoryAllocator.AllocZeroed((uint)(rows * columns * sizeof(T))) : (T*)NativeMemoryAllocator.Alloc((uint)(rows * columns * sizeof(T)));
-            _rows = rows;
-            _columns = columns;
+            if (x < 0)
+                throw new ArgumentOutOfRangeException(nameof(x), x, "MustBeNonNegative");
+            if (y < 0)
+                throw new ArgumentOutOfRangeException(nameof(y), y, "MustBeNonNegative");
+            _array = zeroed ? (T*)NativeMemoryAllocator.AllocZeroed((uint)(x * y * sizeof(T))) : (T*)NativeMemoryAllocator.Alloc((uint)(x * y * sizeof(T)));
+            _x = x;
+            _y = y;
         }
 
         /// <summary>
         ///     Structure
         /// </summary>
         /// <param name="array">Array</param>
-        /// <param name="rows">Rows</param>
-        /// <param name="columns">Columns</param>
+        /// <param name="x">X</param>
+        /// <param name="y">Y</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeArray2(T* array, int rows, int columns)
+        public NativeArray2(T* array, int x, int y)
         {
-            if (rows < 0)
-                throw new ArgumentOutOfRangeException(nameof(rows), rows, "MustBeNonNegative");
-            if (columns < 0)
-                throw new ArgumentOutOfRangeException(nameof(columns), columns, "MustBeNonNegative");
+            if (x < 0)
+                throw new ArgumentOutOfRangeException(nameof(x), x, "MustBeNonNegative");
+            if (y < 0)
+                throw new ArgumentOutOfRangeException(nameof(y), y, "MustBeNonNegative");
             _array = array;
-            _rows = rows;
-            _columns = columns;
+            _x = x;
+            _y = y;
         }
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is empty
         /// </summary>
-        public bool IsEmpty => _rows == 0 || _columns == 0;
+        public bool IsEmpty => _x == 0 || _y == 0;
 
         /// <summary>
         ///     Array
@@ -101,55 +101,55 @@ namespace NativeCollections
         public T* Array => _array;
 
         /// <summary>
-        ///     Rows
+        ///     X
         /// </summary>
-        public int Rows => _rows;
+        public int X => _x;
 
         /// <summary>
-        ///     Columns
+        ///     Y
         /// </summary>
-        public int Columns => _columns;
+        public int Y => _y;
 
         /// <summary>
         ///     Get reference
         /// </summary>
-        /// <param name="rows">Rows</param>
-        public NativeArray<T> this[int rows]
+        /// <param name="x">X</param>
+        public NativeArray<T> this[int x]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => new(_array + rows * _columns, _columns);
+            get => new(_array + x * _y, _y);
         }
 
         /// <summary>
         ///     Get reference
         /// </summary>
-        /// <param name="rows">Rows</param>
-        public NativeArray<T> this[uint rows]
+        /// <param name="x">X</param>
+        public NativeArray<T> this[uint x]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => new(_array + rows * _columns, _columns);
+            get => new(_array + x * _y, _y);
         }
 
         /// <summary>
         ///     Get reference
         /// </summary>
-        /// <param name="rows">Rows</param>
-        /// <param name="columns">Columns</param>
-        public ref T this[int rows, int columns]
+        /// <param name="x">X</param>
+        /// <param name="y">Y</param>
+        public ref T this[int x, int y]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _array[rows * _columns + columns];
+            get => ref _array[x * _y + y];
         }
 
         /// <summary>
         ///     Get reference
         /// </summary>
-        /// <param name="rows">Rows</param>
-        /// <param name="columns">Columns</param>
-        public ref T this[uint rows, uint columns]
+        /// <param name="x">X</param>
+        /// <param name="y">Y</param>
+        public ref T this[uint x, uint y]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _array[rows * _columns + columns];
+            get => ref _array[x * _y + y];
         }
 
         /// <summary>
@@ -176,7 +176,7 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => $"NativeArray2<{typeof(T).Name}>[{_rows}, {_columns}]";
+        public override string ToString() => $"NativeArray2<{typeof(T).Name}>[{_x}, {_y}]";
 
         /// <summary>
         ///     Equals
@@ -211,7 +211,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<T> AsSpan() => MemoryMarshal.CreateSpan(ref *_array, _rows * _columns);
+        public Span<T> AsSpan() => MemoryMarshal.CreateSpan(ref *_array, _x * _y);
 
         /// <summary>
         ///     As span
@@ -219,7 +219,7 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<T> AsSpan(int start) => MemoryMarshal.CreateSpan(ref *(_array + start), _rows * _columns - start);
+        public Span<T> AsSpan(int start) => MemoryMarshal.CreateSpan(ref *(_array + start), _x * _y - start);
 
         /// <summary>
         ///     As span
@@ -235,7 +235,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref *_array, _rows * _columns);
+        public ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref *_array, _x * _y);
 
         /// <summary>
         ///     As readOnly span
@@ -243,7 +243,7 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<T> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref *(_array + start), _rows * _columns - start);
+        public ReadOnlySpan<T> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref *(_array + start), _x * _y - start);
 
         /// <summary>
         ///     As readOnly span
@@ -280,21 +280,21 @@ namespace NativeCollections
         /// </summary>
         /// <returns>NativeArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeArray<T>(NativeArray2<T> nativeArray2) => new(nativeArray2._array, nativeArray2._rows * nativeArray2._columns);
+        public static implicit operator NativeArray<T>(NativeArray2<T> nativeArray2) => new(nativeArray2._array, nativeArray2._x * nativeArray2._y);
 
         /// <summary>
         ///     As native memory array
         /// </summary>
         /// <returns>NativeMemoryArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeMemoryArray<T>(NativeArray2<T> nativeArray2) => new(nativeArray2._array, nativeArray2._rows * nativeArray2._columns);
+        public static implicit operator NativeMemoryArray<T>(NativeArray2<T> nativeArray2) => new(nativeArray2._array, nativeArray2._x * nativeArray2._y);
 
         /// <summary>
         ///     As native slice
         /// </summary>
         /// <returns>NativeSlice</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeSlice<T>(NativeArray2<T> nativeArray2) => new(nativeArray2._array, nativeArray2._rows * nativeArray2._columns);
+        public static implicit operator NativeSlice<T>(NativeArray2<T> nativeArray2) => new(nativeArray2._array, nativeArray2._x * nativeArray2._y);
 
         /// <summary>
         ///     Empty
