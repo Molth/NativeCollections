@@ -13,100 +13,32 @@ namespace NativeCollections
     /// <summary>
     ///     Native random
     /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection]
-    public unsafe struct NativeXorshift32 : IEquatable<NativeXorshift32>
+    public static unsafe class NativeRandom
     {
-        /// <summary>
-        ///     State
-        /// </summary>
-        private uint _state;
-
-        /// <summary>
-        ///     Is created
-        /// </summary>
-        public bool IsCreated => !(_state == 0U);
-
-        /// <summary>
-        ///     Equals
-        /// </summary>
-        /// <param name="other">Other</param>
-        /// <returns>Equals</returns>
-        public bool Equals(NativeXorshift32 other) => _state == other._state;
-
-        /// <summary>
-        ///     Equals
-        /// </summary>
-        /// <param name="obj">object</param>
-        /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeXorshift32 nativeXorshift32 && nativeXorshift32 == this;
-
-        /// <summary>
-        ///     Get hashCode
-        /// </summary>
-        /// <returns>HashCode</returns>
-        public override int GetHashCode() => (int)_state;
-
-        /// <summary>
-        ///     To string
-        /// </summary>
-        /// <returns>String</returns>
-        public override string ToString() => "NativeXorshift32";
-
-        /// <summary>
-        ///     Equals
-        /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Equals</returns>
-        public static bool operator ==(NativeXorshift32 left, NativeXorshift32 right) => left.Equals(right);
-
-        /// <summary>
-        ///     Not equals
-        /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Not equals</returns>
-        public static bool operator !=(NativeXorshift32 left, NativeXorshift32 right) => !left.Equals(right);
-
-        /// <summary>
-        ///     Initialize
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Initialize()
-        {
-            var data = MemoryMarshal.CreateSpan(ref Unsafe.As<uint, byte>(ref _state), 4);
-            do
-            {
-                RandomNumberGenerator.Fill(data);
-            } while (_state == 0U);
-        }
-
         /// <summary>Returns a non-negative random integer.</summary>
         /// <returns>A 32-bit unsigned integer.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private uint Next32()
+        private static uint Next32()
         {
-            var state = (int)_state;
-            var num1 = state ^ (state << 13);
-#if NET7_0_OR_GREATER
-            var num2 = (uint)(num1 ^ (num1 >>> 17));
-#else
-            var num2 = (uint)(num1 ^ (int)((uint)num1 >> 17));
-#endif
-            _state = num2 ^ (num2 << 5);
-            return (uint)state;
+            uint num;
+            RandomNumberGenerator.Fill(MemoryMarshal.CreateSpan(ref *(byte*)&num, 4));
+            return num;
         }
 
         /// <summary>Returns a non-negative random integer.</summary>
         /// <returns>A 64-bit unsigned integer.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ulong Next64() => ((ulong)Next32() << 32) | Next32();
+        private static ulong Next64()
+        {
+            ulong num;
+            RandomNumberGenerator.Fill(MemoryMarshal.CreateSpan(ref *(byte*)&num, 8));
+            return num;
+        }
 
         /// <summary>Returns a non-negative random integer.</summary>
         /// <returns>A 32-bit unsigned integer that is greater than or equal to 0 and less than <see cref="uint.MaxValue" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public uint NextUInt32()
+        public static uint NextUInt32()
         {
             uint num;
             do
@@ -130,7 +62,7 @@ namespace NativeCollections
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="maxValue" /> is less than 0.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public uint NextUInt32(uint maxValue)
+        public static uint NextUInt32(uint maxValue)
         {
             var num1 = maxValue * (ulong)Next32();
             var num2 = (uint)num1;
@@ -160,7 +92,7 @@ namespace NativeCollections
         ///     .
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public uint NextUInt32(uint minValue, uint maxValue)
+        public static uint NextUInt32(uint minValue, uint maxValue)
         {
             var num1 = maxValue - minValue;
             var num2 = num1 * (ulong)Next32();
@@ -177,7 +109,7 @@ namespace NativeCollections
         /// <summary>Returns a non-negative random integer.</summary>
         /// <returns>A 64-bit unsigned integer that is greater than or equal to 0 and less than <see cref="ulong.MaxValue" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ulong NextUInt64()
+        public static ulong NextUInt64()
         {
             ulong num;
             do
@@ -201,7 +133,7 @@ namespace NativeCollections
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="maxValue" /> is less than 0.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ulong NextUInt64(ulong maxValue)
+        public static ulong NextUInt64(ulong maxValue)
         {
             ulong low;
             var num1 = MathHelpers.BigMul(maxValue, Next64(), out low);
@@ -232,7 +164,7 @@ namespace NativeCollections
         ///     .
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ulong NextUInt64(ulong minValue, ulong maxValue)
+        public static ulong NextUInt64(ulong minValue, ulong maxValue)
         {
             var a = maxValue - minValue;
             ulong low;
@@ -250,15 +182,28 @@ namespace NativeCollections
         /// <summary>Returns a non-negative random integer.</summary>
         /// <returns>A 32-bit signed integer that is greater than or equal to 0 and less than <see cref="int.MaxValue" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int NextInt32()
+        public static int NextInt32()
         {
-            uint num;
-            do
+            if (IntPtr.Size == 8)
             {
-                num = Next32() >> 1;
-            } while (num == int.MaxValue);
+                ulong num;
+                do
+                {
+                    num = Next64() >> 33;
+                } while (num == int.MaxValue);
 
-            return (int)num;
+                return (int)num;
+            }
+            else
+            {
+                uint num;
+                do
+                {
+                    num = Next32() >> 1;
+                } while (num == int.MaxValue);
+
+                return (int)num;
+            }
         }
 
         /// <summary>Returns a non-negative random integer that is less than the specified maximum.</summary>
@@ -274,7 +219,18 @@ namespace NativeCollections
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="maxValue" /> is less than 0.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int NextInt32(int maxValue) => (int)NextUInt32((uint)maxValue);
+        public static int NextInt32(int maxValue)
+        {
+            var num1 = (ulong)maxValue * Next32();
+            var num2 = (uint)num1;
+            if (num2 < maxValue)
+            {
+                for (var index = (uint)((uint)-maxValue % (ulong)maxValue); num2 < index; num2 = (uint)num1)
+                    num1 = (ulong)maxValue * Next32();
+            }
+
+            return (int)(num1 >> 32);
+        }
 
         /// <summary>Returns a random integer that is within a specified range.</summary>
         /// <param name="minValue">The inclusive lower bound of the random number returned.</param>
@@ -293,12 +249,24 @@ namespace NativeCollections
         ///     .
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int NextInt32(int minValue, int maxValue) => (int)NextUInt32((uint)(maxValue - minValue)) + minValue;
+        public static int NextInt32(int minValue, int maxValue)
+        {
+            var num1 = (uint)(maxValue - minValue);
+            var num2 = num1 * (ulong)Next32();
+            var num3 = (uint)num2;
+            if (num3 < num1)
+            {
+                for (var index = (uint)-(int)num1 % num1; num3 < index; num3 = (uint)num2)
+                    num2 = num1 * (ulong)Next32();
+            }
+
+            return (int)(uint)(num2 >> 32) + minValue;
+        }
 
         /// <summary>Returns a non-negative random integer.</summary>
         /// <returns>A 64-bit signed integer that is greater than or equal to 0 and less than <see cref="long.MaxValue" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public long NextInt64()
+        public static long NextInt64()
         {
             ulong num;
             do
@@ -322,20 +290,19 @@ namespace NativeCollections
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="maxValue" /> is less than 0.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public long NextInt64(long maxValue)
+        public static long NextInt64(long maxValue)
         {
-            if (maxValue <= int.MaxValue)
-                return NextInt32((int)maxValue);
-            if (maxValue <= 1L)
-                return 0;
-            var num1 = BitOperationsHelpers.Log2Ceiling((ulong)maxValue);
-            ulong num2;
-            do
+            var a = (ulong)maxValue;
+            ulong low;
+            var num1 = MathHelpers.BigMul(a, Next64(), out low);
+            if (low < a)
             {
-                num2 = Next64() >> (64 - num1);
-            } while (num2 >= (ulong)maxValue);
+                var num2 = unchecked(0UL - a) % a;
+                while (low < num2)
+                    num1 = MathHelpers.BigMul(a, Next64(), out low);
+            }
 
-            return (long)num2;
+            return (long)num1;
         }
 
         /// <summary>Returns a random integer that is within a specified range.</summary>
@@ -355,66 +322,39 @@ namespace NativeCollections
         ///     .
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public long NextInt64(long minValue, long maxValue)
+        public static long NextInt64(long minValue, long maxValue)
         {
-            var maxValue1 = (ulong)(maxValue - minValue);
-            if (maxValue1 <= int.MaxValue)
-                return NextInt32((int)maxValue1) + minValue;
-            if (maxValue1 <= 1UL)
-                return minValue;
-            var num1 = BitOperationsHelpers.Log2Ceiling(maxValue1);
-            ulong num2;
-            do
+            var a = (ulong)(maxValue - minValue);
+            ulong low;
+            var num1 = MathHelpers.BigMul(a, Next64(), out low);
+            if (low < a)
             {
-                num2 = Next64() >> (64 - num1);
-            } while (num2 >= maxValue1);
+                var num2 = unchecked(0UL - a) % a;
+                while (low < num2)
+                    num1 = MathHelpers.BigMul(a, Next64(), out low);
+            }
 
-            return (long)num2 + minValue;
+            return (long)num1 + minValue;
         }
 
         /// <summary>Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.</summary>
         /// <returns>A double-precision floating point number that is greater than or equal to 0.0, and less than 1.0.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public double NextDouble() => (Next64() >> 11) * 1.1102230246251565E-16;
+        public static double NextDouble() => (Next64() >> 11) * 1.1102230246251565E-16;
 
         /// <summary>Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.</summary>
         /// <returns>A single-precision floating point number that is greater than or equal to 0.0, and less than 1.0.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float NextSingle() => (Next32() >> 8) * 5.9604645E-08f;
+        public static float NextSingle() => (IntPtr.Size == 8 ? Next64() >> 40 : Next32() >> 8) * 5.9604645E-08f;
 
         /// <summary>Fills the elements of a specified span of bytes with random numbers.</summary>
         /// <param name="buffer">The array to be filled with random numbers.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void NextBytes(Span<byte> buffer)
-        {
-            var num1 = _state;
-            for (; buffer.Length >= 4; buffer = buffer.Slice(4))
-            {
-                Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(buffer), num1);
-                var num2 = num1 ^ (num1 << 13);
-                var num3 = num2 ^ (num2 >> 17);
-                num1 = num3 ^ (num3 << 5);
-            }
-
-            if (!buffer.IsEmpty)
-            {
-                Unsafe.CopyBlockUnaligned(ref MemoryMarshal.GetReference(buffer), ref *(byte*)&num1, (uint)buffer.Length);
-                num1 ^= num1 << 13;
-                num1 ^= num1 >> 17;
-                num1 ^= num1 << 5;
-            }
-
-            _state = num1;
-        }
+        public static void NextBytes(Span<byte> buffer) => RandomNumberGenerator.Fill(buffer);
 
         /// <summary>Returns a boolean.</summary>
         /// <returns>True, or false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool NextBoolean() => (Next32() & 1) == 0;
-
-        /// <summary>
-        ///     Empty
-        /// </summary>
-        public static NativeXorshift32 Empty => new();
+        public static bool NextBoolean() => ((IntPtr.Size == 8 ? Next64() : Next32()) & 1) == 0;
     }
 }

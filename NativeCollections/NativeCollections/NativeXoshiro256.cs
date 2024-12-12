@@ -114,9 +114,49 @@ namespace NativeCollections
         }
 
         /// <summary>Returns a non-negative random integer.</summary>
+        /// <returns>A 32-bit unsigned integer.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private uint Next32() => (uint)(Next64() >> 32);
+
+        /// <summary>Returns a non-negative random integer.</summary>
+        /// <returns>A 64-bit unsigned integer.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private ulong Next64()
+        {
+            var s0 = (long)_s0;
+            var s1 = _s1;
+            var s2 = (long)_s2;
+            var s3 = _s3;
+            var num1 = s1 * 5UL;
+            var num2 = ((num1 << 7) | (num1 >> 57)) * 9UL;
+            var num3 = s1 << 17;
+            var num4 = s0;
+            var num5 = (ulong)(s2 ^ num4);
+            var num6 = s3 ^ s1;
+            var num7 = s1 ^ num5;
+            var num8 = (ulong)s0 ^ num6;
+            var num9 = num5 ^ num3;
+            var num10 = (num6 << 45) | (num6 >> 19);
+            _s0 = num8;
+            _s1 = num7;
+            _s2 = num9;
+            _s3 = num10;
+            return num2;
+        }
+
+        /// <summary>Returns a non-negative random integer.</summary>
         /// <returns>A 32-bit unsigned integer that is greater than or equal to 0 and less than <see cref="uint.MaxValue" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public uint NextUInt32() => (uint)(NextUInt64() >> 32);
+        public uint NextUInt32()
+        {
+            uint num;
+            do
+            {
+                num = Next32();
+            } while (num == uint.MaxValue);
+
+            return num;
+        }
 
         /// <summary>Returns a non-negative random integer that is less than the specified maximum.</summary>
         /// <param name="maxValue">
@@ -133,12 +173,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public uint NextUInt32(uint maxValue)
         {
-            var num1 = maxValue * (ulong)NextUInt32();
+            var num1 = maxValue * (ulong)Next32();
             var num2 = (uint)num1;
             if (num2 < maxValue)
             {
                 for (var index = (uint)-(int)maxValue % maxValue; num2 < index; num2 = (uint)num1)
-                    num1 = maxValue * (ulong)NextUInt32();
+                    num1 = maxValue * (ulong)Next32();
             }
 
             return (uint)(num1 >> 32);
@@ -164,12 +204,12 @@ namespace NativeCollections
         public uint NextUInt32(uint minValue, uint maxValue)
         {
             var num1 = maxValue - minValue;
-            var num2 = num1 * (ulong)NextUInt32();
+            var num2 = num1 * (ulong)Next32();
             var num3 = (uint)num2;
             if (num3 < num1)
             {
                 for (var index = (uint)-(int)num1 % num1; num3 < index; num3 = (uint)num2)
-                    num2 = num1 * (ulong)NextUInt32();
+                    num2 = num1 * (ulong)Next32();
             }
 
             return (uint)(num2 >> 32) + minValue;
@@ -180,25 +220,13 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ulong NextUInt64()
         {
-            var s0 = (long)_s0;
-            var s1 = _s1;
-            var s2 = (long)_s2;
-            var s3 = _s3;
-            var num1 = s1 * 5UL;
-            var num2 = ((num1 << 7) | (num1 >> 57)) * 9UL;
-            var num3 = s1 << 17;
-            var num4 = s0;
-            var num5 = (ulong)(s2 ^ num4);
-            var num6 = s3 ^ s1;
-            var num7 = s1 ^ num5;
-            var num8 = (ulong)s0 ^ num6;
-            var num9 = num5 ^ num3;
-            var num10 = (num6 << 45) | (num6 >> 19);
-            _s0 = num8;
-            _s1 = num7;
-            _s2 = num9;
-            _s3 = num10;
-            return num2;
+            ulong num;
+            do
+            {
+                num = Next64();
+            } while (num == ulong.MaxValue);
+
+            return num;
         }
 
         /// <summary>Returns a non-negative random integer that is less than the specified maximum.</summary>
@@ -217,12 +245,12 @@ namespace NativeCollections
         public ulong NextUInt64(ulong maxValue)
         {
             ulong low;
-            var num1 = MathHelpers.BigMul(maxValue, NextUInt64(), out low);
+            var num1 = MathHelpers.BigMul(maxValue, Next64(), out low);
             if (low < maxValue)
             {
                 var num2 = unchecked(0UL - maxValue) % maxValue;
                 while (low < num2)
-                    num1 = MathHelpers.BigMul(maxValue, NextUInt64(), out low);
+                    num1 = MathHelpers.BigMul(maxValue, Next64(), out low);
             }
 
             return num1;
@@ -249,12 +277,12 @@ namespace NativeCollections
         {
             var a = maxValue - minValue;
             ulong low;
-            var num1 = MathHelpers.BigMul(a, NextUInt64(), out low);
+            var num1 = MathHelpers.BigMul(a, Next64(), out low);
             if (low < a)
             {
                 var num2 = unchecked(0UL - a) % a;
                 while (low < num2)
-                    num1 = MathHelpers.BigMul(a, NextUInt64(), out low);
+                    num1 = MathHelpers.BigMul(a, Next64(), out low);
             }
 
             return num1 + minValue;
@@ -268,7 +296,7 @@ namespace NativeCollections
             ulong num;
             do
             {
-                num = NextUInt64() >> 33;
+                num = Next64() >> 33;
             } while (num == int.MaxValue);
 
             return (int)num;
@@ -289,12 +317,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int NextInt32(int maxValue)
         {
-            var num1 = (ulong)maxValue * NextUInt32();
+            var num1 = (ulong)maxValue * Next32();
             var num2 = (uint)num1;
             if (num2 < maxValue)
             {
                 for (var index = (uint)((uint)-maxValue % (ulong)maxValue); num2 < index; num2 = (uint)num1)
-                    num1 = (ulong)maxValue * NextUInt32();
+                    num1 = (ulong)maxValue * Next32();
             }
 
             return (int)(num1 >> 32);
@@ -320,12 +348,12 @@ namespace NativeCollections
         public int NextInt32(int minValue, int maxValue)
         {
             var num1 = (uint)(maxValue - minValue);
-            var num2 = num1 * (ulong)NextUInt32();
+            var num2 = num1 * (ulong)Next32();
             var num3 = (uint)num2;
             if (num3 < num1)
             {
                 for (var index = (uint)-(int)num1 % num1; num3 < index; num3 = (uint)num2)
-                    num2 = num1 * (ulong)NextUInt32();
+                    num2 = num1 * (ulong)Next32();
             }
 
             return (int)(uint)(num2 >> 32) + minValue;
@@ -339,7 +367,7 @@ namespace NativeCollections
             ulong num;
             do
             {
-                num = NextUInt64() >> 1;
+                num = Next64() >> 1;
             } while (num == long.MaxValue);
 
             return (long)num;
@@ -362,12 +390,12 @@ namespace NativeCollections
         {
             var a = (ulong)maxValue;
             ulong low;
-            var num1 = MathHelpers.BigMul(a, NextUInt64(), out low);
+            var num1 = MathHelpers.BigMul(a, Next64(), out low);
             if (low < a)
             {
                 var num2 = unchecked(0UL - a) % a;
                 while (low < num2)
-                    num1 = MathHelpers.BigMul(a, NextUInt64(), out low);
+                    num1 = MathHelpers.BigMul(a, Next64(), out low);
             }
 
             return (long)num1;
@@ -394,12 +422,12 @@ namespace NativeCollections
         {
             var a = (ulong)(maxValue - minValue);
             ulong low;
-            var num1 = MathHelpers.BigMul(a, NextUInt64(), out low);
+            var num1 = MathHelpers.BigMul(a, Next64(), out low);
             if (low < a)
             {
                 var num2 = unchecked(0UL - a) % a;
                 while (low < num2)
-                    num1 = MathHelpers.BigMul(a, NextUInt64(), out low);
+                    num1 = MathHelpers.BigMul(a, Next64(), out low);
             }
 
             return (long)num1 + minValue;
@@ -408,12 +436,12 @@ namespace NativeCollections
         /// <summary>Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.</summary>
         /// <returns>A double-precision floating point number that is greater than or equal to 0.0, and less than 1.0.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public double NextDouble() => (NextUInt64() >> 11) * 1.1102230246251565E-16;
+        public double NextDouble() => (Next64() >> 11) * 1.1102230246251565E-16;
 
         /// <summary>Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.</summary>
         /// <returns>A single-precision floating point number that is greater than or equal to 0.0, and less than 1.0.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float NextSingle() => (NextUInt64() >> 40) * 5.9604645E-08f;
+        public float NextSingle() => (Next64() >> 40) * 5.9604645E-08f;
 
         /// <summary>Fills the elements of a specified span of bytes with random numbers.</summary>
         /// <param name="buffer">The array to be filled with random numbers.</param>
@@ -460,7 +488,7 @@ namespace NativeCollections
         /// <summary>Returns a boolean.</summary>
         /// <returns>True, or false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool NextBoolean() => (NextUInt64() & 1) == 0;
+        public bool NextBoolean() => (Next64() & 1) == 0;
 
         /// <summary>
         ///     Empty
