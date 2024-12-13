@@ -11,6 +11,7 @@ namespace NativeCollections
     ///     Native spin wait
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
+    [NativeCollection]
     public ref struct NativeSpinWait
     {
         /// <summary>
@@ -22,6 +23,15 @@ namespace NativeCollections
         ///     Count
         /// </summary>
         public int Count => _count;
+
+        /// <summary>
+        ///     Next spin will yield
+        /// </summary>
+        public bool NextSpinWillYield
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _count >= 10 || Environment.ProcessorCount == 1;
+        }
 
         /// <summary>
         ///     Reset

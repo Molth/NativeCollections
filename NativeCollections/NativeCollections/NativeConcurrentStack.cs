@@ -267,7 +267,7 @@ namespace NativeCollections
 
                 for (var i = 0; i < backoff; ++i)
                     spinWait.SpinOnce();
-                if (spinWait.Count >= 10 || Environment.ProcessorCount == 1)
+                if (spinWait.NextSpinWillYield)
                 {
 #if NET6_0_OR_GREATER
                     backoff = Random.Shared.Next(1, 8);
