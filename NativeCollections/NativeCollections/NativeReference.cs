@@ -170,6 +170,15 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Create
+        /// </summary>
+        /// <param name="reference">Reference</param>
+        /// <typeparam name="T">Type</typeparam>
+        /// <returns>NativeReference</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeReference<T> Create(ref T reference) => new(Unsafe.AsPointer(ref reference));
+
+        /// <summary>
         ///     Empty
         /// </summary>
         public static NativeReference<T> Empty => new();
