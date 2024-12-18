@@ -8,6 +8,8 @@ using System.Runtime.Intrinsics;
 using System.Numerics;
 #endif
 
+// ReSharper disable ALL
+
 namespace NativeCollections
 {
     /// <summary>

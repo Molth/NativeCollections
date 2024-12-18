@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -26,6 +27,20 @@ namespace NativeCollections
         ///     Is created
         /// </summary>
         public bool IsCreated => !(_state == 0U);
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        public NativeXorshift32(ReadOnlySpan<byte> buffer)
+        {
+            if (buffer.Length < sizeof(NativeXorshift32))
+                throw new ArgumentOutOfRangeException(nameof(buffer), $"Requires size is {sizeof(NativeXorshift32)}, but buffer length is {buffer.Length}.");
+            var random = Unsafe.ReadUnaligned<NativeXorshift32>(ref MemoryMarshal.GetReference(buffer));
+            if (!random.IsCreated)
+                throw new InvalidDataException("Cannot be entirely zero.");
+            this = random;
+        }
 
         /// <summary>
         ///     Equals
@@ -411,6 +426,17 @@ namespace NativeCollections
         /// <returns>True, or false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool NextBoolean() => (Next32() & 1) == 0;
+
+        /// <summary>
+        ///     Create
+        /// </summary>
+        /// <returns>NativeXorshift32</returns>
+        public static NativeXorshift32 Create()
+        {
+            var random = new NativeXorshift32();
+            random.Initialize();
+            return random;
+        }
 
         /// <summary>
         ///     Empty

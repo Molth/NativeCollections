@@ -483,7 +483,7 @@ namespace NativeCollections
             handle->Entries = (Entry*)NativeMemoryAllocator.AllocZeroed((uint)(size * sizeof(Entry)));
             handle->BucketsLength = size;
             handle->EntriesLength = size;
-            handle->FastModMultiplier = nint.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)size) : 0;
+            handle->FastModMultiplier = IntPtr.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)size) : 0;
         }
 
         /// <summary>
@@ -507,7 +507,7 @@ namespace NativeCollections
             NativeMemoryAllocator.Free(handle->Buckets);
             handle->Buckets = buckets;
             handle->BucketsLength = newSize;
-            handle->FastModMultiplier = nint.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)newSize) : 0;
+            handle->FastModMultiplier = IntPtr.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)newSize) : 0;
             for (var i = 0; i < count; ++i)
             {
                 if (entries[i].Next >= -1)
@@ -700,7 +700,7 @@ namespace NativeCollections
         private ref int GetBucket(uint hashCode)
         {
             var handle = _handle;
-            return ref nint.Size == 8 ? ref handle->Buckets[HashHelpers.FastMod(hashCode, (uint)handle->BucketsLength, handle->FastModMultiplier)] : ref handle->Buckets[hashCode % handle->BucketsLength];
+            return ref IntPtr.Size == 8 ? ref handle->Buckets[HashHelpers.FastMod(hashCode, (uint)handle->BucketsLength, handle->FastModMultiplier)] : ref handle->Buckets[hashCode % handle->BucketsLength];
         }
 
         /// <summary>

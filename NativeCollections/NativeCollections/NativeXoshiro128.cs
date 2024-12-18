@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -44,6 +45,20 @@ namespace NativeCollections
         ///     Is created
         /// </summary>
         public bool IsCreated => !(((int)_s0 | (int)_s1 | (int)_s2 | (int)_s3) == 0);
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        public NativeXoshiro128(ReadOnlySpan<byte> buffer)
+        {
+            if (buffer.Length < sizeof(NativeXoshiro128))
+                throw new ArgumentOutOfRangeException(nameof(buffer), $"Requires size is {sizeof(NativeXoshiro128)}, but buffer length is {buffer.Length}.");
+            var random = Unsafe.ReadUnaligned<NativeXoshiro128>(ref MemoryMarshal.GetReference(buffer));
+            if (!random.IsCreated)
+                throw new InvalidDataException("Cannot be entirely zero.");
+            this = random;
+        }
 
         /// <summary>
         ///     Equals
@@ -468,6 +483,17 @@ namespace NativeCollections
         /// <returns>True, or false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool NextBoolean() => (Next32() & 1) == 0;
+
+        /// <summary>
+        ///     Create
+        /// </summary>
+        /// <returns>NativeXoshiro128</returns>
+        public static NativeXoshiro128 Create()
+        {
+            var random = new NativeXoshiro128();
+            random.Initialize();
+            return random;
+        }
 
         /// <summary>
         ///     Empty
