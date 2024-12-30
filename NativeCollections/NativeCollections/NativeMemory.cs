@@ -106,5 +106,20 @@ namespace NativeCollections
                 return;
             handle.Free();
         }
+
+        /// <summary>
+        ///     Dispose
+        /// </summary>
+        /// <param name="disposing">Disposing</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Dispose(bool disposing)
+        {
+            var handle = _handle;
+            if (!handle.IsAllocated)
+                return;
+            if (disposing)
+                ((IDisposable)Manager).Dispose();
+            handle.Free();
+        }
     }
 }
