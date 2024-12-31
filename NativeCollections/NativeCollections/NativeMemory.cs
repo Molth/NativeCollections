@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 #pragma warning disable CS8600
 #pragma warning disable CS8602
 #pragma warning disable CS8603
+#pragma warning disable CS8632
 
 // ReSharper disable ALL
 
