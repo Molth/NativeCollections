@@ -54,6 +54,14 @@ namespace NativeCollections
         public NativeMemory(NativeMemoryManager<T> memoryManager) => _handle = GCHandle.Alloc(memoryManager);
 
         /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="memoryManager">Native memory manager</param>
+        /// <param name="type">Type</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeMemory(NativeMemoryManager<T> memoryManager, GCHandleType type) => _handle = GCHandle.Alloc(memoryManager, type);
+
+        /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="other">Other</param>
@@ -96,6 +104,41 @@ namespace NativeCollections
         public static bool operator !=(NativeMemory<T> left, NativeMemory<T> right) => left._handle != right._handle;
 
         /// <summary>
+        ///     As span
+        /// </summary>
+        /// <returns>Span</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator Span<T>(NativeMemory<T> nativeMemory) => nativeMemory.Memory.Span;
+
+        /// <summary>
+        ///     As readOnly span
+        /// </summary>
+        /// <returns>ReadOnlySpan</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator ReadOnlySpan<T>(NativeMemory<T> nativeMemory) => nativeMemory.Memory.Span;
+
+        /// <summary>
+        ///     As memory
+        /// </summary>
+        /// <returns>Memory</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator Memory<T>(NativeMemory<T> nativeMemory) => nativeMemory.Memory;
+
+        /// <summary>
+        ///     As readOnly memory
+        /// </summary>
+        /// <returns>ReadOnlyMemory</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator ReadOnlyMemory<T>(NativeMemory<T> nativeMemory) => nativeMemory.Memory;
+
+        /// <summary>
+        ///     As native array
+        /// </summary>
+        /// <returns>NativeArray</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator NativeArray<T>(NativeMemory<T> nativeMemory) => nativeMemory.Manager.Array;
+
+        /// <summary>
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -118,7 +161,7 @@ namespace NativeCollections
             if (!handle.IsAllocated)
                 return;
             if (disposing)
-                ((IDisposable)Manager).Dispose();
+                Manager.Dispose();
             handle.Free();
         }
     }
