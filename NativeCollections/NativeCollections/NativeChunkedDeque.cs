@@ -82,19 +82,48 @@ namespace NativeCollections
         private struct NativeMemoryChunk
         {
             /// <summary>
-            ///     Next
+            ///     Node
             /// </summary>
-            public NativeMemoryChunk* Next;
-
-            /// <summary>
-            ///     Previous
-            /// </summary>
-            public NativeMemoryChunk* Previous;
+            public NativeMemoryChunkNode Node;
 
             /// <summary>
             ///     Array
             /// </summary>
             public nint Array;
+        }
+
+        /// <summary>
+        ///     Chunk node
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
+        private struct NativeMemoryChunkNode
+        {
+            /// <summary>
+            ///     Chunk
+            /// </summary>
+            public NativeMemoryChunk* Chunk;
+
+            /// <summary>
+            ///     Next
+            /// </summary>
+            public NativeMemoryChunk* Next
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => Chunk;
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                set => Chunk = value;
+            }
+
+            /// <summary>
+            ///     Previous
+            /// </summary>
+            public NativeMemoryChunk* Previous
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => Chunk;
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                set => Chunk = value;
+            }
         }
 
         /// <summary>
@@ -116,8 +145,6 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(maxFreeChunks), maxFreeChunks, "MustBeNonNegative");
             var handle = (NativeChunkedDequeHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeChunkedDequeHandle));
             var chunk = (NativeMemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemoryChunk) + size * sizeof(T)));
-            chunk->Next = chunk;
-            chunk->Previous = chunk;
             handle->Head = chunk;
             handle->Tail = chunk;
             handle->FreeList = null;
@@ -222,7 +249,7 @@ namespace NativeCollections
             {
                 handle->Chunks--;
                 var temp = node;
-                node = node->Next;
+                node = node->Node.Next;
                 NativeMemoryAllocator.Free(temp);
             }
 
@@ -231,7 +258,7 @@ namespace NativeCollections
             {
                 handle->FreeChunks--;
                 var temp = node;
-                node = node->Next;
+                node = node->Node.Next;
                 NativeMemoryAllocator.Free(temp);
             }
 
@@ -249,8 +276,8 @@ namespace NativeCollections
             {
                 handle->FreeChunks += handle->Chunks - 1;
                 handle->Chunks = 1;
-                var chunk = handle->Head->Next;
-                chunk->Next = handle->FreeList;
+                var chunk = handle->Head->Node.Next;
+                chunk->Node.Next = handle->FreeList;
                 handle->FreeList = chunk;
                 TrimExcess(handle->MaxFreeChunks);
                 handle->Tail = handle->Head;
@@ -282,12 +309,11 @@ namespace NativeCollections
                     else
                     {
                         chunk = handle->FreeList;
-                        handle->FreeList = chunk->Next;
+                        handle->FreeList = chunk->Node.Next;
                         --handle->FreeChunks;
                     }
 
-                    chunk->Next = handle->Head;
-                    handle->Head->Previous = chunk;
+                    chunk->Node.Next = handle->Head;
                     handle->Head = chunk;
                     ++handle->Chunks;
                 }
@@ -320,12 +346,12 @@ namespace NativeCollections
                 else
                 {
                     chunk = handle->FreeList;
-                    handle->FreeList = chunk->Next;
+                    handle->FreeList = chunk->Node.Next;
                     --handle->FreeChunks;
                 }
 
-                handle->Tail->Next = chunk;
-                chunk->Previous = handle->Tail;
+                handle->Tail->Node.Next = chunk;
+                chunk->Node.Previous = handle->Tail;
                 handle->Tail = chunk;
                 ++handle->Chunks;
             }
@@ -357,14 +383,14 @@ namespace NativeCollections
                 if (handle->Chunks != 1)
                 {
                     var chunk = handle->Head;
-                    handle->Head = chunk->Next;
+                    handle->Head = chunk->Node.Next;
                     if (handle->FreeChunks == handle->MaxFreeChunks)
                     {
                         NativeMemoryAllocator.Free(chunk);
                     }
                     else
                     {
-                        chunk->Next = handle->FreeList;
+                        chunk->Node.Next = handle->FreeList;
                         handle->FreeList = chunk;
                         ++handle->FreeChunks;
                     }
@@ -399,14 +425,14 @@ namespace NativeCollections
                 {
                     handle->WriteOffset = handle->Size;
                     var chunk = handle->Tail;
-                    handle->Tail = chunk->Previous;
+                    handle->Tail = chunk->Node.Previous;
                     if (handle->FreeChunks == handle->MaxFreeChunks)
                     {
                         NativeMemoryAllocator.Free(chunk);
                     }
                     else
                     {
-                        chunk->Next = handle->FreeList;
+                        chunk->Node.Next = handle->FreeList;
                         handle->FreeList = chunk;
                         ++handle->FreeChunks;
                     }
@@ -473,7 +499,7 @@ namespace NativeCollections
             {
                 handle->FreeChunks++;
                 var chunk = (NativeMemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemoryChunk) + handle->Size));
-                chunk->Next = handle->FreeList;
+                chunk->Node.Next = handle->FreeList;
                 handle->FreeList = chunk;
             }
 
@@ -492,7 +518,7 @@ namespace NativeCollections
             {
                 handle->FreeChunks--;
                 var temp = node;
-                node = node->Next;
+                node = node->Node.Next;
                 NativeMemoryAllocator.Free(temp);
             }
 
@@ -514,7 +540,7 @@ namespace NativeCollections
             {
                 handle->FreeChunks--;
                 var temp = node;
-                node = node->Next;
+                node = node->Node.Next;
                 NativeMemoryAllocator.Free(temp);
             }
 
