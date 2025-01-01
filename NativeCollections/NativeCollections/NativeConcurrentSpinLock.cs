@@ -135,6 +135,20 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Wait
+        /// </summary>
+        /// <param name="sequenceNumber">Sequence number</param>
+        /// <param name="sleepThreshold">Sleep threshold</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Wait(int sequenceNumber, int sleepThreshold)
+        {
+            var handle = _handle;
+            var spinWait = new NativeSpinWait();
+            while (sequenceNumber != handle->NextSequenceNumber)
+                spinWait.SpinOnce(sleepThreshold);
+        }
+
+        /// <summary>
         ///     Enter
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -145,6 +159,20 @@ namespace NativeCollections
             var sequenceNumber = Interlocked.Add(ref handle->SequenceNumber, 1);
             while (sequenceNumber != handle->NextSequenceNumber)
                 spinWait.SpinOnce();
+        }
+
+        /// <summary>
+        ///     Enter
+        /// </summary>
+        /// <param name="sleepThreshold">Sleep threshold</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Enter(int sleepThreshold)
+        {
+            var handle = _handle;
+            var spinWait = new NativeSpinWait();
+            var sequenceNumber = Interlocked.Add(ref handle->SequenceNumber, 1);
+            while (sequenceNumber != handle->NextSequenceNumber)
+                spinWait.SpinOnce(sleepThreshold);
         }
 
         /// <summary>
