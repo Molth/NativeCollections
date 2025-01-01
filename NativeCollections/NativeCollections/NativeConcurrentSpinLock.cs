@@ -115,6 +115,26 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Acquire
+        /// </summary>
+        /// <returns>Sequence number</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int Acquire() => Interlocked.Add(ref _handle->SequenceNumber, 1);
+
+        /// <summary>
+        ///     Wait
+        /// </summary>
+        /// <param name="sequenceNumber">Sequence number</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Wait(int sequenceNumber)
+        {
+            var handle = _handle;
+            var spinWait = new NativeSpinWait();
+            while (sequenceNumber != handle->NextSequenceNumber)
+                spinWait.SpinOnce();
+        }
+
+        /// <summary>
         ///     Enter
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
