@@ -11,7 +11,7 @@ namespace NativeCollections
 {
     /// <summary>
     ///     Native chunked queue
-    ///     (Slower than Queue, disable Enumerator, try peek either)
+    ///     (Slower than Queue, disable Enumerator)
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
@@ -325,6 +325,25 @@ namespace NativeCollections
                 }
             }
 
+            return true;
+        }
+
+        /// <summary>
+        ///     Try peek
+        /// </summary>
+        /// <param name="result">Item</param>
+        /// <returns>Peeked</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryPeek(out T result)
+        {
+            var handle = _handle;
+            if (handle->Size == 0)
+            {
+                result = default;
+                return false;
+            }
+
+            result = ((T*)&handle->Head->Array)[handle->ReadOffset];
             return true;
         }
 

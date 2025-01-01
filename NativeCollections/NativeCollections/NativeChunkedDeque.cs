@@ -10,24 +10,29 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native chunked stack
-    ///     (Slower than Stack, disable Enumerator)
+    ///     Native chunked deque
+    ///     (Slower than Deque, disable Enumerator)
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection]
-    public readonly unsafe struct NativeChunkedStack<T> where T : unmanaged
+    public readonly unsafe struct NativeChunkedDeque<T> where T : unmanaged
     {
         /// <summary>
         ///     Handle
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        private struct NativeChunkedStackHandle
+        private struct NativeChunkedDequeHandle
         {
             /// <summary>
-            ///     Sentinel
+            ///     Head
             /// </summary>
-            public NativeMemoryChunk* Sentinel;
+            public NativeMemoryChunk* Head;
+
+            /// <summary>
+            ///     Tail
+            /// </summary>
+            public NativeMemoryChunk* Tail;
 
             /// <summary>
             ///     Free list
@@ -55,6 +60,16 @@ namespace NativeCollections
             public int Size;
 
             /// <summary>
+            ///     Read offset
+            /// </summary>
+            public int ReadOffset;
+
+            /// <summary>
+            ///     Write offset
+            /// </summary>
+            public int WriteOffset;
+
+            /// <summary>
             ///     Count
             /// </summary>
             public int Count;
@@ -72,6 +87,11 @@ namespace NativeCollections
             public NativeMemoryChunk* Next;
 
             /// <summary>
+            ///     Previous
+            /// </summary>
+            public NativeMemoryChunk* Previous;
+
+            /// <summary>
             ///     Array
             /// </summary>
             public nint Array;
@@ -80,7 +100,7 @@ namespace NativeCollections
         /// <summary>
         ///     Handle
         /// </summary>
-        private readonly NativeChunkedStackHandle* _handle;
+        private readonly NativeChunkedDequeHandle* _handle;
 
         /// <summary>
         ///     Structure
@@ -88,20 +108,25 @@ namespace NativeCollections
         /// <param name="size">Size</param>
         /// <param name="maxFreeChunks">Max free chunks</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeChunkedStack(int size, int maxFreeChunks)
+        public NativeChunkedDeque(int size, int maxFreeChunks)
         {
             if (size <= 0)
                 throw new ArgumentOutOfRangeException(nameof(size), size, "MustBePositive");
             if (maxFreeChunks < 0)
                 throw new ArgumentOutOfRangeException(nameof(maxFreeChunks), maxFreeChunks, "MustBeNonNegative");
-            var handle = (NativeChunkedStackHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeChunkedStackHandle));
+            var handle = (NativeChunkedDequeHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeChunkedDequeHandle));
             var chunk = (NativeMemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemoryChunk) + size * sizeof(T)));
-            handle->Sentinel = chunk;
+            chunk->Next = chunk;
+            chunk->Previous = chunk;
+            handle->Head = chunk;
+            handle->Tail = chunk;
             handle->FreeList = null;
             handle->Chunks = 1;
             handle->FreeChunks = 0;
             handle->MaxFreeChunks = maxFreeChunks;
             handle->Size = size;
+            handle->ReadOffset = 0;
+            handle->WriteOffset = 0;
             handle->Count = 0;
             _handle = handle;
         }
@@ -146,14 +171,14 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeChunkedStack<T> other) => other == this;
+        public bool Equals(NativeChunkedDeque<T> other) => other == this;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeChunkedStack<T> nativeChunkedStack && nativeChunkedStack == this;
+        public override bool Equals(object? obj) => obj is NativeChunkedDeque<T> nativeChunkedDeque && nativeChunkedDeque == this;
 
         /// <summary>
         ///     Get hashCode
@@ -165,7 +190,7 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => $"NativeChunkedStack<{typeof(T).Name}>";
+        public override string ToString() => $"NativeChunkedDeque<{typeof(T).Name}>";
 
         /// <summary>
         ///     Equals
@@ -173,7 +198,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeChunkedStack<T> left, NativeChunkedStack<T> right) => left._handle == right._handle;
+        public static bool operator ==(NativeChunkedDeque<T> left, NativeChunkedDeque<T> right) => left._handle == right._handle;
 
         /// <summary>
         ///     Not equals
@@ -181,7 +206,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeChunkedStack<T> left, NativeChunkedStack<T> right) => left._handle != right._handle;
+        public static bool operator !=(NativeChunkedDeque<T> left, NativeChunkedDeque<T> right) => left._handle != right._handle;
 
         /// <summary>
         ///     Dispose
@@ -192,7 +217,7 @@ namespace NativeCollections
             var handle = _handle;
             if (handle == null)
                 return;
-            var node = handle->Sentinel;
+            var node = handle->Head;
             while (handle->Chunks > 0)
             {
                 handle->Chunks--;
@@ -224,26 +249,69 @@ namespace NativeCollections
             {
                 handle->FreeChunks += handle->Chunks - 1;
                 handle->Chunks = 1;
-                var chunk = handle->Sentinel->Next;
+                var chunk = handle->Head->Next;
                 chunk->Next = handle->FreeList;
                 handle->FreeList = chunk;
                 TrimExcess(handle->MaxFreeChunks);
+                handle->Tail = handle->Head;
             }
 
+            handle->ReadOffset = 0;
+            handle->WriteOffset = 0;
             handle->Count = 0;
         }
 
         /// <summary>
-        ///     Push
+        ///     Enqueue head
         /// </summary>
         /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Push(in T item)
+        public void EnqueueHead(in T item)
         {
             var handle = _handle;
-            var index = handle->Count % handle->Size;
-            if (index == 0 && handle->Count != 0)
+            if (handle->ReadOffset == 0)
             {
+                handle->ReadOffset = handle->Size;
+                if (handle->Count != 0)
+                {
+                    NativeMemoryChunk* chunk;
+                    if (handle->FreeChunks == 0)
+                    {
+                        chunk = (NativeMemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemoryChunk) + handle->Size * sizeof(T)));
+                    }
+                    else
+                    {
+                        chunk = handle->FreeList;
+                        handle->FreeList = chunk->Next;
+                        --handle->FreeChunks;
+                    }
+
+                    chunk->Next = handle->Head;
+                    handle->Head->Previous = chunk;
+                    handle->Head = chunk;
+                    ++handle->Chunks;
+                }
+                else
+                {
+                    handle->WriteOffset = handle->Size;
+                }
+            }
+
+            ++handle->Count;
+            ((T*)&handle->Head->Array)[--handle->ReadOffset] = item;
+        }
+
+        /// <summary>
+        ///     Enqueue tail
+        /// </summary>
+        /// <param name="item">Item</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void EnqueueTail(in T item)
+        {
+            var handle = _handle;
+            if (handle->WriteOffset == handle->Size)
+            {
+                handle->WriteOffset = 0;
                 NativeMemoryChunk* chunk;
                 if (handle->FreeChunks == 0)
                 {
@@ -256,22 +324,23 @@ namespace NativeCollections
                     --handle->FreeChunks;
                 }
 
-                chunk->Next = handle->Sentinel;
-                handle->Sentinel = chunk;
+                handle->Tail->Next = chunk;
+                chunk->Previous = handle->Tail;
+                handle->Tail = chunk;
                 ++handle->Chunks;
             }
 
             ++handle->Count;
-            ((T*)&handle->Sentinel->Array)[index] = item;
+            ((T*)&handle->Tail->Array)[handle->WriteOffset++] = item;
         }
 
         /// <summary>
-        ///     Try pop
+        ///     Try dequeue
         /// </summary>
         /// <param name="result">Item</param>
-        /// <returns>Popped</returns>
+        /// <returns>Dequeued</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryPop(out T result)
+        public bool TryDequeueHead(out T result)
         {
             var handle = _handle;
             if (handle->Count == 0)
@@ -281,36 +350,81 @@ namespace NativeCollections
             }
 
             --handle->Count;
-            var index = handle->Count % handle->Size;
-            result = ((T*)&handle->Sentinel->Array)[index];
-            if (index == 0 && handle->Chunks != 1)
+            result = ((T*)&handle->Head->Array)[handle->ReadOffset++];
+            if (handle->ReadOffset == handle->Size)
             {
-                var chunk = handle->Sentinel;
-                handle->Sentinel = chunk->Next;
-                if (handle->FreeChunks == handle->MaxFreeChunks)
+                handle->ReadOffset = 0;
+                if (handle->Chunks != 1)
                 {
-                    NativeMemoryAllocator.Free(chunk);
-                }
-                else
-                {
-                    chunk->Next = handle->FreeList;
-                    handle->FreeList = chunk;
-                    ++handle->FreeChunks;
-                }
+                    var chunk = handle->Head;
+                    handle->Head = chunk->Next;
+                    if (handle->FreeChunks == handle->MaxFreeChunks)
+                    {
+                        NativeMemoryAllocator.Free(chunk);
+                    }
+                    else
+                    {
+                        chunk->Next = handle->FreeList;
+                        handle->FreeList = chunk;
+                        ++handle->FreeChunks;
+                    }
 
-                --handle->Chunks;
+                    --handle->Chunks;
+                }
             }
 
             return true;
         }
 
         /// <summary>
-        ///     Try peek
+        ///     Try dequeue
+        /// </summary>
+        /// <param name="result">Item</param>
+        /// <returns>Dequeued</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryDequeueTail(out T result)
+        {
+            var handle = _handle;
+            if (handle->Count == 0)
+            {
+                result = default;
+                return false;
+            }
+
+            --handle->Count;
+            result = ((T*)&handle->Tail->Array)[--handle->WriteOffset];
+            if (handle->WriteOffset == 0)
+            {
+                if (handle->Chunks != 1)
+                {
+                    handle->WriteOffset = handle->Size;
+                    var chunk = handle->Tail;
+                    handle->Tail = chunk->Previous;
+                    if (handle->FreeChunks == handle->MaxFreeChunks)
+                    {
+                        NativeMemoryAllocator.Free(chunk);
+                    }
+                    else
+                    {
+                        chunk->Next = handle->FreeList;
+                        handle->FreeList = chunk;
+                        ++handle->FreeChunks;
+                    }
+
+                    --handle->Chunks;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        ///     Try peek head
         /// </summary>
         /// <param name="result">Item</param>
         /// <returns>Peeked</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryPeek(out T result)
+        public bool TryPeekHead(out T result)
         {
             var handle = _handle;
             if (handle->Size == 0)
@@ -319,8 +433,26 @@ namespace NativeCollections
                 return false;
             }
 
-            var index = (handle->Count - 1) % handle->Size;
-            result = ((T*)&handle->Sentinel->Array)[index];
+            result = ((T*)&handle->Head->Array)[handle->ReadOffset];
+            return true;
+        }
+
+        /// <summary>
+        ///     Try peek tail
+        /// </summary>
+        /// <param name="result">Item</param>
+        /// <returns>Peeked</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryPeekTail(out T result)
+        {
+            var handle = _handle;
+            if (handle->Size == 0)
+            {
+                result = default;
+                return false;
+            }
+
+            result = ((T*)&handle->Tail->Array)[handle->WriteOffset - 1];
             return true;
         }
 
@@ -393,6 +525,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeChunkedStack<T> Empty => new();
+        public static NativeChunkedDeque<T> Empty => new();
     }
 }
