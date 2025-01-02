@@ -82,31 +82,14 @@ namespace NativeCollections
         private struct NativeMemoryChunk
         {
             /// <summary>
-            ///     Chunk
-            /// </summary>
-            public NativeMemoryChunk* Chunk;
-
-            /// <summary>
             ///     Next
             /// </summary>
-            public NativeMemoryChunk* Next
-            {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => Chunk;
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                set => Chunk = value;
-            }
+            public NativeMemoryChunk* Next;
 
             /// <summary>
             ///     Previous
             /// </summary>
-            public NativeMemoryChunk* Previous
-            {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => Chunk;
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                set => Chunk = value;
-            }
+            public NativeMemoryChunk* Previous;
 
             /// <summary>
             ///     Array
@@ -302,6 +285,7 @@ namespace NativeCollections
                     }
 
                     chunk->Next = handle->Head;
+                    handle->Head->Previous = chunk;
                     handle->Head = chunk;
                     ++handle->Chunks;
                 }
@@ -407,26 +391,23 @@ namespace NativeCollections
 
             --handle->Count;
             result = ((T*)&handle->Tail->Array)[--handle->WriteOffset];
-            if (handle->WriteOffset == 0)
+            if (handle->WriteOffset == 0 && handle->Chunks != 1)
             {
-                if (handle->Chunks != 1)
+                handle->WriteOffset = handle->Size;
+                var chunk = handle->Tail;
+                handle->Tail = chunk->Previous;
+                if (handle->FreeChunks == handle->MaxFreeChunks)
                 {
-                    handle->WriteOffset = handle->Size;
-                    var chunk = handle->Tail;
-                    handle->Tail = chunk->Previous;
-                    if (handle->FreeChunks == handle->MaxFreeChunks)
-                    {
-                        NativeMemoryAllocator.Free(chunk);
-                    }
-                    else
-                    {
-                        chunk->Next = handle->FreeList;
-                        handle->FreeList = chunk;
-                        ++handle->FreeChunks;
-                    }
-
-                    --handle->Chunks;
+                    NativeMemoryAllocator.Free(chunk);
                 }
+                else
+                {
+                    chunk->Next = handle->FreeList;
+                    handle->FreeList = chunk;
+                    ++handle->FreeChunks;
+                }
+
+                --handle->Chunks;
             }
 
             return true;
