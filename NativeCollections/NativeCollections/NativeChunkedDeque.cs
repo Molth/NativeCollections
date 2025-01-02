@@ -322,8 +322,8 @@ namespace NativeCollections
                     --handle->FreeChunks;
                 }
 
-                handle->Tail->Next = chunk;
                 chunk->Previous = handle->Tail;
+                handle->Tail->Next = chunk;
                 handle->Tail = chunk;
                 ++handle->Chunks;
             }
