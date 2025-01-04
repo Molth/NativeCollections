@@ -64,10 +64,10 @@ namespace NativeCollections
         /// <summary>
         ///     Sentinel
         /// </summary>
-        public NativeLinkedListNode<T> Sentinel
+        public NativeLinkedListNode Sentinel
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => *(NativeLinkedListNode<T>*)Unsafe.AsPointer(ref _handle->LinkedList.Sentinel);
+            get => _handle->LinkedList.Sentinel;
         }
 
         /// <summary>
