@@ -277,6 +277,17 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Remove node
+        /// </summary>
+        /// <param name="node">Node</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Remove(NativeLinkedListNode<T>* node)
+        {
+            node->Remove();
+            _handle->MemoryPool.Return(node);
+        }
+
+        /// <summary>
         ///     Empty
         /// </summary>
         public static NativeLinkedList<T> Empty => new();
