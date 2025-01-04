@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Node
+    ///     Native linked list node
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public unsafe struct NativeLinkedListNode<T> where T : unmanaged
