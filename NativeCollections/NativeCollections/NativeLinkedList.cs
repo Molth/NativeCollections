@@ -160,8 +160,9 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext()
             {
-                _node = _node->Next;
-                return _node != _nativeLinkedList->Tail;
+                ref var node = ref _node;
+                node = node->Next;
+                return node != _nativeLinkedList->Tail;
             }
 
             /// <summary>
