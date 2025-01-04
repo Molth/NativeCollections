@@ -37,7 +37,7 @@ namespace NativeCollections
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => throw new NotSupportedException("Cannot call Equals on GetHashCode");
+        public override int GetHashCode() => throw new NotSupportedException("Cannot call GetHashCode on NativeLinkedListNode");
 
         /// <summary>
         ///     To string
@@ -59,7 +59,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeLinkedListNode left, NativeLinkedListNode right) => throw new NotSupportedException("Cannot call Equals on NativeLinkedListNode");
+        public static bool operator !=(NativeLinkedListNode left, NativeLinkedListNode right) => throw new NotSupportedException("Cannot call Not Equals on NativeLinkedListNode");
 
         /// <summary>
         ///     Insert before

@@ -89,7 +89,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeLinkedList left, NativeLinkedList right) => throw new NotSupportedException("Cannot call Equals on NativeLinkedList");
+        public static bool operator !=(NativeLinkedList left, NativeLinkedList right) => throw new NotSupportedException("Cannot call Not Equals on NativeLinkedList");
 
         /// <summary>
         ///     Count
