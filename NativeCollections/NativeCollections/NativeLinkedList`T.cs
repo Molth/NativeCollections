@@ -73,19 +73,19 @@ namespace NativeCollections
         /// <summary>
         ///     Head
         /// </summary>
-        public NativeLinkedListNode<T>* Head
+        public NativeLinkedListNode* Head
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (NativeLinkedListNode<T>*)_handle->LinkedList.Head;
+            get => _handle->LinkedList.Head;
         }
 
         /// <summary>
         ///     Tail
         /// </summary>
-        public NativeLinkedListNode<T>* Tail
+        public NativeLinkedListNode* Tail
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (NativeLinkedListNode<T>*)_handle->LinkedList.Tail;
+            get => _handle->LinkedList.Tail;
         }
 
         /// <summary>
