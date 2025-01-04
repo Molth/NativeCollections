@@ -10,19 +10,18 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native linked deque
-    ///     (Slower than Deque)
+    ///     Native linked linkedList
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection]
-    public readonly unsafe struct NativeLinkedDeque<T> : IDisposable where T : unmanaged
+    public readonly unsafe struct NativeLinkedList<T> : IDisposable where T : unmanaged
     {
         /// <summary>
         ///     Handle
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        private struct NativeLinkedDequeHandle
+        private struct NativeLinkedListHandle
         {
             /// <summary>
             ///     Memory pool
@@ -36,26 +35,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Node
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential)]
-        private struct NativeLinkedDequeNode
-        {
-            /// <summary>
-            ///     Node list
-            /// </summary>
-            public NativeLinkedListNode NodeList;
-
-            /// <summary>
-            ///     Item
-            /// </summary>
-            public T Item;
-        }
-
-        /// <summary>
         ///     Handle
         /// </summary>
-        private readonly NativeLinkedDequeHandle* _handle;
+        private readonly NativeLinkedListHandle* _handle;
 
         /// <summary>
         ///     Structure
@@ -63,12 +45,12 @@ namespace NativeCollections
         /// <param name="size">Size</param>
         /// <param name="maxFreeSlabs">Max free slabs</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeLinkedDeque(int size, int maxFreeSlabs)
+        public NativeLinkedList(int size, int maxFreeSlabs)
         {
-            var memoryPool = new NativeMemoryPool(size, sizeof(NativeLinkedDequeNode), maxFreeSlabs);
+            var memoryPool = new NativeMemoryPool(size, sizeof(NativeLinkedListNode<T>), maxFreeSlabs);
             var linkedList = new NativeLinkedList();
             linkedList.Clear();
-            var handle = (NativeLinkedDequeHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeLinkedDequeHandle));
+            var handle = (NativeLinkedListHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeLinkedListHandle));
             handle->MemoryPool = memoryPool;
             handle->LinkedList = linkedList;
             _handle = handle;
@@ -78,6 +60,33 @@ namespace NativeCollections
         ///     Is created
         /// </summary>
         public bool IsCreated => _handle != null;
+
+        /// <summary>
+        ///     Sentinel
+        /// </summary>
+        public NativeLinkedListNode<T> Sentinel
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => *(NativeLinkedListNode<T>*)Unsafe.AsPointer(ref _handle->LinkedList.Sentinel);
+        }
+
+        /// <summary>
+        ///     Head
+        /// </summary>
+        public NativeLinkedListNode<T>* Head
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => (NativeLinkedListNode<T>*)_handle->LinkedList.Head;
+        }
+
+        /// <summary>
+        ///     Tail
+        /// </summary>
+        public NativeLinkedListNode<T>* Tail
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => (NativeLinkedListNode<T>*)_handle->LinkedList.Tail;
+        }
 
         /// <summary>
         ///     Slabs
@@ -154,38 +163,38 @@ namespace NativeCollections
         public int TrimExcess(int capacity) => _handle->MemoryPool.TrimExcess(capacity);
 
         /// <summary>
-        ///     Enqueue head
+        ///     Add head
         /// </summary>
         /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void EnqueueHead(in T item)
+        public void AddHead(in T item)
         {
             var handle = _handle;
-            var node = (NativeLinkedDequeNode*)handle->MemoryPool.Rent();
+            var node = (NativeLinkedListNode<T>*)handle->MemoryPool.Rent();
             node->Item = item;
             handle->LinkedList.Tail->InsertAfter((NativeLinkedListNode*)node);
         }
 
         /// <summary>
-        ///     Enqueue tail
+        ///     Add tail
         /// </summary>
         /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void EnqueueTail(in T item)
+        public void AddTail(in T item)
         {
             var handle = _handle;
-            var node = (NativeLinkedDequeNode*)handle->MemoryPool.Rent();
+            var node = (NativeLinkedListNode<T>*)handle->MemoryPool.Rent();
             node->Item = item;
             handle->LinkedList.Tail->InsertBefore((NativeLinkedListNode*)node);
         }
 
         /// <summary>
-        ///     Try dequeue
+        ///     Try remove
         /// </summary>
         /// <param name="result">Item</param>
-        /// <returns>Dequeued</returns>
+        /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDequeueHead(out T result)
+        public bool TryRemoveHead(out T result)
         {
             var handle = _handle;
             var linkedList = (NativeLinkedList*)Unsafe.AsPointer(ref handle->LinkedList);
@@ -196,19 +205,19 @@ namespace NativeCollections
             }
 
             var node = linkedList->Head;
-            result = ((NativeLinkedDequeNode*)node)->Item;
+            result = ((NativeLinkedListNode<T>*)node)->Item;
             node->Remove();
             handle->MemoryPool.Return(node);
             return true;
         }
 
         /// <summary>
-        ///     Try dequeue
+        ///     Try remove
         /// </summary>
         /// <param name="result">Item</param>
-        /// <returns>Dequeued</returns>
+        /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDequeueTail(out T result)
+        public bool TryRemoveTail(out T result)
         {
             var handle = _handle;
             var linkedList = (NativeLinkedList*)Unsafe.AsPointer(ref handle->LinkedList);
@@ -219,7 +228,7 @@ namespace NativeCollections
             }
 
             var node = linkedList->Tail->Previous;
-            result = ((NativeLinkedDequeNode*)node)->Item;
+            result = ((NativeLinkedListNode<T>*)node)->Item;
             node->Remove();
             handle->MemoryPool.Return(node);
             return true;
@@ -242,7 +251,7 @@ namespace NativeCollections
             }
 
             var node = linkedList->Head;
-            result = ((NativeLinkedDequeNode*)node)->Item;
+            result = ((NativeLinkedListNode<T>*)node)->Item;
             return true;
         }
 
@@ -263,14 +272,14 @@ namespace NativeCollections
             }
 
             var node = linkedList->Tail->Previous;
-            result = ((NativeLinkedDequeNode*)node)->Item;
+            result = ((NativeLinkedListNode<T>*)node)->Item;
             return true;
         }
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeLinkedDeque<T> Empty => new();
+        public static NativeLinkedList<T> Empty => new();
 
         /// <summary>
         ///     Get enumerator
@@ -322,7 +331,7 @@ namespace NativeCollections
             public T Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => ((NativeLinkedDequeNode*)_node)->Item;
+                get => ((NativeLinkedListNode<T>*)_node)->Item;
             }
         }
     }
