@@ -277,15 +277,18 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Remove node
+        ///     Allocate
+        /// </summary>
+        /// <returns>New node</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeLinkedListNode<T>* Allocate() => (NativeLinkedListNode<T>*)_handle->MemoryPool.Rent();
+
+        /// <summary>
+        ///     Free
         /// </summary>
         /// <param name="node">Node</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Remove(NativeLinkedListNode<T>* node)
-        {
-            node->Remove();
-            _handle->MemoryPool.Return(node);
-        }
+        public void Free(NativeLinkedListNode<T>* node) => _handle->MemoryPool.Return(node);
 
         /// <summary>
         ///     Empty
