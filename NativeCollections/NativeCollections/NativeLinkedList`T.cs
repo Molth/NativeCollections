@@ -342,10 +342,10 @@ namespace NativeCollections
             /// <summary>
             ///     Current
             /// </summary>
-            public T Current
+            public NativeLinkedListNode<T>* Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => ((NativeLinkedListNode<T>*)_node)->Item;
+                get => (NativeLinkedListNode<T>*)_node;
             }
         }
     }
