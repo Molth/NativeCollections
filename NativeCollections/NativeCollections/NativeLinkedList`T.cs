@@ -163,11 +163,11 @@ namespace NativeCollections
         public int TrimExcess(int capacity) => _handle->MemoryPool.TrimExcess(capacity);
 
         /// <summary>
-        ///     Add head
+        ///     Insert head
         /// </summary>
         /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddHead(in T item)
+        public void InsertHead(in T item)
         {
             var handle = _handle;
             var node = (NativeLinkedListNode<T>*)handle->MemoryPool.Rent();
@@ -176,11 +176,11 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Add tail
+        ///     Insert tail
         /// </summary>
         /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddTail(in T item)
+        public void InsertTail(in T item)
         {
             var handle = _handle;
             var node = (NativeLinkedListNode<T>*)handle->MemoryPool.Rent();
