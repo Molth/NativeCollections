@@ -62,6 +62,11 @@ namespace NativeCollections
         public bool IsCreated => _handle != null;
 
         /// <summary>
+        ///     Is empty
+        /// </summary>
+        public bool IsEmpty => _handle->LinkedList.IsEmpty;
+
+        /// <summary>
         ///     Sentinel
         /// </summary>
         public NativeLinkedListNode Sentinel
