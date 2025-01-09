@@ -191,6 +191,7 @@ namespace NativeCollections
                 return;
             handle->Tables->Dispose();
             handle->NodePool.Dispose();
+            NativeMemoryAllocator.Free(handle->Tables);
             NativeMemoryAllocator.Free(handle);
         }
 
