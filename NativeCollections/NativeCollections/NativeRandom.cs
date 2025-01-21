@@ -35,6 +35,27 @@ namespace NativeCollections
             return num;
         }
 
+        /// <summary>
+        ///     Performs an in-place shuffle of a span.
+        /// </summary>
+        /// <param name="buffer">The span to shuffle.</param>
+        /// <typeparam name="T">The type of span.</typeparam>
+        /// <remarks>
+        ///     This method uses <see cref="NextInt32(int, int)" /> to choose values for shuffling.
+        ///     This method is an O(n) operation.
+        /// </remarks>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Shuffle<T>(Span<T> buffer)
+        {
+            var length = buffer.Length;
+            for (var i = 0; i < length - 1; ++i)
+            {
+                var j = NextInt32(i, length);
+                if (j != i)
+                    (buffer[i], buffer[j]) = (buffer[j], buffer[i]);
+            }
+        }
+
         /// <summary>Returns a non-negative random integer.</summary>
         /// <returns>A 32-bit unsigned integer that is greater than or equal to 0 and less than <see cref="uint.MaxValue" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
