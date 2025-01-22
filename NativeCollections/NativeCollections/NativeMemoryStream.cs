@@ -444,7 +444,7 @@ namespace NativeCollections
             var n = size < buffer.Length ? size : buffer.Length;
             if (n <= 0)
                 return 0;
-            Unsafe.CopyBlockUnaligned(ref buffer[0], ref *(handle->Array + handle->Position), (uint)n);
+            Unsafe.CopyBlockUnaligned(ref MemoryMarshal.GetReference(buffer), ref *(handle->Array + handle->Position), (uint)n);
             handle->Position += n;
             return n;
         }
