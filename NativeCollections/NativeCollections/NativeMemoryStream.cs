@@ -480,9 +480,8 @@ namespace NativeCollections
                 var mustZero = handle->Position > handle->Length;
                 if (i > handle->Capacity)
                 {
-                    var allocatedNewArray = EnsureCapacity(i);
-                    if (allocatedNewArray)
-                        mustZero = false;
+                    EnsureCapacity(i);
+                    mustZero = false;
                 }
 
                 if (mustZero)
@@ -521,9 +520,8 @@ namespace NativeCollections
                 var mustZero = handle->Position > handle->Length;
                 if (i > handle->Capacity)
                 {
-                    var allocatedNewArray = EnsureCapacity(i);
-                    if (allocatedNewArray)
-                        mustZero = false;
+                    EnsureCapacity(i);
+                    mustZero = false;
                 }
 
                 if (mustZero)
@@ -548,11 +546,10 @@ namespace NativeCollections
             {
                 var newLength = handle->Position + 1;
                 var mustZero = handle->Position > handle->Length;
-                if (newLength >= handle->Capacity)
+                if (newLength > handle->Capacity)
                 {
-                    var allocatedNewArray = EnsureCapacity(newLength);
-                    if (allocatedNewArray)
-                        mustZero = false;
+                    EnsureCapacity(newLength);
+                    mustZero = false;
                 }
 
                 if (mustZero)
