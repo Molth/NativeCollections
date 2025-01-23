@@ -14,7 +14,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection]
-    public unsafe ref struct NativeMemoryReader
+    public unsafe struct NativeMemoryReader
     {
         /// <summary>
         ///     Array
@@ -99,7 +99,7 @@ namespace NativeCollections
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => HashCode.Combine((nint)Array, Length, _position);
+        public override int GetHashCode() => throw new NotSupportedException("Cannot call GetHashCode on NativeMemoryReader");
 
         /// <summary>
         ///     To string
