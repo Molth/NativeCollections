@@ -99,7 +99,7 @@ namespace NativeCollections
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => HashCode.Combine((nint)Array, Length, _position);
+        public override int GetHashCode() => throw new NotSupportedException("Cannot call GetHashCode on NativeMemoryLinearAllocator");
 
         /// <summary>
         ///     To string

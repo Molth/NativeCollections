@@ -150,7 +150,7 @@ namespace NativeCollections
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => HashCode.Combine((nint)_array, _position, _length, _capacity);
+        public override int GetHashCode() => throw new NotSupportedException("Cannot call GetHashCode on NativeStream");
 
         /// <summary>
         ///     To string
