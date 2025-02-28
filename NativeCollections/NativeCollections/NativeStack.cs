@@ -295,7 +295,6 @@ namespace NativeCollections
         {
             if (capacity < 0)
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-
             var handle = _handle;
             if (handle->Length < capacity)
                 Grow(capacity);
