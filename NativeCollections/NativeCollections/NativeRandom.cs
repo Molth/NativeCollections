@@ -81,7 +81,6 @@ namespace NativeCollections
         ///     includes 0 but not <paramref name="maxValue" />. However, if <paramref name="maxValue" /> equals 0,
         ///     <paramref name="maxValue" /> is returned.
         /// </returns>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="maxValue" /> is less than 0.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint NextUInt32(uint maxValue)
         {
@@ -108,10 +107,6 @@ namespace NativeCollections
         ///     but not <paramref name="maxValue" />. If minValue equals <paramref name="maxValue" />, <paramref name="minValue" />
         ///     is returned.
         /// </returns>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///     <paramref name="minValue" /> is greater than <paramref name="maxValue" />
-        ///     .
-        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint NextUInt32(uint minValue, uint maxValue)
         {
@@ -152,7 +147,6 @@ namespace NativeCollections
         ///     includes 0 but not <paramref name="maxValue" />. However, if <paramref name="maxValue" /> equals 0,
         ///     <paramref name="maxValue" /> is returned.
         /// </returns>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="maxValue" /> is less than 0.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ulong NextUInt64(ulong maxValue)
         {
@@ -180,10 +174,6 @@ namespace NativeCollections
         ///     but not <paramref name="maxValue" />. If minValue equals <paramref name="maxValue" />, <paramref name="minValue" />
         ///     is returned.
         /// </returns>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///     <paramref name="minValue" /> is greater than <paramref name="maxValue" />
-        ///     .
-        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ulong NextUInt64(ulong minValue, ulong maxValue)
         {
@@ -238,7 +228,6 @@ namespace NativeCollections
         ///     includes 0 but not <paramref name="maxValue" />. However, if <paramref name="maxValue" /> equals 0,
         ///     <paramref name="maxValue" /> is returned.
         /// </returns>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="maxValue" /> is less than 0.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int NextInt32(int maxValue)
         {
@@ -265,10 +254,6 @@ namespace NativeCollections
         ///     but not <paramref name="maxValue" />. If minValue equals <paramref name="maxValue" />, <paramref name="minValue" />
         ///     is returned.
         /// </returns>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///     <paramref name="minValue" /> is greater than <paramref name="maxValue" />
-        ///     .
-        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int NextInt32(int minValue, int maxValue)
         {
@@ -309,7 +294,6 @@ namespace NativeCollections
         ///     includes 0 but not <paramref name="maxValue" />. However, if <paramref name="maxValue" /> equals 0,
         ///     <paramref name="maxValue" /> is returned.
         /// </returns>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="maxValue" /> is less than 0.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long NextInt64(long maxValue)
         {
@@ -338,10 +322,6 @@ namespace NativeCollections
         ///     but not <paramref name="maxValue" />. If minValue equals <paramref name="maxValue" />, <paramref name="minValue" />
         ///     is returned.
         /// </returns>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///     <paramref name="minValue" /> is greater than <paramref name="maxValue" />
-        ///     .
-        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long NextInt64(long minValue, long maxValue)
         {
