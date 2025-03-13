@@ -629,19 +629,19 @@ namespace NativeCollections
         private void Resize(int newSize)
         {
             var handle = _handle;
-            var buckets = (int*)NativeMemoryAllocator.Alloc((uint)(newSize * sizeof(int)));
-            var entries = (Entry*)NativeMemoryAllocator.Alloc((uint)(newSize * sizeof(Entry)));
+            var buckets = (int*)NativeMemoryAllocator.AllocZeroed((uint)(newSize * sizeof(int)));
+            var entries = (Entry*)NativeMemoryAllocator.AllocZeroed((uint)(newSize * sizeof(Entry)));
             if (IntPtr.Size == 8)
                 handle->FastModMultiplier = HashHelpers.GetFastModMultiplier((uint)newSize);
             var count = handle->Count;
             Unsafe.CopyBlockUnaligned(entries, handle->Entries, (uint)(count * sizeof(Entry)));
             NativeMemoryAllocator.Free(handle->Buckets);
             handle->Buckets = buckets;
+            handle->BucketsLength = newSize;
             for (var entryIndex = 0; entryIndex < count; ++entryIndex)
                 PushEntryIntoBucket(ref entries[entryIndex], entryIndex);
             NativeMemoryAllocator.Free(handle->Entries);
             handle->Entries = entries;
-            handle->BucketsLength = newSize;
             handle->EntriesLength = newSize;
         }
 
