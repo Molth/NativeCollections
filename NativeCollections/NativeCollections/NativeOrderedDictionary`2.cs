@@ -631,8 +631,7 @@ namespace NativeCollections
             var handle = _handle;
             var buckets = (int*)NativeMemoryAllocator.AllocZeroed((uint)(newSize * sizeof(int)));
             var entries = (Entry*)NativeMemoryAllocator.AllocZeroed((uint)(newSize * sizeof(Entry)));
-            if (IntPtr.Size == 8)
-                handle->FastModMultiplier = HashHelpers.GetFastModMultiplier((uint)newSize);
+            handle->FastModMultiplier = IntPtr.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)newSize) : 0;
             var count = handle->Count;
             Unsafe.CopyBlockUnaligned(entries, handle->Entries, (uint)(count * sizeof(Entry)));
             NativeMemoryAllocator.Free(handle->Buckets);
