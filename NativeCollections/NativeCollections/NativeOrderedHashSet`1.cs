@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -13,17 +12,16 @@ namespace NativeCollections
     /// <summary>
     ///     Native ordered dictionary
     /// </summary>
-    /// <typeparam name="TKey">Type</typeparam>
-    /// <typeparam name="TValue">Type</typeparam>
+    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection]
-    public readonly unsafe struct NativeOrderedDictionary<TKey, TValue> : IDisposable, IEquatable<NativeOrderedDictionary<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
+    public readonly unsafe struct NativeOrderedHashSet<T> : IDisposable, IEquatable<NativeOrderedHashSet<T>> where T : unmanaged, IEquatable<T>
     {
         /// <summary>
         ///     Handle
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        private struct NativeOrderedDictionaryHandle
+        private struct NativeOrderedHashSetHandle
         {
             /// <summary>
             ///     Buckets
@@ -62,32 +60,22 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Keys
-        /// </summary>
-        public KeyCollection Keys => new(this);
-
-        /// <summary>
-        ///     Values
-        /// </summary>
-        public ValueCollection Values => new(this);
-
-        /// <summary>
         ///     Handle
         /// </summary>
-        private readonly NativeOrderedDictionaryHandle* _handle;
+        private readonly NativeOrderedHashSetHandle* _handle;
 
         /// <summary>
         ///     Structure
         /// </summary>
         /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeOrderedDictionary(int capacity)
+        public NativeOrderedHashSet(int capacity)
         {
             if (capacity < 0)
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
             if (capacity < 4)
                 capacity = 4;
-            var handle = (NativeOrderedDictionaryHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeOrderedDictionaryHandle));
+            var handle = (NativeOrderedHashSetHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeOrderedHashSetHandle));
             handle->Count = 0;
             handle->Version = 0;
             _handle = handle;
@@ -105,23 +93,6 @@ namespace NativeCollections
         public bool IsEmpty => _handle->Count == 0;
 
         /// <summary>
-        ///     Get or set value
-        /// </summary>
-        /// <param name="key">Key</param>
-        public TValue this[in TKey key]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-                if (!TryGetValue(key, out var obj))
-                    throw new KeyNotFoundException(key.ToString());
-                return obj;
-            }
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => TryInsertOverwriteExisting(-1, key, value);
-        }
-
-        /// <summary>
         ///     Count
         /// </summary>
         public int Count => _handle->Count;
@@ -131,14 +102,14 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeOrderedDictionary<TKey, TValue> other) => other == this;
+        public bool Equals(NativeOrderedHashSet<T> other) => other == this;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeOrderedDictionary<TKey, TValue> nativeOrderedDictionary && nativeOrderedDictionary == this;
+        public override bool Equals(object? obj) => obj is NativeOrderedHashSet<T> nativeOrderedDictionary && nativeOrderedDictionary == this;
 
         /// <summary>
         ///     Get hashCode
@@ -150,7 +121,7 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => $"NativeOrderedDictionary<{typeof(TKey).Name}, {typeof(TValue).Name}>";
+        public override string ToString() => $"NativeOrderedHashSet<{typeof(T).Name}>";
 
         /// <summary>
         ///     Equals
@@ -158,7 +129,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeOrderedDictionary<TKey, TValue> left, NativeOrderedDictionary<TKey, TValue> right) => left._handle == right._handle;
+        public static bool operator ==(NativeOrderedHashSet<T> left, NativeOrderedHashSet<T> right) => left._handle == right._handle;
 
         /// <summary>
         ///     Not equals
@@ -166,7 +137,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeOrderedDictionary<TKey, TValue> left, NativeOrderedDictionary<TKey, TValue> right) => left._handle != right._handle;
+        public static bool operator !=(NativeOrderedHashSet<T> left, NativeOrderedHashSet<T> right) => left._handle != right._handle;
 
         /// <summary>
         ///     Dispose
@@ -202,29 +173,21 @@ namespace NativeCollections
         /// <summary>
         ///     Add
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Add(in TKey key, in TValue value) => TryInsertThrowOnExisting(-1, key, value);
-
-        /// <summary>
-        ///     Try add
-        /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
+        /// <param name="item">Item</param>
         /// <returns>Added</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryAdd(in TKey key, in TValue value) => TryInsertIgnoreInsertion(-1, key, value);
+        public bool Add(in T item) => TryInsertIgnoreInsertion(-1, item);
 
         /// <summary>
         ///     Remove
         /// </summary>
-        /// <param name="key">Key</param>
+        /// <param name="item">Item</param>
+        /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Remove(in TKey key)
+        public bool Remove(in T item)
         {
             var handle = _handle;
-            var index = IndexOf(key);
+            var index = IndexOf(item);
             if (index >= 0)
             {
                 var count = handle->Count;
@@ -247,16 +210,17 @@ namespace NativeCollections
         /// <summary>
         ///     Remove
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
+        /// <param name="equalValue">Equal value</param>
+        /// <param name="actualValue">Actual value</param>
+        /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Remove(in TKey key, out TValue value)
+        public bool Remove(in T equalValue, out T actualValue)
         {
             var handle = _handle;
-            var index = IndexOf(key);
+            var index = IndexOf(equalValue);
             if (index >= 0)
             {
-                value = handle->Entries[index].Value;
+                actualValue = handle->Entries[index].Value;
                 var count = handle->Count;
                 RemoveEntryFromBucket(index);
                 var entries = handle->Entries;
@@ -271,7 +235,7 @@ namespace NativeCollections
                 return true;
             }
 
-            value = default;
+            actualValue = default;
             return false;
         }
 
@@ -302,16 +266,15 @@ namespace NativeCollections
         ///     Remove at
         /// </summary>
         /// <param name="index">Index</param>
-        /// <param name="keyValuePair">Key value pair</param>
+        /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void RemoveAt(int index, out KeyValuePair<TKey, TValue> keyValuePair)
+        public void RemoveAt(int index, out T item)
         {
             var handle = _handle;
             var count = handle->Count;
             if ((uint)index >= (uint)count)
                 throw new ArgumentOutOfRangeException(nameof(index));
-            ref var local = ref handle->Entries[index];
-            keyValuePair = new KeyValuePair<TKey, TValue>(local.Key, local.Value);
+            item = handle->Entries[index].Value;
             RemoveEntryFromBucket(index);
             var entries = handle->Entries;
             for (var entryIndex = index + 1; entryIndex < count; ++entryIndex)
@@ -325,50 +288,50 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Contains key
+        ///     Contains
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <returns>Contains key</returns>
+        /// <param name="item">Item</param>
+        /// <returns>Contains</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool ContainsKey(in TKey key) => IndexOf(key) >= 0;
+        public bool Contains(in T item) => IndexOf(item) >= 0;
 
         /// <summary>
-        ///     Try to get the value
+        ///     Try to get the actual value
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
+        /// <param name="equalValue">Equal value</param>
+        /// <param name="actualValue">Actual value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValue(in TKey key, out TValue value)
+        public bool TryGetValue(in T equalValue, out T actualValue)
         {
-            var index = IndexOf(key);
+            var index = IndexOf(equalValue);
             if (index >= 0)
             {
-                value = _handle->Entries[index].Value;
+                actualValue = _handle->Entries[index].Value;
                 return true;
             }
 
-            value = default;
+            actualValue = default;
             return false;
         }
 
         /// <summary>
-        ///     Try to get the value
+        ///     Try to get the actual value
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
+        /// <param name="equalValue">Equal value</param>
+        /// <param name="actualValue">Actual value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueReference(in TKey key, out NativeReference<TValue> value)
+        public bool TryGetValueReference(in T equalValue, out NativeReference<T> actualValue)
         {
-            var index = IndexOf(key);
+            var index = IndexOf(equalValue);
             if (index >= 0)
             {
-                value = new NativeReference<TValue>(Unsafe.AsPointer(ref _handle->Entries[index].Value));
+                actualValue = new NativeReference<T>(Unsafe.AsPointer(ref _handle->Entries[index].Value));
                 return true;
             }
 
-            value = default;
+            actualValue = default;
             return false;
         }
 
@@ -378,46 +341,46 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>KeyValuePair</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public KeyValuePair<TKey, TValue> GetAt(int index)
+        public T GetAt(int index)
         {
             var handle = _handle;
             if ((uint)index >= (uint)handle->Count)
                 throw new ArgumentOutOfRangeException(nameof(index));
             ref var local = ref handle->Entries[index];
-            return new KeyValuePair<TKey, TValue>(local.Key, local.Value);
+            return local.Value;
         }
 
         /// <summary>
         ///     Index of
         /// </summary>
-        /// <param name="key">Key</param>
+        /// <param name="item">Item</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int IndexOf(in TKey key)
+        public int IndexOf(in T item)
         {
             uint num = 0;
-            return IndexOf(key, ref num, ref num);
+            return IndexOf(item, ref num, ref num);
         }
 
         /// <summary>
         ///     Index of
         /// </summary>
-        /// <param name="key">Key</param>
+        /// <param name="item">Item</param>
         /// <param name="outHashCode">Out hashCode</param>
         /// <param name="outCollisionCount">Out collision count</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private int IndexOf(in TKey key, ref uint outHashCode, ref uint outCollisionCount)
+        private int IndexOf(in T item, ref uint outHashCode, ref uint outCollisionCount)
         {
             var handle = _handle;
             uint num = 0;
             var entries = handle->Entries;
-            var hashCode = (uint)key.GetHashCode();
+            var hashCode = (uint)item.GetHashCode();
             var index = GetBucket(hashCode) - 1;
             while ((uint)index < (uint)handle->EntriesLength)
             {
                 ref var local = ref entries[index];
-                if ((int)local.HashCode != (int)hashCode || !local.Key.Equals(key))
+                if ((int)local.HashCode != (int)hashCode || !local.Value.Equals(item))
                 {
                     index = local.Next;
                     ++num;
@@ -440,57 +403,48 @@ namespace NativeCollections
         ///     Insert
         /// </summary>
         /// <param name="index">Index</param>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
+        /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Insert(int index, in TKey key, in TValue value)
+        public void Insert(int index, in T item)
         {
             if ((uint)index > (uint)_handle->Count)
                 throw new ArgumentOutOfRangeException(nameof(index));
-            TryInsertThrowOnExisting(index, key, value);
+            TryInsertThrowOnExisting(index, item);
         }
 
         /// <summary>
         ///     Set at
         /// </summary>
         /// <param name="index">Index</param>
-        /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetAt(int index, in TValue value)
+        public void SetAt(int index)
         {
             var handle = _handle;
             if ((uint)index >= (uint)handle->Count)
                 throw new ArgumentOutOfRangeException(nameof(index));
-            handle->Entries[index].Value = value;
         }
 
         /// <summary>
         ///     Set at
         /// </summary>
         /// <param name="index">Index</param>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
+        /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetAt(int index, in TKey key, in TValue value)
+        public void SetAt(int index, in T item)
         {
             var handle = _handle;
             if ((uint)index >= (uint)handle->Count)
                 throw new ArgumentOutOfRangeException(nameof(index));
             ref var local = ref handle->Entries[index];
-            if (key.Equals(local.Key))
-            {
-                local.Value = value;
+            if (item.Equals(local.Value))
                 return;
-            }
-
             uint outHashCode = 0;
             uint outCollisionCount = 0;
-            if (IndexOf(key, ref outHashCode, ref outCollisionCount) >= 0)
-                throw new ArgumentException($"AddingDuplicateWithKey, {key}");
+            if (IndexOf(item, ref outHashCode, ref outCollisionCount) >= 0)
+                throw new ArgumentException($"AddingDuplicateWithKey, {item}");
             RemoveEntryFromBucket(index);
             local.HashCode = outHashCode;
-            local.Key = key;
-            local.Value = value;
+            local.Value = item;
             PushEntryIntoBucket(ref local, index);
             ++handle->Version;
         }
@@ -674,15 +628,14 @@ namespace NativeCollections
         ///     Insert
         /// </summary>
         /// <param name="index">Index</param>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
+        /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool TryInsertIgnoreInsertion(int index, in TKey key, in TValue value)
+        private bool TryInsertIgnoreInsertion(int index, in T item)
         {
             var handle = _handle;
             uint outHashCode = 0;
             uint outCollisionCount = 0;
-            var index1 = IndexOf(key, ref outHashCode, ref outCollisionCount);
+            var index1 = IndexOf(item, ref outHashCode, ref outCollisionCount);
             if (index1 >= 0)
                 return false;
             if (index < 0)
@@ -702,8 +655,7 @@ namespace NativeCollections
 
             ref var local = ref entries[index];
             local.HashCode = outHashCode;
-            local.Key = key;
-            local.Value = value;
+            local.Value = item;
             PushEntryIntoBucket(ref local, index);
             ++handle->Count;
             ++handle->Version;
@@ -714,21 +666,16 @@ namespace NativeCollections
         ///     Insert
         /// </summary>
         /// <param name="index">Index</param>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
+        /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool TryInsertOverwriteExisting(int index, in TKey key, in TValue value)
+        private bool TryInsertThrowOnExisting(int index, in T item)
         {
             var handle = _handle;
             uint outHashCode = 0;
             uint outCollisionCount = 0;
-            var index1 = IndexOf(key, ref outHashCode, ref outCollisionCount);
+            var index1 = IndexOf(item, ref outHashCode, ref outCollisionCount);
             if (index1 >= 0)
-            {
-                handle->Entries[index1].Value = value;
-                return true;
-            }
-
+                throw new ArgumentException($"AddingDuplicateWithKey, {item}");
             if (index < 0)
                 index = handle->Count;
             var entries = handle->Entries;
@@ -746,48 +693,7 @@ namespace NativeCollections
 
             ref var local = ref entries[index];
             local.HashCode = outHashCode;
-            local.Key = key;
-            local.Value = value;
-            PushEntryIntoBucket(ref local, index);
-            ++handle->Count;
-            ++handle->Version;
-            return true;
-        }
-
-        /// <summary>
-        ///     Insert
-        /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool TryInsertThrowOnExisting(int index, in TKey key, in TValue value)
-        {
-            var handle = _handle;
-            uint outHashCode = 0;
-            uint outCollisionCount = 0;
-            var index1 = IndexOf(key, ref outHashCode, ref outCollisionCount);
-            if (index1 >= 0)
-                throw new ArgumentException($"AddingDuplicateWithKey, {key}");
-            if (index < 0)
-                index = handle->Count;
-            var entries = handle->Entries;
-            if (handle->EntriesLength == handle->Count)
-            {
-                Resize(HashHelpers.ExpandPrime(handle->EntriesLength));
-                entries = handle->Entries;
-            }
-
-            for (var entryIndex = handle->Count - 1; entryIndex >= index; --entryIndex)
-            {
-                entries[entryIndex + 1] = entries[entryIndex];
-                UpdateBucketIndex(entryIndex, 1);
-            }
-
-            ref var local = ref entries[index];
-            local.HashCode = outHashCode;
-            local.Key = key;
-            local.Value = value;
+            local.Value = item;
             PushEntryIntoBucket(ref local, index);
             ++handle->Count;
             ++handle->Version;
@@ -824,20 +730,15 @@ namespace NativeCollections
             public uint HashCode;
 
             /// <summary>
-            ///     Key
-            /// </summary>
-            public TKey Key;
-
-            /// <summary>
             ///     Value
             /// </summary>
-            public TValue Value;
+            public T Value;
         }
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeOrderedDictionary<TKey, TValue> Empty => new();
+        public static NativeOrderedHashSet<T> Empty => new();
 
         /// <summary>
         ///     Get enumerator
@@ -851,9 +752,9 @@ namespace NativeCollections
         public struct Enumerator
         {
             /// <summary>
-            ///     NativeOrderedDictionary
+            ///     NativeOrderedHashSet
             /// </summary>
-            private readonly NativeOrderedDictionary<TKey, TValue> _nativeOrderedDictionary;
+            private readonly NativeOrderedHashSet<T> _nativeOrderedDictionary;
 
             /// <summary>
             ///     Version
@@ -868,14 +769,14 @@ namespace NativeCollections
             /// <summary>
             ///     Current
             /// </summary>
-            private KeyValuePair<TKey, TValue> _current;
+            private T _current;
 
             /// <summary>
             ///     Structure
             /// </summary>
-            /// <param name="nativeOrderedDictionary">NativeOrderedDictionary</param>
+            /// <param name="nativeOrderedDictionary">NativeOrderedHashSet</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(in NativeOrderedDictionary<TKey, TValue> nativeOrderedDictionary)
+            internal Enumerator(in NativeOrderedHashSet<T> nativeOrderedDictionary)
             {
                 _nativeOrderedDictionary = nativeOrderedDictionary;
                 _version = nativeOrderedDictionary._handle->Version;
@@ -896,212 +797,22 @@ namespace NativeCollections
                 if (_index < handle->Count)
                 {
                     ref var local = ref handle->Entries[_index];
-                    _current = new KeyValuePair<TKey, TValue>(local.Key, local.Value);
+                    _current = local.Value;
                     ++_index;
                     return true;
                 }
 
-                _current = new KeyValuePair<TKey, TValue>();
+                _current = default;
                 return false;
             }
 
             /// <summary>
             ///     Current
             /// </summary>
-            public KeyValuePair<TKey, TValue> Current
+            public T Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => _current;
-            }
-        }
-
-        /// <summary>
-        ///     Key collection
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential)]
-        public readonly struct KeyCollection
-        {
-            /// <summary>
-            ///     NativeOrderedDictionary
-            /// </summary>
-            private readonly NativeOrderedDictionary<TKey, TValue> _nativeOrderedDictionary;
-
-            /// <summary>
-            ///     Structure
-            /// </summary>
-            /// <param name="nativeOrderedDictionary">NativeOrderedDictionary</param>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal KeyCollection(in NativeOrderedDictionary<TKey, TValue> nativeOrderedDictionary) => _nativeOrderedDictionary = nativeOrderedDictionary;
-
-            /// <summary>
-            ///     Get enumerator
-            /// </summary>
-            /// <returns>Enumerator</returns>
-            public Enumerator GetEnumerator() => new(_nativeOrderedDictionary);
-
-            /// <summary>
-            ///     Enumerator
-            /// </summary>
-            public struct Enumerator
-            {
-                /// <summary>
-                ///     NativeOrderedDictionary
-                /// </summary>
-                private readonly NativeOrderedDictionary<TKey, TValue> _nativeOrderedDictionary;
-
-                /// <summary>
-                ///     Index
-                /// </summary>
-                private int _index;
-
-                /// <summary>
-                ///     Version
-                /// </summary>
-                private readonly int _version;
-
-                /// <summary>
-                ///     Current
-                /// </summary>
-                private TKey _currentKey;
-
-                /// <summary>
-                ///     Structure
-                /// </summary>
-                /// <param name="nativeOrderedDictionary">NativeOrderedDictionary</param>
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(in NativeOrderedDictionary<TKey, TValue> nativeOrderedDictionary)
-                {
-                    _nativeOrderedDictionary = nativeOrderedDictionary;
-                    _version = nativeOrderedDictionary._handle->Version;
-                    _index = 0;
-                    _currentKey = default;
-                }
-
-                /// <summary>
-                ///     Move next
-                /// </summary>
-                /// <returns>Moved</returns>
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public bool MoveNext()
-                {
-                    var handle = _nativeOrderedDictionary._handle;
-                    if (_version != handle->Version)
-                        throw new InvalidOperationException("EnumFailedVersion");
-                    if (_index < handle->Count)
-                    {
-                        ref var local = ref handle->Entries[_index];
-                        _currentKey = local.Key;
-                        ++_index;
-                        return true;
-                    }
-
-                    _currentKey = default;
-                    return false;
-                }
-
-                /// <summary>
-                ///     Current
-                /// </summary>
-                public TKey Current
-                {
-                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                    get => _currentKey;
-                }
-            }
-        }
-
-        /// <summary>
-        ///     Value collection
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential)]
-        public readonly struct ValueCollection
-        {
-            /// <summary>
-            ///     NativeOrderedDictionary
-            /// </summary>
-            private readonly NativeOrderedDictionary<TKey, TValue> _nativeOrderedDictionary;
-
-            /// <summary>
-            ///     Structure
-            /// </summary>
-            /// <param name="nativeOrderedDictionary">NativeOrderedDictionary</param>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal ValueCollection(in NativeOrderedDictionary<TKey, TValue> nativeOrderedDictionary) => _nativeOrderedDictionary = nativeOrderedDictionary;
-
-            /// <summary>
-            ///     Get enumerator
-            /// </summary>
-            /// <returns>Enumerator</returns>
-            public Enumerator GetEnumerator() => new(_nativeOrderedDictionary);
-
-            /// <summary>
-            ///     Enumerator
-            /// </summary>
-            public struct Enumerator
-            {
-                /// <summary>
-                ///     NativeOrderedDictionary
-                /// </summary>
-                private readonly NativeOrderedDictionary<TKey, TValue> _nativeOrderedDictionary;
-
-                /// <summary>
-                ///     Index
-                /// </summary>
-                private int _index;
-
-                /// <summary>
-                ///     Version
-                /// </summary>
-                private readonly int _version;
-
-                /// <summary>
-                ///     Current
-                /// </summary>
-                private TValue _currentValue;
-
-                /// <summary>
-                ///     Structure
-                /// </summary>
-                /// <param name="nativeOrderedDictionary">NativeOrderedDictionary</param>
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(in NativeOrderedDictionary<TKey, TValue> nativeOrderedDictionary)
-                {
-                    _nativeOrderedDictionary = nativeOrderedDictionary;
-                    _version = nativeOrderedDictionary._handle->Version;
-                    _index = 0;
-                    _currentValue = default;
-                }
-
-                /// <summary>
-                ///     Move next
-                /// </summary>
-                /// <returns>Moved</returns>
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public bool MoveNext()
-                {
-                    var handle = _nativeOrderedDictionary._handle;
-                    if (_version != handle->Version)
-                        throw new InvalidOperationException("EnumFailedVersion");
-                    if (_index < handle->Count)
-                    {
-                        ref var local = ref handle->Entries[_index];
-                        _currentValue = local.Value;
-                        ++_index;
-                        return true;
-                    }
-
-                    _currentValue = default;
-                    return false;
-                }
-
-                /// <summary>
-                ///     Current
-                /// </summary>
-                public TValue Current
-                {
-                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                    get => _currentValue;
-                }
             }
         }
     }

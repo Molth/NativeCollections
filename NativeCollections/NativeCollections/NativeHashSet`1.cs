@@ -289,6 +289,48 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Remove
+        /// </summary>
+        /// <param name="equalValue">Equal value</param>
+        /// <param name="actualValue">Actual value</param>
+        /// <returns>Removed</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Remove(in T equalValue, out T actualValue)
+        {
+            var handle = _handle;
+            uint collisionCount = 0;
+            var last = -1;
+            var hashCode = equalValue.GetHashCode();
+            ref var bucket = ref GetBucketRef(hashCode);
+            var i = bucket - 1;
+            while (i >= 0)
+            {
+                ref var entry = ref handle->Entries[i];
+                if (entry.HashCode == hashCode && entry.Value.Equals(equalValue))
+                {
+                    if (last < 0)
+                        bucket = entry.Next + 1;
+                    else
+                        handle->Entries[last].Next = entry.Next;
+                    entry.Next = -3 - handle->FreeList;
+                    handle->FreeList = i;
+                    handle->FreeCount++;
+                    actualValue = entry.Value;
+                    return true;
+                }
+
+                last = i;
+                i = entry.Next;
+                collisionCount++;
+                if (collisionCount > (uint)handle->EntriesLength)
+                    throw new InvalidOperationException("ConcurrentOperationsNotSupported");
+            }
+
+            actualValue = default;
+            return false;
+        }
+
+        /// <summary>
         ///     Contains
         /// </summary>
         /// <param name="item">Item</param>
