@@ -187,8 +187,7 @@ namespace NativeCollections
                 return false;
             }
 
-            var node = linkedList->Head;
-            result = node;
+            result = linkedList->Head;
             return true;
         }
 
@@ -207,8 +206,7 @@ namespace NativeCollections
                 return false;
             }
 
-            var node = linkedList->Tail->Previous;
-            result = node;
+            result = linkedList->Tail->Previous;
             return true;
         }
 
