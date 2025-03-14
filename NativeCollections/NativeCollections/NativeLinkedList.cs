@@ -117,6 +117,102 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Insert head
+        /// </summary>
+        /// <param name="node">Node</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void InsertHead(NativeLinkedListNode* node) => Tail->InsertAfter(node);
+
+        /// <summary>
+        ///     Insert tail
+        /// </summary>
+        /// <param name="node">Node</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void InsertTail(NativeLinkedListNode* node) => Tail->InsertBefore(node);
+
+        /// <summary>
+        ///     Try remove
+        /// </summary>
+        /// <param name="result">Node</param>
+        /// <returns>Removed</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryRemoveHead(out NativeLinkedListNode* result)
+        {
+            var linkedList = (NativeLinkedList*)Unsafe.AsPointer(ref this);
+            if (linkedList->IsEmpty)
+            {
+                result = default;
+                return false;
+            }
+
+            var node = linkedList->Head;
+            result = node;
+            node->Remove();
+            return true;
+        }
+
+        /// <summary>
+        ///     Try remove
+        /// </summary>
+        /// <param name="result">Node</param>
+        /// <returns>Removed</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryRemoveTail(out NativeLinkedListNode* result)
+        {
+            var linkedList = (NativeLinkedList*)Unsafe.AsPointer(ref this);
+            if (linkedList->IsEmpty)
+            {
+                result = default;
+                return false;
+            }
+
+            var node = linkedList->Tail->Previous;
+            result = node;
+            node->Remove();
+            return true;
+        }
+
+        /// <summary>
+        ///     Try peek head
+        /// </summary>
+        /// <param name="result">Node</param>
+        /// <returns>Peeked</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryPeekHead(out NativeLinkedListNode* result)
+        {
+            var linkedList = (NativeLinkedList*)Unsafe.AsPointer(ref this);
+            if (linkedList->IsEmpty)
+            {
+                result = default;
+                return false;
+            }
+
+            var node = linkedList->Head;
+            result = node;
+            return true;
+        }
+
+        /// <summary>
+        ///     Try peek tail
+        /// </summary>
+        /// <param name="result">Node</param>
+        /// <returns>Peeked</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryPeekTail(out NativeLinkedListNode* result)
+        {
+            var linkedList = (NativeLinkedList*)Unsafe.AsPointer(ref this);
+            if (linkedList->IsEmpty)
+            {
+                result = default;
+                return false;
+            }
+
+            var node = linkedList->Tail->Previous;
+            result = node;
+            return true;
+        }
+
+        /// <summary>
         ///     Empty
         /// </summary>
         public static NativeLinkedList Empty => new();
