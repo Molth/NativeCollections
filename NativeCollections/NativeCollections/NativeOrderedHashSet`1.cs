@@ -339,7 +339,7 @@ namespace NativeCollections
         ///     Get at
         /// </summary>
         /// <param name="index">Index</param>
-        /// <returns>KeyValuePair</returns>
+        /// <returns>Item</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T GetAt(int index)
         {
