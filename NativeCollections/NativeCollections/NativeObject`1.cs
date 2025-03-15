@@ -68,7 +68,7 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => "NativeObject";
+        public override string ToString() => $"NativeObject<{typeof(T).Name}>";
 
         /// <summary>
         ///     Equals
