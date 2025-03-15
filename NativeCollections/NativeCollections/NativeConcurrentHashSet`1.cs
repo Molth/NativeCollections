@@ -246,7 +246,65 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Added</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Add(in T key) => TryAddInternal(_handle->Tables, key);
+        public bool Add(in T key)
+        {
+            var handle = _handle;
+            var tables = handle->Tables;
+            NativeConcurrentSpinLock nodeLock = handle->NodeLock;
+            var hashCode = key.GetHashCode();
+            while (true)
+            {
+                var locks = tables->Locks;
+                ref var bucket = ref GetBucketAndLock(tables, hashCode, out var lockNo);
+                var resizeDesired = false;
+                var lockTaken = false;
+                try
+                {
+                    Monitor.Enter(locks[lockNo], ref lockTaken);
+                    if (tables != handle->Tables)
+                    {
+                        tables = handle->Tables;
+                        continue;
+                    }
+
+                    for (var node = (Node*)bucket; node != null; node = node->Next)
+                    {
+                        if (hashCode == node->HashCode && node->Key.Equals(key))
+                            return false;
+                    }
+
+                    Node* resultNode;
+                    nodeLock.Enter();
+                    try
+                    {
+                        resultNode = (Node*)handle->NodePool.Rent();
+                    }
+                    finally
+                    {
+                        nodeLock.Exit();
+                    }
+
+                    resultNode->Initialize(key, hashCode, (Node*)bucket);
+                    Volatile.Write(ref bucket, (nint)resultNode);
+                    checked
+                    {
+                        tables->CountPerLock[lockNo]++;
+                    }
+
+                    if (tables->CountPerLock[lockNo] > handle->Budget)
+                        resizeDesired = true;
+                }
+                finally
+                {
+                    if (lockTaken)
+                        Monitor.Exit(locks[lockNo]);
+                }
+
+                if (resizeDesired)
+                    GrowTable(tables, resizeDesired);
+                return true;
+            }
+        }
 
         /// <summary>
         ///     Remove
@@ -532,66 +590,6 @@ namespace NativeCollections
             var locks = _handle->Tables->Locks;
             for (var i = 0; i < locksAcquired; ++i)
                 Monitor.Exit(locks[i]);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool TryAddInternal(Tables* tables, in T key)
-        {
-            var handle = _handle;
-            NativeConcurrentSpinLock nodeLock = handle->NodeLock;
-            var hashCode = key.GetHashCode();
-            while (true)
-            {
-                var locks = tables->Locks;
-                ref var bucket = ref GetBucketAndLock(tables, hashCode, out var lockNo);
-                var resizeDesired = false;
-                var lockTaken = false;
-                try
-                {
-                    Monitor.Enter(locks[lockNo], ref lockTaken);
-                    if (tables != handle->Tables)
-                    {
-                        tables = handle->Tables;
-                        continue;
-                    }
-
-                    for (var node = (Node*)bucket; node != null; node = node->Next)
-                    {
-                        if (hashCode == node->HashCode && node->Key.Equals(key))
-                            return false;
-                    }
-
-                    Node* resultNode;
-                    nodeLock.Enter();
-                    try
-                    {
-                        resultNode = (Node*)handle->NodePool.Rent();
-                    }
-                    finally
-                    {
-                        nodeLock.Exit();
-                    }
-
-                    resultNode->Initialize(key, hashCode, (Node*)bucket);
-                    Volatile.Write(ref bucket, (nint)resultNode);
-                    checked
-                    {
-                        tables->CountPerLock[lockNo]++;
-                    }
-
-                    if (tables->CountPerLock[lockNo] > handle->Budget)
-                        resizeDesired = true;
-                }
-                finally
-                {
-                    if (lockTaken)
-                        Monitor.Exit(locks[lockNo]);
-                }
-
-                if (resizeDesired)
-                    GrowTable(tables, resizeDesired);
-                return true;
-            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
