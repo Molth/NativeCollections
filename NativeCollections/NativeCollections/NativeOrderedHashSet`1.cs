@@ -441,7 +441,7 @@ namespace NativeCollections
             uint outHashCode = 0;
             uint outCollisionCount = 0;
             if (IndexOf(item, ref outHashCode, ref outCollisionCount) >= 0)
-                throw new ArgumentException($"AddingDuplicateWithKey, {item}");
+                throw new ArgumentException($"AddingDuplicateWithItem, {item}");
             RemoveEntryFromBucket(index);
             local.HashCode = outHashCode;
             local.Value = item;
@@ -675,7 +675,7 @@ namespace NativeCollections
             uint outCollisionCount = 0;
             var index1 = IndexOf(item, ref outHashCode, ref outCollisionCount);
             if (index1 >= 0)
-                throw new ArgumentException($"AddingDuplicateWithKey, {item}");
+                throw new ArgumentException($"AddingDuplicateWithItem, {item}");
             if (index < 0)
                 index = handle->Count;
             var entries = handle->Entries;

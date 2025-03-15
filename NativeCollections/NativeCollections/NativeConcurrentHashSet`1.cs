@@ -243,15 +243,15 @@ namespace NativeCollections
         /// <summary>
         ///     Add
         /// </summary>
-        /// <param name="key">Key</param>
+        /// <param name="item">Item</param>
         /// <returns>Added</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Add(in T key)
+        public bool Add(in T item)
         {
             var handle = _handle;
             var tables = handle->Tables;
             NativeConcurrentSpinLock nodeLock = handle->NodeLock;
-            var hashCode = key.GetHashCode();
+            var hashCode = item.GetHashCode();
             while (true)
             {
                 var locks = tables->Locks;
@@ -269,7 +269,7 @@ namespace NativeCollections
 
                     for (var node = (Node*)bucket; node != null; node = node->Next)
                     {
-                        if (hashCode == node->HashCode && node->Key.Equals(key))
+                        if (hashCode == node->HashCode && node->Item.Equals(item))
                             return false;
                     }
 
@@ -284,7 +284,7 @@ namespace NativeCollections
                         nodeLock.Exit();
                     }
 
-                    resultNode->Initialize(key, hashCode, (Node*)bucket);
+                    resultNode->Initialize(item, hashCode, (Node*)bucket);
                     Volatile.Write(ref bucket, (nint)resultNode);
                     checked
                     {
@@ -309,15 +309,15 @@ namespace NativeCollections
         /// <summary>
         ///     Remove
         /// </summary>
-        /// <param name="key">Key</param>
+        /// <param name="item">Item</param>
         /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Remove(in T key)
+        public bool Remove(in T item)
         {
             var handle = _handle;
             NativeConcurrentSpinLock nodeLock = handle->NodeLock;
             var tables = handle->Tables;
-            var hashCode = key.GetHashCode();
+            var hashCode = item.GetHashCode();
             while (true)
             {
                 var locks = tables->Locks;
@@ -336,7 +336,7 @@ namespace NativeCollections
                         Node* prev = null;
                         for (var curr = (Node*)bucket; curr != null; curr = curr->Next)
                         {
-                            if (hashCode == curr->HashCode && curr->Key.Equals(key))
+                            if (hashCode == curr->HashCode && curr->Item.Equals(item))
                             {
                                 if (prev == null)
                                     Volatile.Write(ref bucket, (nint)curr->Next);
@@ -370,18 +370,18 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Contains key
+        ///     Contains item
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <returns>Contains key</returns>
+        /// <param name="item">Item</param>
+        /// <returns>Contains item</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Contains(in T key)
+        public bool Contains(in T item)
         {
             var tables = _handle->Tables;
-            var hashCode = key.GetHashCode();
+            var hashCode = item.GetHashCode();
             for (var node = (Node*)GetBucket(tables, hashCode); node != null; node = node->Next)
             {
-                if (hashCode == node->HashCode && node->Key.Equals(key))
+                if (hashCode == node->HashCode && node->Item.Equals(item))
                     return true;
             }
 
@@ -401,9 +401,9 @@ namespace NativeCollections
             var hashCode = equalValue.GetHashCode();
             for (var node = (Node*)GetBucket(tables, hashCode); node != null; node = node->Next)
             {
-                if (hashCode == node->HashCode && node->Key.Equals(equalValue))
+                if (hashCode == node->HashCode && node->Item.Equals(equalValue))
                 {
-                    actualValue = node->Key;
+                    actualValue = node->Item;
                     return true;
                 }
             }
@@ -425,9 +425,9 @@ namespace NativeCollections
             var hashCode = equalValue.GetHashCode();
             for (var node = (Node*)GetBucket(tables, hashCode); node != null; node = node->Next)
             {
-                if (hashCode == node->HashCode && node->Key.Equals(equalValue))
+                if (hashCode == node->HashCode && node->Item.Equals(equalValue))
                 {
-                    actualValue = new NativeReference<T>(Unsafe.AsPointer(ref node->Key));
+                    actualValue = new NativeReference<T>(Unsafe.AsPointer(ref node->Item));
                     return true;
                 }
             }
@@ -515,7 +515,7 @@ namespace NativeCollections
                         var next = current->Next;
                         ref var newBucket = ref GetBucketAndLock(newTables, hashCode, out var newLockNo);
                         var newNode = current;
-                        newNode->Initialize(current->Key, hashCode, (Node*)newBucket);
+                        newNode->Initialize(current->Item, hashCode, (Node*)newBucket);
                         newBucket = (nint)newNode;
                         checked
                         {
@@ -654,9 +654,9 @@ namespace NativeCollections
         private struct Node
         {
             /// <summary>
-            ///     Key
+            ///     Item
             /// </summary>
-            public T Key;
+            public T Item;
 
             /// <summary>
             ///     Next
@@ -671,13 +671,13 @@ namespace NativeCollections
             /// <summary>
             ///     Initialize
             /// </summary>
-            /// <param name="key">Key</param>
+            /// <param name="item">Item</param>
             /// <param name="hashCode">HashCode</param>
             /// <param name="next">Next</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void Initialize(in T key, int hashCode, Node* next)
+            public void Initialize(in T item, int hashCode, Node* next)
             {
-                Key = key;
+                Item = item;
                 Next = next;
                 HashCode = hashCode;
             }
@@ -844,7 +844,7 @@ namespace NativeCollections
                         if (_node != null)
                         {
                             var node = _node;
-                            _current = node->Key;
+                            _current = node->Item;
                             _node = node->Next;
                             return true;
                         }
