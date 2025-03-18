@@ -489,8 +489,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Initialize()
         {
+            Span<NativeConcurrentQueueSegmentSlot<T>> slots = Slots;
             for (var i = 0; i < NativeConcurrentQueue.LENGTH; ++i)
-                Slots[i].SequenceNumber = i;
+                slots[i].SequenceNumber = i;
             HeadAndTail = new NativeConcurrentQueuePaddedHeadAndTailNotArm64();
             FrozenForEnqueues = false;
             NextSegment = IntPtr.Zero;
@@ -935,8 +936,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Initialize()
         {
+            Span<NativeConcurrentQueueSegmentSlot<T>> slots = Slots;
             for (var i = 0; i < NativeConcurrentQueue.LENGTH; ++i)
-                Slots[i].SequenceNumber = i;
+                slots[i].SequenceNumber = i;
             HeadAndTail = new NativeConcurrentQueuePaddedHeadAndTailArm64();
             FrozenForEnqueues = false;
             NextSegment = IntPtr.Zero;
@@ -2129,12 +2131,6 @@ namespace NativeCollections
         private NativeConcurrentQueueSegmentSlot<T> _slot1021;
         private NativeConcurrentQueueSegmentSlot<T> _slot1022;
         private NativeConcurrentQueueSegmentSlot<T> _slot1023;
-
-        public ref NativeConcurrentQueueSegmentSlot<T> this[int i]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Unsafe.Add(ref Unsafe.AsRef<NativeConcurrentQueueSegmentSlot<T>>(Unsafe.AsPointer(ref this)), i);
-        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator Span<NativeConcurrentQueueSegmentSlot<T>>(in NativeConcurrentQueueSegmentSlots<T> slots) => MemoryMarshal.CreateSpan(ref Unsafe.AsRef<NativeConcurrentQueueSegmentSlot<T>>(Unsafe.AsPointer(ref Unsafe.AsRef(in slots))), NativeConcurrentQueue.LENGTH);
