@@ -771,10 +771,10 @@ namespace NativeCollections
             {
                 public fixed ulong headers[FL_INDEX_COUNT * SL_INDEX_COUNT];
 
-                public Span<block_header_t_ptr> this[int i]
+                public block_header_t_ptr* this[int i]
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                    get => MemoryMarshal.CreateSpan(ref Unsafe.Add(ref Unsafe.AsRef<block_header_t_ptr>(Unsafe.AsPointer(ref this)), i * SL_INDEX_COUNT), SL_INDEX_COUNT);
+                    get => (block_header_t_ptr*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<block_header_t_ptr>(Unsafe.AsPointer(ref this)), i * SL_INDEX_COUNT));
                 }
             }
 
@@ -1377,10 +1377,10 @@ namespace NativeCollections
             {
                 public fixed uint headers[FL_INDEX_COUNT * SL_INDEX_COUNT];
 
-                public Span<block_header_t_ptr> this[int i]
+                public block_header_t_ptr* this[int i]
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                    get => MemoryMarshal.CreateSpan(ref Unsafe.Add(ref Unsafe.AsRef<block_header_t_ptr>(Unsafe.AsPointer(ref this)), i * SL_INDEX_COUNT), SL_INDEX_COUNT);
+                    get => (block_header_t_ptr*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<block_header_t_ptr>(Unsafe.AsPointer(ref this)), i * SL_INDEX_COUNT));
                 }
             }
 
