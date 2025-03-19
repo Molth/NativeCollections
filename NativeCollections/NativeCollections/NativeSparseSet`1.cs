@@ -439,10 +439,14 @@ namespace NativeCollections
             /// <summary>
             ///     Current
             /// </summary>
-            public ref T Current
+            public KeyValuePair<int, T> Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => ref _nativeSparseSet._handle->Dense[_index].Value;
+                get
+                {
+                    ref var entry = ref _nativeSparseSet._handle->Dense[_index];
+                    return new KeyValuePair<int, T>(entry.Key, entry.Value);
+                }
             }
         }
     }
