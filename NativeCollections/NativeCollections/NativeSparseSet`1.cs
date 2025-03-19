@@ -157,13 +157,6 @@ namespace NativeCollections
         public static bool operator !=(NativeSparseSet<T> left, NativeSparseSet<T> right) => left._handle != right._handle;
 
         /// <summary>
-        ///     As span
-        /// </summary>
-        /// <returns>Span</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<KeyValuePair<int, T>>(NativeSparseSet<T> nativeSparseSet) => nativeSparseSet.AsSpan();
-
-        /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
@@ -418,42 +411,6 @@ namespace NativeCollections
             if (index >= handle->Count)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
             handle->Dense[index].Value = value;
-        }
-
-        /// <summary>
-        ///     As span
-        /// </summary>
-        /// <returns>Span</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<KeyValuePair<int, T>> AsSpan()
-        {
-            var handle = _handle;
-            return MemoryMarshal.CreateSpan(ref *(KeyValuePair<int, T>*)handle->Dense, handle->Count);
-        }
-
-        /// <summary>
-        ///     As span
-        /// </summary>
-        /// <param name="start">Start</param>
-        /// <returns>Span</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<KeyValuePair<int, T>> AsSpan(int start)
-        {
-            var handle = _handle;
-            return MemoryMarshal.CreateSpan(ref *(KeyValuePair<int, T>*)(handle->Dense + start), handle->Count - start);
-        }
-
-        /// <summary>
-        ///     As span
-        /// </summary>
-        /// <param name="start">Start</param>
-        /// <param name="length">Length</param>
-        /// <returns>Span</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<KeyValuePair<int, T>> AsSpan(int start, int length)
-        {
-            var handle = _handle;
-            return MemoryMarshal.CreateSpan(ref *(KeyValuePair<int, T>*)(handle->Dense + start), length);
         }
 
         /// <summary>
