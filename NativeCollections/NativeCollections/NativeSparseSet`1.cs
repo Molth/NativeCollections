@@ -44,6 +44,11 @@ namespace NativeCollections
             ///     Count
             /// </summary>
             public int Count;
+
+            /// <summary>
+            ///     Version
+            /// </summary>
+            public int Version;
         }
 
         /// <summary>
@@ -68,6 +73,7 @@ namespace NativeCollections
             MemoryMarshal.CreateSpan(ref *handle->Sparse, capacity).Fill(-1);
             handle->Length = capacity;
             handle->Count = 0;
+            handle->Version = 0;
             _handle = handle;
         }
 
@@ -171,6 +177,7 @@ namespace NativeCollections
             var handle = _handle;
             MemoryMarshal.CreateSpan(ref *handle->Sparse, handle->Length).Fill(-1);
             handle->Count = 0;
+            ++handle->Version;
         }
 
         /// <summary>
@@ -195,6 +202,7 @@ namespace NativeCollections
             entry.Value = value;
             handle->Sparse[key] = count;
             ++count;
+            ++handle->Version;
             return true;
         }
 
@@ -220,6 +228,7 @@ namespace NativeCollections
             if (index != -1)
             {
                 handle->Dense[index].Value = value;
+                ++handle->Version;
                 return false;
             }
 
@@ -229,6 +238,7 @@ namespace NativeCollections
             entry.Value = value;
             handle->Sparse[key] = count;
             ++count;
+            ++handle->Version;
             return true;
         }
 
@@ -254,6 +264,7 @@ namespace NativeCollections
             if (index != handle->Count)
                 entry.Value = lastEntry.Value;
             handle->Sparse[lastEntry.Key] = -1;
+            ++handle->Version;
             return true;
         }
 
@@ -285,6 +296,7 @@ namespace NativeCollections
             if (index != handle->Count)
                 entry.Value = lastEntry.Value;
             handle->Sparse[lastEntry.Key] = -1;
+            ++handle->Version;
             return true;
         }
 
@@ -386,6 +398,11 @@ namespace NativeCollections
             private readonly NativeSparseSet<T> _nativeSparseSet;
 
             /// <summary>
+            ///     Version
+            /// </summary>
+            private readonly int _version;
+
+            /// <summary>
             ///     Index
             /// </summary>
             private int _index;
@@ -398,6 +415,7 @@ namespace NativeCollections
             internal Enumerator(NativeSparseSet<T> nativeSparseSet)
             {
                 _nativeSparseSet = nativeSparseSet;
+                _version = nativeSparseSet._handle->Version;
                 _index = -1;
             }
 
@@ -408,8 +426,11 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext()
             {
+                var handle = _nativeSparseSet._handle;
+                if (_version != handle->Version)
+                    throw new InvalidOperationException("EnumFailedVersion");
                 var num = _index + 1;
-                if (num >= _nativeSparseSet.Count)
+                if (num >= handle->Count)
                     return false;
                 _index = num;
                 return true;
@@ -418,10 +439,10 @@ namespace NativeCollections
             /// <summary>
             ///     Current
             /// </summary>
-            public T Current
+            public ref T Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => _nativeSparseSet._handle->Dense[_index].Value;
+                get => ref _nativeSparseSet._handle->Dense[_index].Value;
             }
         }
     }
