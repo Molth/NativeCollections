@@ -276,8 +276,12 @@ namespace NativeCollections
             --handle->Count;
             ref var lastEntry = ref handle->Dense[handle->Count];
             if (index != handle->Count)
-                entry.Value = lastEntry.Value;
-            handle->Sparse[lastEntry.Key] = -1;
+            {
+                entry = lastEntry;
+                handle->Sparse[lastEntry.Key] = index;
+            }
+
+            handle->Sparse[key] = -1;
             ++handle->Version;
             return true;
         }
@@ -308,8 +312,12 @@ namespace NativeCollections
             --handle->Count;
             ref var lastEntry = ref handle->Dense[handle->Count];
             if (index != handle->Count)
-                entry.Value = lastEntry.Value;
-            handle->Sparse[lastEntry.Key] = -1;
+            {
+                entry = lastEntry;
+                handle->Sparse[lastEntry.Key] = index;
+            }
+
+            handle->Sparse[key] = -1;
             ++handle->Version;
             return true;
         }
