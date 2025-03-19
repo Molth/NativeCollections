@@ -157,6 +157,20 @@ namespace NativeCollections
         public static bool operator !=(NativeSparseSet<T> left, NativeSparseSet<T> right) => left._handle != right._handle;
 
         /// <summary>
+        ///     As span
+        /// </summary>
+        /// <returns>Span</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator Span<KeyValuePair<int, T>>(NativeSparseSet<T> nativeSparseSet) => nativeSparseSet.AsSpan();
+
+        /// <summary>
+        ///     As readOnly span
+        /// </summary>
+        /// <returns>ReadOnlySpan</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator ReadOnlySpan<KeyValuePair<int, T>>(NativeSparseSet<T> nativeSparseSet) => nativeSparseSet.AsReadOnlySpan();
+
+        /// <summary>
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -326,6 +340,10 @@ namespace NativeCollections
         public bool TryGetValue(int key, out T value)
         {
             var handle = _handle;
+            if (key < 0)
+                throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
+            if (key > handle->Length)
+                throw new ArgumentOutOfRangeException(nameof(key), key, "IndexMustBeLessOrEqual");
             var index = handle->Sparse[key];
             if (index != -1)
             {
@@ -347,6 +365,10 @@ namespace NativeCollections
         public bool TryGetValueReference(int key, out NativeReference<T> value)
         {
             var handle = _handle;
+            if (key < 0)
+                throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
+            if (key > handle->Length)
+                throw new ArgumentOutOfRangeException(nameof(key), key, "IndexMustBeLessOrEqual");
             var index = handle->Sparse[key];
             if (index != -1)
             {
@@ -357,6 +379,110 @@ namespace NativeCollections
 
             value = default;
             return false;
+        }
+
+        /// <summary>
+        ///     Get at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <returns>KeyValuePair</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public KeyValuePair<int, T> GetAt(int index)
+        {
+            var handle = _handle;
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
+            if (index >= handle->Count)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
+            return *(KeyValuePair<int, T>*)&handle->Dense[index];
+        }
+
+        /// <summary>
+        ///     Set at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="value">Value</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetAt(int index, in T value)
+        {
+            var handle = _handle;
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
+            if (index >= handle->Count)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
+            handle->Dense[index].Value = value;
+        }
+
+        /// <summary>
+        ///     As span
+        /// </summary>
+        /// <returns>Span</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Span<KeyValuePair<int, T>> AsSpan()
+        {
+            var handle = _handle;
+            return MemoryMarshal.CreateSpan(ref *(KeyValuePair<int, T>*)handle->Dense, handle->Count);
+        }
+
+        /// <summary>
+        ///     As span
+        /// </summary>
+        /// <param name="start">Start</param>
+        /// <returns>Span</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Span<KeyValuePair<int, T>> AsSpan(int start)
+        {
+            var handle = _handle;
+            return MemoryMarshal.CreateSpan(ref *(KeyValuePair<int, T>*)(handle->Dense + start), handle->Count - start);
+        }
+
+        /// <summary>
+        ///     As span
+        /// </summary>
+        /// <param name="start">Start</param>
+        /// <param name="length">Length</param>
+        /// <returns>Span</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Span<KeyValuePair<int, T>> AsSpan(int start, int length)
+        {
+            var handle = _handle;
+            return MemoryMarshal.CreateSpan(ref *(KeyValuePair<int, T>*)(handle->Dense + start), length);
+        }
+
+        /// <summary>
+        ///     As readOnly span
+        /// </summary>
+        /// <returns>ReadOnlySpan</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan()
+        {
+            var handle = _handle;
+            return MemoryMarshal.CreateReadOnlySpan(ref *(KeyValuePair<int, T>*)handle->Dense, handle->Count);
+        }
+
+        /// <summary>
+        ///     As readOnly span
+        /// </summary>
+        /// <param name="start">Start</param>
+        /// <returns>ReadOnlySpan</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan(int start)
+        {
+            var handle = _handle;
+            return MemoryMarshal.CreateReadOnlySpan(ref *(KeyValuePair<int, T>*)(handle->Dense + start), handle->Count - start);
+        }
+
+        /// <summary>
+        ///     As readOnly span
+        /// </summary>
+        /// <param name="start">Start</param>
+        /// <param name="length">Length</param>
+        /// <returns>ReadOnlySpan</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan(int start, int length)
+        {
+            var handle = _handle;
+            return MemoryMarshal.CreateReadOnlySpan(ref *(KeyValuePair<int, T>*)(handle->Dense + start), length);
         }
 
         /// <summary>
@@ -442,11 +568,7 @@ namespace NativeCollections
             public KeyValuePair<int, T> Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get
-                {
-                    ref var entry = ref _nativeSparseSet._handle->Dense[_index];
-                    return new KeyValuePair<int, T>(entry.Key, entry.Value);
-                }
+                get => *(KeyValuePair<int, T>*)(&_nativeSparseSet._handle->Dense[_index]);
             }
         }
     }
