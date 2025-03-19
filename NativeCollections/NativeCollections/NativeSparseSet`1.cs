@@ -272,12 +272,11 @@ namespace NativeCollections
             var index = handle->Sparse[key];
             if (index == -1)
                 return false;
-            ref var entry = ref handle->Dense[index];
             --handle->Count;
             if (index != handle->Count)
             {
                 ref var lastEntry = ref handle->Dense[handle->Count];
-                entry = lastEntry;
+                handle->Dense[index] = lastEntry;
                 handle->Sparse[lastEntry.Key] = index;
             }
 
