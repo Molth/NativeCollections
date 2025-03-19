@@ -428,6 +428,24 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Swap remove
+        /// </summary>
+        /// <param name="item">Item</param>
+        /// <returns>Removed</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool SwapRemove(in T item)
+        {
+            var index = IndexOf(item);
+            if (index >= 0)
+            {
+                SwapRemoveAt(index);
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         ///     Remove at
         /// </summary>
         /// <param name="index">Index</param>
@@ -440,6 +458,22 @@ namespace NativeCollections
             handle->Size--;
             if (index < handle->Size)
                 Unsafe.CopyBlockUnaligned(handle->Array + index, handle->Array + (index + 1), (uint)((handle->Size - index) * sizeof(T)));
+            handle->Version++;
+        }
+
+        /// <summary>
+        ///     Swap remove at
+        /// </summary>
+        /// <param name="index">Index</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SwapRemoveAt(int index)
+        {
+            var handle = _handle;
+            if ((uint)index >= (uint)handle->Size)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
+            handle->Size--;
+            if (index != handle->Size)
+                handle->Array[index] = handle->Array[handle->Size];
             handle->Version++;
         }
 
