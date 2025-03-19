@@ -11,6 +11,7 @@ namespace NativeCollections
 {
     /// <summary>
     ///     Native dynamic (Two-Level Segregated Fit) memory pool
+    ///     https://github.com/mattconte/tlsf
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection]
