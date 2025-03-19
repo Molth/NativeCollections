@@ -274,9 +274,9 @@ namespace NativeCollections
                 return false;
             ref var entry = ref handle->Dense[index];
             --handle->Count;
-            ref var lastEntry = ref handle->Dense[handle->Count];
             if (index != handle->Count)
             {
+                ref var lastEntry = ref handle->Dense[handle->Count];
                 entry = lastEntry;
                 handle->Sparse[lastEntry.Key] = index;
             }
@@ -310,9 +310,9 @@ namespace NativeCollections
             ref var entry = ref handle->Dense[index];
             value = entry.Value;
             --handle->Count;
-            ref var lastEntry = ref handle->Dense[handle->Count];
             if (index != handle->Count)
             {
+                ref var lastEntry = ref handle->Dense[handle->Count];
                 entry = lastEntry;
                 handle->Sparse[lastEntry.Key] = index;
             }
