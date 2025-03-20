@@ -411,6 +411,61 @@ namespace NativeCollections
             if (index >= handle->Count)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
             handle->Dense[index].Value = value;
+            ++handle->Version;
+        }
+
+        /// <summary>
+        ///     Remove at
+        /// </summary>
+        /// <param name="index">Index</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void RemoveAt(int index)
+        {
+            var handle = _handle;
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
+            if (index >= handle->Count)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
+            ref var entry = ref handle->Dense[index];
+            var key = entry.Key;
+            --handle->Count;
+            if (index != handle->Count)
+            {
+                ref var lastEntry = ref handle->Dense[handle->Count];
+                entry = lastEntry;
+                handle->Sparse[lastEntry.Key] = index;
+            }
+
+            handle->Sparse[key] = -1;
+            ++handle->Version;
+        }
+
+        /// <summary>
+        ///     Remove at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="value">Value</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void RemoveAt(int index, out T value)
+        {
+            var handle = _handle;
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
+            if (index >= handle->Count)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
+            ref var entry = ref handle->Dense[index];
+            var key = entry.Key;
+            value = entry.Value;
+            --handle->Count;
+            if (index != handle->Count)
+            {
+                ref var lastEntry = ref handle->Dense[handle->Count];
+                entry = lastEntry;
+                handle->Sparse[lastEntry.Key] = index;
+            }
+
+            handle->Sparse[key] = -1;
+            ++handle->Version;
         }
 
         /// <summary>
