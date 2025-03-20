@@ -477,9 +477,9 @@ namespace NativeCollections
         ///     Remove at
         /// </summary>
         /// <param name="index">Index</param>
-        /// <param name="value">Value</param>
+        /// <param name="keyValuePair">KeyValuePair</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void RemoveAt(int index, out T value)
+        public void RemoveAt(int index, out KeyValuePair<int, T> keyValuePair)
         {
             var handle = _handle;
             if (index < 0)
@@ -488,7 +488,7 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
             ref var entry = ref handle->Dense[index];
             var key = entry.Key;
-            value = entry.Value;
+            keyValuePair = *(KeyValuePair<int, T>*)Unsafe.AsPointer(ref entry);
             --handle->Count;
             if (index != handle->Count)
             {
