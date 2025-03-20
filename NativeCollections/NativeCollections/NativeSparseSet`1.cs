@@ -382,6 +382,22 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Index of
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <returns>Index</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int IndexOf(int key)
+        {
+            var handle = _handle;
+            if (key < 0)
+                throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
+            if (key > handle->Length)
+                throw new ArgumentOutOfRangeException(nameof(key), key, "IndexMustBeLessOrEqual");
+            return handle->Sparse[key];
+        }
+
+        /// <summary>
         ///     Get at
         /// </summary>
         /// <param name="index">Index</param>
@@ -395,6 +411,23 @@ namespace NativeCollections
             if (index >= handle->Count)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
             return *(KeyValuePair<int, T>*)&handle->Dense[index];
+        }
+
+        /// <summary>
+        ///     Get at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <returns>KeyValuePair</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public KeyValuePair<int, NativeReference<T>> GetReferenceAt(int index)
+        {
+            var handle = _handle;
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
+            if (index >= handle->Count)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
+            ref var entry = ref handle->Dense[index];
+            return new KeyValuePair<int, NativeReference<T>>(entry.Key, new NativeReference<T>(Unsafe.AsPointer(ref entry.Value)));
         }
 
         /// <summary>
