@@ -653,6 +653,11 @@ namespace NativeCollections
             internal KeyCollection(NativeSparseSet<T> nativeSparseSet) => _nativeSparseSet = nativeSparseSet;
 
             /// <summary>
+            ///     Count
+            /// </summary>
+            public int Count => _nativeSparseSet.Count;
+
+            /// <summary>
             ///     Get key
             /// </summary>
             /// <param name="index">Index</param>
@@ -753,6 +758,11 @@ namespace NativeCollections
             /// <param name="nativeSparseSet">NativeSparseSet</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal ValueCollection(NativeSparseSet<T> nativeSparseSet) => _nativeSparseSet = nativeSparseSet;
+
+            /// <summary>
+            ///     Count
+            /// </summary>
+            public int Count => _nativeSparseSet.Count;
 
             /// <summary>
             ///     Get reference
