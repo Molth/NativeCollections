@@ -593,7 +593,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeHashSet">NativeHashSet</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(in NativeHashSet<T> nativeHashSet)
+            internal Enumerator(NativeHashSet<T> nativeHashSet)
             {
                 _nativeHashSet = nativeHashSet;
                 _version = nativeHashSet._handle->Version;

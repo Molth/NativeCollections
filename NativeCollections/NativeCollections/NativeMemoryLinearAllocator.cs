@@ -14,7 +14,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection]
-    public unsafe ref struct NativeMemoryLinearAllocator
+    public unsafe struct NativeMemoryLinearAllocator
     {
         /// <summary>
         ///     Array

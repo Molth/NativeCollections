@@ -467,7 +467,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeDeque">NativeDeque</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(in NativeDeque<T> nativeDeque)
+            internal Enumerator(NativeDeque<T> nativeDeque)
             {
                 _nativeDeque = nativeDeque;
                 _version = nativeDeque._handle->Version;

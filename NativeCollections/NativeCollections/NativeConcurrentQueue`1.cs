@@ -489,7 +489,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Initialize()
         {
-            NativeConcurrentQueueSegmentSlot<T>* slots = Slots;
+            var slots = (NativeConcurrentQueueSegmentSlot<T>*)Unsafe.AsPointer(ref Slots);
             for (var i = 0; i < NativeConcurrentQueue.LENGTH; ++i)
                 slots[i].SequenceNumber = i;
             HeadAndTail = new NativeConcurrentQueuePaddedHeadAndTailNotArm64();
@@ -518,7 +518,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDequeue(out T result)
         {
-            NativeConcurrentQueueSegmentSlot<T>* slots = Slots;
+            var slots = (NativeConcurrentQueueSegmentSlot<T>*)Unsafe.AsPointer(ref Slots);
             var spinWait = new NativeSpinWait();
             while (true)
             {
@@ -557,7 +557,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryPeek()
         {
-            NativeConcurrentQueueSegmentSlot<T>* slots = Slots;
+            var slots = (NativeConcurrentQueueSegmentSlot<T>*)Unsafe.AsPointer(ref Slots);
             var spinWait = new NativeSpinWait();
             while (true)
             {
@@ -586,7 +586,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryEnqueue(in T item)
         {
-            NativeConcurrentQueueSegmentSlot<T>* slots = Slots;
+            var slots = (NativeConcurrentQueueSegmentSlot<T>*)Unsafe.AsPointer(ref Slots);
             while (true)
             {
                 var currentTail = Volatile.Read(ref HeadAndTail.Tail);
@@ -936,7 +936,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Initialize()
         {
-            NativeConcurrentQueueSegmentSlot<T>* slots = Slots;
+            var slots = (NativeConcurrentQueueSegmentSlot<T>*)Unsafe.AsPointer(ref Slots);
             for (var i = 0; i < NativeConcurrentQueue.LENGTH; ++i)
                 slots[i].SequenceNumber = i;
             HeadAndTail = new NativeConcurrentQueuePaddedHeadAndTailArm64();
@@ -965,7 +965,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDequeue(out T result)
         {
-            NativeConcurrentQueueSegmentSlot<T>* slots = Slots;
+            var slots = (NativeConcurrentQueueSegmentSlot<T>*)Unsafe.AsPointer(ref Slots);
             var spinWait = new NativeSpinWait();
             while (true)
             {
@@ -1004,7 +1004,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryPeek()
         {
-            NativeConcurrentQueueSegmentSlot<T>* slots = Slots;
+            var slots = (NativeConcurrentQueueSegmentSlot<T>*)Unsafe.AsPointer(ref Slots);
             var spinWait = new NativeSpinWait();
             while (true)
             {
@@ -1033,7 +1033,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryEnqueue(in T item)
         {
-            NativeConcurrentQueueSegmentSlot<T>* slots = Slots;
+            var slots = (NativeConcurrentQueueSegmentSlot<T>*)Unsafe.AsPointer(ref Slots);
             while (true)
             {
                 var currentTail = Volatile.Read(ref HeadAndTail.Tail);
@@ -1105,7 +1105,7 @@ namespace NativeCollections
     ///     Slots
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal unsafe struct NativeConcurrentQueueSegmentSlots<T> where T : unmanaged
+    internal struct NativeConcurrentQueueSegmentSlots<T> where T : unmanaged
     {
         private NativeConcurrentQueueSegmentSlot<T> _slot0;
         private NativeConcurrentQueueSegmentSlot<T> _slot1;
@@ -2131,9 +2131,6 @@ namespace NativeCollections
         private NativeConcurrentQueueSegmentSlot<T> _slot1021;
         private NativeConcurrentQueueSegmentSlot<T> _slot1022;
         private NativeConcurrentQueueSegmentSlot<T> _slot1023;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeConcurrentQueueSegmentSlot<T>*(in NativeConcurrentQueueSegmentSlots<T> slots) => (NativeConcurrentQueueSegmentSlot<T>*)Unsafe.AsPointer(ref Unsafe.AsRef(in slots));
     }
 
     /// <summary>

@@ -776,7 +776,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeOrderedDictionary">NativeOrderedHashSet</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(in NativeOrderedHashSet<T> nativeOrderedDictionary)
+            internal Enumerator(NativeOrderedHashSet<T> nativeOrderedDictionary)
             {
                 _nativeOrderedDictionary = nativeOrderedDictionary;
                 _version = nativeOrderedDictionary._handle->Version;

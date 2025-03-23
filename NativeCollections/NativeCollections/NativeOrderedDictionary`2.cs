@@ -875,7 +875,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeOrderedDictionary">NativeOrderedDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(in NativeOrderedDictionary<TKey, TValue> nativeOrderedDictionary)
+            internal Enumerator(NativeOrderedDictionary<TKey, TValue> nativeOrderedDictionary)
             {
                 _nativeOrderedDictionary = nativeOrderedDictionary;
                 _version = nativeOrderedDictionary._handle->Version;
@@ -931,7 +931,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeOrderedDictionary">NativeOrderedDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal KeyCollection(in NativeOrderedDictionary<TKey, TValue> nativeOrderedDictionary) => _nativeOrderedDictionary = nativeOrderedDictionary;
+            internal KeyCollection(NativeOrderedDictionary<TKey, TValue> nativeOrderedDictionary) => _nativeOrderedDictionary = nativeOrderedDictionary;
 
             /// <summary>
             ///     Get enumerator
@@ -969,7 +969,7 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativeOrderedDictionary">NativeOrderedDictionary</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(in NativeOrderedDictionary<TKey, TValue> nativeOrderedDictionary)
+                internal Enumerator(NativeOrderedDictionary<TKey, TValue> nativeOrderedDictionary)
                 {
                     _nativeOrderedDictionary = nativeOrderedDictionary;
                     _version = nativeOrderedDictionary._handle->Version;
@@ -1026,7 +1026,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeOrderedDictionary">NativeOrderedDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal ValueCollection(in NativeOrderedDictionary<TKey, TValue> nativeOrderedDictionary) => _nativeOrderedDictionary = nativeOrderedDictionary;
+            internal ValueCollection(NativeOrderedDictionary<TKey, TValue> nativeOrderedDictionary) => _nativeOrderedDictionary = nativeOrderedDictionary;
 
             /// <summary>
             ///     Get enumerator
@@ -1064,7 +1064,7 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativeOrderedDictionary">NativeOrderedDictionary</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(in NativeOrderedDictionary<TKey, TValue> nativeOrderedDictionary)
+                internal Enumerator(NativeOrderedDictionary<TKey, TValue> nativeOrderedDictionary)
                 {
                     _nativeOrderedDictionary = nativeOrderedDictionary;
                     _version = nativeOrderedDictionary._handle->Version;

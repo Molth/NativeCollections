@@ -279,7 +279,7 @@ namespace NativeCollections
         /// <summary>
         ///     Enumerator
         /// </summary>
-        public ref struct Enumerator
+        public struct Enumerator
         {
             /// <summary>
             ///     NativeMemoryArray

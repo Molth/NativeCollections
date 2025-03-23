@@ -175,7 +175,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="nativeArray">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Return(in NativeArray<T> nativeArray)
+        public void Return(NativeArray<T> nativeArray)
         {
             var length = nativeArray.Length;
             if (length < 16 || (length & (length - 1)) != 0)
@@ -192,7 +192,7 @@ namespace NativeCollections
         /// <param name="nativeArray">Buffer</param>
         /// <returns>Returned</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryReturn(in NativeArray<T> nativeArray)
+        public bool TryReturn(NativeArray<T> nativeArray)
         {
             var length = nativeArray.Length;
             if (length < 16 || (length & (length - 1)) != 0)

@@ -340,7 +340,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="collection">Collection</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddRange(in NativeList<T> collection)
+        public void AddRange(NativeList<T> collection)
         {
             var handle = _handle;
             var other = collection._handle;
@@ -381,7 +381,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <param name="collection">Collection</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void InsertRange(int index, in NativeList<T> collection)
+        public void InsertRange(int index, NativeList<T> collection)
         {
             var handle = _handle;
             if ((uint)index > (uint)handle->Size)
@@ -742,7 +742,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeList">NativeList</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(in NativeList<T> nativeList)
+            internal Enumerator(NativeList<T> nativeList)
             {
                 _nativeList = nativeList;
                 _index = 0;

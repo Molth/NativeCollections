@@ -715,7 +715,7 @@ namespace NativeCollections
             /// <param name="locks">Locks</param>
             /// <param name="countPerLock">Count per lock</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void Initialize(in NativeArray<VolatileNode> buckets, in NativeArrayReference<object> locks, in NativeArray<int> countPerLock)
+            public void Initialize(NativeArray<VolatileNode> buckets, NativeArrayReference<object> locks, NativeArray<int> countPerLock)
             {
                 Buckets = buckets;
                 Locks = locks;

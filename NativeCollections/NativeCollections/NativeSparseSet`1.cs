@@ -57,6 +57,16 @@ namespace NativeCollections
         private readonly NativeSparseSetHandle* _handle;
 
         /// <summary>
+        ///     Keys
+        /// </summary>
+        public KeyCollection Keys => new(this);
+
+        /// <summary>
+        ///     Values
+        /// </summary>
+        public ValueCollection Values => new(this);
+
+        /// <summary>
         ///     Structure
         /// </summary>
         /// <param name="capacity">Capacity</param>
@@ -568,7 +578,7 @@ namespace NativeCollections
         /// <summary>
         ///     Enumerator
         /// </summary>
-        public ref struct Enumerator
+        public struct Enumerator
         {
             /// <summary>
             ///     NativeSparseSet
@@ -621,6 +631,210 @@ namespace NativeCollections
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => *(KeyValuePair<int, T>*)(&_nativeSparseSet._handle->Dense[_index]);
+            }
+        }
+
+        /// <summary>
+        ///     Key collection
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
+        public readonly struct KeyCollection
+        {
+            /// <summary>
+            ///     NativeSparseSet
+            /// </summary>
+            private readonly NativeSparseSet<T> _nativeSparseSet;
+
+            /// <summary>
+            ///     Structure
+            /// </summary>
+            /// <param name="nativeSparseSet">NativeSparseSet</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            internal KeyCollection(NativeSparseSet<T> nativeSparseSet) => _nativeSparseSet = nativeSparseSet;
+
+            /// <summary>
+            ///     Get key
+            /// </summary>
+            /// <param name="index">Index</param>
+            public int this[int index]
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get
+                {
+                    var handle = _nativeSparseSet._handle;
+                    if (index < 0)
+                        throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
+                    if (index >= handle->Count)
+                        throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
+                    return handle->Dense[index].Key;
+                }
+            }
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            /// <returns>Enumerator</returns>
+            public Enumerator GetEnumerator() => new(_nativeSparseSet);
+
+            /// <summary>
+            ///     Enumerator
+            /// </summary>
+            public struct Enumerator
+            {
+                /// <summary>
+                ///     NativeSparseSet
+                /// </summary>
+                private readonly NativeSparseSet<T> _nativeSparseSet;
+
+                /// <summary>
+                ///     Version
+                /// </summary>
+                private readonly int _version;
+
+                /// <summary>
+                ///     Index
+                /// </summary>
+                private int _index;
+
+                /// <summary>
+                ///     Structure
+                /// </summary>
+                /// <param name="nativeSparseSet">NativeSparseSet</param>
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                internal Enumerator(NativeSparseSet<T> nativeSparseSet)
+                {
+                    _nativeSparseSet = nativeSparseSet;
+                    _version = nativeSparseSet._handle->Version;
+                    _index = -1;
+                }
+
+                /// <summary>
+                ///     Move next
+                /// </summary>
+                /// <returns>Moved</returns>
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public bool MoveNext()
+                {
+                    var handle = _nativeSparseSet._handle;
+                    if (_version != handle->Version)
+                        throw new InvalidOperationException("EnumFailedVersion");
+                    var num = _index + 1;
+                    if (num >= handle->Count)
+                        return false;
+                    _index = num;
+                    return true;
+                }
+
+                /// <summary>
+                ///     Current
+                /// </summary>
+                public int Current
+                {
+                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                    get => _nativeSparseSet._handle->Dense[_index].Key;
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Value collection
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
+        public readonly struct ValueCollection
+        {
+            /// <summary>
+            ///     NativeSparseSet
+            /// </summary>
+            private readonly NativeSparseSet<T> _nativeSparseSet;
+
+            /// <summary>
+            ///     Structure
+            /// </summary>
+            /// <param name="nativeSparseSet">NativeSparseSet</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            internal ValueCollection(NativeSparseSet<T> nativeSparseSet) => _nativeSparseSet = nativeSparseSet;
+
+            /// <summary>
+            ///     Get reference
+            /// </summary>
+            /// <param name="index">Index</param>
+            public ref T this[int index]
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get
+                {
+                    var handle = _nativeSparseSet._handle;
+                    if (index < 0)
+                        throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
+                    if (index >= handle->Count)
+                        throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
+                    return ref handle->Dense[index].Value;
+                }
+            }
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            /// <returns>Enumerator</returns>
+            public Enumerator GetEnumerator() => new(_nativeSparseSet);
+
+            /// <summary>
+            ///     Enumerator
+            /// </summary>
+            public struct Enumerator
+            {
+                /// <summary>
+                ///     NativeSparseSet
+                /// </summary>
+                private readonly NativeSparseSet<T> _nativeSparseSet;
+
+                /// <summary>
+                ///     Version
+                /// </summary>
+                private readonly int _version;
+
+                /// <summary>
+                ///     Index
+                /// </summary>
+                private int _index;
+
+                /// <summary>
+                ///     Structure
+                /// </summary>
+                /// <param name="nativeSparseSet">NativeSparseSet</param>
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                internal Enumerator(NativeSparseSet<T> nativeSparseSet)
+                {
+                    _nativeSparseSet = nativeSparseSet;
+                    _version = nativeSparseSet._handle->Version;
+                    _index = -1;
+                }
+
+                /// <summary>
+                ///     Move next
+                /// </summary>
+                /// <returns>Moved</returns>
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public bool MoveNext()
+                {
+                    var handle = _nativeSparseSet._handle;
+                    if (_version != handle->Version)
+                        throw new InvalidOperationException("EnumFailedVersion");
+                    var num = _index + 1;
+                    if (num >= handle->Count)
+                        return false;
+                    _index = num;
+                    return true;
+                }
+
+                /// <summary>
+                ///     Current
+                /// </summary>
+                public T Current
+                {
+                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                    get => _nativeSparseSet._handle->Dense[_index].Value;
+                }
             }
         }
     }

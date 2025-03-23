@@ -390,7 +390,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeStack">NativeStack</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(in NativeStack<T> nativeStack)
+            internal Enumerator(NativeStack<T> nativeStack)
             {
                 _nativeStack = nativeStack;
                 _version = nativeStack._handle->Version;

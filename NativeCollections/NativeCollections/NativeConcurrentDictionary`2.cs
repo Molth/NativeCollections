@@ -999,7 +999,7 @@ namespace NativeCollections
             /// <param name="locks">Locks</param>
             /// <param name="countPerLock">Count per lock</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void Initialize(in NativeArray<VolatileNode> buckets, in NativeArrayReference<object> locks, in NativeArray<int> countPerLock)
+            public void Initialize(NativeArray<VolatileNode> buckets, NativeArrayReference<object> locks, NativeArray<int> countPerLock)
             {
                 Buckets = buckets;
                 Locks = locks;
@@ -1166,7 +1166,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeConcurrentDictionary">NativeConcurrentDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal KeyCollection(in NativeConcurrentDictionary<TKey, TValue> nativeConcurrentDictionary) => _nativeConcurrentDictionary = nativeConcurrentDictionary;
+            internal KeyCollection(NativeConcurrentDictionary<TKey, TValue> nativeConcurrentDictionary) => _nativeConcurrentDictionary = nativeConcurrentDictionary;
 
             /// <summary>
             ///     Get enumerator
@@ -1311,7 +1311,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeConcurrentDictionary">NativeConcurrentDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal ValueCollection(in NativeConcurrentDictionary<TKey, TValue> nativeConcurrentDictionary) => _nativeConcurrentDictionary = nativeConcurrentDictionary;
+            internal ValueCollection(NativeConcurrentDictionary<TKey, TValue> nativeConcurrentDictionary) => _nativeConcurrentDictionary = nativeConcurrentDictionary;
 
             /// <summary>
             ///     Get enumerator

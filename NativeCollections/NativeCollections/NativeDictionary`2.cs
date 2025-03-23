@@ -770,7 +770,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeDictionary">NativeDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(in NativeDictionary<TKey, TValue> nativeDictionary)
+            internal Enumerator(NativeDictionary<TKey, TValue> nativeDictionary)
             {
                 _nativeDictionary = nativeDictionary;
                 _version = nativeDictionary._handle->Version;
@@ -829,7 +829,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeDictionary">NativeDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal KeyCollection(in NativeDictionary<TKey, TValue> nativeDictionary) => _nativeDictionary = nativeDictionary;
+            internal KeyCollection(NativeDictionary<TKey, TValue> nativeDictionary) => _nativeDictionary = nativeDictionary;
 
             /// <summary>
             ///     Get enumerator
@@ -867,7 +867,7 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativeDictionary">NativeDictionary</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(in NativeDictionary<TKey, TValue> nativeDictionary)
+                internal Enumerator(NativeDictionary<TKey, TValue> nativeDictionary)
                 {
                     _nativeDictionary = nativeDictionary;
                     _version = nativeDictionary._handle->Version;
@@ -927,7 +927,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeDictionary">NativeDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal ValueCollection(in NativeDictionary<TKey, TValue> nativeDictionary) => _nativeDictionary = nativeDictionary;
+            internal ValueCollection(NativeDictionary<TKey, TValue> nativeDictionary) => _nativeDictionary = nativeDictionary;
 
             /// <summary>
             ///     Get enumerator
@@ -965,7 +965,7 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativeDictionary">NativeDictionary</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(in NativeDictionary<TKey, TValue> nativeDictionary)
+                internal Enumerator(NativeDictionary<TKey, TValue> nativeDictionary)
                 {
                     _nativeDictionary = nativeDictionary;
                     _version = nativeDictionary._handle->Version;

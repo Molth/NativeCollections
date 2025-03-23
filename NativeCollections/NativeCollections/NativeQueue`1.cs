@@ -429,7 +429,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeQueue">NativeQueue</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(in NativeQueue<T> nativeQueue)
+            internal Enumerator(NativeQueue<T> nativeQueue)
             {
                 _nativeQueue = nativeQueue;
                 _version = nativeQueue._handle->Version;
