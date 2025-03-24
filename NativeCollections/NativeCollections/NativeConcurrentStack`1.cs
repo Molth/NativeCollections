@@ -206,7 +206,7 @@ namespace NativeCollections
         {
             var nodePool = new NativeMemoryPool(size, sizeof(Node), maxFreeSlabs);
             var handle = (NativeConcurrentStackHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeConcurrentStackHandle));
-            handle->Head = nint.Zero;
+            handle->Head = IntPtr.Zero;
             handle->NodePool = nodePool;
             NativeConcurrentSpinLock nodeLock = &handle->NodeLock;
             nodeLock.Reset();
@@ -221,7 +221,7 @@ namespace NativeCollections
         /// <summary>
         ///     IsEmpty
         /// </summary>
-        public bool IsEmpty => _handle->Head == nint.Zero;
+        public bool IsEmpty => _handle->Head == IntPtr.Zero;
 
         /// <summary>
         ///     Count

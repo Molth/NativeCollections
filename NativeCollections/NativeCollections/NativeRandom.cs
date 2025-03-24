@@ -195,7 +195,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int NextInt32()
         {
-            if (nint.Size == 8)
+            if (IntPtr.Size == 8)
             {
                 ulong num;
                 do
@@ -346,7 +346,7 @@ namespace NativeCollections
         /// <summary>Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.</summary>
         /// <returns>A single-precision floating point number that is greater than or equal to 0.0, and less than 1.0.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float NextSingle() => (nint.Size == 8 ? Next64() >> 40 : Next32() >> 8) * 5.9604645E-08f;
+        public static float NextSingle() => (IntPtr.Size == 8 ? Next64() >> 40 : Next32() >> 8) * 5.9604645E-08f;
 
         /// <summary>Fills the elements of a specified span of bytes with random numbers.</summary>
         /// <param name="buffer">The array to be filled with random numbers.</param>
@@ -362,6 +362,6 @@ namespace NativeCollections
         /// <summary>Returns a boolean.</summary>
         /// <returns>True, or false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool NextBoolean() => ((nint.Size == 8 ? Next64() : Next32()) & 1) == 0;
+        public static bool NextBoolean() => ((IntPtr.Size == 8 ? Next64() : Next32()) & 1) == 0;
     }
 }

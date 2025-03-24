@@ -160,7 +160,7 @@ namespace NativeCollections
                         }
                     }
 
-                    if (nint.Size == 8 && Vector128.IsHardwareAccelerated)
+                    if (IntPtr.Size == 8 && Vector128.IsHardwareAccelerated)
                     {
                         var offset = length - (nuint)sizeof(nuint);
                         var differentBits = Unsafe.ReadUnaligned<nuint>(ref first) - Unsafe.ReadUnaligned<nuint>(ref second);
@@ -196,7 +196,7 @@ namespace NativeCollections
                 return true;
             }
 
-            if (length < sizeof(uint) || nint.Size != 8)
+            if (length < sizeof(uint) || IntPtr.Size != 8)
             {
                 uint differentBits = 0;
                 var offset = length & 2;

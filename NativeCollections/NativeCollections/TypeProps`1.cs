@@ -43,7 +43,7 @@ namespace NativeCollections
                 case TypeCode.Double:
                 case TypeCode.Int64:
                 case TypeCode.UInt64:
-                    return nint.Size == 8;
+                    return IntPtr.Size == 8;
                 default:
                     return false;
             }

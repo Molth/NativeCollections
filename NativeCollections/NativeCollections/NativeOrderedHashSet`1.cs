@@ -87,7 +87,7 @@ namespace NativeCollections
                 Entries = (Entry*)NativeMemoryAllocator.AllocZeroed((uint)(size * sizeof(Entry)));
                 BucketsLength = size;
                 EntriesLength = size;
-                FastModMultiplier = nint.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)size) : 0;
+                FastModMultiplier = IntPtr.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)size) : 0;
             }
 
             /// <summary>
@@ -501,7 +501,7 @@ namespace NativeCollections
             {
                 var buckets = (int*)NativeMemoryAllocator.AllocZeroed((uint)(newSize * sizeof(int)));
                 var entries = (Entry*)NativeMemoryAllocator.AllocZeroed((uint)(newSize * sizeof(Entry)));
-                FastModMultiplier = nint.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)newSize) : 0;
+                FastModMultiplier = IntPtr.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)newSize) : 0;
                 var count = Count;
                 Unsafe.CopyBlockUnaligned(entries, Entries, (uint)(count * sizeof(Entry)));
                 NativeMemoryAllocator.Free(Buckets);
@@ -597,7 +597,7 @@ namespace NativeCollections
             private ref int GetBucket(uint hashCode)
             {
                 var buckets = Buckets;
-                return ref nint.Size == 8 ? ref buckets[(int)HashHelpers.FastMod(hashCode, (uint)BucketsLength, FastModMultiplier)] : ref buckets[hashCode % BucketsLength];
+                return ref IntPtr.Size == 8 ? ref buckets[(int)HashHelpers.FastMod(hashCode, (uint)BucketsLength, FastModMultiplier)] : ref buckets[hashCode % BucketsLength];
             }
         }
 
