@@ -16,7 +16,7 @@ namespace NativeCollections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection]
+    [NativeCollection(NativeCollectionType.Community|NativeCollectionType.Rust)]
     public readonly unsafe struct NativeSparseSet<T> : IDisposable, IEquatable<NativeSparseSet<T>> where T : unmanaged
     {
         /// <summary>
@@ -49,6 +49,359 @@ namespace NativeCollections
             ///     Version
             /// </summary>
             public int Version;
+
+            /// <summary>
+            ///     Get or set value
+            /// </summary>
+            /// <param name="key">Key</param>
+            public T this[int key]
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get
+                {
+                    if (TryGetValue(key, out var obj))
+                        return obj;
+                    throw new KeyNotFoundException(key.ToString());
+                }
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                set => Insert(key, in value);
+            }
+
+            /// <summary>
+            ///     Clear
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Clear()
+            {
+                MemoryMarshal.CreateSpan(ref *Sparse, Length).Fill(-1);
+                Count = 0;
+                ++Version;
+            }
+
+            /// <summary>
+            ///     Add
+            /// </summary>
+            /// <param name="key">Key</param>
+            /// <param name="value">Value</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool Add(int key, in T value)
+            {
+                if (key < 0)
+                    throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
+                if (key > Length)
+                    throw new ArgumentOutOfRangeException(nameof(key), key, "IndexMustBeLessOrEqual");
+                var index = Sparse[key];
+                if (index != -1)
+                    return false;
+                ref var count = ref Count;
+                ref var entry = ref Dense[count];
+                entry.Key = key;
+                entry.Value = value;
+                Sparse[key] = count;
+                ++count;
+                ++Version;
+                return true;
+            }
+
+            /// <summary>
+            ///     Insert
+            /// </summary>
+            /// <param name="key">Key</param>
+            /// <param name="value">Value</param>
+            /// <returns>
+            ///     True if the key was newly added to the collection.
+            ///     False if an existing key's value was replaced.
+            ///     If the key was already set, the previous value is overridden.
+            /// </returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool Insert(int key, in T value)
+            {
+                if (key < 0)
+                    throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
+                if (key > Length)
+                    throw new ArgumentOutOfRangeException(nameof(key), key, "IndexMustBeLessOrEqual");
+                var index = Sparse[key];
+                if (index != -1)
+                {
+                    Dense[index].Value = value;
+                    ++Version;
+                    return false;
+                }
+
+                ref var count = ref Count;
+                ref var entry = ref Dense[count];
+                entry.Key = key;
+                entry.Value = value;
+                Sparse[key] = count;
+                ++count;
+                ++Version;
+                return true;
+            }
+
+            /// <summary>
+            ///     Remove
+            /// </summary>
+            /// <param name="key">Key</param>
+            /// <returns>Removed</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool Remove(int key)
+            {
+                if (key < 0)
+                    throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
+                if (key > Length)
+                    throw new ArgumentOutOfRangeException(nameof(key), key, "IndexMustBeLessOrEqual");
+                var index = Sparse[key];
+                if (index == -1)
+                    return false;
+                --Count;
+                if (index != Count)
+                {
+                    ref var lastEntry = ref Dense[Count];
+                    Dense[index] = lastEntry;
+                    Sparse[lastEntry.Key] = index;
+                }
+
+                Sparse[key] = -1;
+                ++Version;
+                return true;
+            }
+
+            /// <summary>
+            ///     Remove
+            /// </summary>
+            /// <param name="key">Key</param>
+            /// <param name="value">Value</param>
+            /// <returns>Removed</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool Remove(int key, out T value)
+            {
+                if (key < 0)
+                    throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
+                if (key > Length)
+                    throw new ArgumentOutOfRangeException(nameof(key), key, "IndexMustBeLessOrEqual");
+                var index = Sparse[key];
+                if (index == -1)
+                {
+                    value = default;
+                    return false;
+                }
+
+                ref var entry = ref Dense[index];
+                value = entry.Value;
+                --Count;
+                if (index != Count)
+                {
+                    ref var lastEntry = ref Dense[Count];
+                    entry = lastEntry;
+                    Sparse[lastEntry.Key] = index;
+                }
+
+                Sparse[key] = -1;
+                ++Version;
+                return true;
+            }
+
+            /// <summary>
+            ///     Contains key
+            /// </summary>
+            /// <param name="key">Key</param>
+            /// <returns>Contains key</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool ContainsKey(int key)
+            {
+                if (key < 0)
+                    throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
+                if (key > Length)
+                    throw new ArgumentOutOfRangeException(nameof(key), key, "IndexMustBeLessOrEqual");
+                return Sparse[key] != -1;
+            }
+
+            /// <summary>
+            ///     Try to get the value
+            /// </summary>
+            /// <param name="key">Key</param>
+            /// <param name="value">Value</param>
+            /// <returns>Got</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool TryGetValue(int key, out T value)
+            {
+                if (key < 0)
+                    throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
+                if (key > Length)
+                    throw new ArgumentOutOfRangeException(nameof(key), key, "IndexMustBeLessOrEqual");
+                var index = Sparse[key];
+                if (index != -1)
+                {
+                    value = Dense[index].Value;
+                    return true;
+                }
+
+                value = default;
+                return false;
+            }
+
+            /// <summary>
+            ///     Try to get the value
+            /// </summary>
+            /// <param name="key">Key</param>
+            /// <param name="value">Value</param>
+            /// <returns>Got</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool TryGetValueReference(int key, out NativeReference<T> value)
+            {
+                if (key < 0)
+                    throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
+                if (key > Length)
+                    throw new ArgumentOutOfRangeException(nameof(key), key, "IndexMustBeLessOrEqual");
+                var index = Sparse[key];
+                if (index != -1)
+                {
+                    ref var entry = ref Dense[index];
+                    value = new NativeReference<T>(Unsafe.AsPointer(ref entry.Value));
+                    return true;
+                }
+
+                value = default;
+                return false;
+            }
+
+            /// <summary>
+            ///     Index of
+            /// </summary>
+            /// <param name="key">Key</param>
+            /// <returns>Index</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int IndexOf(int key)
+            {
+                if (key < 0)
+                    throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
+                if (key > Length)
+                    throw new ArgumentOutOfRangeException(nameof(key), key, "IndexMustBeLessOrEqual");
+                return Sparse[key];
+            }
+
+            /// <summary>
+            ///     Get at
+            /// </summary>
+            /// <param name="index">Index</param>
+            /// <returns>KeyValuePair</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public KeyValuePair<int, T> GetAt(int index)
+            {
+                if (index < 0)
+                    throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
+                if (index >= Count)
+                    throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
+                return *(KeyValuePair<int, T>*)&Dense[index];
+            }
+
+            /// <summary>
+            ///     Get at
+            /// </summary>
+            /// <param name="index">Index</param>
+            /// <returns>KeyValuePair</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public KeyValuePair<int, NativeReference<T>> GetReferenceAt(int index)
+            {
+                if (index < 0)
+                    throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
+                if (index >= Count)
+                    throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
+                ref var entry = ref Dense[index];
+                return new KeyValuePair<int, NativeReference<T>>(entry.Key, new NativeReference<T>(Unsafe.AsPointer(ref entry.Value)));
+            }
+
+            /// <summary>
+            ///     Set at
+            /// </summary>
+            /// <param name="index">Index</param>
+            /// <param name="value">Value</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void SetAt(int index, in T value)
+            {
+                if (index < 0)
+                    throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
+                if (index >= Count)
+                    throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
+                Dense[index].Value = value;
+                ++Version;
+            }
+
+            /// <summary>
+            ///     Remove at
+            /// </summary>
+            /// <param name="index">Index</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void RemoveAt(int index)
+            {
+                if (index < 0)
+                    throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
+                if (index >= Count)
+                    throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
+                ref var entry = ref Dense[index];
+                var key = entry.Key;
+                --Count;
+                if (index != Count)
+                {
+                    ref var lastEntry = ref Dense[Count];
+                    entry = lastEntry;
+                    Sparse[lastEntry.Key] = index;
+                }
+
+                Sparse[key] = -1;
+                ++Version;
+            }
+
+            /// <summary>
+            ///     Remove at
+            /// </summary>
+            /// <param name="index">Index</param>
+            /// <param name="keyValuePair">KeyValuePair</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void RemoveAt(int index, out KeyValuePair<int, T> keyValuePair)
+            {
+                if (index < 0)
+                    throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
+                if (index >= Count)
+                    throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
+                ref var entry = ref Dense[index];
+                var key = entry.Key;
+                keyValuePair = *(KeyValuePair<int, T>*)Unsafe.AsPointer(ref entry);
+                --Count;
+                if (index != Count)
+                {
+                    ref var lastEntry = ref Dense[Count];
+                    entry = lastEntry;
+                    Sparse[lastEntry.Key] = index;
+                }
+
+                Sparse[key] = -1;
+                ++Version;
+            }
+
+            /// <summary>
+            ///     As readOnly span
+            /// </summary>
+            /// <returns>ReadOnlySpan</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref *(KeyValuePair<int, T>*)Dense, Count);
+
+            /// <summary>
+            ///     As readOnly span
+            /// </summary>
+            /// <param name="start">Start</param>
+            /// <returns>ReadOnlySpan</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref *(KeyValuePair<int, T>*)(Dense + start), Count - start);
+
+            /// <summary>
+            ///     As readOnly span
+            /// </summary>
+            /// <param name="start">Start</param>
+            /// <param name="length">Length</param>
+            /// <returns>ReadOnlySpan</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref *(KeyValuePair<int, T>*)(Dense + start), length);
         }
 
         /// <summary>
@@ -59,12 +412,12 @@ namespace NativeCollections
         /// <summary>
         ///     Keys
         /// </summary>
-        public KeyCollection Keys => new(this);
+        public KeyCollection Keys => new(_handle);
 
         /// <summary>
         ///     Values
         /// </summary>
-        public ValueCollection Values => new(this);
+        public ValueCollection Values => new(_handle);
 
         /// <summary>
         ///     Structure
@@ -114,14 +467,9 @@ namespace NativeCollections
         public T this[int key]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-                if (TryGetValue(key, out var obj))
-                    return obj;
-                throw new KeyNotFoundException(key.ToString());
-            }
+            get => (*_handle)[key];
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Insert(key, in value);
+            set => (*_handle)[key] = value;
         }
 
         /// <summary>
@@ -189,13 +537,7 @@ namespace NativeCollections
         ///     Clear
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Clear()
-        {
-            var handle = _handle;
-            MemoryMarshal.CreateSpan(ref *handle->Sparse, handle->Length).Fill(-1);
-            handle->Count = 0;
-            ++handle->Version;
-        }
+        public void Clear() => _handle->Clear();
 
         /// <summary>
         ///     Add
@@ -203,25 +545,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Add(int key, in T value)
-        {
-            var handle = _handle;
-            if (key < 0)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
-            if (key > handle->Length)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "IndexMustBeLessOrEqual");
-            var index = handle->Sparse[key];
-            if (index != -1)
-                return false;
-            ref var count = ref handle->Count;
-            ref var entry = ref handle->Dense[count];
-            entry.Key = key;
-            entry.Value = value;
-            handle->Sparse[key] = count;
-            ++count;
-            ++handle->Version;
-            return true;
-        }
+        public bool Add(int key, in T value) => _handle->Add(key, value);
 
         /// <summary>
         ///     Insert
@@ -234,30 +558,7 @@ namespace NativeCollections
         ///     If the key was already set, the previous value is overridden.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Insert(int key, in T value)
-        {
-            var handle = _handle;
-            if (key < 0)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
-            if (key > handle->Length)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "IndexMustBeLessOrEqual");
-            var index = handle->Sparse[key];
-            if (index != -1)
-            {
-                handle->Dense[index].Value = value;
-                ++handle->Version;
-                return false;
-            }
-
-            ref var count = ref handle->Count;
-            ref var entry = ref handle->Dense[count];
-            entry.Key = key;
-            entry.Value = value;
-            handle->Sparse[key] = count;
-            ++count;
-            ++handle->Version;
-            return true;
-        }
+        public bool Insert(int key, in T value) => _handle->Insert(key, value);
 
         /// <summary>
         ///     Remove
@@ -265,28 +566,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Remove(int key)
-        {
-            var handle = _handle;
-            if (key < 0)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
-            if (key > handle->Length)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "IndexMustBeLessOrEqual");
-            var index = handle->Sparse[key];
-            if (index == -1)
-                return false;
-            --handle->Count;
-            if (index != handle->Count)
-            {
-                ref var lastEntry = ref handle->Dense[handle->Count];
-                handle->Dense[index] = lastEntry;
-                handle->Sparse[lastEntry.Key] = index;
-            }
-
-            handle->Sparse[key] = -1;
-            ++handle->Version;
-            return true;
-        }
+        public bool Remove(int key) => _handle->Remove(key);
 
         /// <summary>
         ///     Remove
@@ -295,34 +575,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Remove(int key, out T value)
-        {
-            var handle = _handle;
-            if (key < 0)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
-            if (key > handle->Length)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "IndexMustBeLessOrEqual");
-            var index = handle->Sparse[key];
-            if (index == -1)
-            {
-                value = default;
-                return false;
-            }
-
-            ref var entry = ref handle->Dense[index];
-            value = entry.Value;
-            --handle->Count;
-            if (index != handle->Count)
-            {
-                ref var lastEntry = ref handle->Dense[handle->Count];
-                entry = lastEntry;
-                handle->Sparse[lastEntry.Key] = index;
-            }
-
-            handle->Sparse[key] = -1;
-            ++handle->Version;
-            return true;
-        }
+        public bool Remove(int key, out T value) => _handle->Remove(key, out value);
 
         /// <summary>
         ///     Contains key
@@ -330,15 +583,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Contains key</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool ContainsKey(int key)
-        {
-            var handle = _handle;
-            if (key < 0)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
-            if (key > handle->Length)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "IndexMustBeLessOrEqual");
-            return handle->Sparse[key] != -1;
-        }
+        public bool ContainsKey(int key) => _handle->ContainsKey(key);
 
         /// <summary>
         ///     Try to get the value
@@ -347,23 +592,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValue(int key, out T value)
-        {
-            var handle = _handle;
-            if (key < 0)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
-            if (key > handle->Length)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "IndexMustBeLessOrEqual");
-            var index = handle->Sparse[key];
-            if (index != -1)
-            {
-                value = handle->Dense[index].Value;
-                return true;
-            }
-
-            value = default;
-            return false;
-        }
+        public bool TryGetValue(int key, out T value) => _handle->TryGetValue(key, out value);
 
         /// <summary>
         ///     Try to get the value
@@ -372,24 +601,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueReference(int key, out NativeReference<T> value)
-        {
-            var handle = _handle;
-            if (key < 0)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
-            if (key > handle->Length)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "IndexMustBeLessOrEqual");
-            var index = handle->Sparse[key];
-            if (index != -1)
-            {
-                ref var entry = ref handle->Dense[index];
-                value = new NativeReference<T>(Unsafe.AsPointer(ref entry.Value));
-                return true;
-            }
-
-            value = default;
-            return false;
-        }
+        public bool TryGetValueReference(int key, out NativeReference<T> value) => _handle->TryGetValueReference(key, out value);
 
         /// <summary>
         ///     Index of
@@ -397,15 +609,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int IndexOf(int key)
-        {
-            var handle = _handle;
-            if (key < 0)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
-            if (key > handle->Length)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "IndexMustBeLessOrEqual");
-            return handle->Sparse[key];
-        }
+        public int IndexOf(int key) => _handle->IndexOf(key);
 
         /// <summary>
         ///     Get at
@@ -413,15 +617,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>KeyValuePair</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public KeyValuePair<int, T> GetAt(int index)
-        {
-            var handle = _handle;
-            if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
-            if (index >= handle->Count)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
-            return *(KeyValuePair<int, T>*)&handle->Dense[index];
-        }
+        public KeyValuePair<int, T> GetAt(int index) => _handle->GetAt(index);
 
         /// <summary>
         ///     Get at
@@ -429,16 +625,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>KeyValuePair</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public KeyValuePair<int, NativeReference<T>> GetReferenceAt(int index)
-        {
-            var handle = _handle;
-            if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
-            if (index >= handle->Count)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
-            ref var entry = ref handle->Dense[index];
-            return new KeyValuePair<int, NativeReference<T>>(entry.Key, new NativeReference<T>(Unsafe.AsPointer(ref entry.Value)));
-        }
+        public KeyValuePair<int, NativeReference<T>> GetReferenceAt(int index) => _handle->GetReferenceAt(index);
 
         /// <summary>
         ///     Set at
@@ -446,42 +633,14 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetAt(int index, in T value)
-        {
-            var handle = _handle;
-            if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
-            if (index >= handle->Count)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
-            handle->Dense[index].Value = value;
-            ++handle->Version;
-        }
+        public void SetAt(int index, in T value) => _handle->SetAt(index, value);
 
         /// <summary>
         ///     Remove at
         /// </summary>
         /// <param name="index">Index</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void RemoveAt(int index)
-        {
-            var handle = _handle;
-            if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
-            if (index >= handle->Count)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
-            ref var entry = ref handle->Dense[index];
-            var key = entry.Key;
-            --handle->Count;
-            if (index != handle->Count)
-            {
-                ref var lastEntry = ref handle->Dense[handle->Count];
-                entry = lastEntry;
-                handle->Sparse[lastEntry.Key] = index;
-            }
-
-            handle->Sparse[key] = -1;
-            ++handle->Version;
-        }
+        public void RemoveAt(int index) => _handle->RemoveAt(index);
 
         /// <summary>
         ///     Remove at
@@ -489,38 +648,14 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <param name="keyValuePair">KeyValuePair</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void RemoveAt(int index, out KeyValuePair<int, T> keyValuePair)
-        {
-            var handle = _handle;
-            if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
-            if (index >= handle->Count)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
-            ref var entry = ref handle->Dense[index];
-            var key = entry.Key;
-            keyValuePair = *(KeyValuePair<int, T>*)Unsafe.AsPointer(ref entry);
-            --handle->Count;
-            if (index != handle->Count)
-            {
-                ref var lastEntry = ref handle->Dense[handle->Count];
-                entry = lastEntry;
-                handle->Sparse[lastEntry.Key] = index;
-            }
-
-            handle->Sparse[key] = -1;
-            ++handle->Version;
-        }
+        public void RemoveAt(int index, out KeyValuePair<int, T> keyValuePair) => _handle->RemoveAt(index, out keyValuePair);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan()
-        {
-            var handle = _handle;
-            return MemoryMarshal.CreateReadOnlySpan(ref *(KeyValuePair<int, T>*)handle->Dense, handle->Count);
-        }
+        public ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan() => _handle->AsReadOnlySpan();
 
         /// <summary>
         ///     As readOnly span
@@ -528,11 +663,7 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan(int start)
-        {
-            var handle = _handle;
-            return MemoryMarshal.CreateReadOnlySpan(ref *(KeyValuePair<int, T>*)(handle->Dense + start), handle->Count - start);
-        }
+        public ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan(int start) => _handle->AsReadOnlySpan(start);
 
         /// <summary>
         ///     As readOnly span
@@ -541,11 +672,7 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan(int start, int length)
-        {
-            var handle = _handle;
-            return MemoryMarshal.CreateReadOnlySpan(ref *(KeyValuePair<int, T>*)(handle->Dense + start), length);
-        }
+        public ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan(int start, int length) => _handle->AsReadOnlySpan(start, length);
 
         /// <summary>
         ///     Entry
@@ -573,7 +700,7 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
-        public Enumerator GetEnumerator() => new(this);
+        public Enumerator GetEnumerator() => new(_handle);
 
         /// <summary>
         ///     Enumerator
@@ -583,7 +710,7 @@ namespace NativeCollections
             /// <summary>
             ///     NativeSparseSet
             /// </summary>
-            private readonly NativeSparseSet<T> _nativeSparseSet;
+            private readonly NativeSparseSetHandle* _nativeSparseSet;
 
             /// <summary>
             ///     Version
@@ -600,10 +727,11 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeSparseSet">NativeSparseSet</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(NativeSparseSet<T> nativeSparseSet)
+            internal Enumerator(void* nativeSparseSet)
             {
-                _nativeSparseSet = nativeSparseSet;
-                _version = nativeSparseSet._handle->Version;
+                var handle = (NativeSparseSetHandle*)nativeSparseSet;
+                _nativeSparseSet = handle;
+                _version = handle->Version;
                 _index = -1;
             }
 
@@ -614,7 +742,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext()
             {
-                var handle = _nativeSparseSet._handle;
+                var handle = _nativeSparseSet;
                 if (_version != handle->Version)
                     throw new InvalidOperationException("EnumFailedVersion");
                 var num = _index + 1;
@@ -630,7 +758,7 @@ namespace NativeCollections
             public KeyValuePair<int, T> Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => *(KeyValuePair<int, T>*)(&_nativeSparseSet._handle->Dense[_index]);
+                get => *(KeyValuePair<int, T>*)(&_nativeSparseSet->Dense[_index]);
             }
         }
 
@@ -643,19 +771,19 @@ namespace NativeCollections
             /// <summary>
             ///     NativeSparseSet
             /// </summary>
-            private readonly NativeSparseSet<T> _nativeSparseSet;
+            private readonly NativeSparseSetHandle* _nativeSparseSet;
 
             /// <summary>
             ///     Structure
             /// </summary>
             /// <param name="nativeSparseSet">NativeSparseSet</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal KeyCollection(NativeSparseSet<T> nativeSparseSet) => _nativeSparseSet = nativeSparseSet;
+            internal KeyCollection(void* nativeSparseSet) => _nativeSparseSet = (NativeSparseSetHandle*)nativeSparseSet;
 
             /// <summary>
             ///     Count
             /// </summary>
-            public int Count => _nativeSparseSet.Count;
+            public int Count => _nativeSparseSet->Count;
 
             /// <summary>
             ///     Get key
@@ -666,7 +794,7 @@ namespace NativeCollections
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get
                 {
-                    var handle = _nativeSparseSet._handle;
+                    var handle = _nativeSparseSet;
                     if (index < 0)
                         throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
                     if (index >= handle->Count)
@@ -689,7 +817,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     NativeSparseSet
                 /// </summary>
-                private readonly NativeSparseSet<T> _nativeSparseSet;
+                private readonly NativeSparseSetHandle* _nativeSparseSet;
 
                 /// <summary>
                 ///     Version
@@ -706,10 +834,11 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativeSparseSet">NativeSparseSet</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(NativeSparseSet<T> nativeSparseSet)
+                internal Enumerator(void* nativeSparseSet)
                 {
-                    _nativeSparseSet = nativeSparseSet;
-                    _version = nativeSparseSet._handle->Version;
+                    var handle = (NativeSparseSetHandle*)nativeSparseSet;
+                    _nativeSparseSet = handle;
+                    _version = handle->Version;
                     _index = -1;
                 }
 
@@ -720,7 +849,7 @@ namespace NativeCollections
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public bool MoveNext()
                 {
-                    var handle = _nativeSparseSet._handle;
+                    var handle = _nativeSparseSet;
                     if (_version != handle->Version)
                         throw new InvalidOperationException("EnumFailedVersion");
                     var num = _index + 1;
@@ -736,7 +865,7 @@ namespace NativeCollections
                 public int Current
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                    get => _nativeSparseSet._handle->Dense[_index].Key;
+                    get => _nativeSparseSet->Dense[_index].Key;
                 }
             }
         }
@@ -750,19 +879,19 @@ namespace NativeCollections
             /// <summary>
             ///     NativeSparseSet
             /// </summary>
-            private readonly NativeSparseSet<T> _nativeSparseSet;
+            private readonly NativeSparseSetHandle* _nativeSparseSet;
 
             /// <summary>
             ///     Structure
             /// </summary>
             /// <param name="nativeSparseSet">NativeSparseSet</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal ValueCollection(NativeSparseSet<T> nativeSparseSet) => _nativeSparseSet = nativeSparseSet;
+            internal ValueCollection(void* nativeSparseSet) => _nativeSparseSet = (NativeSparseSetHandle*)nativeSparseSet;
 
             /// <summary>
             ///     Count
             /// </summary>
-            public int Count => _nativeSparseSet.Count;
+            public int Count => _nativeSparseSet->Count;
 
             /// <summary>
             ///     Get reference
@@ -773,7 +902,7 @@ namespace NativeCollections
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get
                 {
-                    var handle = _nativeSparseSet._handle;
+                    var handle = _nativeSparseSet;
                     if (index < 0)
                         throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
                     if (index >= handle->Count)
@@ -796,7 +925,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     NativeSparseSet
                 /// </summary>
-                private readonly NativeSparseSet<T> _nativeSparseSet;
+                private readonly NativeSparseSetHandle* _nativeSparseSet;
 
                 /// <summary>
                 ///     Version
@@ -813,10 +942,11 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativeSparseSet">NativeSparseSet</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(NativeSparseSet<T> nativeSparseSet)
+                internal Enumerator(void* nativeSparseSet)
                 {
-                    _nativeSparseSet = nativeSparseSet;
-                    _version = nativeSparseSet._handle->Version;
+                    var handle = (NativeSparseSetHandle*)nativeSparseSet;
+                    _nativeSparseSet = handle;
+                    _version = handle->Version;
                     _index = -1;
                 }
 
@@ -827,7 +957,7 @@ namespace NativeCollections
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public bool MoveNext()
                 {
-                    var handle = _nativeSparseSet._handle;
+                    var handle = _nativeSparseSet;
                     if (_version != handle->Version)
                         throw new InvalidOperationException("EnumFailedVersion");
                     var num = _index + 1;
@@ -843,7 +973,7 @@ namespace NativeCollections
                 public T Current
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                    get => _nativeSparseSet._handle->Dense[_index].Value;
+                    get => _nativeSparseSet->Dense[_index].Value;
                 }
             }
         }

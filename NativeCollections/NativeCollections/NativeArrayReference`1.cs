@@ -16,7 +16,7 @@ namespace NativeCollections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection]
+    [NativeCollection(NativeCollectionType.None)]
     public struct NativeArrayReference<T> : IDisposable, IEquatable<NativeArrayReference<T>>
     {
         /// <summary>

@@ -13,7 +13,7 @@ namespace NativeCollections
     ///     Native memory bucket
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection]
+    [NativeCollection(NativeCollectionType.None)]
     public readonly unsafe struct NativeMemoryBucket : IDisposable, IEquatable<NativeMemoryBucket>
     {
         /// <summary>
@@ -46,6 +46,38 @@ namespace NativeCollections
             ///     Memory pool
             /// </summary>
             public NativeMemoryPool MemoryPool;
+
+            /// <summary>
+            ///     Rent buffer
+            /// </summary>
+            /// <returns>Buffer</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void* Rent()
+            {
+                void* buffer = null;
+                if (Index < Size)
+                {
+                    buffer = Array[Index];
+                    Array[Index++] = null;
+                }
+
+                if (buffer == null)
+                    buffer = MemoryPool.Rent();
+                return buffer;
+            }
+
+            /// <summary>
+            ///     Return buffer
+            /// </summary>
+            /// <param name="ptr">Pointer</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Return(void* ptr)
+            {
+                if (Index != 0)
+                    Array[--Index] = ptr;
+                else
+                    MemoryPool.Return(ptr);
+            }
         }
 
         /// <summary>
@@ -148,34 +180,14 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Buffer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void* Rent()
-        {
-            var handle = _handle;
-            void* buffer = null;
-            if (handle->Index < handle->Size)
-            {
-                buffer = handle->Array[handle->Index];
-                handle->Array[handle->Index++] = null;
-            }
-
-            if (buffer == null)
-                buffer = handle->MemoryPool.Rent();
-            return buffer;
-        }
+        public void* Rent() => _handle->Rent();
 
         /// <summary>
         ///     Return buffer
         /// </summary>
         /// <param name="ptr">Pointer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Return(void* ptr)
-        {
-            var handle = _handle;
-            if (handle->Index != 0)
-                handle->Array[--handle->Index] = ptr;
-            else
-                handle->MemoryPool.Return(ptr);
-        }
+        public void Return(void* ptr) => _handle->Return(ptr);
 
         /// <summary>
         ///     Empty

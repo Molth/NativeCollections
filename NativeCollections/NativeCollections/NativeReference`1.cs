@@ -14,7 +14,7 @@ namespace NativeCollections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection]
+    [NativeCollection(NativeCollectionType.None)]
     public readonly unsafe struct NativeReference<T> : IDisposable, IEquatable<NativeReference<T>> where T : unmanaged
     {
         /// <summary>

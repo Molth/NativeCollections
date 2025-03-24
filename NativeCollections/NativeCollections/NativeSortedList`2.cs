@@ -16,7 +16,7 @@ namespace NativeCollections
     /// <typeparam name="TKey">Type</typeparam>
     /// <typeparam name="TValue">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection]
+    [NativeCollection(NativeCollectionType.Standard)]
     public readonly unsafe struct NativeSortedList<TKey, TValue> where TKey : unmanaged, IComparable<TKey> where TValue : unmanaged
     {
         /// <summary>
@@ -49,6 +49,350 @@ namespace NativeCollections
             ///     Capacity
             /// </summary>
             public int Capacity;
+
+            /// <summary>
+            ///     Get or set value
+            /// </summary>
+            /// <param name="key">Key</param>
+            public TValue this[TKey key]
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get
+                {
+                    var index = BinarySearchHelpers.Find(Keys, Size, key);
+                    return index >= 0 ? Values[index] : throw new KeyNotFoundException(key.ToString());
+                }
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                set
+                {
+                    var index = BinarySearchHelpers.Find(Keys, Size, key);
+                    if (index >= 0)
+                    {
+                        Values[index] = value;
+                        ++Version;
+                    }
+                    else
+                    {
+                        Insert(~index, key, value);
+                    }
+                }
+            }
+
+            /// <summary>
+            ///     Clear
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Clear()
+            {
+                ++Version;
+                Size = 0;
+            }
+
+            /// <summary>
+            ///     Add
+            /// </summary>
+            /// <param name="key">Key</param>
+            /// <param name="value">Value</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Add(in TKey key, in TValue value)
+            {
+                var num = BinarySearchHelpers.Find(Keys, Size, key);
+                if (num >= 0)
+                    throw new ArgumentException($"AddingDuplicate, {key}", nameof(key));
+                Insert(~num, key, value);
+            }
+
+            /// <summary>
+            ///     Remove
+            /// </summary>
+            /// <param name="key">Key</param>
+            /// <returns>Removed</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool Remove(in TKey key)
+            {
+                var index = BinarySearchHelpers.Find(Keys, Size, key);
+                if (index >= 0)
+                {
+                    --Size;
+                    if (index < Size)
+                    {
+                        Unsafe.CopyBlockUnaligned(Keys + index, Keys + index + 1, (uint)((Size - index) * sizeof(TKey)));
+                        Unsafe.CopyBlockUnaligned(Values + index, Values + index + 1, (uint)((Size - index) * sizeof(TValue)));
+                    }
+
+                    ++Version;
+                    return true;
+                }
+
+                return false;
+            }
+
+            /// <summary>
+            ///     Remove
+            /// </summary>
+            /// <param name="key">Key</param>
+            /// <param name="value">Value</param>
+            /// <returns>Removed</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool Remove(in TKey key, out TValue value)
+            {
+                var index = BinarySearchHelpers.Find(Keys, Size, key);
+                if (index >= 0)
+                {
+                    value = Values[index];
+                    --Size;
+                    if (index < Size)
+                    {
+                        Unsafe.CopyBlockUnaligned(Keys + index, Keys + index + 1, (uint)((Size - index) * sizeof(TKey)));
+                        Unsafe.CopyBlockUnaligned(Values + index, Values + index + 1, (uint)((Size - index) * sizeof(TValue)));
+                    }
+
+                    ++Version;
+                    return true;
+                }
+
+                value = default;
+                return false;
+            }
+
+            /// <summary>
+            ///     Remove at
+            /// </summary>
+            /// <param name="index">Index</param>
+            /// <returns>Removed</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void RemoveAt(int index)
+            {
+                if (index < 0)
+                    throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
+                if (index >= Size)
+                    throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
+                --Size;
+                if (index < Size)
+                {
+                    Unsafe.CopyBlockUnaligned(Keys + index, Keys + index + 1, (uint)((Size - index) * sizeof(TKey)));
+                    Unsafe.CopyBlockUnaligned(Values + index, Values + index + 1, (uint)((Size - index) * sizeof(TValue)));
+                }
+
+                ++Version;
+            }
+
+            /// <summary>
+            ///     Remove range
+            /// </summary>
+            /// <param name="index">Index</param>
+            /// <param name="count">Count</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void RemoveRange(int index, int count)
+            {
+                if (index < 0)
+                    throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
+                if (count < 0)
+                    throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeNonNegative");
+                if (count == 0)
+                    return;
+                if (index + count > Size)
+                    throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeLess");
+                Size -= count;
+                if (index < Size)
+                {
+                    Unsafe.CopyBlockUnaligned(Keys + index, Keys + index + count, (uint)((Size - index) * sizeof(TKey)));
+                    Unsafe.CopyBlockUnaligned(Values + index, Values + index + count, (uint)((Size - index) * sizeof(TValue)));
+                }
+
+                ++Version;
+            }
+
+            /// <summary>
+            ///     Get key at index
+            /// </summary>
+            /// <param name="index">Index</param>
+            /// <returns>Key</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public TKey GetKeyAtIndex(int index)
+            {
+                if (index < 0)
+                    throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
+                if (index >= Size)
+                    throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
+                return Keys[index];
+            }
+
+            /// <summary>
+            ///     Get value at index
+            /// </summary>
+            /// <param name="index">Index</param>
+            /// <returns>Value</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public TValue GetValueAtIndex(int index)
+            {
+                if (index < 0)
+                    throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
+                if (index >= Size)
+                    throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
+                return Values[index];
+            }
+
+            /// <summary>
+            ///     Set value at index
+            /// </summary>
+            /// <param name="index">Index</param>
+            /// <param name="value">Value</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void SetValueAtIndex(int index, in TValue value)
+            {
+                if (index < 0)
+                    throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
+                if (index >= Size)
+                    throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
+                Values[index] = value;
+                ++Version;
+            }
+
+            /// <summary>
+            ///     Contains key
+            /// </summary>
+            /// <param name="key">Key</param>
+            /// <returns>Contains key</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool ContainsKey(in TKey key) => BinarySearchHelpers.Find(Keys, Size, key) >= 0;
+
+            /// <summary>
+            ///     Try to get the value
+            /// </summary>
+            /// <param name="key">Key</param>
+            /// <param name="value">Value</param>
+            /// <returns>Got</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool TryGetValue(in TKey key, out TValue value)
+            {
+                var index = BinarySearchHelpers.Find(Keys, Size, key);
+                if (index >= 0)
+                {
+                    value = Values[index];
+                    return true;
+                }
+
+                value = default;
+                return false;
+            }
+
+            /// <summary>
+            ///     Try to get the value
+            /// </summary>
+            /// <param name="key">Key</param>
+            /// <param name="value">Value</param>
+            /// <returns>Got</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool TryGetValueReference(in TKey key, out NativeReference<TValue> value)
+            {
+                var index = BinarySearchHelpers.Find(Keys, Size, key);
+                if (index >= 0)
+                {
+                    value = new NativeReference<TValue>(Unsafe.AsPointer(ref Values[index]));
+                    return true;
+                }
+
+                value = default;
+                return false;
+            }
+
+            /// <summary>
+            ///     Ensure capacity
+            /// </summary>
+            /// <param name="capacity">Capacity</param>
+            /// <returns>New capacity</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int EnsureCapacity(int capacity)
+            {
+                if (Capacity < capacity)
+                {
+                    var newCapacity = 2 * Capacity;
+                    if ((uint)newCapacity > 2147483591)
+                        newCapacity = 2147483591;
+                    var expected = Capacity + 4;
+                    newCapacity = newCapacity > expected ? newCapacity : expected;
+                    if (newCapacity < capacity)
+                        newCapacity = capacity;
+                    SetCapacity(newCapacity);
+                }
+
+                return Capacity;
+            }
+
+            /// <summary>
+            ///     Trim excess
+            /// </summary>
+            /// <returns>New capacity</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int TrimExcess()
+            {
+                var threshold = (int)(Capacity * 0.9);
+                if (Size < threshold)
+                    SetCapacity(Size);
+                return Capacity;
+            }
+
+            /// <summary>
+            ///     Set capacity
+            /// </summary>
+            /// <param name="capacity">Capacity</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void SetCapacity(int capacity)
+            {
+                if (capacity < Size)
+                    throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "Small_Capacity");
+                if (capacity != Capacity)
+                {
+                    if (capacity > 0)
+                    {
+                        var keys = (TKey*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(TKey)));
+                        var values = (TValue*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(TValue)));
+                        if (Size > 0)
+                        {
+                            Unsafe.CopyBlockUnaligned(keys, Keys, (uint)(Size * sizeof(TKey)));
+                            Unsafe.CopyBlockUnaligned(values, Values, (uint)(Size * sizeof(TValue)));
+                        }
+
+                        NativeMemoryAllocator.Free(Keys);
+                        NativeMemoryAllocator.Free(Values);
+                        Keys = keys;
+                        Values = values;
+                    }
+                    else
+                    {
+                        NativeMemoryAllocator.Free(Keys);
+                        NativeMemoryAllocator.Free(Values);
+                        Keys = (TKey*)NativeMemoryAllocator.Alloc(0);
+                        Values = (TValue*)NativeMemoryAllocator.Alloc(0);
+                    }
+
+                    Capacity = capacity;
+                }
+            }
+
+            /// <summary>
+            ///     Insert
+            /// </summary>
+            /// <param name="index">Index</param>
+            /// <param name="key">Key</param>
+            /// <param name="value">Value</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private void Insert(int index, in TKey key, in TValue value)
+            {
+                if (Size == Capacity)
+                    EnsureCapacity(Size + 1);
+                if (index < Size)
+                {
+                    Unsafe.CopyBlockUnaligned(Keys + index + 1, Keys + index, (uint)((Size - index) * sizeof(TKey)));
+                    Unsafe.CopyBlockUnaligned(Values + index + 1, Values + index, (uint)((Size - index) * sizeof(TValue)));
+                }
+
+                Keys[index] = key;
+                Values[index] = value;
+                ++Size;
+                ++Version;
+            }
         }
 
         /// <summary>
@@ -59,12 +403,12 @@ namespace NativeCollections
         /// <summary>
         ///     Keys
         /// </summary>
-        public KeyCollection Keys => new(this);
+        public KeyCollection Keys => new(_handle);
 
         /// <summary>
         ///     Values
         /// </summary>
-        public ValueCollection Values => new(this);
+        public ValueCollection Values => new(_handle);
 
         /// <summary>
         ///     Structure
@@ -103,27 +447,9 @@ namespace NativeCollections
         public TValue this[TKey key]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-                var handle = _handle;
-                var index = BinarySearch(handle->Keys, handle->Size, key);
-                return index >= 0 ? handle->Values[index] : throw new KeyNotFoundException(key.ToString());
-            }
+            get => (*_handle)[key];
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set
-            {
-                var handle = _handle;
-                var index = BinarySearch(handle->Keys, handle->Size, key);
-                if (index >= 0)
-                {
-                    handle->Values[index] = value;
-                    ++handle->Version;
-                }
-                else
-                {
-                    Insert(~index, key, value);
-                }
-            }
+            set => (*_handle)[key] = value;
         }
 
         /// <summary>
@@ -138,40 +464,6 @@ namespace NativeCollections
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => _handle->Capacity;
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set
-            {
-                var handle = _handle;
-                if (value < handle->Size)
-                    throw new ArgumentOutOfRangeException(nameof(value), value, "SmallCapacity");
-                if (value != handle->Capacity)
-                {
-                    if (value > 0)
-                    {
-                        var keys = (TKey*)NativeMemoryAllocator.Alloc((uint)(value * sizeof(TKey)));
-                        var values = (TValue*)NativeMemoryAllocator.Alloc((uint)(value * sizeof(TValue)));
-                        if (handle->Size > 0)
-                        {
-                            Unsafe.CopyBlockUnaligned(keys, handle->Keys, (uint)(handle->Size * sizeof(TKey)));
-                            Unsafe.CopyBlockUnaligned(values, handle->Values, (uint)(handle->Size * sizeof(TValue)));
-                        }
-
-                        NativeMemoryAllocator.Free(handle->Keys);
-                        NativeMemoryAllocator.Free(handle->Values);
-                        handle->Keys = keys;
-                        handle->Values = values;
-                    }
-                    else
-                    {
-                        NativeMemoryAllocator.Free(handle->Keys);
-                        NativeMemoryAllocator.Free(handle->Values);
-                        handle->Keys = (TKey*)NativeMemoryAllocator.Alloc(0);
-                        handle->Values = (TValue*)NativeMemoryAllocator.Alloc(0);
-                    }
-
-                    handle->Capacity = value;
-                }
-            }
         }
 
         /// <summary>
@@ -234,12 +526,7 @@ namespace NativeCollections
         ///     Clear
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Clear()
-        {
-            var handle = _handle;
-            ++handle->Version;
-            handle->Size = 0;
-        }
+        public void Clear() => _handle->Clear();
 
         /// <summary>
         ///     Add
@@ -247,14 +534,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Add(in TKey key, in TValue value)
-        {
-            var handle = _handle;
-            var num = BinarySearch(handle->Keys, handle->Size, key);
-            if (num >= 0)
-                throw new ArgumentException($"AddingDuplicate, {key}", nameof(key));
-            Insert(~num, key, value);
-        }
+        public void Add(in TKey key, in TValue value) => _handle->Add(key, value);
 
         /// <summary>
         ///     Remove
@@ -262,25 +542,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Remove(in TKey key)
-        {
-            var handle = _handle;
-            var index = BinarySearch(handle->Keys, handle->Size, key);
-            if (index >= 0)
-            {
-                --handle->Size;
-                if (index < handle->Size)
-                {
-                    Unsafe.CopyBlockUnaligned(handle->Keys + index, handle->Keys + index + 1, (uint)((handle->Size - index) * sizeof(TKey)));
-                    Unsafe.CopyBlockUnaligned(handle->Values + index, handle->Values + index + 1, (uint)((handle->Size - index) * sizeof(TValue)));
-                }
-
-                ++handle->Version;
-                return true;
-            }
-
-            return false;
-        }
+        public bool Remove(in TKey key) => _handle->Remove(key);
 
         /// <summary>
         ///     Remove
@@ -289,27 +551,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Remove(in TKey key, out TValue value)
-        {
-            var handle = _handle;
-            var index = BinarySearch(handle->Keys, handle->Size, key);
-            if (index >= 0)
-            {
-                value = handle->Values[index];
-                --handle->Size;
-                if (index < handle->Size)
-                {
-                    Unsafe.CopyBlockUnaligned(handle->Keys + index, handle->Keys + index + 1, (uint)((handle->Size - index) * sizeof(TKey)));
-                    Unsafe.CopyBlockUnaligned(handle->Values + index, handle->Values + index + 1, (uint)((handle->Size - index) * sizeof(TValue)));
-                }
-
-                ++handle->Version;
-                return true;
-            }
-
-            value = default;
-            return false;
-        }
+        public bool Remove(in TKey key, out TValue value) => _handle->Remove(key, out value);
 
         /// <summary>
         ///     Remove at
@@ -317,22 +559,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void RemoveAt(int index)
-        {
-            if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
-            var handle = _handle;
-            if (index >= handle->Size)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
-            --handle->Size;
-            if (index < handle->Size)
-            {
-                Unsafe.CopyBlockUnaligned(handle->Keys + index, handle->Keys + index + 1, (uint)((handle->Size - index) * sizeof(TKey)));
-                Unsafe.CopyBlockUnaligned(handle->Values + index, handle->Values + index + 1, (uint)((handle->Size - index) * sizeof(TValue)));
-            }
-
-            ++handle->Version;
-        }
+        public void RemoveAt(int index) => _handle->RemoveAt(index);
 
         /// <summary>
         ///     Remove range
@@ -340,26 +567,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <param name="count">Count</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void RemoveRange(int index, int count)
-        {
-            if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
-            if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeNonNegative");
-            if (count == 0)
-                return;
-            var handle = _handle;
-            if (index + count > handle->Size)
-                throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeLess");
-            handle->Size -= count;
-            if (index < handle->Size)
-            {
-                Unsafe.CopyBlockUnaligned(handle->Keys + index, handle->Keys + index + count, (uint)((handle->Size - index) * sizeof(TKey)));
-                Unsafe.CopyBlockUnaligned(handle->Values + index, handle->Values + index + count, (uint)((handle->Size - index) * sizeof(TValue)));
-            }
-
-            ++handle->Version;
-        }
+        public void RemoveRange(int index, int count) => _handle->RemoveRange(index, count);
 
         /// <summary>
         ///     Get key at index
@@ -367,15 +575,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>Key</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TKey GetKeyAtIndex(int index)
-        {
-            if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
-            var handle = _handle;
-            if (index >= handle->Size)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
-            return handle->Keys[index];
-        }
+        public TKey GetKeyAtIndex(int index) => _handle->GetKeyAtIndex(index);
 
         /// <summary>
         ///     Get value at index
@@ -383,15 +583,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>Value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TValue GetValueAtIndex(int index)
-        {
-            if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
-            var handle = _handle;
-            if (index >= handle->Size)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
-            return handle->Values[index];
-        }
+        public TValue GetValueAtIndex(int index) => _handle->GetValueAtIndex(index);
 
         /// <summary>
         ///     Set value at index
@@ -399,16 +591,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetValueAtIndex(int index, in TValue value)
-        {
-            if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
-            var handle = _handle;
-            if (index >= handle->Size)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
-            handle->Values[index] = value;
-            ++handle->Version;
-        }
+        public void SetValueAtIndex(int index, in TValue value) => _handle->SetValueAtIndex(index, value);
 
         /// <summary>
         ///     Contains key
@@ -416,11 +599,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Contains key</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool ContainsKey(in TKey key)
-        {
-            var handle = _handle;
-            return BinarySearch(handle->Keys, handle->Size, key) >= 0;
-        }
+        public bool ContainsKey(in TKey key) => _handle->ContainsKey(key);
 
         /// <summary>
         ///     Try to get the value
@@ -429,19 +608,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValue(in TKey key, out TValue value)
-        {
-            var handle = _handle;
-            var index = BinarySearch(handle->Keys, handle->Size, key);
-            if (index >= 0)
-            {
-                value = handle->Values[index];
-                return true;
-            }
-
-            value = default;
-            return false;
-        }
+        public bool TryGetValue(in TKey key, out TValue value) => _handle->TryGetValue(key, out value);
 
         /// <summary>
         ///     Try to get the value
@@ -450,19 +617,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueReference(in TKey key, out NativeReference<TValue> value)
-        {
-            var handle = _handle;
-            var index = BinarySearch(handle->Keys, handle->Size, key);
-            if (index >= 0)
-            {
-                value = new NativeReference<TValue>(Unsafe.AsPointer(ref handle->Values[index]));
-                return true;
-            }
-
-            value = default;
-            return false;
-        }
+        public bool TryGetValueReference(in TKey key, out NativeReference<TValue> value) => _handle->TryGetValueReference(key, out value);
 
         /// <summary>
         ///     Ensure capacity
@@ -470,88 +625,21 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         /// <returns>New capacity</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int EnsureCapacity(int capacity)
-        {
-            var handle = _handle;
-            if (handle->Capacity < capacity)
-            {
-                var newCapacity = 2 * handle->Capacity;
-                if ((uint)newCapacity > 2147483591)
-                    newCapacity = 2147483591;
-                var expected = handle->Capacity + 4;
-                newCapacity = newCapacity > expected ? newCapacity : expected;
-                if (newCapacity < capacity)
-                    newCapacity = capacity;
-                Capacity = newCapacity;
-            }
-
-            return handle->Capacity;
-        }
+        public int EnsureCapacity(int capacity) => _handle->EnsureCapacity(capacity);
 
         /// <summary>
         ///     Trim excess
         /// </summary>
         /// <returns>New capacity</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int TrimExcess()
-        {
-            var handle = _handle;
-            var threshold = (int)(handle->Capacity * 0.9);
-            if (handle->Size < threshold)
-                Capacity = handle->Size;
-            return handle->Capacity;
-        }
+        public int TrimExcess() => _handle->TrimExcess();
 
         /// <summary>
-        ///     Insert
+        ///     Set capacity
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
+        /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void Insert(int index, in TKey key, in TValue value)
-        {
-            var handle = _handle;
-            if (handle->Size == handle->Capacity)
-                EnsureCapacity(handle->Size + 1);
-            if (index < handle->Size)
-            {
-                Unsafe.CopyBlockUnaligned(handle->Keys + index + 1, handle->Keys + index, (uint)((handle->Size - index) * sizeof(TKey)));
-                Unsafe.CopyBlockUnaligned(handle->Values + index + 1, handle->Values + index, (uint)((handle->Size - index) * sizeof(TValue)));
-            }
-
-            handle->Keys[index] = key;
-            handle->Values[index] = value;
-            ++handle->Size;
-            ++handle->Version;
-        }
-
-        /// <summary>
-        ///     Binary search
-        /// </summary>
-        /// <param name="start">Start</param>
-        /// <param name="length">Length</param>
-        /// <param name="comparable">Comparable</param>
-        /// <returns>Index</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int BinarySearch(TKey* start, int length, in TKey comparable)
-        {
-            var low = 0;
-            var high = length - 1;
-            while (low <= high)
-            {
-                var i = (int)(((uint)high + (uint)low) >> 1);
-                var c = comparable.CompareTo(*(start + i));
-                if (c == 0)
-                    return i;
-                if (c > 0)
-                    low = i + 1;
-                else
-                    high = i - 1;
-            }
-
-            return ~low;
-        }
+        public void SetCapacity(int capacity) => _handle->SetCapacity(capacity);
 
         /// <summary>
         ///     Empty
@@ -562,7 +650,7 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
-        public Enumerator GetEnumerator() => new(this);
+        public Enumerator GetEnumerator() => new(_handle);
 
         /// <summary>
         ///     Enumerator
@@ -572,7 +660,7 @@ namespace NativeCollections
             /// <summary>
             ///     NativeSortedList
             /// </summary>
-            private readonly NativeSortedList<TKey, TValue> _nativeSortedList;
+            private readonly NativeSortedListHandle* _nativeSortedList;
 
             /// <summary>
             ///     Current
@@ -594,12 +682,13 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeSortedList">NativeSortedList</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(NativeSortedList<TKey, TValue> nativeSortedList)
+            internal Enumerator(void* nativeSortedList)
             {
-                _nativeSortedList = nativeSortedList;
+                var handle = (NativeSortedListHandle*)nativeSortedList;
+                _nativeSortedList = handle;
                 _current = default;
                 _index = 0;
-                _version = _nativeSortedList._handle->Version;
+                _version = handle->Version;
             }
 
             /// <summary>
@@ -609,7 +698,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext()
             {
-                var handle = _nativeSortedList._handle;
+                var handle = _nativeSortedList;
                 if (_version != handle->Version)
                     throw new InvalidOperationException("EnumFailedVersion");
                 if ((uint)_index < (uint)handle->Size)
@@ -642,14 +731,14 @@ namespace NativeCollections
             /// <summary>
             ///     NativeSortedList
             /// </summary>
-            private readonly NativeSortedList<TKey, TValue> _nativeSortedList;
+            private readonly NativeSortedListHandle* _nativeSortedList;
 
             /// <summary>
             ///     Structure
             /// </summary>
             /// <param name="nativeSortedList">NativeSortedList</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal KeyCollection(NativeSortedList<TKey, TValue> nativeSortedList) => _nativeSortedList = nativeSortedList;
+            internal KeyCollection(void* nativeSortedList) => _nativeSortedList = (NativeSortedListHandle*)nativeSortedList;
 
             /// <summary>
             ///     As readOnly span
@@ -658,7 +747,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public ReadOnlySpan<TKey> AsReadOnlySpan()
             {
-                var handle = _nativeSortedList._handle;
+                var handle = _nativeSortedList;
                 return MemoryMarshal.CreateReadOnlySpan(ref *handle->Keys, handle->Size);
             }
 
@@ -683,7 +772,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     NativeSortedList
                 /// </summary>
-                private readonly NativeSortedList<TKey, TValue> _nativeSortedList;
+                private readonly NativeSortedListHandle* _nativeSortedList;
 
                 /// <summary>
                 ///     Current
@@ -705,12 +794,13 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativeSortedList">NativeSortedList</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(NativeSortedList<TKey, TValue> nativeSortedList)
+                internal Enumerator(void* nativeSortedList)
                 {
-                    _nativeSortedList = nativeSortedList;
+                    var handle = (NativeSortedListHandle*)nativeSortedList;
+                    _nativeSortedList = handle;
                     _current = default;
                     _index = 0;
-                    _version = _nativeSortedList._handle->Version;
+                    _version = handle->Version;
                 }
 
                 /// <summary>
@@ -720,7 +810,7 @@ namespace NativeCollections
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public bool MoveNext()
                 {
-                    var handle = _nativeSortedList._handle;
+                    var handle = _nativeSortedList;
                     if (_version != handle->Version)
                         throw new InvalidOperationException("EnumFailedVersion");
                     if ((uint)_index < (uint)handle->Size)
@@ -754,14 +844,14 @@ namespace NativeCollections
             /// <summary>
             ///     NativeSortedList
             /// </summary>
-            private readonly NativeSortedList<TKey, TValue> _nativeSortedList;
+            private readonly NativeSortedListHandle* _nativeSortedList;
 
             /// <summary>
             ///     Structure
             /// </summary>
             /// <param name="nativeSortedList">NativeSortedList</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal ValueCollection(NativeSortedList<TKey, TValue> nativeSortedList) => _nativeSortedList = nativeSortedList;
+            internal ValueCollection(void* nativeSortedList) => _nativeSortedList = (NativeSortedListHandle*)nativeSortedList;
 
             /// <summary>
             ///     As span
@@ -770,7 +860,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public Span<TValue> AsSpan()
             {
-                var handle = _nativeSortedList._handle;
+                var handle = _nativeSortedList;
                 return MemoryMarshal.CreateSpan(ref *handle->Values, handle->Size);
             }
 
@@ -795,7 +885,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     NativeSortedList
                 /// </summary>
-                private readonly NativeSortedList<TKey, TValue> _nativeSortedList;
+                private readonly NativeSortedListHandle* _nativeSortedList;
 
                 /// <summary>
                 ///     Current
@@ -817,12 +907,13 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativeSortedList">NativeSortedList</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(NativeSortedList<TKey, TValue> nativeSortedList)
+                internal Enumerator(void* nativeSortedList)
                 {
-                    _nativeSortedList = nativeSortedList;
+                    var handle = (NativeSortedListHandle*)nativeSortedList;
+                    _nativeSortedList = handle;
                     _current = default;
                     _index = 0;
-                    _version = _nativeSortedList._handle->Version;
+                    _version = handle->Version;
                 }
 
                 /// <summary>
@@ -832,7 +923,7 @@ namespace NativeCollections
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public bool MoveNext()
                 {
-                    var handle = _nativeSortedList._handle;
+                    var handle = _nativeSortedList;
                     if (_version != handle->Version)
                         throw new InvalidOperationException("EnumFailedVersion");
                     if ((uint)_index < (uint)handle->Size)

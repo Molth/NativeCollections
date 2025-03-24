@@ -18,7 +18,7 @@ namespace NativeCollections
     /// <typeparam name="TKey">Type</typeparam>
     /// <typeparam name="TValue">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection]
+    [NativeCollection(NativeCollectionType.Standard)]
     public readonly unsafe struct NativeConcurrentDictionary<TKey, TValue> : IDisposable, IEquatable<NativeConcurrentDictionary<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged, IEquatable<TValue>
     {
         /// <summary>
@@ -50,7 +50,750 @@ namespace NativeCollections
             /// <summary>
             ///     Node lock
             /// </summary>
-            public fixed byte NodeLock[8];
+            public ulong NodeLock;
+
+            /// <summary>
+            ///     Get or set value
+            /// </summary>
+            /// <param name="key">Key</param>
+            public TValue this[in TKey key]
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get
+                {
+                    if (!TryGetValue(key, out var value))
+                        throw new KeyNotFoundException(key.ToString());
+                    return value;
+                }
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                set => TryAddInternal(Tables, key, value, true, true, out _);
+            }
+
+            /// <summary>
+            ///     Is created
+            /// </summary>
+            public bool IsEmpty
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get
+                {
+                    if (!AreAllBucketsEmpty())
+                        return false;
+                    var locksAcquired = 0;
+                    try
+                    {
+                        AcquireAllLocks(ref locksAcquired);
+                        return AreAllBucketsEmpty();
+                    }
+                    finally
+                    {
+                        ReleaseLocks(locksAcquired);
+                    }
+                }
+            }
+
+            /// <summary>
+            ///     Count
+            /// </summary>
+            public int Count
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get
+                {
+                    var locksAcquired = 0;
+                    try
+                    {
+                        AcquireAllLocks(ref locksAcquired);
+                        return GetCountNoLocks();
+                    }
+                    finally
+                    {
+                        ReleaseLocks(locksAcquired);
+                    }
+                }
+            }
+
+            /// <summary>
+            ///     Clear
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Clear()
+            {
+                var locksAcquired = 0;
+                try
+                {
+                    AcquireAllLocks(ref locksAcquired);
+                    if (AreAllBucketsEmpty())
+                        return;
+                    foreach (var bucket in Tables->Buckets)
+                    {
+                        var node = (Node*)bucket.Node;
+                        while (node != null)
+                        {
+                            var temp = node;
+                            node = node->Next;
+                            NodePool.Return(temp);
+                        }
+                    }
+
+                    var length = HashHelpers.GetPrime(31);
+                    if (Tables->Buckets.Length != length)
+                    {
+                        Tables->Buckets.Dispose();
+                        Tables->Buckets = new NativeArray<VolatileNode>(length, true);
+                    }
+                    else
+                    {
+                        Tables->Buckets.Clear();
+                    }
+
+                    Tables->CountPerLock.Clear();
+                    var budget = Tables->Buckets.Length / Tables->Locks.Length;
+                    Budget = budget >= 1 ? budget : 1;
+                }
+                finally
+                {
+                    ReleaseLocks(locksAcquired);
+                }
+            }
+
+            /// <summary>
+            ///     Try add
+            /// </summary>
+            /// <param name="key">Key</param>
+            /// <param name="value">Value</param>
+            /// <returns>Added</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool TryAdd(in TKey key, in TValue value) => TryAddInternal(Tables, key, value, false, true, out _);
+
+            /// <summary>
+            ///     Try remove
+            /// </summary>
+            /// <param name="key">Key</param>
+            /// <param name="value">Value</param>
+            /// <returns>Removed</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool TryRemove(in TKey key, out TValue value)
+            {
+                NativeConcurrentSpinLock nodeLock = Unsafe.AsPointer(ref NodeLock);
+                var tables = Tables;
+                var hashCode = key.GetHashCode();
+                while (true)
+                {
+                    var locks = tables->Locks;
+                    ref var bucket = ref GetBucketAndLock(tables, hashCode, out var lockNo);
+                    if (tables->CountPerLock[lockNo] != 0)
+                    {
+                        Monitor.Enter(locks[lockNo]);
+                        try
+                        {
+                            if (tables != Tables)
+                            {
+                                tables = Tables;
+                                continue;
+                            }
+
+                            Node* prev = null;
+                            for (var curr = (Node*)bucket; curr != null; curr = curr->Next)
+                            {
+                                if (hashCode == curr->HashCode && curr->Key.Equals(key))
+                                {
+                                    if (prev == null)
+                                        Volatile.Write(ref bucket, (nint)curr->Next);
+                                    else
+                                        prev->Next = curr->Next;
+                                    value = curr->Value;
+                                    nodeLock.Enter();
+                                    try
+                                    {
+                                        NodePool.Return(curr);
+                                    }
+                                    finally
+                                    {
+                                        nodeLock.Exit();
+                                    }
+
+                                    tables->CountPerLock[lockNo]--;
+                                    return true;
+                                }
+
+                                prev = curr;
+                            }
+                        }
+                        finally
+                        {
+                            Monitor.Exit(locks[lockNo]);
+                        }
+                    }
+
+                    value = default;
+                    return false;
+                }
+            }
+
+            /// <summary>
+            ///     Try remove
+            /// </summary>
+            /// <param name="keyValuePair">Key value pair</param>
+            /// <returns>Removed</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool TryRemove(in KeyValuePair<TKey, TValue> keyValuePair)
+            {
+                NativeConcurrentSpinLock nodeLock = Unsafe.AsPointer(ref NodeLock);
+                var key = keyValuePair.Key;
+                var oldValue = keyValuePair.Value;
+                var tables = Tables;
+                var hashCode = key.GetHashCode();
+                while (true)
+                {
+                    var locks = tables->Locks;
+                    ref var bucket = ref GetBucketAndLock(tables, hashCode, out var lockNo);
+                    if (tables->CountPerLock[lockNo] != 0)
+                    {
+                        Monitor.Enter(locks[lockNo]);
+                        try
+                        {
+                            if (tables != Tables)
+                            {
+                                tables = Tables;
+                                continue;
+                            }
+
+                            Node* prev = null;
+                            for (var curr = (Node*)bucket; curr != null; curr = curr->Next)
+                            {
+                                if (hashCode == curr->HashCode && curr->Key.Equals(key))
+                                {
+                                    if (!oldValue.Equals(curr->Value))
+                                        return false;
+                                    if (prev == null)
+                                        Volatile.Write(ref bucket, (nint)curr->Next);
+                                    else
+                                        prev->Next = curr->Next;
+                                    nodeLock.Enter();
+                                    try
+                                    {
+                                        NodePool.Return(curr);
+                                    }
+                                    finally
+                                    {
+                                        nodeLock.Exit();
+                                    }
+
+                                    tables->CountPerLock[lockNo]--;
+                                    return true;
+                                }
+
+                                prev = curr;
+                            }
+                        }
+                        finally
+                        {
+                            Monitor.Exit(locks[lockNo]);
+                        }
+                    }
+
+                    return false;
+                }
+            }
+
+            /// <summary>
+            ///     Contains key
+            /// </summary>
+            /// <param name="key">Key</param>
+            /// <returns>Contains key</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool ContainsKey(in TKey key)
+            {
+                var tables = Tables;
+                var hashCode = key.GetHashCode();
+                for (var node = (Node*)GetBucket(tables, hashCode); node != null; node = node->Next)
+                {
+                    if (hashCode == node->HashCode && node->Key.Equals(key))
+                        return true;
+                }
+
+                return false;
+            }
+
+            /// <summary>
+            ///     Try to get the value
+            /// </summary>
+            /// <param name="key">Key</param>
+            /// <param name="value">Value</param>
+            /// <returns>Got</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool TryGetValue(in TKey key, out TValue value)
+            {
+                var tables = Tables;
+                var hashCode = key.GetHashCode();
+                for (var node = (Node*)GetBucket(tables, hashCode); node != null; node = node->Next)
+                {
+                    if (hashCode == node->HashCode && node->Key.Equals(key))
+                    {
+                        value = node->Value;
+                        return true;
+                    }
+                }
+
+                value = default;
+                return false;
+            }
+
+            /// <summary>
+            ///     Try to get the value
+            /// </summary>
+            /// <param name="key">Key</param>
+            /// <param name="value">Value</param>
+            /// <returns>Got</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool TryGetValueReference(in TKey key, out NativeReference<TValue> value)
+            {
+                var tables = Tables;
+                var hashCode = key.GetHashCode();
+                for (var node = (Node*)GetBucket(tables, hashCode); node != null; node = node->Next)
+                {
+                    if (hashCode == node->HashCode && node->Key.Equals(key))
+                    {
+                        value = new NativeReference<TValue>(Unsafe.AsPointer(ref node->Value));
+                        return true;
+                    }
+                }
+
+                value = default;
+                return false;
+            }
+
+            /// <summary>
+            ///     Try update
+            /// </summary>
+            /// <param name="key">Key</param>
+            /// <param name="newValue">New value</param>
+            /// <param name="comparisonValue">Comparison value</param>
+            /// <returns>Updated</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool TryUpdate(in TKey key, in TValue newValue, in TValue comparisonValue) => TryUpdateInternal(Tables, key, newValue, comparisonValue);
+
+            /// <summary>
+            ///     Get or add value
+            /// </summary>
+            /// <param name="key">Key</param>
+            /// <param name="value">Value</param>
+            /// <returns>Value</returns>
+            public TValue GetOrAdd(in TKey key, in TValue value)
+            {
+                var tables = Tables;
+                var hashCode = key.GetHashCode();
+                if (!TryGetValueInternal(tables, key, hashCode, out var resultingValue))
+                    TryAddInternal(tables, key, value, false, true, out resultingValue);
+                return resultingValue;
+            }
+
+            /// <summary>
+            ///     Check all buckets are empty
+            /// </summary>
+            /// <returns>All buckets are empty</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private bool AreAllBucketsEmpty()
+            {
+#if NET8_0_OR_GREATER
+                return !Tables->CountPerLock.AsSpan().ContainsAnyExcept(0);
+#elif NET7_0_OR_GREATER
+                return !(Tables->CountPerLock.AsSpan().IndexOfAnyExcept(0) >= 0);
+#else
+                for (var i = 0; i < Tables->CountPerLock.Length; ++i)
+                {
+                    if (Tables->CountPerLock[i] != 0)
+                        return false;
+                }
+
+                return true;
+#endif
+            }
+
+            /// <summary>
+            ///     Grow table
+            /// </summary>
+            /// <param name="tables">Tables</param>
+            /// <param name="resizeDesired">Resize desired</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private void GrowTable(Tables* tables, bool resizeDesired)
+            {
+                var locksAcquired = 0;
+                try
+                {
+                    AcquireFirstLock(ref locksAcquired);
+                    if (tables != Tables)
+                        return;
+                    var newLength = tables->Buckets.Length;
+                    if (resizeDesired)
+                    {
+                        if (GetCountNoLocks() < tables->Buckets.Length / 4)
+                        {
+                            Budget = 2 * Budget;
+                            if (Budget < 0)
+                                Budget = int.MaxValue;
+                            return;
+                        }
+
+                        if ((newLength = tables->Buckets.Length * 2) < 0 || (newLength = HashHelpers.GetPrime(newLength)) > 2147483591)
+                        {
+                            newLength = 2147483591;
+                            Budget = int.MaxValue;
+                        }
+                    }
+
+                    var newLocks = tables->Locks;
+                    if (GrowLockArray && tables->Locks.Length < 1024)
+                    {
+                        newLocks = new NativeArrayReference<object>(tables->Locks.Length * 2);
+                        Array.Copy(tables->Locks.Array, newLocks.Array, tables->Locks.Length);
+                        for (var i = tables->Locks.Length; i < newLocks.Length; ++i)
+                            newLocks[i] = new object();
+                    }
+
+                    var newBuckets = new NativeArray<VolatileNode>(newLength, true);
+                    var newCountPerLock = new NativeArray<int>(newLocks.Length, true);
+                    var newTables = (Tables*)NativeMemoryAllocator.Alloc((uint)sizeof(Tables));
+                    newTables->Initialize(newBuckets, newLocks, newCountPerLock);
+                    AcquirePostFirstLock(tables, ref locksAcquired);
+                    foreach (var bucket in tables->Buckets)
+                    {
+                        var current = (Node*)bucket.Node;
+                        while (current != null)
+                        {
+                            var hashCode = current->HashCode;
+                            var next = current->Next;
+                            ref var newBucket = ref GetBucketAndLock(newTables, hashCode, out var newLockNo);
+                            var newNode = current;
+                            newNode->Initialize(current->Key, current->Value, hashCode, (Node*)newBucket);
+                            newBucket = (nint)newNode;
+                            checked
+                            {
+                                newCountPerLock[newLockNo]++;
+                            }
+
+                            current = next;
+                        }
+                    }
+
+                    var budget = newBuckets.Length / newLocks.Length;
+                    Budget = budget >= 1 ? budget : 1;
+                    Tables->Buckets.Dispose();
+                    if (Tables->Locks != newLocks)
+                        Tables->Locks.Dispose();
+                    Tables->CountPerLock.Dispose();
+                    NativeMemoryAllocator.Free(Tables);
+                    Tables = newTables;
+                }
+                finally
+                {
+                    ReleaseLocks(locksAcquired);
+                }
+            }
+
+            /// <summary>
+            ///     Acquire all locks
+            /// </summary>
+            /// <param name="locksAcquired">Locks acquired</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private void AcquireAllLocks(ref int locksAcquired)
+            {
+                AcquireFirstLock(ref locksAcquired);
+                AcquirePostFirstLock(Tables, ref locksAcquired);
+            }
+
+            /// <summary>
+            ///     Acquire first lock
+            /// </summary>
+            /// <param name="locksAcquired">Locks acquired</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private void AcquireFirstLock(ref int locksAcquired)
+            {
+                var locks = Tables->Locks;
+                Monitor.Enter(locks[0]);
+                locksAcquired = 1;
+            }
+
+            /// <summary>
+            ///     Acquire post first locks
+            /// </summary>
+            /// <param name="tables">Tables</param>
+            /// <param name="locksAcquired">Locks acquired</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private static void AcquirePostFirstLock(Tables* tables, ref int locksAcquired)
+            {
+                var locks = tables->Locks;
+                for (var i = 1; i < locks.Length; ++i)
+                {
+                    Monitor.Enter(locks[i]);
+                    locksAcquired++;
+                }
+            }
+
+            /// <summary>
+            ///     Release locks
+            /// </summary>
+            /// <param name="locksAcquired">Locks acquired</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private void ReleaseLocks(int locksAcquired)
+            {
+                var locks = Tables->Locks;
+                for (var i = 0; i < locksAcquired; ++i)
+                    Monitor.Exit(locks[i]);
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private bool TryAddInternal(Tables* tables, in TKey key, in TValue value, bool updateIfExists, bool acquireLock, out TValue resultingValue)
+            {
+                NativeConcurrentSpinLock nodeLock = Unsafe.AsPointer(ref NodeLock);
+                var hashCode = key.GetHashCode();
+                while (true)
+                {
+                    var locks = tables->Locks;
+                    ref var bucket = ref GetBucketAndLock(tables, hashCode, out var lockNo);
+                    var resizeDesired = false;
+                    var lockTaken = false;
+                    try
+                    {
+                        if (acquireLock)
+                            Monitor.Enter(locks[lockNo], ref lockTaken);
+                        if (tables != Tables)
+                        {
+                            tables = Tables;
+                            continue;
+                        }
+
+                        Node* prev = null;
+                        for (var node = (Node*)bucket; node != null; node = node->Next)
+                        {
+                            if (hashCode == node->HashCode && node->Key.Equals(key))
+                            {
+                                if (updateIfExists)
+                                {
+                                    if (TypeProps<TValue>.IsWriteAtomic)
+                                    {
+                                        node->Value = value;
+                                    }
+                                    else
+                                    {
+                                        Node* newNode;
+                                        nodeLock.Enter();
+                                        try
+                                        {
+                                            newNode = (Node*)NodePool.Rent();
+                                        }
+                                        finally
+                                        {
+                                            nodeLock.Exit();
+                                        }
+
+                                        newNode->Initialize(node->Key, value, hashCode, node->Next);
+                                        if (prev == null)
+                                            Volatile.Write(ref bucket, (nint)newNode);
+                                        else
+                                            prev->Next = newNode;
+                                        nodeLock.Enter();
+                                        try
+                                        {
+                                            NodePool.Return(node);
+                                        }
+                                        finally
+                                        {
+                                            nodeLock.Exit();
+                                        }
+                                    }
+
+                                    resultingValue = value;
+                                }
+                                else
+                                {
+                                    resultingValue = node->Value;
+                                }
+
+                                return false;
+                            }
+
+                            prev = node;
+                        }
+
+                        Node* resultNode;
+                        nodeLock.Enter();
+                        try
+                        {
+                            resultNode = (Node*)NodePool.Rent();
+                        }
+                        finally
+                        {
+                            nodeLock.Exit();
+                        }
+
+                        resultNode->Initialize(key, value, hashCode, (Node*)bucket);
+                        Volatile.Write(ref bucket, (nint)resultNode);
+                        checked
+                        {
+                            tables->CountPerLock[lockNo]++;
+                        }
+
+                        if (tables->CountPerLock[lockNo] > Budget)
+                            resizeDesired = true;
+                    }
+                    finally
+                    {
+                        if (lockTaken)
+                            Monitor.Exit(locks[lockNo]);
+                    }
+
+                    if (resizeDesired)
+                        GrowTable(tables, resizeDesired);
+                    resultingValue = value;
+                    return true;
+                }
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private bool TryUpdateInternal(Tables* tables, in TKey key, in TValue newValue, in TValue comparisonValue)
+            {
+                NativeConcurrentSpinLock nodeLock = Unsafe.AsPointer(ref NodeLock);
+                var hashCode = key.GetHashCode();
+                while (true)
+                {
+                    var locks = tables->Locks;
+                    ref var bucket = ref GetBucketAndLock(tables, hashCode, out var lockNo);
+                    Monitor.Enter(locks[lockNo]);
+                    try
+                    {
+                        if (tables != Tables)
+                        {
+                            tables = Tables;
+                            continue;
+                        }
+
+                        Node* prev = null;
+                        for (var node = (Node*)bucket; node != null; node = node->Next)
+                        {
+                            if (hashCode == node->HashCode && node->Key.Equals(key))
+                            {
+                                if (node->Value.Equals(comparisonValue))
+                                {
+                                    if (TypeProps<TValue>.IsWriteAtomic)
+                                    {
+                                        node->Value = newValue;
+                                    }
+                                    else
+                                    {
+                                        Node* newNode;
+                                        nodeLock.Enter();
+                                        try
+                                        {
+                                            newNode = (Node*)NodePool.Rent();
+                                        }
+                                        finally
+                                        {
+                                            nodeLock.Exit();
+                                        }
+
+                                        newNode->Initialize(node->Key, newValue, hashCode, node->Next);
+                                        if (prev == null)
+                                            Volatile.Write(ref bucket, (nint)newNode);
+                                        else
+                                            prev->Next = newNode;
+                                        nodeLock.Enter();
+                                        try
+                                        {
+                                            NodePool.Return(node);
+                                        }
+                                        finally
+                                        {
+                                            nodeLock.Exit();
+                                        }
+                                    }
+
+                                    return true;
+                                }
+
+                                return false;
+                            }
+
+                            prev = node;
+                        }
+
+                        return false;
+                    }
+                    finally
+                    {
+                        Monitor.Exit(locks[lockNo]);
+                    }
+                }
+            }
+
+            /// <summary>
+            ///     Try to get the value
+            /// </summary>
+            /// <param name="tables">Tables</param>
+            /// <param name="key">Key</param>
+            /// <param name="hashCode">HashCode</param>
+            /// <param name="value">Value</param>
+            /// <returns>Got</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private static bool TryGetValueInternal(Tables* tables, in TKey key, int hashCode, out TValue value)
+            {
+                for (var node = (Node*)GetBucket(tables, hashCode); node != null; node = node->Next)
+                {
+                    if (hashCode == node->HashCode && node->Key.Equals(key))
+                    {
+                        value = node->Value;
+                        return true;
+                    }
+                }
+
+                value = default;
+                return false;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private int GetCountNoLocks()
+            {
+                var count = 0;
+                foreach (var value in Tables->CountPerLock)
+                {
+                    checked
+                    {
+                        count += value;
+                    }
+                }
+
+                return count;
+            }
+
+            /// <summary>
+            ///     Get bucket
+            /// </summary>
+            /// <param name="tables">Tables</param>
+            /// <param name="hashCode">HashCode</param>
+            /// <returns>Bucket</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private static nint GetBucket(Tables* tables, int hashCode)
+            {
+                var buckets = tables->Buckets;
+                return nint.Size == 8 ? buckets[HashHelpers.FastMod((uint)hashCode, (uint)buckets.Length, tables->FastModBucketsMultiplier)].Node : buckets[(uint)hashCode % (uint)buckets.Length].Node;
+            }
+
+            /// <summary>
+            ///     Get bucket and lock
+            /// </summary>
+            /// <param name="tables">Tables</param>
+            /// <param name="hashCode">HashCode</param>
+            /// <param name="lockNo">Lock no</param>
+            /// <returns>Bucket</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private static ref nint GetBucketAndLock(Tables* tables, int hashCode, out uint lockNo)
+            {
+                var buckets = tables->Buckets;
+                var bucketNo = nint.Size == 8 ? HashHelpers.FastMod((uint)hashCode, (uint)buckets.Length, tables->FastModBucketsMultiplier) : (uint)hashCode % (uint)buckets.Length;
+                lockNo = bucketNo % (uint)tables->Locks.Length;
+                return ref buckets[bucketNo].Node;
+            }
         }
 
         /// <summary>
@@ -61,12 +804,12 @@ namespace NativeCollections
         /// <summary>
         ///     Keys
         /// </summary>
-        public KeyCollection Keys => new(this);
+        public KeyCollection Keys => new(_handle);
 
         /// <summary>
         ///     Values
         /// </summary>
-        public ValueCollection Values => new(this);
+        public ValueCollection Values => new(_handle);
 
         /// <summary>
         ///     Structure
@@ -96,7 +839,7 @@ namespace NativeCollections
             handle->GrowLockArray = growLockArray;
             handle->Budget = buckets.Length / locks.Length;
             handle->NodePool = nodePool;
-            NativeConcurrentSpinLock nodeLock = handle->NodeLock;
+            NativeConcurrentSpinLock nodeLock = &handle->NodeLock;
             nodeLock.Reset();
             _handle = handle;
         }
@@ -107,43 +850,24 @@ namespace NativeCollections
         public bool IsCreated => _handle != null;
 
         /// <summary>
-        ///     Is created
-        /// </summary>
-        public bool IsEmpty
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-                if (!AreAllBucketsEmpty())
-                    return false;
-                var locksAcquired = 0;
-                try
-                {
-                    AcquireAllLocks(ref locksAcquired);
-                    return AreAllBucketsEmpty();
-                }
-                finally
-                {
-                    ReleaseLocks(locksAcquired);
-                }
-            }
-        }
-
-        /// <summary>
         ///     Get or set value
         /// </summary>
         /// <param name="key">Key</param>
         public TValue this[in TKey key]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-                if (!TryGetValue(key, out var value))
-                    throw new KeyNotFoundException(key.ToString());
-                return value;
-            }
+            get => (*_handle)[key];
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => TryAddInternal(_handle->Tables, key, value, true, true, out _);
+            set => (*_handle)[key] = value;
+        }
+
+        /// <summary>
+        ///     Is created
+        /// </summary>
+        public bool IsEmpty
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _handle->IsEmpty;
         }
 
         /// <summary>
@@ -152,19 +876,7 @@ namespace NativeCollections
         public int Count
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-                var locksAcquired = 0;
-                try
-                {
-                    AcquireAllLocks(ref locksAcquired);
-                    return GetCountNoLocks();
-                }
-                finally
-                {
-                    ReleaseLocks(locksAcquired);
-                }
-            }
+            get => _handle->Count;
         }
 
         /// <summary>
@@ -228,46 +940,7 @@ namespace NativeCollections
         ///     Clear
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Clear()
-        {
-            var handle = _handle;
-            var locksAcquired = 0;
-            try
-            {
-                AcquireAllLocks(ref locksAcquired);
-                if (AreAllBucketsEmpty())
-                    return;
-                foreach (var bucket in handle->Tables->Buckets)
-                {
-                    var node = (Node*)bucket.Node;
-                    while (node != null)
-                    {
-                        var temp = node;
-                        node = node->Next;
-                        handle->NodePool.Return(temp);
-                    }
-                }
-
-                var length = HashHelpers.GetPrime(31);
-                if (handle->Tables->Buckets.Length != length)
-                {
-                    handle->Tables->Buckets.Dispose();
-                    handle->Tables->Buckets = new NativeArray<VolatileNode>(length, true);
-                }
-                else
-                {
-                    handle->Tables->Buckets.Clear();
-                }
-
-                handle->Tables->CountPerLock.Clear();
-                var budget = handle->Tables->Buckets.Length / handle->Tables->Locks.Length;
-                handle->Budget = budget >= 1 ? budget : 1;
-            }
-            finally
-            {
-                ReleaseLocks(locksAcquired);
-            }
-        }
+        public void Clear() => _handle->Clear();
 
         /// <summary>
         ///     Try add
@@ -276,7 +949,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Added</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryAdd(in TKey key, in TValue value) => TryAddInternal(_handle->Tables, key, value, false, true, out _);
+        public bool TryAdd(in TKey key, in TValue value) => _handle->TryAdd(key, value);
 
         /// <summary>
         ///     Try remove
@@ -285,64 +958,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryRemove(in TKey key, out TValue value)
-        {
-            var handle = _handle;
-            NativeConcurrentSpinLock nodeLock = handle->NodeLock;
-            var tables = handle->Tables;
-            var hashCode = key.GetHashCode();
-            while (true)
-            {
-                var locks = tables->Locks;
-                ref var bucket = ref GetBucketAndLock(tables, hashCode, out var lockNo);
-                if (tables->CountPerLock[lockNo] != 0)
-                {
-                    Monitor.Enter(locks[lockNo]);
-                    try
-                    {
-                        if (tables != handle->Tables)
-                        {
-                            tables = handle->Tables;
-                            continue;
-                        }
-
-                        Node* prev = null;
-                        for (var curr = (Node*)bucket; curr != null; curr = curr->Next)
-                        {
-                            if (hashCode == curr->HashCode && curr->Key.Equals(key))
-                            {
-                                if (prev == null)
-                                    Volatile.Write(ref bucket, (nint)curr->Next);
-                                else
-                                    prev->Next = curr->Next;
-                                value = curr->Value;
-                                nodeLock.Enter();
-                                try
-                                {
-                                    handle->NodePool.Return(curr);
-                                }
-                                finally
-                                {
-                                    nodeLock.Exit();
-                                }
-
-                                tables->CountPerLock[lockNo]--;
-                                return true;
-                            }
-
-                            prev = curr;
-                        }
-                    }
-                    finally
-                    {
-                        Monitor.Exit(locks[lockNo]);
-                    }
-                }
-
-                value = default;
-                return false;
-            }
-        }
+        public bool TryRemove(in TKey key, out TValue value) => _handle->TryRemove(key, out value);
 
         /// <summary>
         ///     Try remove
@@ -350,66 +966,7 @@ namespace NativeCollections
         /// <param name="keyValuePair">Key value pair</param>
         /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryRemove(in KeyValuePair<TKey, TValue> keyValuePair)
-        {
-            var handle = _handle;
-            NativeConcurrentSpinLock nodeLock = handle->NodeLock;
-            var key = keyValuePair.Key;
-            var oldValue = keyValuePair.Value;
-            var tables = handle->Tables;
-            var hashCode = key.GetHashCode();
-            while (true)
-            {
-                var locks = tables->Locks;
-                ref var bucket = ref GetBucketAndLock(tables, hashCode, out var lockNo);
-                if (tables->CountPerLock[lockNo] != 0)
-                {
-                    Monitor.Enter(locks[lockNo]);
-                    try
-                    {
-                        if (tables != handle->Tables)
-                        {
-                            tables = handle->Tables;
-                            continue;
-                        }
-
-                        Node* prev = null;
-                        for (var curr = (Node*)bucket; curr != null; curr = curr->Next)
-                        {
-                            if (hashCode == curr->HashCode && curr->Key.Equals(key))
-                            {
-                                if (!oldValue.Equals(curr->Value))
-                                    return false;
-                                if (prev == null)
-                                    Volatile.Write(ref bucket, (nint)curr->Next);
-                                else
-                                    prev->Next = curr->Next;
-                                nodeLock.Enter();
-                                try
-                                {
-                                    handle->NodePool.Return(curr);
-                                }
-                                finally
-                                {
-                                    nodeLock.Exit();
-                                }
-
-                                tables->CountPerLock[lockNo]--;
-                                return true;
-                            }
-
-                            prev = curr;
-                        }
-                    }
-                    finally
-                    {
-                        Monitor.Exit(locks[lockNo]);
-                    }
-                }
-
-                return false;
-            }
-        }
+        public bool TryRemove(in KeyValuePair<TKey, TValue> keyValuePair) => _handle->TryRemove(keyValuePair);
 
         /// <summary>
         ///     Contains key
@@ -417,18 +974,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Contains key</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool ContainsKey(in TKey key)
-        {
-            var tables = _handle->Tables;
-            var hashCode = key.GetHashCode();
-            for (var node = (Node*)GetBucket(tables, hashCode); node != null; node = node->Next)
-            {
-                if (hashCode == node->HashCode && node->Key.Equals(key))
-                    return true;
-            }
-
-            return false;
-        }
+        public bool ContainsKey(in TKey key) => _handle->ContainsKey(key);
 
         /// <summary>
         ///     Try to get the value
@@ -437,22 +983,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValue(in TKey key, out TValue value)
-        {
-            var tables = _handle->Tables;
-            var hashCode = key.GetHashCode();
-            for (var node = (Node*)GetBucket(tables, hashCode); node != null; node = node->Next)
-            {
-                if (hashCode == node->HashCode && node->Key.Equals(key))
-                {
-                    value = node->Value;
-                    return true;
-                }
-            }
-
-            value = default;
-            return false;
-        }
+        public bool TryGetValue(in TKey key, out TValue value) => _handle->TryGetValue(key, out value);
 
         /// <summary>
         ///     Try to get the value
@@ -461,22 +992,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueReference(in TKey key, out NativeReference<TValue> value)
-        {
-            var tables = _handle->Tables;
-            var hashCode = key.GetHashCode();
-            for (var node = (Node*)GetBucket(tables, hashCode); node != null; node = node->Next)
-            {
-                if (hashCode == node->HashCode && node->Key.Equals(key))
-                {
-                    value = new NativeReference<TValue>(Unsafe.AsPointer(ref node->Value));
-                    return true;
-                }
-            }
-
-            value = default;
-            return false;
-        }
+        public bool TryGetValueReference(in TKey key, out NativeReference<TValue> value) => _handle->TryGetValueReference(key, out value);
 
         /// <summary>
         ///     Try update
@@ -486,7 +1002,7 @@ namespace NativeCollections
         /// <param name="comparisonValue">Comparison value</param>
         /// <returns>Updated</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryUpdate(in TKey key, in TValue newValue, in TValue comparisonValue) => TryUpdateInternal(_handle->Tables, key, newValue, comparisonValue);
+        public bool TryUpdate(in TKey key, in TValue newValue, in TValue comparisonValue) => _handle->TryUpdate(key, newValue, comparisonValue);
 
         /// <summary>
         ///     Get or add value
@@ -494,425 +1010,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <param name="value">Value</param>
         /// <returns>Value</returns>
-        public TValue GetOrAdd(in TKey key, in TValue value)
-        {
-            var tables = _handle->Tables;
-            var hashCode = key.GetHashCode();
-            if (!TryGetValueInternal(tables, key, hashCode, out var resultingValue))
-                TryAddInternal(tables, key, value, false, true, out resultingValue);
-            return resultingValue;
-        }
-
-        /// <summary>
-        ///     Check all buckets are empty
-        /// </summary>
-        /// <returns>All buckets are empty</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool AreAllBucketsEmpty()
-        {
-            var handle = _handle;
-#if NET8_0_OR_GREATER
-            return !handle->Tables->CountPerLock.AsSpan().ContainsAnyExcept(0);
-#elif NET7_0_OR_GREATER
-            return !(handle->Tables->CountPerLock.AsSpan().IndexOfAnyExcept(0) >= 0);
-#else
-            for (var i = 0; i < handle->Tables->CountPerLock.Length; ++i)
-            {
-                if (handle->Tables->CountPerLock[i] != 0)
-                    return false;
-            }
-
-            return true;
-#endif
-        }
-
-        /// <summary>
-        ///     Grow table
-        /// </summary>
-        /// <param name="tables">Tables</param>
-        /// <param name="resizeDesired">Resize desired</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void GrowTable(Tables* tables, bool resizeDesired)
-        {
-            var handle = _handle;
-            var locksAcquired = 0;
-            try
-            {
-                AcquireFirstLock(ref locksAcquired);
-                if (tables != handle->Tables)
-                    return;
-                var newLength = tables->Buckets.Length;
-                if (resizeDesired)
-                {
-                    if (GetCountNoLocks() < tables->Buckets.Length / 4)
-                    {
-                        handle->Budget = 2 * handle->Budget;
-                        if (handle->Budget < 0)
-                            handle->Budget = int.MaxValue;
-                        return;
-                    }
-
-                    if ((newLength = tables->Buckets.Length * 2) < 0 || (newLength = HashHelpers.GetPrime(newLength)) > 2147483591)
-                    {
-                        newLength = 2147483591;
-                        handle->Budget = int.MaxValue;
-                    }
-                }
-
-                var newLocks = tables->Locks;
-                if (handle->GrowLockArray && tables->Locks.Length < 1024)
-                {
-                    newLocks = new NativeArrayReference<object>(tables->Locks.Length * 2);
-                    Array.Copy(tables->Locks.Array, newLocks.Array, tables->Locks.Length);
-                    for (var i = tables->Locks.Length; i < newLocks.Length; ++i)
-                        newLocks[i] = new object();
-                }
-
-                var newBuckets = new NativeArray<VolatileNode>(newLength, true);
-                var newCountPerLock = new NativeArray<int>(newLocks.Length, true);
-                var newTables = (Tables*)NativeMemoryAllocator.Alloc((uint)sizeof(Tables));
-                newTables->Initialize(newBuckets, newLocks, newCountPerLock);
-                AcquirePostFirstLock(tables, ref locksAcquired);
-                foreach (var bucket in tables->Buckets)
-                {
-                    var current = (Node*)bucket.Node;
-                    while (current != null)
-                    {
-                        var hashCode = current->HashCode;
-                        var next = current->Next;
-                        ref var newBucket = ref GetBucketAndLock(newTables, hashCode, out var newLockNo);
-                        var newNode = current;
-                        newNode->Initialize(current->Key, current->Value, hashCode, (Node*)newBucket);
-                        newBucket = (nint)newNode;
-                        checked
-                        {
-                            newCountPerLock[newLockNo]++;
-                        }
-
-                        current = next;
-                    }
-                }
-
-                var budget = newBuckets.Length / newLocks.Length;
-                handle->Budget = budget >= 1 ? budget : 1;
-                handle->Tables->Buckets.Dispose();
-                if (handle->Tables->Locks != newLocks)
-                    handle->Tables->Locks.Dispose();
-                handle->Tables->CountPerLock.Dispose();
-                NativeMemoryAllocator.Free(handle->Tables);
-                handle->Tables = newTables;
-            }
-            finally
-            {
-                ReleaseLocks(locksAcquired);
-            }
-        }
-
-        /// <summary>
-        ///     Acquire all locks
-        /// </summary>
-        /// <param name="locksAcquired">Locks acquired</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void AcquireAllLocks(ref int locksAcquired)
-        {
-            AcquireFirstLock(ref locksAcquired);
-            AcquirePostFirstLock(_handle->Tables, ref locksAcquired);
-        }
-
-        /// <summary>
-        ///     Acquire first lock
-        /// </summary>
-        /// <param name="locksAcquired">Locks acquired</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void AcquireFirstLock(ref int locksAcquired)
-        {
-            var locks = _handle->Tables->Locks;
-            Monitor.Enter(locks[0]);
-            locksAcquired = 1;
-        }
-
-        /// <summary>
-        ///     Acquire post first locks
-        /// </summary>
-        /// <param name="tables">Tables</param>
-        /// <param name="locksAcquired">Locks acquired</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void AcquirePostFirstLock(Tables* tables, ref int locksAcquired)
-        {
-            var locks = tables->Locks;
-            for (var i = 1; i < locks.Length; ++i)
-            {
-                Monitor.Enter(locks[i]);
-                locksAcquired++;
-            }
-        }
-
-        /// <summary>
-        ///     Release locks
-        /// </summary>
-        /// <param name="locksAcquired">Locks acquired</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ReleaseLocks(int locksAcquired)
-        {
-            var locks = _handle->Tables->Locks;
-            for (var i = 0; i < locksAcquired; ++i)
-                Monitor.Exit(locks[i]);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool TryAddInternal(Tables* tables, in TKey key, in TValue value, bool updateIfExists, bool acquireLock, out TValue resultingValue)
-        {
-            var handle = _handle;
-            NativeConcurrentSpinLock nodeLock = handle->NodeLock;
-            var hashCode = key.GetHashCode();
-            while (true)
-            {
-                var locks = tables->Locks;
-                ref var bucket = ref GetBucketAndLock(tables, hashCode, out var lockNo);
-                var resizeDesired = false;
-                var lockTaken = false;
-                try
-                {
-                    if (acquireLock)
-                        Monitor.Enter(locks[lockNo], ref lockTaken);
-                    if (tables != handle->Tables)
-                    {
-                        tables = handle->Tables;
-                        continue;
-                    }
-
-                    Node* prev = null;
-                    for (var node = (Node*)bucket; node != null; node = node->Next)
-                    {
-                        if (hashCode == node->HashCode && node->Key.Equals(key))
-                        {
-                            if (updateIfExists)
-                            {
-                                if (TypeProps<TValue>.IsWriteAtomic)
-                                {
-                                    node->Value = value;
-                                }
-                                else
-                                {
-                                    Node* newNode;
-                                    nodeLock.Enter();
-                                    try
-                                    {
-                                        newNode = (Node*)handle->NodePool.Rent();
-                                    }
-                                    finally
-                                    {
-                                        nodeLock.Exit();
-                                    }
-
-                                    newNode->Initialize(node->Key, value, hashCode, node->Next);
-                                    if (prev == null)
-                                        Volatile.Write(ref bucket, (nint)newNode);
-                                    else
-                                        prev->Next = newNode;
-                                    nodeLock.Enter();
-                                    try
-                                    {
-                                        handle->NodePool.Return(node);
-                                    }
-                                    finally
-                                    {
-                                        nodeLock.Exit();
-                                    }
-                                }
-
-                                resultingValue = value;
-                            }
-                            else
-                            {
-                                resultingValue = node->Value;
-                            }
-
-                            return false;
-                        }
-
-                        prev = node;
-                    }
-
-                    Node* resultNode;
-                    nodeLock.Enter();
-                    try
-                    {
-                        resultNode = (Node*)handle->NodePool.Rent();
-                    }
-                    finally
-                    {
-                        nodeLock.Exit();
-                    }
-
-                    resultNode->Initialize(key, value, hashCode, (Node*)bucket);
-                    Volatile.Write(ref bucket, (nint)resultNode);
-                    checked
-                    {
-                        tables->CountPerLock[lockNo]++;
-                    }
-
-                    if (tables->CountPerLock[lockNo] > handle->Budget)
-                        resizeDesired = true;
-                }
-                finally
-                {
-                    if (lockTaken)
-                        Monitor.Exit(locks[lockNo]);
-                }
-
-                if (resizeDesired)
-                    GrowTable(tables, resizeDesired);
-                resultingValue = value;
-                return true;
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool TryUpdateInternal(Tables* tables, in TKey key, in TValue newValue, in TValue comparisonValue)
-        {
-            var handle = _handle;
-            NativeConcurrentSpinLock nodeLock = handle->NodeLock;
-            var hashCode = key.GetHashCode();
-            while (true)
-            {
-                var locks = tables->Locks;
-                ref var bucket = ref GetBucketAndLock(tables, hashCode, out var lockNo);
-                Monitor.Enter(locks[lockNo]);
-                try
-                {
-                    if (tables != handle->Tables)
-                    {
-                        tables = handle->Tables;
-                        continue;
-                    }
-
-                    Node* prev = null;
-                    for (var node = (Node*)bucket; node != null; node = node->Next)
-                    {
-                        if (hashCode == node->HashCode && node->Key.Equals(key))
-                        {
-                            if (node->Value.Equals(comparisonValue))
-                            {
-                                if (TypeProps<TValue>.IsWriteAtomic)
-                                {
-                                    node->Value = newValue;
-                                }
-                                else
-                                {
-                                    Node* newNode;
-                                    nodeLock.Enter();
-                                    try
-                                    {
-                                        newNode = (Node*)handle->NodePool.Rent();
-                                    }
-                                    finally
-                                    {
-                                        nodeLock.Exit();
-                                    }
-
-                                    newNode->Initialize(node->Key, newValue, hashCode, node->Next);
-                                    if (prev == null)
-                                        Volatile.Write(ref bucket, (nint)newNode);
-                                    else
-                                        prev->Next = newNode;
-                                    nodeLock.Enter();
-                                    try
-                                    {
-                                        handle->NodePool.Return(node);
-                                    }
-                                    finally
-                                    {
-                                        nodeLock.Exit();
-                                    }
-                                }
-
-                                return true;
-                            }
-
-                            return false;
-                        }
-
-                        prev = node;
-                    }
-
-                    return false;
-                }
-                finally
-                {
-                    Monitor.Exit(locks[lockNo]);
-                }
-            }
-        }
-
-        /// <summary>
-        ///     Try to get the value
-        /// </summary>
-        /// <param name="tables">Tables</param>
-        /// <param name="key">Key</param>
-        /// <param name="hashCode">HashCode</param>
-        /// <param name="value">Value</param>
-        /// <returns>Got</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool TryGetValueInternal(Tables* tables, in TKey key, int hashCode, out TValue value)
-        {
-            for (var node = (Node*)GetBucket(tables, hashCode); node != null; node = node->Next)
-            {
-                if (hashCode == node->HashCode && node->Key.Equals(key))
-                {
-                    value = node->Value;
-                    return true;
-                }
-            }
-
-            value = default;
-            return false;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private int GetCountNoLocks()
-        {
-            var handle = _handle;
-            var count = 0;
-            foreach (var value in handle->Tables->CountPerLock)
-            {
-                checked
-                {
-                    count += value;
-                }
-            }
-
-            return count;
-        }
-
-        /// <summary>
-        ///     Get bucket
-        /// </summary>
-        /// <param name="tables">Tables</param>
-        /// <param name="hashCode">HashCode</param>
-        /// <returns>Bucket</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static nint GetBucket(Tables* tables, int hashCode)
-        {
-            var buckets = tables->Buckets;
-            return IntPtr.Size == 8 ? buckets[HashHelpers.FastMod((uint)hashCode, (uint)buckets.Length, tables->FastModBucketsMultiplier)].Node : buckets[(uint)hashCode % (uint)buckets.Length].Node;
-        }
-
-        /// <summary>
-        ///     Get bucket and lock
-        /// </summary>
-        /// <param name="tables">Tables</param>
-        /// <param name="hashCode">HashCode</param>
-        /// <param name="lockNo">Lock no</param>
-        /// <returns>Bucket</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static ref nint GetBucketAndLock(Tables* tables, int hashCode, out uint lockNo)
-        {
-            var buckets = tables->Buckets;
-            var bucketNo = IntPtr.Size == 8 ? HashHelpers.FastMod((uint)hashCode, (uint)buckets.Length, tables->FastModBucketsMultiplier) : (uint)hashCode % (uint)buckets.Length;
-            lockNo = bucketNo % (uint)tables->Locks.Length;
-            return ref buckets[bucketNo].Node;
-        }
+        public TValue GetOrAdd(in TKey key, in TValue value) => _handle->GetOrAdd(key, value);
 
         /// <summary>
         ///     Volatile node
@@ -1004,7 +1102,7 @@ namespace NativeCollections
                 Buckets = buckets;
                 Locks = locks;
                 CountPerLock = countPerLock;
-                FastModBucketsMultiplier = IntPtr.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)buckets.Length) : 0;
+                FastModBucketsMultiplier = nint.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)buckets.Length) : 0;
             }
 
             /// <summary>
@@ -1028,7 +1126,7 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
-        public Enumerator GetEnumerator() => new(this);
+        public Enumerator GetEnumerator() => new(_handle);
 
         /// <summary>
         ///     Enumerator
@@ -1038,7 +1136,7 @@ namespace NativeCollections
             /// <summary>
             ///     NativeConcurrentDictionary
             /// </summary>
-            private readonly NativeConcurrentDictionary<TKey, TValue> _nativeConcurrentDictionary;
+            private readonly NativeConcurrentDictionary<TKey, TValue> .NativeConcurrentDictionaryHandle*_nativeConcurrentDictionary;
 
             /// <summary>
             ///     Buckets
@@ -1090,9 +1188,9 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeConcurrentDictionary">NativeConcurrentDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(NativeConcurrentDictionary<TKey, TValue> nativeConcurrentDictionary)
+            internal Enumerator(void* nativeConcurrentDictionary)
             {
-                _nativeConcurrentDictionary = nativeConcurrentDictionary;
+                _nativeConcurrentDictionary = (NativeConcurrentDictionaryHandle*)nativeConcurrentDictionary;
                 _index = -1;
                 _buckets = default;
                 _node = null;
@@ -1110,7 +1208,7 @@ namespace NativeCollections
                 switch (_state)
                 {
                     case STATE_UNINITIALIZED:
-                        _buckets = _nativeConcurrentDictionary._handle->Tables->Buckets;
+                        _buckets = _nativeConcurrentDictionary->Tables->Buckets;
                         _index = -1;
                         goto case STATE_OUTER_LOOP;
                     case STATE_OUTER_LOOP:
@@ -1159,14 +1257,14 @@ namespace NativeCollections
             /// <summary>
             ///     NativeConcurrentDictionary
             /// </summary>
-            private readonly NativeConcurrentDictionary<TKey, TValue> _nativeConcurrentDictionary;
+            private readonly NativeConcurrentDictionary<TKey, TValue> .NativeConcurrentDictionaryHandle* _nativeConcurrentDictionary;
 
             /// <summary>
             ///     Structure
             /// </summary>
             /// <param name="nativeConcurrentDictionary">NativeConcurrentDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal KeyCollection(NativeConcurrentDictionary<TKey, TValue> nativeConcurrentDictionary) => _nativeConcurrentDictionary = nativeConcurrentDictionary;
+            internal KeyCollection(void* nativeConcurrentDictionary) => _nativeConcurrentDictionary = (NativeConcurrentDictionaryHandle*)nativeConcurrentDictionary;
 
             /// <summary>
             ///     Get enumerator
@@ -1182,7 +1280,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     NativeConcurrentDictionary
                 /// </summary>
-                private readonly NativeConcurrentDictionary<TKey, TValue> _nativeConcurrentDictionary;
+                private readonly NativeConcurrentDictionary<TKey, TValue> .NativeConcurrentDictionaryHandle* _nativeConcurrentDictionary;
 
                 /// <summary>
                 ///     Buckets
@@ -1234,9 +1332,9 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativeConcurrentDictionary">NativeConcurrentDictionary</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(NativeConcurrentDictionary<TKey, TValue> nativeConcurrentDictionary)
+                internal Enumerator(void* nativeConcurrentDictionary)
                 {
-                    _nativeConcurrentDictionary = nativeConcurrentDictionary;
+                    _nativeConcurrentDictionary = (NativeConcurrentDictionaryHandle*)nativeConcurrentDictionary;
                     _index = -1;
                     _buckets = default;
                     _node = null;
@@ -1254,7 +1352,7 @@ namespace NativeCollections
                     switch (_state)
                     {
                         case STATE_UNINITIALIZED:
-                            _buckets = _nativeConcurrentDictionary._handle->Tables->Buckets;
+                            _buckets = _nativeConcurrentDictionary->Tables->Buckets;
                             _index = -1;
                             goto case STATE_OUTER_LOOP;
                         case STATE_OUTER_LOOP:
@@ -1304,14 +1402,14 @@ namespace NativeCollections
             /// <summary>
             ///     NativeConcurrentDictionary
             /// </summary>
-            private readonly NativeConcurrentDictionary<TKey, TValue> _nativeConcurrentDictionary;
+            private readonly NativeConcurrentDictionary<TKey, TValue>  .NativeConcurrentDictionaryHandle*_nativeConcurrentDictionary;
 
             /// <summary>
             ///     Structure
             /// </summary>
             /// <param name="nativeConcurrentDictionary">NativeConcurrentDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal ValueCollection(NativeConcurrentDictionary<TKey, TValue> nativeConcurrentDictionary) => _nativeConcurrentDictionary = nativeConcurrentDictionary;
+            internal ValueCollection(void* nativeConcurrentDictionary) => _nativeConcurrentDictionary = (NativeConcurrentDictionaryHandle*)nativeConcurrentDictionary;
 
             /// <summary>
             ///     Get enumerator
@@ -1327,7 +1425,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     NativeConcurrentDictionary
                 /// </summary>
-                private readonly NativeConcurrentDictionary<TKey, TValue> _nativeConcurrentDictionary;
+                private readonly NativeConcurrentDictionary<TKey, TValue>  .NativeConcurrentDictionaryHandle*_nativeConcurrentDictionary;
 
                 /// <summary>
                 ///     Buckets
@@ -1379,9 +1477,9 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativeConcurrentDictionary">NativeConcurrentDictionary</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(NativeConcurrentDictionary<TKey, TValue> nativeConcurrentDictionary)
+                internal Enumerator(void* nativeConcurrentDictionary)
                 {
-                    _nativeConcurrentDictionary = nativeConcurrentDictionary;
+                    _nativeConcurrentDictionary = (NativeConcurrentDictionaryHandle*)nativeConcurrentDictionary;
                     _index = -1;
                     _buckets = default;
                     _node = null;
@@ -1399,7 +1497,7 @@ namespace NativeCollections
                     switch (_state)
                     {
                         case STATE_UNINITIALIZED:
-                            _buckets = _nativeConcurrentDictionary._handle->Tables->Buckets;
+                            _buckets = _nativeConcurrentDictionary->Tables->Buckets;
                             _index = -1;
                             goto case STATE_OUTER_LOOP;
                         case STATE_OUTER_LOOP:

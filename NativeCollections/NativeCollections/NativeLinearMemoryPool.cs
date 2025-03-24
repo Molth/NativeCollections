@@ -13,7 +13,7 @@ namespace NativeCollections
     ///     Native linear memory pool
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection]
+    [NativeCollection(NativeCollectionType.None)]
     public readonly unsafe struct NativeLinearMemoryPool : IDisposable, IEquatable<NativeLinearMemoryPool>
     {
         /// <summary>

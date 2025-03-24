@@ -15,7 +15,7 @@ namespace NativeCollections
     ///     Native random
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection]
+    [NativeCollection(NativeCollectionType.Community)]
     public unsafe struct NativeXorshift32 : IEquatable<NativeXorshift32>
     {
         /// <summary>

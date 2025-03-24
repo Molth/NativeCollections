@@ -14,7 +14,7 @@ namespace NativeCollections
     ///     Native concurrentFixedSizeBucket
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection]
+    [NativeCollection(NativeCollectionType.None)]
     public readonly unsafe struct NativeConcurrentFixedSizeBucket : IDisposable, IEquatable<NativeConcurrentFixedSizeBucket>
     {
         /// <summary>

@@ -9,10 +9,16 @@ namespace NativeCollections
     /// </summary>
     [AttributeUsage(AttributeTargets.Struct)]
     public sealed class NativeCollectionAttribute : Attribute
-#if NET7_0_OR_GREATER
-    ;
-#else
     {
+        /// <summary>
+        ///     Type
+        /// </summary>
+        public readonly NativeCollectionType Type;
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="type">Type</param>
+        public NativeCollectionAttribute(NativeCollectionType type ) => Type = type;
     }
-#endif
 }

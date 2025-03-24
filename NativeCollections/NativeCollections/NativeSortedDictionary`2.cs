@@ -16,7 +16,7 @@ namespace NativeCollections
     /// <typeparam name="TKey">Type</typeparam>
     /// <typeparam name="TValue">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection]
+    [NativeCollection(NativeCollectionType.Standard)]
     public readonly unsafe struct NativeSortedDictionary<TKey, TValue> : IDisposable, IEquatable<NativeSortedDictionary<TKey, TValue>> where TKey : unmanaged, IComparable<TKey> where TValue : unmanaged
     {
         /// <summary>
@@ -44,6 +44,479 @@ namespace NativeCollections
             ///     Node pool
             /// </summary>
             public NativeMemoryPool NodePool;
+
+            /// <summary>
+            ///     Min
+            /// </summary>
+            public KeyValuePair<TKey, TValue>? Min
+            {
+                get
+                {
+                    if (Root == null)
+                        return default;
+                    var current = Root;
+                    while (current->Left != null)
+                        current = current->Left;
+                    return new KeyValuePair<TKey, TValue>(current->Key, current->Value);
+                }
+            }
+
+            /// <summary>
+            ///     Max
+            /// </summary>
+            public KeyValuePair<TKey, TValue>? Max
+            {
+                get
+                {
+                    if (Root == null)
+                        return default;
+                    var current = Root;
+                    while (current->Right != null)
+                        current = current->Right;
+                    return new KeyValuePair<TKey, TValue>(current->Key, current->Value);
+                }
+            }
+
+            /// <summary>
+            ///     Get or set value
+            /// </summary>
+            /// <param name="key">Key</param>
+            public TValue this[in TKey key]
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get
+                {
+                    if (!TryGetValue(key, out var value))
+                        throw new KeyNotFoundException(key.ToString());
+                    return value;
+                }
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                set
+                {
+                    var node = FindNode(key);
+                    if (node == null)
+                    {
+                        Add(key, value);
+                    }
+                    else
+                    {
+                        node->Value = value;
+                        Version++;
+                    }
+                }
+            }
+
+            /// <summary>
+            ///     Clear
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Clear()
+            {
+                if (Root != null)
+                {
+                    var nodeStack = new NativeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(Count + 1)));
+                    nodeStack.Push((nint)Root);
+                    while (nodeStack.TryPop(out var node))
+                    {
+                        var currentNode = (Node*)node;
+                        if (currentNode->Left != null)
+                            nodeStack.Push((nint)currentNode->Left);
+                        if (currentNode->Right != null)
+                            nodeStack.Push((nint)currentNode->Right);
+                        NodePool.Return(currentNode);
+                    }
+
+                    nodeStack.Dispose();
+                }
+
+                Root = null;
+                Count = 0;
+                ++Version;
+            }
+
+            /// <summary>
+            ///     Add
+            /// </summary>
+            /// <param name="key">Key</param>
+            /// <param name="value">Value</param>
+            /// <returns>Added</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool Add(in TKey key, in TValue value)
+            {
+                if (Root == null)
+                {
+                    Root = (Node*)NodePool.Rent();
+                    Root->Key = key;
+                    Root->Value = value;
+                    Root->Left = null;
+                    Root->Right = null;
+                    Root->Color = NodeColor.Black;
+                    Count = 1;
+                    Version++;
+                    return true;
+                }
+
+                var current = Root;
+                Node* parent = null;
+                Node* grandParent = null;
+                Node* greatGrandParent = null;
+                Version++;
+                var order = 0;
+                while (current != null)
+                {
+                    order = key.CompareTo(current->Key);
+                    if (order == 0)
+                    {
+                        Root->ColorBlack();
+                        return false;
+                    }
+
+                    if (current->Is4Node)
+                    {
+                        current->Split4Node();
+                        if (Node.IsNonNullRed(parent))
+                            InsertionBalance(current, parent, grandParent, greatGrandParent);
+                    }
+
+                    greatGrandParent = grandParent;
+                    grandParent = parent;
+                    parent = current;
+                    current = order < 0 ? current->Left : current->Right;
+                }
+
+                var node = (Node*)NodePool.Rent();
+                node->Key = key;
+                node->Value = value;
+                node->Left = null;
+                node->Right = null;
+                node->Color = NodeColor.Red;
+                if (order > 0)
+                    parent->Right = node;
+                else
+                    parent->Left = node;
+                if (parent->IsRed)
+                    InsertionBalance(node, parent, grandParent, greatGrandParent);
+                Root->ColorBlack();
+                ++Count;
+                return true;
+            }
+
+            /// <summary>
+            ///     Remove
+            /// </summary>
+            /// <param name="key">Key</param>
+            /// <returns>Removed</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool Remove(in TKey key)
+            {
+                if (Root == null)
+                    return false;
+                Version++;
+                var current = Root;
+                Node* parent = null;
+                Node* grandParent = null;
+                Node* match = null;
+                Node* parentOfMatch = null;
+                var foundMatch = false;
+                while (current != null)
+                {
+                    if (current->Is2Node)
+                    {
+                        if (parent == null)
+                        {
+                            current->ColorRed();
+                        }
+                        else
+                        {
+                            var sibling = parent->GetSibling(current);
+                            if (sibling->IsRed)
+                            {
+                                if (parent->Right == sibling)
+                                    parent->RotateLeft();
+                                else
+                                    parent->RotateRight();
+                                parent->ColorRed();
+                                sibling->ColorBlack();
+                                ReplaceChildOrRoot(grandParent, parent, sibling);
+                                grandParent = sibling;
+                                if (parent == match)
+                                    parentOfMatch = sibling;
+                                sibling = parent->GetSibling(current);
+                            }
+
+                            if (sibling->Is2Node)
+                            {
+                                parent->Merge2Nodes();
+                            }
+                            else
+                            {
+                                var newGrandParent = parent->Rotate(parent->GetRotation(current, sibling));
+                                newGrandParent->Color = parent->Color;
+                                parent->ColorBlack();
+                                current->ColorRed();
+                                ReplaceChildOrRoot(grandParent, parent, newGrandParent);
+                                if (parent == match)
+                                    parentOfMatch = newGrandParent;
+                            }
+                        }
+                    }
+
+                    var order = foundMatch ? -1 : key.CompareTo(current->Key);
+                    if (order == 0)
+                    {
+                        foundMatch = true;
+                        match = current;
+                        parentOfMatch = parent;
+                    }
+
+                    grandParent = parent;
+                    parent = current;
+                    current = order < 0 ? current->Left : current->Right;
+                }
+
+                if (match != null)
+                {
+                    ReplaceNode(match, parentOfMatch, parent, grandParent);
+                    --Count;
+                    NodePool.Return(match);
+                }
+
+                if (Root != null)
+                    Root->ColorBlack();
+                return foundMatch;
+            }
+
+            /// <summary>
+            ///     Remove
+            /// </summary>
+            /// <param name="key">Key</param>
+            /// <param name="value">Value</param>
+            /// <returns>Removed</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool Remove(in TKey key, out TValue value)
+            {
+                if (Root == null)
+                {
+                    value = default;
+                    return false;
+                }
+
+                Version++;
+                var current = Root;
+                Node* parent = null;
+                Node* grandParent = null;
+                Node* match = null;
+                Node* parentOfMatch = null;
+                var foundMatch = false;
+                while (current != null)
+                {
+                    if (current->Is2Node)
+                    {
+                        if (parent == null)
+                        {
+                            current->ColorRed();
+                        }
+                        else
+                        {
+                            var sibling = parent->GetSibling(current);
+                            if (sibling->IsRed)
+                            {
+                                if (parent->Right == sibling)
+                                    parent->RotateLeft();
+                                else
+                                    parent->RotateRight();
+                                parent->ColorRed();
+                                sibling->ColorBlack();
+                                ReplaceChildOrRoot(grandParent, parent, sibling);
+                                grandParent = sibling;
+                                if (parent == match)
+                                    parentOfMatch = sibling;
+                                sibling = parent->GetSibling(current);
+                            }
+
+                            if (sibling->Is2Node)
+                            {
+                                parent->Merge2Nodes();
+                            }
+                            else
+                            {
+                                var newGrandParent = parent->Rotate(parent->GetRotation(current, sibling));
+                                newGrandParent->Color = parent->Color;
+                                parent->ColorBlack();
+                                current->ColorRed();
+                                ReplaceChildOrRoot(grandParent, parent, newGrandParent);
+                                if (parent == match)
+                                    parentOfMatch = newGrandParent;
+                            }
+                        }
+                    }
+
+                    var order = foundMatch ? -1 : key.CompareTo(current->Key);
+                    if (order == 0)
+                    {
+                        foundMatch = true;
+                        match = current;
+                        parentOfMatch = parent;
+                    }
+
+                    grandParent = parent;
+                    parent = current;
+                    current = order < 0 ? current->Left : current->Right;
+                }
+
+                if (match != null)
+                {
+                    value = match->Value;
+                    ReplaceNode(match, parentOfMatch, parent, grandParent);
+                    --Count;
+                    NodePool.Return(match);
+                }
+                else
+                {
+                    value = default;
+                }
+
+                if (Root != null)
+                    Root->ColorBlack();
+                return foundMatch;
+            }
+
+            /// <summary>
+            ///     Contains key
+            /// </summary>
+            /// <param name="key">Key</param>
+            /// <returns>Contains key</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool ContainsKey(in TKey key) => FindNode(key) != null;
+
+            /// <summary>
+            ///     Try to get the actual value
+            /// </summary>
+            /// <param name="key">Key</param>
+            /// <param name="value">Value</param>
+            /// <returns>Got</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool TryGetValue(in TKey key, out TValue value)
+            {
+                var node = FindNode(key);
+                if (node != null)
+                {
+                    value = node->Value;
+                    return true;
+                }
+
+                value = default;
+                return false;
+            }
+
+            /// <summary>
+            ///     Try to get the actual value
+            /// </summary>
+            /// <param name="key">Key</param>
+            /// <param name="value">Value</param>
+            /// <returns>Got</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool TryGetValueReference(in TKey key, out NativeReference<TValue> value)
+            {
+                var node = FindNode(key);
+                if (node != null)
+                {
+                    value = new NativeReference<TValue>(Unsafe.AsPointer(ref node->Value));
+                    return true;
+                }
+
+                value = default;
+                return false;
+            }
+
+            /// <summary>
+            ///     Insertion balance
+            /// </summary>
+            /// <param name="current">Current</param>
+            /// <param name="parent">Parent</param>
+            /// <param name="grandParent">Grand parent</param>
+            /// <param name="greatGrandParent">GreatGrand parent</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private void InsertionBalance(Node* current, Node* parent, Node* grandParent, Node* greatGrandParent)
+            {
+                var parentIsOnRight = grandParent->Right == parent;
+                var currentIsOnRight = parent->Right == current;
+                Node* newChildOfGreatGrandParent;
+                if (parentIsOnRight == currentIsOnRight)
+                    newChildOfGreatGrandParent = currentIsOnRight ? grandParent->RotateLeft() : grandParent->RotateRight();
+                else
+                    newChildOfGreatGrandParent = currentIsOnRight ? grandParent->RotateLeftRight() : grandParent->RotateRightLeft();
+                grandParent->ColorRed();
+                newChildOfGreatGrandParent->ColorBlack();
+                ReplaceChildOrRoot(greatGrandParent, grandParent, newChildOfGreatGrandParent);
+            }
+
+            /// <summary>
+            ///     Replace child or root
+            /// </summary>
+            /// <param name="parent">Parent</param>
+            /// <param name="child">Child</param>
+            /// <param name="newChild">New child</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private void ReplaceChildOrRoot(Node* parent, Node* child, Node* newChild)
+            {
+                if (parent != null)
+                    parent->ReplaceChild(child, newChild);
+                else
+                    Root = newChild;
+            }
+
+            /// <summary>
+            ///     Replace node
+            /// </summary>
+            /// <param name="match">Match</param>
+            /// <param name="parentOfMatch">Parent of match</param>
+            /// <param name="successor">Successor</param>
+            /// <param name="parentOfSuccessor">Parent of successor</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private void ReplaceNode(Node* match, Node* parentOfMatch, Node* successor, Node* parentOfSuccessor)
+            {
+                if (successor == match)
+                {
+                    successor = match->Left;
+                }
+                else
+                {
+                    if (successor->Right != null)
+                        successor->Right->ColorBlack();
+                    if (parentOfSuccessor != match)
+                    {
+                        parentOfSuccessor->Left = successor->Right;
+                        successor->Right = match->Right;
+                    }
+
+                    successor->Left = match->Left;
+                }
+
+                if (successor != null)
+                    successor->Color = match->Color;
+                ReplaceChildOrRoot(parentOfMatch, match, successor);
+            }
+
+            /// <summary>
+            ///     Find node
+            /// </summary>
+            /// <param name="key">Key</param>
+            /// <returns>Node</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private Node* FindNode(in TKey key)
+            {
+                var current = Root;
+                while (current != null)
+                {
+                    var order = key.CompareTo(current->Key);
+                    if (order == 0)
+                        return current;
+                    current = order < 0 ? current->Left : current->Right;
+                }
+
+                return null;
+            }
         }
 
         /// <summary>
@@ -54,12 +527,12 @@ namespace NativeCollections
         /// <summary>
         ///     Keys
         /// </summary>
-        public KeyCollection Keys => new(this);
+        public KeyCollection Keys => new(_handle);
 
         /// <summary>
         ///     Values
         /// </summary>
-        public ValueCollection Values => new(this);
+        public ValueCollection Values => new(_handle);
 
         /// <summary>
         ///     Structure
@@ -95,36 +568,12 @@ namespace NativeCollections
         /// <summary>
         ///     Min
         /// </summary>
-        public KeyValuePair<TKey, TValue>? Min
-        {
-            get
-            {
-                var handle = _handle;
-                if (handle->Root == null)
-                    return default;
-                var current = handle->Root;
-                while (current->Left != null)
-                    current = current->Left;
-                return new KeyValuePair<TKey, TValue>(current->Key, current->Value);
-            }
-        }
+        public KeyValuePair<TKey, TValue>? Min => _handle->Min;
 
         /// <summary>
         ///     Max
         /// </summary>
-        public KeyValuePair<TKey, TValue>? Max
-        {
-            get
-            {
-                var handle = _handle;
-                if (handle->Root == null)
-                    return default;
-                var current = handle->Root;
-                while (current->Right != null)
-                    current = current->Right;
-                return new KeyValuePair<TKey, TValue>(current->Key, current->Value);
-            }
-        }
+        public KeyValuePair<TKey, TValue>? Max => _handle->Max;
 
         /// <summary>
         ///     Get or set value
@@ -133,26 +582,9 @@ namespace NativeCollections
         public TValue this[in TKey key]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-                if (!TryGetValue(key, out var value))
-                    throw new KeyNotFoundException(key.ToString());
-                return value;
-            }
+            get => (*_handle)[key];
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set
-            {
-                var node = FindNode(key);
-                if (node == null)
-                {
-                    Add(key, value);
-                }
-                else
-                {
-                    node->Value = value;
-                    _handle->Version++;
-                }
-            }
+            set => (*_handle)[key] = value;
         }
 
         /// <summary>
@@ -214,30 +646,7 @@ namespace NativeCollections
         ///     Clear
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Clear()
-        {
-            var handle = _handle;
-            if (handle->Root != null)
-            {
-                var nodeStack = new NativeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(handle->Count + 1)));
-                nodeStack.Push((nint)handle->Root);
-                while (nodeStack.TryPop(out var node))
-                {
-                    var currentNode = (Node*)node;
-                    if (currentNode->Left != null)
-                        nodeStack.Push((nint)currentNode->Left);
-                    if (currentNode->Right != null)
-                        nodeStack.Push((nint)currentNode->Right);
-                    handle->NodePool.Return(currentNode);
-                }
-
-                nodeStack.Dispose();
-            }
-
-            handle->Root = null;
-            handle->Count = 0;
-            ++handle->Version;
-        }
+        public void Clear() => _handle->Clear();
 
         /// <summary>
         ///     Add
@@ -246,66 +655,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Added</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Add(in TKey key, in TValue value)
-        {
-            var handle = _handle;
-            if (handle->Root == null)
-            {
-                handle->Root = (Node*)handle->NodePool.Rent();
-                handle->Root->Key = key;
-                handle->Root->Value = value;
-                handle->Root->Left = null;
-                handle->Root->Right = null;
-                handle->Root->Color = NodeColor.Black;
-                handle->Count = 1;
-                handle->Version++;
-                return true;
-            }
-
-            var current = handle->Root;
-            Node* parent = null;
-            Node* grandParent = null;
-            Node* greatGrandParent = null;
-            handle->Version++;
-            var order = 0;
-            while (current != null)
-            {
-                order = key.CompareTo(current->Key);
-                if (order == 0)
-                {
-                    handle->Root->ColorBlack();
-                    return false;
-                }
-
-                if (current->Is4Node)
-                {
-                    current->Split4Node();
-                    if (Node.IsNonNullRed(parent))
-                        InsertionBalance(current, parent, grandParent, greatGrandParent);
-                }
-
-                greatGrandParent = grandParent;
-                grandParent = parent;
-                parent = current;
-                current = order < 0 ? current->Left : current->Right;
-            }
-
-            var node = (Node*)handle->NodePool.Rent();
-            node->Key = key;
-            node->Value = value;
-            node->Left = null;
-            node->Right = null;
-            node->Color = NodeColor.Red;
-            if (order > 0)
-                parent->Right = node;
-            else
-                parent->Left = node;
-            if (parent->IsRed)
-                InsertionBalance(node, parent, grandParent, greatGrandParent);
-            handle->Root->ColorBlack();
-            ++handle->Count;
-            return true;
-        }
+        public bool Add(in TKey key, in TValue value) => _handle->Add(key, value);
 
         /// <summary>
         ///     Remove
@@ -313,85 +663,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Remove(in TKey key)
-        {
-            var handle = _handle;
-            if (handle->Root == null)
-                return false;
-            handle->Version++;
-            var current = handle->Root;
-            Node* parent = null;
-            Node* grandParent = null;
-            Node* match = null;
-            Node* parentOfMatch = null;
-            var foundMatch = false;
-            while (current != null)
-            {
-                if (current->Is2Node)
-                {
-                    if (parent == null)
-                    {
-                        current->ColorRed();
-                    }
-                    else
-                    {
-                        var sibling = parent->GetSibling(current);
-                        if (sibling->IsRed)
-                        {
-                            if (parent->Right == sibling)
-                                parent->RotateLeft();
-                            else
-                                parent->RotateRight();
-                            parent->ColorRed();
-                            sibling->ColorBlack();
-                            ReplaceChildOrRoot(grandParent, parent, sibling);
-                            grandParent = sibling;
-                            if (parent == match)
-                                parentOfMatch = sibling;
-                            sibling = parent->GetSibling(current);
-                        }
-
-                        if (sibling->Is2Node)
-                        {
-                            parent->Merge2Nodes();
-                        }
-                        else
-                        {
-                            var newGrandParent = parent->Rotate(parent->GetRotation(current, sibling));
-                            newGrandParent->Color = parent->Color;
-                            parent->ColorBlack();
-                            current->ColorRed();
-                            ReplaceChildOrRoot(grandParent, parent, newGrandParent);
-                            if (parent == match)
-                                parentOfMatch = newGrandParent;
-                        }
-                    }
-                }
-
-                var order = foundMatch ? -1 : key.CompareTo(current->Key);
-                if (order == 0)
-                {
-                    foundMatch = true;
-                    match = current;
-                    parentOfMatch = parent;
-                }
-
-                grandParent = parent;
-                parent = current;
-                current = order < 0 ? current->Left : current->Right;
-            }
-
-            if (match != null)
-            {
-                ReplaceNode(match, parentOfMatch, parent, grandParent);
-                --handle->Count;
-                handle->NodePool.Return(match);
-            }
-
-            if (handle->Root != null)
-                handle->Root->ColorBlack();
-            return foundMatch;
-        }
+        public bool Remove(in TKey key) => _handle->Remove(key);
 
         /// <summary>
         ///     Remove
@@ -400,94 +672,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Remove(in TKey key, out TValue value)
-        {
-            var handle = _handle;
-            if (handle->Root == null)
-            {
-                value = default;
-                return false;
-            }
-
-            handle->Version++;
-            var current = handle->Root;
-            Node* parent = null;
-            Node* grandParent = null;
-            Node* match = null;
-            Node* parentOfMatch = null;
-            var foundMatch = false;
-            while (current != null)
-            {
-                if (current->Is2Node)
-                {
-                    if (parent == null)
-                    {
-                        current->ColorRed();
-                    }
-                    else
-                    {
-                        var sibling = parent->GetSibling(current);
-                        if (sibling->IsRed)
-                        {
-                            if (parent->Right == sibling)
-                                parent->RotateLeft();
-                            else
-                                parent->RotateRight();
-                            parent->ColorRed();
-                            sibling->ColorBlack();
-                            ReplaceChildOrRoot(grandParent, parent, sibling);
-                            grandParent = sibling;
-                            if (parent == match)
-                                parentOfMatch = sibling;
-                            sibling = parent->GetSibling(current);
-                        }
-
-                        if (sibling->Is2Node)
-                        {
-                            parent->Merge2Nodes();
-                        }
-                        else
-                        {
-                            var newGrandParent = parent->Rotate(parent->GetRotation(current, sibling));
-                            newGrandParent->Color = parent->Color;
-                            parent->ColorBlack();
-                            current->ColorRed();
-                            ReplaceChildOrRoot(grandParent, parent, newGrandParent);
-                            if (parent == match)
-                                parentOfMatch = newGrandParent;
-                        }
-                    }
-                }
-
-                var order = foundMatch ? -1 : key.CompareTo(current->Key);
-                if (order == 0)
-                {
-                    foundMatch = true;
-                    match = current;
-                    parentOfMatch = parent;
-                }
-
-                grandParent = parent;
-                parent = current;
-                current = order < 0 ? current->Left : current->Right;
-            }
-
-            if (match != null)
-            {
-                value = match->Value;
-                ReplaceNode(match, parentOfMatch, parent, grandParent);
-                --handle->Count;
-                handle->NodePool.Return(match);
-            }
-            else
-            {
-                value = default;
-            }
-
-            if (handle->Root != null)
-                handle->Root->ColorBlack();
-            return foundMatch;
-        }
+        public bool Remove(in TKey key, out TValue value) => _handle->Remove(key, out value);
 
         /// <summary>
         ///     Contains key
@@ -495,7 +680,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Contains key</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool ContainsKey(in TKey key) => FindNode(key) != null;
+        public bool ContainsKey(in TKey key) => _handle->ContainsKey(key);
 
         /// <summary>
         ///     Try to get the actual value
@@ -504,18 +689,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValue(in TKey key, out TValue value)
-        {
-            var node = FindNode(key);
-            if (node != null)
-            {
-                value = node->Value;
-                return true;
-            }
-
-            value = default;
-            return false;
-        }
+        public bool TryGetValue(in TKey key, out TValue value) => _handle->TryGetValue(key, out value);
 
         /// <summary>
         ///     Try to get the actual value
@@ -524,108 +698,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueReference(in TKey key, out NativeReference<TValue> value)
-        {
-            var node = FindNode(key);
-            if (node != null)
-            {
-                value = new NativeReference<TValue>(Unsafe.AsPointer(ref node->Value));
-                return true;
-            }
-
-            value = default;
-            return false;
-        }
-
-        /// <summary>
-        ///     Insertion balance
-        /// </summary>
-        /// <param name="current">Current</param>
-        /// <param name="parent">Parent</param>
-        /// <param name="grandParent">Grand parent</param>
-        /// <param name="greatGrandParent">GreatGrand parent</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void InsertionBalance(Node* current, Node* parent, Node* grandParent, Node* greatGrandParent)
-        {
-            var parentIsOnRight = grandParent->Right == parent;
-            var currentIsOnRight = parent->Right == current;
-            Node* newChildOfGreatGrandParent;
-            if (parentIsOnRight == currentIsOnRight)
-                newChildOfGreatGrandParent = currentIsOnRight ? grandParent->RotateLeft() : grandParent->RotateRight();
-            else
-                newChildOfGreatGrandParent = currentIsOnRight ? grandParent->RotateLeftRight() : grandParent->RotateRightLeft();
-            grandParent->ColorRed();
-            newChildOfGreatGrandParent->ColorBlack();
-            ReplaceChildOrRoot(greatGrandParent, grandParent, newChildOfGreatGrandParent);
-        }
-
-        /// <summary>
-        ///     Replace child or root
-        /// </summary>
-        /// <param name="parent">Parent</param>
-        /// <param name="child">Child</param>
-        /// <param name="newChild">New child</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ReplaceChildOrRoot(Node* parent, Node* child, Node* newChild)
-        {
-            if (parent != null)
-                parent->ReplaceChild(child, newChild);
-            else
-                _handle->Root = newChild;
-        }
-
-        /// <summary>
-        ///     Replace node
-        /// </summary>
-        /// <param name="match">Match</param>
-        /// <param name="parentOfMatch">Parent of match</param>
-        /// <param name="successor">Successor</param>
-        /// <param name="parentOfSuccessor">Parent of successor</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ReplaceNode(Node* match, Node* parentOfMatch, Node* successor, Node* parentOfSuccessor)
-        {
-            if (successor == match)
-            {
-                successor = match->Left;
-            }
-            else
-            {
-                if (successor->Right != null)
-                    successor->Right->ColorBlack();
-                if (parentOfSuccessor != match)
-                {
-                    parentOfSuccessor->Left = successor->Right;
-                    successor->Right = match->Right;
-                }
-
-                successor->Left = match->Left;
-            }
-
-            if (successor != null)
-                successor->Color = match->Color;
-            ReplaceChildOrRoot(parentOfMatch, match, successor);
-        }
-
-        /// <summary>
-        ///     Find node
-        /// </summary>
-        /// <param name="key">Key</param>
-        /// <returns>Node</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Node* FindNode(in TKey key)
-        {
-            var handle = _handle;
-            var current = handle->Root;
-            while (current != null)
-            {
-                var order = key.CompareTo(current->Key);
-                if (order == 0)
-                    return current;
-                current = order < 0 ? current->Left : current->Right;
-            }
-
-            return null;
-        }
+        public bool TryGetValueReference(in TKey key, out NativeReference<TValue> value) => _handle->TryGetValueReference(key, out value);
 
         /// <summary>
         ///     Node
@@ -875,7 +948,7 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
-        public Enumerator GetEnumerator() => new(this);
+        public Enumerator GetEnumerator() => new(_handle);
 
         /// <summary>
         ///     Enumerator
@@ -885,7 +958,7 @@ namespace NativeCollections
             /// <summary>
             ///     NativeHashSet
             /// </summary>
-            private readonly NativeSortedDictionary<TKey, TValue> _nativeSortedDictionary;
+            private readonly NativeSortedDictionaryHandle* _nativeSortedDictionary;
 
             /// <summary>
             ///     Version
@@ -912,12 +985,12 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeSortedDictionary">NativeSortedDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(NativeSortedDictionary<TKey, TValue> nativeSortedDictionary)
+            internal Enumerator(void* nativeSortedDictionary)
             {
-                _nativeSortedDictionary = nativeSortedDictionary;
-                var handle = nativeSortedDictionary._handle;
+                var handle = (NativeSortedDictionaryHandle*)nativeSortedDictionary;
+                _nativeSortedDictionary = handle;
                 _version = handle->Version;
-                _nodeStack = new NativeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(nativeSortedDictionary.Count + 1)));
+                _nodeStack = new NativeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(handle->Count + 1)));
                 _currentNode = null;
                 _current = default;
                 var node = handle->Root;
@@ -936,7 +1009,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext()
             {
-                if (_version != _nativeSortedDictionary._handle->Version)
+                if (_version != _nativeSortedDictionary->Version)
                     throw new InvalidOperationException("EnumFailedVersion");
                 if (!_nodeStack.TryPop(out var result))
                 {
@@ -983,14 +1056,14 @@ namespace NativeCollections
             /// <summary>
             ///     NativeSortedDictionary
             /// </summary>
-            private readonly NativeSortedDictionary<TKey, TValue> _nativeSortedDictionary;
+            private readonly NativeSortedDictionaryHandle* _nativeSortedDictionary;
 
             /// <summary>
             ///     Structure
             /// </summary>
             /// <param name="nativeSortedDictionary">NativeSortedDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal KeyCollection(NativeSortedDictionary<TKey, TValue> nativeSortedDictionary) => _nativeSortedDictionary = nativeSortedDictionary;
+            internal KeyCollection(void* nativeSortedDictionary) => _nativeSortedDictionary = (NativeSortedDictionaryHandle*)nativeSortedDictionary;
 
             /// <summary>
             ///     Get enumerator
@@ -1006,7 +1079,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     NativeHashSet
                 /// </summary>
-                private readonly NativeSortedDictionary<TKey, TValue> _nativeSortedDictionary;
+                private readonly NativeSortedDictionaryHandle* _nativeSortedDictionary;
 
                 /// <summary>
                 ///     Version
@@ -1033,12 +1106,12 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativeSortedDictionary">NativeSortedDictionary</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(NativeSortedDictionary<TKey, TValue> nativeSortedDictionary)
+                internal Enumerator(void* nativeSortedDictionary)
                 {
-                    _nativeSortedDictionary = nativeSortedDictionary;
-                    var handle = nativeSortedDictionary._handle;
+                    var handle = (NativeSortedDictionaryHandle*)nativeSortedDictionary;
+                    _nativeSortedDictionary = handle;
                     _version = handle->Version;
-                    _nodeStack = new NativeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(nativeSortedDictionary.Count + 1)));
+                    _nodeStack = new NativeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(handle->Count + 1)));
                     _currentNode = null;
                     _current = default;
                     var node = handle->Root;
@@ -1057,7 +1130,7 @@ namespace NativeCollections
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public bool MoveNext()
                 {
-                    if (_version != _nativeSortedDictionary._handle->Version)
+                    if (_version != _nativeSortedDictionary->Version)
                         throw new InvalidOperationException("EnumFailedVersion");
                     if (!_nodeStack.TryPop(out var result))
                     {
@@ -1105,14 +1178,14 @@ namespace NativeCollections
             /// <summary>
             ///     NativeSortedDictionary
             /// </summary>
-            private readonly NativeSortedDictionary<TKey, TValue> _nativeSortedDictionary;
+            private readonly NativeSortedDictionaryHandle* _nativeSortedDictionary;
 
             /// <summary>
             ///     Structure
             /// </summary>
             /// <param name="nativeSortedDictionary">NativeSortedDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal ValueCollection(NativeSortedDictionary<TKey, TValue> nativeSortedDictionary) => _nativeSortedDictionary = nativeSortedDictionary;
+            internal ValueCollection(void* nativeSortedDictionary) => _nativeSortedDictionary = (NativeSortedDictionaryHandle*)nativeSortedDictionary;
 
             /// <summary>
             ///     Get enumerator
@@ -1128,7 +1201,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     NativeHashSet
                 /// </summary>
-                private readonly NativeSortedDictionary<TKey, TValue> _nativeSortedDictionary;
+                private readonly NativeSortedDictionaryHandle* _nativeSortedDictionary;
 
                 /// <summary>
                 ///     Version
@@ -1155,12 +1228,12 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativeSortedDictionary">NativeSortedDictionary</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(NativeSortedDictionary<TKey, TValue> nativeSortedDictionary)
+                internal Enumerator(void* nativeSortedDictionary)
                 {
-                    _nativeSortedDictionary = nativeSortedDictionary;
-                    var handle = nativeSortedDictionary._handle;
+                    var handle = (NativeSortedDictionaryHandle*)nativeSortedDictionary;
+                    _nativeSortedDictionary = handle;
                     _version = handle->Version;
-                    _nodeStack = new NativeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(nativeSortedDictionary.Count + 1)));
+                    _nodeStack = new NativeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(handle->Count + 1)));
                     _currentNode = null;
                     _current = default;
                     var node = handle->Root;
@@ -1179,7 +1252,7 @@ namespace NativeCollections
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public bool MoveNext()
                 {
-                    if (_version != _nativeSortedDictionary._handle->Version)
+                    if (_version != _nativeSortedDictionary->Version)
                         throw new InvalidOperationException("EnumFailedVersion");
                     if (!_nodeStack.TryPop(out var result))
                     {

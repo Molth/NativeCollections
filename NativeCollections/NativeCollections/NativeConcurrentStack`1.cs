@@ -16,7 +16,7 @@ namespace NativeCollections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection]
+    [NativeCollection(NativeCollectionType.Standard)]
     public readonly unsafe struct NativeConcurrentStack<T> : IDisposable, IEquatable<NativeConcurrentStack<T>> where T : unmanaged
     {
         /// <summary>
@@ -38,7 +38,157 @@ namespace NativeCollections
             /// <summary>
             ///     Node lock
             /// </summary>
-            public fixed byte NodeLock[8];
+            public ulong NodeLock;
+
+            /// <summary>
+            ///     Count
+            /// </summary>
+            public int Count
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get
+                {
+                    var count = 0;
+                    for (var node = (Node*)Head; node != null; node = node->Next)
+                        count++;
+                    return count;
+                }
+            }
+
+            /// <summary>
+            ///     Clear
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Clear()
+            {
+                NativeConcurrentSpinLock nodeLock = Unsafe.AsPointer(ref NodeLock);
+                nodeLock.Enter();
+                try
+                {
+                    var node = (Node*)Head;
+                    while (node != null)
+                    {
+                        var temp = node;
+                        node = node->Next;
+                        NodePool.Return(temp);
+                    }
+                }
+                finally
+                {
+                    nodeLock.Exit();
+                }
+            }
+
+            /// <summary>
+            ///     Push
+            /// </summary>
+            /// <param name="item">Item</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Push(in T item)
+            {
+                NativeConcurrentSpinLock nodeLock = Unsafe.AsPointer(ref NodeLock);
+                Node* newNode;
+                nodeLock.Enter();
+                try
+                {
+                    newNode = (Node*)NodePool.Rent();
+                }
+                finally
+                {
+                    nodeLock.Exit();
+                }
+
+                newNode->Value = item;
+                newNode->Next = (Node*)Head;
+                if (Interlocked.CompareExchange(ref Head, (nint)newNode, (nint)newNode->Next) == (nint)newNode->Next)
+                    return;
+                var spinWait = new NativeSpinWait();
+                do
+                {
+                    spinWait.SpinOnce();
+                    newNode->Next = (Node*)Head;
+                } while (Interlocked.CompareExchange(ref Head, (nint)newNode, (nint)newNode->Next) != (nint)newNode->Next);
+            }
+
+            /// <summary>
+            ///     Try pop
+            /// </summary>
+            /// <param name="result">Item</param>
+            /// <returns>Popped</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool TryPop(out T result)
+            {
+                var head = (Node*)Head;
+                if (head == null)
+                {
+                    result = default;
+                    return false;
+                }
+
+                NativeConcurrentSpinLock nodeLock = Unsafe.AsPointer(ref NodeLock);
+                if (Interlocked.CompareExchange(ref Head, (nint)head->Next, (nint)head) == (nint)head)
+                {
+                    result = head->Value;
+                    nodeLock.Enter();
+                    try
+                    {
+                        NodePool.Return(head);
+                    }
+                    finally
+                    {
+                        nodeLock.Exit();
+                    }
+
+                    return true;
+                }
+
+                var spinWait = new NativeSpinWait();
+                var backoff = 1;
+#if !NET6_0_OR_GREATER
+                var random = new NativeXoshiro256();
+                random.Initialize();
+#endif
+                while (true)
+                {
+                    head = (Node*)Head;
+                    if (head == null)
+                    {
+                        result = default;
+                        return false;
+                    }
+
+                    if (Interlocked.CompareExchange(ref Head, (nint)head->Next, (nint)head) == (nint)head)
+                    {
+                        result = head->Value;
+                        nodeLock.Enter();
+                        try
+                        {
+                            NodePool.Return(head);
+                        }
+                        finally
+                        {
+                            nodeLock.Exit();
+                        }
+
+                        return true;
+                    }
+
+                    for (var i = 0; i < backoff; ++i)
+                        spinWait.SpinOnce();
+                    if (spinWait.NextSpinWillYield)
+                    {
+#if NET6_0_OR_GREATER
+                        backoff = Random.Shared.Next(1, 8);
+#else
+                        backoff = random.NextInt32(1, 8);
+#endif
+                    }
+                    else
+                    {
+                        backoff *= 2;
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -56,9 +206,9 @@ namespace NativeCollections
         {
             var nodePool = new NativeMemoryPool(size, sizeof(Node), maxFreeSlabs);
             var handle = (NativeConcurrentStackHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeConcurrentStackHandle));
-            handle->Head = IntPtr.Zero;
+            handle->Head = nint.Zero;
             handle->NodePool = nodePool;
-            NativeConcurrentSpinLock nodeLock = handle->NodeLock;
+            NativeConcurrentSpinLock nodeLock = &handle->NodeLock;
             nodeLock.Reset();
             _handle = handle;
         }
@@ -71,7 +221,7 @@ namespace NativeCollections
         /// <summary>
         ///     IsEmpty
         /// </summary>
-        public bool IsEmpty => _handle->Head == IntPtr.Zero;
+        public bool IsEmpty => _handle->Head == nint.Zero;
 
         /// <summary>
         ///     Count
@@ -79,14 +229,7 @@ namespace NativeCollections
         public int Count
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-                var handle = _handle;
-                var count = 0;
-                for (var node = (Node*)handle->Head; node != null; node = node->Next)
-                    count++;
-                return count;
-            }
+            get => _handle->Count;
         }
 
         /// <summary>
@@ -148,58 +291,14 @@ namespace NativeCollections
         ///     Clear
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Clear()
-        {
-            var handle = _handle;
-            NativeConcurrentSpinLock nodeLock = handle->NodeLock;
-            nodeLock.Enter();
-            try
-            {
-                var node = (Node*)handle->Head;
-                while (node != null)
-                {
-                    var temp = node;
-                    node = node->Next;
-                    handle->NodePool.Return(temp);
-                }
-            }
-            finally
-            {
-                nodeLock.Exit();
-            }
-        }
+        public void Clear() => _handle->Clear();
 
         /// <summary>
         ///     Push
         /// </summary>
         /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Push(in T item)
-        {
-            var handle = _handle;
-            NativeConcurrentSpinLock nodeLock = handle->NodeLock;
-            Node* newNode;
-            nodeLock.Enter();
-            try
-            {
-                newNode = (Node*)handle->NodePool.Rent();
-            }
-            finally
-            {
-                nodeLock.Exit();
-            }
-
-            newNode->Value = item;
-            newNode->Next = (Node*)handle->Head;
-            if (Interlocked.CompareExchange(ref handle->Head, (nint)newNode, (nint)newNode->Next) == (nint)newNode->Next)
-                return;
-            var spinWait = new NativeSpinWait();
-            do
-            {
-                spinWait.SpinOnce();
-                newNode->Next = (Node*)handle->Head;
-            } while (Interlocked.CompareExchange(ref handle->Head, (nint)newNode, (nint)newNode->Next) != (nint)newNode->Next);
-        }
+        public void Push(in T item) => _handle->Push(item);
 
         /// <summary>
         ///     Try pop
@@ -207,80 +306,7 @@ namespace NativeCollections
         /// <param name="result">Item</param>
         /// <returns>Popped</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryPop(out T result)
-        {
-            var handle = _handle;
-            var head = (Node*)handle->Head;
-            if (head == null)
-            {
-                result = default;
-                return false;
-            }
-
-            NativeConcurrentSpinLock nodeLock = handle->NodeLock;
-            if (Interlocked.CompareExchange(ref handle->Head, (nint)head->Next, (nint)head) == (nint)head)
-            {
-                result = head->Value;
-                nodeLock.Enter();
-                try
-                {
-                    handle->NodePool.Return(head);
-                }
-                finally
-                {
-                    nodeLock.Exit();
-                }
-
-                return true;
-            }
-
-            var spinWait = new NativeSpinWait();
-            var backoff = 1;
-#if !NET6_0_OR_GREATER
-            var random = new NativeXoshiro256();
-            random.Initialize();
-#endif
-            while (true)
-            {
-                head = (Node*)handle->Head;
-                if (head == null)
-                {
-                    result = default;
-                    return false;
-                }
-
-                if (Interlocked.CompareExchange(ref handle->Head, (nint)head->Next, (nint)head) == (nint)head)
-                {
-                    result = head->Value;
-                    nodeLock.Enter();
-                    try
-                    {
-                        handle->NodePool.Return(head);
-                    }
-                    finally
-                    {
-                        nodeLock.Exit();
-                    }
-
-                    return true;
-                }
-
-                for (var i = 0; i < backoff; ++i)
-                    spinWait.SpinOnce();
-                if (spinWait.NextSpinWillYield)
-                {
-#if NET6_0_OR_GREATER
-                    backoff = Random.Shared.Next(1, 8);
-#else
-                    backoff = random.NextInt32(1, 8);
-#endif
-                }
-                else
-                {
-                    backoff *= 2;
-                }
-            }
-        }
+        public bool TryPop(out T result) => _handle->TryPop(out result);
 
         /// <summary>
         ///     Empty

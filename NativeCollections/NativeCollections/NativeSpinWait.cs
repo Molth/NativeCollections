@@ -11,7 +11,7 @@ namespace NativeCollections
     ///     Native spin wait
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection]
+    [NativeCollection(NativeCollectionType.None)]
     public ref struct NativeSpinWait
     {
         /// <summary>

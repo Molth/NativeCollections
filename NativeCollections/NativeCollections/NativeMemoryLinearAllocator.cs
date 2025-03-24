@@ -13,7 +13,7 @@ namespace NativeCollections
     ///     Native memory linear allocator
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection]
+    [NativeCollection(NativeCollectionType.None)]
     public unsafe struct NativeMemoryLinearAllocator
     {
         /// <summary>

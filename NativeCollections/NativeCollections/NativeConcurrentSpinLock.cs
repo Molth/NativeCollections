@@ -14,7 +14,7 @@ namespace NativeCollections
     ///     Native concurrent spinLock
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection]
+    [NativeCollection(NativeCollectionType.None)]
     public readonly unsafe ref struct NativeConcurrentSpinLock
     {
         /// <summary>

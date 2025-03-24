@@ -15,7 +15,7 @@ namespace NativeCollections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection]
+    [NativeCollection(NativeCollectionType.None)]
     public readonly unsafe struct NativeChunkedDeque<T> where T : unmanaged
     {
         /// <summary>
@@ -73,6 +73,277 @@ namespace NativeCollections
             ///     Count
             /// </summary>
             public int Count;
+
+            /// <summary>
+            ///     Clear
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Clear()
+            {
+                if (Chunks != 1)
+                {
+                    FreeChunks += Chunks - 1;
+                    Chunks = 1;
+                    var chunk = Head->Next;
+                    chunk->Next = FreeList;
+                    FreeList = chunk;
+                    TrimExcess(MaxFreeChunks);
+                    Tail = Head;
+                }
+
+                ReadOffset = 0;
+                WriteOffset = 0;
+                Count = 0;
+            }
+
+            /// <summary>
+            ///     Enqueue head
+            /// </summary>
+            /// <param name="item">Item</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void EnqueueHead(in T item)
+            {
+                if (ReadOffset == 0)
+                {
+                    ReadOffset = Size;
+                    if (Count != 0)
+                    {
+                        NativeMemoryChunk* chunk;
+                        if (FreeChunks == 0)
+                        {
+                            chunk = (NativeMemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemoryChunk) + Size * sizeof(T)));
+                        }
+                        else
+                        {
+                            chunk = FreeList;
+                            FreeList = chunk->Next;
+                            --FreeChunks;
+                        }
+
+                        chunk->Next = Head;
+                        Head->Previous = chunk;
+                        Head = chunk;
+                        ++Chunks;
+                    }
+                    else
+                    {
+                        WriteOffset = Size;
+                    }
+                }
+
+                ++Count;
+                ((T*)&Head->Array)[--ReadOffset] = item;
+            }
+
+            /// <summary>
+            ///     Enqueue tail
+            /// </summary>
+            /// <param name="item">Item</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void EnqueueTail(in T item)
+            {
+                if (WriteOffset == Size)
+                {
+                    WriteOffset = 0;
+                    NativeMemoryChunk* chunk;
+                    if (FreeChunks == 0)
+                    {
+                        chunk = (NativeMemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemoryChunk) + Size * sizeof(T)));
+                    }
+                    else
+                    {
+                        chunk = FreeList;
+                        FreeList = chunk->Next;
+                        --FreeChunks;
+                    }
+
+                    chunk->Previous = Tail;
+                    Tail->Next = chunk;
+                    Tail = chunk;
+                    ++Chunks;
+                }
+
+                ++Count;
+                ((T*)&Tail->Array)[WriteOffset++] = item;
+            }
+
+            /// <summary>
+            ///     Try dequeue
+            /// </summary>
+            /// <param name="result">Item</param>
+            /// <returns>Dequeued</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool TryDequeueHead(out T result)
+            {
+                if (Count == 0)
+                {
+                    result = default;
+                    return false;
+                }
+
+                --Count;
+                result = ((T*)&Head->Array)[ReadOffset++];
+                if (ReadOffset == Size)
+                {
+                    ReadOffset = 0;
+                    if (Chunks != 1)
+                    {
+                        var chunk = Head;
+                        Head = chunk->Next;
+                        if (FreeChunks == MaxFreeChunks)
+                        {
+                            NativeMemoryAllocator.Free(chunk);
+                        }
+                        else
+                        {
+                            chunk->Next = FreeList;
+                            FreeList = chunk;
+                            ++FreeChunks;
+                        }
+
+                        --Chunks;
+                    }
+                }
+
+                return true;
+            }
+
+            /// <summary>
+            ///     Try dequeue
+            /// </summary>
+            /// <param name="result">Item</param>
+            /// <returns>Dequeued</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool TryDequeueTail(out T result)
+            {
+                if (Count == 0)
+                {
+                    result = default;
+                    return false;
+                }
+
+                --Count;
+                result = ((T*)&Tail->Array)[--WriteOffset];
+                if (WriteOffset == 0 && Chunks != 1)
+                {
+                    WriteOffset = Size;
+                    var chunk = Tail;
+                    Tail = chunk->Previous;
+                    if (FreeChunks == MaxFreeChunks)
+                    {
+                        NativeMemoryAllocator.Free(chunk);
+                    }
+                    else
+                    {
+                        chunk->Next = FreeList;
+                        FreeList = chunk;
+                        ++FreeChunks;
+                    }
+
+                    --Chunks;
+                }
+
+                return true;
+            }
+
+            /// <summary>
+            ///     Try peek head
+            /// </summary>
+            /// <param name="result">Item</param>
+            /// <returns>Peeked</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool TryPeekHead(out T result)
+            {
+                if (Size == 0)
+                {
+                    result = default;
+                    return false;
+                }
+
+                result = ((T*)&Head->Array)[ReadOffset];
+                return true;
+            }
+
+            /// <summary>
+            ///     Try peek tail
+            /// </summary>
+            /// <param name="result">Item</param>
+            /// <returns>Peeked</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool TryPeekTail(out T result)
+            {
+                if (Size == 0)
+                {
+                    result = default;
+                    return false;
+                }
+
+                result = ((T*)&Tail->Array)[WriteOffset - 1];
+                return true;
+            }
+
+            /// <summary>
+            ///     Ensure capacity
+            /// </summary>
+            /// <param name="capacity">Capacity</param>
+            /// <returns>New capacity</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int EnsureCapacity(int capacity)
+            {
+                if (capacity < 0)
+                    throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+                if (capacity > MaxFreeChunks)
+                    capacity = MaxFreeChunks;
+                while (FreeChunks < capacity)
+                {
+                    FreeChunks++;
+                    var chunk = (NativeMemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemoryChunk) + Size));
+                    chunk->Next = FreeList;
+                    FreeList = chunk;
+                }
+
+                return FreeChunks;
+            }
+
+            /// <summary>
+            ///     Trim excess
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void TrimExcess()
+            {
+                var node = FreeList;
+                while (FreeChunks > 0)
+                {
+                    FreeChunks--;
+                    var temp = node;
+                    node = node->Next;
+                    NativeMemoryAllocator.Free(temp);
+                }
+
+                FreeList = node;
+            }
+
+            /// <summary>
+            ///     Trim excess
+            /// </summary>
+            /// <param name="capacity">Remaining free slabs</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int TrimExcess(int capacity)
+            {
+                if (capacity < 0)
+                    throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+                var node = FreeList;
+                while (FreeChunks > capacity)
+                {
+                    FreeChunks--;
+                    var temp = node;
+                    node = node->Next;
+                    NativeMemoryAllocator.Free(temp);
+                }
+
+                FreeList = node;
+                return FreeChunks;
+            }
         }
 
         /// <summary>
@@ -240,97 +511,21 @@ namespace NativeCollections
         ///     Clear
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Clear()
-        {
-            var handle = _handle;
-            if (handle->Chunks != 1)
-            {
-                handle->FreeChunks += handle->Chunks - 1;
-                handle->Chunks = 1;
-                var chunk = handle->Head->Next;
-                chunk->Next = handle->FreeList;
-                handle->FreeList = chunk;
-                TrimExcess(handle->MaxFreeChunks);
-                handle->Tail = handle->Head;
-            }
-
-            handle->ReadOffset = 0;
-            handle->WriteOffset = 0;
-            handle->Count = 0;
-        }
+        public void Clear() => _handle->Clear();
 
         /// <summary>
         ///     Enqueue head
         /// </summary>
         /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void EnqueueHead(in T item)
-        {
-            var handle = _handle;
-            if (handle->ReadOffset == 0)
-            {
-                handle->ReadOffset = handle->Size;
-                if (handle->Count != 0)
-                {
-                    NativeMemoryChunk* chunk;
-                    if (handle->FreeChunks == 0)
-                    {
-                        chunk = (NativeMemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemoryChunk) + handle->Size * sizeof(T)));
-                    }
-                    else
-                    {
-                        chunk = handle->FreeList;
-                        handle->FreeList = chunk->Next;
-                        --handle->FreeChunks;
-                    }
-
-                    chunk->Next = handle->Head;
-                    handle->Head->Previous = chunk;
-                    handle->Head = chunk;
-                    ++handle->Chunks;
-                }
-                else
-                {
-                    handle->WriteOffset = handle->Size;
-                }
-            }
-
-            ++handle->Count;
-            ((T*)&handle->Head->Array)[--handle->ReadOffset] = item;
-        }
+        public void EnqueueHead(in T item) => _handle->EnqueueHead(item);
 
         /// <summary>
         ///     Enqueue tail
         /// </summary>
         /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void EnqueueTail(in T item)
-        {
-            var handle = _handle;
-            if (handle->WriteOffset == handle->Size)
-            {
-                handle->WriteOffset = 0;
-                NativeMemoryChunk* chunk;
-                if (handle->FreeChunks == 0)
-                {
-                    chunk = (NativeMemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemoryChunk) + handle->Size * sizeof(T)));
-                }
-                else
-                {
-                    chunk = handle->FreeList;
-                    handle->FreeList = chunk->Next;
-                    --handle->FreeChunks;
-                }
-
-                chunk->Previous = handle->Tail;
-                handle->Tail->Next = chunk;
-                handle->Tail = chunk;
-                ++handle->Chunks;
-            }
-
-            ++handle->Count;
-            ((T*)&handle->Tail->Array)[handle->WriteOffset++] = item;
-        }
+        public void EnqueueTail(in T item) => _handle->EnqueueTail(item);
 
         /// <summary>
         ///     Try dequeue
@@ -338,41 +533,7 @@ namespace NativeCollections
         /// <param name="result">Item</param>
         /// <returns>Dequeued</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDequeueHead(out T result)
-        {
-            var handle = _handle;
-            if (handle->Count == 0)
-            {
-                result = default;
-                return false;
-            }
-
-            --handle->Count;
-            result = ((T*)&handle->Head->Array)[handle->ReadOffset++];
-            if (handle->ReadOffset == handle->Size)
-            {
-                handle->ReadOffset = 0;
-                if (handle->Chunks != 1)
-                {
-                    var chunk = handle->Head;
-                    handle->Head = chunk->Next;
-                    if (handle->FreeChunks == handle->MaxFreeChunks)
-                    {
-                        NativeMemoryAllocator.Free(chunk);
-                    }
-                    else
-                    {
-                        chunk->Next = handle->FreeList;
-                        handle->FreeList = chunk;
-                        ++handle->FreeChunks;
-                    }
-
-                    --handle->Chunks;
-                }
-            }
-
-            return true;
-        }
+        public bool TryDequeueHead(out T result) => _handle->TryDequeueHead(out result);
 
         /// <summary>
         ///     Try dequeue
@@ -380,38 +541,7 @@ namespace NativeCollections
         /// <param name="result">Item</param>
         /// <returns>Dequeued</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDequeueTail(out T result)
-        {
-            var handle = _handle;
-            if (handle->Count == 0)
-            {
-                result = default;
-                return false;
-            }
-
-            --handle->Count;
-            result = ((T*)&handle->Tail->Array)[--handle->WriteOffset];
-            if (handle->WriteOffset == 0 && handle->Chunks != 1)
-            {
-                handle->WriteOffset = handle->Size;
-                var chunk = handle->Tail;
-                handle->Tail = chunk->Previous;
-                if (handle->FreeChunks == handle->MaxFreeChunks)
-                {
-                    NativeMemoryAllocator.Free(chunk);
-                }
-                else
-                {
-                    chunk->Next = handle->FreeList;
-                    handle->FreeList = chunk;
-                    ++handle->FreeChunks;
-                }
-
-                --handle->Chunks;
-            }
-
-            return true;
-        }
+        public bool TryDequeueTail(out T result) => _handle->TryDequeueTail(out result);
 
         /// <summary>
         ///     Try peek head
@@ -419,18 +549,7 @@ namespace NativeCollections
         /// <param name="result">Item</param>
         /// <returns>Peeked</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryPeekHead(out T result)
-        {
-            var handle = _handle;
-            if (handle->Size == 0)
-            {
-                result = default;
-                return false;
-            }
-
-            result = ((T*)&handle->Head->Array)[handle->ReadOffset];
-            return true;
-        }
+        public bool TryPeekHead(out T result) => _handle->TryPeekHead(out result);
 
         /// <summary>
         ///     Try peek tail
@@ -438,18 +557,7 @@ namespace NativeCollections
         /// <param name="result">Item</param>
         /// <returns>Peeked</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryPeekTail(out T result)
-        {
-            var handle = _handle;
-            if (handle->Size == 0)
-            {
-                result = default;
-                return false;
-            }
-
-            result = ((T*)&handle->Tail->Array)[handle->WriteOffset - 1];
-            return true;
-        }
+        public bool TryPeekTail(out T result) => _handle->TryPeekTail(out result);
 
         /// <summary>
         ///     Ensure capacity
@@ -457,65 +565,20 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         /// <returns>New capacity</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int EnsureCapacity(int capacity)
-        {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            var handle = _handle;
-            if (capacity > handle->MaxFreeChunks)
-                capacity = handle->MaxFreeChunks;
-            while (handle->FreeChunks < capacity)
-            {
-                handle->FreeChunks++;
-                var chunk = (NativeMemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemoryChunk) + handle->Size));
-                chunk->Next = handle->FreeList;
-                handle->FreeList = chunk;
-            }
-
-            return handle->FreeChunks;
-        }
+        public int EnsureCapacity(int capacity) => _handle->EnsureCapacity(capacity);
 
         /// <summary>
         ///     Trim excess
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void TrimExcess()
-        {
-            var handle = _handle;
-            var node = handle->FreeList;
-            while (handle->FreeChunks > 0)
-            {
-                handle->FreeChunks--;
-                var temp = node;
-                node = node->Next;
-                NativeMemoryAllocator.Free(temp);
-            }
-
-            handle->FreeList = node;
-        }
+        public void TrimExcess() => _handle->TrimExcess();
 
         /// <summary>
         ///     Trim excess
         /// </summary>
         /// <param name="capacity">Remaining free slabs</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int TrimExcess(int capacity)
-        {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            var handle = _handle;
-            var node = handle->FreeList;
-            while (handle->FreeChunks > capacity)
-            {
-                handle->FreeChunks--;
-                var temp = node;
-                node = node->Next;
-                NativeMemoryAllocator.Free(temp);
-            }
-
-            handle->FreeList = node;
-            return handle->FreeChunks;
-        }
+        public int TrimExcess(int capacity) => _handle->TrimExcess(capacity);
 
         /// <summary>
         ///     Empty

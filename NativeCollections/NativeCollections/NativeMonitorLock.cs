@@ -15,7 +15,7 @@ namespace NativeCollections
     ///     Native monitorLock
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection]
+    [NativeCollection(NativeCollectionType.None)]
     public struct NativeMonitorLock : IDisposable, IEquatable<NativeMonitorLock>
     {
         /// <summary>

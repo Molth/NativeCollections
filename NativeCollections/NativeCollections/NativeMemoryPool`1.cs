@@ -13,7 +13,7 @@ namespace NativeCollections
     ///     Native memory pool
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection]
+    [NativeCollection(NativeCollectionType.None)]
     public readonly unsafe struct NativeMemoryPool<T> : IDisposable, IEquatable<NativeMemoryPool<T>> where T : unmanaged
     {
         /// <summary>

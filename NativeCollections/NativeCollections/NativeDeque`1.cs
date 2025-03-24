@@ -14,7 +14,7 @@ namespace NativeCollections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection]
+    [NativeCollection(NativeCollectionType.Standard)]
     public readonly unsafe struct NativeDeque<T> : IDisposable, IEquatable<NativeDeque<T>> where T : unmanaged
     {
         /// <summary>
@@ -52,6 +52,261 @@ namespace NativeCollections
             ///     Version
             /// </summary>
             public int Version;
+
+            /// <summary>
+            ///     Get reference
+            /// </summary>
+            /// <param name="index">Index</param>
+            public ref T this[int index]
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => ref Array[(Head + index) % Length];
+            }
+
+            /// <summary>
+            ///     Get reference
+            /// </summary>
+            /// <param name="index">Index</param>
+            public ref T this[uint index]
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => ref Array[(Head + index) % Length];
+            }
+
+            /// <summary>
+            ///     Clear
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Clear()
+            {
+                Size = 0;
+                Head = 0;
+                Tail = 0;
+                Version++;
+            }
+
+            /// <summary>
+            ///     Enqueue head
+            /// </summary>
+            /// <param name="item">Item</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void EnqueueHead(in T item)
+            {
+                if (Size == Length)
+                    Grow(Size + 1);
+                if (--Head == -1)
+                    Head = Length - 1;
+                Array[Head] = item;
+                ++Size;
+                ++Version;
+            }
+
+            /// <summary>
+            ///     Try enqueue head
+            /// </summary>
+            /// <param name="item">Item</param>
+            /// <returns>Enqueued</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool TryEnqueueHead(in T item)
+            {
+                if (Size == Length)
+                    return false;
+                if (--Head == -1)
+                    Head = Length - 1;
+                Array[Head] = item;
+                ++Size;
+                ++Version;
+                return true;
+            }
+
+            /// <summary>
+            ///     Enqueue tail
+            /// </summary>
+            /// <param name="item">Item</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void EnqueueTail(in T item)
+            {
+                if (Size == Length)
+                    Grow(Size + 1);
+                Array[Tail] = item;
+                if (++Tail == Length)
+                    Tail = 0;
+                ++Size;
+                ++Version;
+            }
+
+            /// <summary>
+            ///     Try enqueue tail
+            /// </summary>
+            /// <param name="item">Item</param>
+            /// <returns>Enqueued</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool TryEnqueueTail(in T item)
+            {
+                if (Size == Length)
+                    return false;
+                Array[Tail] = item;
+                if (++Tail == Length)
+                    Tail = 0;
+                ++Size;
+                ++Version;
+                return true;
+            }
+
+            /// <summary>
+            ///     Try dequeue
+            /// </summary>
+            /// <param name="result">Item</param>
+            /// <returns>Dequeued</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool TryDequeueHead(out T result)
+            {
+                if (Size == 0)
+                {
+                    result = default;
+                    return false;
+                }
+
+                result = Array[Head];
+                if (++Head == Length)
+                    Head = 0;
+                --Size;
+                ++Version;
+                return true;
+            }
+
+            /// <summary>
+            ///     Try dequeue
+            /// </summary>
+            /// <param name="result">Item</param>
+            /// <returns>Dequeued</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool TryDequeueTail(out T result)
+            {
+                if (Size == 0)
+                {
+                    result = default;
+                    return false;
+                }
+
+                if (--Tail == -1)
+                    Tail = Length - 1;
+                result = Array[Tail];
+                --Size;
+                ++Version;
+                return true;
+            }
+
+            /// <summary>
+            ///     Try peek head
+            /// </summary>
+            /// <param name="result">Item</param>
+            /// <returns>Peeked</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool TryPeekHead(out T result)
+            {
+                if (Size == 0)
+                {
+                    result = default;
+                    return false;
+                }
+
+                result = Array[Head];
+                return true;
+            }
+
+            /// <summary>
+            ///     Try peek tail
+            /// </summary>
+            /// <param name="result">Item</param>
+            /// <returns>Peeked</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool TryPeekTail(out T result)
+            {
+                var size = Size - 1;
+                if ((uint)size >= (uint)Length)
+                {
+                    result = default;
+                    return false;
+                }
+
+                result = Array[size];
+                return true;
+            }
+
+            /// <summary>
+            ///     Ensure capacity
+            /// </summary>
+            /// <param name="capacity">Capacity</param>
+            /// <returns>New capacity</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int EnsureCapacity(int capacity)
+            {
+                if (capacity < 0)
+                    throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+                if (Length < capacity)
+                    Grow(capacity);
+                return Length;
+            }
+
+            /// <summary>
+            ///     Trim excess
+            /// </summary>
+            /// <returns>New capacity</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int TrimExcess()
+            {
+                var threshold = (int)(Length * 0.9);
+                if (Size < threshold)
+                    SetCapacity(Size);
+                return Length;
+            }
+
+            /// <summary>
+            ///     Set capacity
+            /// </summary>
+            /// <param name="capacity">Capacity</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private void SetCapacity(int capacity)
+            {
+                var newArray = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
+                if (Size > 0)
+                {
+                    if (Head < Tail)
+                    {
+                        Unsafe.CopyBlockUnaligned(newArray, Array + Head, (uint)(Size * sizeof(T)));
+                    }
+                    else
+                    {
+                        Unsafe.CopyBlockUnaligned(newArray, Array + Head, (uint)((Length - Head) * sizeof(T)));
+                        Unsafe.CopyBlockUnaligned(newArray + Length - Head, Array, (uint)(Tail * sizeof(T)));
+                    }
+                }
+
+                NativeMemoryAllocator.Free(Array);
+                Array = newArray;
+                Length = capacity;
+                Head = 0;
+                Tail = Size == capacity ? 0 : Size;
+                Version++;
+            }
+
+            /// <summary>
+            ///     Grow
+            /// </summary>
+            /// <param name="capacity">Capacity</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private void Grow(int capacity)
+            {
+                var newCapacity = 2 * Length;
+                if ((uint)newCapacity > 2147483591)
+                    newCapacity = 2147483591;
+                var expected = Length + 4;
+                newCapacity = newCapacity > expected ? newCapacity : expected;
+                if (newCapacity < capacity)
+                    newCapacity = capacity;
+                SetCapacity(newCapacity);
+            }
         }
 
         /// <summary>
@@ -97,11 +352,7 @@ namespace NativeCollections
         public ref T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-                var handle = _handle;
-                return ref handle->Array[(handle->Head + index) % handle->Length];
-            }
+            get => ref (*_handle)[index];
         }
 
         /// <summary>
@@ -111,11 +362,7 @@ namespace NativeCollections
         public ref T this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-                var handle = _handle;
-                return ref handle->Array[(handle->Head + index) % handle->Length];
-            }
+            get => ref (*_handle)[index];
         }
 
         /// <summary>
@@ -182,31 +429,14 @@ namespace NativeCollections
         ///     Clear
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Clear()
-        {
-            var handle = _handle;
-            handle->Size = 0;
-            handle->Head = 0;
-            handle->Tail = 0;
-            handle->Version++;
-        }
+        public void Clear() => _handle->Clear();
 
         /// <summary>
         ///     Enqueue head
         /// </summary>
         /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void EnqueueHead(in T item)
-        {
-            var handle = _handle;
-            if (handle->Size == handle->Length)
-                Grow(handle->Size + 1);
-            if (--handle->Head == -1)
-                handle->Head = handle->Length - 1;
-            handle->Array[handle->Head] = item;
-            ++handle->Size;
-            ++handle->Version;
-        }
+        public void EnqueueHead(in T item) => _handle->EnqueueHead(item);
 
         /// <summary>
         ///     Try enqueue head
@@ -214,35 +444,14 @@ namespace NativeCollections
         /// <param name="item">Item</param>
         /// <returns>Enqueued</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryEnqueueHead(in T item)
-        {
-            var handle = _handle;
-            if (handle->Size == handle->Length)
-                return false;
-            if (--handle->Head == -1)
-                handle->Head = handle->Length - 1;
-            handle->Array[handle->Head] = item;
-            ++handle->Size;
-            ++handle->Version;
-            return true;
-        }
+        public bool TryEnqueueHead(in T item) => _handle->TryEnqueueHead(item);
 
         /// <summary>
         ///     Enqueue tail
         /// </summary>
         /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void EnqueueTail(in T item)
-        {
-            var handle = _handle;
-            if (handle->Size == handle->Length)
-                Grow(handle->Size + 1);
-            handle->Array[handle->Tail] = item;
-            if (++handle->Tail == handle->Length)
-                handle->Tail = 0;
-            ++handle->Size;
-            ++handle->Version;
-        }
+        public void EnqueueTail(in T item) => _handle->EnqueueTail(item);
 
         /// <summary>
         ///     Try enqueue tail
@@ -250,18 +459,7 @@ namespace NativeCollections
         /// <param name="item">Item</param>
         /// <returns>Enqueued</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryEnqueueTail(in T item)
-        {
-            var handle = _handle;
-            if (handle->Size == handle->Length)
-                return false;
-            handle->Array[handle->Tail] = item;
-            if (++handle->Tail == handle->Length)
-                handle->Tail = 0;
-            ++handle->Size;
-            ++handle->Version;
-            return true;
-        }
+        public bool TryEnqueueTail(in T item) => _handle->TryEnqueueTail(item);
 
         /// <summary>
         ///     Try dequeue
@@ -269,22 +467,7 @@ namespace NativeCollections
         /// <param name="result">Item</param>
         /// <returns>Dequeued</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDequeueHead(out T result)
-        {
-            var handle = _handle;
-            if (handle->Size == 0)
-            {
-                result = default;
-                return false;
-            }
-
-            result = handle->Array[handle->Head];
-            if (++handle->Head == handle->Length)
-                handle->Head = 0;
-            --handle->Size;
-            ++handle->Version;
-            return true;
-        }
+        public bool TryDequeueHead(out T result) => _handle->TryDequeueHead(out result);
 
         /// <summary>
         ///     Try dequeue
@@ -292,22 +475,7 @@ namespace NativeCollections
         /// <param name="result">Item</param>
         /// <returns>Dequeued</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDequeueTail(out T result)
-        {
-            var handle = _handle;
-            if (handle->Size == 0)
-            {
-                result = default;
-                return false;
-            }
-
-            if (--handle->Tail == -1)
-                handle->Tail = handle->Length - 1;
-            result = handle->Array[handle->Tail];
-            --handle->Size;
-            ++handle->Version;
-            return true;
-        }
+        public bool TryDequeueTail(out T result) => _handle->TryDequeueTail(out result);
 
         /// <summary>
         ///     Try peek head
@@ -315,18 +483,7 @@ namespace NativeCollections
         /// <param name="result">Item</param>
         /// <returns>Peeked</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryPeekHead(out T result)
-        {
-            var handle = _handle;
-            if (handle->Size == 0)
-            {
-                result = default;
-                return false;
-            }
-
-            result = handle->Array[handle->Head];
-            return true;
-        }
+        public bool TryPeekHead(out T result) => _handle->TryPeekHead(out result);
 
         /// <summary>
         ///     Try peek tail
@@ -334,19 +491,7 @@ namespace NativeCollections
         /// <param name="result">Item</param>
         /// <returns>Peeked</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryPeekTail(out T result)
-        {
-            var handle = _handle;
-            var size = handle->Size - 1;
-            if ((uint)size >= (uint)handle->Length)
-            {
-                result = default;
-                return false;
-            }
-
-            result = handle->Array[size];
-            return true;
-        }
+        public bool TryPeekTail(out T result) => _handle->TryPeekTail(out result);
 
         /// <summary>
         ///     Ensure capacity
@@ -354,77 +499,14 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         /// <returns>New capacity</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int EnsureCapacity(int capacity)
-        {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            var handle = _handle;
-            if (handle->Length < capacity)
-                Grow(capacity);
-            return handle->Length;
-        }
+        public int EnsureCapacity(int capacity) => _handle->EnsureCapacity(capacity);
 
         /// <summary>
         ///     Trim excess
         /// </summary>
         /// <returns>New capacity</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int TrimExcess()
-        {
-            var handle = _handle;
-            var threshold = (int)(handle->Length * 0.9);
-            if (handle->Size < threshold)
-                SetCapacity(handle->Size);
-            return handle->Length;
-        }
-
-        /// <summary>
-        ///     Set capacity
-        /// </summary>
-        /// <param name="capacity">Capacity</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void SetCapacity(int capacity)
-        {
-            var handle = _handle;
-            var newArray = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
-            if (handle->Size > 0)
-            {
-                if (handle->Head < handle->Tail)
-                {
-                    Unsafe.CopyBlockUnaligned(newArray, handle->Array + handle->Head, (uint)(handle->Size * sizeof(T)));
-                }
-                else
-                {
-                    Unsafe.CopyBlockUnaligned(newArray, handle->Array + handle->Head, (uint)((handle->Length - handle->Head) * sizeof(T)));
-                    Unsafe.CopyBlockUnaligned(newArray + handle->Length - handle->Head, handle->Array, (uint)(handle->Tail * sizeof(T)));
-                }
-            }
-
-            NativeMemoryAllocator.Free(handle->Array);
-            handle->Array = newArray;
-            handle->Length = capacity;
-            handle->Head = 0;
-            handle->Tail = handle->Size == capacity ? 0 : handle->Size;
-            handle->Version++;
-        }
-
-        /// <summary>
-        ///     Grow
-        /// </summary>
-        /// <param name="capacity">Capacity</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void Grow(int capacity)
-        {
-            var handle = _handle;
-            var newCapacity = 2 * handle->Length;
-            if ((uint)newCapacity > 2147483591)
-                newCapacity = 2147483591;
-            var expected = handle->Length + 4;
-            newCapacity = newCapacity > expected ? newCapacity : expected;
-            if (newCapacity < capacity)
-                newCapacity = capacity;
-            SetCapacity(newCapacity);
-        }
+        public int TrimExcess() => _handle->TrimExcess();
 
         /// <summary>
         ///     Empty
@@ -435,7 +517,7 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
-        public Enumerator GetEnumerator() => new(this);
+        public Enumerator GetEnumerator() => new(_handle);
 
         /// <summary>
         ///     Enumerator
@@ -445,7 +527,7 @@ namespace NativeCollections
             /// <summary>
             ///     NativeDeque
             /// </summary>
-            private readonly NativeDeque<T> _nativeDeque;
+            private readonly NativeDequeHandle* _nativeDeque;
 
             /// <summary>
             ///     Version
@@ -467,10 +549,11 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeDeque">NativeDeque</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(NativeDeque<T> nativeDeque)
+            internal Enumerator(void* nativeDeque)
             {
-                _nativeDeque = nativeDeque;
-                _version = nativeDeque._handle->Version;
+                var handle = (NativeDequeHandle*)nativeDeque;
+                _nativeDeque = handle;
+                _version = handle->Version;
                 _index = -1;
                 _currentElement = default;
             }
@@ -482,7 +565,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext()
             {
-                var handle = _nativeDeque._handle;
+                var handle = _nativeDeque;
                 if (_version != handle->Version)
                     throw new InvalidOperationException("EnumFailedVersion");
                 if (_index == -2)

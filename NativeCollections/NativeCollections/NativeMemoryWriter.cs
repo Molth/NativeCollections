@@ -13,7 +13,7 @@ namespace NativeCollections
     ///     Native memory writer
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection]
+    [NativeCollection(NativeCollectionType.None)]
     public unsafe struct NativeMemoryWriter
     {
         /// <summary>

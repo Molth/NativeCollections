@@ -15,7 +15,7 @@ namespace NativeCollections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection]
+    [NativeCollection(NativeCollectionType.None)]
     public readonly unsafe struct NativeChunkedStack<T> where T : unmanaged
     {
         /// <summary>
@@ -58,6 +58,176 @@ namespace NativeCollections
             ///     Count
             /// </summary>
             public int Count;
+
+            /// <summary>
+            ///     Clear
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Clear()
+            {
+                if (Chunks != 1)
+                {
+                    FreeChunks += Chunks - 1;
+                    Chunks = 1;
+                    var chunk = Sentinel->Next;
+                    chunk->Next = FreeList;
+                    FreeList = chunk;
+                    TrimExcess(MaxFreeChunks);
+                }
+
+                Count = 0;
+            }
+
+            /// <summary>
+            ///     Push
+            /// </summary>
+            /// <param name="item">Item</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Push(in T item)
+            {
+                var index = Count % Size;
+                if (index == 0 && Count != 0)
+                {
+                    NativeMemoryChunk* chunk;
+                    if (FreeChunks == 0)
+                    {
+                        chunk = (NativeMemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemoryChunk) + Size * sizeof(T)));
+                    }
+                    else
+                    {
+                        chunk = FreeList;
+                        FreeList = chunk->Next;
+                        --FreeChunks;
+                    }
+
+                    chunk->Next = Sentinel;
+                    Sentinel = chunk;
+                    ++Chunks;
+                }
+
+                ++Count;
+                ((T*)&Sentinel->Array)[index] = item;
+            }
+
+            /// <summary>
+            ///     Try pop
+            /// </summary>
+            /// <param name="result">Item</param>
+            /// <returns>Popped</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool TryPop(out T result)
+            {
+                if (Count == 0)
+                {
+                    result = default;
+                    return false;
+                }
+
+                --Count;
+                var index = Count % Size;
+                result = ((T*)&Sentinel->Array)[index];
+                if (index == 0 && Chunks != 1)
+                {
+                    var chunk = Sentinel;
+                    Sentinel = chunk->Next;
+                    if (FreeChunks == MaxFreeChunks)
+                    {
+                        NativeMemoryAllocator.Free(chunk);
+                    }
+                    else
+                    {
+                        chunk->Next = FreeList;
+                        FreeList = chunk;
+                        ++FreeChunks;
+                    }
+
+                    --Chunks;
+                }
+
+                return true;
+            }
+
+            /// <summary>
+            ///     Try peek
+            /// </summary>
+            /// <param name="result">Item</param>
+            /// <returns>Peeked</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool TryPeek(out T result)
+            {
+                if (Size == 0)
+                {
+                    result = default;
+                    return false;
+                }
+
+                var index = (Count - 1) % Size;
+                result = ((T*)&Sentinel->Array)[index];
+                return true;
+            }
+
+            /// <summary>
+            ///     Ensure capacity
+            /// </summary>
+            /// <param name="capacity">Capacity</param>
+            /// <returns>New capacity</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int EnsureCapacity(int capacity)
+            {
+                if (capacity < 0)
+                    throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+                if (capacity > MaxFreeChunks)
+                    capacity = MaxFreeChunks;
+                while (FreeChunks < capacity)
+                {
+                    FreeChunks++;
+                    var chunk = (NativeMemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemoryChunk) + Size));
+                    chunk->Next = FreeList;
+                    FreeList = chunk;
+                }
+
+                return FreeChunks;
+            }
+
+            /// <summary>
+            ///     Trim excess
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void TrimExcess()
+            {
+                var node = FreeList;
+                while (FreeChunks > 0)
+                {
+                    FreeChunks--;
+                    var temp = node;
+                    node = node->Next;
+                    NativeMemoryAllocator.Free(temp);
+                }
+
+                FreeList = node;
+            }
+
+            /// <summary>
+            ///     Trim excess
+            /// </summary>
+            /// <param name="capacity">Remaining free slabs</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int TrimExcess(int capacity)
+            {
+                if (capacity < 0)
+                    throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+                var node = FreeList;
+                while (FreeChunks > capacity)
+                {
+                    FreeChunks--;
+                    var temp = node;
+                    node = node->Next;
+                    NativeMemoryAllocator.Free(temp);
+                }
+
+                FreeList = node;
+                return FreeChunks;
+            }
         }
 
         /// <summary>
@@ -217,53 +387,14 @@ namespace NativeCollections
         ///     Clear
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Clear()
-        {
-            var handle = _handle;
-            if (handle->Chunks != 1)
-            {
-                handle->FreeChunks += handle->Chunks - 1;
-                handle->Chunks = 1;
-                var chunk = handle->Sentinel->Next;
-                chunk->Next = handle->FreeList;
-                handle->FreeList = chunk;
-                TrimExcess(handle->MaxFreeChunks);
-            }
-
-            handle->Count = 0;
-        }
+        public void Clear() => _handle->Clear();
 
         /// <summary>
         ///     Push
         /// </summary>
         /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Push(in T item)
-        {
-            var handle = _handle;
-            var index = handle->Count % handle->Size;
-            if (index == 0 && handle->Count != 0)
-            {
-                NativeMemoryChunk* chunk;
-                if (handle->FreeChunks == 0)
-                {
-                    chunk = (NativeMemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemoryChunk) + handle->Size * sizeof(T)));
-                }
-                else
-                {
-                    chunk = handle->FreeList;
-                    handle->FreeList = chunk->Next;
-                    --handle->FreeChunks;
-                }
-
-                chunk->Next = handle->Sentinel;
-                handle->Sentinel = chunk;
-                ++handle->Chunks;
-            }
-
-            ++handle->Count;
-            ((T*)&handle->Sentinel->Array)[index] = item;
-        }
+        public void Push(in T item) => _handle->Push(item);
 
         /// <summary>
         ///     Try pop
@@ -271,38 +402,7 @@ namespace NativeCollections
         /// <param name="result">Item</param>
         /// <returns>Popped</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryPop(out T result)
-        {
-            var handle = _handle;
-            if (handle->Count == 0)
-            {
-                result = default;
-                return false;
-            }
-
-            --handle->Count;
-            var index = handle->Count % handle->Size;
-            result = ((T*)&handle->Sentinel->Array)[index];
-            if (index == 0 && handle->Chunks != 1)
-            {
-                var chunk = handle->Sentinel;
-                handle->Sentinel = chunk->Next;
-                if (handle->FreeChunks == handle->MaxFreeChunks)
-                {
-                    NativeMemoryAllocator.Free(chunk);
-                }
-                else
-                {
-                    chunk->Next = handle->FreeList;
-                    handle->FreeList = chunk;
-                    ++handle->FreeChunks;
-                }
-
-                --handle->Chunks;
-            }
-
-            return true;
-        }
+        public bool TryPop(out T result) => _handle->TryPop(out result);
 
         /// <summary>
         ///     Try peek
@@ -310,19 +410,7 @@ namespace NativeCollections
         /// <param name="result">Item</param>
         /// <returns>Peeked</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryPeek(out T result)
-        {
-            var handle = _handle;
-            if (handle->Size == 0)
-            {
-                result = default;
-                return false;
-            }
-
-            var index = (handle->Count - 1) % handle->Size;
-            result = ((T*)&handle->Sentinel->Array)[index];
-            return true;
-        }
+        public bool TryPeek(out T result) => _handle->TryPeek(out result);
 
         /// <summary>
         ///     Ensure capacity
@@ -330,65 +418,20 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         /// <returns>New capacity</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int EnsureCapacity(int capacity)
-        {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            var handle = _handle;
-            if (capacity > handle->MaxFreeChunks)
-                capacity = handle->MaxFreeChunks;
-            while (handle->FreeChunks < capacity)
-            {
-                handle->FreeChunks++;
-                var chunk = (NativeMemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemoryChunk) + handle->Size));
-                chunk->Next = handle->FreeList;
-                handle->FreeList = chunk;
-            }
-
-            return handle->FreeChunks;
-        }
+        public int EnsureCapacity(int capacity) => _handle->EnsureCapacity(capacity);
 
         /// <summary>
         ///     Trim excess
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void TrimExcess()
-        {
-            var handle = _handle;
-            var node = handle->FreeList;
-            while (handle->FreeChunks > 0)
-            {
-                handle->FreeChunks--;
-                var temp = node;
-                node = node->Next;
-                NativeMemoryAllocator.Free(temp);
-            }
-
-            handle->FreeList = node;
-        }
+        public void TrimExcess() => _handle->TrimExcess();
 
         /// <summary>
         ///     Trim excess
         /// </summary>
         /// <param name="capacity">Remaining free slabs</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int TrimExcess(int capacity)
-        {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            var handle = _handle;
-            var node = handle->FreeList;
-            while (handle->FreeChunks > capacity)
-            {
-                handle->FreeChunks--;
-                var temp = node;
-                node = node->Next;
-                NativeMemoryAllocator.Free(temp);
-            }
-
-            handle->FreeList = node;
-            return handle->FreeChunks;
-        }
+        public int TrimExcess(int capacity) => _handle->TrimExcess(capacity);
 
         /// <summary>
         ///     Empty

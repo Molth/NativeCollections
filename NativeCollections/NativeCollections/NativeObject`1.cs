@@ -15,7 +15,7 @@ namespace NativeCollections
     ///     Native object
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection]
+    [NativeCollection(NativeCollectionType.None)]
     public struct NativeObject<T> : IDisposable, IEquatable<NativeObject<T>>
     {
         /// <summary>
