@@ -14,7 +14,7 @@ namespace NativeCollections
     ///     https://github.com/mattconte/tlsf
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection(NativeCollectionType.Community| NativeCollectionType.C)]
+    [NativeCollection(NativeCollectionType.Community | NativeCollectionType.C)]
     public readonly unsafe struct NativeDynamicMemoryPool : IDisposable
     {
         /// <summary>
@@ -37,7 +37,7 @@ namespace NativeCollections
             ulong actualSize;
             void* array;
             void* handle;
-            if (IntPtr.Size == 8)
+            if (nint.Size == 8)
             {
                 actualSize = TLSF64.align_up(TLSF64.tlsf_size() + TLSF64.tlsf_pool_overhead() + 7 * TLSF64.tlsf_alloc_overhead() + size, 8);
 #if NET6_0_OR_GREATER
@@ -142,7 +142,7 @@ namespace NativeCollections
         /// <param name="size">Size</param>
         /// <returns>Buffer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void* Rent(ulong size) => IntPtr.Size == 8 ? TLSF64.tlsf_malloc(_handle, size) : TLSF32.tlsf_malloc(_handle, (uint)size);
+        public void* Rent(ulong size) => nint.Size == 8 ? TLSF64.tlsf_malloc(_handle, size) : TLSF32.tlsf_malloc(_handle, (uint)size);
 
         /// <summary>
         ///     Rent buffer
@@ -153,7 +153,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void* Rent(ulong size, out ulong actualSize)
         {
-            if (IntPtr.Size == 8)
+            if (nint.Size == 8)
             {
                 var ptr = TLSF64.tlsf_malloc(_handle, size);
                 actualSize = ptr != null ? TLSF64.tlsf_block_size(ptr) : 0;
@@ -174,7 +174,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Return(void* ptr)
         {
-            if (IntPtr.Size == 8)
+            if (nint.Size == 8)
                 TLSF64.tlsf_free(_handle, ptr);
             else
                 TLSF32.tlsf_free(_handle, ptr);

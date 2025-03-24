@@ -1136,7 +1136,7 @@ namespace NativeCollections
             /// <summary>
             ///     NativeConcurrentDictionary
             /// </summary>
-            private readonly NativeConcurrentDictionary<TKey, TValue> .NativeConcurrentDictionaryHandle*_nativeConcurrentDictionary;
+            private readonly NativeConcurrentDictionaryHandle* _nativeConcurrentDictionary;
 
             /// <summary>
             ///     Buckets
@@ -1257,7 +1257,7 @@ namespace NativeCollections
             /// <summary>
             ///     NativeConcurrentDictionary
             /// </summary>
-            private readonly NativeConcurrentDictionary<TKey, TValue> .NativeConcurrentDictionaryHandle* _nativeConcurrentDictionary;
+            private readonly NativeConcurrentDictionaryHandle* _nativeConcurrentDictionary;
 
             /// <summary>
             ///     Structure
@@ -1280,7 +1280,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     NativeConcurrentDictionary
                 /// </summary>
-                private readonly NativeConcurrentDictionary<TKey, TValue> .NativeConcurrentDictionaryHandle* _nativeConcurrentDictionary;
+                private readonly NativeConcurrentDictionaryHandle* _nativeConcurrentDictionary;
 
                 /// <summary>
                 ///     Buckets
@@ -1402,7 +1402,7 @@ namespace NativeCollections
             /// <summary>
             ///     NativeConcurrentDictionary
             /// </summary>
-            private readonly NativeConcurrentDictionary<TKey, TValue>  .NativeConcurrentDictionaryHandle*_nativeConcurrentDictionary;
+            private readonly NativeConcurrentDictionaryHandle* _nativeConcurrentDictionary;
 
             /// <summary>
             ///     Structure
@@ -1425,7 +1425,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     NativeConcurrentDictionary
                 /// </summary>
-                private readonly NativeConcurrentDictionary<TKey, TValue>  .NativeConcurrentDictionaryHandle*_nativeConcurrentDictionary;
+                private readonly NativeConcurrentDictionaryHandle* _nativeConcurrentDictionary;
 
                 /// <summary>
                 ///     Buckets

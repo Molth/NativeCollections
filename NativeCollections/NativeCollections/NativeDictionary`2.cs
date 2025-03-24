@@ -835,7 +835,7 @@ namespace NativeCollections
             /// <summary>
             ///     NativeDictionary
             /// </summary>
-            private readonly NativeDictionary<TKey, TValue>.NativeDictionaryHandle* _nativeDictionary;
+            private readonly NativeDictionaryHandle* _nativeDictionary;
 
             /// <summary>
             ///     Version
@@ -910,7 +910,7 @@ namespace NativeCollections
             /// <summary>
             ///     NativeDictionary
             /// </summary>
-            private readonly NativeDictionary<TKey, TValue>.NativeDictionaryHandle* _nativeDictionary;
+            private readonly NativeDictionaryHandle* _nativeDictionary;
 
             /// <summary>
             ///     Structure
@@ -933,7 +933,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     NativeDictionary
                 /// </summary>
-                private readonly NativeDictionary<TKey, TValue>.NativeDictionaryHandle* _nativeDictionary;
+                private readonly NativeDictionaryHandle* _nativeDictionary;
 
                 /// <summary>
                 ///     Index
@@ -1009,7 +1009,7 @@ namespace NativeCollections
             /// <summary>
             ///     NativeDictionary
             /// </summary>
-            private readonly NativeDictionary<TKey, TValue>.NativeDictionaryHandle* _nativeDictionary;
+            private readonly NativeDictionaryHandle* _nativeDictionary;
 
             /// <summary>
             ///     Structure
@@ -1032,7 +1032,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     NativeDictionary
                 /// </summary>
-                private readonly NativeDictionary<TKey, TValue>.NativeDictionaryHandle* _nativeDictionary;
+                private readonly NativeDictionaryHandle* _nativeDictionary;
 
                 /// <summary>
                 ///     Index

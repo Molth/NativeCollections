@@ -16,7 +16,7 @@ namespace NativeCollections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection(NativeCollectionType.Community|NativeCollectionType.Rust)]
+    [NativeCollection(NativeCollectionType.Community | NativeCollectionType.Rust)]
     public readonly unsafe struct NativeSparseSet<T> : IDisposable, IEquatable<NativeSparseSet<T>> where T : unmanaged
     {
         /// <summary>

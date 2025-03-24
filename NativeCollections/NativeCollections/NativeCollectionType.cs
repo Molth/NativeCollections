@@ -7,7 +7,8 @@ namespace NativeCollections
     /// <summary>
     ///     Native collection type
     /// </summary>
-   [Flags] public enum NativeCollectionType
+    [Flags]
+    public enum NativeCollectionType
     {
         /// <summary>
         ///     None

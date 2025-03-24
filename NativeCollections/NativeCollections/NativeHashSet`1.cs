@@ -594,7 +594,8 @@ namespace NativeCollections
         /// <summary>
         ///     Entry
         /// </summary>
-        [StructLayout(LayoutKind.Sequential)]private struct Entry
+        [StructLayout(LayoutKind.Sequential)]
+        private struct Entry
         {
             /// <summary>
             ///     HashCode

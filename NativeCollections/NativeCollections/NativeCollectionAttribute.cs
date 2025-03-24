@@ -19,6 +19,6 @@ namespace NativeCollections
         ///     Structure
         /// </summary>
         /// <param name="type">Type</param>
-        public NativeCollectionAttribute(NativeCollectionType type ) => Type = type;
+        public NativeCollectionAttribute(NativeCollectionType type) => Type = type;
     }
 }
