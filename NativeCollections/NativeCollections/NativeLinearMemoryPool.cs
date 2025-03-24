@@ -51,6 +51,145 @@ namespace NativeCollections
             ///     Size
             /// </summary>
             public int Size;
+
+            /// <summary>
+            ///     Rent buffer
+            /// </summary>
+            /// <param name="length">Length</param>
+            /// <returns>Buffer</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void* Rent(int length)
+            {
+                if (length < 0)
+                    throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+                var size = Size;
+                if (length + sizeof(NativeMemoryNode) > size)
+                    throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeLessOrEqual");
+                var slab = Sentinel;
+                if (slab->Length + sizeof(NativeMemoryNode) + length > size)
+                {
+                    if (FreeSlabs == 0)
+                    {
+                        var array = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemorySlab) + size));
+                        slab = (NativeMemorySlab*)array;
+                    }
+                    else
+                    {
+                        slab = FreeList;
+                        FreeList = slab->Next;
+                        FreeSlabs--;
+                    }
+
+                    slab->Next = Sentinel;
+                    slab->Previous = Sentinel->Previous;
+                    slab->Nodes = 0;
+                    slab->Length = 0;
+                    Sentinel->Previous->Next = slab;
+                    Sentinel->Previous = slab;
+                    Sentinel = slab;
+                    Slabs++;
+                }
+
+                var node = (NativeMemoryNode*)((byte*)slab + sizeof(NativeMemorySlab) + slab->Length);
+                node->Slab = slab;
+                slab->Nodes++;
+                slab->Length += sizeof(NativeMemoryNode) + length;
+                return (byte*)node + sizeof(NativeMemoryNode);
+            }
+
+            /// <summary>
+            ///     Return buffer
+            /// </summary>
+            /// <param name="ptr">Pointer</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Return(void* ptr)
+            {
+                var node = (NativeMemoryNode*)((byte*)ptr - sizeof(NativeMemoryNode));
+                var slab = node->Slab;
+                slab->Nodes--;
+                if (slab->Nodes == 0 && slab != Sentinel)
+                {
+                    slab->Previous->Next = slab->Next;
+                    slab->Next->Previous = slab->Previous;
+                    if (FreeSlabs == MaxFreeSlabs)
+                    {
+                        NativeMemoryAllocator.Free(slab);
+                    }
+                    else
+                    {
+                        slab->Next = FreeList;
+                        FreeList = slab;
+                        FreeSlabs++;
+                    }
+
+                    Slabs--;
+                }
+            }
+
+            /// <summary>
+            ///     Ensure capacity
+            /// </summary>
+            /// <param name="capacity">Capacity</param>
+            /// <returns>New capacity</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int EnsureCapacity(int capacity)
+            {
+                if (capacity < 0)
+                    throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+                if (capacity > MaxFreeSlabs)
+                    capacity = MaxFreeSlabs;
+                var size = Size;
+                while (FreeSlabs < capacity)
+                {
+                    FreeSlabs++;
+                    var array = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemorySlab) + size));
+                    var slab = (NativeMemorySlab*)array;
+                    slab->Next = FreeList;
+                    FreeList = slab;
+                }
+
+                return FreeSlabs;
+            }
+
+            /// <summary>
+            ///     Trim excess
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void TrimExcess()
+            {
+                var node = FreeList;
+                while (FreeSlabs > 0)
+                {
+                    FreeSlabs--;
+                    var temp = node;
+                    node = node->Next;
+                    NativeMemoryAllocator.Free(temp);
+                }
+
+                FreeList = node;
+            }
+
+            /// <summary>
+            ///     Trim excess
+            /// </summary>
+            /// <param name="capacity">Remaining free slabs</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int TrimExcess(int capacity)
+            {
+                if (capacity < 0)
+                    throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+                var node = FreeList;
+                while (FreeSlabs > capacity)
+                {
+                    FreeSlabs--;
+                    var temp = node;
+                    node = node->Next;
+                    NativeMemoryAllocator.Free(temp);
+                }
+
+                FreeList = node;
+                return FreeSlabs;
+            }
         }
 
         /// <summary>
@@ -229,75 +368,14 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <returns>Buffer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void* Rent(int length)
-        {
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            var handle = _handle;
-            var size = handle->Size;
-            if (length + sizeof(NativeMemoryNode) > size)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeLessOrEqual");
-            var slab = handle->Sentinel;
-            if (slab->Length + sizeof(NativeMemoryNode) + length > size)
-            {
-                if (handle->FreeSlabs == 0)
-                {
-                    var array = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemorySlab) + size));
-                    slab = (NativeMemorySlab*)array;
-                }
-                else
-                {
-                    slab = handle->FreeList;
-                    handle->FreeList = slab->Next;
-                    handle->FreeSlabs--;
-                }
-
-                slab->Next = handle->Sentinel;
-                slab->Previous = handle->Sentinel->Previous;
-                slab->Nodes = 0;
-                slab->Length = 0;
-                handle->Sentinel->Previous->Next = slab;
-                handle->Sentinel->Previous = slab;
-                handle->Sentinel = slab;
-                handle->Slabs++;
-            }
-
-            var node = (NativeMemoryNode*)((byte*)slab + sizeof(NativeMemorySlab) + slab->Length);
-            node->Slab = slab;
-            slab->Nodes++;
-            slab->Length += sizeof(NativeMemoryNode) + length;
-            return (byte*)node + sizeof(NativeMemoryNode);
-        }
+        public void* Rent(int length) => _handle->Rent(length);
 
         /// <summary>
         ///     Return buffer
         /// </summary>
         /// <param name="ptr">Pointer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Return(void* ptr)
-        {
-            var handle = _handle;
-            var node = (NativeMemoryNode*)((byte*)ptr - sizeof(NativeMemoryNode));
-            var slab = node->Slab;
-            slab->Nodes--;
-            if (slab->Nodes == 0 && slab != handle->Sentinel)
-            {
-                slab->Previous->Next = slab->Next;
-                slab->Next->Previous = slab->Previous;
-                if (handle->FreeSlabs == handle->MaxFreeSlabs)
-                {
-                    NativeMemoryAllocator.Free(slab);
-                }
-                else
-                {
-                    slab->Next = handle->FreeList;
-                    handle->FreeList = slab;
-                    handle->FreeSlabs++;
-                }
-
-                handle->Slabs--;
-            }
-        }
+        public void Return(void* ptr) => _handle->Return(ptr);
 
         /// <summary>
         ///     Ensure capacity
@@ -305,67 +383,20 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         /// <returns>New capacity</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int EnsureCapacity(int capacity)
-        {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            var handle = _handle;
-            if (capacity > handle->MaxFreeSlabs)
-                capacity = handle->MaxFreeSlabs;
-            var size = handle->Size;
-            while (handle->FreeSlabs < capacity)
-            {
-                handle->FreeSlabs++;
-                var array = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(NativeMemorySlab) + size));
-                var slab = (NativeMemorySlab*)array;
-                slab->Next = handle->FreeList;
-                handle->FreeList = slab;
-            }
-
-            return handle->FreeSlabs;
-        }
+        public int EnsureCapacity(int capacity) => _handle->EnsureCapacity(capacity);
 
         /// <summary>
         ///     Trim excess
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void TrimExcess()
-        {
-            var handle = _handle;
-            var node = handle->FreeList;
-            while (handle->FreeSlabs > 0)
-            {
-                handle->FreeSlabs--;
-                var temp = node;
-                node = node->Next;
-                NativeMemoryAllocator.Free(temp);
-            }
-
-            handle->FreeList = node;
-        }
+        public void TrimExcess() => _handle->TrimExcess();
 
         /// <summary>
         ///     Trim excess
         /// </summary>
         /// <param name="capacity">Remaining free slabs</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int TrimExcess(int capacity)
-        {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            var handle = _handle;
-            var node = handle->FreeList;
-            while (handle->FreeSlabs > capacity)
-            {
-                handle->FreeSlabs--;
-                var temp = node;
-                node = node->Next;
-                NativeMemoryAllocator.Free(temp);
-            }
-
-            handle->FreeList = node;
-            return handle->FreeSlabs;
-        }
+        public int TrimExcess(int capacity) => _handle->TrimExcess(capacity);
 
         /// <summary>
         ///     Empty
