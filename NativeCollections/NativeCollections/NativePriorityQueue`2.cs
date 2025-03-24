@@ -527,10 +527,7 @@ namespace NativeCollections
         ///     Clear
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Clear()
-        {
-            _handle->Clear();
-        }
+        public void Clear() => _handle->Clear();
 
         /// <summary>
         ///     Enqueue
@@ -538,10 +535,7 @@ namespace NativeCollections
         /// <param name="element">Element</param>
         /// <param name="priority">Priority</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Enqueue(in TElement element, in TPriority priority)
-        {
-            _handle->Enqueue(element, priority);
-        }
+        public void Enqueue(in TElement element, in TPriority priority) => _handle->Enqueue(element, priority);
 
         /// <summary>
         ///     Try enqueue
