@@ -334,7 +334,7 @@ namespace NativeCollections
                                 }
 
                                 --Chunks;
-                                Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteCount), ref *Head->Array, (uint)size);
+                                Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, (nint)byteCount), ref *Head->Array, (uint)size);
                                 byteCount += size;
                             }
 
@@ -354,7 +354,7 @@ namespace NativeCollections
                                 }
 
                                 --Chunks;
-                                Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteCount), ref *Head->Array, (uint)remaining);
+                                Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, (nint)byteCount), ref *Head->Array, (uint)remaining);
                             }
                         }
                     }
@@ -397,7 +397,7 @@ namespace NativeCollections
                             }
 
                             --Chunks;
-                            Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteCount), ref *Head->Array, (uint)size);
+                            Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, (nint)byteCount), ref *Head->Array, (uint)size);
                             byteCount += size;
                         }
 
@@ -417,7 +417,7 @@ namespace NativeCollections
                             }
 
                             --Chunks;
-                            Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteCount), ref *Head->Array, (uint)remaining);
+                            Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, (nint)byteCount), ref *Head->Array, (uint)remaining);
                         }
 
                         ReadOffset = remaining;
@@ -473,7 +473,7 @@ namespace NativeCollections
                         Tail->Next = chunk;
                         Tail = chunk;
                         ++Chunks;
-                        Unsafe.CopyBlockUnaligned(ref *Tail->Array, ref Unsafe.AddByteOffset(ref reference, byteCount), (uint)size);
+                        Unsafe.CopyBlockUnaligned(ref *Tail->Array, ref Unsafe.AddByteOffset(ref reference, (nint)byteCount), (uint)size);
                         byteCount += size;
                     }
 
@@ -493,7 +493,7 @@ namespace NativeCollections
                         Tail->Next = chunk;
                         Tail = chunk;
                         ++Chunks;
-                        Unsafe.CopyBlockUnaligned(ref *Tail->Array, ref Unsafe.AddByteOffset(ref reference, byteCount), (uint)remaining);
+                        Unsafe.CopyBlockUnaligned(ref *Tail->Array, ref Unsafe.AddByteOffset(ref reference, (nint)byteCount), (uint)remaining);
                     }
 
                     WriteOffset = remaining;
