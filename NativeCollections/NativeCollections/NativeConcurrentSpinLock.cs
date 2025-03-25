@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -108,6 +109,48 @@ namespace NativeCollections
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Exit() => Interlocked.Add(ref _nextSequenceNumber, 1);
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public bool Equals(NativeConcurrentSpinLock other) => other == this;
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="obj">object</param>
+        /// <returns>Equals</returns>
+        public override bool Equals(object? obj) => throw new NotSupportedException("Cannot call Equals on NativeConcurrentSpinLock");
+
+        /// <summary>
+        ///     Get hashCode
+        /// </summary>
+        /// <returns>HashCode</returns>
+        public override int GetHashCode() => throw new NotSupportedException("Cannot call GetHashCode on NativeConcurrentSpinLock");
+
+        /// <summary>
+        ///     To string
+        /// </summary>
+        /// <returns>String</returns>
+        public override string ToString() => "NativeConcurrentSpinLock";
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Equals</returns>
+        public static bool operator ==(NativeConcurrentSpinLock left, NativeConcurrentSpinLock right) => Unsafe.As<NativeConcurrentSpinLock, long>(ref left) == Unsafe.As<NativeConcurrentSpinLock, long>(ref right);
+
+        /// <summary>
+        ///     Not equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Not equals</returns>
+        public static bool operator !=(NativeConcurrentSpinLock left, NativeConcurrentSpinLock right) => Unsafe.As<NativeConcurrentSpinLock, long>(ref left) != Unsafe.As<NativeConcurrentSpinLock, long>(ref right);
 
         /// <summary>
         ///     Empty
