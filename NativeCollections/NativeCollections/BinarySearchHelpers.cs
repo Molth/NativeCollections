@@ -8,7 +8,7 @@ namespace NativeCollections
     /// <summary>
     ///     Binary search helpers
     /// </summary>
-    public static unsafe class BinarySearchHelpers
+    internal static unsafe class BinarySearchHelpers
     {
         /// <summary>
         ///     Find
