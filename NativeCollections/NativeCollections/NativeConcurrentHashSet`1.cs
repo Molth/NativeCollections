@@ -48,7 +48,7 @@ namespace NativeCollections
             /// <summary>
             ///     Node lock
             /// </summary>
-            public ulong NodeLock;
+            public NativeConcurrentSpinLock NodeLock;
 
             /// <summary>
             ///     Is created
@@ -147,7 +147,6 @@ namespace NativeCollections
             public bool Add(in T item)
             {
                 var tables = Tables;
-                NativeConcurrentSpinLock nodeLock = Unsafe.AsPointer(ref NodeLock);
                 var hashCode = item.GetHashCode();
                 while (true)
                 {
@@ -171,14 +170,14 @@ namespace NativeCollections
                         }
 
                         Node* resultNode;
-                        nodeLock.Enter();
+                        NodeLock.Enter();
                         try
                         {
                             resultNode = (Node*)NodePool.Rent();
                         }
                         finally
                         {
-                            nodeLock.Exit();
+                            NodeLock.Exit();
                         }
 
                         resultNode->Initialize(item, hashCode, (Node*)bucket);
@@ -211,7 +210,6 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool Remove(in T item)
             {
-                NativeConcurrentSpinLock nodeLock = Unsafe.AsPointer(ref NodeLock);
                 var tables = Tables;
                 var hashCode = item.GetHashCode();
                 while (true)
@@ -238,14 +236,14 @@ namespace NativeCollections
                                         Volatile.Write(ref bucket, (nint)curr->Next);
                                     else
                                         prev->Next = curr->Next;
-                                    nodeLock.Enter();
+                                    NodeLock.Enter();
                                     try
                                     {
                                         NodePool.Return(curr);
                                     }
                                     finally
                                     {
-                                        nodeLock.Exit();
+                                        NodeLock.Exit();
                                     }
 
                                     tables->CountPerLock[lockNo]--;
@@ -564,8 +562,7 @@ namespace NativeCollections
             handle->GrowLockArray = growLockArray;
             handle->Budget = buckets.Length / locks.Length;
             handle->NodePool = nodePool;
-            NativeConcurrentSpinLock nodeLock = &handle->NodeLock;
-            nodeLock.Reset();
+            handle->NodeLock.Reset();
             _handle = handle;
         }
 

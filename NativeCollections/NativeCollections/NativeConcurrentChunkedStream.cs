@@ -75,7 +75,7 @@ namespace NativeCollections
             /// <summary>
             ///     Spin lock
             /// </summary>
-            public ulong SpinLock;
+            public NativeConcurrentSpinLock SpinLock;
 
             /// <summary>
             ///     Read
@@ -88,14 +88,13 @@ namespace NativeCollections
             {
                 if (length < 0)
                     throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-                NativeConcurrentSpinLock spinLock = Unsafe.AsPointer(ref SpinLock);
-                spinLock.Enter();
+                SpinLock.Enter();
                 if (length >= Length)
                 {
                     length = Length;
                     if (length == 0)
                     {
-                        spinLock.Exit();
+                        SpinLock.Exit();
                         return 0;
                     }
 
@@ -163,7 +162,7 @@ namespace NativeCollections
                 {
                     if (length == 0)
                     {
-                        spinLock.Exit();
+                        SpinLock.Exit();
                         return 0;
                     }
 
@@ -226,7 +225,7 @@ namespace NativeCollections
                     Length -= length;
                 }
 
-                spinLock.Exit();
+                SpinLock.Exit();
                 return length;
             }
 
@@ -243,8 +242,7 @@ namespace NativeCollections
                 if (length == 0)
                     return;
                 var size = Size;
-                NativeConcurrentSpinLock spinLock = Unsafe.AsPointer(ref SpinLock);
-                spinLock.Enter();
+                SpinLock.Enter();
                 var byteCount = size - WriteOffset;
                 if (byteCount >= length)
                 {
@@ -302,7 +300,7 @@ namespace NativeCollections
                 }
 
                 Length += length;
-                spinLock.Exit();
+                SpinLock.Exit();
             }
 
             /// <summary>
@@ -317,14 +315,13 @@ namespace NativeCollections
                 if (length < 0)
                     throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
                 ref var reference = ref MemoryMarshal.GetReference(buffer);
-                NativeConcurrentSpinLock spinLock = Unsafe.AsPointer(ref SpinLock);
-                spinLock.Enter();
+                SpinLock.Enter();
                 if (length >= Length)
                 {
                     length = Length;
                     if (length == 0)
                     {
-                        spinLock.Exit();
+                        SpinLock.Exit();
                         return 0;
                     }
 
@@ -392,7 +389,7 @@ namespace NativeCollections
                 {
                     if (length == 0)
                     {
-                        spinLock.Exit();
+                        SpinLock.Exit();
                         return 0;
                     }
 
@@ -455,7 +452,7 @@ namespace NativeCollections
                     Length -= length;
                 }
 
-                spinLock.Exit();
+                SpinLock.Exit();
                 return length;
             }
 
@@ -473,8 +470,7 @@ namespace NativeCollections
                     return;
                 ref var reference = ref MemoryMarshal.GetReference(buffer);
                 var size = Size;
-                NativeConcurrentSpinLock spinLock = Unsafe.AsPointer(ref SpinLock);
-                spinLock.Enter();
+                SpinLock.Enter();
                 var byteCount = size - WriteOffset;
                 if (byteCount >= length)
                 {
@@ -532,7 +528,7 @@ namespace NativeCollections
                 }
 
                 Length += length;
-                spinLock.Exit();
+                SpinLock.Exit();
             }
 
             /// <summary>
@@ -547,8 +543,7 @@ namespace NativeCollections
                     throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
                 if (capacity > MaxFreeChunks)
                     capacity = MaxFreeChunks;
-                NativeConcurrentSpinLock spinLock = Unsafe.AsPointer(ref SpinLock);
-                spinLock.Enter();
+                SpinLock.Enter();
                 while (FreeChunks < capacity)
                 {
                     FreeChunks++;
@@ -558,7 +553,7 @@ namespace NativeCollections
                 }
 
                 var freeChunks = FreeChunks;
-                spinLock.Exit();
+                SpinLock.Exit();
                 return freeChunks;
             }
 
@@ -568,8 +563,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void TrimExcess()
             {
-                NativeConcurrentSpinLock spinLock = Unsafe.AsPointer(ref SpinLock);
-                spinLock.Enter();
+                SpinLock.Enter();
                 var node = FreeList;
                 while (FreeChunks > 0)
                 {
@@ -580,7 +574,7 @@ namespace NativeCollections
                 }
 
                 FreeList = node;
-                spinLock.Exit();
+                SpinLock.Exit();
             }
 
             /// <summary>
@@ -592,8 +586,7 @@ namespace NativeCollections
             {
                 if (capacity < 0)
                     throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-                NativeConcurrentSpinLock spinLock = Unsafe.AsPointer(ref SpinLock);
-                spinLock.Enter();
+                SpinLock.Enter();
                 var node = FreeList;
                 while (FreeChunks > capacity)
                 {
@@ -605,7 +598,7 @@ namespace NativeCollections
 
                 FreeList = node;
                 var freeChunks = FreeChunks;
-                spinLock.Exit();
+                SpinLock.Exit();
                 return freeChunks;
             }
         }
@@ -656,8 +649,7 @@ namespace NativeCollections
             handle->ReadOffset = 0;
             handle->WriteOffset = 0;
             handle->Length = 0;
-            NativeConcurrentSpinLock spinLock = &handle->SpinLock;
-            spinLock.Reset();
+            handle->SpinLock.Reset();
             _handle = handle;
         }
 

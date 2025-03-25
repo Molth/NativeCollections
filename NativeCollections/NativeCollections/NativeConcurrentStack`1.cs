@@ -38,7 +38,7 @@ namespace NativeCollections
             /// <summary>
             ///     Node lock
             /// </summary>
-            public ulong NodeLock;
+            public NativeConcurrentSpinLock NodeLock;
 
             /// <summary>
             ///     Count
@@ -61,8 +61,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Clear()
             {
-                NativeConcurrentSpinLock nodeLock = Unsafe.AsPointer(ref NodeLock);
-                nodeLock.Enter();
+                NodeLock.Enter();
                 try
                 {
                     var node = (Node*)Head;
@@ -75,7 +74,7 @@ namespace NativeCollections
                 }
                 finally
                 {
-                    nodeLock.Exit();
+                    NodeLock.Exit();
                 }
             }
 
@@ -86,16 +85,15 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Push(in T item)
             {
-                NativeConcurrentSpinLock nodeLock = Unsafe.AsPointer(ref NodeLock);
                 Node* newNode;
-                nodeLock.Enter();
+                NodeLock.Enter();
                 try
                 {
                     newNode = (Node*)NodePool.Rent();
                 }
                 finally
                 {
-                    nodeLock.Exit();
+                    NodeLock.Exit();
                 }
 
                 newNode->Value = item;
@@ -125,18 +123,17 @@ namespace NativeCollections
                     return false;
                 }
 
-                NativeConcurrentSpinLock nodeLock = Unsafe.AsPointer(ref NodeLock);
                 if (Interlocked.CompareExchange(ref Head, (nint)head->Next, (nint)head) == (nint)head)
                 {
                     result = head->Value;
-                    nodeLock.Enter();
+                    NodeLock.Enter();
                     try
                     {
                         NodePool.Return(head);
                     }
                     finally
                     {
-                        nodeLock.Exit();
+                        NodeLock.Exit();
                     }
 
                     return true;
@@ -160,14 +157,14 @@ namespace NativeCollections
                     if (Interlocked.CompareExchange(ref Head, (nint)head->Next, (nint)head) == (nint)head)
                     {
                         result = head->Value;
-                        nodeLock.Enter();
+                        NodeLock.Enter();
                         try
                         {
                             NodePool.Return(head);
                         }
                         finally
                         {
-                            nodeLock.Exit();
+                            NodeLock.Exit();
                         }
 
                         return true;
@@ -208,8 +205,7 @@ namespace NativeCollections
             var handle = (NativeConcurrentStackHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeConcurrentStackHandle));
             handle->Head = IntPtr.Zero;
             handle->NodePool = nodePool;
-            NativeConcurrentSpinLock nodeLock = &handle->NodeLock;
-            nodeLock.Reset();
+            handle->NodeLock.Reset();
             _handle = handle;
         }
 
