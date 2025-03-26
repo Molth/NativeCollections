@@ -356,7 +356,7 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         /// <returns>New capacity</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private int Initialize(int capacity)
+        private void Initialize(int capacity)
         {
             var size = HashHelpers.GetPrime(capacity);
             _freeList = -1;
@@ -365,7 +365,6 @@ namespace NativeCollections
             _bucketsLength = size;
             _entriesLength = size;
             _fastModMultiplier = IntPtr.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)size) : 0;
-            return size;
         }
 
         /// <summary>
