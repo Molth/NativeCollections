@@ -23,25 +23,7 @@ namespace NativeCollections
         /// <summary>
         ///     Handle
         /// </summary>
-        private readonly void* _handle;
-
-        /// <summary>
-        ///     Not arm64
-        /// </summary>
-        private NativeConcurrentQueueNotArm64<T>* NotArm64Handle
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (NativeConcurrentQueueNotArm64<T>*)_handle;
-        }
-
-        /// <summary>
-        ///     Arm64
-        /// </summary>
-        private NativeConcurrentQueueArm64<T>* Arm64Handle
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (NativeConcurrentQueueArm64<T>*)_handle;
-        }
+        private readonly UnsafeConcurrentQueue<T>* _handle;
 
         /// <summary>
         ///     Structure
@@ -51,18 +33,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeConcurrentQueue(int size, int maxFreeSlabs)
         {
-            if (RuntimeInformation.ProcessArchitecture != Architecture.Arm64)
-            {
-                var segmentPool = new NativeMemoryPool(size, sizeof(NativeConcurrentQueueSegmentNotArm64<T>), maxFreeSlabs);
-                _handle = NativeMemoryAllocator.Alloc((uint)sizeof(NativeConcurrentQueueNotArm64<T>));
-                NotArm64Handle->Initialize(segmentPool);
-            }
-            else
-            {
-                var segmentPool = new NativeMemoryPool(size, sizeof(NativeConcurrentQueueSegmentArm64<T>), maxFreeSlabs);
-                _handle = NativeMemoryAllocator.Alloc((uint)sizeof(NativeConcurrentQueueArm64<T>));
-                Arm64Handle->Initialize(segmentPool);
-            }
+            var value=new UnsafeConcurrentQueue<T>(size, maxFreeSlabs);
+            var handle = (UnsafeConcurrentQueue<T>*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeConcurrentQueue<T>));
+            *handle = new UnsafeConcurrentQueue<T>(size, maxFreeSlabs);
+            _handle = handle;
         }
 
         /// <summary>
@@ -76,7 +50,7 @@ namespace NativeCollections
         public bool IsEmpty
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => RuntimeInformation.ProcessArchitecture != Architecture.Arm64 ? NotArm64Handle->IsEmpty : Arm64Handle->IsEmpty;
+            get => _handle->IsEmpty;
         }
 
         /// <summary>
@@ -85,7 +59,7 @@ namespace NativeCollections
         public int Count
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => RuntimeInformation.ProcessArchitecture != Architecture.Arm64 ? NotArm64Handle->Count : Arm64Handle->Count;
+            get => _handle->Count;
         }
 
         /// <summary>
@@ -139,10 +113,7 @@ namespace NativeCollections
             var handle = _handle;
             if (handle == null)
                 return;
-            if (RuntimeInformation.ProcessArchitecture != Architecture.Arm64)
-                NotArm64Handle->Dispose();
-            else
-                Arm64Handle->Dispose();
+            _handle->Dispose();
             NativeMemoryAllocator.Free(handle);
         }
 
@@ -150,26 +121,14 @@ namespace NativeCollections
         ///     Clear
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Clear()
-        {
-            if (RuntimeInformation.ProcessArchitecture != Architecture.Arm64)
-                NotArm64Handle->Clear();
-            else
-                Arm64Handle->Clear();
-        }
+        public void Clear() => _handle->Clear();
 
         /// <summary>
         ///     Enqueue
         /// </summary>
         /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Enqueue(in T item)
-        {
-            if (RuntimeInformation.ProcessArchitecture != Architecture.Arm64)
-                NotArm64Handle->Enqueue(item);
-            else
-                Arm64Handle->Enqueue(item);
-        }
+        public void Enqueue(in T item) => _handle->Enqueue(item);
 
         /// <summary>
         ///     Try dequeue
@@ -177,7 +136,7 @@ namespace NativeCollections
         /// <param name="result">Item</param>
         /// <returns>Dequeued</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDequeue(out T result) => RuntimeInformation.ProcessArchitecture != Architecture.Arm64 ? NotArm64Handle->TryDequeue(out result) : Arm64Handle->TryDequeue(out result);
+        public bool TryDequeue(out T result) => _handle->TryDequeue(out result);
 
         /// <summary>
         ///     Empty
@@ -291,13 +250,15 @@ namespace NativeCollections
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="segmentPool">Segment pool</param>
+        /// <param name="size">Size</param>
+        /// <param name="maxFreeSlabs">Max free slabs</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Initialize(NativeMemoryPool segmentPool)
+        public NativeConcurrentQueueNotArm64(int size, int maxFreeSlabs)
         {
+            var segmentPool = new NativeMemoryPool(size, sizeof(NativeConcurrentQueueSegmentNotArm64<T>), maxFreeSlabs);
             _crossSegmentLock = GCHandle.Alloc(new object(), GCHandleType.Normal);
             _segmentPool = segmentPool;
-            var segment = (NativeConcurrentQueueSegmentNotArm64<T>*)_segmentPool.Rent();
+            var segment = (NativeConcurrentQueueSegmentNotArm64<T>*)segmentPool.Rent();
             segment->Initialize();
             _tail = _head = segment;
         }
@@ -738,13 +699,15 @@ namespace NativeCollections
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="segmentPool">Segment pool</param>
+        /// <param name="size">Size</param>
+        /// <param name="maxFreeSlabs">Max free slabs</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Initialize(NativeMemoryPool segmentPool)
+        public NativeConcurrentQueueArm64(int size, int maxFreeSlabs)
         {
+            var segmentPool = new NativeMemoryPool(size, sizeof(NativeConcurrentQueueSegmentArm64<T>), maxFreeSlabs);
             _crossSegmentLock = GCHandle.Alloc(new object(), GCHandleType.Normal);
             _segmentPool = segmentPool;
-            var segment = (NativeConcurrentQueueSegmentArm64<T>*)_segmentPool.Rent();
+            var segment = (NativeConcurrentQueueSegmentArm64<T>*)segmentPool.Rent();
             segment->Initialize();
             _tail = _head = segment;
         }

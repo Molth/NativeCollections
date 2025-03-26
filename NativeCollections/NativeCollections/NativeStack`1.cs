@@ -20,234 +20,7 @@ namespace NativeCollections
         /// <summary>
         ///     Handle
         /// </summary>
-        [StructLayout(LayoutKind.Sequential)]
-        private struct NativeStackHandle
-        {
-            /// <summary>
-            ///     Array
-            /// </summary>
-            public T* Array;
-
-            /// <summary>
-            ///     Length
-            /// </summary>
-            public int Length;
-
-            /// <summary>
-            ///     Size
-            /// </summary>
-            public int Size;
-
-            /// <summary>
-            ///     Version
-            /// </summary>
-            public int Version;
-
-            /// <summary>
-            ///     Get reference
-            /// </summary>
-            /// <param name="index">Index</param>
-            public ref T this[int index]
-            {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => ref Array[index];
-            }
-
-            /// <summary>
-            ///     Get reference
-            /// </summary>
-            /// <param name="index">Index</param>
-            public ref T this[uint index]
-            {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => ref Array[index];
-            }
-
-            /// <summary>
-            ///     Clear
-            /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void Clear()
-            {
-                Size = 0;
-                Version++;
-            }
-
-            /// <summary>
-            ///     Push
-            /// </summary>
-            /// <param name="item">Item</param>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void Push(in T item)
-            {
-                var size = Size;
-                if ((uint)size < (uint)Length)
-                {
-                    Array[size] = item;
-                    Version++;
-                    Size = size + 1;
-                }
-                else
-                {
-                    Grow(Size + 1);
-                    Array[Size] = item;
-                    Version++;
-                    Size++;
-                }
-            }
-
-            /// <summary>
-            ///     Try push
-            /// </summary>
-            /// <param name="item">Item</param>
-            /// <returns>Pushed</returns>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool TryPush(in T item)
-            {
-                var size = Size;
-                if ((uint)size < (uint)Length)
-                {
-                    Array[size] = item;
-                    Version++;
-                    Size = size + 1;
-                    return true;
-                }
-
-                return false;
-            }
-
-            /// <summary>
-            ///     Pop
-            /// </summary>
-            /// <returns>Item</returns>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public T Pop()
-            {
-                var size = Size - 1;
-                if ((uint)size >= (uint)Length)
-                    throw new InvalidOperationException("EmptyStack");
-                Version++;
-                Size = size;
-                var item = Array[size];
-                return item;
-            }
-
-            /// <summary>
-            ///     Try pop
-            /// </summary>
-            /// <param name="result">Item</param>
-            /// <returns>Popped</returns>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool TryPop(out T result)
-            {
-                var size = Size - 1;
-                if ((uint)size >= (uint)Length)
-                {
-                    result = default;
-                    return false;
-                }
-
-                Version++;
-                Size = size;
-                result = Array[size];
-                return true;
-            }
-
-            /// <summary>
-            ///     Peek
-            /// </summary>
-            /// <returns>Item</returns>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public T Peek()
-            {
-                var size = Size - 1;
-                return (uint)size >= (uint)Length ? throw new InvalidOperationException("EmptyStack") : Array[size];
-            }
-
-            /// <summary>
-            ///     Try peek
-            /// </summary>
-            /// <param name="result">Item</param>
-            /// <returns>Peeked</returns>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool TryPeek(out T result)
-            {
-                var size = Size - 1;
-                if ((uint)size >= (uint)Length)
-                {
-                    result = default;
-                    return false;
-                }
-
-                result = Array[size];
-                return true;
-            }
-
-            /// <summary>
-            ///     Ensure capacity
-            /// </summary>
-            /// <param name="capacity">Capacity</param>
-            /// <returns>New capacity</returns>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public int EnsureCapacity(int capacity)
-            {
-                if (capacity < 0)
-                    throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-                if (Length < capacity)
-                    Grow(capacity);
-                return Length;
-            }
-
-            /// <summary>
-            ///     Trim excess
-            /// </summary>
-            /// <returns>New capacity</returns>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public int TrimExcess()
-            {
-                var threshold = (int)(Length * 0.9);
-                if (Size < threshold)
-                    SetCapacity(Size);
-                return Length;
-            }
-
-            /// <summary>
-            ///     Set capacity
-            /// </summary>
-            /// <param name="capacity">Capacity</param>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private void SetCapacity(int capacity)
-            {
-                var newArray = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
-                if (Size > 0)
-                    Unsafe.CopyBlockUnaligned(newArray, Array, (uint)(Length * sizeof(T)));
-                NativeMemoryAllocator.Free(Array);
-                Array = newArray;
-                Length = capacity;
-            }
-
-            /// <summary>
-            ///     Grow
-            /// </summary>
-            /// <param name="capacity">Capacity</param>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private void Grow(int capacity)
-            {
-                var newCapacity = 2 * Length;
-                if ((uint)newCapacity > 2147483591)
-                    newCapacity = 2147483591;
-                var expected = Length + 4;
-                newCapacity = newCapacity > expected ? newCapacity : expected;
-                if (newCapacity < capacity)
-                    newCapacity = capacity;
-                SetCapacity(newCapacity);
-            }
-        }
-
-        /// <summary>
-        ///     Handle
-        /// </summary>
-        private readonly NativeStackHandle* _handle;
+        private readonly UnsafeStack<T>* _handle;
 
         /// <summary>
         ///     Structure
@@ -256,15 +29,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeStack(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            if (capacity < 4)
-                capacity = 4;
-            var handle = (NativeStackHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeStackHandle));
-            handle->Array = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
-            handle->Length = capacity;
-            handle->Size = 0;
-            handle->Version = 0;
+            var value = new UnsafeStack<T>(capacity);
+            var handle = (UnsafeStack<T>*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeStack<T>));
+            *handle = value;
             _handle = handle;
         }
 
@@ -276,7 +43,12 @@ namespace NativeCollections
         /// <summary>
         ///     Is empty
         /// </summary>
-        public bool IsEmpty => _handle->Size == 0;
+        public bool IsEmpty => _handle->IsEmpty;
+
+        /// <summary>
+        ///     Count
+        /// </summary>
+        public int Count => _handle->Count;
 
         /// <summary>
         ///     Get reference
@@ -297,11 +69,6 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => ref (*_handle)[index];
         }
-
-        /// <summary>
-        ///     Count
-        /// </summary>
-        public int Count => _handle->Size;
 
         /// <summary>
         ///     Equals
@@ -354,7 +121,7 @@ namespace NativeCollections
             var handle = _handle;
             if (handle == null)
                 return;
-            NativeMemoryAllocator.Free(handle->Array);
+            handle->Dispose();
             NativeMemoryAllocator.Free(handle);
         }
 
@@ -433,82 +200,6 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
-        public Enumerator GetEnumerator() => new(_handle);
-
-        /// <summary>
-        ///     Enumerator
-        /// </summary>
-        public struct Enumerator
-        {
-            /// <summary>
-            ///     NativeStack
-            /// </summary>
-            private readonly NativeStackHandle* _nativeStack;
-
-            /// <summary>
-            ///     Version
-            /// </summary>
-            private readonly int _version;
-
-            /// <summary>
-            ///     Index
-            /// </summary>
-            private int _index;
-
-            /// <summary>
-            ///     Current element
-            /// </summary>
-            private T _currentElement;
-
-            /// <summary>
-            ///     Structure
-            /// </summary>
-            /// <param name="nativeStack">NativeStack</param>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(void* nativeStack)
-            {
-                var handle = (NativeStackHandle*)nativeStack;
-                _nativeStack = handle;
-                _version = handle->Version;
-                _index = -2;
-                _currentElement = default;
-            }
-
-            /// <summary>
-            ///     Move next
-            /// </summary>
-            /// <returns>Moved</returns>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool MoveNext()
-            {
-                var handle = _nativeStack;
-                if (_version != handle->Version)
-                    throw new InvalidOperationException("EnumFailedVersion");
-                bool returned;
-                if (_index == -2)
-                {
-                    _index = handle->Size - 1;
-                    returned = _index >= 0;
-                    if (returned)
-                        _currentElement = handle->Array[_index];
-                    return returned;
-                }
-
-                if (_index == -1)
-                    return false;
-                returned = --_index >= 0;
-                _currentElement = returned ? handle->Array[_index] : default;
-                return returned;
-            }
-
-            /// <summary>
-            ///     Current
-            /// </summary>
-            public T Current
-            {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => _index < 0 ? throw new InvalidOperationException(_index == -1 ? "EnumNotStarted" : "EnumEnded") : _currentElement;
-            }
-        }
+        public UnsafeStack<T>.Enumerator GetEnumerator() => _handle->GetEnumerator();
     }
 }

@@ -19,71 +19,7 @@ namespace NativeCollections
         /// <summary>
         ///     Handle
         /// </summary>
-        [StructLayout(LayoutKind.Sequential)]
-        private struct NativeMemoryBucketHandle
-        {
-            /// <summary>
-            ///     Size
-            /// </summary>
-            public int Size;
-
-            /// <summary>
-            ///     Length
-            /// </summary>
-            public int Length;
-
-            /// <summary>
-            ///     Array
-            /// </summary>
-            public void** Array;
-
-            /// <summary>
-            ///     Index
-            /// </summary>
-            public int Index;
-
-            /// <summary>
-            ///     Memory pool
-            /// </summary>
-            public NativeMemoryPool MemoryPool;
-
-            /// <summary>
-            ///     Rent buffer
-            /// </summary>
-            /// <returns>Buffer</returns>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void* Rent()
-            {
-                void* buffer = null;
-                if (Index < Size)
-                {
-                    buffer = Array[Index];
-                    Array[Index++] = null;
-                }
-
-                if (buffer == null)
-                    buffer = MemoryPool.Rent();
-                return buffer;
-            }
-
-            /// <summary>
-            ///     Return buffer
-            /// </summary>
-            /// <param name="ptr">Pointer</param>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void Return(void* ptr)
-            {
-                if (Index != 0)
-                    Array[--Index] = ptr;
-                else
-                    MemoryPool.Return(ptr);
-            }
-        }
-
-        /// <summary>
-        ///     Handle
-        /// </summary>
-        private readonly NativeMemoryBucketHandle* _handle;
+        private readonly UnsafeMemoryBucket* _handle;
 
         /// <summary>
         ///     Structure
@@ -94,13 +30,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeMemoryBucket(int size, int length, int maxFreeSlabs)
         {
-            var memoryPool = new NativeMemoryPool(size, length, maxFreeSlabs);
-            var handle = (NativeMemoryBucketHandle*)NativeMemoryAllocator.Alloc((uint)sizeof(NativeMemoryBucketHandle));
-            handle->Size = size;
-            handle->Length = length;
-            handle->Array = (void**)NativeMemoryAllocator.AllocZeroed((uint)(size * sizeof(void*)));
-            handle->Index = 0;
-            handle->MemoryPool = memoryPool;
+            var value = new UnsafeMemoryBucket(size, length, maxFreeSlabs);
+            var handle = (UnsafeMemoryBucket*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeMemoryBucket));
+            *handle = value;
             _handle = handle;
         }
 
@@ -170,8 +102,7 @@ namespace NativeCollections
             var handle = _handle;
             if (handle == null)
                 return;
-            NativeMemoryAllocator.Free(handle->Array);
-            handle->MemoryPool.Dispose();
+            handle->Dispose();
             NativeMemoryAllocator.Free(handle);
         }
 
