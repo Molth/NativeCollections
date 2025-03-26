@@ -156,7 +156,7 @@ namespace NativeCollections
         {
             if (key < 0)
                 throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
-            if (key > _length)
+            if (key >= _length)
                 throw new ArgumentOutOfRangeException(nameof(key), key, "IndexMustBeLessOrEqual");
             var index = _sparse[key];
             if (index != -1)
@@ -186,7 +186,7 @@ namespace NativeCollections
         {
             if (key < 0)
                 throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
-            if (key > _length)
+            if (key >= _length)
                 throw new ArgumentOutOfRangeException(nameof(key), key, "IndexMustBeLessOrEqual");
             var index = _sparse[key];
             if (index != -1)
@@ -214,10 +214,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(int key)
         {
-            if (key < 0)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
-            if (key > _length)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "IndexMustBeLessOrEqual");
+            if (key < 0 || key >= _length)
+                return false;
             var index = _sparse[key];
             if (index == -1)
                 return false;
@@ -243,10 +241,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(int key, out T value)
         {
-            if (key < 0)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
-            if (key > _length)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "IndexMustBeLessOrEqual");
+            if (key < 0 || key >= _length)
+            {
+                value = default;
+                return false;
+            }
+
             var index = _sparse[key];
             if (index == -1)
             {
@@ -275,14 +275,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Contains key</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool ContainsKey(int key)
-        {
-            if (key < 0)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
-            if (key > _length)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "IndexMustBeLessOrEqual");
-            return _sparse[key] != -1;
-        }
+        public bool ContainsKey(int key) => key >= 0 && key < _length && _sparse[key] != -1;
 
         /// <summary>
         ///     Try to get the value
@@ -293,10 +286,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetValue(int key, out T value)
         {
-            if (key < 0)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
-            if (key > _length)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "IndexMustBeLessOrEqual");
+            if (key < 0 || key >= _length)
+            {
+                value = default;
+                return false;
+            }
+
             var index = _sparse[key];
             if (index != -1)
             {
@@ -317,10 +312,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetValueReference(int key, out NativeReference<T> value)
         {
-            if (key < 0)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
-            if (key > _length)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "IndexMustBeLessOrEqual");
+            if (key < 0 || key >= _length)
+            {
+                value = default;
+                return false;
+            }
+
             var index = _sparse[key];
             if (index != -1)
             {
@@ -339,14 +336,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int IndexOf(int key)
-        {
-            if (key < 0)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
-            if (key > _length)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "IndexMustBeLessOrEqual");
-            return _sparse[key];
-        }
+        public int IndexOf(int key) => key < 0 || key >= _length ? -1 : _sparse[key];
 
         /// <summary>
         ///     Get at
