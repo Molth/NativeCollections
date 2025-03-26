@@ -108,7 +108,7 @@ namespace NativeCollections
             var handle = _handle;
             if (handle == null)
                 return;
-            handle->NodePool.Dispose();
+            handle->Dispose();
             NativeMemoryAllocator.Free(handle);
         }
 
