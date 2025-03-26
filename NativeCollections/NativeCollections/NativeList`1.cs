@@ -78,7 +78,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => _handle->Capacity;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => _handle->Capacity = (value);
+            set => _handle->Capacity = value;
         }
 
         /// <summary>

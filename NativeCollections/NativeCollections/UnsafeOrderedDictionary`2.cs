@@ -84,12 +84,12 @@ namespace NativeCollections
         /// <summary>
         ///     Keys
         /// </summary>
-        public UnsafeOrderedDictionary<TKey, TValue>.KeyCollection Keys => new(Unsafe.AsPointer(ref this));
+        public KeyCollection Keys => new(Unsafe.AsPointer(ref this));
 
         /// <summary>
         ///     Values
         /// </summary>
-        public UnsafeOrderedDictionary<TKey, TValue>.ValueCollection Values => new(Unsafe.AsPointer(ref this));
+        public ValueCollection Values => new(Unsafe.AsPointer(ref this));
 
         /// <summary>
         ///     Structure

@@ -60,7 +60,7 @@ namespace NativeCollections
         /// <summary>
         ///     Unordered items
         /// </summary>
-        public UnsafePriorityQueue<TPriority>.UnorderedItemsCollection UnorderedItems => new(Unsafe.AsPointer(ref this));
+        public UnorderedItemsCollection UnorderedItems => new(Unsafe.AsPointer(ref this));
 
         /// <summary>
         ///     Structure

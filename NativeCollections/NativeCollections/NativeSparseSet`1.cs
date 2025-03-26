@@ -42,7 +42,7 @@ namespace NativeCollections
         public NativeSparseSet(int capacity)
         {
             var value = new UnsafeSparseSet<T>(capacity);
-            var handle = (UnsafeSparseSet<T>*)NativeMemoryAllocator.Alloc((uint)(sizeof(UnsafeSparseSet<T>)));
+            var handle = (UnsafeSparseSet<T>*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeSparseSet<T>));
             *handle = value;
             _handle = handle;
         }

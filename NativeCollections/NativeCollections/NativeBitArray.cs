@@ -124,7 +124,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => _handle->Length;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => _handle->Length = (value);
+            set => _handle->Length = value;
         }
 
         /// <summary>
