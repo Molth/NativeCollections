@@ -15,7 +15,7 @@ namespace NativeCollections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection(NativeCollectionType.None)]
+    [NativeCollection(FromType.None)]
     public readonly unsafe struct NativeConcurrentHashSet<T> : IDisposable, IEquatable<NativeConcurrentHashSet<T>> where T : unmanaged, IEquatable<T>
     {
         /// <summary>
@@ -176,6 +176,5 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Enumerator</returns>
         public UnsafeConcurrentHashSet<T>.Enumerator GetEnumerator() => _handle->GetEnumerator();
-
     }
 }

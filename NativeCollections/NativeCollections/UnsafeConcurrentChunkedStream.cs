@@ -13,7 +13,7 @@ namespace NativeCollections
     ///     Unsafe concurrent chunked stream
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(NativeCollectionType.None)]
+    [UnsafeCollection(FromType.None)]
     public unsafe struct UnsafeConcurrentChunkedStream : IDisposable
     {
         /// <summary>

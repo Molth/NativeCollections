@@ -14,7 +14,7 @@ namespace NativeCollections
     ///     Native memory stream
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection(NativeCollectionType.None)]
+    [NativeCollection(FromType.None)]
     public unsafe struct NativeStream
     {
         /// <summary>

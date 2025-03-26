@@ -18,7 +18,7 @@ namespace NativeCollections
     ///     Native random
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection(NativeCollectionType.Standard)]
+    [NativeCollection(FromType.Standard)]
     public unsafe struct NativeXoshiro256 : IEquatable<NativeXoshiro256>
     {
         /// <summary>

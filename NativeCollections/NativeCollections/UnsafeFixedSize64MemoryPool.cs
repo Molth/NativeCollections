@@ -13,7 +13,7 @@ namespace NativeCollections
     ///     Unsafe fixed size 64 memory pool
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(NativeCollectionType.None)]
+    [UnsafeCollection(FromType.None)]
     public unsafe struct UnsafeFixedSize64MemoryPool : IDisposable
     {
         /// <summary>

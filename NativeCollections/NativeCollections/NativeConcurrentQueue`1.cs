@@ -17,7 +17,7 @@ namespace NativeCollections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection(NativeCollectionType.Standard)]
+    [NativeCollection(FromType.Standard)]
     public readonly unsafe struct NativeConcurrentQueue<T> : IDisposable, IEquatable<NativeConcurrentQueue<T>> where T : unmanaged
     {
         /// <summary>
@@ -33,9 +33,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeConcurrentQueue(int size, int maxFreeSlabs)
         {
-            var value=new UnsafeConcurrentQueue<T>(size, maxFreeSlabs);
+            var value = new UnsafeConcurrentQueue<T>(size, maxFreeSlabs);
             var handle = (UnsafeConcurrentQueue<T>*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeConcurrentQueue<T>));
-            *handle = new UnsafeConcurrentQueue<T>(size, maxFreeSlabs);
+            *handle = value;
             _handle = handle;
         }
 
@@ -160,7 +160,7 @@ namespace NativeCollections
         /// <summary>
         ///     Segment pool
         /// </summary>
-        private NativeMemoryPool _segmentPool;
+        private UnsafeMemoryPool _segmentPool;
 
         /// <summary>
         ///     Tail
@@ -255,10 +255,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeConcurrentQueueNotArm64(int size, int maxFreeSlabs)
         {
-            var segmentPool = new NativeMemoryPool(size, sizeof(NativeConcurrentQueueSegmentNotArm64<T>), maxFreeSlabs);
+            var segmentPool = new UnsafeMemoryPool(size, sizeof(NativeConcurrentQueueSegmentNotArm64<T>), maxFreeSlabs);
             _crossSegmentLock = GCHandle.Alloc(new object(), GCHandleType.Normal);
             _segmentPool = segmentPool;
-            var segment = (NativeConcurrentQueueSegmentNotArm64<T>*)segmentPool.Rent();
+            var segment = (NativeConcurrentQueueSegmentNotArm64<T>*)_segmentPool.Rent();
             segment->Initialize();
             _tail = _head = segment;
         }
@@ -609,7 +609,7 @@ namespace NativeCollections
         /// <summary>
         ///     Segment pool
         /// </summary>
-        private NativeMemoryPool _segmentPool;
+        private UnsafeMemoryPool _segmentPool;
 
         /// <summary>
         ///     Tail
@@ -704,10 +704,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeConcurrentQueueArm64(int size, int maxFreeSlabs)
         {
-            var segmentPool = new NativeMemoryPool(size, sizeof(NativeConcurrentQueueSegmentArm64<T>), maxFreeSlabs);
+            var segmentPool = new UnsafeMemoryPool(size, sizeof(NativeConcurrentQueueSegmentArm64<T>), maxFreeSlabs);
             _crossSegmentLock = GCHandle.Alloc(new object(), GCHandleType.Normal);
             _segmentPool = segmentPool;
-            var segment = (NativeConcurrentQueueSegmentArm64<T>*)segmentPool.Rent();
+            var segment = (NativeConcurrentQueueSegmentArm64<T>*)_segmentPool.Rent();
             segment->Initialize();
             _tail = _head = segment;
         }

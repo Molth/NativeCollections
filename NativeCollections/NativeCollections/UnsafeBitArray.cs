@@ -13,7 +13,7 @@ namespace NativeCollections
     ///     Unsafe bit array
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(NativeCollectionType.Standard)]
+    [UnsafeCollection(FromType.Standard)]
     public unsafe struct UnsafeBitArray : IDisposable
     {
         /// <summary>
@@ -34,7 +34,8 @@ namespace NativeCollections
         /// <summary>
         ///     Length
         /// </summary>
-        public int Length  {
+        public int Length
+        {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => _length;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]

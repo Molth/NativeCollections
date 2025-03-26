@@ -13,7 +13,7 @@ namespace NativeCollections
     ///     Unsafe chunked stream
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(NativeCollectionType.None)]
+    [UnsafeCollection(FromType.None)]
     public unsafe struct UnsafeChunkedStream : IDisposable
     {
         /// <summary>
@@ -65,6 +65,7 @@ namespace NativeCollections
         ///     Length
         /// </summary>
         private int _length;
+
         /// <summary>
         ///     Is empty
         /// </summary>
@@ -94,6 +95,7 @@ namespace NativeCollections
         ///     Length
         /// </summary>
         public int Length => _length;
+
         /// <summary>
         ///     Structure
         /// </summary>
@@ -653,6 +655,7 @@ namespace NativeCollections
             /// </summary>
             public fixed byte Array[1];
         }
+
         /// <summary>
         ///     Empty
         /// </summary>

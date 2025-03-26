@@ -16,7 +16,7 @@ namespace NativeCollections
     /// <typeparam name="TKey">Type</typeparam>
     /// <typeparam name="TValue">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(NativeCollectionType.Standard)]
+    [UnsafeCollection(FromType.Standard)]
     public unsafe struct UnsafeOrderedDictionary<TKey, TValue> : IDisposable where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
     {
         /// <summary>
@@ -70,6 +70,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set => TryInsertOverwriteExisting(-1, key, value);
         }
+
         /// <summary>
         ///     Is empty
         /// </summary>
@@ -89,6 +90,7 @@ namespace NativeCollections
         ///     Values
         /// </summary>
         public UnsafeOrderedDictionary<TKey, TValue>.ValueCollection Values => new(Unsafe.AsPointer(ref this));
+
         /// <summary>
         ///     Structure
         /// </summary>
@@ -104,6 +106,7 @@ namespace NativeCollections
             _version = 0;
             Initialize(capacity);
         }
+
         /// <summary>
         ///     Dispose
         /// </summary>
@@ -113,6 +116,7 @@ namespace NativeCollections
             NativeMemoryAllocator.Free(_buckets);
             NativeMemoryAllocator.Free(_entries);
         }
+
         /// <summary>
         ///     Clear
         /// </summary>
@@ -718,7 +722,8 @@ namespace NativeCollections
             var buckets = _buckets;
             return ref IntPtr.Size == 8 ? ref buckets[(int)HashHelpers.FastMod(hashCode, (uint)_bucketsLength, _fastModMultiplier)] : ref buckets[hashCode % _bucketsLength];
         }
-         /// <summary>
+
+        /// <summary>
         ///     Entry
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]

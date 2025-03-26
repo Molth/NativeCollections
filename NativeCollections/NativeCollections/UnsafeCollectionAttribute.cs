@@ -5,10 +5,10 @@
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native collection attribute
+    ///     Unsafe collection attribute
     /// </summary>
     [AttributeUsage(AttributeTargets.Struct)]
-    public sealed class NativeCollectionAttribute : Attribute
+    public sealed class UnsafeCollectionAttribute : Attribute
     {
         /// <summary>
         ///     Type
@@ -19,6 +19,6 @@ namespace NativeCollections
         ///     Structure
         /// </summary>
         /// <param name="type">Type</param>
-        public NativeCollectionAttribute(FromType type) => Type = type;
+        public UnsafeCollectionAttribute(FromType type) => Type = type;
     }
 }

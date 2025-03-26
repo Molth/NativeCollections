@@ -15,7 +15,7 @@ namespace NativeCollections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(NativeCollectionType.None)]
+    [UnsafeCollection(FromType.None)]
     public unsafe struct UnsafeChunkedQueue<T> : IDisposable where T : unmanaged
     {
         /// <summary>
@@ -67,7 +67,7 @@ namespace NativeCollections
         ///     Count
         /// </summary>
         private int _count;
-        
+
         /// <summary>
         ///     Is empty
         /// </summary>
@@ -121,7 +121,9 @@ namespace NativeCollections
             _readOffset = 0;
             _writeOffset = 0;
             _count = 0;
-        } /// <summary>
+        }
+
+        /// <summary>
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -145,6 +147,7 @@ namespace NativeCollections
                 NativeMemoryAllocator.Free(temp);
             }
         }
+
         /// <summary>
         ///     Clear
         /// </summary>
@@ -319,6 +322,7 @@ namespace NativeCollections
             _freeList = node;
             return _freeChunks;
         }
+
         /// <summary>
         ///     Chunk
         /// </summary>
@@ -335,7 +339,7 @@ namespace NativeCollections
             /// </summary>
             public nint Array;
         }
-        
+
         /// <summary>
         ///     Empty
         /// </summary>

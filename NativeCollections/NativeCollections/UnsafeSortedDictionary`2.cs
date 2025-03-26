@@ -16,7 +16,7 @@ namespace NativeCollections
     /// <typeparam name="TKey">Type</typeparam>
     /// <typeparam name="TValue">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(NativeCollectionType.Standard)]
+    [UnsafeCollection(FromType.Standard)]
     public unsafe struct UnsafeSortedDictionary<TKey, TValue> : IDisposable where TKey : unmanaged, IComparable<TKey> where TValue : unmanaged
     {
         /// <summary>
@@ -37,7 +37,7 @@ namespace NativeCollections
         /// <summary>
         ///     Node pool
         /// </summary>
-        private NativeMemoryPool _nodePool;
+        private UnsafeMemoryPool _nodePool;
 
         /// <summary>
         ///     Keys
@@ -127,7 +127,7 @@ namespace NativeCollections
         /// <param name="maxFreeSlabs">MemoryPool maxFreeSlabs</param>
         public UnsafeSortedDictionary(int size, int maxFreeSlabs)
         {
-            var nodePool = new NativeMemoryPool(size, sizeof(Node), maxFreeSlabs);
+            var nodePool = new UnsafeMemoryPool(size, sizeof(Node), maxFreeSlabs);
             _root = null;
             _count = 0;
             _version = 0;

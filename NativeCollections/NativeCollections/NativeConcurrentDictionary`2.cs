@@ -17,7 +17,7 @@ namespace NativeCollections
     /// <typeparam name="TKey">Type</typeparam>
     /// <typeparam name="TValue">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection(NativeCollectionType.Standard)]
+    [NativeCollection(FromType.Standard)]
     public readonly unsafe struct NativeConcurrentDictionary<TKey, TValue> : IDisposable, IEquatable<NativeConcurrentDictionary<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged, IEquatable<TValue>
     {
         /// <summary>
@@ -28,12 +28,12 @@ namespace NativeCollections
         /// <summary>
         ///     Keys
         /// </summary>
-        public  UnsafeConcurrentDictionary<TKey, TValue>.KeyCollection Keys => _handle->Keys;
+        public UnsafeConcurrentDictionary<TKey, TValue>.KeyCollection Keys => _handle->Keys;
 
         /// <summary>
         ///     Values
         /// </summary>
-        public  UnsafeConcurrentDictionary<TKey, TValue>.ValueCollection Values => _handle->Values;
+        public UnsafeConcurrentDictionary<TKey, TValue>.ValueCollection Values => _handle->Values;
 
         /// <summary>
         ///     Structure
@@ -46,7 +46,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeConcurrentDictionary(int size, int maxFreeSlabs, int concurrencyLevel, int capacity, bool growLockArray)
         {
-            var value = new UnsafeConcurrentDictionary<TKey, TValue>(size, maxFreeSlabs, concurrencyLevel, capacity, growLockArray);   
+            var value = new UnsafeConcurrentDictionary<TKey, TValue>(size, maxFreeSlabs, concurrencyLevel, capacity, growLockArray);
             var handle = (UnsafeConcurrentDictionary<TKey, TValue>*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeConcurrentDictionary<TKey, TValue>));
             *handle = value;
             _handle = handle;

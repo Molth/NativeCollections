@@ -16,7 +16,7 @@ namespace NativeCollections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(NativeCollectionType.None)]
+    [UnsafeCollection(FromType.None)]
     public unsafe struct UnsafeConcurrentHashSet<T> : IDisposable where T : unmanaged, IEquatable<T>
     {
         /// <summary>
@@ -37,7 +37,7 @@ namespace NativeCollections
         /// <summary>
         ///     Node pool
         /// </summary>
-        private NativeMemoryPool _nodePool;
+        private UnsafeMemoryPool _nodePool;
 
         /// <summary>
         ///     Node lock
@@ -99,7 +99,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeConcurrentHashSet(int size, int maxFreeSlabs, int concurrencyLevel, int capacity, bool growLockArray)
         {
-            var nodePool = new NativeMemoryPool(size, sizeof(Node), maxFreeSlabs);
+            var nodePool = new UnsafeMemoryPool(size, sizeof(Node), maxFreeSlabs);
             if (concurrencyLevel <= 0)
                 concurrencyLevel = Environment.ProcessorCount;
             if (capacity < concurrencyLevel)

@@ -14,7 +14,7 @@ namespace NativeCollections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(NativeCollectionType.Standard)]
+    [UnsafeCollection(FromType.Standard)]
     public unsafe struct UnsafeHashSet<T> : IDisposable where T : unmanaged, IEquatable<T>
     {
         /// <summary>
@@ -36,6 +36,7 @@ namespace NativeCollections
         ///     EntriesLength
         /// </summary>
         private int _entriesLength;
+
         /// <summary>
         ///     FastModMultiplier
         /// </summary>
@@ -60,6 +61,7 @@ namespace NativeCollections
         ///     Version
         /// </summary>
         private int _version;
+
         /// <summary>
         ///     Is empty
         /// </summary>
@@ -437,7 +439,8 @@ namespace NativeCollections
         /// <returns>Bucket ref</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ref int GetBucketRef(int hashCode) => ref IntPtr.Size == 8 ? ref _buckets[HashHelpers.FastMod((uint)hashCode, (uint)_bucketsLength, _fastModMultiplier)] : ref _buckets[(uint)hashCode % (uint)_bucketsLength];
-         /// <summary>
+
+        /// <summary>
         ///     Entry
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]

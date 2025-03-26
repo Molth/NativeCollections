@@ -11,7 +11,7 @@ namespace NativeCollections
     ///     Native linked list node
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection(NativeCollectionType.None)]
+    [NativeCollection(FromType.None)]
     public unsafe struct NativeLinkedListNode
     {
         /// <summary>

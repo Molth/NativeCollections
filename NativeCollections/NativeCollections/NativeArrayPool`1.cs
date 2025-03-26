@@ -14,7 +14,7 @@ namespace NativeCollections
     ///     NativeMemoryPool
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection(NativeCollectionType.None)]
+    [NativeCollection(FromType.None)]
     public readonly unsafe struct NativeArrayPool<T> : IDisposable, IEquatable<NativeArrayPool<T>> where T : unmanaged
     {
         /// <summary>
@@ -280,7 +280,7 @@ namespace NativeCollections
             /// <summary>
             ///     Memory pool
             /// </summary>
-            private NativeMemoryPool _memoryPool;
+            private UnsafeMemoryPool _memoryPool;
 
             /// <summary>
             ///     State lock
@@ -295,11 +295,12 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Initialize(int size, int length)
             {
+                var memoryPool = new UnsafeMemoryPool(size, length * sizeof(T), 0);
                 _size = size;
                 _length = length;
                 _array = (T**)NativeMemoryAllocator.AllocZeroed((uint)(size * sizeof(T*)));
                 _index = 0;
-                _memoryPool = new NativeMemoryPool(size, length * sizeof(T), 0);
+                _memoryPool = memoryPool;
                 _lock = new SpinLock();
             }
 

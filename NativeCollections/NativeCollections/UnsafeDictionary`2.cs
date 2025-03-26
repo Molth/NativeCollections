@@ -16,13 +16,14 @@ namespace NativeCollections
     /// <typeparam name="TKey">Type</typeparam>
     /// <typeparam name="TValue">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(NativeCollectionType.Standard)]
-    public unsafe struct UnsafeDictionary<TKey, TValue>: IDisposable where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
+    [UnsafeCollection(FromType.Standard)]
+    public unsafe struct UnsafeDictionary<TKey, TValue> : IDisposable where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
     {
         /// <summary>
         ///     Buckets
         /// </summary>
         private int* _buckets;
+
         /// <summary>
         ///     Entries
         /// </summary>
@@ -607,7 +608,8 @@ namespace NativeCollections
         /// <returns>Bucket ref</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ref int GetBucket(uint hashCode) => ref IntPtr.Size == 8 ? ref _buckets[HashHelpers.FastMod(hashCode, (uint)_bucketsLength, _fastModMultiplier)] : ref _buckets[hashCode % _bucketsLength];
-                /// <summary>
+
+        /// <summary>
         ///     Entry
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]

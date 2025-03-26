@@ -15,8 +15,8 @@ namespace NativeCollections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(NativeCollectionType.None)]
-    public unsafe struct UnsafeChunkedDeque<T>: IDisposable where T : unmanaged
+    [UnsafeCollection(FromType.None)]
+    public unsafe struct UnsafeChunkedDeque<T> : IDisposable where T : unmanaged
     {
         /// <summary>
         ///     Head
@@ -67,7 +67,7 @@ namespace NativeCollections
         ///     Count
         /// </summary>
         private int _count;
-        
+
         /// <summary>
         ///     Is empty
         /// </summary>
@@ -110,7 +110,7 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(size), size, "MustBePositive");
             if (maxFreeChunks < 0)
                 throw new ArgumentOutOfRangeException(nameof(maxFreeChunks), maxFreeChunks, "MustBeNonNegative");
-             var chunk = (MemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemoryChunk) + size * sizeof(T)));
+            var chunk = (MemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemoryChunk) + size * sizeof(T)));
             _head = chunk;
             _tail = chunk;
             _freeList = null;
@@ -122,6 +122,7 @@ namespace NativeCollections
             _writeOffset = 0;
             _count = 0;
         }
+
         /// <summary>
         ///     Dispose
         /// </summary>
@@ -146,6 +147,7 @@ namespace NativeCollections
                 NativeMemoryAllocator.Free(temp);
             }
         }
+
         /// <summary>
         ///     Clear
         /// </summary>
@@ -416,7 +418,7 @@ namespace NativeCollections
             _freeList = node;
             return _freeChunks;
         }
-        
+
         /// <summary>
         ///     Chunk
         /// </summary>

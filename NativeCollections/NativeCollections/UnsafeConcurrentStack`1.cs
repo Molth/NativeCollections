@@ -16,7 +16,7 @@ namespace NativeCollections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(NativeCollectionType.Standard)]
+    [UnsafeCollection(FromType.Standard)]
     public unsafe struct UnsafeConcurrentStack<T> : IDisposable where T : unmanaged
     {
         /// <summary>
@@ -27,7 +27,7 @@ namespace NativeCollections
         /// <summary>
         ///     Node pool
         /// </summary>
-        public NativeMemoryPool NodePool;
+        public UnsafeMemoryPool NodePool;
 
         /// <summary>
         ///     Node lock
@@ -57,7 +57,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeConcurrentStack(int size, int maxFreeSlabs)
         {
-            var nodePool = new NativeMemoryPool(size, sizeof(Node), maxFreeSlabs);
+            var nodePool = new UnsafeMemoryPool(size, sizeof(Node), maxFreeSlabs);
             Head = IntPtr.Zero;
             NodePool = nodePool;
             NodeLock.Reset();
@@ -217,7 +217,7 @@ namespace NativeCollections
             /// </summary>
             public Node* Next;
         }
-        
+
         /// <summary>
         ///     Empty
         /// </summary>

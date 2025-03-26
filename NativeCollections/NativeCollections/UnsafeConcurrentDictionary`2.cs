@@ -18,7 +18,7 @@ namespace NativeCollections
     /// <typeparam name="TKey">Type</typeparam>
     /// <typeparam name="TValue">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(NativeCollectionType.Standard)]
+    [UnsafeCollection(FromType.Standard)]
     public unsafe struct UnsafeConcurrentDictionary<TKey, TValue> : IDisposable where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged, IEquatable<TValue>
     {
         /// <summary>
@@ -39,7 +39,7 @@ namespace NativeCollections
         /// <summary>
         ///     Node pool
         /// </summary>
-        private NativeMemoryPool _nodePool;
+        private UnsafeMemoryPool _nodePool;
 
         /// <summary>
         ///     Node lock
@@ -106,7 +106,7 @@ namespace NativeCollections
                 }
             }
         }
-        
+
         /// <summary>
         ///     Keys
         /// </summary>
@@ -115,7 +115,7 @@ namespace NativeCollections
         /// <summary>
         ///     Values
         /// </summary>
-        public ValueCollection Values =>new(Unsafe.AsPointer(ref this));
+        public ValueCollection Values => new(Unsafe.AsPointer(ref this));
 
         /// <summary>
         ///     Structure
@@ -128,7 +128,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeConcurrentDictionary(int size, int maxFreeSlabs, int concurrencyLevel, int capacity, bool growLockArray)
         {
-            var nodePool = new NativeMemoryPool(size, sizeof(Node), maxFreeSlabs);
+            var nodePool = new UnsafeMemoryPool(size, sizeof(Node), maxFreeSlabs);
             if (concurrencyLevel <= 0)
                 concurrencyLevel = Environment.ProcessorCount;
             if (capacity < concurrencyLevel)
@@ -146,6 +146,7 @@ namespace NativeCollections
             _nodePool = nodePool;
             _nodeLock.Reset();
         }
+
         /// <summary>
         ///     Dispose
         /// </summary>
@@ -834,7 +835,8 @@ namespace NativeCollections
             lockNo = bucketNo % (uint)tables->Locks.Length;
             return ref buckets[bucketNo].Node;
         }
-         /// <summary>
+
+        /// <summary>
         ///     Volatile node
         /// </summary>
         private struct VolatileNode

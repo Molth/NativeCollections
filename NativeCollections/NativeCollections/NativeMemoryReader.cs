@@ -13,7 +13,7 @@ namespace NativeCollections
     ///     Native memory reader
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection(NativeCollectionType.None)]
+    [NativeCollection(FromType.None)]
     public unsafe struct NativeMemoryReader
     {
         /// <summary>

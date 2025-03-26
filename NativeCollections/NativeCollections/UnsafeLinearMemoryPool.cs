@@ -13,7 +13,7 @@ namespace NativeCollections
     ///     Unsafe linear memory pool
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(NativeCollectionType.None)]
+    [UnsafeCollection(FromType.None)]
     public unsafe struct UnsafeLinearMemoryPool : IDisposable
     {
         /// <summary>
@@ -295,7 +295,7 @@ namespace NativeCollections
             /// </summary>
             public MemorySlab* Slab;
         }
-        
+
         /// <summary>
         ///     Empty
         /// </summary>

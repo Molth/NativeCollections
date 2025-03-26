@@ -14,7 +14,7 @@ namespace NativeCollections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(NativeCollectionType.Standard)]
+    [UnsafeCollection(FromType.Standard)]
     public unsafe struct UnsafeSortedSet<T> : IDisposable where T : unmanaged, IComparable<T>
     {
         /// <summary>
@@ -35,7 +35,7 @@ namespace NativeCollections
         /// <summary>
         ///     Node pool
         /// </summary>
-        private NativeMemoryPool _nodePool;
+        private UnsafeMemoryPool _nodePool;
 
         /// <summary>
         ///     Is empty
@@ -86,7 +86,7 @@ namespace NativeCollections
         /// <param name="maxFreeSlabs">MemoryPool maxFreeSlabs</param>
         public UnsafeSortedSet(int size, int maxFreeSlabs)
         {
-            var nodePool = new NativeMemoryPool(size, sizeof(Node), maxFreeSlabs);
+            var nodePool = new UnsafeMemoryPool(size, sizeof(Node), maxFreeSlabs);
             _root = null;
             _count = 0;
             _version = 0;

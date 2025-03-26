@@ -14,7 +14,7 @@ namespace NativeCollections
     ///     Native concurrent spinLock
     /// </summary>
     [StructLayout(LayoutKind.Explicit, Size = 8)]
-    [NativeCollection(NativeCollectionType.None)]
+    [NativeCollection(FromType.None)]
     public struct NativeConcurrentSpinLock
     {
         /// <summary>

@@ -14,7 +14,7 @@ namespace NativeCollections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection(NativeCollectionType.None)]
+    [NativeCollection(FromType.None)]
     public readonly unsafe struct NativeOrderedHashSet<T> : IDisposable, IEquatable<NativeOrderedHashSet<T>> where T : unmanaged, IEquatable<T>
     {
         /// <summary>

@@ -5,34 +5,34 @@ using System;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native collection type
+    ///     From type
     /// </summary>
     [Flags]
-    public enum NativeCollectionType
+    public enum FromType
     {
         /// <summary>
         ///     None
         /// </summary>
-        None,
+        None = 0,
 
         /// <summary>
-        ///     .net standard
+        ///     .NET Standard
         /// </summary>
-        Standard,
+        Standard = 1 << 0,
 
         /// <summary>
         ///     Community
         /// </summary>
-        Community,
+        Community = 1 << 1,
 
         /// <summary>
-        ///     c
+        ///     C
         /// </summary>
-        C,
+        C = 1 << 2,
 
         /// <summary>
-        ///     rust
+        ///     Rust
         /// </summary>
-        Rust
+        Rust = 1 << 3
     }
 }

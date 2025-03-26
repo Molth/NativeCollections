@@ -14,7 +14,7 @@ namespace NativeCollections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(NativeCollectionType.None)]
+    [UnsafeCollection(FromType.None)]
     public unsafe struct UnsafeOrderedHashSet<T> : IDisposable where T : unmanaged, IEquatable<T>
     {
         /// <summary>
@@ -73,7 +73,6 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
             if (capacity < 4)
                 capacity = 4;
-            var handle = (UnsafeOrderedHashSet<T>*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeOrderedHashSet<T>));
             _count = 0;
             _version = 0;
             Initialize(capacity);

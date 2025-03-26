@@ -14,7 +14,7 @@ namespace NativeCollections
     ///     Unsafe memory stream
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(NativeCollectionType.Standard)]
+    [UnsafeCollection(FromType.Standard)]
     public unsafe struct UnsafeMemoryStream : IDisposable
     {
         /// <summary>
@@ -431,9 +431,10 @@ namespace NativeCollections
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ReadOnlySpan<byte> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref *(_buffer + start), length);
-  
+
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeMemoryStream Empty => new();  }
+        public static UnsafeMemoryStream Empty => new();
+    }
 }

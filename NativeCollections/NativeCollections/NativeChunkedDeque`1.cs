@@ -15,8 +15,8 @@ namespace NativeCollections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection(NativeCollectionType.None)]
-    public readonly unsafe struct NativeChunkedDeque<T>: IDisposable where T : unmanaged
+    [NativeCollection(FromType.None)]
+    public readonly unsafe struct NativeChunkedDeque<T> : IDisposable where T : unmanaged
     {
         /// <summary>
         ///     Handle

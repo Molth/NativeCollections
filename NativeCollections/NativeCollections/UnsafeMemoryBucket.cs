@@ -13,7 +13,7 @@ namespace NativeCollections
     ///     Unsafe memory bucket
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(NativeCollectionType.None)]
+    [UnsafeCollection(FromType.None)]
     public unsafe struct UnsafeMemoryBucket : IDisposable
     {
         /// <summary>
@@ -39,7 +39,7 @@ namespace NativeCollections
         /// <summary>
         ///     Memory pool
         /// </summary>
-        private NativeMemoryPool _memoryPool;
+        private UnsafeMemoryPool _memoryPool;
 
         /// <summary>
         ///     Size
@@ -60,7 +60,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeMemoryBucket(int size, int length, int maxFreeSlabs)
         {
-            var memoryPool = new NativeMemoryPool(size, length, maxFreeSlabs);
+            var memoryPool = new UnsafeMemoryPool(size, length, maxFreeSlabs);
             _size = size;
             _length = length;
             _array = (void**)NativeMemoryAllocator.AllocZeroed((uint)(size * sizeof(void*)));

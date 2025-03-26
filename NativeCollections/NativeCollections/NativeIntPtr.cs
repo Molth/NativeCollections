@@ -13,7 +13,7 @@ namespace NativeCollections
     ///     Native IntPtr
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection(NativeCollectionType.None)]
+    [NativeCollection(FromType.None)]
     public readonly unsafe struct NativeIntPtr : IDisposable, IEquatable<NativeIntPtr>
     {
         /// <summary>

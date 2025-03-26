@@ -15,8 +15,8 @@ namespace NativeCollections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(NativeCollectionType.None)]
-    public unsafe struct UnsafeChunkedStack<T>: IDisposable where T : unmanaged
+    [UnsafeCollection(FromType.None)]
+    public unsafe struct UnsafeChunkedStack<T> : IDisposable where T : unmanaged
     {
         /// <summary>
         ///     Sentinel
@@ -316,6 +316,7 @@ namespace NativeCollections
             /// </summary>
             public nint Array;
         }
+
         /// <summary>
         ///     Empty
         /// </summary>

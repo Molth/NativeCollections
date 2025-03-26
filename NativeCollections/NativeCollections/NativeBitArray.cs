@@ -13,7 +13,7 @@ namespace NativeCollections
     ///     Native bit array
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection(NativeCollectionType.Standard)]
+    [NativeCollection(FromType.Standard)]
     public readonly unsafe struct NativeBitArray : IDisposable, IEquatable<NativeBitArray>
     {
         /// <summary>
@@ -119,12 +119,14 @@ namespace NativeCollections
         /// <summary>
         ///     Length
         /// </summary>
-        public int Length {
+        public int Length
+        {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => _handle->Length;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => _handle->Length=(value);
+            set => _handle->Length = (value);
         }
+
         /// <summary>
         ///     Get or set value
         /// </summary>

@@ -13,7 +13,7 @@ namespace NativeCollections
     ///     Native fixed size 32 memory pool
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection(NativeCollectionType.None)]
+    [NativeCollection(FromType.None)]
     public readonly unsafe struct NativeFixedSize32MemoryPool : IDisposable, IEquatable<NativeFixedSize32MemoryPool>
     {
         /// <summary>

@@ -14,7 +14,7 @@ namespace NativeCollections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(NativeCollectionType.Standard)]
+    [UnsafeCollection(FromType.Standard)]
     public unsafe struct UnsafeStack<T> : IDisposable where T : unmanaged
     {
         /// <summary>
@@ -281,7 +281,7 @@ namespace NativeCollections
         /// <returns>Enumerator</returns>
         public Enumerator GetEnumerator() => new(Unsafe.AsPointer(ref this));
 
-       /// <summary>
+        /// <summary>
         ///     Enumerator
         /// </summary>
         public struct Enumerator

@@ -16,7 +16,7 @@ namespace NativeCollections
     /// <typeparam name="TKey">Type</typeparam>
     /// <typeparam name="TValue">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection(NativeCollectionType.Standard)]
+    [NativeCollection(FromType.Standard)]
     public readonly unsafe struct NativeDictionary<TKey, TValue> : IDisposable, IEquatable<NativeDictionary<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
     {
         /// <summary>
@@ -27,7 +27,7 @@ namespace NativeCollections
         /// <summary>
         ///     Keys
         /// </summary>
-        public UnsafeDictionary<TKey, TValue>. KeyCollection Keys => _handle->Keys;
+        public UnsafeDictionary<TKey, TValue>.KeyCollection Keys => _handle->Keys;
 
         /// <summary>
         ///     Values

@@ -15,7 +15,7 @@ namespace NativeCollections
     /// <typeparam name="TElement">Type</typeparam>
     /// <typeparam name="TPriority">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(NativeCollectionType.Standard)]
+    [UnsafeCollection(FromType.Standard)]
     public unsafe struct UnsafePriorityQueue<TElement, TPriority> : IDisposable where TElement : unmanaged where TPriority : unmanaged, IComparable<TPriority>
     {
         /// <summary>
@@ -444,7 +444,7 @@ namespace NativeCollections
 
             nodes[nodeIndex] = node;
         }
-        
+
         /// <summary>
         ///     Empty
         /// </summary>

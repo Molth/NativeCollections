@@ -14,7 +14,7 @@ namespace NativeCollections
     ///     https://github.com/mattconte/tlsf
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection(NativeCollectionType.Community | NativeCollectionType.C)]
+    [NativeCollection(FromType.Community | FromType.C)]
     public readonly unsafe struct NativeDynamicMemoryPool : IDisposable
     {
         /// <summary>

@@ -14,7 +14,7 @@ namespace NativeCollections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection(NativeCollectionType.Standard)]
+    [NativeCollection(FromType.Standard)]
     public readonly unsafe struct NativeDeque<T> : IDisposable, IEquatable<NativeDeque<T>> where T : unmanaged
     {
         /// <summary>
@@ -217,6 +217,6 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
-        public UnsafeDeque<T>. Enumerator GetEnumerator() => _handle->GetEnumerator();
+        public UnsafeDeque<T>.Enumerator GetEnumerator() => _handle->GetEnumerator();
     }
 }
