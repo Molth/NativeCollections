@@ -144,7 +144,7 @@ namespace NativeCollections
             _growLockArray = growLockArray;
             _budget = buckets.Length / locks.Length;
             _nodePool = nodePool;
-            _nodeLock = new();
+            _nodeLock = new NativeConcurrentSpinLock();
             _nodeLock.Reset();
         }
 

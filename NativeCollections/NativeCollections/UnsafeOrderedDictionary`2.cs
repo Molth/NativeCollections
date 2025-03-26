@@ -102,7 +102,7 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
             if (capacity < 4)
                 capacity = 4;
-            this = new();
+            this = new UnsafeOrderedDictionary<TKey, TValue>();
             Initialize(capacity);
         }
 
