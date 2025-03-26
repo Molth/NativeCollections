@@ -60,6 +60,7 @@ namespace NativeCollections
             var nodePool = new UnsafeMemoryPool(size, sizeof(Node), maxFreeSlabs);
             Head = IntPtr.Zero;
             NodePool = nodePool;
+            NodeLock = new();
             NodeLock.Reset();
         }
 

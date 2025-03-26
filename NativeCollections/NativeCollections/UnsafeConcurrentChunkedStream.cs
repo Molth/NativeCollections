@@ -124,6 +124,7 @@ namespace NativeCollections
             _readOffset = 0;
             _writeOffset = 0;
             _length = 0;
+            _spinLock = new();
             _spinLock.Reset();
         }
 

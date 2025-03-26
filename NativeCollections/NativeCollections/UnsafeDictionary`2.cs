@@ -113,9 +113,7 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
             if (capacity < 4)
                 capacity = 4;
-            _count = 0;
-            _freeCount = 0;
-            _version = 0;
+            this = new();
             Initialize(capacity);
         }
 

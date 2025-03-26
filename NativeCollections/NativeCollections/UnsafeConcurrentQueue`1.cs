@@ -50,6 +50,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeConcurrentQueue(int size, int maxFreeSlabs)
         {
+            this = new();
             if (RuntimeInformation.ProcessArchitecture != Architecture.Arm64)
                 *NotArm64Handle = new NativeConcurrentQueueNotArm64<T>(size, maxFreeSlabs);
             else

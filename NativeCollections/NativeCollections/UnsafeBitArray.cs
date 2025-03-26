@@ -490,14 +490,14 @@ namespace NativeCollections
             if (_array.AsSpan(0, intCount).ContainsAnyExcept(-1))
                 return false;
 #elif NET7_0_OR_GREATER
-                if (Array.AsSpan(0, intCount).IndexOfAnyExcept(-1) >= 0)
-                    return false;
+            if (_array.AsSpan(0, intCount).IndexOfAnyExcept(-1) >= 0)
+                return false;
 #else
-                for (var i = 0; i < intCount; ++i)
-                {
-                    if (Array[i] != -1)
-                        return false;
-                }
+            for (var i = 0; i < intCount; ++i)
+            {
+                if (_array[i] != -1)
+                    return false;
+            }
 #endif
             if (extraBits == 0)
                 return true;
@@ -520,14 +520,14 @@ namespace NativeCollections
             if (_array.AsSpan(0, intCount).ContainsAnyExcept(0))
                 return true;
 #elif NET7_0_OR_GREATER
-                if (Array.AsSpan(0, intCount).IndexOfAnyExcept(0) >= 0)
-                    return true;
+            if (_array.AsSpan(0, intCount).IndexOfAnyExcept(0) >= 0)
+                return true;
 #else
-                for (var i = 0; i < intCount; ++i)
-                {
-                    if (Array[i] != 0)
-                        return true;
-                }
+            for (var i = 0; i < intCount; ++i)
+            {
+                if (_array[i] != 0)
+                    return true;
+            }
 #endif
             return extraBits != 0 && (_array[intCount] & ((1 << extraBits) - 1)) != 0;
         }

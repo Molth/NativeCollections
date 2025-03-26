@@ -144,6 +144,7 @@ namespace NativeCollections
             _growLockArray = growLockArray;
             _budget = buckets.Length / locks.Length;
             _nodePool = nodePool;
+            _nodeLock = new();
             _nodeLock.Reset();
         }
 
@@ -442,15 +443,15 @@ namespace NativeCollections
 #if NET8_0_OR_GREATER
             return !_tables->CountPerLock.AsSpan().ContainsAnyExcept(0);
 #elif NET7_0_OR_GREATER
-                return !(Tables->CountPerLock.AsSpan().IndexOfAnyExcept(0) >= 0);
+            return !(_tables->CountPerLock.AsSpan().IndexOfAnyExcept(0) >= 0);
 #else
-                for (var i = 0; i < Tables->CountPerLock.Length; ++i)
-                {
-                    if (Tables->CountPerLock[i] != 0)
-                        return false;
-                }
+            for (var i = 0; i < _tables->CountPerLock.Length; ++i)
+            {
+                if (_tables->CountPerLock[i] != 0)
+                    return false;
+            }
 
-                return true;
+            return true;
 #endif
         }
 
