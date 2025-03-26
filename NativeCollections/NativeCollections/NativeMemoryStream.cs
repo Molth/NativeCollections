@@ -248,6 +248,13 @@ namespace NativeCollections
         public void WriteByte(byte value) => _handle->WriteByte(value);
 
         /// <summary>
+        ///     Set capacity
+        /// </summary>
+        /// <param name="capacity">Capacity</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetCapacity(int capacity) => _handle->SetCapacity(capacity);
+
+        /// <summary>
         ///     As span
         /// </summary>
         /// <returns>Span</returns>

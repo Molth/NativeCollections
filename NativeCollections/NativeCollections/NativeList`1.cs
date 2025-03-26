@@ -324,6 +324,13 @@ namespace NativeCollections
         public int LastIndexOf(in T item, int index, int count) => _handle->LastIndexOf(item, index, count);
 
         /// <summary>
+        ///     Set capacity
+        /// </summary>
+        /// <param name="capacity">Capacity</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetCapacity(int capacity) => _handle->SetCapacity(capacity);
+
+        /// <summary>
         ///     As span
         /// </summary>
         /// <returns>Span</returns>

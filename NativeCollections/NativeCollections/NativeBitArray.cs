@@ -207,6 +207,13 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Set length
+        /// </summary>
+        /// <param name="length">Length</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetLength(int length) => _handle->SetLength(length);
+
+        /// <summary>
         ///     Get
         /// </summary>
         /// <param name="index">Index</param>
