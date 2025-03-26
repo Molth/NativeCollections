@@ -22,24 +22,24 @@ namespace NativeCollections
         /// <summary>
         ///     Handle
         /// </summary>
-        private UnsafeConcurrentQueue _handle;
+        private NativeConcurrentQueue.UnsafeConcurrentQueue _handle;
 
         /// <summary>
         ///     Not arm64
         /// </summary>
-        private NativeConcurrentQueueNotArm64<T>* NotArm64Handle
+        private NativeConcurrentQueue.NativeConcurrentQueueNotArm64<T>* NotArm64Handle
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (NativeConcurrentQueueNotArm64<T>*)Unsafe.AsPointer(ref _handle);
+            get => (NativeConcurrentQueue.NativeConcurrentQueueNotArm64<T>*)Unsafe.AsPointer(ref _handle);
         }
 
         /// <summary>
         ///     Arm64
         /// </summary>
-        private NativeConcurrentQueueArm64<T>* Arm64Handle
+        private NativeConcurrentQueue.NativeConcurrentQueueArm64<T>* Arm64Handle
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (NativeConcurrentQueueArm64<T>*)Unsafe.AsPointer(ref _handle);
+            get => (NativeConcurrentQueue.NativeConcurrentQueueArm64<T>*)Unsafe.AsPointer(ref _handle);
         }
 
         /// <summary>
@@ -52,9 +52,9 @@ namespace NativeCollections
         {
             this = new UnsafeConcurrentQueue<T>();
             if (RuntimeInformation.ProcessArchitecture != Architecture.Arm64)
-                *NotArm64Handle = new NativeConcurrentQueueNotArm64<T>(size, maxFreeSlabs);
+                *NotArm64Handle = new NativeConcurrentQueue.NativeConcurrentQueueNotArm64<T>(size, maxFreeSlabs);
             else
-                *Arm64Handle = new NativeConcurrentQueueArm64<T>(size, maxFreeSlabs);
+                *Arm64Handle = new NativeConcurrentQueue.NativeConcurrentQueueArm64<T>(size, maxFreeSlabs);
         }
 
         /// <summary>
@@ -127,29 +127,35 @@ namespace NativeCollections
     }
 
     /// <summary>
-    ///     Unsafe concurrentQueue
+    ///     Native concurrentQueue
     /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    internal struct UnsafeConcurrentQueue
+    internal static partial class NativeConcurrentQueue
     {
         /// <summary>
-        ///     Cross segment lock
+        ///     Unsafe concurrentQueue
         /// </summary>
-        private GCHandle _crossSegmentLock;
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct UnsafeConcurrentQueue
+        {
+            /// <summary>
+            ///     Cross segment lock
+            /// </summary>
+            private GCHandle _crossSegmentLock;
 
-        /// <summary>
-        ///     Segment pool
-        /// </summary>
-        private UnsafeMemoryPool _segmentPool;
+            /// <summary>
+            ///     Segment pool
+            /// </summary>
+            private UnsafeMemoryPool _segmentPool;
 
-        /// <summary>
-        ///     Tail
-        /// </summary>
-        private nint _tail;
+            /// <summary>
+            ///     Tail
+            /// </summary>
+            private nint _tail;
 
-        /// <summary>
-        ///     Head
-        /// </summary>
-        private nint _head;
+            /// <summary>
+            ///     Head
+            /// </summary>
+            private nint _head;
+        }
     }
 }
