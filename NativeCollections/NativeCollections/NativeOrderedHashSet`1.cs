@@ -15,6 +15,7 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
+    [BindingType(typeof(UnsafeOrderedHashSet<>))]
     public readonly unsafe struct NativeOrderedHashSet<T> : IDisposable, IEquatable<NativeOrderedHashSet<T>> where T : unmanaged, IEquatable<T>
     {
         /// <summary>

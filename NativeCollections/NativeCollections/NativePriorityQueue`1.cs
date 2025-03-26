@@ -15,6 +15,7 @@ namespace NativeCollections
     /// <typeparam name="TPriority">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
+    [BindingType(typeof(UnsafePriorityQueue<>))]
     public readonly unsafe struct NativePriorityQueue<TPriority> : IDisposable, IEquatable<NativePriorityQueue<TPriority>> where TPriority : unmanaged, IComparable<TPriority>
     {
         /// <summary>

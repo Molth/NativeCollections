@@ -15,6 +15,7 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Standard)]
+    [BindingType(typeof(UnsafeList<>))]
     public readonly unsafe struct NativeList<T> : IDisposable, IEquatable<NativeList<T>> where T : unmanaged, IEquatable<T>
     {
         /// <summary>

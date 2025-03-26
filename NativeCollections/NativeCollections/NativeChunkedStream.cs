@@ -14,6 +14,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
+    [BindingType(typeof(UnsafeChunkedStream))]
     public readonly unsafe struct NativeChunkedStream : IDisposable, IEquatable<NativeChunkedStream>
     {
         /// <summary>

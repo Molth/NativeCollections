@@ -16,6 +16,7 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
+    [BindingType(typeof(UnsafeChunkedStack<>))]
     public readonly unsafe struct NativeChunkedStack<T> : IDisposable where T : unmanaged
     {
         /// <summary>

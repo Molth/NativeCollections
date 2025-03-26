@@ -17,6 +17,7 @@ namespace NativeCollections
     /// <typeparam name="TValue">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Standard)]
+    [BindingType(typeof(UnsafeSortedDictionary<,>))]
     public readonly unsafe struct NativeSortedDictionary<TKey, TValue> : IDisposable, IEquatable<NativeSortedDictionary<TKey, TValue>> where TKey : unmanaged, IComparable<TKey> where TValue : unmanaged
     {
         /// <summary>

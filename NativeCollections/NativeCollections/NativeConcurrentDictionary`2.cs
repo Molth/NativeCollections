@@ -18,6 +18,7 @@ namespace NativeCollections
     /// <typeparam name="TValue">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Standard)]
+    [BindingType(typeof(UnsafeConcurrentDictionary<,>))]
     public readonly unsafe struct NativeConcurrentDictionary<TKey, TValue> : IDisposable, IEquatable<NativeConcurrentDictionary<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged, IEquatable<TValue>
     {
         /// <summary>

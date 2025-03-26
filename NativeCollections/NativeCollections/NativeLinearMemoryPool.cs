@@ -14,6 +14,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
+    [BindingType(typeof(UnsafeLinearMemoryPool))]
     public readonly unsafe struct NativeLinearMemoryPool : IDisposable, IEquatable<NativeLinearMemoryPool>
     {
         /// <summary>
