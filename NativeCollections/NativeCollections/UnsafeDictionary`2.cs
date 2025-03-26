@@ -121,11 +121,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            NativeMemoryAllocator.Free(_buckets);
-            NativeMemoryAllocator.Free(_entries);
-        }
+        public void Dispose() => NativeMemoryAllocator.Free(_buckets);
 
         /// <summary>
         ///     Clear
@@ -136,11 +132,10 @@ namespace NativeCollections
             var count = _count;
             if (count > 0)
             {
-                Unsafe.InitBlockUnaligned(_buckets, 0, (uint)(count * sizeof(int)));
+                Unsafe.InitBlockUnaligned(_buckets, 0, (uint)(_bucketsLength * sizeof(int) + count * sizeof(Entry)));
                 _count = 0;
                 _freeList = -1;
                 _freeCount = 0;
-                Unsafe.InitBlockUnaligned(_entries, 0, (uint)(count * sizeof(Entry)));
             }
         }
 
@@ -325,13 +320,13 @@ namespace NativeCollections
             if (capacity < 0)
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
             var newSize = HashHelpers.GetPrime(capacity);
+            var oldBuckets = _buckets;
             var oldEntries = _entries;
             var currentCapacity = _entriesLength;
             if (newSize >= currentCapacity)
                 return currentCapacity;
             var oldCount = _count;
             _version++;
-            NativeMemoryAllocator.Free(_buckets);
             Initialize(newSize);
             var newEntries = _entries;
             var newCount = 0;
@@ -349,7 +344,7 @@ namespace NativeCollections
                 }
             }
 
-            NativeMemoryAllocator.Free(oldEntries);
+            NativeMemoryAllocator.Free(oldBuckets);
             _count = newCount;
             _freeCount = 0;
             return newSize;
@@ -391,8 +386,8 @@ namespace NativeCollections
         {
             var size = HashHelpers.GetPrime(capacity);
             _freeList = -1;
-            _buckets = (int*)NativeMemoryAllocator.AllocZeroed((uint)(size * sizeof(int)));
-            _entries = (Entry*)NativeMemoryAllocator.AllocZeroed((uint)(size * sizeof(Entry)));
+            _buckets = (int*)NativeMemoryAllocator.AllocZeroed((uint)(size * (sizeof(int) + sizeof(Entry))));
+            _entries = (Entry*)((byte*)_buckets + size * sizeof(int));
             _bucketsLength = size;
             _entriesLength = size;
             _fastModMultiplier = IntPtr.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)size) : 0;
@@ -411,25 +406,26 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Resize(int newSize)
         {
-            var entries = (Entry*)NativeMemoryAllocator.AllocZeroed((uint)(newSize * sizeof(Entry)));
+            var oldBuckets = _buckets;
+            var buckets = (int*)NativeMemoryAllocator.AllocZeroed((uint)(newSize * (sizeof(int) + sizeof(Entry))));
+            var entries = (Entry*)((byte*)buckets + newSize * sizeof(int));
             var count = _count;
             Unsafe.CopyBlockUnaligned(entries, _entries, (uint)(count * sizeof(Entry)));
-            var buckets = (int*)NativeMemoryAllocator.AllocZeroed((uint)(newSize * sizeof(int)));
-            NativeMemoryAllocator.Free(_buckets);
             _buckets = buckets;
             _bucketsLength = newSize;
             _fastModMultiplier = IntPtr.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)newSize) : 0;
             for (var i = 0; i < count; ++i)
             {
-                if (entries[i].Next >= -1)
+                ref var entry = ref entries[i];
+                if (entry.Next >= -1)
                 {
-                    ref var bucket = ref GetBucket(entries[i].HashCode);
-                    entries[i].Next = bucket - 1;
+                    ref var bucket = ref GetBucket(entry.HashCode);
+                    entry.Next = bucket - 1;
                     bucket = i + 1;
                 }
             }
 
-            NativeMemoryAllocator.Free(_entries);
+            NativeMemoryAllocator.Free(oldBuckets);
             _entries = entries;
             _entriesLength = newSize;
         }

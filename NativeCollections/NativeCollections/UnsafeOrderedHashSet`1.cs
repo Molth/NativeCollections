@@ -81,11 +81,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            NativeMemoryAllocator.Free(_buckets);
-            NativeMemoryAllocator.Free(_entries);
-        }
+        public void Dispose() => NativeMemoryAllocator.Free(_buckets);
 
         /// <summary>
         ///     Clear
@@ -96,8 +92,7 @@ namespace NativeCollections
             var count = _count;
             if (count > 0)
             {
-                Unsafe.InitBlockUnaligned(_buckets, 0, (uint)(count * sizeof(int)));
-                Unsafe.InitBlockUnaligned(_entries, 0, (uint)(count * sizeof(Entry)));
+                Unsafe.InitBlockUnaligned(_buckets, 0, (uint)(_bucketsLength * sizeof(int) + count * sizeof(Entry)));
                 _count = 0;
                 ++_version;
             }
@@ -514,8 +509,8 @@ namespace NativeCollections
         private void Initialize(int capacity)
         {
             var size = HashHelpers.GetPrime(capacity);
-            _buckets = (int*)NativeMemoryAllocator.AllocZeroed((uint)(size * sizeof(int)));
-            _entries = (Entry*)NativeMemoryAllocator.AllocZeroed((uint)(size * sizeof(Entry)));
+            _buckets = (int*)NativeMemoryAllocator.AllocZeroed((uint)(size * (sizeof(int) + sizeof(Entry))));
+            _entries = (Entry*)((byte*)_buckets + size * sizeof(int));
             _bucketsLength = size;
             _entriesLength = size;
             _fastModMultiplier = IntPtr.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)size) : 0;
@@ -528,17 +523,17 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Resize(int newSize)
         {
-            var buckets = (int*)NativeMemoryAllocator.AllocZeroed((uint)(newSize * sizeof(int)));
-            var entries = (Entry*)NativeMemoryAllocator.AllocZeroed((uint)(newSize * sizeof(Entry)));
-            _fastModMultiplier = IntPtr.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)newSize) : 0;
+            var oldBuckets = _buckets;
+            var buckets = (int*)NativeMemoryAllocator.AllocZeroed((uint)(newSize * (sizeof(int) + sizeof(Entry))));
+            var entries = (Entry*)((byte*)buckets + newSize * sizeof(int));
             var count = _count;
             Unsafe.CopyBlockUnaligned(entries, _entries, (uint)(count * sizeof(Entry)));
-            NativeMemoryAllocator.Free(_buckets);
             _buckets = buckets;
             _bucketsLength = newSize;
+            _fastModMultiplier = IntPtr.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)newSize) : 0;
             for (var entryIndex = 0; entryIndex < count; ++entryIndex)
                 PushEntryIntoBucket(ref entries[entryIndex], entryIndex);
-            NativeMemoryAllocator.Free(_entries);
+            NativeMemoryAllocator.Free(oldBuckets);
             _entries = entries;
             _entriesLength = newSize;
         }

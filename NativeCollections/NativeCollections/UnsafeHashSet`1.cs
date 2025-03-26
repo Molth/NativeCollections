@@ -91,11 +91,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            NativeMemoryAllocator.Free(_buckets);
-            NativeMemoryAllocator.Free(_entries);
-        }
+        public void Dispose() => NativeMemoryAllocator.Free(_buckets);
 
         /// <summary>
         ///     Clear
@@ -106,11 +102,10 @@ namespace NativeCollections
             var count = _count;
             if (count > 0)
             {
-                Unsafe.InitBlockUnaligned(_buckets, 0, (uint)(_bucketsLength * sizeof(int)));
+                Unsafe.InitBlockUnaligned(_buckets, 0, (uint)(_bucketsLength * sizeof(int) + count * sizeof(Entry)));
                 _count = 0;
                 _freeList = -1;
                 _freeCount = 0;
-                Unsafe.InitBlockUnaligned(_entries, 0, (uint)(count * sizeof(Entry)));
             }
         }
 
@@ -123,8 +118,8 @@ namespace NativeCollections
         public bool Add(in T item)
         {
             uint collisionCount = 0;
-            var hashCode = item.GetHashCode();
-            ref var bucket = ref GetBucketRef(hashCode);
+            var hashCode = (uint)item.GetHashCode();
+            ref var bucket = ref GetBucket(hashCode);
             var i = bucket - 1;
             while (i >= 0)
             {
@@ -150,7 +145,7 @@ namespace NativeCollections
                 if (count == _entriesLength)
                 {
                     Resize();
-                    bucket = ref GetBucketRef(hashCode);
+                    bucket = ref GetBucket(hashCode);
                 }
 
                 index = count;
@@ -176,8 +171,8 @@ namespace NativeCollections
         {
             uint collisionCount = 0;
             var last = -1;
-            var hashCode = item.GetHashCode();
-            ref var bucket = ref GetBucketRef(hashCode);
+            var hashCode = (uint)item.GetHashCode();
+            ref var bucket = ref GetBucket(hashCode);
             var i = bucket - 1;
             while (i >= 0)
             {
@@ -215,8 +210,8 @@ namespace NativeCollections
         {
             uint collisionCount = 0;
             var last = -1;
-            var hashCode = equalValue.GetHashCode();
-            ref var bucket = ref GetBucketRef(hashCode);
+            var hashCode = (uint)equalValue.GetHashCode();
+            ref var bucket = ref GetBucket(hashCode);
             var i = bucket - 1;
             while (i >= 0)
             {
@@ -316,36 +311,45 @@ namespace NativeCollections
         /// </summary>
         /// <returns>New capacity</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int TrimExcess()
+        public int TrimExcess() => TrimExcess(_count);
+
+        /// <summary>
+        ///     Trim excess
+        /// </summary>
+        /// <param name="capacity">Capacity</param>
+        /// <returns>New capacity</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int TrimExcess(int capacity)
         {
-            var capacity = _count - _freeCount;
+            if (capacity < 0)
+                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
             var newSize = HashHelpers.GetPrime(capacity);
+            var oldBuckets = _buckets;
             var oldEntries = _entries;
             var currentCapacity = _entriesLength;
             if (newSize >= currentCapacity)
                 return currentCapacity;
             var oldCount = _count;
             _version++;
-            NativeMemoryAllocator.Free(_buckets);
             Initialize(newSize);
             var newEntries = _entries;
-            var count = 0;
+            var newCount = 0;
             for (var i = 0; i < oldCount; ++i)
             {
                 var hashCode = oldEntries[i].HashCode;
                 if (oldEntries[i].Next >= -1)
                 {
-                    ref var entry = ref newEntries[count];
+                    ref var entry = ref newEntries[newCount];
                     entry = oldEntries[i];
-                    ref var bucket = ref GetBucketRef(hashCode);
+                    ref var bucket = ref GetBucket(hashCode);
                     entry.Next = bucket - 1;
-                    bucket = count + 1;
-                    count++;
+                    bucket = newCount + 1;
+                    newCount++;
                 }
             }
 
-            NativeMemoryAllocator.Free(oldEntries);
-            _count = capacity;
+            NativeMemoryAllocator.Free(oldBuckets);
+            _count = newCount;
             _freeCount = 0;
             return newSize;
         }
@@ -360,8 +364,8 @@ namespace NativeCollections
         {
             var size = HashHelpers.GetPrime(capacity);
             _freeList = -1;
-            _buckets = (int*)NativeMemoryAllocator.AllocZeroed((uint)(size * sizeof(int)));
-            _entries = (Entry*)NativeMemoryAllocator.AllocZeroed((uint)(size * sizeof(Entry)));
+            _buckets = (int*)NativeMemoryAllocator.AllocZeroed((uint)(size * (sizeof(int) + sizeof(Entry))));
+            _entries = (Entry*)((byte*)_buckets + size * sizeof(int));
             _bucketsLength = size;
             _entriesLength = size;
             _fastModMultiplier = IntPtr.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)size) : 0;
@@ -380,11 +384,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Resize(int newSize)
         {
-            var entries = (Entry*)NativeMemoryAllocator.AllocZeroed((uint)(newSize * sizeof(Entry)));
+            var oldBuckets = _buckets;
+            var buckets = (int*)NativeMemoryAllocator.AllocZeroed((uint)(newSize * (sizeof(int) + sizeof(Entry))));
+            var entries = (Entry*)((byte*)buckets + newSize * sizeof(int));
             var count = _count;
             Unsafe.CopyBlockUnaligned(entries, _entries, (uint)(_entriesLength * sizeof(Entry)));
-            var buckets = (int*)NativeMemoryAllocator.AllocZeroed((uint)(newSize * sizeof(int)));
-            NativeMemoryAllocator.Free(_buckets);
             _buckets = buckets;
             _bucketsLength = newSize;
             _fastModMultiplier = IntPtr.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)newSize) : 0;
@@ -393,13 +397,13 @@ namespace NativeCollections
                 ref var entry = ref entries[i];
                 if (entry.Next >= -1)
                 {
-                    ref var bucket = ref GetBucketRef(entry.HashCode);
+                    ref var bucket = ref GetBucket(entry.HashCode);
                     entry.Next = bucket - 1;
                     bucket = i + 1;
                 }
             }
 
-            NativeMemoryAllocator.Free(_entries);
+            NativeMemoryAllocator.Free(oldBuckets);
             _entries = entries;
             _entriesLength = newSize;
         }
@@ -413,8 +417,8 @@ namespace NativeCollections
         private int FindItemIndex(in T item)
         {
             uint collisionCount = 0;
-            var hashCode = item.GetHashCode();
-            var i = GetBucketRef(hashCode) - 1;
+            var hashCode = (uint)item.GetHashCode();
+            var i = GetBucket(hashCode) - 1;
             while (i >= 0)
             {
                 ref var entry = ref _entries[i];
@@ -435,7 +439,7 @@ namespace NativeCollections
         /// <param name="hashCode">HashCode</param>
         /// <returns>Bucket ref</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ref int GetBucketRef(int hashCode) => ref IntPtr.Size == 8 ? ref _buckets[HashHelpers.FastMod((uint)hashCode, (uint)_bucketsLength, _fastModMultiplier)] : ref _buckets[(uint)hashCode % (uint)_bucketsLength];
+        private ref int GetBucket(uint hashCode) => ref IntPtr.Size == 8 ? ref _buckets[HashHelpers.FastMod(hashCode, (uint)_bucketsLength, _fastModMultiplier)] : ref _buckets[hashCode % (uint)_bucketsLength];
 
         /// <summary>
         ///     Entry
@@ -446,7 +450,7 @@ namespace NativeCollections
             /// <summary>
             ///     HashCode
             /// </summary>
-            public int HashCode;
+            public uint HashCode;
 
             /// <summary>
             ///     Next
