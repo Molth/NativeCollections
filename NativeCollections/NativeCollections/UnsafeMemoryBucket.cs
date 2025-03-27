@@ -109,5 +109,10 @@ namespace NativeCollections
             else
                 _memoryPool.Return(ptr);
         }
+
+        /// <summary>
+        ///     Empty
+        /// </summary>
+        public static UnsafeMemoryBucket Empty => new();
     }
 }

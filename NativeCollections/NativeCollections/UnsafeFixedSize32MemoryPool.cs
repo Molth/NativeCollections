@@ -287,5 +287,10 @@ namespace NativeCollections
             /// </summary>
             public uint Bitmap;
         }
+
+        /// <summary>
+        ///     Empty
+        /// </summary>
+        public static UnsafeFixedSize32MemoryPool Empty => new();
     }
 }

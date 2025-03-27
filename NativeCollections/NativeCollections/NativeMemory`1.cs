@@ -165,5 +165,10 @@ namespace NativeCollections
                 Manager.Dispose();
             handle.Free();
         }
+
+        /// <summary>
+        ///     Empty
+        /// </summary>
+        public static NativeMemory<T> Empty => new();
     }
 }

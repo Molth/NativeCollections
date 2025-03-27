@@ -215,5 +215,10 @@ namespace NativeCollections
             while (Interlocked.CompareExchange(ref location, value, 0) != 0)
                 spinWait.SpinOnce();
         }
+
+        /// <summary>
+        ///     Empty
+        /// </summary>
+        public static NativeConcurrentFixedSizeBucket Empty => new();
     }
 }
