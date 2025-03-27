@@ -438,6 +438,7 @@ namespace NativeCollections
         ///     Create
         /// </summary>
         /// <returns>NativeXorshift32</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeXorshift32 Create()
         {
             var random = new NativeXorshift32();

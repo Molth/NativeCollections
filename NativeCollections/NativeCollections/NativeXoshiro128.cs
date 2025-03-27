@@ -495,6 +495,7 @@ namespace NativeCollections
         ///     Create
         /// </summary>
         /// <returns>NativeXoshiro128</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeXoshiro128 Create()
         {
             var random = new NativeXoshiro128();
