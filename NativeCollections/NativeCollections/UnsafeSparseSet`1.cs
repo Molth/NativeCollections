@@ -68,7 +68,7 @@ namespace NativeCollections
                 throw new KeyNotFoundException(key.ToString());
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Insert(key, in value);
+            set => Insert(key, value);
         }
 
         /// <summary>
