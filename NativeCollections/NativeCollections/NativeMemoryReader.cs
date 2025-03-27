@@ -14,7 +14,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    public unsafe struct NativeMemoryReader
+    public unsafe struct NativeMemoryReader : IEquatable<NativeMemoryReader>
     {
         /// <summary>
         ///     Array
@@ -93,13 +93,13 @@ namespace NativeCollections
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => throw new NotSupportedException("Cannot call Equals on NativeMemoryReader");
+        public override bool Equals(object? obj) => obj is NativeMemoryReader nativeMemoryReader && nativeMemoryReader == this;
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => throw new NotSupportedException("Cannot call GetHashCode on NativeMemoryReader");
+        public override int GetHashCode() => ((nint)Array).GetHashCode() ^ Length ^ _position;
 
         /// <summary>
         ///     To string

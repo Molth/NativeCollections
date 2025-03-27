@@ -15,7 +15,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    public unsafe struct NativeStream
+    public unsafe struct NativeStream : IEquatable<NativeStream>
     {
         /// <summary>
         ///     Array
@@ -144,13 +144,13 @@ namespace NativeCollections
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => throw new NotSupportedException("Cannot call Equals on NativeStream");
+        public override bool Equals(object? obj) => obj is NativeStream nativeStream && nativeStream == this;
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => throw new NotSupportedException("Cannot call GetHashCode on NativeStream");
+        public override int GetHashCode() => ((nint)_array).GetHashCode() ^ _position ^ _length ^ _capacity;
 
         /// <summary>
         ///     To string

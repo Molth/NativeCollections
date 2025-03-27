@@ -94,6 +94,48 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public bool Equals(NativeSpinWait other) => other == this;
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="obj">object</param>
+        /// <returns>Equals</returns>
+        public override bool Equals(object? obj) => throw new NotSupportedException("Cannot call Equals on NativeSpinWait");
+
+        /// <summary>
+        ///     Get hashCode
+        /// </summary>
+        /// <returns>HashCode</returns>
+        public override int GetHashCode() => throw new NotSupportedException("Cannot call GetHashCode on NativeSpinWait");
+
+        /// <summary>
+        ///     To string
+        /// </summary>
+        /// <returns>String</returns>
+        public override string ToString() => "NativeSpinWait";
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Equals</returns>
+        public static bool operator ==(NativeSpinWait left, NativeSpinWait right) => left._count == right._count;
+
+        /// <summary>
+        ///     Not equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Not equals</returns>
+        public static bool operator !=(NativeSpinWait left, NativeSpinWait right) => left._count != right._count;
+
+        /// <summary>
         ///     Empty
         /// </summary>
         public static NativeSpinWait Empty => new();

@@ -15,7 +15,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Explicit, Size = 8)]
     [NativeCollection(FromType.None)]
-    public struct NativeConcurrentSpinLock
+    public struct NativeConcurrentSpinLock : IEquatable<NativeConcurrentSpinLock>
     {
         /// <summary>
         ///     Sequence number
@@ -122,13 +122,13 @@ namespace NativeCollections
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => throw new NotSupportedException("Cannot call Equals on NativeConcurrentSpinLock");
+        public override bool Equals(object? obj) => obj is NativeConcurrentSpinLock nativeConcurrentSpinLock && nativeConcurrentSpinLock == this;
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => throw new NotSupportedException("Cannot call GetHashCode on NativeConcurrentSpinLock");
+        public override int GetHashCode() => _sequenceNumber ^ _nextSequenceNumber;
 
         /// <summary>
         ///     To string
