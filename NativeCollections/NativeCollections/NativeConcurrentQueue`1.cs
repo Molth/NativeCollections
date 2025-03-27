@@ -192,9 +192,9 @@ namespace NativeCollections
                         var next = Volatile.Read(ref segment->NextSegment);
                         if (segment->TryPeek())
                             return false;
-                        if (next != IntPtr.Zero)
+                        if (next != (nint)0)
                             segment = (NativeConcurrentQueueSegmentNotArm64<T>*)next;
-                        else if (Volatile.Read(ref segment->NextSegment) == IntPtr.Zero)
+                        else if (Volatile.Read(ref segment->NextSegment) == (nint)0)
                             break;
                     }
 
@@ -342,7 +342,7 @@ namespace NativeCollections
                 var head = _head;
                 if (head->TryDequeue(out result))
                     return true;
-                if (head->NextSegment == IntPtr.Zero)
+                if (head->NextSegment == 0)
                 {
                     result = default;
                     return false;
@@ -353,7 +353,7 @@ namespace NativeCollections
                     head = _head;
                     if (head->TryDequeue(out result))
                         return true;
-                    if (head->NextSegment == IntPtr.Zero)
+                    if (head->NextSegment == 0)
                     {
                         result = default;
                         return false;
@@ -461,7 +461,7 @@ namespace NativeCollections
                     slots[i].SequenceNumber = i;
                 HeadAndTail = new NativeConcurrentQueuePaddedHeadAndTailNotArm64();
                 FrozenForEnqueues = false;
-                NextSegment = IntPtr.Zero;
+                NextSegment = 0;
             }
 
             /// <summary>
@@ -647,9 +647,9 @@ namespace NativeCollections
                         var next = Volatile.Read(ref segment->NextSegment);
                         if (segment->TryPeek())
                             return false;
-                        if (next != IntPtr.Zero)
+                        if (next != (nint)0)
                             segment = (NativeConcurrentQueueSegmentArm64<T>*)next;
-                        else if (Volatile.Read(ref segment->NextSegment) == IntPtr.Zero)
+                        else if (Volatile.Read(ref segment->NextSegment) == (nint)0)
                             break;
                     }
 
@@ -797,7 +797,7 @@ namespace NativeCollections
                 var head = _head;
                 if (head->TryDequeue(out result))
                     return true;
-                if (head->NextSegment == IntPtr.Zero)
+                if (head->NextSegment == 0)
                 {
                     result = default;
                     return false;
@@ -808,7 +808,7 @@ namespace NativeCollections
                     head = _head;
                     if (head->TryDequeue(out result))
                         return true;
-                    if (head->NextSegment == IntPtr.Zero)
+                    if (head->NextSegment == 0)
                     {
                         result = default;
                         return false;
@@ -916,7 +916,7 @@ namespace NativeCollections
                     slots[i].SequenceNumber = i;
                 HeadAndTail = new NativeConcurrentQueuePaddedHeadAndTailArm64();
                 FrozenForEnqueues = false;
-                NextSegment = IntPtr.Zero;
+                NextSegment = 0;
             }
 
             /// <summary>

@@ -58,7 +58,7 @@ namespace NativeCollections
         public UnsafeConcurrentStack(int size, int maxFreeSlabs)
         {
             var nodePool = new UnsafeMemoryPool(size, sizeof(Node), maxFreeSlabs);
-            Head = IntPtr.Zero;
+            Head = 0;
             NodePool = nodePool;
             NodeLock = new NativeConcurrentSpinLock();
             NodeLock.Reset();

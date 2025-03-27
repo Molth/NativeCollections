@@ -390,7 +390,7 @@ namespace NativeCollections
             _entries = (Entry*)((byte*)_buckets + size * sizeof(int));
             _bucketsLength = size;
             _entriesLength = size;
-            _fastModMultiplier = IntPtr.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)size) : 0;
+            _fastModMultiplier = sizeof(nint) == 8 ? HashHelpers.GetFastModMultiplier((uint)size) : 0;
         }
 
         /// <summary>
@@ -413,7 +413,7 @@ namespace NativeCollections
             Unsafe.CopyBlockUnaligned(entries, _entries, (uint)(count * sizeof(Entry)));
             _buckets = buckets;
             _bucketsLength = newSize;
-            _fastModMultiplier = IntPtr.Size == 8 ? HashHelpers.GetFastModMultiplier((uint)newSize) : 0;
+            _fastModMultiplier = sizeof(nint) == 8 ? HashHelpers.GetFastModMultiplier((uint)newSize) : 0;
             for (var i = 0; i < count; ++i)
             {
                 ref var entry = ref entries[i];
@@ -601,7 +601,7 @@ namespace NativeCollections
         /// <param name="hashCode">HashCode</param>
         /// <returns>Bucket ref</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ref int GetBucket(uint hashCode) => ref IntPtr.Size == 8 ? ref _buckets[HashHelpers.FastMod(hashCode, (uint)_bucketsLength, _fastModMultiplier)] : ref _buckets[hashCode % _bucketsLength];
+        private ref int GetBucket(uint hashCode) => ref sizeof(nint) == 8 ? ref _buckets[HashHelpers.FastMod(hashCode, (uint)_bucketsLength, _fastModMultiplier)] : ref _buckets[hashCode % _bucketsLength];
 
         /// <summary>
         ///     Entry

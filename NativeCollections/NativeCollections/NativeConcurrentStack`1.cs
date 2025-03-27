@@ -46,7 +46,7 @@ namespace NativeCollections
         /// <summary>
         ///     IsEmpty
         /// </summary>
-        public bool IsEmpty => _handle->Head == IntPtr.Zero;
+        public bool IsEmpty => _handle->Head == 0;
 
         /// <summary>
         ///     Count

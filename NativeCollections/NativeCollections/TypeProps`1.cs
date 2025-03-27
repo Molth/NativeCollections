@@ -12,7 +12,7 @@ namespace NativeCollections
     ///     Type props
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
-    internal static class TypeProps<T> where T : unmanaged, IEquatable<T>
+    internal static unsafe class TypeProps<T> where T : unmanaged, IEquatable<T>
     {
         /// <summary>
         ///     Is write atomic
@@ -43,7 +43,7 @@ namespace NativeCollections
                 case TypeCode.Double:
                 case TypeCode.Int64:
                 case TypeCode.UInt64:
-                    return IntPtr.Size == 8;
+                    return sizeof(nint) == 8;
                 default:
                     return false;
             }
