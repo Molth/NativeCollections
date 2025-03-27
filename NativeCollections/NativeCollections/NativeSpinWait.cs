@@ -111,7 +111,7 @@ namespace NativeCollections
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => throw new NotSupportedException("Cannot call GetHashCode on NativeSpinWait");
+        public override int GetHashCode() => _count;
 
         /// <summary>
         ///     To string
