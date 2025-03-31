@@ -141,39 +141,8 @@ namespace NativeCollections
         public void Free(void* ptr) => _free(_user, ptr);
 
         /// <summary>
-        ///     Default
-        /// </summary>
-        public static UnsafeMemoryAllocator Default => new(null, &DefaultAlloc, &DefaultAllocZeroed, &DefaultFree);
-
-        /// <summary>
         ///     Empty
         /// </summary>
         public static UnsafeMemoryAllocator Empty => new();
-
-        /// <summary>
-        ///     Alloc
-        /// </summary>
-        /// <param name="_">User</param>
-        /// <param name="byteCount">Byte count</param>
-        /// <returns>Memory</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void* DefaultAlloc(void* _, uint byteCount) => NativeMemoryAllocator.Alloc(byteCount);
-
-        /// <summary>
-        ///     Alloc zeroed
-        /// </summary>
-        /// <param name="_">User</param>
-        /// <param name="byteCount">Byte count</param>
-        /// <returns>Memory</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void* DefaultAllocZeroed(void* _, uint byteCount) => NativeMemoryAllocator.AllocZeroed(byteCount);
-
-        /// <summary>
-        ///     Free
-        /// </summary>
-        /// <param name="_">User</param>
-        /// <param name="ptr">Pointer</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void DefaultFree(void* _, void* ptr) => NativeMemoryAllocator.Free(ptr);
     }
 }
