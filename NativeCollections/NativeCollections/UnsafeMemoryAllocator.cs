@@ -47,7 +47,7 @@ namespace NativeCollections
         /// <param name="calloc">AllocZeroed</param>
         /// <param name="free">Free</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeMemoryAllocator(void* user, delegate*<void*, uint, void*> malloc, delegate*<void*, uint, void*> calloc, delegate*<void*, void*, void> free)
+        public UnsafeMemoryAllocator(void* user, delegate* managed<void*, uint, void*> malloc, delegate* managed<void*, uint, void*> calloc, delegate* managed<void*, void*, void> free)
         {
             _user = user;
             _malloc = malloc;
