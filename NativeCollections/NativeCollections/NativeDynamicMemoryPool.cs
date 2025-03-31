@@ -206,7 +206,7 @@ namespace NativeCollections
             public const ulong block_size_max = (ulong)1 << FL_INDEX_MAX;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void memcpy(void* dst, void* src, ulong size) => Unsafe.CopyBlock(dst, src, (uint)size);
+            public static void memcpy(void* dst, void* src, ulong size) => Unsafe.CopyBlockUnaligned(dst, src, (uint)size);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static int tlsf_fls(uint word)
@@ -816,7 +816,7 @@ namespace NativeCollections
             public const uint block_size_max = (uint)1 << FL_INDEX_MAX;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void memcpy(void* dst, void* src, uint size) => Unsafe.CopyBlock(dst, src, size);
+            public static void memcpy(void* dst, void* src, uint size) => Unsafe.CopyBlockUnaligned(dst, src, size);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static int tlsf_fls(uint word)
