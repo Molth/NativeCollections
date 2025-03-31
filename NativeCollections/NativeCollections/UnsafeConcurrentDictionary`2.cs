@@ -44,7 +44,7 @@ namespace NativeCollections
         /// <summary>
         ///     Node lock
         /// </summary>
-        private NativeConcurrentSpinLock _nodeLock;
+        private UnsafeConcurrentSpinLock _nodeLock;
 
         /// <summary>
         ///     Get or set value
@@ -144,7 +144,7 @@ namespace NativeCollections
             _growLockArray = growLockArray;
             _budget = buckets.Length / locks.Length;
             _nodePool = nodePool;
-            _nodeLock = new NativeConcurrentSpinLock();
+            _nodeLock = new UnsafeConcurrentSpinLock();
             _nodeLock.Reset();
         }
 

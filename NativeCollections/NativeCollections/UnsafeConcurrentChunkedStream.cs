@@ -69,7 +69,7 @@ namespace NativeCollections
         /// <summary>
         ///     Spin lock
         /// </summary>
-        private NativeConcurrentSpinLock _spinLock;
+        private UnsafeConcurrentSpinLock _spinLock;
 
         /// <summary>
         ///     Is empty
@@ -124,7 +124,7 @@ namespace NativeCollections
             _readOffset = 0;
             _writeOffset = 0;
             _length = 0;
-            _spinLock = new NativeConcurrentSpinLock();
+            _spinLock = new UnsafeConcurrentSpinLock();
             _spinLock.Reset();
         }
 

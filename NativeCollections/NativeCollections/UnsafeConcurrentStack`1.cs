@@ -32,7 +32,7 @@ namespace NativeCollections
         /// <summary>
         ///     Node lock
         /// </summary>
-        public NativeConcurrentSpinLock NodeLock;
+        public UnsafeConcurrentSpinLock NodeLock;
 
         /// <summary>
         ///     Count
@@ -60,7 +60,7 @@ namespace NativeCollections
             var nodePool = new UnsafeMemoryPool(size, sizeof(Node), maxFreeSlabs);
             Head = 0;
             NodePool = nodePool;
-            NodeLock = new NativeConcurrentSpinLock();
+            NodeLock = new UnsafeConcurrentSpinLock();
             NodeLock.Reset();
         }
 

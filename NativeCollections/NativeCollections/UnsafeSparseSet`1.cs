@@ -157,7 +157,7 @@ namespace NativeCollections
             if (key < 0)
                 throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
             if (key >= _length)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "IndexMustBeLessOrEqual");
+                throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeLessOrEqual");
             var index = _sparse[key];
             if (index != -1)
                 return false;
@@ -187,7 +187,7 @@ namespace NativeCollections
             if (key < 0)
                 throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
             if (key >= _length)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "IndexMustBeLessOrEqual");
+                throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeLessOrEqual");
             var index = _sparse[key];
             if (index != -1)
             {
