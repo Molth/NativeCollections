@@ -111,6 +111,7 @@ namespace NativeCollections
             if (maxFreeChunks < 0)
                 throw new ArgumentOutOfRangeException(nameof(maxFreeChunks), maxFreeChunks, "MustBeNonNegative");
             var chunk = (MemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemoryChunk) + size * sizeof(T)));
+            chunk->Array = (T*)((byte*)chunk + sizeof(MemoryChunk));
             _head = chunk;
             _tail = chunk;
             _freeList = null;
@@ -184,6 +185,7 @@ namespace NativeCollections
                 if (_freeChunks == 0)
                 {
                     chunk = (MemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemoryChunk) + _size * sizeof(T)));
+                    chunk->Array = (T*)((byte*)chunk + sizeof(MemoryChunk));
                 }
                 else
                 {
@@ -198,7 +200,7 @@ namespace NativeCollections
             }
 
             ++_count;
-            ((T*)&_tail->Array)[_writeOffset++] = item;
+            _tail->Array[_writeOffset++] = item;
         }
 
         /// <summary>
@@ -216,7 +218,7 @@ namespace NativeCollections
             }
 
             --_count;
-            result = ((T*)&_head->Array)[_readOffset++];
+            result = _head->Array[_readOffset++];
             if (_readOffset == _size)
             {
                 _readOffset = 0;
@@ -237,6 +239,10 @@ namespace NativeCollections
 
                     --_chunks;
                 }
+                else
+                {
+                    _writeOffset = 0;
+                }
             }
 
             return true;
@@ -256,7 +262,7 @@ namespace NativeCollections
                 return false;
             }
 
-            result = ((T*)&_head->Array)[_readOffset];
+            result = _head->Array[_readOffset];
             return true;
         }
 
@@ -337,7 +343,7 @@ namespace NativeCollections
             /// <summary>
             ///     Array
             /// </summary>
-            public nint Array;
+            public T* Array;
         }
 
         /// <summary>

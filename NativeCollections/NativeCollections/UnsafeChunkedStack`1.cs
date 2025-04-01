@@ -96,6 +96,7 @@ namespace NativeCollections
             if (maxFreeChunks < 0)
                 throw new ArgumentOutOfRangeException(nameof(maxFreeChunks), maxFreeChunks, "MustBeNonNegative");
             var chunk = (MemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemoryChunk) + size * sizeof(T)));
+            chunk->Array = (T*)((byte*)chunk + sizeof(MemoryChunk));
             _sentinel = chunk;
             _freeList = null;
             _chunks = 1;
@@ -163,6 +164,7 @@ namespace NativeCollections
                 if (_freeChunks == 0)
                 {
                     chunk = (MemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemoryChunk) + _size * sizeof(T)));
+                    chunk->Array = (T*)((byte*)chunk + sizeof(MemoryChunk));
                 }
                 else
                 {
@@ -177,7 +179,7 @@ namespace NativeCollections
             }
 
             ++_count;
-            ((T*)&_sentinel->Array)[index] = item;
+            _sentinel->Array[index] = item;
         }
 
         /// <summary>
@@ -196,7 +198,7 @@ namespace NativeCollections
 
             --_count;
             var index = _count % _size;
-            result = ((T*)&_sentinel->Array)[index];
+            result = _sentinel->Array[index];
             if (index == 0 && _chunks != 1)
             {
                 var chunk = _sentinel;
@@ -233,7 +235,7 @@ namespace NativeCollections
             }
 
             var index = (_count - 1) % _size;
-            result = ((T*)&_sentinel->Array)[index];
+            result = _sentinel->Array[index];
             return true;
         }
 
@@ -253,6 +255,7 @@ namespace NativeCollections
             {
                 _freeChunks++;
                 var chunk = (MemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemoryChunk) + _size));
+                chunk->Array = (T*)((byte*)chunk + sizeof(MemoryChunk));
                 chunk->Next = _freeList;
                 _freeList = chunk;
             }
@@ -314,7 +317,7 @@ namespace NativeCollections
             /// <summary>
             ///     Array
             /// </summary>
-            public nint Array;
+            public T* Array;
         }
 
         /// <summary>
