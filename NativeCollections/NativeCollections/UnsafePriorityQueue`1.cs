@@ -307,7 +307,7 @@ namespace NativeCollections
             if (_size >= (int)(_length * 0.9))
                 return _length;
             var nodes = (TPriority*)NativeMemoryAllocator.Alloc((uint)(_size * sizeof(TPriority)));
-            Unsafe.CopyBlockUnaligned(nodes, _nodes, (uint)_size);
+            Unsafe.CopyBlockUnaligned(nodes, _nodes, (uint)(_size * sizeof(TPriority)));
             NativeMemoryAllocator.Free(_nodes);
             _nodes = nodes;
             _length = _size;
@@ -330,7 +330,7 @@ namespace NativeCollections
             if (newCapacity < capacity)
                 newCapacity = capacity;
             var nodes = (TPriority*)NativeMemoryAllocator.Alloc((uint)(newCapacity * sizeof(TPriority)));
-            Unsafe.CopyBlockUnaligned(nodes, _nodes, (uint)_size);
+            Unsafe.CopyBlockUnaligned(nodes, _nodes, (uint)(_size * sizeof(TPriority)));
             NativeMemoryAllocator.Free(_nodes);
             _nodes = nodes;
             _length = newCapacity;

@@ -21,7 +21,7 @@ namespace NativeCollections
         /// <summary>
         ///     Nodes
         /// </summary>
-        private ValueTuple<TElement, TPriority>* _nodes;
+        private (TElement Element, TPriority Priority)* _nodes;
 
         /// <summary>
         ///     Length
@@ -74,7 +74,7 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
             if (capacity < 4)
                 capacity = 4;
-            _nodes = (ValueTuple<TElement, TPriority>*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(ValueTuple<TElement, TPriority>)));
+            _nodes = ((TElement Element, TPriority Priority)*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof((TElement Element, TPriority Priority))));
             _length = capacity;
             _size = 0;
             _version = 0;
@@ -109,7 +109,7 @@ namespace NativeCollections
             if (_length == size)
                 Grow(size + 1);
             _size = size + 1;
-            MoveUp(new ValueTuple<TElement, TPriority>(element, priority), size);
+            MoveUp((element, priority), size);
         }
 
         /// <summary>
@@ -126,7 +126,7 @@ namespace NativeCollections
             if (_length != size)
             {
                 _size = size + 1;
-                MoveUp(new ValueTuple<TElement, TPriority>(element, priority), size);
+                MoveUp((element, priority), size);
                 return true;
             }
 
@@ -145,11 +145,11 @@ namespace NativeCollections
             if (_size != 0)
             {
                 var node = _nodes[0];
-                if (priority.CompareTo(node.Item2) > 0)
+                if (priority.CompareTo(node.Priority) > 0)
                 {
-                    MoveDown(new ValueTuple<TElement, TPriority>(element, priority), 0);
+                    MoveDown((element, priority), 0);
                     ++_version;
-                    return node.Item1;
+                    return node.Element;
                 }
             }
 
@@ -169,11 +169,11 @@ namespace NativeCollections
             if (_size != 0)
             {
                 var node = _nodes[0];
-                if (priority.CompareTo(node.Item2) > 0)
+                if (priority.CompareTo(node.Priority) > 0)
                 {
-                    MoveDown(new ValueTuple<TElement, TPriority>(element, priority), 0);
+                    MoveDown((element, priority), 0);
                     ++_version;
-                    result = node.Item1;
+                    result = node.Element;
                     return true;
                 }
             }
@@ -191,7 +191,7 @@ namespace NativeCollections
         {
             if (_size == 0)
                 throw new InvalidOperationException("EmptyQueue");
-            var element = _nodes[0].Item1;
+            var element = _nodes[0].Element;
             RemoveRootNode();
             return element;
         }
@@ -207,7 +207,7 @@ namespace NativeCollections
             if (_size != 0)
             {
                 var tuple = _nodes[0];
-                element = tuple.Item1;
+                element = tuple.Element;
                 RemoveRootNode();
                 return true;
             }
@@ -228,8 +228,8 @@ namespace NativeCollections
             if (_size != 0)
             {
                 var tuple = _nodes[0];
-                element = tuple.Item1;
-                priority = tuple.Item2;
+                element = tuple.Element;
+                priority = tuple.Priority;
                 RemoveRootNode();
                 return true;
             }
@@ -250,12 +250,12 @@ namespace NativeCollections
             if (_size == 0)
                 throw new InvalidOperationException("EmptyQueue");
             var node = _nodes[0];
-            if (priority.CompareTo(node.Item2) > 0)
-                MoveDown(new ValueTuple<TElement, TPriority>(element, priority), 0);
+            if (priority.CompareTo(node.Priority) > 0)
+                MoveDown((element, priority), 0);
             else
-                _nodes[0] = new ValueTuple<TElement, TPriority>(element, priority);
+                _nodes[0] = (element, priority);
             ++_version;
-            return node.Item1;
+            return node.Element;
         }
 
         /// <summary>
@@ -274,12 +274,12 @@ namespace NativeCollections
             }
 
             var node = _nodes[0];
-            if (priority.CompareTo(node.Item2) > 0)
-                MoveDown(new ValueTuple<TElement, TPriority>(element, priority), 0);
+            if (priority.CompareTo(node.Priority) > 0)
+                MoveDown((element, priority), 0);
             else
-                _nodes[0] = new ValueTuple<TElement, TPriority>(element, priority);
+                _nodes[0] = (element, priority);
             ++_version;
-            result = node.Item1;
+            result = node.Element;
             return true;
         }
 
@@ -288,7 +288,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Item</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TElement Peek() => _size == 0 ? throw new InvalidOperationException("EmptyQueue") : _nodes[0].Item1;
+        public TElement Peek() => _size == 0 ? throw new InvalidOperationException("EmptyQueue") : _nodes[0].Element;
 
         /// <summary>
         ///     Try peek
@@ -302,8 +302,8 @@ namespace NativeCollections
             if (_size != 0)
             {
                 var tuple = _nodes[0];
-                element = tuple.Item1;
-                priority = tuple.Item2;
+                element = tuple.Element;
+                priority = tuple.Priority;
                 return true;
             }
 
@@ -341,8 +341,8 @@ namespace NativeCollections
         {
             if (_size >= (int)(_length * 0.9))
                 return _length;
-            var nodes = (ValueTuple<TElement, TPriority>*)NativeMemoryAllocator.Alloc((uint)(_size * sizeof(ValueTuple<TElement, TPriority>)));
-            Unsafe.CopyBlockUnaligned(nodes, _nodes, (uint)_size);
+            var nodes = ((TElement Element, TPriority Priority)*)NativeMemoryAllocator.Alloc((uint)(_size * sizeof((TElement Element, TPriority Priority))));
+            Unsafe.CopyBlockUnaligned(nodes, _nodes, (uint)(_size * sizeof((TElement Element, TPriority Priority))));
             NativeMemoryAllocator.Free(_nodes);
             _nodes = nodes;
             _length = _size;
@@ -364,8 +364,8 @@ namespace NativeCollections
             newCapacity = newCapacity > expected ? newCapacity : expected;
             if (newCapacity < capacity)
                 newCapacity = capacity;
-            var nodes = (ValueTuple<TElement, TPriority>*)NativeMemoryAllocator.Alloc((uint)(newCapacity * sizeof(ValueTuple<TElement, TPriority>)));
-            Unsafe.CopyBlockUnaligned(nodes, _nodes, (uint)_size);
+            var nodes = ((TElement Element, TPriority Priority)*)NativeMemoryAllocator.Alloc((uint)(newCapacity * sizeof((TElement Element, TPriority Priority))));
+            Unsafe.CopyBlockUnaligned(nodes, _nodes, (uint)(_size * sizeof((TElement Element, TPriority Priority))));
             NativeMemoryAllocator.Free(_nodes);
             _nodes = nodes;
             _length = newCapacity;
@@ -392,7 +392,7 @@ namespace NativeCollections
         /// <param name="node">Node</param>
         /// <param name="nodeIndex">Node index</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void MoveUp(in ValueTuple<TElement, TPriority> node, int nodeIndex)
+        private void MoveUp(in (TElement Element, TPriority Priority) node, int nodeIndex)
         {
             var nodes = _nodes;
             int parentIndex;
@@ -400,7 +400,7 @@ namespace NativeCollections
             {
                 parentIndex = (nodeIndex - 1) >> 2;
                 var tuple = nodes[parentIndex];
-                if (node.Item2.CompareTo(tuple.Item2) < 0)
+                if (node.Priority.CompareTo(tuple.Priority) < 0)
                     nodes[nodeIndex] = tuple;
                 else
                     break;
@@ -415,7 +415,7 @@ namespace NativeCollections
         /// <param name="node">Node</param>
         /// <param name="nodeIndex">Node index</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void MoveDown(in ValueTuple<TElement, TPriority> node, int nodeIndex)
+        private void MoveDown(in (TElement Element, TPriority Priority) node, int nodeIndex)
         {
             var nodes = _nodes;
             int firstChildIndex;
@@ -429,14 +429,14 @@ namespace NativeCollections
                 while (++firstChildIndex < second)
                 {
                     var tuple = nodes[firstChildIndex];
-                    if (tuple.Item2.CompareTo(valueTuple.Item2) < 0)
+                    if (tuple.Priority.CompareTo(valueTuple.Priority) < 0)
                     {
                         valueTuple = tuple;
                         first = firstChildIndex;
                     }
                 }
 
-                if (node.Item2.CompareTo(valueTuple.Item2) > 0)
+                if (node.Priority.CompareTo(valueTuple.Priority) > 0)
                     nodes[nodeIndex] = valueTuple;
                 else
                     break;
@@ -497,7 +497,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     Current
                 /// </summary>
-                private ValueTuple<TElement, TPriority> _current;
+                private (TElement Element, TPriority Priority) _current;
 
                 /// <summary>
                 ///     Structure
