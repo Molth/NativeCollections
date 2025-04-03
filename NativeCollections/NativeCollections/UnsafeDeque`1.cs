@@ -20,32 +20,42 @@ namespace NativeCollections
         /// <summary>
         ///     Array
         /// </summary>
-        public T* Array;
+        private T* _array;
 
         /// <summary>
         ///     Length
         /// </summary>
-        public int Length;
+        private int _length;
 
         /// <summary>
         ///     Head
         /// </summary>
-        public int Head;
+        private int _head;
 
         /// <summary>
         ///     Tail
         /// </summary>
-        public int Tail;
+        private int _tail;
 
         /// <summary>
         ///     Size
         /// </summary>
-        public int Size;
+        private int _size;
 
         /// <summary>
         ///     Version
         /// </summary>
-        public int Version;
+        private int _version;
+
+        /// <summary>
+        ///     Is empty
+        /// </summary>
+        public bool IsEmpty => _size == 0;
+
+        /// <summary>
+        ///     Count
+        /// </summary>
+        public int Count => _size;
 
         /// <summary>
         ///     Get reference
@@ -54,7 +64,7 @@ namespace NativeCollections
         public ref T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Array[(Head + index) % Length];
+            get => ref _array[(_head + index) % _length];
         }
 
         /// <summary>
@@ -64,7 +74,7 @@ namespace NativeCollections
         public ref T this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Array[(Head + index) % Length];
+            get => ref _array[(_head + index) % _length];
         }
 
         /// <summary>
@@ -78,19 +88,19 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
             if (capacity < 4)
                 capacity = 4;
-            Array = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
-            Length = capacity;
-            Head = 0;
-            Tail = 0;
-            Size = 0;
-            Version = 0;
+            _array = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
+            _length = capacity;
+            _head = 0;
+            _tail = 0;
+            _size = 0;
+            _version = 0;
         }
 
         /// <summary>
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => NativeMemoryAllocator.Free(Array);
+        public void Dispose() => NativeMemoryAllocator.Free(_array);
 
         /// <summary>
         ///     Clear
@@ -98,10 +108,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
-            Size = 0;
-            Head = 0;
-            Tail = 0;
-            Version++;
+            _size = 0;
+            _head = 0;
+            _tail = 0;
+            _version++;
         }
 
         /// <summary>
@@ -111,13 +121,13 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void EnqueueHead(in T item)
         {
-            if (Size == Length)
-                Grow(Size + 1);
-            if (--Head == -1)
-                Head = Length - 1;
-            Array[Head] = item;
-            ++Size;
-            ++Version;
+            if (_size == _length)
+                Grow(_size + 1);
+            if (--_head == -1)
+                _head = _length - 1;
+            _array[_head] = item;
+            ++_size;
+            ++_version;
         }
 
         /// <summary>
@@ -128,13 +138,13 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryEnqueueHead(in T item)
         {
-            if (Size == Length)
+            if (_size == _length)
                 return false;
-            if (--Head == -1)
-                Head = Length - 1;
-            Array[Head] = item;
-            ++Size;
-            ++Version;
+            if (--_head == -1)
+                _head = _length - 1;
+            _array[_head] = item;
+            ++_size;
+            ++_version;
             return true;
         }
 
@@ -145,13 +155,13 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void EnqueueTail(in T item)
         {
-            if (Size == Length)
-                Grow(Size + 1);
-            Array[Tail] = item;
-            if (++Tail == Length)
-                Tail = 0;
-            ++Size;
-            ++Version;
+            if (_size == _length)
+                Grow(_size + 1);
+            _array[_tail] = item;
+            if (++_tail == _length)
+                _tail = 0;
+            ++_size;
+            ++_version;
         }
 
         /// <summary>
@@ -162,13 +172,13 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryEnqueueTail(in T item)
         {
-            if (Size == Length)
+            if (_size == _length)
                 return false;
-            Array[Tail] = item;
-            if (++Tail == Length)
-                Tail = 0;
-            ++Size;
-            ++Version;
+            _array[_tail] = item;
+            if (++_tail == _length)
+                _tail = 0;
+            ++_size;
+            ++_version;
             return true;
         }
 
@@ -180,17 +190,17 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDequeueHead(out T result)
         {
-            if (Size == 0)
+            if (_size == 0)
             {
                 result = default;
                 return false;
             }
 
-            result = Array[Head];
-            if (++Head == Length)
-                Head = 0;
-            --Size;
-            ++Version;
+            result = _array[_head];
+            if (++_head == _length)
+                _head = 0;
+            --_size;
+            ++_version;
             return true;
         }
 
@@ -202,17 +212,17 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDequeueTail(out T result)
         {
-            if (Size == 0)
+            if (_size == 0)
             {
                 result = default;
                 return false;
             }
 
-            if (--Tail == -1)
-                Tail = Length - 1;
-            result = Array[Tail];
-            --Size;
-            ++Version;
+            if (--_tail == -1)
+                _tail = _length - 1;
+            result = _array[_tail];
+            --_size;
+            ++_version;
             return true;
         }
 
@@ -224,13 +234,13 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryPeekHead(out T result)
         {
-            if (Size == 0)
+            if (_size == 0)
             {
                 result = default;
                 return false;
             }
 
-            result = Array[Head];
+            result = _array[_head];
             return true;
         }
 
@@ -242,14 +252,14 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryPeekTail(out T result)
         {
-            var size = Size - 1;
-            if ((uint)size >= (uint)Length)
+            var size = _size - 1;
+            if ((uint)size >= (uint)_length)
             {
                 result = default;
                 return false;
             }
 
-            result = Array[size];
+            result = _array[size];
             return true;
         }
 
@@ -263,9 +273,9 @@ namespace NativeCollections
         {
             if (capacity < 0)
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            if (Length < capacity)
+            if (_length < capacity)
                 Grow(capacity);
-            return Length;
+            return _length;
         }
 
         /// <summary>
@@ -275,10 +285,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess()
         {
-            var threshold = (int)(Length * 0.9);
-            if (Size < threshold)
-                SetCapacity(Size);
-            return Length;
+            var threshold = (int)(_length * 0.9);
+            if (_size < threshold)
+                SetCapacity(_size);
+            return _length;
         }
 
         /// <summary>
@@ -289,25 +299,25 @@ namespace NativeCollections
         private void SetCapacity(int capacity)
         {
             var newArray = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
-            if (Size > 0)
+            if (_size > 0)
             {
-                if (Head < Tail)
+                if (_head < _tail)
                 {
-                    Unsafe.CopyBlockUnaligned(newArray, Array + Head, (uint)(Size * sizeof(T)));
+                    Unsafe.CopyBlockUnaligned(newArray, _array + _head, (uint)(_size * sizeof(T)));
                 }
                 else
                 {
-                    Unsafe.CopyBlockUnaligned(newArray, Array + Head, (uint)((Length - Head) * sizeof(T)));
-                    Unsafe.CopyBlockUnaligned(newArray + Length - Head, Array, (uint)(Tail * sizeof(T)));
+                    Unsafe.CopyBlockUnaligned(newArray, _array + _head, (uint)((_length - _head) * sizeof(T)));
+                    Unsafe.CopyBlockUnaligned(newArray + _length - _head, _array, (uint)(_tail * sizeof(T)));
                 }
             }
 
-            NativeMemoryAllocator.Free(Array);
-            Array = newArray;
-            Length = capacity;
-            Head = 0;
-            Tail = Size == capacity ? 0 : Size;
-            Version++;
+            NativeMemoryAllocator.Free(_array);
+            _array = newArray;
+            _length = capacity;
+            _head = 0;
+            _tail = _size == capacity ? 0 : _size;
+            _version++;
         }
 
         /// <summary>
@@ -317,10 +327,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Grow(int capacity)
         {
-            var newCapacity = 2 * Length;
+            var newCapacity = 2 * _length;
             if ((uint)newCapacity > 2147483591)
                 newCapacity = 2147483591;
-            var expected = Length + 4;
+            var expected = _length + 4;
             newCapacity = newCapacity > expected ? newCapacity : expected;
             if (newCapacity < capacity)
                 newCapacity = capacity;
@@ -372,7 +382,7 @@ namespace NativeCollections
             {
                 var handle = (UnsafeDeque<T>*)nativeDeque;
                 _nativeDeque = handle;
-                _version = handle->Version;
+                _version = handle->_version;
                 _index = -1;
                 _currentElement = default;
             }
@@ -385,21 +395,21 @@ namespace NativeCollections
             public bool MoveNext()
             {
                 var handle = _nativeDeque;
-                if (_version != handle->Version)
+                if (_version != handle->_version)
                     throw new InvalidOperationException("EnumFailedVersion");
                 if (_index == -2)
                     return false;
                 _index++;
-                if (_index == handle->Size)
+                if (_index == handle->_size)
                 {
                     _index = -2;
                     _currentElement = default;
                     return false;
                 }
 
-                var array = handle->Array;
-                var capacity = (uint)handle->Length;
-                var arrayIndex = (uint)(handle->Head + _index);
+                var array = handle->_array;
+                var capacity = (uint)handle->_length;
+                var arrayIndex = (uint)(handle->_head + _index);
                 if (arrayIndex >= capacity)
                     arrayIndex -= capacity;
                 _currentElement = array[arrayIndex];

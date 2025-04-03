@@ -44,7 +44,12 @@ namespace NativeCollections
         /// <summary>
         ///     Is empty
         /// </summary>
-        public bool IsEmpty => _handle->Size == 0;
+        public bool IsEmpty => _handle->IsEmpty;
+
+        /// <summary>
+        ///     Count
+        /// </summary>
+        public int Count => _handle->Count;
 
         /// <summary>
         ///     Get reference
@@ -65,11 +70,6 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => ref (*_handle)[index];
         }
-
-        /// <summary>
-        ///     Count
-        /// </summary>
-        public int Count => _handle->Size;
 
         /// <summary>
         ///     Equals
