@@ -45,6 +45,11 @@ namespace NativeCollections
         public UnsafeOrderedSparseSet<T>.OrderedValueCollection OrderedValues => _handle->OrderedValues;
 
         /// <summary>
+        ///     KeyValuePairs
+        /// </summary>
+        public UnsafeOrderedSparseSet<T>.OrderedKeyValuePairCollection OrderedKeyValuePairs => _handle->OrderedKeyValuePairs;
+
+        /// <summary>
         ///     Structure
         /// </summary>
         /// <param name="capacity">Capacity</param>

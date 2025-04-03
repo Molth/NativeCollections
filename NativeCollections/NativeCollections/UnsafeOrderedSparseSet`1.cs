@@ -74,6 +74,11 @@ namespace NativeCollections
         public OrderedValueCollection OrderedValues => new(Unsafe.AsPointer(ref this));
 
         /// <summary>
+        ///     KeyValuePairs
+        /// </summary>
+        public OrderedKeyValuePairCollection OrderedKeyValuePairs => new(Unsafe.AsPointer(ref this));
+
+        /// <summary>
         ///     Get or set value
         /// </summary>
         /// <param name="key">Key</param>
@@ -1051,6 +1056,104 @@ namespace NativeCollections
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
                     get => _current->Value;
+                }
+            }
+        }
+
+        /// <summary>
+        ///     KeyValuePair collection
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
+        public readonly struct OrderedKeyValuePairCollection
+        {
+            /// <summary>
+            ///     NativeSparseSet
+            /// </summary>
+            private readonly UnsafeOrderedSparseSet<T>* _nativeSparseSet;
+
+            /// <summary>
+            ///     Structure
+            /// </summary>
+            /// <param name="nativeSparseSet">NativeSparseSet</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            internal OrderedKeyValuePairCollection(void* nativeSparseSet) => _nativeSparseSet = (UnsafeOrderedSparseSet<T>*)nativeSparseSet;
+
+            /// <summary>
+            ///     Count
+            /// </summary>
+            public int Count => _nativeSparseSet->_count;
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            /// <returns>Enumerator</returns>
+            public Enumerator GetEnumerator() => new(_nativeSparseSet);
+
+            /// <summary>
+            ///     Enumerator
+            /// </summary>
+            public struct Enumerator
+            {
+                /// <summary>
+                ///     NativeSparseSet
+                /// </summary>
+                private readonly UnsafeOrderedSparseSet<T>* _nativeSparseSet;
+
+                /// <summary>
+                ///     Version
+                /// </summary>
+                private readonly int _version;
+
+                /// <summary>
+                ///     Index
+                /// </summary>
+                private int _index;
+
+                /// <summary>
+                ///     Current
+                /// </summary>
+                private Entry* _current;
+
+                /// <summary>
+                ///     Structure
+                /// </summary>
+                /// <param name="nativeSparseSet">NativeSparseSet</param>
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                internal Enumerator(void* nativeSparseSet)
+                {
+                    var handle = (UnsafeOrderedSparseSet<T>*)nativeSparseSet;
+                    _nativeSparseSet = handle;
+                    _version = handle->_version;
+                    _index = -1;
+                    _current = handle->_head != -1 ? &handle->_dense[handle->_head] : null;
+                }
+
+                /// <summary>
+                ///     Move next
+                /// </summary>
+                /// <returns>Moved</returns>
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public bool MoveNext()
+                {
+                    var handle = _nativeSparseSet;
+                    if (_version != handle->_version)
+                        throw new InvalidOperationException("EnumFailedVersion");
+                    var num = _index + 1;
+                    if (num >= handle->_count)
+                        return false;
+                    _index = num;
+                    if (num != 0)
+                        _current = &handle->_dense[_current->Next];
+                    return true;
+                }
+
+                /// <summary>
+                ///     Current
+                /// </summary>
+                public KeyValuePair<int, T> Current
+                {
+                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                    get => *(KeyValuePair<int, T>*)_current;
                 }
             }
         }
