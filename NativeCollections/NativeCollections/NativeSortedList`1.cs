@@ -178,7 +178,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>Key</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TKey GetKeyAtIndex(int index) => _handle->GetKeyAtIndex(index);
+        public TKey GetKeyAt(int index) => _handle->GetKeyAt(index);
 
         /// <summary>
         ///     Contains key

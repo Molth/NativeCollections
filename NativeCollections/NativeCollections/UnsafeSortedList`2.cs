@@ -303,7 +303,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>Key</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TKey GetKeyAtIndex(int index)
+        public TKey GetKeyAt(int index)
         {
             if (index < 0)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
@@ -318,7 +318,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>Value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref TValue GetValueAtIndex(int index)
+        public ref TValue GetValueAt(int index)
         {
             if (index < 0)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
@@ -333,7 +333,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetValueAtIndex(int index, in TValue value)
+        public void SetValueAt(int index, in TValue value)
         {
             if (index < 0)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");

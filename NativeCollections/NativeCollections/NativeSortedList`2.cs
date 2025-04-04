@@ -213,7 +213,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>Key</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TKey GetKeyAtIndex(int index) => _handle->GetKeyAtIndex(index);
+        public TKey GetKeyAt(int index) => _handle->GetKeyAt(index);
 
         /// <summary>
         ///     Get value at index
@@ -221,7 +221,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>Value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref TValue GetValueAtIndex(int index) => ref _handle->GetValueAtIndex(index);
+        public ref TValue GetValueAt(int index) => ref _handle->GetValueAt(index);
 
         /// <summary>
         ///     Set value at index
@@ -229,7 +229,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetValueAtIndex(int index, in TValue value) => _handle->SetValueAtIndex(index, value);
+        public void SetValueAt(int index, in TValue value) => _handle->SetValueAt(index, value);
 
         /// <summary>
         ///     Contains key

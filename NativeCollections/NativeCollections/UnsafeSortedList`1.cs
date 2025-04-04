@@ -211,7 +211,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>Key</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TKey GetKeyAtIndex(int index)
+        public TKey GetKeyAt(int index)
         {
             if (index < 0)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
