@@ -86,13 +86,25 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Index of
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <returns>Index</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int IndexOf(in TKey key)
+        {
+            var num = BinarySearchHelpers.IndexOf(_keys, _size, key);
+            return num >= 0 ? num : -1;
+        }
+
+        /// <summary>
         ///     Add
         /// </summary>
         /// <param name="key">Key</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Add(in TKey key)
         {
-            var num = BinarySearchHelpers.IndexOf(_keys, _size, key);
+            var num = IndexOf(key);
             if (num >= 0)
                 throw new ArgumentException($"AddingDuplicate, {key}", nameof(key));
             Insert(~num, key);
@@ -106,7 +118,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryAdd(in TKey key)
         {
-            var num = BinarySearchHelpers.IndexOf(_keys, _size, key);
+            var num = IndexOf(key);
             if (num >= 0)
                 return false;
             Insert(~num, key);
@@ -121,7 +133,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(in TKey key)
         {
-            var index = BinarySearchHelpers.IndexOf(_keys, _size, key);
+            var index = IndexOf(key);
             if (index >= 0)
             {
                 --_size;
@@ -195,7 +207,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Contains key</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool ContainsKey(in TKey key) => BinarySearchHelpers.IndexOf(_keys, _size, key) >= 0;
+        public bool ContainsKey(in TKey key) => IndexOf(key) >= 0;
 
         /// <summary>
         ///     Ensure capacity

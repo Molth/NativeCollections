@@ -141,6 +141,14 @@ namespace NativeCollections
         public void Clear() => _handle->Clear();
 
         /// <summary>
+        ///     Index of
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <returns>Index</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int IndexOf(in TKey key) => _handle->IndexOf(key);
+
+        /// <summary>
         ///     Add
         /// </summary>
         /// <param name="key">Key</param>

@@ -63,13 +63,13 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var index = BinarySearchHelpers.IndexOf(_keys, _size, key);
+                var index = IndexOf(key);
                 return index >= 0 ? _values[index] : throw new KeyNotFoundException(key.ToString());
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var index = BinarySearchHelpers.IndexOf(_keys, _size, key);
+                var index = IndexOf(key);
                 if (index >= 0)
                 {
                     _values[index] = value;
@@ -132,6 +132,18 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Index of
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <returns>Index</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int IndexOf(in TKey key)
+        {
+            var num = BinarySearchHelpers.IndexOf(_keys, _size, key);
+            return num >= 0 ? num : -1;
+        }
+
+        /// <summary>
         ///     Add
         /// </summary>
         /// <param name="key">Key</param>
@@ -139,7 +151,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Add(in TKey key, in TValue value)
         {
-            var num = BinarySearchHelpers.IndexOf(_keys, _size, key);
+            var num = IndexOf(key);
             if (num >= 0)
                 throw new ArgumentException($"AddingDuplicate, {key}", nameof(key));
             Insert(~num, key, value);
@@ -154,7 +166,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryAdd(in TKey key, in TValue value)
         {
-            var num = BinarySearchHelpers.IndexOf(_keys, _size, key);
+            var num = IndexOf(key);
             if (num >= 0)
                 return false;
             Insert(~num, key, value);
@@ -169,7 +181,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(in TKey key)
         {
-            var index = BinarySearchHelpers.IndexOf(_keys, _size, key);
+            var index = IndexOf(key);
             if (index >= 0)
             {
                 --_size;
@@ -195,7 +207,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(in TKey key, out TValue value)
         {
-            var index = BinarySearchHelpers.IndexOf(_keys, _size, key);
+            var index = IndexOf(key);
             if (index >= 0)
             {
                 value = _values[index];
@@ -314,7 +326,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Contains key</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool ContainsKey(in TKey key) => BinarySearchHelpers.IndexOf(_keys, _size, key) >= 0;
+        public bool ContainsKey(in TKey key) => IndexOf(key) >= 0;
 
         /// <summary>
         ///     Try to get the value
@@ -325,7 +337,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetValue(in TKey key, out TValue value)
         {
-            var index = BinarySearchHelpers.IndexOf(_keys, _size, key);
+            var index = IndexOf(key);
             if (index >= 0)
             {
                 value = _values[index];
@@ -345,7 +357,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetValueReference(in TKey key, out NativeReference<TValue> value)
         {
-            var index = BinarySearchHelpers.IndexOf(_keys, _size, key);
+            var index = IndexOf(key);
             if (index >= 0)
             {
                 value = new NativeReference<TValue>(Unsafe.AsPointer(ref _values[index]));
