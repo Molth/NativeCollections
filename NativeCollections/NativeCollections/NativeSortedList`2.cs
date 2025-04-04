@@ -149,6 +149,15 @@ namespace NativeCollections
         public void Add(in TKey key, in TValue value) => _handle->Add(key, value);
 
         /// <summary>
+        ///     Try add
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="value">Value</param>
+        /// <returns>Added</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryAdd(in TKey key, in TValue value) => _handle->TryAdd(key, value);
+
+        /// <summary>
         ///     Remove
         /// </summary>
         /// <param name="key">Key</param>

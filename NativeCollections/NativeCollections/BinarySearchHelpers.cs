@@ -22,10 +22,11 @@ namespace NativeCollections
         {
             var low = 0;
             var high = length - 1;
+            ref var reference = ref *start;
             while (low <= high)
             {
                 var i = (int)(((uint)high + (uint)low) >> 1);
-                var c = comparable.CompareTo(Unsafe.Add(ref *start, i));
+                var c = comparable.CompareTo(Unsafe.Add(ref reference, i));
                 switch (c)
                 {
                     case 0:

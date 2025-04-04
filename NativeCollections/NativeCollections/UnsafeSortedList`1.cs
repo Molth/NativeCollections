@@ -99,6 +99,21 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Try add
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <returns>Added</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryAdd(in TKey key)
+        {
+            var num = BinarySearchHelpers.IndexOf(_keys, _size, key);
+            if (num >= 0)
+                return false;
+            Insert(~num, key);
+            return true;
+        }
+
+        /// <summary>
         ///     Remove
         /// </summary>
         /// <param name="key">Key</param>
