@@ -63,13 +63,13 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                var index = BinarySearchHelpers.Find(_keys, _size, key);
+                var index = BinarySearchHelpers.IndexOf(_keys, _size, key);
                 return index >= 0 ? _values[index] : throw new KeyNotFoundException(key.ToString());
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                var index = BinarySearchHelpers.Find(_keys, _size, key);
+                var index = BinarySearchHelpers.IndexOf(_keys, _size, key);
                 if (index >= 0)
                 {
                     _values[index] = value;
@@ -108,8 +108,8 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
             if (capacity < 4)
                 capacity = 4;
-            _keys = (TKey*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(TKey)));
-            _values = (TValue*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(TValue)));
+            _keys = (TKey*)NativeMemoryAllocator.Alloc((uint)(capacity * (sizeof(TKey) + sizeof(TValue))));
+            _values = (TValue*)((byte*)_keys + capacity * sizeof(TKey));
             _size = 0;
             _version = 0;
             _capacity = capacity;
@@ -119,11 +119,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            NativeMemoryAllocator.Free(_keys);
-            NativeMemoryAllocator.Free(_values);
-        }
+        public void Dispose() => NativeMemoryAllocator.Free(_keys);
 
         /// <summary>
         ///     Clear
@@ -143,7 +139,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Add(in TKey key, in TValue value)
         {
-            var num = BinarySearchHelpers.Find(_keys, _size, key);
+            var num = BinarySearchHelpers.IndexOf(_keys, _size, key);
             if (num >= 0)
                 throw new ArgumentException($"AddingDuplicate, {key}", nameof(key));
             Insert(~num, key, value);
@@ -157,7 +153,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(in TKey key)
         {
-            var index = BinarySearchHelpers.Find(_keys, _size, key);
+            var index = BinarySearchHelpers.IndexOf(_keys, _size, key);
             if (index >= 0)
             {
                 --_size;
@@ -183,7 +179,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(in TKey key, out TValue value)
         {
-            var index = BinarySearchHelpers.Find(_keys, _size, key);
+            var index = BinarySearchHelpers.IndexOf(_keys, _size, key);
             if (index >= 0)
             {
                 value = _values[index];
@@ -302,7 +298,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Contains key</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool ContainsKey(in TKey key) => BinarySearchHelpers.Find(_keys, _size, key) >= 0;
+        public bool ContainsKey(in TKey key) => BinarySearchHelpers.IndexOf(_keys, _size, key) >= 0;
 
         /// <summary>
         ///     Try to get the value
@@ -313,7 +309,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetValue(in TKey key, out TValue value)
         {
-            var index = BinarySearchHelpers.Find(_keys, _size, key);
+            var index = BinarySearchHelpers.IndexOf(_keys, _size, key);
             if (index >= 0)
             {
                 value = _values[index];
@@ -333,7 +329,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetValueReference(in TKey key, out NativeReference<TValue> value)
         {
-            var index = BinarySearchHelpers.Find(_keys, _size, key);
+            var index = BinarySearchHelpers.IndexOf(_keys, _size, key);
             if (index >= 0)
             {
                 value = new NativeReference<TValue>(Unsafe.AsPointer(ref _values[index]));
@@ -393,25 +389,23 @@ namespace NativeCollections
             {
                 if (capacity > 0)
                 {
-                    var keys = (TKey*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(TKey)));
-                    var values = (TValue*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(TValue)));
+                    var keys = (TKey*)NativeMemoryAllocator.Alloc((uint)(capacity * (sizeof(TKey) + sizeof(TValue))));
+                    var values = (TValue*)((byte*)keys + capacity * sizeof(TKey));
                     if (_size > 0)
                     {
                         Unsafe.CopyBlockUnaligned(keys, _keys, (uint)(_size * sizeof(TKey)));
                         Unsafe.CopyBlockUnaligned(values, _values, (uint)(_size * sizeof(TValue)));
+                        NativeMemoryAllocator.Free(_keys);
                     }
 
-                    NativeMemoryAllocator.Free(_keys);
-                    NativeMemoryAllocator.Free(_values);
                     _keys = keys;
                     _values = values;
                 }
                 else
                 {
                     NativeMemoryAllocator.Free(_keys);
-                    NativeMemoryAllocator.Free(_values);
-                    _keys = (TKey*)NativeMemoryAllocator.Alloc(0);
-                    _values = (TValue*)NativeMemoryAllocator.Alloc(0);
+                    _keys = null;
+                    _values = null;
                 }
 
                 _capacity = capacity;
