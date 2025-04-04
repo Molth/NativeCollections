@@ -189,6 +189,15 @@ namespace NativeCollections
         public bool ContainsKey(in TKey key) => _handle->ContainsKey(key);
 
         /// <summary>
+        ///     Get at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="key">Key</param>
+        /// <returns>Got</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetAt(int index, out TKey key) => _handle->TryGetAt(index, out key);
+
+        /// <summary>
         ///     Ensure capacity
         /// </summary>
         /// <param name="capacity">Capacity</param>

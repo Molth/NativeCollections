@@ -229,6 +229,25 @@ namespace NativeCollections
         public bool ContainsKey(in TKey key) => IndexOf(key) >= 0;
 
         /// <summary>
+        ///     Get at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="key">Key</param>
+        /// <returns>Got</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetAt(int index, out TKey key)
+        {
+            if (index < 0 || index >= _size)
+            {
+                key = default;
+                return false;
+            }
+
+            key = _keys[index];
+            return true;
+        }
+
+        /// <summary>
         ///     Ensure capacity
         /// </summary>
         /// <param name="capacity">Capacity</param>

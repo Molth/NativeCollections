@@ -392,6 +392,131 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Get key at index
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="key">Key</param>
+        /// <returns>Key</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetKeyAt(int index, out TKey key)
+        {
+            if (index < 0 || index >= _size)
+            {
+                key = default;
+                return false;
+            }
+
+            key = _keys[index];
+            return true;
+        }
+
+        /// <summary>
+        ///     Get value at index
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="value">Value</param>
+        /// <returns>Value</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetValueAt(int index, out TValue value)
+        {
+            if (index < 0 || index >= _size)
+            {
+                value = default;
+                return false;
+            }
+
+            value = _values[index];
+            return true;
+        }
+
+        /// <summary>
+        ///     Get value at index
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="value">Value</param>
+        /// <returns>Value</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetValueReferenceAt(int index, out NativeReference<TValue> value)
+        {
+            if (index < 0 || index >= _size)
+            {
+                value = default;
+                return false;
+            }
+
+            value = new NativeReference<TValue>(Unsafe.AsPointer(ref _values[index]));
+            return true;
+        }
+
+        /// <summary>
+        ///     Get at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <returns>KeyValuePair</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public KeyValuePair<TKey, TValue> GetAt(int index)
+        {
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
+            if (index >= _size)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
+            return new KeyValuePair<TKey, TValue>(_keys[index], _values[index]);
+        }
+
+        /// <summary>
+        ///     Get at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <returns>KeyValuePair</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public KeyValuePair<TKey, NativeReference<TValue>> GetReferenceAt(int index)
+        {
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
+            if (index >= _size)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
+            return new KeyValuePair<TKey, NativeReference<TValue>>(_keys[index], new NativeReference<TValue>(Unsafe.AsPointer(ref _values[index])));
+        }
+
+        /// <summary>
+        ///     Get at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="keyValuePair">KeyValuePair</param>
+        /// <returns>Got</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetAt(int index, out KeyValuePair<TKey, TValue> keyValuePair)
+        {
+            if (index < 0 || index >= _size)
+            {
+                keyValuePair = default;
+                return false;
+            }
+
+            keyValuePair = new KeyValuePair<TKey, TValue>(_keys[index], _values[index]);
+            return true;
+        }
+
+        /// <summary>
+        ///     Get at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="keyValuePair">KeyValuePair</param>
+        /// <returns>Got</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetReferenceAt(int index, out KeyValuePair<TKey, NativeReference<TValue>> keyValuePair)
+        {
+            if (index < 0 || index >= _size)
+            {
+                keyValuePair = default;
+                return false;
+            }
+
+            keyValuePair = new KeyValuePair<TKey, NativeReference<TValue>>(_keys[index], new NativeReference<TValue>(Unsafe.AsPointer(ref _values[index])));
+            return true;
+        }
+
+        /// <summary>
         ///     Ensure capacity
         /// </summary>
         /// <param name="capacity">Capacity</param>
