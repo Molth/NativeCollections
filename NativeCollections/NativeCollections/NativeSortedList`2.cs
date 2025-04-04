@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -189,6 +190,14 @@ namespace NativeCollections
         /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveAt(int index) => _handle->RemoveAt(index);
+
+        /// <summary>
+        ///     Remove at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="keyValuePair">Key value pair</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void RemoveAt(int index, out KeyValuePair<TKey, TValue> keyValuePair) => _handle->RemoveAt(index, out keyValuePair);
 
         /// <summary>
         ///     Remove range

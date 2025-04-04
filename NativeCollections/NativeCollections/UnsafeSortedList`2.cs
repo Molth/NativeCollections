@@ -249,6 +249,29 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Remove at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="keyValuePair">Key value pair</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void RemoveAt(int index, out KeyValuePair<TKey, TValue> keyValuePair)
+        {
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
+            if (index >= _size)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
+            keyValuePair = new KeyValuePair<TKey, TValue>(_keys[index], _values[index]);
+            --_size;
+            if (index < _size)
+            {
+                Unsafe.CopyBlockUnaligned(_keys + index, _keys + index + 1, (uint)((_size - index) * sizeof(TKey)));
+                Unsafe.CopyBlockUnaligned(_values + index, _values + index + 1, (uint)((_size - index) * sizeof(TValue)));
+            }
+
+            ++_version;
+        }
+
+        /// <summary>
         ///     Remove range
         /// </summary>
         /// <param name="index">Index</param>

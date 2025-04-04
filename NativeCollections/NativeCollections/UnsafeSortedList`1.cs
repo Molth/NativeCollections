@@ -165,6 +165,25 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Remove at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="key">Key</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void RemoveAt(int index, out TKey key)
+        {
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
+            if (index >= _size)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
+            key = _keys[index];
+            --_size;
+            if (index < _size)
+                Unsafe.CopyBlockUnaligned(_keys + index, _keys + index + 1, (uint)((_size - index) * sizeof(TKey)));
+            ++_version;
+        }
+
+        /// <summary>
         ///     Remove range
         /// </summary>
         /// <param name="index">Index</param>

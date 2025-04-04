@@ -157,6 +157,14 @@ namespace NativeCollections
         public void RemoveAt(int index) => _handle->RemoveAt(index);
 
         /// <summary>
+        ///     Remove at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="key">Key</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void RemoveAt(int index, out TKey key) => _handle->RemoveAt(index, out key);
+
+        /// <summary>
         ///     Remove range
         /// </summary>
         /// <param name="index">Index</param>
