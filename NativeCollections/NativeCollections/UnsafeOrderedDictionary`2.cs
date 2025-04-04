@@ -249,6 +249,59 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Remove at
+        /// </summary>
+        /// <param name="index">Index</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryRemoveAt(int index)
+        {
+            var count = _count;
+            if ((uint)index >= (uint)count)
+                return false;
+            RemoveEntryFromBucket(index);
+            var entries = _entries;
+            for (var entryIndex = index + 1; entryIndex < count; ++entryIndex)
+            {
+                entries[entryIndex - 1] = entries[entryIndex];
+                UpdateBucketIndex(entryIndex, -1);
+            }
+
+            entries[--_count] = new Entry();
+            ++_version;
+            return true;
+        }
+
+        /// <summary>
+        ///     Remove at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="keyValuePair">Key value pair</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryRemoveAt(int index, out KeyValuePair<TKey, TValue> keyValuePair)
+        {
+            var count = _count;
+            if ((uint)index >= (uint)count)
+            {
+                keyValuePair = default;
+                return false;
+            }
+
+            ref var local = ref _entries[index];
+            keyValuePair = new KeyValuePair<TKey, TValue>(local.Key, local.Value);
+            RemoveEntryFromBucket(index);
+            var entries = _entries;
+            for (var entryIndex = index + 1; entryIndex < count; ++entryIndex)
+            {
+                entries[entryIndex - 1] = entries[entryIndex];
+                UpdateBucketIndex(entryIndex, -1);
+            }
+
+            entries[--_count] = new Entry();
+            ++_version;
+            return true;
+        }
+
+        /// <summary>
         ///     Contains key
         /// </summary>
         /// <param name="key">Key</param>
@@ -297,6 +350,94 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Get key at index
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <returns>Key</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public TKey GetKeyAt(int index)
+        {
+            if ((uint)index >= (uint)_count)
+                throw new ArgumentOutOfRangeException(nameof(index));
+            ref var local = ref _entries[index];
+            return local.Key;
+        }
+
+        /// <summary>
+        ///     Get value at index
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <returns>Value</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref TValue GetValueAt(int index)
+        {
+            if ((uint)index >= (uint)_count)
+                throw new ArgumentOutOfRangeException(nameof(index));
+            ref var local = ref _entries[index];
+            return ref local.Value;
+        }
+
+        /// <summary>
+        ///     Get key at index
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="key">Key</param>
+        /// <returns>Key</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetKeyAt(int index, out TKey key)
+        {
+            if ((uint)index >= (uint)_count)
+            {
+                key = default;
+                return false;
+            }
+
+            ref var local = ref _entries[index];
+            key = local.Key;
+            return true;
+        }
+
+        /// <summary>
+        ///     Get value at index
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="value">Value</param>
+        /// <returns>Value</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetValueAt(int index, out TValue value)
+        {
+            if ((uint)index >= (uint)_count)
+            {
+                value = default;
+                return false;
+            }
+
+            ref var local = ref _entries[index];
+            value = local.Value;
+            return true;
+        }
+
+        /// <summary>
+        ///     Get value at index
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="value">Value</param>
+        /// <returns>Value</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetValueReferenceAt(int index, out NativeReference<TValue> value)
+        {
+            if ((uint)index >= (uint)_count)
+            {
+                value = default;
+                return false;
+            }
+
+            ref var local = ref _entries[index];
+            value = new NativeReference<TValue>(Unsafe.AsPointer(ref local.Value));
+            return true;
+        }
+
+        /// <summary>
         ///     Get at
         /// </summary>
         /// <param name="index">Index</param>
@@ -308,6 +449,60 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(index));
             ref var local = ref _entries[index];
             return new KeyValuePair<TKey, TValue>(local.Key, local.Value);
+        }
+
+        /// <summary>
+        ///     Get at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <returns>KeyValuePair</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public KeyValuePair<TKey, NativeReference<TValue>> GetReferenceAt(int index)
+        {
+            if ((uint)index >= (uint)_count)
+                throw new ArgumentOutOfRangeException(nameof(index));
+            ref var local = ref _entries[index];
+            return new KeyValuePair<TKey, NativeReference<TValue>>(local.Key, new NativeReference<TValue>(Unsafe.AsPointer(ref local.Value)));
+        }
+
+        /// <summary>
+        ///     Get at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="keyValuePair">KeyValuePair</param>
+        /// <returns>Got</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetAt(int index, out KeyValuePair<TKey, TValue> keyValuePair)
+        {
+            if ((uint)index >= (uint)_count)
+            {
+                keyValuePair = default;
+                return false;
+            }
+
+            ref var local = ref _entries[index];
+            keyValuePair = new KeyValuePair<TKey, TValue>(local.Key, local.Value);
+            return true;
+        }
+
+        /// <summary>
+        ///     Get at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="keyValuePair">KeyValuePair</param>
+        /// <returns>Got</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetReferenceAt(int index, out KeyValuePair<TKey, NativeReference<TValue>> keyValuePair)
+        {
+            if ((uint)index >= (uint)_count)
+            {
+                keyValuePair = default;
+                return false;
+            }
+
+            ref var local = ref _entries[index];
+            keyValuePair = new KeyValuePair<TKey, NativeReference<TValue>>(local.Key, new NativeReference<TValue>(Unsafe.AsPointer(ref local.Value)));
+            return true;
         }
 
         /// <summary>

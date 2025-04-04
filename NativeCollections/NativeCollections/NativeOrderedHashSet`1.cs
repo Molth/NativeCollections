@@ -153,6 +153,21 @@ namespace NativeCollections
         public void RemoveAt(int index, out T item) => _handle->RemoveAt(index, out item);
 
         /// <summary>
+        ///     Remove at
+        /// </summary>
+        /// <param name="index">Index</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryRemoveAt(int index) => _handle->TryRemoveAt(index);
+
+        /// <summary>
+        ///     Remove at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="item">Item</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryRemoveAt(int index, out T item) => _handle->TryRemoveAt(index, out item);
+
+        /// <summary>
         ///     Contains
         /// </summary>
         /// <param name="item">Item</param>
@@ -185,6 +200,15 @@ namespace NativeCollections
         /// <returns>Item</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T GetAt(int index) => _handle->GetAt(index);
+
+        /// <summary>
+        ///     Get at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="item">Item</param>
+        /// <returns>Item</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetAt(int index, out T item) => _handle->TryGetAt(index, out item);
 
         /// <summary>
         ///     Index of

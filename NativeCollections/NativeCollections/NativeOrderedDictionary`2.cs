@@ -184,6 +184,21 @@ namespace NativeCollections
         public void RemoveAt(int index, out KeyValuePair<TKey, TValue> keyValuePair) => _handle->RemoveAt(index, out keyValuePair);
 
         /// <summary>
+        ///     Remove at
+        /// </summary>
+        /// <param name="index">Index</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryRemoveAt(int index) => _handle->TryRemoveAt(index);
+
+        /// <summary>
+        ///     Remove at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="keyValuePair">Key value pair</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryRemoveAt(int index, out KeyValuePair<TKey, TValue> keyValuePair) => _handle->TryRemoveAt(index, out keyValuePair);
+
+        /// <summary>
         ///     Contains key
         /// </summary>
         /// <param name="key">Key</param>
@@ -210,12 +225,81 @@ namespace NativeCollections
         public bool TryGetValueReference(in TKey key, out NativeReference<TValue> value) => _handle->TryGetValueReference(key, out value);
 
         /// <summary>
+        ///     Get key at index
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <returns>Key</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public TKey GetKeyAt(int index) => _handle->GetKeyAt(index);
+
+        /// <summary>
+        ///     Get value at index
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <returns>Value</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref TValue GetValueAt(int index) => ref _handle->GetValueAt(index);
+
+        /// <summary>
+        ///     Get key at index
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="key">Key</param>
+        /// <returns>Key</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetKeyAt(int index, out TKey key) => _handle->TryGetKeyAt(index, out key);
+
+        /// <summary>
+        ///     Get value at index
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="value">Value</param>
+        /// <returns>Value</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetValueAt(int index, out TValue value) => _handle->TryGetValueAt(index, out value);
+
+        /// <summary>
+        ///     Get value at index
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="value">Value</param>
+        /// <returns>Value</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetValueReferenceAt(int index, out NativeReference<TValue> value) => _handle->TryGetValueReferenceAt(index, out value);
+
+        /// <summary>
         ///     Get at
         /// </summary>
         /// <param name="index">Index</param>
         /// <returns>KeyValuePair</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public KeyValuePair<TKey, TValue> GetAt(int index) => _handle->GetAt(index);
+
+        /// <summary>
+        ///     Get at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <returns>KeyValuePair</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public KeyValuePair<TKey, NativeReference<TValue>> GetReferenceAt(int index) => _handle->GetReferenceAt(index);
+
+        /// <summary>
+        ///     Get at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="keyValuePair">KeyValuePair</param>
+        /// <returns>Got</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetAt(int index, out KeyValuePair<TKey, TValue> keyValuePair) => _handle->TryGetAt(index, out keyValuePair);
+
+        /// <summary>
+        ///     Get at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="keyValuePair">KeyValuePair</param>
+        /// <returns>Got</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetReferenceAt(int index, out KeyValuePair<TKey, NativeReference<TValue>> keyValuePair) => _handle->TryGetReferenceAt(index, out keyValuePair);
 
         /// <summary>
         ///     Index of

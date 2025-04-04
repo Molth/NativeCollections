@@ -12,16 +12,16 @@ namespace NativeCollections
     /// <summary>
     ///     Native sortedList
     /// </summary>
-    /// <typeparam name="TKey">Type</typeparam>
+    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Standard)]
     [BindingType(typeof(UnsafeSortedList<>))]
-    public readonly unsafe struct NativeSortedList<TKey> where TKey : unmanaged, IComparable<TKey>
+    public readonly unsafe struct NativeSortedList<T> where T : unmanaged, IComparable<T>
     {
         /// <summary>
         ///     Handle
         /// </summary>
-        private readonly UnsafeSortedList<TKey>* _handle;
+        private readonly UnsafeSortedList<T>* _handle;
 
         /// <summary>
         ///     Structure
@@ -30,8 +30,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeSortedList(int capacity)
         {
-            var value = new UnsafeSortedList<TKey>(capacity);
-            var handle = (UnsafeSortedList<TKey>*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeSortedList<TKey>));
+            var value = new UnsafeSortedList<T>(capacity);
+            var handle = (UnsafeSortedList<T>*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeSortedList<T>));
             *handle = value;
             _handle = handle;
         }
@@ -61,14 +61,14 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeSortedList<TKey> other) => other == this;
+        public bool Equals(NativeSortedList<T> other) => other == this;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeSortedList<TKey> nativeSortedList && nativeSortedList == this;
+        public override bool Equals(object? obj) => obj is NativeSortedList<T> nativeSortedList && nativeSortedList == this;
 
         /// <summary>
         ///     Get hashCode
@@ -80,7 +80,7 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => $"NativeSortedList<{typeof(TKey).Name}>";
+        public override string ToString() => $"NativeSortedList<{typeof(T).Name}>";
 
         /// <summary>
         ///     Equals
@@ -88,7 +88,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeSortedList<TKey> left, NativeSortedList<TKey> right) => left._handle == right._handle;
+        public static bool operator ==(NativeSortedList<T> left, NativeSortedList<T> right) => left._handle == right._handle;
 
         /// <summary>
         ///     Not equals
@@ -96,7 +96,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeSortedList<TKey> left, NativeSortedList<TKey> right) => left._handle != right._handle;
+        public static bool operator !=(NativeSortedList<T> left, NativeSortedList<T> right) => left._handle != right._handle;
 
         /// <summary>
         ///     Dispose
@@ -120,39 +120,38 @@ namespace NativeCollections
         /// <summary>
         ///     Index of
         /// </summary>
-        /// <param name="key">Key</param>
+        /// <param name="item">Item</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int IndexOf(in TKey key) => _handle->IndexOf(key);
+        public int IndexOf(in T item) => _handle->IndexOf(item);
 
         /// <summary>
         ///     Add
         /// </summary>
-        /// <param name="key">Key</param>
+        /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Add(in TKey key) => _handle->Add(key);
+        public void Add(in T item) => _handle->Add(item);
 
         /// <summary>
         ///     Try add
         /// </summary>
-        /// <param name="key">Key</param>
+        /// <param name="item">Item</param>
         /// <returns>Added</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryAdd(in TKey key) => _handle->TryAdd(key);
+        public bool TryAdd(in T item) => _handle->TryAdd(item);
 
         /// <summary>
         ///     Remove
         /// </summary>
-        /// <param name="key">Key</param>
+        /// <param name="item">Item</param>
         /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Remove(in TKey key) => _handle->Remove(key);
+        public bool Remove(in T item) => _handle->Remove(item);
 
         /// <summary>
         ///     Remove at
         /// </summary>
         /// <param name="index">Index</param>
-        /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveAt(int index) => _handle->RemoveAt(index);
 
@@ -160,9 +159,24 @@ namespace NativeCollections
         ///     Remove at
         /// </summary>
         /// <param name="index">Index</param>
-        /// <param name="key">Key</param>
+        /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void RemoveAt(int index, out TKey key) => _handle->RemoveAt(index, out key);
+        public void RemoveAt(int index, out T item) => _handle->RemoveAt(index, out item);
+
+        /// <summary>
+        ///     Remove at
+        /// </summary>
+        /// <param name="index">Index</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryRemoveAt(int index) => _handle->TryRemoveAt(index);
+
+        /// <summary>
+        ///     Remove at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="item">Item</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryRemoveAt(int index, out T item) => _handle->TryRemoveAt(index, out item);
 
         /// <summary>
         ///     Remove range
@@ -173,29 +187,29 @@ namespace NativeCollections
         public void RemoveRange(int index, int count) => _handle->RemoveRange(index, count);
 
         /// <summary>
-        ///     Get key at index
+        ///     Get item at index
         /// </summary>
         /// <param name="index">Index</param>
-        /// <returns>Key</returns>
+        /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TKey GetKeyAt(int index) => _handle->GetKeyAt(index);
+        public T GetAt(int index) => _handle->GetAt(index);
 
         /// <summary>
-        ///     Contains key
+        ///     Contains item
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <returns>Contains key</returns>
+        /// <param name="item">Item</param>
+        /// <returns>Contains item</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool ContainsKey(in TKey key) => _handle->ContainsKey(key);
+        public bool Contains(in T item) => _handle->Contains(item);
 
         /// <summary>
         ///     Get at
         /// </summary>
         /// <param name="index">Index</param>
-        /// <param name="key">Key</param>
+        /// <param name="item">Item</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetAt(int index, out TKey key) => _handle->TryGetAt(index, out key);
+        public bool TryGetAt(int index, out T item) => _handle->TryGetAt(index, out item);
 
         /// <summary>
         ///     Ensure capacity
@@ -222,12 +236,12 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeSortedList<TKey> Empty => new();
+        public static NativeSortedList<T> Empty => new();
 
         /// <summary>
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
-        public UnsafeSortedList<TKey>.Enumerator GetEnumerator() => _handle->GetEnumerator();
+        public UnsafeSortedList<T>.Enumerator GetEnumerator() => _handle->GetEnumerator();
     }
 }

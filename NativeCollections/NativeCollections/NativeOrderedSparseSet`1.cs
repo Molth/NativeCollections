@@ -247,6 +247,49 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>KeyValuePair</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetKeyAt(int index) => _handle->GetKeyAt(index);
+
+        /// <summary>
+        ///     Get at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <returns>KeyValuePair</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref T GetValueAt(int index) => ref _handle->GetValueAt(index);
+
+        /// <summary>
+        ///     Get at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="key">Key</param>
+        /// <returns>Key</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetKeyAt(int index, out int key) => _handle->TryGetKeyAt(index, out key);
+
+        /// <summary>
+        ///     Get at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="value">Value</param>
+        /// <returns>Value</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetValueAt(int index, out T value) => _handle->TryGetValueAt(index, out value);
+
+        /// <summary>
+        ///     Get at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="value">Value</param>
+        /// <returns>Value</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetValueReferenceAt(int index, out NativeReference<T> value) => _handle->TryGetValueReferenceAt(index, out value);
+
+        /// <summary>
+        ///     Get at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <returns>KeyValuePair</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public KeyValuePair<int, T> GetAt(int index) => _handle->GetAt(index);
 
         /// <summary>
@@ -256,6 +299,24 @@ namespace NativeCollections
         /// <returns>KeyValuePair</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public KeyValuePair<int, NativeReference<T>> GetReferenceAt(int index) => _handle->GetReferenceAt(index);
+
+        /// <summary>
+        ///     Get at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="keyValuePair">KeyValuePair</param>
+        /// <returns>Got</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetAt(int index, out KeyValuePair<int, T> keyValuePair) => _handle->TryGetAt(index, out keyValuePair);
+
+        /// <summary>
+        ///     Get at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="keyValuePair">KeyValuePair</param>
+        /// <returns>Got</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetReferenceAt(int index, out KeyValuePair<int, NativeReference<T>> keyValuePair) => _handle->TryGetReferenceAt(index, out keyValuePair);
 
         /// <summary>
         ///     Set at
@@ -279,6 +340,21 @@ namespace NativeCollections
         /// <param name="keyValuePair">KeyValuePair</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveAt(int index, out KeyValuePair<int, T> keyValuePair) => _handle->RemoveAt(index, out keyValuePair);
+
+        /// <summary>
+        ///     Remove at
+        /// </summary>
+        /// <param name="index">Index</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryRemoveAt(int index) => _handle->TryRemoveAt(index);
+
+        /// <summary>
+        ///     Remove at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="keyValuePair">KeyValuePair</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryRemoveAt(int index, out KeyValuePair<int, T> keyValuePair) => _handle->TryRemoveAt(index, out keyValuePair);
 
         /// <summary>
         ///     As readOnly span

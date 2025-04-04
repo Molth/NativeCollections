@@ -212,6 +212,58 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Remove at
+        /// </summary>
+        /// <param name="index">Index</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryRemoveAt(int index)
+        {
+            var count = _count;
+            if ((uint)index >= (uint)count)
+                return false;
+            RemoveEntryFromBucket(index);
+            var entries = _entries;
+            for (var entryIndex = index + 1; entryIndex < count; ++entryIndex)
+            {
+                entries[entryIndex - 1] = entries[entryIndex];
+                UpdateBucketIndex(entryIndex, -1);
+            }
+
+            entries[--_count] = new Entry();
+            ++_version;
+            return true;
+        }
+
+        /// <summary>
+        ///     Remove at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="item">Item</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryRemoveAt(int index, out T item)
+        {
+            var count = _count;
+            if ((uint)index >= (uint)count)
+            {
+                item = default;
+                return false;
+            }
+
+            item = _entries[index].Value;
+            RemoveEntryFromBucket(index);
+            var entries = _entries;
+            for (var entryIndex = index + 1; entryIndex < count; ++entryIndex)
+            {
+                entries[entryIndex - 1] = entries[entryIndex];
+                UpdateBucketIndex(entryIndex, -1);
+            }
+
+            entries[--_count] = new Entry();
+            ++_version;
+            return true;
+        }
+
+        /// <summary>
         ///     Contains
         /// </summary>
         /// <param name="item">Item</param>
@@ -271,6 +323,26 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(index));
             ref var local = ref _entries[index];
             return local.Value;
+        }
+
+        /// <summary>
+        ///     Get at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="item">Item</param>
+        /// <returns>Item</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetAt(int index, out T item)
+        {
+            if ((uint)index >= (uint)_count)
+            {
+                item = default;
+                return false;
+            }
+
+            ref var local = ref _entries[index];
+            item = local.Value;
+            return true;
         }
 
         /// <summary>

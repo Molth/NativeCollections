@@ -187,7 +187,6 @@ namespace NativeCollections
         ///     Remove at
         /// </summary>
         /// <param name="index">Index</param>
-        /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveAt(int index) => _handle->RemoveAt(index);
 
@@ -198,6 +197,22 @@ namespace NativeCollections
         /// <param name="keyValuePair">Key value pair</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveAt(int index, out KeyValuePair<TKey, TValue> keyValuePair) => _handle->RemoveAt(index, out keyValuePair);
+
+        /// <summary>
+        ///     Remove at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <returns>Removed</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryRemoveAt(int index) => _handle->TryRemoveAt(index);
+
+        /// <summary>
+        ///     Remove at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="keyValuePair">Key value pair</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryRemoveAt(int index, out KeyValuePair<TKey, TValue> keyValuePair) => _handle->TryRemoveAt(index, out keyValuePair);
 
         /// <summary>
         ///     Remove range

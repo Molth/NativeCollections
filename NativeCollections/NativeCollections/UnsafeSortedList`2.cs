@@ -230,7 +230,6 @@ namespace NativeCollections
         ///     Remove at
         /// </summary>
         /// <param name="index">Index</param>
-        /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveAt(int index)
         {
@@ -269,6 +268,53 @@ namespace NativeCollections
             }
 
             ++_version;
+        }
+
+        /// <summary>
+        ///     Remove at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <returns>Removed</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryRemoveAt(int index)
+        {
+            if (index < 0 || index >= _size)
+                return false;
+            --_size;
+            if (index < _size)
+            {
+                Unsafe.CopyBlockUnaligned(_keys + index, _keys + index + 1, (uint)((_size - index) * sizeof(TKey)));
+                Unsafe.CopyBlockUnaligned(_values + index, _values + index + 1, (uint)((_size - index) * sizeof(TValue)));
+            }
+
+            ++_version;
+            return true;
+        }
+
+        /// <summary>
+        ///     Remove at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="keyValuePair">Key value pair</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryRemoveAt(int index, out KeyValuePair<TKey, TValue> keyValuePair)
+        {
+            if (index < 0 || index >= _size)
+            {
+                keyValuePair = default;
+                return false;
+            }
+
+            keyValuePair = new KeyValuePair<TKey, TValue>(_keys[index], _values[index]);
+            --_size;
+            if (index < _size)
+            {
+                Unsafe.CopyBlockUnaligned(_keys + index, _keys + index + 1, (uint)((_size - index) * sizeof(TKey)));
+                Unsafe.CopyBlockUnaligned(_values + index, _values + index + 1, (uint)((_size - index) * sizeof(TValue)));
+            }
+
+            ++_version;
+            return true;
         }
 
         /// <summary>

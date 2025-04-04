@@ -342,6 +342,96 @@ namespace NativeCollections
         ///     Get at
         /// </summary>
         /// <param name="index">Index</param>
+        /// <returns>Key</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetKeyAt(int index)
+        {
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
+            if (index >= _count)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
+            return _dense[index].Key;
+        }
+
+        /// <summary>
+        ///     Get at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <returns>Value</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref T GetValueAt(int index)
+        {
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
+            if (index >= _count)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
+            ref var entry = ref _dense[index];
+            return ref entry.Value;
+        }
+
+        /// <summary>
+        ///     Get at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="key">Key</param>
+        /// <returns>Key</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetKeyAt(int index, out int key)
+        {
+            if (index < 0 || index >= _count)
+            {
+                key = default;
+                return false;
+            }
+
+            key = _dense[index].Key;
+            return true;
+        }
+
+        /// <summary>
+        ///     Get at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="value">Value</param>
+        /// <returns>Value</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetValueAt(int index, out T value)
+        {
+            if (index < 0 || index >= _count)
+            {
+                value = default;
+                return false;
+            }
+
+            ref var entry = ref _dense[index];
+            value = entry.Value;
+            return true;
+        }
+
+        /// <summary>
+        ///     Get at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="value">Value</param>
+        /// <returns>Value</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetValueReferenceAt(int index, out NativeReference<T> value)
+        {
+            if (index < 0 || index >= _count)
+            {
+                value = default;
+                return false;
+            }
+
+            ref var entry = ref _dense[index];
+            value = new NativeReference<T>(Unsafe.AsPointer(ref entry.Value));
+            return true;
+        }
+
+        /// <summary>
+        ///     Get at
+        /// </summary>
+        /// <param name="index">Index</param>
         /// <returns>KeyValuePair</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public KeyValuePair<int, T> GetAt(int index)
@@ -367,6 +457,45 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
             ref var entry = ref _dense[index];
             return new KeyValuePair<int, NativeReference<T>>(entry.Key, new NativeReference<T>(Unsafe.AsPointer(ref entry.Value)));
+        }
+
+        /// <summary>
+        ///     Get at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="keyValuePair">KeyValuePair</param>
+        /// <returns>Got</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetAt(int index, out KeyValuePair<int, T> keyValuePair)
+        {
+            if (index < 0 || index >= _count)
+            {
+                keyValuePair = default;
+                return false;
+            }
+
+            keyValuePair = *(KeyValuePair<int, T>*)&_dense[index];
+            return true;
+        }
+
+        /// <summary>
+        ///     Get at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="keyValuePair">KeyValuePair</param>
+        /// <returns>Got</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetReferenceAt(int index, out KeyValuePair<int, NativeReference<T>> keyValuePair)
+        {
+            if (index < 0 || index >= _count)
+            {
+                keyValuePair = default;
+                return false;
+            }
+
+            ref var entry = ref _dense[index];
+            keyValuePair = new KeyValuePair<int, NativeReference<T>>(entry.Key, new NativeReference<T>(Unsafe.AsPointer(ref entry.Value)));
+            return true;
         }
 
         /// <summary>
@@ -435,6 +564,60 @@ namespace NativeCollections
 
             _sparse[key] = -1;
             ++_version;
+        }
+
+        /// <summary>
+        ///     Remove at
+        /// </summary>
+        /// <param name="index">Index</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryRemoveAt(int index)
+        {
+            if (index < 0 || index >= _count)
+                return false;
+            ref var entry = ref _dense[index];
+            var key = entry.Key;
+            --_count;
+            if (index != _count)
+            {
+                ref var lastEntry = ref _dense[_count];
+                entry = lastEntry;
+                _sparse[lastEntry.Key] = index;
+            }
+
+            _sparse[key] = -1;
+            ++_version;
+            return true;
+        }
+
+        /// <summary>
+        ///     Remove at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="keyValuePair">KeyValuePair</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryRemoveAt(int index, out KeyValuePair<int, T> keyValuePair)
+        {
+            if (index < 0 || index >= _count)
+            {
+                keyValuePair = default;
+                return false;
+            }
+
+            ref var entry = ref _dense[index];
+            var key = entry.Key;
+            keyValuePair = *(KeyValuePair<int, T>*)Unsafe.AsPointer(ref entry);
+            --_count;
+            if (index != _count)
+            {
+                ref var lastEntry = ref _dense[_count];
+                entry = lastEntry;
+                _sparse[lastEntry.Key] = index;
+            }
+
+            _sparse[key] = -1;
+            ++_version;
+            return true;
         }
 
         /// <summary>

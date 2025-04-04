@@ -12,15 +12,15 @@ namespace NativeCollections
     /// <summary>
     ///     Unsafe sortedList
     /// </summary>
-    /// <typeparam name="TKey">Type</typeparam>
+    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard)]
-    public unsafe struct UnsafeSortedList<TKey> : IDisposable where TKey : unmanaged, IComparable<TKey>
+    public unsafe struct UnsafeSortedList<T> : IDisposable where T : unmanaged, IComparable<T>
     {
         /// <summary>
-        ///     Keys
+        ///     Items
         /// </summary>
-        private TKey* _keys;
+        private T* _items;
 
         /// <summary>
         ///     Size
@@ -63,7 +63,7 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
             if (capacity < 4)
                 capacity = 4;
-            _keys = (TKey*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(TKey)));
+            _items = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
             _size = 0;
             _version = 0;
             _capacity = capacity;
@@ -73,7 +73,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => NativeMemoryAllocator.Free(_keys);
+        public void Dispose() => NativeMemoryAllocator.Free(_items);
 
         /// <summary>
         ///     Clear
@@ -88,57 +88,57 @@ namespace NativeCollections
         /// <summary>
         ///     Index of
         /// </summary>
-        /// <param name="key">Key</param>
+        /// <param name="item">Item</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int IndexOf(in TKey key)
+        public int IndexOf(in T item)
         {
-            var num = BinarySearchHelpers.IndexOf(_keys, _size, key);
+            var num = BinarySearchHelpers.IndexOf(_items, _size, item);
             return num >= 0 ? num : -1;
         }
 
         /// <summary>
         ///     Add
         /// </summary>
-        /// <param name="key">Key</param>
+        /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Add(in TKey key)
+        public void Add(in T item)
         {
-            var num = IndexOf(key);
+            var num = IndexOf(item);
             if (num >= 0)
-                throw new ArgumentException($"AddingDuplicate, {key}", nameof(key));
-            Insert(~num, key);
+                throw new ArgumentException($"AddingDuplicate, {item}", nameof(item));
+            Insert(~num, item);
         }
 
         /// <summary>
         ///     Try add
         /// </summary>
-        /// <param name="key">Key</param>
+        /// <param name="item">Item</param>
         /// <returns>Added</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryAdd(in TKey key)
+        public bool TryAdd(in T item)
         {
-            var num = IndexOf(key);
+            var num = IndexOf(item);
             if (num >= 0)
                 return false;
-            Insert(~num, key);
+            Insert(~num, item);
             return true;
         }
 
         /// <summary>
         ///     Remove
         /// </summary>
-        /// <param name="key">Key</param>
+        /// <param name="item">Item</param>
         /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Remove(in TKey key)
+        public bool Remove(in T item)
         {
-            var index = IndexOf(key);
+            var index = IndexOf(item);
             if (index >= 0)
             {
                 --_size;
                 if (index < _size)
-                    Unsafe.CopyBlockUnaligned(_keys + index, _keys + index + 1, (uint)((_size - index) * sizeof(TKey)));
+                    Unsafe.CopyBlockUnaligned(_items + index, _items + index + 1, (uint)((_size - index) * sizeof(T)));
                 ++_version;
                 return true;
             }
@@ -150,7 +150,6 @@ namespace NativeCollections
         ///     Remove at
         /// </summary>
         /// <param name="index">Index</param>
-        /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveAt(int index)
         {
@@ -160,7 +159,7 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
             --_size;
             if (index < _size)
-                Unsafe.CopyBlockUnaligned(_keys + index, _keys + index + 1, (uint)((_size - index) * sizeof(TKey)));
+                Unsafe.CopyBlockUnaligned(_items + index, _items + index + 1, (uint)((_size - index) * sizeof(T)));
             ++_version;
         }
 
@@ -168,19 +167,57 @@ namespace NativeCollections
         ///     Remove at
         /// </summary>
         /// <param name="index">Index</param>
-        /// <param name="key">Key</param>
+        /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void RemoveAt(int index, out TKey key)
+        public void RemoveAt(int index, out T item)
         {
             if (index < 0)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
             if (index >= _size)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
-            key = _keys[index];
+            item = _items[index];
             --_size;
             if (index < _size)
-                Unsafe.CopyBlockUnaligned(_keys + index, _keys + index + 1, (uint)((_size - index) * sizeof(TKey)));
+                Unsafe.CopyBlockUnaligned(_items + index, _items + index + 1, (uint)((_size - index) * sizeof(T)));
             ++_version;
+        }
+
+        /// <summary>
+        ///     Remove at
+        /// </summary>
+        /// <param name="index">Index</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryRemoveAt(int index)
+        {
+            if (index < 0 || index >= _size)
+                return false;
+            --_size;
+            if (index < _size)
+                Unsafe.CopyBlockUnaligned(_items + index, _items + index + 1, (uint)((_size - index) * sizeof(T)));
+            ++_version;
+            return true;
+        }
+
+        /// <summary>
+        ///     Remove at
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="item">Item</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryRemoveAt(int index, out T item)
+        {
+            if (index < 0 || index >= _size)
+            {
+                item = default;
+                return false;
+            }
+
+            item = _items[index];
+            --_size;
+            if (index < _size)
+                Unsafe.CopyBlockUnaligned(_items + index, _items + index + 1, (uint)((_size - index) * sizeof(T)));
+            ++_version;
+            return true;
         }
 
         /// <summary>
@@ -201,49 +238,49 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeLess");
             _size -= count;
             if (index < _size)
-                Unsafe.CopyBlockUnaligned(_keys + index, _keys + index + count, (uint)((_size - index) * sizeof(TKey)));
+                Unsafe.CopyBlockUnaligned(_items + index, _items + index + count, (uint)((_size - index) * sizeof(T)));
             ++_version;
         }
 
         /// <summary>
-        ///     Get key at index
+        ///     Get item at index
         /// </summary>
         /// <param name="index">Index</param>
-        /// <returns>Key</returns>
+        /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TKey GetKeyAt(int index)
+        public T GetAt(int index)
         {
             if (index < 0)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
             if (index >= _size)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
-            return _keys[index];
+            return _items[index];
         }
 
         /// <summary>
-        ///     Contains key
+        ///     Contains item
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <returns>Contains key</returns>
+        /// <param name="item">Item</param>
+        /// <returns>Contains item</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool ContainsKey(in TKey key) => IndexOf(key) >= 0;
+        public bool Contains(in T item) => IndexOf(item) >= 0;
 
         /// <summary>
         ///     Get at
         /// </summary>
         /// <param name="index">Index</param>
-        /// <param name="key">Key</param>
+        /// <param name="item">Item</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetAt(int index, out TKey key)
+        public bool TryGetAt(int index, out T item)
         {
             if (index < 0 || index >= _size)
             {
-                key = default;
+                item = default;
                 return false;
             }
 
-            key = _keys[index];
+            item = _items[index];
             return true;
         }
 
@@ -296,19 +333,19 @@ namespace NativeCollections
             {
                 if (capacity > 0)
                 {
-                    var keys = (TKey*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(TKey)));
+                    var items = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
                     if (_size > 0)
                     {
-                        Unsafe.CopyBlockUnaligned(keys, _keys, (uint)(_size * sizeof(TKey)));
-                        NativeMemoryAllocator.Free(_keys);
+                        Unsafe.CopyBlockUnaligned(items, _items, (uint)(_size * sizeof(T)));
+                        NativeMemoryAllocator.Free(_items);
                     }
 
-                    _keys = keys;
+                    _items = items;
                 }
                 else
                 {
-                    NativeMemoryAllocator.Free(_keys);
-                    _keys = null;
+                    NativeMemoryAllocator.Free(_items);
+                    _items = null;
                 }
 
                 _capacity = capacity;
@@ -319,15 +356,15 @@ namespace NativeCollections
         ///     Insert
         /// </summary>
         /// <param name="index">Index</param>
-        /// <param name="key">Key</param>
+        /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void Insert(int index, in TKey key)
+        private void Insert(int index, in T item)
         {
             if (_size == _capacity)
                 EnsureCapacity(_size + 1);
             if (index < _size)
-                Unsafe.CopyBlockUnaligned(_keys + index + 1, _keys + index, (uint)((_size - index) * sizeof(TKey)));
-            _keys[index] = key;
+                Unsafe.CopyBlockUnaligned(_items + index + 1, _items + index, (uint)((_size - index) * sizeof(T)));
+            _items[index] = item;
             ++_size;
             ++_version;
         }
@@ -335,7 +372,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeSortedList<TKey> Empty => new();
+        public static UnsafeSortedList<T> Empty => new();
 
         /// <summary>
         ///     Get enumerator
@@ -351,12 +388,12 @@ namespace NativeCollections
             /// <summary>
             ///     NativeSortedList
             /// </summary>
-            private readonly UnsafeSortedList<TKey>* _nativeSortedList;
+            private readonly UnsafeSortedList<T>* _nativeSortedList;
 
             /// <summary>
             ///     Current
             /// </summary>
-            private TKey _current;
+            private T _current;
 
             /// <summary>
             ///     Index
@@ -375,7 +412,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal Enumerator(void* nativeSortedList)
             {
-                var handle = (UnsafeSortedList<TKey>*)nativeSortedList;
+                var handle = (UnsafeSortedList<T>*)nativeSortedList;
                 _nativeSortedList = handle;
                 _current = default;
                 _index = 0;
@@ -394,7 +431,7 @@ namespace NativeCollections
                     throw new InvalidOperationException("EnumFailedVersion");
                 if ((uint)_index < (uint)handle->_size)
                 {
-                    _current = handle->_keys[_index];
+                    _current = handle->_items[_index];
                     ++_index;
                     return true;
                 }
@@ -406,7 +443,7 @@ namespace NativeCollections
             /// <summary>
             ///     Current
             /// </summary>
-            public TKey Current
+            public T Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => _current;
