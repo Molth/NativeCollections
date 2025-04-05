@@ -135,9 +135,9 @@ namespace NativeCollections
         public bool this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (*_handle)[index];
+            get => Unsafe.AsRef<UnsafeBitArray>(_handle)[index];
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => (*_handle)[index] = value;
+            set => Unsafe.AsRef<UnsafeBitArray>(_handle)[index] = value;
         }
 
         /// <summary>
@@ -147,9 +147,9 @@ namespace NativeCollections
         public bool this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (*_handle)[index];
+            get => Unsafe.AsRef<UnsafeBitArray>(_handle)[index];
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => (*_handle)[index] = value;
+            set => Unsafe.AsRef<UnsafeBitArray>(_handle)[index] = value;
         }
 
         /// <summary>

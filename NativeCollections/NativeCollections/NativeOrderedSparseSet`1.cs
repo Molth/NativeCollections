@@ -89,9 +89,9 @@ namespace NativeCollections
         public T this[int key]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (*_handle)[key];
+            get => Unsafe.AsRef<UnsafeOrderedSparseSet<T>>(_handle)[key];
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => (*_handle)[key] = value;
+            set => Unsafe.AsRef<UnsafeOrderedSparseSet<T>>(_handle)[key] = value;
         }
 
         /// <summary>

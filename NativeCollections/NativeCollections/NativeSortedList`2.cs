@@ -60,9 +60,9 @@ namespace NativeCollections
         public TValue this[TKey key]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (*_handle)[key];
+            get => Unsafe.AsRef<UnsafeSortedList<TKey, TValue>>(_handle)[key];
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => (*_handle)[key] = value;
+            set => Unsafe.AsRef<UnsafeSortedList<TKey, TValue>>(_handle)[key] = value;
         }
 
         /// <summary>

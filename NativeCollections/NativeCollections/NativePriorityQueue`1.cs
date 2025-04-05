@@ -58,7 +58,17 @@ namespace NativeCollections
         public TPriority this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (*_handle)[index];
+            get => Unsafe.AsRef<UnsafePriorityQueue<TPriority>>(_handle)[index];
+        }
+
+        /// <summary>
+        ///     Get reference
+        /// </summary>
+        /// <param name="index">Index</param>
+        public TPriority this[uint index]
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => Unsafe.AsRef<UnsafePriorityQueue<TPriority>>(_handle)[index];
         }
 
         /// <summary>

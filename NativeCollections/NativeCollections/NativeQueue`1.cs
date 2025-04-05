@@ -58,7 +58,7 @@ namespace NativeCollections
         public ref T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref (*_handle)[index];
+            get => ref Unsafe.AsRef<UnsafeQueue<T>>(_handle)[index];
         }
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace NativeCollections
         public ref T this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref (*_handle)[index];
+            get => ref Unsafe.AsRef<UnsafeQueue<T>>(_handle)[index];
         }
 
         /// <summary>

@@ -58,6 +58,16 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Get reference
+        /// </summary>
+        /// <param name="index">Index</param>
+        public TPriority this[uint index]
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _nodes[index];
+        }
+
+        /// <summary>
         ///     Unordered items
         /// </summary>
         public UnorderedItemsCollection UnorderedItems => new(Unsafe.AsPointer(ref this));

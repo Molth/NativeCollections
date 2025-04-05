@@ -70,9 +70,9 @@ namespace NativeCollections
         public TValue this[in TKey key]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (*_handle)[key];
+            get => Unsafe.AsRef<UnsafeOrderedDictionary<TKey, TValue>>(_handle)[key];
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => (*_handle)[key] = value;
+            set => Unsafe.AsRef<UnsafeOrderedDictionary<TKey, TValue>>(_handle)[key] = value;
         }
 
         /// <summary>
