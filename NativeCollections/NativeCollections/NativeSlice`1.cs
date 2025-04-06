@@ -299,10 +299,10 @@ namespace NativeCollections
         ///     As span
         /// </summary>
         /// <param name="start">Start</param>
-        /// <param name="count">Count</param>
+        /// <param name="length">Length</param>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<T> AsSpan(int start, int count) => MemoryMarshal.CreateSpan(ref *(_array + _offset + start), count);
+        public Span<T> AsSpan(int start, int length) => MemoryMarshal.CreateSpan(ref *(_array + _offset + start), length);
 
         /// <summary>
         ///     As readOnly span
@@ -323,10 +323,10 @@ namespace NativeCollections
         ///     As readOnly span
         /// </summary>
         /// <param name="start">Start</param>
-        /// <param name="count">Count</param>
+        /// <param name="length">Length</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<T> AsReadOnlySpan(int start, int count) => MemoryMarshal.CreateReadOnlySpan(ref *(_array + _offset + start), count);
+        public ReadOnlySpan<T> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref *(_array + _offset + start), length);
 
         /// <summary>
         ///     Slice
@@ -340,10 +340,10 @@ namespace NativeCollections
         ///     Slice
         /// </summary>
         /// <param name="start">Start</param>
-        /// <param name="count">Count</param>
+        /// <param name="length">Length</param>
         /// <returns>NativeSlice</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeSlice<T> Slice(int start, int count) => new(_array, _offset + start, count);
+        public NativeSlice<T> Slice(int start, int length) => new(_array, _offset + start, length);
 
         /// <summary>
         ///     Empty

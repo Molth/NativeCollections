@@ -230,6 +230,27 @@ namespace NativeCollections
         public int TrimExcess() => _handle->TrimExcess();
 
         /// <summary>
+        ///     As readOnly span
+        /// </summary>
+        /// <returns>ReadOnlySpan</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ReadOnlySpan<TPriority> AsReadOnlySpan() => _handle->AsReadOnlySpan();
+
+        /// <summary>
+        ///     As readOnly span
+        /// </summary>
+        /// <returns>ReadOnlySpan</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ReadOnlySpan<TPriority> AsReadOnlySpan(int start) => _handle->AsReadOnlySpan(start);
+
+        /// <summary>
+        ///     As readOnly span
+        /// </summary>
+        /// <returns>ReadOnlySpan</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ReadOnlySpan<TPriority> AsReadOnlySpan(int start, int length) => _handle->AsReadOnlySpan(start, length);
+
+        /// <summary>
         ///     Empty
         /// </summary>
         public static NativePriorityQueue<TPriority> Empty => new();

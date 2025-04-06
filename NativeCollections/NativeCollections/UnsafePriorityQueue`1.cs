@@ -297,7 +297,6 @@ namespace NativeCollections
         {
             if (capacity < 0)
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-
             if (_length < capacity)
             {
                 Grow(capacity);
@@ -324,6 +323,27 @@ namespace NativeCollections
             ++_version;
             return _length;
         }
+
+        /// <summary>
+        ///     As readOnly span
+        /// </summary>
+        /// <returns>ReadOnlySpan</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ReadOnlySpan<TPriority> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref *_nodes, _size);
+
+        /// <summary>
+        ///     As readOnly span
+        /// </summary>
+        /// <returns>ReadOnlySpan</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ReadOnlySpan<TPriority> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref *(_nodes + start), _size - start);
+
+        /// <summary>
+        ///     As readOnly span
+        /// </summary>
+        /// <returns>ReadOnlySpan</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ReadOnlySpan<TPriority> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref *(_nodes + start), length);
 
         /// <summary>
         ///     Grow
