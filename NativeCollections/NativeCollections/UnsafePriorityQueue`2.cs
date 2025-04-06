@@ -132,11 +132,11 @@ namespace NativeCollections
         public bool TryEnqueue(in TElement element, in TPriority priority)
         {
             var size = _size;
-            ++_version;
             if (_length != size)
             {
                 _size = size + 1;
                 MoveUp((element, priority), size);
+                ++_version;
                 return true;
             }
 
