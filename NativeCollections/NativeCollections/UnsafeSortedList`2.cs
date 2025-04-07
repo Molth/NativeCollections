@@ -795,7 +795,7 @@ namespace NativeCollections
             /// </summary>
             /// <returns>Span</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static implicit operator ReadOnlySpan<TKey>(KeyCollection keyCollection) => keyCollection.AsReadOnlySpan();
+            public static implicit operator ReadOnlySpan<TKey>(in KeyCollection keyCollection) => keyCollection.AsReadOnlySpan();
 
             /// <summary>
             ///     Get enumerator
@@ -931,7 +931,7 @@ namespace NativeCollections
             /// </summary>
             /// <returns>Span</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static implicit operator Span<TValue>(ValueCollection valueCollection) => valueCollection.AsSpan();
+            public static implicit operator Span<TValue>(in ValueCollection valueCollection) => valueCollection.AsSpan();
 
             /// <summary>
             ///     Get enumerator

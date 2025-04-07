@@ -375,7 +375,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<byte>(NativeMemoryWriter nativeMemoryWriter) => nativeMemoryWriter.AsSpan();
+        public static implicit operator Span<byte>(in NativeMemoryWriter nativeMemoryWriter) => nativeMemoryWriter.AsSpan();
 
         /// <summary>
         ///     As native memory writer
@@ -389,7 +389,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<byte>(NativeMemoryWriter nativeMemoryWriter) => nativeMemoryWriter.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<byte>(in NativeMemoryWriter nativeMemoryWriter) => nativeMemoryWriter.AsReadOnlySpan();
 
         /// <summary>
         ///     As native memory writer

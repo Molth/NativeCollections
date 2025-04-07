@@ -200,7 +200,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<T>(NativeSlice<T> nativeSlice) => nativeSlice.AsSpan();
+        public static implicit operator Span<T>(in NativeSlice<T> nativeSlice) => nativeSlice.AsSpan();
 
         /// <summary>
         ///     As native slice
@@ -215,7 +215,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<T>(NativeSlice<T> nativeSlice) => nativeSlice.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<T>(in NativeSlice<T> nativeSlice) => nativeSlice.AsReadOnlySpan();
 
         /// <summary>
         ///     As native slice

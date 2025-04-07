@@ -574,6 +574,20 @@ namespace NativeCollections
         public ReadOnlySpan<T> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref *(_array + start), length);
 
         /// <summary>
+        ///     As span
+        /// </summary>
+        /// <returns>Span</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator Span<T>(in UnsafeList<T> unsafeList) => unsafeList.AsSpan();
+
+        /// <summary>
+        ///     As readOnly span
+        /// </summary>
+        /// <returns>ReadOnlySpan</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator ReadOnlySpan<T>(in UnsafeList<T> unsafeList) => unsafeList.AsReadOnlySpan();
+
+        /// <summary>
         ///     Empty
         /// </summary>
         public static UnsafeList<T> Empty => new();

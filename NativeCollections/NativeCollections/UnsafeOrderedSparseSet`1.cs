@@ -731,6 +731,13 @@ namespace NativeCollections
         public ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref *(KeyValuePair<int, T>*)(_dense + start), length);
 
         /// <summary>
+        ///     As readOnly span
+        /// </summary>
+        /// <returns>ReadOnlySpan</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator ReadOnlySpan<KeyValuePair<int, T>>(in UnsafeOrderedSparseSet<T> unsafeOrderedSparseSet) => unsafeOrderedSparseSet.AsReadOnlySpan();
+
+        /// <summary>
         ///     Entry
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]

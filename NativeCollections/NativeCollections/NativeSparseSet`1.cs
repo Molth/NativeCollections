@@ -127,7 +127,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<KeyValuePair<int, T>>(NativeSparseSet<T> nativeSparseSet) => nativeSparseSet.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<KeyValuePair<int, T>>(in NativeSparseSet<T> nativeSparseSet) => nativeSparseSet.AsReadOnlySpan();
 
         /// <summary>
         ///     Dispose

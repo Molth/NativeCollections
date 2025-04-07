@@ -256,11 +256,11 @@ namespace NativeCollections
         public ReadOnlySpan<T> AsReadOnlySpan(int start, int length) => _handle->AsReadOnlySpan(start, length);
 
         /// <summary>
-        ///     As span
+        ///     As readOnly span
         /// </summary>
-        /// <returns>Span</returns>
+        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<T>(NativeSortedList<T> nativeSortedList) => nativeSortedList.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<T>(in NativeSortedList<T> nativeSortedList) => nativeSortedList.AsReadOnlySpan();
 
         /// <summary>
         ///     Empty
