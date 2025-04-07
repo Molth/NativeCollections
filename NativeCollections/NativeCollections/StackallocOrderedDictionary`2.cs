@@ -90,7 +90,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public StackallocOrderedDictionary(Span<byte> buffer, int capacity)
         {
-            _buckets = (int*)MemoryMarshal.GetReference(buffer);
+            _buckets = (int*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer));
             _entries = (Entry*)((byte*)_buckets + capacity * sizeof(int));
             _bucketsLength = capacity;
             _entriesLength = capacity;

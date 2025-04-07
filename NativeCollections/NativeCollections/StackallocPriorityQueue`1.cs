@@ -88,7 +88,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public StackallocPriorityQueue(Span<byte> buffer, int capacity)
         {
-            _nodes = (TPriority*)MemoryMarshal.GetReference(buffer);
+            _nodes = (TPriority*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer));
             _length = capacity;
             _size = 0;
             _version = 0;

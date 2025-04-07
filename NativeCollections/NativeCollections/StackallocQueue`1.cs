@@ -93,7 +93,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public StackallocQueue(Span<byte> buffer, int capacity)
         {
-            _array = (T*)MemoryMarshal.GetReference(buffer);
+            _array = (T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer));
             _length = capacity;
             _head = 0;
             _tail = 0;

@@ -101,7 +101,7 @@ namespace NativeCollections
         public StackallocDictionary(Span<byte> buffer, int capacity)
         {
             _freeList = -1;
-            _buckets = (int*)MemoryMarshal.GetReference(buffer);
+            _buckets = (int*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer));
             _entries = (Entry*)((byte*)_buckets + capacity * sizeof(int));
             _bucketsLength = capacity;
             _entriesLength = capacity;

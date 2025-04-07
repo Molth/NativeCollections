@@ -88,7 +88,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public StackallocList(Span<byte> buffer, int capacity)
         {
-            _array = (T*)MemoryMarshal.GetReference(buffer);
+            _array = (T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer));
             _length = capacity;
             _size = 0;
             _version = 0;

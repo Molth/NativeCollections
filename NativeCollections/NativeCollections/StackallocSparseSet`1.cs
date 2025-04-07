@@ -102,7 +102,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public StackallocSparseSet(Span<byte> buffer, int capacity)
         {
-            _dense = (Entry*)MemoryMarshal.GetReference(buffer);
+            _dense = (Entry*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer));
             _sparse = (int*)((byte*)_dense + capacity * sizeof(Entry));
             MemoryMarshal.CreateSpan(ref *_sparse, capacity).Fill(-1);
             _length = capacity;
