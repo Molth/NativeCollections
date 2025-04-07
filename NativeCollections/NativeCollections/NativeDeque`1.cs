@@ -208,7 +208,13 @@ namespace NativeCollections
         /// <returns>New capacity</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess() => _handle->TrimExcess();
-
+        /// <summary>
+        ///     Trim excess
+        /// </summary>
+        /// <param name="capacity">Capacity</param>
+        /// <returns>New capacity</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int TrimExcess(int capacity)=> _handle->TrimExcess(capacity);
         /// <summary>
         ///     Empty
         /// </summary>

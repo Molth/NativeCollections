@@ -10,12 +10,12 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe list
+    ///     Stackalloc list
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(FromType.Standard)]
-    public unsafe struct UnsafeList<T> : IDisposable where T : unmanaged, IEquatable<T>
+    [StackallocCollection(FromType.Standard)]
+    public unsafe struct StackallocList<T> where T : unmanaged, IEquatable<T>
     {
         /// <summary>
         ///     Array
@@ -70,36 +70,29 @@ namespace NativeCollections
         /// <summary>
         ///     Capacity
         /// </summary>
-        public int Capacity
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _length;
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => SetCapacity(value);
-        }
+        public int Capacity => _length;
+
+        /// <summary>
+        ///     Get buffer size
+        /// </summary>
+        /// <param name="capacity">Capacity</param>
+        /// <returns>Buffer size</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int GetBufferSize(int capacity) => capacity * sizeof(T);
 
         /// <summary>
         ///     Structure
         /// </summary>
+        /// <param name="buffer">Buffer</param>
         /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeList(int capacity)
+        public StackallocList(Span<byte> buffer,int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            if (capacity < 4)
-                capacity = 4;
-            _array = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
+            _array = (T*)MemoryMarshal.GetReference(buffer);
             _length = capacity;
             _size = 0;
             _version = 0;
         }
-
-        /// <summary>
-        ///     Dispose
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => NativeMemoryAllocator.Free(_array);
 
         /// <summary>
         ///     Clear
@@ -109,28 +102,6 @@ namespace NativeCollections
         {
             _version++;
             _size = 0;
-        }
-
-        /// <summary>
-        ///     Add
-        /// </summary>
-        /// <param name="item">Item</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Add(in T item)
-        {
-            _version++;
-            var size = _size;
-            if ((uint)size < (uint)_length)
-            {
-                _size = size + 1;
-                _array[size] = item;
-            }
-            else
-            {
-                Grow(size + 1);
-                _size = size + 1;
-                _array[size] = item;
-            }
         }
 
         /// <summary>
@@ -158,18 +129,20 @@ namespace NativeCollections
         /// </summary>
         /// <param name="collection">Collection</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddRange(UnsafeList<T>* collection)
+        public InsertResult TryAddRange(StackallocList<T>* collection)
         {
             var other = collection;
             var count = other->_size;
             if (count > 0)
             {
                 if (_length - _size < count)
-                    Grow(checked(_size + count));
+                    return InsertResult.InsufficientCapacity;
                 Unsafe.CopyBlockUnaligned(_array + _size, other->_array, (uint)(other->_size * sizeof(T)));
                 _size += count;
                 _version++;
             }
+
+            return InsertResult.Success;
         }
 
         /// <summary>
@@ -178,17 +151,18 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Insert(int index, in T item)
+        public InsertResult TryInsert(int index, in T item)
         {
             if ((uint)index > (uint)_size)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
             if (_size == _length)
-                Grow(_size + 1);
+                return InsertResult.InsufficientCapacity;
             if (index < _size)
                 Unsafe.CopyBlockUnaligned(_array + (index + 1), _array + index, (uint)((_size - index) * sizeof(T)));
             _array[index] = item;
             _size++;
             _version++;
+            return InsertResult.Success;
         }
 
         /// <summary>
@@ -197,7 +171,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <param name="collection">Collection</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void InsertRange(int index, UnsafeList<T>* collection)
+        public InsertResult TryInsertRange(int index, StackallocList<T>* collection)
         {
             if ((uint)index > (uint)_size)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
@@ -206,7 +180,7 @@ namespace NativeCollections
             if (count > 0)
             {
                 if (_length - _size < count)
-                    Grow(checked(_size + count));
+                    return InsertResult.InsufficientCapacity;
                 if (index < _size)
                     Unsafe.CopyBlockUnaligned(_array + index + count, _array + index, (uint)((_size - index) * sizeof(T)));
                 if (Unsafe.AsPointer(ref this) == collection)
@@ -222,6 +196,8 @@ namespace NativeCollections
                 _size += count;
                 _version++;
             }
+
+            return InsertResult.Success;
         }
 
         /// <summary>
@@ -354,67 +330,6 @@ namespace NativeCollections
         public bool Contains(in T item) => _size != 0 && IndexOf(item) >= 0;
 
         /// <summary>
-        ///     Ensure capacity
-        /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>New capacity</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int EnsureCapacity(int capacity)
-        {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            if (_length < capacity)
-                Grow(capacity);
-            return _length;
-        }
-
-        /// <summary>
-        ///     Trim excess
-        /// </summary>
-        /// <returns>New capacity</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int TrimExcess()
-        {
-            var threshold = (int)(_length * 0.9);
-            if (_size < threshold)
-                SetCapacity(_size);
-            return _length;
-        }
-
-        /// <summary>
-        ///     Trim excess
-        /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>New capacity</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int TrimExcess(int capacity)
-        {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            if (capacity < _size || capacity >= _length)
-                return _length;
-            SetCapacity(_size);
-            return _length;
-        }
-
-        /// <summary>
-        ///     Grow
-        /// </summary>
-        /// <param name="capacity">Capacity</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void Grow(int capacity)
-        {
-            var newCapacity = 2 * _length;
-            if ((uint)newCapacity > 2147483591)
-                newCapacity = 2147483591;
-            var expected = _length + 4;
-            newCapacity = newCapacity > expected ? newCapacity : expected;
-            if (newCapacity < capacity)
-                newCapacity = capacity;
-            SetCapacity(newCapacity);
-        }
-
-        /// <summary>
         ///     Index of
         /// </summary>
         /// <param name="item">Item</param>
@@ -513,35 +428,6 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Set capacity
-        /// </summary>
-        /// <param name="capacity">Capacity</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetCapacity(int capacity)
-        {
-            if (capacity < _size)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "SmallCapacity");
-            if (capacity != _length)
-            {
-                if (capacity > 0)
-                {
-                    var newItems = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
-                    if (_size > 0)
-                        Unsafe.CopyBlockUnaligned(newItems, _array, (uint)(_size * sizeof(T)));
-                    NativeMemoryAllocator.Free(_array);
-                    _array = newItems;
-                    _length = capacity;
-                }
-                else
-                {
-                    NativeMemoryAllocator.Free(_array);
-                    _array = (T*)NativeMemoryAllocator.Alloc(0);
-                    _length = 0;
-                }
-            }
-        }
-
-        /// <summary>
         ///     As span
         /// </summary>
         /// <returns>Span</returns>
@@ -594,19 +480,19 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<T>(in UnsafeList<T> unsafeList) => unsafeList.AsSpan();
+        public static implicit operator Span<T>(in StackallocList<T> stackallocList) => stackallocList.AsSpan();
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<T>(in UnsafeList<T> unsafeList) => unsafeList.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<T>(in StackallocList<T> stackallocList) => stackallocList.AsReadOnlySpan();
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeList<T> Empty => new();
+        public static StackallocList<T> Empty => new();
 
         /// <summary>
         ///     Get enumerator
@@ -622,7 +508,7 @@ namespace NativeCollections
             /// <summary>
             ///     NativeList
             /// </summary>
-            private readonly UnsafeList<T>* _nativeList;
+            private readonly StackallocList<T>* _nativeList;
 
             /// <summary>
             ///     Version
@@ -646,7 +532,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal Enumerator(void* nativeList)
             {
-                var handle = (UnsafeList<T>*)nativeList;
+                var handle = (StackallocList<T>*)nativeList;
                 _nativeList = handle;
                 _index = 0;
                 _version = handle->_version;

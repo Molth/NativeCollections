@@ -10,12 +10,12 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe queue
+    ///     Stackalloc deque
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(FromType.Standard)]
-    public unsafe struct UnsafeQueue<T> : IDisposable where T : unmanaged
+    [StackallocCollection(FromType.Standard)]
+    public unsafe struct StackallocDeque<T>  where T : unmanaged
     {
         /// <summary>
         ///     Array
@@ -48,6 +48,16 @@ namespace NativeCollections
         private int _version;
 
         /// <summary>
+        ///     Is empty
+        /// </summary>
+        public bool IsEmpty => _size == 0;
+
+        /// <summary>
+        ///     Count
+        /// </summary>
+        public int Count => _size;
+
+        /// <summary>
         ///     Get reference
         /// </summary>
         /// <param name="index">Index</param>
@@ -68,39 +78,28 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Is empty
+        ///     Get buffer size
         /// </summary>
-        public bool IsEmpty => _size == 0;
-
-        /// <summary>
-        ///     Count
-        /// </summary>
-        public int Count => _size;
+        /// <param name="capacity">Capacity</param>
+        /// <returns>Buffer size</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int GetBufferSize(int capacity) => capacity * sizeof(T);
 
         /// <summary>
         ///     Structure
         /// </summary>
+        /// <param name="buffer">Buffer</param>
         /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeQueue(int capacity)
+        public StackallocDeque(Span<byte> buffer, int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            if (capacity < 4)
-                capacity = 4;
-            _array = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
+            _array = (T*)MemoryMarshal.GetReference(buffer);
             _length = capacity;
             _head = 0;
             _tail = 0;
             _size = 0;
             _version = 0;
         }
-
-        /// <summary>
-        ///     Dispose
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => NativeMemoryAllocator.Free(_array);
 
         /// <summary>
         ///     Clear
@@ -115,54 +114,39 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Enqueue
-        /// </summary>
-        /// <param name="item">Item</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Enqueue(in T item)
-        {
-            if (_size == _length)
-                Grow(_size + 1);
-            _array[_tail] = item;
-            MoveNext(ref _tail);
-            _size++;
-            _version++;
-        }
-
-        /// <summary>
-        ///     Try enqueue
+        ///     Try enqueue head
         /// </summary>
         /// <param name="item">Item</param>
         /// <returns>Enqueued</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryEnqueue(in T item)
+        public bool TryEnqueueHead(in T item)
         {
-            if (_size != _length)
-            {
-                _array[_tail] = item;
-                MoveNext(ref _tail);
-                _size++;
-                _version++;
-                return true;
-            }
-
-            return false;
+            if (_size == _length)
+                return false;
+            if (--_head == -1)
+                _head = _length - 1;
+            _array[_head] = item;
+            ++_size;
+            ++_version;
+            return true;
         }
 
         /// <summary>
-        ///     Dequeue
+        ///     Try enqueue tail
         /// </summary>
-        /// <returns>Item</returns>
+        /// <param name="item">Item</param>
+        /// <returns>Enqueued</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T Dequeue()
+        public bool TryEnqueueTail(in T item)
         {
-            if (_size == 0)
-                throw new InvalidOperationException("EmptyQueue");
-            var removed = _array[_head];
-            MoveNext(ref _head);
-            _size--;
-            _version++;
-            return removed;
+            if (_size == _length)
+                return false;
+            _array[_tail] = item;
+            if (++_tail == _length)
+                _tail = 0;
+            ++_size;
+            ++_version;
+            return true;
         }
 
         /// <summary>
@@ -171,7 +155,7 @@ namespace NativeCollections
         /// <param name="result">Item</param>
         /// <returns>Dequeued</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDequeue(out T result)
+        public bool TryDequeueHead(out T result)
         {
             if (_size == 0)
             {
@@ -180,26 +164,42 @@ namespace NativeCollections
             }
 
             result = _array[_head];
-            MoveNext(ref _head);
-            _size--;
-            _version++;
+            if (++_head == _length)
+                _head = 0;
+            --_size;
+            ++_version;
             return true;
         }
 
         /// <summary>
-        ///     Peek
+        ///     Try dequeue
         /// </summary>
-        /// <returns>Item</returns>
+        /// <param name="result">Item</param>
+        /// <returns>Dequeued</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T Peek() => _size == 0 ? throw new InvalidOperationException("EmptyQueue") : _array[_head];
+        public bool TryDequeueTail(out T result)
+        {
+            if (_size == 0)
+            {
+                result = default;
+                return false;
+            }
+
+            if (--_tail == -1)
+                _tail = _length - 1;
+            result = _array[_tail];
+            --_size;
+            ++_version;
+            return true;
+        }
 
         /// <summary>
-        ///     Try peek
+        ///     Try peek head
         /// </summary>
         /// <param name="result">Item</param>
         /// <returns>Peeked</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryPeek(out T result)
+        public bool TryPeekHead(out T result)
         {
             if (_size == 0)
             {
@@ -212,112 +212,28 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Ensure capacity
+        ///     Try peek tail
         /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>New capacity</returns>
+        /// <param name="result">Item</param>
+        /// <returns>Peeked</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int EnsureCapacity(int capacity)
+        public bool TryPeekTail(out T result)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            if (_length < capacity)
-                Grow(capacity);
-            return _length;
-        }
-
-        /// <summary>
-        ///     Trim excess
-        /// </summary>
-        /// <returns>New capacity</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int TrimExcess()
-        {
-            var threshold = (int)(_length * 0.9);
-            if (_size < threshold)
-                SetCapacity(_size);
-            return _length;
-        }
-
-        /// <summary>
-        ///     Trim excess
-        /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>New capacity</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int TrimExcess(int capacity)
-        {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            if (capacity < _size || capacity >= _length)
-                return _length;
-            SetCapacity(capacity);
-            return _length;
-        }
-
-        /// <summary>
-        ///     Set capacity
-        /// </summary>
-        /// <param name="capacity">Capacity</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void SetCapacity(int capacity)
-        {
-            var newArray = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
-            if (_size > 0)
+            var size = _size - 1;
+            if ((uint)size >= (uint)_length)
             {
-                if (_head < _tail)
-                {
-                    Unsafe.CopyBlockUnaligned(newArray, _array + _head, (uint)(_size * sizeof(T)));
-                }
-                else
-                {
-                    Unsafe.CopyBlockUnaligned(newArray, _array + _head, (uint)((_length - _head) * sizeof(T)));
-                    Unsafe.CopyBlockUnaligned(newArray + _length - _head, _array, (uint)(_tail * sizeof(T)));
-                }
+                result = default;
+                return false;
             }
 
-            NativeMemoryAllocator.Free(_array);
-            _array = newArray;
-            _length = capacity;
-            _head = 0;
-            _tail = _size == capacity ? 0 : _size;
-            _version++;
-        }
-
-        /// <summary>
-        ///     Grow
-        /// </summary>
-        /// <param name="capacity">Capacity</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void Grow(int capacity)
-        {
-            var newCapacity = 2 * _length;
-            if ((uint)newCapacity > 2147483591)
-                newCapacity = 2147483591;
-            var expected = _length + 4;
-            newCapacity = newCapacity > expected ? newCapacity : expected;
-            if (newCapacity < capacity)
-                newCapacity = capacity;
-            SetCapacity(newCapacity);
-        }
-
-        /// <summary>
-        ///     Move next
-        /// </summary>
-        /// <param name="index">Index</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void MoveNext(ref int index)
-        {
-            var tmp = index + 1;
-            if (tmp == _length)
-                tmp = 0;
-            index = tmp;
+            result = _array[size];
+            return true;
         }
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeQueue<T> Empty => new();
+        public static StackallocDeque<T> Empty => new();
 
         /// <summary>
         ///     Get enumerator
@@ -331,9 +247,9 @@ namespace NativeCollections
         public struct Enumerator
         {
             /// <summary>
-            ///     NativeQueue
+            ///     NativeDeque
             /// </summary>
-            private readonly UnsafeQueue<T>* _nativeQueue;
+            private readonly StackallocDeque<T>* _nativeDeque;
 
             /// <summary>
             ///     Version
@@ -353,12 +269,12 @@ namespace NativeCollections
             /// <summary>
             ///     Structure
             /// </summary>
-            /// <param name="nativeQueue">NativeQueue</param>
+            /// <param name="nativeDeque">NativeDeque</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(void* nativeQueue)
+            internal Enumerator(void* nativeDeque)
             {
-                var handle = (UnsafeQueue<T>*)nativeQueue;
-                _nativeQueue = handle;
+                var handle = (StackallocDeque<T>*)nativeDeque;
+                _nativeDeque = handle;
                 _version = handle->_version;
                 _index = -1;
                 _currentElement = default;
@@ -371,7 +287,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext()
             {
-                var handle = _nativeQueue;
+                var handle = _nativeDeque;
                 if (_version != handle->_version)
                     throw new InvalidOperationException("EnumFailedVersion");
                 if (_index == -2)

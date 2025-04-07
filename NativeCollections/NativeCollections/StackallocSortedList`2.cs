@@ -11,13 +11,13 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe sortedList
+    ///     Stackalloc sortedList
     /// </summary>
     /// <typeparam name="TKey">Type</typeparam>
     /// <typeparam name="TValue">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(FromType.Standard)]
-    public unsafe struct UnsafeSortedList<TKey, TValue> : IDisposable where TKey : unmanaged, IComparable<TKey> where TValue : unmanaged
+    [StackallocCollection(FromType.Standard)]
+    public unsafe struct StackallocSortedList<TKey, TValue> where TKey : unmanaged, IComparable<TKey> where TValue : unmanaged
     {
         /// <summary>
         ///     Keys
@@ -55,34 +55,6 @@ namespace NativeCollections
         public ValueCollection Values => new(Unsafe.AsPointer(ref this));
 
         /// <summary>
-        ///     Get or set value
-        /// </summary>
-        /// <param name="key">Key</param>
-        public TValue this[TKey key]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-                var index = IndexOf(key);
-                return index >= 0 ? _values[index] : throw new KeyNotFoundException(key.ToString());
-            }
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set
-            {
-                var index = IndexOf(key);
-                if (index >= 0)
-                {
-                    _values[index] = value;
-                    ++_version;
-                }
-                else
-                {
-                    Insert(~index, key, value);
-                }
-            }
-        }
-
-        /// <summary>
         ///     Is empty
         /// </summary>
         public bool IsEmpty => _size == 0;
@@ -98,28 +70,27 @@ namespace NativeCollections
         public int Capacity => _capacity;
 
         /// <summary>
-        ///     Structure
+        ///     Get buffer size
         /// </summary>
         /// <param name="capacity">Capacity</param>
+        /// <returns>Buffer size</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeSortedList(int capacity)
+        public static int GetBufferSize(int capacity) => capacity * (sizeof(TKey) + sizeof(TValue));
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <param name="capacity">Capacity</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StackallocSortedList(Span<byte> buffer,int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            if (capacity < 4)
-                capacity = 4;
-            _keys = (TKey*)NativeMemoryAllocator.Alloc((uint)(capacity * (sizeof(TKey) + sizeof(TValue))));
+            _keys = (TKey*)MemoryMarshal.GetReference(buffer);
             _values = (TValue*)((byte*)_keys + capacity * sizeof(TKey));
             _size = 0;
             _version = 0;
             _capacity = capacity;
         }
-
-        /// <summary>
-        ///     Dispose
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => NativeMemoryAllocator.Free(_keys);
 
         /// <summary>
         ///     Clear
@@ -144,33 +115,36 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Add
-        /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Add(in TKey key, in TValue value)
-        {
-            var num = IndexOf(key);
-            if (num >= 0)
-                throw new ArgumentException($"AddingDuplicate, {key}", nameof(key));
-            Insert(~num, key, value);
-        }
-
-        /// <summary>
         ///     Try add
         /// </summary>
         /// <param name="key">Key</param>
         /// <param name="value">Value</param>
-        /// <returns>Added</returns>
+        /// <returns>Result</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryAdd(in TKey key, in TValue value)
+        public InsertResult TryAdd(in TKey key, in TValue value)
+        {
+            var num = IndexOf(key);
+            return num >= 0 ? InsertResult.AlreadyExists : Insert(~num, key, value);
+        }
+
+        /// <summary>
+        ///     Try insert
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="value">Value</param>
+        /// <returns>Result</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public InsertResult TryInsert(in TKey key, in TValue value)
         {
             var num = IndexOf(key);
             if (num >= 0)
-                return false;
-            Insert(~num, key, value);
-            return true;
+            {
+                _values[num] = value;
+                ++_version;
+                return InsertResult.Overwritten;
+            }
+
+            return Insert(~num, key, value);
         }
 
         /// <summary>
@@ -563,104 +537,16 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Ensure capacity
-        /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>New capacity</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int EnsureCapacity(int capacity)
-        {
-            if (_capacity < capacity)
-            {
-                var newCapacity = 2 * _capacity;
-                if ((uint)newCapacity > 2147483591)
-                    newCapacity = 2147483591;
-                var expected = _capacity + 4;
-                newCapacity = newCapacity > expected ? newCapacity : expected;
-                if (newCapacity < capacity)
-                    newCapacity = capacity;
-                SetCapacity(newCapacity);
-            }
-
-            return _capacity;
-        }
-
-        /// <summary>
-        ///     Trim excess
-        /// </summary>
-        /// <returns>New capacity</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int TrimExcess()
-        {
-            var threshold = (int)(_capacity * 0.9);
-            if (_size < threshold)
-                SetCapacity(_size);
-            return _capacity;
-        }
-
-        /// <summary>
-        ///     Trim excess
-        /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>New capacity</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int TrimExcess(int capacity)
-        {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            if (capacity < _size || capacity >= _capacity)
-                return _capacity;
-            SetCapacity(capacity);
-            return _capacity;
-        }
-
-        /// <summary>
-        ///     Set capacity
-        /// </summary>
-        /// <param name="capacity">Capacity</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetCapacity(int capacity)
-        {
-            if (capacity < _size)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "Small_Capacity");
-            if (capacity != _capacity)
-            {
-                if (capacity > 0)
-                {
-                    var keys = (TKey*)NativeMemoryAllocator.Alloc((uint)(capacity * (sizeof(TKey) + sizeof(TValue))));
-                    var values = (TValue*)((byte*)keys + capacity * sizeof(TKey));
-                    if (_size > 0)
-                    {
-                        Unsafe.CopyBlockUnaligned(keys, _keys, (uint)(_size * sizeof(TKey)));
-                        Unsafe.CopyBlockUnaligned(values, _values, (uint)(_size * sizeof(TValue)));
-                        NativeMemoryAllocator.Free(_keys);
-                    }
-
-                    _keys = keys;
-                    _values = values;
-                }
-                else
-                {
-                    NativeMemoryAllocator.Free(_keys);
-                    _keys = null;
-                    _values = null;
-                }
-
-                _capacity = capacity;
-            }
-        }
-
-        /// <summary>
         ///     Insert
         /// </summary>
         /// <param name="index">Index</param>
         /// <param name="key">Key</param>
         /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void Insert(int index, in TKey key, in TValue value)
+        private InsertResult Insert(int index, in TKey key, in TValue value)
         {
             if (_size == _capacity)
-                EnsureCapacity(_size + 1);
+                return InsertResult.InsufficientCapacity;
             if (index < _size)
             {
                 Unsafe.CopyBlockUnaligned(_keys + index + 1, _keys + index, (uint)((_size - index) * sizeof(TKey)));
@@ -671,12 +557,13 @@ namespace NativeCollections
             _values[index] = value;
             ++_size;
             ++_version;
+            return InsertResult.Success;
         }
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeSortedList<TKey, TValue> Empty => new();
+        public static StackallocSortedList<TKey, TValue> Empty => new();
 
         /// <summary>
         ///     Get enumerator
@@ -692,7 +579,7 @@ namespace NativeCollections
             /// <summary>
             ///     NativeSortedList
             /// </summary>
-            private readonly UnsafeSortedList<TKey, TValue>* _nativeSortedList;
+            private readonly StackallocSortedList<TKey, TValue>* _nativeSortedList;
 
             /// <summary>
             ///     Current
@@ -716,7 +603,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal Enumerator(void* nativeSortedList)
             {
-                var handle = (UnsafeSortedList<TKey, TValue>*)nativeSortedList;
+                var handle = (StackallocSortedList<TKey, TValue>*)nativeSortedList;
                 _nativeSortedList = handle;
                 _current = default;
                 _index = 0;
@@ -763,14 +650,14 @@ namespace NativeCollections
             /// <summary>
             ///     NativeSortedList
             /// </summary>
-            private readonly UnsafeSortedList<TKey, TValue>* _nativeSortedList;
+            private readonly StackallocSortedList<TKey, TValue>* _nativeSortedList;
 
             /// <summary>
             ///     Structure
             /// </summary>
             /// <param name="nativeSortedList">NativeSortedList</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal KeyCollection(void* nativeSortedList) => _nativeSortedList = (UnsafeSortedList<TKey, TValue>*)nativeSortedList;
+            internal KeyCollection(void* nativeSortedList) => _nativeSortedList = (StackallocSortedList<TKey, TValue>*)nativeSortedList;
 
             /// <summary>
             ///     As readOnly span
@@ -827,7 +714,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     NativeSortedList
                 /// </summary>
-                private readonly UnsafeSortedList<TKey, TValue>* _nativeSortedList;
+                private readonly StackallocSortedList<TKey, TValue>* _nativeSortedList;
 
                 /// <summary>
                 ///     Current
@@ -851,7 +738,7 @@ namespace NativeCollections
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 internal Enumerator(void* nativeSortedList)
                 {
-                    var handle = (UnsafeSortedList<TKey, TValue>*)nativeSortedList;
+                    var handle = (StackallocSortedList<TKey, TValue>*)nativeSortedList;
                     _nativeSortedList = handle;
                     _current = default;
                     _index = 0;
@@ -899,14 +786,14 @@ namespace NativeCollections
             /// <summary>
             ///     NativeSortedList
             /// </summary>
-            private readonly UnsafeSortedList<TKey, TValue>* _nativeSortedList;
+            private readonly StackallocSortedList<TKey, TValue>* _nativeSortedList;
 
             /// <summary>
             ///     Structure
             /// </summary>
             /// <param name="nativeSortedList">NativeSortedList</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal ValueCollection(void* nativeSortedList) => _nativeSortedList = (UnsafeSortedList<TKey, TValue>*)nativeSortedList;
+            internal ValueCollection(void* nativeSortedList) => _nativeSortedList = (StackallocSortedList<TKey, TValue>*)nativeSortedList;
 
             /// <summary>
             ///     As span
@@ -963,7 +850,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     NativeSortedList
                 /// </summary>
-                private readonly UnsafeSortedList<TKey, TValue>* _nativeSortedList;
+                private readonly StackallocSortedList<TKey, TValue>* _nativeSortedList;
 
                 /// <summary>
                 ///     Current
@@ -987,7 +874,7 @@ namespace NativeCollections
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 internal Enumerator(void* nativeSortedList)
                 {
-                    var handle = (UnsafeSortedList<TKey, TValue>*)nativeSortedList;
+                    var handle = (StackallocSortedList<TKey, TValue>*)nativeSortedList;
                     _nativeSortedList = handle;
                     _current = default;
                     _index = 0;

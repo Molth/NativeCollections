@@ -15,7 +15,7 @@ namespace NativeCollections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection(FromType.None | FromType.None)]
+    [NativeCollection(FromType.None)]
     [BindingType(typeof(UnsafeOrderedSparseSet<>))]
     public readonly unsafe struct NativeOrderedSparseSet<T> : IDisposable, IEquatable<NativeOrderedSparseSet<T>> where T : unmanaged
     {

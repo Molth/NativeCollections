@@ -10,13 +10,13 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe priorityQueue
+    ///     Stackalloc priorityQueue
     /// </summary>
     /// <typeparam name="TElement">Type</typeparam>
     /// <typeparam name="TPriority">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(FromType.Standard)]
-    public unsafe struct UnsafePriorityQueue<TElement, TPriority> : IDisposable where TElement : unmanaged where TPriority : unmanaged, IComparable<TPriority>
+    [StackallocCollection(FromType.Standard)]
+    public unsafe struct StackallocPriorityQueue<TElement, TPriority>  where TElement : unmanaged where TPriority : unmanaged, IComparable<TPriority>
     {
         /// <summary>
         ///     Nodes
@@ -74,27 +74,26 @@ namespace NativeCollections
         public UnorderedItemsCollection UnorderedItems => new(Unsafe.AsPointer(ref this));
 
         /// <summary>
-        ///     Structure
+        ///     Get buffer size
         /// </summary>
         /// <param name="capacity">Capacity</param>
+        /// <returns>Buffer size</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafePriorityQueue(int capacity)
+        public static int GetBufferSize(int capacity) => (capacity * sizeof((TElement Element, TPriority Priority)));
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <param name="capacity">Capacity</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StackallocPriorityQueue(Span<byte> buffer, int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            if (capacity < 4)
-                capacity = 4;
-            _nodes = ((TElement Element, TPriority Priority)*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof((TElement Element, TPriority Priority))));
+            _nodes = ((TElement Element, TPriority Priority)*)MemoryMarshal.GetReference(buffer);
             _length = capacity;
             _size = 0;
             _version = 0;
         }
-
-        /// <summary>
-        ///     Dispose
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => NativeMemoryAllocator.Free(_nodes);
 
         /// <summary>
         ///     Clear
@@ -104,22 +103,6 @@ namespace NativeCollections
         {
             _size = 0;
             ++_version;
-        }
-
-        /// <summary>
-        ///     Enqueue
-        /// </summary>
-        /// <param name="element">Element</param>
-        /// <param name="priority">Priority</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Enqueue(in TElement element, in TPriority priority)
-        {
-            var size = _size;
-            ++_version;
-            if (_length == size)
-                Grow(size + 1);
-            _size = size + 1;
-            MoveUp((element, priority), size);
         }
 
         /// <summary>
@@ -323,63 +306,6 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Ensure capacity
-        /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>New capacity</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int EnsureCapacity(int capacity)
-        {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            if (_length < capacity)
-            {
-                Grow(capacity);
-                ++_version;
-            }
-
-            return _length;
-        }
-
-        /// <summary>
-        ///     Trim excess
-        /// </summary>
-        /// <returns>New capacity</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int TrimExcess()
-        {
-            if (_size >= (int)(_length * 0.9))
-                return _length;
-            var nodes = ((TElement Element, TPriority Priority)*)NativeMemoryAllocator.Alloc((uint)(_size * sizeof((TElement Element, TPriority Priority))));
-            Unsafe.CopyBlockUnaligned(nodes, _nodes, (uint)(_size * sizeof((TElement Element, TPriority Priority))));
-            NativeMemoryAllocator.Free(_nodes);
-            _nodes = nodes;
-            _length = _size;
-            ++_version;
-            return _length;
-        }
-
-        /// <summary>
-        ///     Trim excess
-        /// </summary>
-        /// <returns>New capacity</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int TrimExcess(int capacity)
-        {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            if (capacity < _size || capacity >= _length)
-                return _length;
-            var nodes = ((TElement Element, TPriority Priority)*)NativeMemoryAllocator.Alloc((uint)(_size * sizeof((TElement Element, TPriority Priority))));
-            Unsafe.CopyBlockUnaligned(nodes, _nodes, (uint)(_size * sizeof((TElement Element, TPriority Priority))));
-            NativeMemoryAllocator.Free(_nodes);
-            _nodes = nodes;
-            _length = _size;
-            ++_version;
-            return _length;
-        }
-
-        /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
@@ -399,27 +325,6 @@ namespace NativeCollections
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref *(_nodes + start), length);
-
-        /// <summary>
-        ///     Grow
-        /// </summary>
-        /// <param name="capacity">Capacity</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void Grow(int capacity)
-        {
-            var newCapacity = 2 * _length;
-            if ((uint)newCapacity > 2147483591)
-                newCapacity = 2147483591;
-            var expected = _length + 4;
-            newCapacity = newCapacity > expected ? newCapacity : expected;
-            if (newCapacity < capacity)
-                newCapacity = capacity;
-            var nodes = ((TElement Element, TPriority Priority)*)NativeMemoryAllocator.Alloc((uint)(newCapacity * sizeof((TElement Element, TPriority Priority))));
-            Unsafe.CopyBlockUnaligned(nodes, _nodes, (uint)(_size * sizeof((TElement Element, TPriority Priority))));
-            NativeMemoryAllocator.Free(_nodes);
-            _nodes = nodes;
-            _length = newCapacity;
-        }
 
         /// <summary>
         ///     Remove root node
@@ -498,7 +403,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafePriorityQueue<TElement, TPriority> Empty => new();
+        public static StackallocPriorityQueue<TElement, TPriority> Empty => new();
 
         /// <summary>
         ///     Unordered items collection
@@ -509,14 +414,14 @@ namespace NativeCollections
             /// <summary>
             ///     NativePriorityQueue
             /// </summary>
-            private readonly UnsafePriorityQueue<TElement, TPriority>* _nativePriorityQueue;
+            private readonly StackallocPriorityQueue<TElement, TPriority>* _nativePriorityQueue;
 
             /// <summary>
             ///     Structure
             /// </summary>
             /// <param name="nativePriorityQueue">Native priorityQueue</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal UnorderedItemsCollection(void* nativePriorityQueue) => _nativePriorityQueue = (UnsafePriorityQueue<TElement, TPriority>*)nativePriorityQueue;
+            internal UnorderedItemsCollection(void* nativePriorityQueue) => _nativePriorityQueue = (StackallocPriorityQueue<TElement, TPriority>*)nativePriorityQueue;
 
             /// <summary>
             ///     As readOnly span
@@ -553,7 +458,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     NativePriorityQueue
                 /// </summary>
-                private readonly UnsafePriorityQueue<TElement, TPriority>* _nativePriorityQueue;
+                private readonly StackallocPriorityQueue<TElement, TPriority>* _nativePriorityQueue;
 
                 /// <summary>
                 ///     Version
@@ -577,7 +482,7 @@ namespace NativeCollections
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 internal Enumerator(void* nativePriorityQueue)
                 {
-                    var handle = (UnsafePriorityQueue<TElement, TPriority>*)nativePriorityQueue;
+                    var handle = (StackallocPriorityQueue<TElement, TPriority>*)nativePriorityQueue;
                     _nativePriorityQueue = handle;
                     _index = 0;
                     _version = handle->_version;

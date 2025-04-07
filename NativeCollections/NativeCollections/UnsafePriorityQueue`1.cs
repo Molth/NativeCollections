@@ -323,6 +323,26 @@ namespace NativeCollections
             ++_version;
             return _length;
         }
+        
+        /// <summary>
+        ///     Trim excess
+        /// </summary>
+        /// <returns>New capacity</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int TrimExcess(int capacity)
+        {
+            if (capacity < 0)
+                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            if (capacity < _size || capacity >= _length)
+                return _length;
+            var nodes = (TPriority*)NativeMemoryAllocator.Alloc((uint)(_size * sizeof(TPriority)));
+            Unsafe.CopyBlockUnaligned(nodes, _nodes, (uint)(_size * sizeof(TPriority)));
+            NativeMemoryAllocator.Free(_nodes);
+            _nodes = nodes;
+            _length = _size;
+            ++_version;
+            return _length;
+        }
 
         /// <summary>
         ///     As readOnly span

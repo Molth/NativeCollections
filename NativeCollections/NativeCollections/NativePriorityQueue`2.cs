@@ -247,6 +247,12 @@ namespace NativeCollections
         public int TrimExcess() => _handle->TrimExcess();
 
         /// <summary>
+        ///     Trim excess
+        /// </summary>
+        /// <returns>New capacity</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int TrimExcess(int capacity) => _handle->TrimExcess(capacity);
+        /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>

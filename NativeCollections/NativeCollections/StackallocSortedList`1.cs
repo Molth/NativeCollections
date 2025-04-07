@@ -10,12 +10,12 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe sortedList
+    ///     Stackalloc sortedList
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(FromType.Standard)]
-    public unsafe struct UnsafeSortedList<T> : IDisposable where T : unmanaged, IComparable<T>
+    [StackallocCollection(FromType.Standard)]
+    public unsafe struct StackallocSortedList<T> where T : unmanaged, IComparable<T>
     {
         /// <summary>
         ///     Items
@@ -53,27 +53,26 @@ namespace NativeCollections
         public int Capacity => _capacity;
 
         /// <summary>
-        ///     Structure
+        ///     Get buffer size
         /// </summary>
         /// <param name="capacity">Capacity</param>
+        /// <returns>Buffer size</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeSortedList(int capacity)
+        public static int GetBufferSize(int capacity) => (capacity * sizeof(T));
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <param name="capacity">Capacity</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StackallocSortedList(Span<byte> buffer,int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            if (capacity < 4)
-                capacity = 4;
-            _items = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
+            _items = (T*)MemoryMarshal.GetReference(buffer);
             _size = 0;
             _version = 0;
             _capacity = capacity;
         }
-
-        /// <summary>
-        ///     Dispose
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => NativeMemoryAllocator.Free(_items);
 
         /// <summary>
         ///     Clear
@@ -102,27 +101,10 @@ namespace NativeCollections
         /// </summary>
         /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Add(in T item)
+        public InsertResult TryAdd(in T item)
         {
             var num = IndexOf(item);
-            if (num >= 0)
-                throw new ArgumentException($"AddingDuplicate, {item}", nameof(item));
-            Insert(~num, item);
-        }
-
-        /// <summary>
-        ///     Try add
-        /// </summary>
-        /// <param name="item">Item</param>
-        /// <returns>Added</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryAdd(in T item)
-        {
-            var num = IndexOf(item);
-            if (num >= 0)
-                return false;
-            Insert(~num, item);
-            return true;
+            return num >= 0 ? InsertResult.AlreadyExists : Insert(~num, item);
         }
 
         /// <summary>
@@ -285,90 +267,6 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Ensure capacity
-        /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>New capacity</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int EnsureCapacity(int capacity)
-        {
-            if (_capacity < capacity)
-            {
-                var newCapacity = 2 * _capacity;
-                if ((uint)newCapacity > 2147483591)
-                    newCapacity = 2147483591;
-                var expected = _capacity + 4;
-                newCapacity = newCapacity > expected ? newCapacity : expected;
-                if (newCapacity < capacity)
-                    newCapacity = capacity;
-                SetCapacity(newCapacity);
-            }
-
-            return _capacity;
-        }
-
-        /// <summary>
-        ///     Trim excess
-        /// </summary>
-        /// <returns>New capacity</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int TrimExcess()
-        {
-            var threshold = (int)(_capacity * 0.9);
-            if (_size < threshold)
-                SetCapacity(_size);
-            return _capacity;
-        }
-
-        /// <summary>
-        ///     Trim excess
-        /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>New capacity</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int TrimExcess(int capacity)
-        {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            if (capacity < _size || capacity >= _capacity)
-                return _capacity;
-            SetCapacity(capacity);
-            return _capacity;
-        }
-
-        /// <summary>
-        ///     Set capacity
-        /// </summary>
-        /// <param name="capacity">Capacity</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetCapacity(int capacity)
-        {
-            if (capacity < _size)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "Small_Capacity");
-            if (capacity != _capacity)
-            {
-                if (capacity > 0)
-                {
-                    var items = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
-                    if (_size > 0)
-                    {
-                        Unsafe.CopyBlockUnaligned(items, _items, (uint)(_size * sizeof(T)));
-                        NativeMemoryAllocator.Free(_items);
-                    }
-
-                    _items = items;
-                }
-                else
-                {
-                    NativeMemoryAllocator.Free(_items);
-                    _items = null;
-                }
-
-                _capacity = capacity;
-            }
-        }
-
-        /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
@@ -394,7 +292,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<T>(in UnsafeSortedList<T> unsafeSortedList) => unsafeSortedList.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<T>(in StackallocSortedList<T> stackallocSortedList) => stackallocSortedList.AsReadOnlySpan();
 
         /// <summary>
         ///     Insert
@@ -402,21 +300,22 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void Insert(int index, in T item)
+        private InsertResult Insert(int index, in T item)
         {
             if (_size == _capacity)
-                EnsureCapacity(_size + 1);
+                return InsertResult.InsufficientCapacity;
             if (index < _size)
                 Unsafe.CopyBlockUnaligned(_items + index + 1, _items + index, (uint)((_size - index) * sizeof(T)));
             _items[index] = item;
             ++_size;
             ++_version;
+            return InsertResult.Success;
         }
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeSortedList<T> Empty => new();
+        public static StackallocSortedList<T> Empty => new();
 
         /// <summary>
         ///     Get enumerator
@@ -432,7 +331,7 @@ namespace NativeCollections
             /// <summary>
             ///     NativeSortedList
             /// </summary>
-            private readonly UnsafeSortedList<T>* _nativeSortedList;
+            private readonly StackallocSortedList<T>* _nativeSortedList;
 
             /// <summary>
             ///     Current
@@ -456,7 +355,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal Enumerator(void* nativeSortedList)
             {
-                var handle = (UnsafeSortedList<T>*)nativeSortedList;
+                var handle = (StackallocSortedList<T>*)nativeSortedList;
                 _nativeSortedList = handle;
                 _current = default;
                 _index = 0;

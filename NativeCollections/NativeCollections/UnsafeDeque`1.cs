@@ -292,6 +292,22 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Trim excess
+        /// </summary>
+        /// <param name="capacity">Capacity</param>
+        /// <returns>New capacity</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int TrimExcess(int capacity)
+        {
+            if (capacity < 0)
+                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            if (capacity < _size || capacity >= _length)
+                return _length;
+            SetCapacity(capacity);
+            return _length;
+        }
+
+        /// <summary>
         ///     Set capacity
         /// </summary>
         /// <param name="capacity">Capacity</param>

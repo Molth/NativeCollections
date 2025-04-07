@@ -10,18 +10,17 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe priorityQueue
+    ///     Stackalloc priorityQueue
     /// </summary>
-    /// <typeparam name="TElement">Type</typeparam>
     /// <typeparam name="TPriority">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(FromType.Standard)]
-    public unsafe struct UnsafePriorityQueue<TElement, TPriority> : IDisposable where TElement : unmanaged where TPriority : unmanaged, IComparable<TPriority>
+    [StackallocCollection(FromType.None)]
+    public unsafe struct StackallocPriorityQueue<TPriority>  where TPriority : unmanaged, IComparable<TPriority>
     {
         /// <summary>
         ///     Nodes
         /// </summary>
-        private (TElement Element, TPriority Priority)* _nodes;
+        private TPriority* _nodes;
 
         /// <summary>
         ///     Length
@@ -52,7 +51,7 @@ namespace NativeCollections
         ///     Get reference
         /// </summary>
         /// <param name="index">Index</param>
-        public (TElement Element, TPriority Priority) this[int index]
+        public TPriority this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => _nodes[index];
@@ -62,7 +61,7 @@ namespace NativeCollections
         ///     Get reference
         /// </summary>
         /// <param name="index">Index</param>
-        public (TElement Element, TPriority Priority) this[uint index]
+        public TPriority this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => _nodes[index];
@@ -74,27 +73,26 @@ namespace NativeCollections
         public UnorderedItemsCollection UnorderedItems => new(Unsafe.AsPointer(ref this));
 
         /// <summary>
-        ///     Structure
+        ///     Get buffer size
         /// </summary>
         /// <param name="capacity">Capacity</param>
+        /// <returns>Buffer size</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafePriorityQueue(int capacity)
+        public static int GetBufferSize(int capacity) => (capacity * sizeof(TPriority));
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <param name="capacity">Capacity</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StackallocPriorityQueue(Span<byte> buffer,int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            if (capacity < 4)
-                capacity = 4;
-            _nodes = ((TElement Element, TPriority Priority)*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof((TElement Element, TPriority Priority))));
+            _nodes = (TPriority*)MemoryMarshal.GetReference(buffer);
             _length = capacity;
             _size = 0;
             _version = 0;
         }
-
-        /// <summary>
-        ///     Dispose
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => NativeMemoryAllocator.Free(_nodes);
 
         /// <summary>
         ///     Clear
@@ -107,35 +105,18 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Enqueue
-        /// </summary>
-        /// <param name="element">Element</param>
-        /// <param name="priority">Priority</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Enqueue(in TElement element, in TPriority priority)
-        {
-            var size = _size;
-            ++_version;
-            if (_length == size)
-                Grow(size + 1);
-            _size = size + 1;
-            MoveUp((element, priority), size);
-        }
-
-        /// <summary>
         ///     Try enqueue
         /// </summary>
-        /// <param name="element">Element</param>
         /// <param name="priority">Priority</param>
         /// <returns>Enqueued</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryEnqueue(in TElement element, in TPriority priority)
+        public bool TryEnqueue(in TPriority priority)
         {
             var size = _size;
             if (_length != size)
             {
                 _size = size + 1;
-                MoveUp((element, priority), size);
+                MoveUp(priority, size);
                 ++_version;
                 return true;
             }
@@ -146,105 +127,79 @@ namespace NativeCollections
         /// <summary>
         ///     Enqueue dequeue
         /// </summary>
-        /// <param name="element">Element</param>
         /// <param name="priority">Priority</param>
-        /// <returns>Element</returns>
+        /// <returns>Priority</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TElement EnqueueDequeue(in TElement element, in TPriority priority)
+        public TPriority EnqueueDequeue(in TPriority priority)
         {
             if (_size != 0)
             {
                 var node = _nodes[0];
-                if (priority.CompareTo(node.Priority) > 0)
+                if (priority.CompareTo(node) > 0)
                 {
-                    MoveDown((element, priority), 0);
+                    MoveDown(priority, 0);
                     ++_version;
-                    return node.Element;
+                    return node;
                 }
             }
 
-            return element;
+            return priority;
         }
 
         /// <summary>
         ///     Try enqueue dequeue
         /// </summary>
-        /// <param name="element">Element</param>
         /// <param name="priority">Priority</param>
-        /// <param name="result">Element</param>
+        /// <param name="result">Priority</param>
         /// <returns>Enqueued</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryEnqueueDequeue(in TElement element, in TPriority priority, out TElement result)
+        public bool TryEnqueueDequeue(in TPriority priority, out TPriority result)
         {
             if (_size != 0)
             {
                 var node = _nodes[0];
-                if (priority.CompareTo(node.Priority) > 0)
+                if (priority.CompareTo(node) > 0)
                 {
-                    MoveDown((element, priority), 0);
+                    MoveDown(priority, 0);
                     ++_version;
-                    result = node.Element;
+                    result = node;
                     return true;
                 }
             }
 
-            result = element;
+            result = priority;
             return false;
         }
 
         /// <summary>
         ///     Dequeue
         /// </summary>
-        /// <returns>Item</returns>
+        /// <returns>Priority</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TElement Dequeue()
+        public TPriority Dequeue()
         {
             if (_size == 0)
                 throw new InvalidOperationException("EmptyQueue");
-            var element = _nodes[0].Element;
+            var priority = _nodes[0];
             RemoveRootNode();
-            return element;
+            return priority;
         }
 
         /// <summary>
         ///     Try dequeue
         /// </summary>
-        /// <param name="element">Element</param>
-        /// <returns>Dequeued</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDequeue(out TElement element)
-        {
-            if (_size != 0)
-            {
-                var tuple = _nodes[0];
-                element = tuple.Element;
-                RemoveRootNode();
-                return true;
-            }
-
-            element = default;
-            return false;
-        }
-
-        /// <summary>
-        ///     Try dequeue
-        /// </summary>
-        /// <param name="element">Element</param>
         /// <param name="priority">Priority</param>
         /// <returns>Dequeued</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDequeue(out TElement element, out TPriority priority)
+        public bool TryDequeue(out TPriority priority)
         {
             if (_size != 0)
             {
-                var tuple = _nodes[0];
-                element = tuple.Element;
-                priority = tuple.Priority;
+                priority = _nodes[0];
                 RemoveRootNode();
                 return true;
             }
 
-            element = default;
             priority = default;
             return false;
         }
@@ -252,30 +207,28 @@ namespace NativeCollections
         /// <summary>
         ///     Dequeue enqueue
         /// </summary>
-        /// <param name="element">Element</param>
         /// <param name="priority">Priority</param>
-        /// <returns>Element</returns>
-        public TElement DequeueEnqueue(in TElement element, in TPriority priority)
+        /// <returns>Priority</returns>
+        public TPriority DequeueEnqueue(in TPriority priority)
         {
             if (_size == 0)
                 throw new InvalidOperationException("EmptyQueue");
             var node = _nodes[0];
-            if (priority.CompareTo(node.Priority) > 0)
-                MoveDown((element, priority), 0);
+            if (priority.CompareTo(node) > 0)
+                MoveDown(priority, 0);
             else
-                _nodes[0] = (element, priority);
+                _nodes[0] = priority;
             ++_version;
-            return node.Element;
+            return node;
         }
 
         /// <summary>
         ///     Try dequeue enqueue
         /// </summary>
-        /// <param name="element">Element</param>
         /// <param name="priority">Priority</param>
-        /// <param name="result">Element</param>
+        /// <param name="result">Priority</param>
         /// <returns>Dequeued</returns>
-        public bool TryDequeueEnqueue(in TElement element, in TPriority priority, out TElement result)
+        public bool TryDequeueEnqueue(in TPriority priority, out TPriority result)
         {
             if (_size == 0)
             {
@@ -284,12 +237,12 @@ namespace NativeCollections
             }
 
             var node = _nodes[0];
-            if (priority.CompareTo(node.Priority) > 0)
-                MoveDown((element, priority), 0);
+            if (priority.CompareTo(node) > 0)
+                MoveDown(priority, 0);
             else
-                _nodes[0] = (element, priority);
+                _nodes[0] = priority;
             ++_version;
-            result = node.Element;
+            result = node;
             return true;
         }
 
@@ -298,128 +251,46 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Item</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TElement Peek() => _size == 0 ? throw new InvalidOperationException("EmptyQueue") : _nodes[0].Element;
+        public TPriority Peek() => _size == 0 ? throw new InvalidOperationException("EmptyQueue") : _nodes[0];
 
         /// <summary>
         ///     Try peek
         /// </summary>
-        /// <param name="element">Element</param>
         /// <param name="priority">Priority</param>
         /// <returns>Peeked</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryPeek(out TElement element, out TPriority priority)
+        public bool TryPeek(out TPriority priority)
         {
             if (_size != 0)
             {
-                var tuple = _nodes[0];
-                element = tuple.Element;
-                priority = tuple.Priority;
+                priority = _nodes[0];
                 return true;
             }
 
-            element = default;
             priority = default;
             return false;
         }
 
         /// <summary>
-        ///     Ensure capacity
+        ///     As readOnly span
         /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>New capacity</returns>
+        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int EnsureCapacity(int capacity)
-        {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            if (_length < capacity)
-            {
-                Grow(capacity);
-                ++_version;
-            }
-
-            return _length;
-        }
-
-        /// <summary>
-        ///     Trim excess
-        /// </summary>
-        /// <returns>New capacity</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int TrimExcess()
-        {
-            if (_size >= (int)(_length * 0.9))
-                return _length;
-            var nodes = ((TElement Element, TPriority Priority)*)NativeMemoryAllocator.Alloc((uint)(_size * sizeof((TElement Element, TPriority Priority))));
-            Unsafe.CopyBlockUnaligned(nodes, _nodes, (uint)(_size * sizeof((TElement Element, TPriority Priority))));
-            NativeMemoryAllocator.Free(_nodes);
-            _nodes = nodes;
-            _length = _size;
-            ++_version;
-            return _length;
-        }
-
-        /// <summary>
-        ///     Trim excess
-        /// </summary>
-        /// <returns>New capacity</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int TrimExcess(int capacity)
-        {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            if (capacity < _size || capacity >= _length)
-                return _length;
-            var nodes = ((TElement Element, TPriority Priority)*)NativeMemoryAllocator.Alloc((uint)(_size * sizeof((TElement Element, TPriority Priority))));
-            Unsafe.CopyBlockUnaligned(nodes, _nodes, (uint)(_size * sizeof((TElement Element, TPriority Priority))));
-            NativeMemoryAllocator.Free(_nodes);
-            _nodes = nodes;
-            _length = _size;
-            ++_version;
-            return _length;
-        }
+        public ReadOnlySpan<TPriority> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref *_nodes, _size);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref *_nodes, _size);
+        public ReadOnlySpan<TPriority> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref *(_nodes + start), _size - start);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref *(_nodes + start), _size - start);
-
-        /// <summary>
-        ///     As readOnly span
-        /// </summary>
-        /// <returns>ReadOnlySpan</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref *(_nodes + start), length);
-
-        /// <summary>
-        ///     Grow
-        /// </summary>
-        /// <param name="capacity">Capacity</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void Grow(int capacity)
-        {
-            var newCapacity = 2 * _length;
-            if ((uint)newCapacity > 2147483591)
-                newCapacity = 2147483591;
-            var expected = _length + 4;
-            newCapacity = newCapacity > expected ? newCapacity : expected;
-            if (newCapacity < capacity)
-                newCapacity = capacity;
-            var nodes = ((TElement Element, TPriority Priority)*)NativeMemoryAllocator.Alloc((uint)(newCapacity * sizeof((TElement Element, TPriority Priority))));
-            Unsafe.CopyBlockUnaligned(nodes, _nodes, (uint)(_size * sizeof((TElement Element, TPriority Priority))));
-            NativeMemoryAllocator.Free(_nodes);
-            _nodes = nodes;
-            _length = newCapacity;
-        }
+        public ReadOnlySpan<TPriority> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref *(_nodes + start), length);
 
         /// <summary>
         ///     Remove root node
@@ -442,16 +313,16 @@ namespace NativeCollections
         /// <param name="node">Node</param>
         /// <param name="nodeIndex">Node index</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void MoveUp(in (TElement Element, TPriority Priority) node, int nodeIndex)
+        private void MoveUp(in TPriority node, int nodeIndex)
         {
             var nodes = _nodes;
             int parentIndex;
             for (; nodeIndex > 0; nodeIndex = parentIndex)
             {
                 parentIndex = (nodeIndex - 1) >> 2;
-                var tuple = nodes[parentIndex];
-                if (node.Priority.CompareTo(tuple.Priority) < 0)
-                    nodes[nodeIndex] = tuple;
+                var priority = nodes[parentIndex];
+                if (node.CompareTo(priority) < 0)
+                    nodes[nodeIndex] = priority;
                 else
                     break;
             }
@@ -465,29 +336,29 @@ namespace NativeCollections
         /// <param name="node">Node</param>
         /// <param name="nodeIndex">Node index</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void MoveDown(in (TElement Element, TPriority Priority) node, int nodeIndex)
+        private void MoveDown(in TPriority node, int nodeIndex)
         {
             var nodes = _nodes;
             int firstChildIndex;
             int first;
             for (var size = _size; (firstChildIndex = (nodeIndex << 2) + 1) < size; nodeIndex = first)
             {
-                var valueTuple = nodes[firstChildIndex];
+                var priority1 = nodes[firstChildIndex];
                 first = firstChildIndex;
                 var minSize = firstChildIndex + 4;
                 var second = minSize <= size ? minSize : size;
                 while (++firstChildIndex < second)
                 {
-                    var tuple = nodes[firstChildIndex];
-                    if (tuple.Priority.CompareTo(valueTuple.Priority) < 0)
+                    var priority2 = nodes[firstChildIndex];
+                    if (priority2.CompareTo(priority1) < 0)
                     {
-                        valueTuple = tuple;
+                        priority1 = priority2;
                         first = firstChildIndex;
                     }
                 }
 
-                if (node.Priority.CompareTo(valueTuple.Priority) > 0)
-                    nodes[nodeIndex] = valueTuple;
+                if (node.CompareTo(priority1) > 0)
+                    nodes[nodeIndex] = priority1;
                 else
                     break;
             }
@@ -498,7 +369,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafePriorityQueue<TElement, TPriority> Empty => new();
+        public static StackallocPriorityQueue<TPriority> Empty => new();
 
         /// <summary>
         ///     Unordered items collection
@@ -509,35 +380,35 @@ namespace NativeCollections
             /// <summary>
             ///     NativePriorityQueue
             /// </summary>
-            private readonly UnsafePriorityQueue<TElement, TPriority>* _nativePriorityQueue;
+            private readonly StackallocPriorityQueue<TPriority>* _nativePriorityQueue;
 
             /// <summary>
             ///     Structure
             /// </summary>
             /// <param name="nativePriorityQueue">Native priorityQueue</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal UnorderedItemsCollection(void* nativePriorityQueue) => _nativePriorityQueue = (UnsafePriorityQueue<TElement, TPriority>*)nativePriorityQueue;
+            internal UnorderedItemsCollection(void* nativePriorityQueue) => _nativePriorityQueue = (StackallocPriorityQueue<TPriority>*)nativePriorityQueue;
 
             /// <summary>
             ///     As readOnly span
             /// </summary>
             /// <returns>ReadOnlySpan</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan() => _nativePriorityQueue->AsReadOnlySpan();
+            public ReadOnlySpan<TPriority> AsReadOnlySpan() => _nativePriorityQueue->AsReadOnlySpan();
 
             /// <summary>
             ///     As readOnly span
             /// </summary>
             /// <returns>ReadOnlySpan</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan(int start) => _nativePriorityQueue->AsReadOnlySpan(start);
+            public ReadOnlySpan<TPriority> AsReadOnlySpan(int start) => _nativePriorityQueue->AsReadOnlySpan(start);
 
             /// <summary>
             ///     As readOnly span
             /// </summary>
             /// <returns>ReadOnlySpan</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan(int start, int length) => _nativePriorityQueue->AsReadOnlySpan(start, length);
+            public ReadOnlySpan<TPriority> AsReadOnlySpan(int start, int length) => _nativePriorityQueue->AsReadOnlySpan(start, length);
 
             /// <summary>
             ///     Get enumerator
@@ -553,7 +424,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     NativePriorityQueue
                 /// </summary>
-                private readonly UnsafePriorityQueue<TElement, TPriority>* _nativePriorityQueue;
+                private readonly StackallocPriorityQueue<TPriority>* _nativePriorityQueue;
 
                 /// <summary>
                 ///     Version
@@ -568,7 +439,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     Current
                 /// </summary>
-                private (TElement Element, TPriority Priority) _current;
+                private TPriority _current;
 
                 /// <summary>
                 ///     Structure
@@ -577,7 +448,7 @@ namespace NativeCollections
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 internal Enumerator(void* nativePriorityQueue)
                 {
-                    var handle = (UnsafePriorityQueue<TElement, TPriority>*)nativePriorityQueue;
+                    var handle = (StackallocPriorityQueue<TPriority>*)nativePriorityQueue;
                     _nativePriorityQueue = handle;
                     _index = 0;
                     _version = handle->_version;
@@ -609,7 +480,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     Current
                 /// </summary>
-                public (TElement Element, TPriority Priority) Current
+                public TPriority Current
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
                     get => _current;

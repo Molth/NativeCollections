@@ -11,12 +11,13 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe orderedSparseSet
+    ///     Stackalloc sparseSet
+    ///     //https://github.com/bombela/sparseset
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(FromType.None )]
-    public unsafe struct UnsafeOrderedSparseSet<T> : IDisposable where T : unmanaged
+    [StackallocCollection(FromType.Community | FromType.Rust)]
+    public unsafe struct StackallocSparseSet<T> where T : unmanaged
     {
         /// <summary>
         ///     Dense
@@ -32,16 +33,6 @@ namespace NativeCollections
         ///     Length
         /// </summary>
         private int _length;
-
-        /// <summary>
-        ///     Head
-        /// </summary>
-        private int _head;
-
-        /// <summary>
-        ///     Tail
-        /// </summary>
-        private int _tail;
 
         /// <summary>
         ///     Count
@@ -62,21 +53,6 @@ namespace NativeCollections
         ///     Values
         /// </summary>
         public ValueCollection Values => new(Unsafe.AsPointer(ref this));
-
-        /// <summary>
-        ///     Keys
-        /// </summary>
-        public OrderedKeyCollection OrderedKeys => new(Unsafe.AsPointer(ref this));
-
-        /// <summary>
-        ///     Values
-        /// </summary>
-        public OrderedValueCollection OrderedValues => new(Unsafe.AsPointer(ref this));
-
-        /// <summary>
-        ///     KeyValuePairs
-        /// </summary>
-        public OrderedKeyValuePairCollection OrderedKeyValuePairs => new(Unsafe.AsPointer(ref this));
 
         /// <summary>
         ///     Get or set value
@@ -111,31 +87,28 @@ namespace NativeCollections
         public int Count => _count;
 
         /// <summary>
-        ///     Structure
+        ///     Get buffer size
         /// </summary>
         /// <param name="capacity">Capacity</param>
+        /// <returns>Buffer size</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeOrderedSparseSet(int capacity)
+        public static int GetBufferSize(int capacity) => (capacity * (sizeof(Entry) + sizeof(int)));
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <param name="capacity">Capacity</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public StackallocSparseSet(Span<byte> buffer, int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            if (capacity < 4)
-                capacity = 4;
-            _dense = (Entry*)NativeMemoryAllocator.Alloc((uint)(capacity * (sizeof(Entry) + sizeof(int))));
+            _dense = (Entry*)MemoryMarshal.GetReference(buffer);
             _sparse = (int*)((byte*)_dense + capacity * sizeof(Entry));
             MemoryMarshal.CreateSpan(ref *_sparse, capacity).Fill(-1);
             _length = capacity;
-            _head = -1;
-            _tail = -1;
             _count = 0;
             _version = 0;
         }
-
-        /// <summary>
-        ///     Dispose
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => NativeMemoryAllocator.Free(_dense);
 
         /// <summary>
         ///     Clear
@@ -144,34 +117,8 @@ namespace NativeCollections
         public void Clear()
         {
             MemoryMarshal.CreateSpan(ref *_sparse, _length).Fill(-1);
-            _head = -1;
-            _tail = -1;
             _count = 0;
             ++_version;
-        }
-
-        /// <summary>
-        ///     Set capacity
-        /// </summary>
-        /// <param name="capacity">Capacity</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetCapacity(int capacity)
-        {
-            if (capacity < _count)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "SmallCapacity");
-            if (capacity != _length)
-            {
-                var dense = (Entry*)NativeMemoryAllocator.Alloc((uint)(capacity * (sizeof(Entry) + sizeof(int))));
-                var sparse = (int*)((byte*)dense + capacity * sizeof(Entry));
-                Unsafe.CopyBlockUnaligned(dense, _dense, (uint)(_count * sizeof(Entry)));
-                Unsafe.CopyBlockUnaligned(sparse, _sparse, (uint)(_count * sizeof(int)));
-                if (capacity > _length)
-                    MemoryMarshal.CreateSpan(ref *(sparse + _length), capacity - _length).Fill(-1);
-                _dense = dense;
-                _sparse = sparse;
-                _length = capacity;
-                ++_version;
-            }
         }
 
         /// <summary>
@@ -193,21 +140,7 @@ namespace NativeCollections
             ref var entry = ref _dense[count];
             entry.Key = key;
             entry.Value = value;
-            entry.Next = -1;
             _sparse[key] = count;
-            ref var tail = ref _tail;
-            if (tail != -1)
-            {
-                _dense[tail].Next = count;
-                entry.Previous = tail;
-            }
-            else
-            {
-                _head = count;
-                entry.Previous = -1;
-            }
-
-            tail = count;
             ++count;
             ++_version;
             return true;
@@ -242,21 +175,7 @@ namespace NativeCollections
             ref var entry = ref _dense[count];
             entry.Key = key;
             entry.Value = value;
-            entry.Next = -1;
             _sparse[key] = count;
-            ref var tail = ref _tail;
-            if (tail != -1)
-            {
-                _dense[tail].Next = count;
-                entry.Previous = tail;
-            }
-            else
-            {
-                _head = count;
-                entry.Previous = -1;
-            }
-
-            tail = count;
             ++count;
             ++_version;
             return true;
@@ -275,28 +194,11 @@ namespace NativeCollections
             var index = _sparse[key];
             if (index == -1)
                 return false;
-            ref var entry = ref _dense[index];
-            if (entry.Next != -1)
-                _dense[entry.Next].Previous = entry.Previous;
-            else
-                _tail = entry.Previous;
-            if (entry.Previous != -1)
-                _dense[entry.Previous].Next = entry.Next;
-            else
-                _head = entry.Next;
             --_count;
             if (index != _count)
             {
                 ref var lastEntry = ref _dense[_count];
-                entry = lastEntry;
-                if (entry.Next != -1)
-                    _dense[entry.Next].Previous = index;
-                else
-                    _tail = index;
-                if (entry.Previous != -1)
-                    _dense[entry.Previous].Next = index;
-                else
-                    _head = index;
+                _dense[index] = lastEntry;
                 _sparse[lastEntry.Key] = index;
             }
 
@@ -329,27 +231,11 @@ namespace NativeCollections
 
             ref var entry = ref _dense[index];
             value = entry.Value;
-            if (entry.Next != -1)
-                _dense[entry.Next].Previous = entry.Previous;
-            else
-                _tail = entry.Previous;
-            if (entry.Previous != -1)
-                _dense[entry.Previous].Next = entry.Next;
-            else
-                _head = entry.Next;
             --_count;
             if (index != _count)
             {
                 ref var lastEntry = ref _dense[_count];
                 entry = lastEntry;
-                if (entry.Next != -1)
-                    _dense[entry.Next].Previous = index;
-                else
-                    _tail = index;
-                if (entry.Previous != -1)
-                    _dense[entry.Previous].Next = index;
-                else
-                    _head = index;
                 _sparse[lastEntry.Key] = index;
             }
 
@@ -454,7 +340,8 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
             if (index >= _count)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
-            return ref _dense[index].Value;
+            ref var entry = ref _dense[index];
+            return ref entry.Value;
         }
 
         /// <summary>
@@ -491,7 +378,8 @@ namespace NativeCollections
                 return false;
             }
 
-            value = _dense[index].Value;
+            ref var entry = ref _dense[index];
+            value = entry.Value;
             return true;
         }
 
@@ -510,7 +398,8 @@ namespace NativeCollections
                 return false;
             }
 
-            value = new NativeReference<T>(Unsafe.AsPointer(ref _dense[index].Value));
+            ref var entry = ref _dense[index];
+            value = new NativeReference<T>(Unsafe.AsPointer(ref entry.Value));
             return true;
         }
 
@@ -735,7 +624,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<KeyValuePair<int, T>>(in UnsafeOrderedSparseSet<T> unsafeOrderedSparseSet) => unsafeOrderedSparseSet.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<KeyValuePair<int, T>>(in StackallocSparseSet<T> stackallocSparseSet) => stackallocSparseSet.AsReadOnlySpan();
 
         /// <summary>
         ///     Entry
@@ -752,22 +641,12 @@ namespace NativeCollections
             ///     Value
             /// </summary>
             public T Value;
-
-            /// <summary>
-            ///     Next
-            /// </summary>
-            public int Next;
-
-            /// <summary>
-            ///     Previous
-            /// </summary>
-            public int Previous;
         }
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeOrderedSparseSet<T> Empty => new();
+        public static StackallocSparseSet<T> Empty => new();
 
         /// <summary>
         ///     Get enumerator
@@ -783,7 +662,7 @@ namespace NativeCollections
             /// <summary>
             ///     NativeSparseSet
             /// </summary>
-            private readonly UnsafeOrderedSparseSet<T>* _nativeSparseSet;
+            private readonly StackallocSparseSet<T>* _nativeSparseSet;
 
             /// <summary>
             ///     Version
@@ -802,7 +681,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal Enumerator(void* nativeSparseSet)
             {
-                var handle = (UnsafeOrderedSparseSet<T>*)nativeSparseSet;
+                var handle = (StackallocSparseSet<T>*)nativeSparseSet;
                 _nativeSparseSet = handle;
                 _version = handle->_version;
                 _index = -1;
@@ -844,14 +723,14 @@ namespace NativeCollections
             /// <summary>
             ///     NativeSparseSet
             /// </summary>
-            private readonly UnsafeOrderedSparseSet<T>* _nativeSparseSet;
+            private readonly StackallocSparseSet<T>* _nativeSparseSet;
 
             /// <summary>
             ///     Structure
             /// </summary>
             /// <param name="nativeSparseSet">NativeSparseSet</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal KeyCollection(void* nativeSparseSet) => _nativeSparseSet = (UnsafeOrderedSparseSet<T>*)nativeSparseSet;
+            internal KeyCollection(void* nativeSparseSet) => _nativeSparseSet = (StackallocSparseSet<T>*)nativeSparseSet;
 
             /// <summary>
             ///     Count
@@ -890,7 +769,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     NativeSparseSet
                 /// </summary>
-                private readonly UnsafeOrderedSparseSet<T>* _nativeSparseSet;
+                private readonly StackallocSparseSet<T>* _nativeSparseSet;
 
                 /// <summary>
                 ///     Version
@@ -909,7 +788,7 @@ namespace NativeCollections
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 internal Enumerator(void* nativeSparseSet)
                 {
-                    var handle = (UnsafeOrderedSparseSet<T>*)nativeSparseSet;
+                    var handle = (StackallocSparseSet<T>*)nativeSparseSet;
                     _nativeSparseSet = handle;
                     _version = handle->_version;
                     _index = -1;
@@ -952,14 +831,14 @@ namespace NativeCollections
             /// <summary>
             ///     NativeSparseSet
             /// </summary>
-            private readonly UnsafeOrderedSparseSet<T>* _nativeSparseSet;
+            private readonly StackallocSparseSet<T>* _nativeSparseSet;
 
             /// <summary>
             ///     Structure
             /// </summary>
             /// <param name="nativeSparseSet">NativeSparseSet</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal ValueCollection(void* nativeSparseSet) => _nativeSparseSet = (UnsafeOrderedSparseSet<T>*)nativeSparseSet;
+            internal ValueCollection(void* nativeSparseSet) => _nativeSparseSet = (StackallocSparseSet<T>*)nativeSparseSet;
 
             /// <summary>
             ///     Count
@@ -998,7 +877,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     NativeSparseSet
                 /// </summary>
-                private readonly UnsafeOrderedSparseSet<T>* _nativeSparseSet;
+                private readonly StackallocSparseSet<T>* _nativeSparseSet;
 
                 /// <summary>
                 ///     Version
@@ -1017,7 +896,7 @@ namespace NativeCollections
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 internal Enumerator(void* nativeSparseSet)
                 {
-                    var handle = (UnsafeOrderedSparseSet<T>*)nativeSparseSet;
+                    var handle = (StackallocSparseSet<T>*)nativeSparseSet;
                     _nativeSparseSet = handle;
                     _version = handle->_version;
                     _index = -1;
@@ -1047,300 +926,6 @@ namespace NativeCollections
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
                     get => _nativeSparseSet->_dense[_index].Value;
-                }
-            }
-        }
-
-        /// <summary>
-        ///     Key collection
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential)]
-        public readonly struct OrderedKeyCollection
-        {
-            /// <summary>
-            ///     NativeSparseSet
-            /// </summary>
-            private readonly UnsafeOrderedSparseSet<T>* _nativeSparseSet;
-
-            /// <summary>
-            ///     Structure
-            /// </summary>
-            /// <param name="nativeSparseSet">NativeSparseSet</param>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal OrderedKeyCollection(void* nativeSparseSet) => _nativeSparseSet = (UnsafeOrderedSparseSet<T>*)nativeSparseSet;
-
-            /// <summary>
-            ///     Count
-            /// </summary>
-            public int Count => _nativeSparseSet->_count;
-
-            /// <summary>
-            ///     Get enumerator
-            /// </summary>
-            /// <returns>Enumerator</returns>
-            public Enumerator GetEnumerator() => new(_nativeSparseSet);
-
-            /// <summary>
-            ///     Enumerator
-            /// </summary>
-            public struct Enumerator
-            {
-                /// <summary>
-                ///     NativeSparseSet
-                /// </summary>
-                private readonly UnsafeOrderedSparseSet<T>* _nativeSparseSet;
-
-                /// <summary>
-                ///     Version
-                /// </summary>
-                private readonly int _version;
-
-                /// <summary>
-                ///     Index
-                /// </summary>
-                private int _index;
-
-                /// <summary>
-                ///     Current
-                /// </summary>
-                private Entry* _current;
-
-                /// <summary>
-                ///     Structure
-                /// </summary>
-                /// <param name="nativeSparseSet">NativeSparseSet</param>
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(void* nativeSparseSet)
-                {
-                    var handle = (UnsafeOrderedSparseSet<T>*)nativeSparseSet;
-                    _nativeSparseSet = handle;
-                    _version = handle->_version;
-                    _index = -1;
-                    _current = handle->_head != -1 ? &handle->_dense[handle->_head] : null;
-                }
-
-                /// <summary>
-                ///     Move next
-                /// </summary>
-                /// <returns>Moved</returns>
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public bool MoveNext()
-                {
-                    var handle = _nativeSparseSet;
-                    if (_version != handle->_version)
-                        throw new InvalidOperationException("EnumFailedVersion");
-                    var num = _index + 1;
-                    if (num >= handle->_count)
-                        return false;
-                    _index = num;
-                    if (num != 0)
-                        _current = &handle->_dense[_current->Next];
-                    return true;
-                }
-
-                /// <summary>
-                ///     Current
-                /// </summary>
-                public int Current
-                {
-                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                    get => _current->Key;
-                }
-            }
-        }
-
-        /// <summary>
-        ///     Value collection
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential)]
-        public readonly struct OrderedValueCollection
-        {
-            /// <summary>
-            ///     NativeSparseSet
-            /// </summary>
-            private readonly UnsafeOrderedSparseSet<T>* _nativeSparseSet;
-
-            /// <summary>
-            ///     Structure
-            /// </summary>
-            /// <param name="nativeSparseSet">NativeSparseSet</param>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal OrderedValueCollection(void* nativeSparseSet) => _nativeSparseSet = (UnsafeOrderedSparseSet<T>*)nativeSparseSet;
-
-            /// <summary>
-            ///     Count
-            /// </summary>
-            public int Count => _nativeSparseSet->_count;
-
-            /// <summary>
-            ///     Get enumerator
-            /// </summary>
-            /// <returns>Enumerator</returns>
-            public Enumerator GetEnumerator() => new(_nativeSparseSet);
-
-            /// <summary>
-            ///     Enumerator
-            /// </summary>
-            public struct Enumerator
-            {
-                /// <summary>
-                ///     NativeSparseSet
-                /// </summary>
-                private readonly UnsafeOrderedSparseSet<T>* _nativeSparseSet;
-
-                /// <summary>
-                ///     Version
-                /// </summary>
-                private readonly int _version;
-
-                /// <summary>
-                ///     Index
-                /// </summary>
-                private int _index;
-
-                /// <summary>
-                ///     Current
-                /// </summary>
-                private Entry* _current;
-
-                /// <summary>
-                ///     Structure
-                /// </summary>
-                /// <param name="nativeSparseSet">NativeSparseSet</param>
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(void* nativeSparseSet)
-                {
-                    var handle = (UnsafeOrderedSparseSet<T>*)nativeSparseSet;
-                    _nativeSparseSet = handle;
-                    _version = handle->_version;
-                    _index = -1;
-                    _current = handle->_head != -1 ? &handle->_dense[handle->_head] : null;
-                }
-
-                /// <summary>
-                ///     Move next
-                /// </summary>
-                /// <returns>Moved</returns>
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public bool MoveNext()
-                {
-                    var handle = _nativeSparseSet;
-                    if (_version != handle->_version)
-                        throw new InvalidOperationException("EnumFailedVersion");
-                    var num = _index + 1;
-                    if (num >= handle->_count)
-                        return false;
-                    _index = num;
-                    if (num != 0)
-                        _current = &handle->_dense[_current->Next];
-                    return true;
-                }
-
-                /// <summary>
-                ///     Current
-                /// </summary>
-                public T Current
-                {
-                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                    get => _current->Value;
-                }
-            }
-        }
-
-        /// <summary>
-        ///     KeyValuePair collection
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential)]
-        public readonly struct OrderedKeyValuePairCollection
-        {
-            /// <summary>
-            ///     NativeSparseSet
-            /// </summary>
-            private readonly UnsafeOrderedSparseSet<T>* _nativeSparseSet;
-
-            /// <summary>
-            ///     Structure
-            /// </summary>
-            /// <param name="nativeSparseSet">NativeSparseSet</param>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal OrderedKeyValuePairCollection(void* nativeSparseSet) => _nativeSparseSet = (UnsafeOrderedSparseSet<T>*)nativeSparseSet;
-
-            /// <summary>
-            ///     Count
-            /// </summary>
-            public int Count => _nativeSparseSet->_count;
-
-            /// <summary>
-            ///     Get enumerator
-            /// </summary>
-            /// <returns>Enumerator</returns>
-            public Enumerator GetEnumerator() => new(_nativeSparseSet);
-
-            /// <summary>
-            ///     Enumerator
-            /// </summary>
-            public struct Enumerator
-            {
-                /// <summary>
-                ///     NativeSparseSet
-                /// </summary>
-                private readonly UnsafeOrderedSparseSet<T>* _nativeSparseSet;
-
-                /// <summary>
-                ///     Version
-                /// </summary>
-                private readonly int _version;
-
-                /// <summary>
-                ///     Index
-                /// </summary>
-                private int _index;
-
-                /// <summary>
-                ///     Current
-                /// </summary>
-                private Entry* _current;
-
-                /// <summary>
-                ///     Structure
-                /// </summary>
-                /// <param name="nativeSparseSet">NativeSparseSet</param>
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(void* nativeSparseSet)
-                {
-                    var handle = (UnsafeOrderedSparseSet<T>*)nativeSparseSet;
-                    _nativeSparseSet = handle;
-                    _version = handle->_version;
-                    _index = -1;
-                    _current = handle->_head != -1 ? &handle->_dense[handle->_head] : null;
-                }
-
-                /// <summary>
-                ///     Move next
-                /// </summary>
-                /// <returns>Moved</returns>
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public bool MoveNext()
-                {
-                    var handle = _nativeSparseSet;
-                    if (_version != handle->_version)
-                        throw new InvalidOperationException("EnumFailedVersion");
-                    var num = _index + 1;
-                    if (num >= handle->_count)
-                        return false;
-                    _index = num;
-                    if (num != 0)
-                        _current = &handle->_dense[_current->Next];
-                    return true;
-                }
-
-                /// <summary>
-                ///     Current
-                /// </summary>
-                public KeyValuePair<int, T> Current
-                {
-                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                    get => *(KeyValuePair<int, T>*)_current;
                 }
             }
         }
