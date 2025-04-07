@@ -15,8 +15,8 @@ namespace NativeCollections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [StackallocCollection(FromType.None )]
-    public unsafe struct StackallocOrderedSparseSet<T>  where T : unmanaged
+    [StackallocCollection(FromType.None)]
+    public unsafe struct StackallocOrderedSparseSet<T> where T : unmanaged
     {
         /// <summary>
         ///     Dense
@@ -116,7 +116,7 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         /// <returns>Buffer size</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetBufferSize(int capacity) => (capacity * (sizeof(Entry) + sizeof(int)));
+        public static int GetBufferSize(int capacity) => capacity * (sizeof(Entry) + sizeof(int));
 
         /// <summary>
         ///     Structure
@@ -124,7 +124,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public StackallocOrderedSparseSet(Span<byte> buffer,int capacity)
+        public StackallocOrderedSparseSet(Span<byte> buffer, int capacity)
         {
             _dense = (Entry*)MemoryMarshal.GetReference(buffer);
             _sparse = (int*)((byte*)_dense + capacity * sizeof(Entry));

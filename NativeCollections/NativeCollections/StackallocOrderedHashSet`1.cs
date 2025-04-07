@@ -15,7 +15,7 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [StackallocCollection(FromType.None)]
-    public unsafe struct StackallocOrderedHashSet<T>  where T : unmanaged, IEquatable<T>
+    public unsafe struct StackallocOrderedHashSet<T> where T : unmanaged, IEquatable<T>
     {
         /// <summary>
         ///     Buckets
@@ -68,7 +68,7 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         /// <returns>Buffer size</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetBufferSize(int capacity) => (HashHelpers.GetPrime(capacity) * (sizeof(int) + sizeof(Entry)));
+        public static int GetBufferSize(int capacity) => HashHelpers.GetPrime(capacity) * (sizeof(int) + sizeof(Entry));
 
         /// <summary>
         ///     Structure
@@ -76,7 +76,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public StackallocOrderedHashSet(Span<byte> buffer,int capacity)
+        public StackallocOrderedHashSet(Span<byte> buffer, int capacity)
         {
             _buckets = (int*)MemoryMarshal.GetReference(buffer);
             _entries = (Entry*)((byte*)_buckets + capacity * sizeof(int));
@@ -553,6 +553,7 @@ namespace NativeCollections
                 entries[entryIndex + 1] = entries[entryIndex];
                 UpdateBucketIndex(entryIndex, 1);
             }
+
             ref var local = ref entries[index];
             local.HashCode = outHashCode;
             local.Value = item;

@@ -83,7 +83,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public StackallocSortedList(Span<byte> buffer,int capacity)
+        public StackallocSortedList(Span<byte> buffer, int capacity)
         {
             _keys = (TKey*)MemoryMarshal.GetReference(buffer);
             _values = (TValue*)((byte*)_keys + capacity * sizeof(TKey));

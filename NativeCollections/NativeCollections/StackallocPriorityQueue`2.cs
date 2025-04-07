@@ -16,7 +16,7 @@ namespace NativeCollections
     /// <typeparam name="TPriority">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [StackallocCollection(FromType.Standard)]
-    public unsafe struct StackallocPriorityQueue<TElement, TPriority>  where TElement : unmanaged where TPriority : unmanaged, IComparable<TPriority>
+    public unsafe struct StackallocPriorityQueue<TElement, TPriority> where TElement : unmanaged where TPriority : unmanaged, IComparable<TPriority>
     {
         /// <summary>
         ///     Nodes
@@ -79,7 +79,7 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         /// <returns>Buffer size</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetBufferSize(int capacity) => (capacity * sizeof((TElement Element, TPriority Priority)));
+        public static int GetBufferSize(int capacity) => capacity * sizeof((TElement Element, TPriority Priority));
 
         /// <summary>
         ///     Structure

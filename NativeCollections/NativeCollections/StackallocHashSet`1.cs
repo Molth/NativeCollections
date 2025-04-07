@@ -15,7 +15,7 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [StackallocCollection(FromType.Standard)]
-    public unsafe struct StackallocHashSet<T>  where T : unmanaged, IEquatable<T>
+    public unsafe struct StackallocHashSet<T> where T : unmanaged, IEquatable<T>
     {
         /// <summary>
         ///     Buckets
@@ -71,14 +71,14 @@ namespace NativeCollections
         ///     Count
         /// </summary>
         public int Count => _count - _freeCount;
-           
+
         /// <summary>
         ///     Get buffer size
         /// </summary>
         /// <param name="capacity">Capacity</param>
         /// <returns>Buffer size</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetBufferSize(int capacity) =>HashHelpers.GetPrime(capacity)* (sizeof(int) + sizeof(Entry));
+        public static int GetBufferSize(int capacity) => HashHelpers.GetPrime(capacity) * (sizeof(int) + sizeof(Entry));
 
         /// <summary>
         ///     Structure

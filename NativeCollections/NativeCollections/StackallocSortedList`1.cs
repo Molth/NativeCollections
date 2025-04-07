@@ -58,7 +58,7 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         /// <returns>Buffer size</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetBufferSize(int capacity) => (capacity * sizeof(T));
+        public static int GetBufferSize(int capacity) => capacity * sizeof(T);
 
         /// <summary>
         ///     Structure
@@ -66,7 +66,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public StackallocSortedList(Span<byte> buffer,int capacity)
+        public StackallocSortedList(Span<byte> buffer, int capacity)
         {
             _items = (T*)MemoryMarshal.GetReference(buffer);
             _size = 0;

@@ -15,7 +15,7 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [StackallocCollection(FromType.Standard)]
-    public unsafe struct StackallocDeque<T>  where T : unmanaged
+    public unsafe struct StackallocDeque<T> where T : unmanaged
     {
         /// <summary>
         ///     Array

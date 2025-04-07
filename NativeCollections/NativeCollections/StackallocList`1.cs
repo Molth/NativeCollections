@@ -86,7 +86,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public StackallocList(Span<byte> buffer,int capacity)
+        public StackallocList(Span<byte> buffer, int capacity)
         {
             _array = (T*)MemoryMarshal.GetReference(buffer);
             _length = capacity;

@@ -80,7 +80,7 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         /// <returns>Buffer size</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetBufferSize(int capacity) => HashHelpers.GetPrime(capacity)* (sizeof(int) + sizeof(Entry));
+        public static int GetBufferSize(int capacity) => HashHelpers.GetPrime(capacity) * (sizeof(int) + sizeof(Entry));
 
         /// <summary>
         ///     Structure
@@ -88,7 +88,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public StackallocOrderedDictionary(Span<byte> buffer,int capacity)
+        public StackallocOrderedDictionary(Span<byte> buffer, int capacity)
         {
             _buckets = (int*)MemoryMarshal.GetReference(buffer);
             _entries = (Entry*)((byte*)_buckets + capacity * sizeof(int));
@@ -694,6 +694,7 @@ namespace NativeCollections
                 }
             }
         }
+
         /// <summary>
         ///     Insert
         /// </summary>

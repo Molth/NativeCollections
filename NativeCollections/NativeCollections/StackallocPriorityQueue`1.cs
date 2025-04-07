@@ -15,7 +15,7 @@ namespace NativeCollections
     /// <typeparam name="TPriority">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [StackallocCollection(FromType.None)]
-    public unsafe struct StackallocPriorityQueue<TPriority>  where TPriority : unmanaged, IComparable<TPriority>
+    public unsafe struct StackallocPriorityQueue<TPriority> where TPriority : unmanaged, IComparable<TPriority>
     {
         /// <summary>
         ///     Nodes
@@ -78,7 +78,7 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         /// <returns>Buffer size</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetBufferSize(int capacity) => (capacity * sizeof(TPriority));
+        public static int GetBufferSize(int capacity) => capacity * sizeof(TPriority);
 
         /// <summary>
         ///     Structure
@@ -86,7 +86,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public StackallocPriorityQueue(Span<byte> buffer,int capacity)
+        public StackallocPriorityQueue(Span<byte> buffer, int capacity)
         {
             _nodes = (TPriority*)MemoryMarshal.GetReference(buffer);
             _length = capacity;

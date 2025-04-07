@@ -323,7 +323,7 @@ namespace NativeCollections
             ++_version;
             return _length;
         }
-        
+
         /// <summary>
         ///     Trim excess
         /// </summary>

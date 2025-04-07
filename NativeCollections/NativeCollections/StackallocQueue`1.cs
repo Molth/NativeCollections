@@ -83,7 +83,7 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         /// <returns>Buffer size</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetBufferSize(int capacity) => (capacity * sizeof(T));
+        public static int GetBufferSize(int capacity) => capacity * sizeof(T);
 
         /// <summary>
         ///     Structure
