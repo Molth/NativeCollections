@@ -499,6 +499,27 @@ namespace NativeCollections
             internal UnorderedItemsCollection(void* nativePriorityQueue) => _nativePriorityQueue = (UnsafePriorityQueue<TElement, TPriority>*)nativePriorityQueue;
 
             /// <summary>
+            ///     As readOnly span
+            /// </summary>
+            /// <returns>ReadOnlySpan</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan() => _nativePriorityQueue->AsReadOnlySpan();
+
+            /// <summary>
+            ///     As readOnly span
+            /// </summary>
+            /// <returns>ReadOnlySpan</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan(int start) => _nativePriorityQueue->AsReadOnlySpan(start);
+
+            /// <summary>
+            ///     As readOnly span
+            /// </summary>
+            /// <returns>ReadOnlySpan</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan(int start, int length) => _nativePriorityQueue->AsReadOnlySpan(start, length);
+
+            /// <summary>
             ///     Get enumerator
             /// </summary>
             /// <returns>Enumerator</returns>
