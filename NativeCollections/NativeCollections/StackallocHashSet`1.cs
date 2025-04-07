@@ -94,6 +94,9 @@ namespace NativeCollections
             _bucketsLength = capacity;
             _entriesLength = capacity;
             _fastModMultiplier = sizeof(nint) == 8 ? HashHelpers.GetFastModMultiplier((uint)capacity) : 0;
+            _count = 0;
+            _freeCount = 0;
+            _version = 0;
         }
 
         /// <summary>
