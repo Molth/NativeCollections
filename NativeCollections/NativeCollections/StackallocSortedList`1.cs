@@ -171,7 +171,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryRemoveAt(int index)
         {
-            if (index < 0 || index >= _size)
+            if ((uint)index >= (uint)_size)
                 return false;
             --_size;
             if (index < _size)
@@ -188,7 +188,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryRemoveAt(int index, out T item)
         {
-            if (index < 0 || index >= _size)
+            if ((uint)index >= (uint)_size)
             {
                 item = default;
                 return false;
@@ -256,7 +256,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetAt(int index, out T item)
         {
-            if (index < 0 || index >= _size)
+            if ((uint)index >= (uint)_size)
             {
                 item = default;
                 return false;

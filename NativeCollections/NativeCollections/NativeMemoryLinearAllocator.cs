@@ -131,7 +131,7 @@ namespace NativeCollections
         public void Advance(int count)
         {
             var newPosition = _position + count;
-            if (newPosition < 0 || newPosition > Length)
+            if ((uint)newPosition > (uint)Length)
                 throw new ArgumentOutOfRangeException(nameof(count), "Cannot advance past the end of the buffer.");
             _position = newPosition;
         }
@@ -145,7 +145,7 @@ namespace NativeCollections
         public bool TryAdvance(int count)
         {
             var newPosition = _position + count;
-            if (newPosition < 0 || newPosition > Length)
+            if ((uint)newPosition > (uint)Length)
                 return false;
             _position = newPosition;
             return true;
@@ -158,7 +158,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetPosition(int position)
         {
-            if (position < 0 || position > Length)
+            if ((uint)position > (uint)Length)
                 throw new ArgumentOutOfRangeException(nameof(position), "Cannot advance past the end of the buffer.");
             _position = position;
         }
@@ -171,7 +171,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TrySetPosition(int position)
         {
-            if (position < 0 || position > Length)
+            if ((uint)position > (uint)Length)
                 return false;
             _position = position;
             return true;

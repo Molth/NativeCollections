@@ -245,7 +245,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(int key)
         {
-            if (key < 0 || key >= _length)
+            if ((uint)key >= (uint)_length)
                 return false;
             var index = _sparse[key];
             if (index == -1)
@@ -289,7 +289,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(int key, out T value)
         {
-            if (key < 0 || key >= _length)
+            if ((uint)key >= (uint)_length)
             {
                 value = default;
                 return false;
@@ -350,7 +350,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetValue(int key, out T value)
         {
-            if (key < 0 || key >= _length)
+            if ((uint)key >= (uint)_length)
             {
                 value = default;
                 return false;
@@ -376,7 +376,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetValueReference(int key, out NativeReference<T> value)
         {
-            if (key < 0 || key >= _length)
+            if ((uint)key >= (uint)_length)
             {
                 value = default;
                 return false;
@@ -400,7 +400,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int IndexOf(int key) => key < 0 || key >= _length ? -1 : _sparse[key];
+        public int IndexOf(int key) => (uint)key >= (uint)_length ? -1 : _sparse[key];
 
         /// <summary>
         ///     Get at
@@ -441,7 +441,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetKeyAt(int index, out int key)
         {
-            if (index < 0 || index >= _count)
+            if ((uint)index >= (uint)_count)
             {
                 key = default;
                 return false;
@@ -460,7 +460,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetValueAt(int index, out T value)
         {
-            if (index < 0 || index >= _count)
+            if ((uint)index >= (uint)_count)
             {
                 value = default;
                 return false;
@@ -479,7 +479,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetValueReferenceAt(int index, out NativeReference<T> value)
         {
-            if (index < 0 || index >= _count)
+            if ((uint)index >= (uint)_count)
             {
                 value = default;
                 return false;
@@ -529,7 +529,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetAt(int index, out KeyValuePair<int, T> keyValuePair)
         {
-            if (index < 0 || index >= _count)
+            if ((uint)index >= (uint)_count)
             {
                 keyValuePair = default;
                 return false;
@@ -548,7 +548,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetReferenceAt(int index, out KeyValuePair<int, NativeReference<T>> keyValuePair)
         {
-            if (index < 0 || index >= _count)
+            if ((uint)index >= (uint)_count)
             {
                 keyValuePair = default;
                 return false;
@@ -634,7 +634,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryRemoveAt(int index)
         {
-            if (index < 0 || index >= _count)
+            if ((uint)index >= (uint)_count)
                 return false;
             ref var entry = ref _dense[index];
             var key = entry.Key;
@@ -659,7 +659,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryRemoveAt(int index, out KeyValuePair<int, T> keyValuePair)
         {
-            if (index < 0 || index >= _count)
+            if ((uint)index >= (uint)_count)
             {
                 keyValuePair = default;
                 return false;

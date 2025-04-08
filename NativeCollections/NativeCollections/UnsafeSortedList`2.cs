@@ -278,7 +278,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryRemoveAt(int index)
         {
-            if (index < 0 || index >= _size)
+            if ((uint)index >= (uint)_size)
                 return false;
             --_size;
             if (index < _size)
@@ -299,7 +299,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryRemoveAt(int index, out KeyValuePair<TKey, TValue> keyValuePair)
         {
-            if (index < 0 || index >= _size)
+            if ((uint)index >= (uint)_size)
             {
                 keyValuePair = default;
                 return false;
@@ -446,7 +446,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetKeyAt(int index, out TKey key)
         {
-            if (index < 0 || index >= _size)
+            if ((uint)index >= (uint)_size)
             {
                 key = default;
                 return false;
@@ -465,7 +465,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetValueAt(int index, out TValue value)
         {
-            if (index < 0 || index >= _size)
+            if ((uint)index >= (uint)_size)
             {
                 value = default;
                 return false;
@@ -484,7 +484,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetValueReferenceAt(int index, out NativeReference<TValue> value)
         {
-            if (index < 0 || index >= _size)
+            if ((uint)index >= (uint)_size)
             {
                 value = default;
                 return false;
@@ -533,7 +533,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetAt(int index, out KeyValuePair<TKey, TValue> keyValuePair)
         {
-            if (index < 0 || index >= _size)
+            if ((uint)index >= (uint)_size)
             {
                 keyValuePair = default;
                 return false;
@@ -552,7 +552,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetReferenceAt(int index, out KeyValuePair<TKey, NativeReference<TValue>> keyValuePair)
         {
-            if (index < 0 || index >= _size)
+            if ((uint)index >= (uint)_size)
             {
                 keyValuePair = default;
                 return false;

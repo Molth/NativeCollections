@@ -293,7 +293,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetLength(int length)
         {
-            if (length < 0 || length > 2147483647)
+            if ((uint)length > 2147483647)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "StreamLength");
             if (length > _capacity)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "StreamLength");
