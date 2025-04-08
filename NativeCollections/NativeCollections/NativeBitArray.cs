@@ -343,6 +343,14 @@ namespace NativeCollections
         public bool HasAnySet() => _handle->HasAnySet();
 
         /// <summary>
+        ///     Get int32 array length from bit length
+        /// </summary>
+        /// <param name="n">Bit length</param>
+        /// <returns>Int32 array length</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int GetInt32ArrayLengthFromBitLength(int n) => UnsafeBitArray.GetInt32ArrayLengthFromBitLength(n);
+
+        /// <summary>
         ///     Empty
         /// </summary>
         public static NativeBitArray Empty => new();
