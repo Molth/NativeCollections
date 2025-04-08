@@ -107,23 +107,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
-            if (_root != null)
-            {
-                var nodeStack = new NativeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(_count + 1)));
-                nodeStack.Push((nint)_root);
-                while (nodeStack.TryPop(out var node))
-                {
-                    var currentNode = (Node*)node;
-                    if (currentNode->Left != null)
-                        nodeStack.Push((nint)currentNode->Left);
-                    if (currentNode->Right != null)
-                        nodeStack.Push((nint)currentNode->Right);
-                    _nodePool.Return(currentNode);
-                }
-
-                nodeStack.Dispose();
-            }
-
+            _nodePool.Reset();
             _root = null;
             _count = 0;
             ++_version;

@@ -148,7 +148,7 @@ namespace NativeCollections
         {
             if (_root != null)
             {
-                var nodeStack = new NativeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(_count + 1)));
+                var nodeStack = new UnsafeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(_count + 1)));
                 nodeStack.Push((nint)_root);
                 while (nodeStack.TryPop(out var node))
                 {
