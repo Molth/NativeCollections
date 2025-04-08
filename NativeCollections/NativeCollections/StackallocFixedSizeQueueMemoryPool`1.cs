@@ -63,10 +63,6 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public StackallocFixedSizeQueueMemoryPool(Span<byte> buffer, int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            if (capacity < 4)
-                capacity = 4;
             _buffer = (T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer));
             _array = (int*)((byte*)_buffer + capacity * sizeof(T));
             _length = capacity;
