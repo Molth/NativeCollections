@@ -123,5 +123,10 @@ namespace NativeCollections
                 tmp = 0;
             index = tmp;
         }
+
+        /// <summary>
+        ///     Empty
+        /// </summary>
+        public static StackallocFixedSizeQueueMemoryPool<T> Empty => new();
     }
 }

@@ -109,5 +109,10 @@ namespace NativeCollections
             _array[size] = (int)(ptr - _buffer);
             _size = size + 1;
         }
+
+        /// <summary>
+        ///     Empty
+        /// </summary>
+        public static UnsafeFixedSizeStackMemoryPool<T> Empty => new();
     }
 }

@@ -120,5 +120,10 @@ namespace NativeCollections
         /// <param name="ptr">Pointer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Return(T* ptr) => _handle->Return(ptr);
+
+        /// <summary>
+        ///     Empty
+        /// </summary>
+        public static NativeFixedSizeQueueMemoryPool<T> Empty => new();
     }
 }
