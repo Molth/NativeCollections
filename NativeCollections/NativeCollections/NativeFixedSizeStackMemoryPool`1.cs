@@ -24,6 +24,11 @@ namespace NativeCollections
         private readonly UnsafeFixedSizeStackMemoryPool<T>* _handle;
 
         /// <summary>
+        ///     Is created
+        /// </summary>
+        public bool IsCreated => _handle != null;
+
+        /// <summary>
         ///     Is empty
         /// </summary>
         public bool IsEmpty => _handle->IsEmpty;
@@ -32,6 +37,11 @@ namespace NativeCollections
         ///     Count
         /// </summary>
         public int Count => _handle->Count;
+
+        /// <summary>
+        ///     Capacity
+        /// </summary>
+        public int Capacity => _handle->Capacity;
 
         /// <summary>
         ///     Structure

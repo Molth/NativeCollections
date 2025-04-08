@@ -535,6 +535,66 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Get
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <returns>Value</returns>
+        public NativeBitArraySlot GetSlot(int index)
+        {
+            if ((uint)index >= (uint)_length)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
+            return new NativeBitArraySlot(&_array.Array[index >> 5], 1 << index);
+        }
+
+        /// <summary>
+        ///     Try get
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="slot">Slot</param>
+        /// <returns>Got</returns>
+        public bool TryGetSlot(int index, out NativeBitArraySlot slot)
+        {
+            if ((uint)index >= (uint)_length)
+            {
+                slot = default;
+                return false;
+            }
+
+            slot = new NativeBitArraySlot(&_array.Array[index >> 5], 1 << index);
+            return true;
+        }
+
+        /// <summary>
+        ///     Get
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <returns>Value</returns>
+        public NativeBitArraySlot GetSlot(uint index)
+        {
+            if (index >= (uint)_length)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
+            return new NativeBitArraySlot(&_array.Array[index >> 5], 1 << (int)index);
+        }
+
+        /// <summary>
+        ///     Try get
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="slot">Slot</param>
+        /// <returns>Got</returns>
+        public bool TryGetSlot(uint index, out NativeBitArraySlot slot)
+        {
+            if (index >= (uint)_length)
+            {
+                slot = default;
+                return false;
+            }
+
+            slot = new NativeBitArraySlot(&_array.Array[index >> 5], 1 << (int)index);
+            return true;
+        }
+
+        /// <summary>
         ///     Get int32 array length from bit length
         /// </summary>
         /// <param name="n">Bit length</param>

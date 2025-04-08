@@ -38,6 +38,21 @@ namespace NativeCollections
         private int _size;
 
         /// <summary>
+        ///     Is empty
+        /// </summary>
+        public bool IsEmpty => _size == 0;
+
+        /// <summary>
+        ///     Count
+        /// </summary>
+        public int Count => _size;
+
+        /// <summary>
+        ///     Capacity
+        /// </summary>
+        public int Capacity => _length;
+
+        /// <summary>
         ///     Get buffer size
         /// </summary>
         /// <param name="capacity">Capacity</param>

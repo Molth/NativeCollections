@@ -48,6 +48,11 @@ namespace NativeCollections
         public int Count => _size;
 
         /// <summary>
+        ///     Capacity
+        /// </summary>
+        public int Capacity => _length;
+
+        /// <summary>
         ///     Structure
         /// </summary>
         /// <param name="capacity">Capacity</param>

@@ -345,6 +345,36 @@ namespace NativeCollections
         public bool HasAnySet() => _handle->HasAnySet();
 
         /// <summary>
+        ///     Get
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <returns>Value</returns>
+        public NativeBitArraySlot GetSlot(int index) => _handle->GetSlot(index);
+
+        /// <summary>
+        ///     Try get
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="slot">Slot</param>
+        /// <returns>Got</returns>
+        public bool TryGetSlot(int index, out NativeBitArraySlot slot) => _handle->TryGetSlot(index, out slot);
+
+        /// <summary>
+        ///     Get
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <returns>Value</returns>
+        public NativeBitArraySlot GetSlot(uint index) => _handle->GetSlot(index);
+
+        /// <summary>
+        ///     Try get
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="slot">Slot</param>
+        /// <returns>Got</returns>
+        public bool TryGetSlot(uint index, out NativeBitArraySlot slot) => _handle->TryGetSlot(index, out slot);
+
+        /// <summary>
         ///     Get int32 array length from bit length
         /// </summary>
         /// <param name="n">Bit length</param>
