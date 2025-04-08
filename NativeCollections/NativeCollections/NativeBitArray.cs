@@ -223,6 +223,7 @@ namespace NativeCollections
         public bool Get(int index) => _handle->Get(index);
 
         /// <summary>
+        ///     Set
         /// </summary>
         /// <param name="index">Index</param>
         /// <param name="value">Value</param>
@@ -238,6 +239,7 @@ namespace NativeCollections
         public bool Get(uint index) => _handle->Get(index);
 
         /// <summary>
+        ///     Set
         /// </summary>
         /// <param name="index">Index</param>
         /// <param name="value">Value</param>

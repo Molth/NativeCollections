@@ -257,6 +257,7 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Set
         /// </summary>
         /// <param name="index">Index</param>
         /// <param name="value">Value</param>
@@ -287,6 +288,7 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Set
         /// </summary>
         /// <param name="index">Index</param>
         /// <param name="value">Value</param>
