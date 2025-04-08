@@ -10,11 +10,11 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe fixed size 32 memory pool
+    ///     Unsafe uint bitmap memory pool
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.None)]
-    public unsafe struct UnsafeFixedSize32MemoryPool : IDisposable
+    public unsafe struct UnsafeUInt32MemoryPool : IDisposable
     {
         /// <summary>
         ///     Sentinel
@@ -72,7 +72,7 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <param name="maxFreeSlabs">Max free slabs</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeFixedSize32MemoryPool(int length, int maxFreeSlabs)
+        public UnsafeUInt32MemoryPool(int length, int maxFreeSlabs)
         {
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
@@ -291,6 +291,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeFixedSize32MemoryPool Empty => new();
+        public static UnsafeUInt32MemoryPool Empty => new();
     }
 }

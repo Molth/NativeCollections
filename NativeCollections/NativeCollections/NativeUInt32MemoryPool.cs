@@ -10,17 +10,17 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native fixed size 64 memory pool
+    ///     Native uint bitmap memory pool
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    [BindingType(typeof(UnsafeFixedSize64MemoryPool))]
-    public readonly unsafe struct NativeFixedSize64MemoryPool : IDisposable, IEquatable<NativeFixedSize64MemoryPool>
+    [BindingType(typeof(UnsafeUInt32MemoryPool))]
+    public readonly unsafe struct NativeUInt32MemoryPool : IDisposable, IEquatable<NativeUInt32MemoryPool>
     {
         /// <summary>
         ///     Handle
         /// </summary>
-        private readonly UnsafeFixedSize64MemoryPool* _handle;
+        private readonly UnsafeUInt32MemoryPool* _handle;
 
         /// <summary>
         ///     Structure
@@ -28,10 +28,10 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <param name="maxFreeSlabs">Max free slabs</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeFixedSize64MemoryPool(int length, int maxFreeSlabs)
+        public NativeUInt32MemoryPool(int length, int maxFreeSlabs)
         {
-            var value = new UnsafeFixedSize64MemoryPool(length, maxFreeSlabs);
-            var handle = (UnsafeFixedSize64MemoryPool*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeFixedSize64MemoryPool));
+            var value = new UnsafeUInt32MemoryPool(length, maxFreeSlabs);
+            var handle = (UnsafeUInt32MemoryPool*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeUInt32MemoryPool));
             *handle = value;
             _handle = handle;
         }
@@ -66,14 +66,14 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeFixedSize64MemoryPool other) => other == this;
+        public bool Equals(NativeUInt32MemoryPool other) => other == this;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeFixedSize64MemoryPool nativeFixedSize64MemoryPool && nativeFixedSize64MemoryPool == this;
+        public override bool Equals(object? obj) => obj is NativeUInt32MemoryPool nativeUInt32MemoryPool && nativeUInt32MemoryPool == this;
 
         /// <summary>
         ///     Get hashCode
@@ -85,7 +85,7 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => "NativeFixedSize64MemoryPool";
+        public override string ToString() => "NativeUInt32MemoryPool";
 
         /// <summary>
         ///     Equals
@@ -93,7 +93,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeFixedSize64MemoryPool left, NativeFixedSize64MemoryPool right) => left._handle == right._handle;
+        public static bool operator ==(NativeUInt32MemoryPool left, NativeUInt32MemoryPool right) => left._handle == right._handle;
 
         /// <summary>
         ///     Not equals
@@ -101,7 +101,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeFixedSize64MemoryPool left, NativeFixedSize64MemoryPool right) => left._handle != right._handle;
+        public static bool operator !=(NativeUInt32MemoryPool left, NativeUInt32MemoryPool right) => left._handle != right._handle;
 
         /// <summary>
         ///     Dispose
@@ -154,6 +154,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeFixedSize64MemoryPool Empty => new();
+        public static NativeUInt32MemoryPool Empty => new();
     }
 }
