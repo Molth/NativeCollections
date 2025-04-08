@@ -81,7 +81,7 @@ namespace NativeCollections
         public void SpinOnce()
         {
 #if NET5_0_OR_GREATER
-            _spinWait.SpinOnce();
+            _spinWait.SpinOnce(-1);
 #else
             if ((_count >= 10 && (_count - 10) % 2 == 0) || Environment.ProcessorCount == 1)
             {
