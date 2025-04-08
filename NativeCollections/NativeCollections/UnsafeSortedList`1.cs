@@ -246,7 +246,6 @@ namespace NativeCollections
         ///     Get item at index
         /// </summary>
         /// <param name="index">Index</param>
-        /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T GetAt(int index)
         {

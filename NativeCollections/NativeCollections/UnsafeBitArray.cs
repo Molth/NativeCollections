@@ -535,8 +535,6 @@ namespace NativeCollections
         /// <summary>
         ///     Get int32 array length from bit length
         /// </summary>
-        /// <param name="n"></param>
-        /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetInt32ArrayLengthFromBitLength(int n)
         {

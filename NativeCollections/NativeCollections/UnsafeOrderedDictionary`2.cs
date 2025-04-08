@@ -760,7 +760,6 @@ namespace NativeCollections
         /// <summary>
         ///     Resize
         /// </summary>
-        /// <param name="newSize"></param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Resize(int newSize)
         {
