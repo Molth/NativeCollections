@@ -93,6 +93,11 @@ namespace NativeCollections
         public int Count => _count - _freeCount;
 
         /// <summary>
+        ///     Capacity
+        /// </summary>
+        public int Capacity => _entriesLength;
+
+        /// <summary>
         ///     Keys
         /// </summary>
         public KeyCollection Keys => new(Unsafe.AsPointer(ref this));

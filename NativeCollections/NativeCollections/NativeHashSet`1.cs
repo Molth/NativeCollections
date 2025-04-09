@@ -52,6 +52,11 @@ namespace NativeCollections
         public int Count => _handle->Count;
 
         /// <summary>
+        ///     Capacity
+        /// </summary>
+        public int Capacity => _handle->Capacity;
+
+        /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="other">Other</param>

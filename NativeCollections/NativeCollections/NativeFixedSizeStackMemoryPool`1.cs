@@ -120,9 +120,8 @@ namespace NativeCollections
         /// <summary>
         ///     Rent buffer
         /// </summary>
-        /// <returns>Buffer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T* Rent() => _handle->Rent();
+        public bool TryRent(out T* ptr) => _handle->TryRent(out ptr);
 
         /// <summary>
         ///     Return buffer

@@ -64,6 +64,11 @@ namespace NativeCollections
         public int Count => _handle->Count;
 
         /// <summary>
+        ///     Capacity
+        /// </summary>
+        public int Capacity => _handle->Capacity;
+
+        /// <summary>
         ///     Get or set value
         /// </summary>
         /// <param name="key">Key</param>

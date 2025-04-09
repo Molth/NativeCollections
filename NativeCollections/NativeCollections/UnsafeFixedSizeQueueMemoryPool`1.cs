@@ -103,16 +103,20 @@ namespace NativeCollections
         /// <summary>
         ///     Rent buffer
         /// </summary>
-        /// <returns>Buffer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T* Rent()
+        public bool TryRent(out T* ptr)
         {
             if (_size == 0)
-                return null;
+            {
+                ptr = null;
+                return false;
+            }
+
             var removed = _array[_head];
             MoveNext(ref _head);
             _size--;
-            return &_buffer[removed];
+            ptr = &_buffer[removed];
+            return true;
         }
 
         /// <summary>

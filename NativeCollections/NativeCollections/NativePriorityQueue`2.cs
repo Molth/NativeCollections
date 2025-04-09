@@ -53,6 +53,11 @@ namespace NativeCollections
         public int Count => _handle->Count;
 
         /// <summary>
+        ///     Capacity
+        /// </summary>
+        public int Capacity => _handle->Capacity;
+
+        /// <summary>
         ///     Get reference
         /// </summary>
         /// <param name="index">Index</param>

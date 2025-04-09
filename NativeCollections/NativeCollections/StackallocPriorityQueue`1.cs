@@ -48,6 +48,11 @@ namespace NativeCollections
         public int Count => _size;
 
         /// <summary>
+        ///     Capacity
+        /// </summary>
+        public int Capacity => _length;
+
+        /// <summary>
         ///     Get reference
         /// </summary>
         /// <param name="index">Index</param>

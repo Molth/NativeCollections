@@ -73,6 +73,11 @@ namespace NativeCollections
         public int Count => _count - _freeCount;
 
         /// <summary>
+        ///     Capacity
+        /// </summary>
+        public int Capacity => _entriesLength;
+
+        /// <summary>
         ///     Structure
         /// </summary>
         /// <param name="capacity">Capacity</param>

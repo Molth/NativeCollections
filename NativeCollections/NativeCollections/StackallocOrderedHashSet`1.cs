@@ -63,6 +63,11 @@ namespace NativeCollections
         public int Count => _count;
 
         /// <summary>
+        ///     Capacity
+        /// </summary>
+        public int Capacity => _entriesLength;
+
+        /// <summary>
         ///     Get buffer size
         /// </summary>
         /// <param name="capacity">Capacity</param>

@@ -91,16 +91,20 @@ namespace NativeCollections
         /// <summary>
         ///     Rent buffer
         /// </summary>
-        /// <returns>Buffer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T* Rent()
+        public bool TryRent(out T* ptr)
         {
             var size = _size - 1;
             if ((uint)size >= (uint)_length)
-                return null;
+            {
+                ptr = null;
+                return false;
+            }
+
             _size = size;
             var item = _array[size];
-            return &_buffer[item];
+            ptr = &_buffer[item];
+            return true;
         }
 
         /// <summary>

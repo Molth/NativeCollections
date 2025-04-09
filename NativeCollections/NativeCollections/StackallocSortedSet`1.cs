@@ -123,8 +123,7 @@ namespace NativeCollections
         {
             if (_root == null)
             {
-                _root = _nodePool.Rent();
-                if (_root == null)
+                if (!_nodePool.TryRent(out _root))
                     return InsertResult.InsufficientCapacity;
                 _root->Item = item;
                 _root->Left = null;
@@ -163,8 +162,7 @@ namespace NativeCollections
                 current = order < 0 ? current->Left : current->Right;
             }
 
-            var node = _nodePool.Rent();
-            if (node == null)
+            if (!_nodePool.TryRent(out var node))
             {
                 _root->ColorBlack();
                 return InsertResult.InsufficientCapacity;
