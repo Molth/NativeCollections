@@ -111,12 +111,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="ptr">Pointer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Return(T* ptr)
-        {
-            var size = _size;
-            _array[size] = (int)(ptr - _buffer);
-            _size = size + 1;
-        }
+        public void Return(T* ptr) => _array[_size++] = (int)(ptr - _buffer);
 
         /// <summary>
         ///     Empty
