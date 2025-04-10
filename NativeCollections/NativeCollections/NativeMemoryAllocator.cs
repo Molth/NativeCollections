@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 #if NET7_0_OR_GREATER
@@ -17,11 +18,43 @@ namespace NativeCollections
         /// <summary>
         ///     Alloc
         /// </summary>
+        private static delegate* managed<uint, void*>? _alloc;
+
+        /// <summary>
+        ///     AllocZeroed
+        /// </summary>
+        private static delegate* managed<uint, void*>? _allocZeroed;
+
+        /// <summary>
+        ///     Free
+        /// </summary>
+        private static delegate* managed<void*, void>? _free;
+
+        /// <summary>
+        ///     Custom allocator
+        /// </summary>
+        /// <param name="alloc">Alloc</param>
+        /// <param name="allocZeroed">AllocZeroed</param>
+        /// <param name="free">Free</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Custom(delegate*<uint, void*>? alloc, delegate*<uint, void*>? allocZeroed, delegate*<void*, void>? free)
+        {
+            _alloc = alloc;
+            _allocZeroed = allocZeroed;
+            _free = free;
+        }
+
+        /// <summary>
+        ///     Alloc
+        /// </summary>
         /// <param name="byteCount">Byte count</param>
         /// <returns>Memory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void* Alloc(uint byteCount)
         {
+            if (_alloc != null)
+                return _alloc(byteCount);
+
 #if NET6_0_OR_GREATER
             return NativeMemory.Alloc(byteCount);
 #else
@@ -37,6 +70,17 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void* AllocZeroed(uint byteCount)
         {
+            if (_allocZeroed != null)
+                return _allocZeroed(byteCount);
+
+            if (_alloc != null)
+            {
+                var ptr = _alloc(byteCount);
+                Debug.Assert(ptr != null);
+                Unsafe.InitBlockUnaligned(ptr, 0, byteCount);
+                return ptr;
+            }
+
 #if NET6_0_OR_GREATER
             return NativeMemory.AllocZeroed(byteCount, 1);
 #else
@@ -53,6 +97,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Free(void* ptr)
         {
+            if (_free != null)
+            {
+                _free(ptr);
+                return;
+            }
+
 #if NET6_0_OR_GREATER
             NativeMemory.Free(ptr);
 #else
