@@ -17,17 +17,17 @@ namespace NativeCollections
         /// <summary>
         ///     Alloc
         /// </summary>
-        private static delegate* managed<uint, void*>? _alloc;
+        private static delegate* managed<uint, void*> _alloc;
 
         /// <summary>
         ///     AllocZeroed
         /// </summary>
-        private static delegate* managed<uint, void*>? _allocZeroed;
+        private static delegate* managed<uint, void*> _allocZeroed;
 
         /// <summary>
         ///     Free
         /// </summary>
-        private static delegate* managed<void*, void>? _free;
+        private static delegate* managed<void*, void> _free;
 
         /// <summary>
         ///     Custom allocator
@@ -36,12 +36,29 @@ namespace NativeCollections
         /// <param name="allocZeroed">AllocZeroed</param>
         /// <param name="free">Free</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Custom(delegate*<uint, void*>? alloc, delegate*<uint, void*>? allocZeroed, delegate*<void*, void>? free)
+        public static void Custom(delegate*<uint, void*> alloc, delegate*<uint, void*> allocZeroed, delegate*<void*, void> free)
         {
             _alloc = alloc;
             _allocZeroed = allocZeroed;
             _free = free;
         }
+
+        /// <summary>
+        ///     Align
+        /// </summary>
+        /// <param name="size">Size</param>
+        /// <returns>Aligned size</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static nuint Align(nuint size) => Align(size, (nuint)sizeof(nint));
+
+        /// <summary>
+        ///     Align
+        /// </summary>
+        /// <param name="size">Size</param>
+        /// <param name="alignment">Alignment</param>
+        /// <returns>Aligned size</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static nuint Align(nuint size, nuint alignment) => (size + (alignment - 1)) & ~(alignment - 1);
 
         /// <summary>
         ///     Alloc
@@ -72,9 +89,10 @@ namespace NativeCollections
             if (_allocZeroed != null)
                 return _allocZeroed(byteCount);
 
+            void* ptr;
             if (_alloc != null)
             {
-                var ptr = _alloc(byteCount);
+                ptr = _alloc(byteCount);
                 Unsafe.InitBlockUnaligned(ptr, 0, byteCount);
                 return ptr;
             }
@@ -82,7 +100,7 @@ namespace NativeCollections
 #if NET6_0_OR_GREATER
             return NativeMemory.AllocZeroed(byteCount, 1);
 #else
-            var ptr = (void*)Marshal.AllocHGlobal((nint)byteCount);
+            ptr = (void*)Marshal.AllocHGlobal((nint)byteCount);
             Unsafe.InitBlockUnaligned(ptr, 0, byteCount);
             return ptr;
 #endif
