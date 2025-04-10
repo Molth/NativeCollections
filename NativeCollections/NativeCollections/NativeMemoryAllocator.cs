@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 #if NET7_0_OR_GREATER
@@ -76,7 +75,6 @@ namespace NativeCollections
             if (_alloc != null)
             {
                 var ptr = _alloc(byteCount);
-                Debug.Assert(ptr != null);
                 Unsafe.InitBlockUnaligned(ptr, 0, byteCount);
                 return ptr;
             }
