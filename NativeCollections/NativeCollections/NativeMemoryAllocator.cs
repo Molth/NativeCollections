@@ -44,21 +44,22 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Align
-        /// </summary>
-        /// <param name="size">Size</param>
-        /// <returns>Aligned size</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static nuint Align(nuint size) => Align(size, (nuint)sizeof(nint));
-
-        /// <summary>
-        ///     Align
+        ///     Align up
         /// </summary>
         /// <param name="size">Size</param>
         /// <param name="alignment">Alignment</param>
         /// <returns>Aligned size</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static nuint Align(nuint size, nuint alignment) => (size + (alignment - 1)) & ~(alignment - 1);
+        public static nuint AlignUp(nuint size, nuint alignment) => (size + (alignment - 1)) & ~(alignment - 1);
+
+        /// <summary>
+        ///     Align down
+        /// </summary>
+        /// <param name="size">Size</param>
+        /// <param name="alignment">Alignment</param>
+        /// <returns>Aligned size</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static nuint AlignDown(nuint size, nuint alignment) => size - (size & (alignment - 1));
 
         /// <summary>
         ///     Alloc
