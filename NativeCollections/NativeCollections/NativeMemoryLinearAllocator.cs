@@ -180,34 +180,38 @@ namespace NativeCollections
         /// <summary>
         ///     Alloc
         /// </summary>
-        /// <param name="byteCount">Byte count</param>
-        /// <returns>Memory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void* Alloc(uint byteCount)
+        public bool TryAlloc(uint byteCount, out void* ptr)
         {
             var newPosition = _position + byteCount;
             if (newPosition > Length)
-                return null;
-            var ptr = Array + _position;
+            {
+                ptr = null;
+                return false;
+            }
+
+            ptr = Array + _position;
             _position = (int)newPosition;
-            return ptr;
+            return true;
         }
 
         /// <summary>
         ///     Alloc zeroed
         /// </summary>
-        /// <param name="byteCount">Byte count</param>
-        /// <returns>Memory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void* AllocZeroed(uint byteCount)
+        public bool TryAllocZeroed(uint byteCount, out void* ptr)
         {
             var newPosition = _position + byteCount;
             if (newPosition > Length)
-                return null;
-            var ptr = Array + _position;
+            {
+                ptr = null;
+                return false;
+            }
+
+            ptr = Array + _position;
             _position = (int)newPosition;
             Unsafe.InitBlockUnaligned(ptr, 0, byteCount);
-            return ptr;
+            return true;
         }
 
         /// <summary>
