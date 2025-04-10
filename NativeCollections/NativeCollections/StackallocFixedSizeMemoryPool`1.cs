@@ -15,7 +15,7 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [StackallocCollection(FromType.None)]
-    public unsafe struct StackallocFixedSizeMemoryPool<T> : IDisposable where T : unmanaged
+    public unsafe struct StackallocFixedSizeMemoryPool<T> where T : unmanaged
     {
         /// <summary>
         ///     Buffer
@@ -93,12 +93,6 @@ namespace NativeCollections
             for (var i = 0; i < capacity; ++i)
                 _array[i] = i;
         }
-
-        /// <summary>
-        ///     Dispose
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => NativeMemoryAllocator.Free(_buffer);
 
         /// <summary>
         ///     Reset
