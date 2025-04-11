@@ -28,9 +28,9 @@ namespace NativeCollections
         private readonly int* _array;
 
         /// <summary>
-        ///     Length
+        ///     Capacity
         /// </summary>
-        private readonly int _length;
+        private readonly int _capacity;
 
         /// <summary>
         ///     Head
@@ -60,7 +60,7 @@ namespace NativeCollections
         /// <summary>
         ///     Capacity
         /// </summary>
-        public int Capacity => _length;
+        public int Capacity => _capacity;
 
         /// <summary>
         ///     Structure
@@ -75,11 +75,11 @@ namespace NativeCollections
                 capacity = 4;
             _buffer = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * (sizeof(T) + sizeof(int))));
             _array = (int*)((byte*)_buffer + capacity * sizeof(T));
-            _length = capacity;
+            _capacity = capacity;
             _head = 0;
             _tail = 0;
             _size = capacity;
-            for (var i = 0; i < _length; ++i)
+            for (var i = 0; i < _capacity; ++i)
                 _array[i] = i;
         }
 
@@ -95,8 +95,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reset()
         {
-            _size = _length;
-            for (var i = 0; i < _length; ++i)
+            _size = _capacity;
+            for (var i = 0; i < _capacity; ++i)
                 _array[i] = i;
         }
 
@@ -112,10 +112,10 @@ namespace NativeCollections
                 return false;
             }
 
-            var removed = _array[_head];
+            var index = _array[_head];
             MoveNext(ref _head);
             _size--;
-            ptr = &_buffer[removed];
+            ptr = &_buffer[index];
             return true;
         }
 
@@ -139,7 +139,7 @@ namespace NativeCollections
         private void MoveNext(ref int index)
         {
             var tmp = index + 1;
-            if (tmp == _length)
+            if (tmp == _capacity)
                 tmp = 0;
             index = tmp;
         }

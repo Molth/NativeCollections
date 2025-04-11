@@ -33,9 +33,9 @@ namespace NativeCollections
         private readonly int* _bitArray;
 
         /// <summary>
-        ///     Length
+        ///     Capacity
         /// </summary>
-        private readonly int _length;
+        private readonly int _capacity;
 
         /// <summary>
         ///     Bit array length
@@ -60,7 +60,7 @@ namespace NativeCollections
         /// <summary>
         ///     Capacity
         /// </summary>
-        public int Capacity => _length;
+        public int Capacity => _capacity;
 
         /// <summary>
         ///     Get buffer size
@@ -87,7 +87,7 @@ namespace NativeCollections
             _array = (int*)((byte*)_buffer + capacity * sizeof(T));
             _bitArray = (int*)((byte*)_array + capacity * sizeof(int));
             Unsafe.InitBlockUnaligned(_bitArray, 0, (uint)(extremeLength * sizeof(int)));
-            _length = capacity;
+            _capacity = capacity;
             _bitArrayLength = extremeLength;
             _size = capacity;
             for (var i = 0; i < capacity; ++i)
@@ -101,8 +101,8 @@ namespace NativeCollections
         public void Reset()
         {
             Unsafe.InitBlockUnaligned(_bitArray, 0, (uint)(_bitArrayLength * sizeof(int)));
-            _size = _length;
-            for (var i = 0; i < _length; ++i)
+            _size = _capacity;
+            for (var i = 0; i < _capacity; ++i)
                 _array[i] = i;
         }
 
@@ -113,7 +113,7 @@ namespace NativeCollections
         public bool TryRent(out T* ptr)
         {
             var size = _size - 1;
-            if ((uint)size >= (uint)_length)
+            if ((uint)size >= (uint)_capacity)
             {
                 ptr = null;
                 return false;
@@ -136,7 +136,7 @@ namespace NativeCollections
         public void Return(T* ptr)
         {
             var index = ptr - _buffer;
-            if ((ulong)index >= (ulong)_length)
+            if ((ulong)index >= (ulong)_capacity)
                 throw new InvalidOperationException("Mismatch");
             ref var segment = ref _bitArray[index >> 5];
             var bitMask = 1 << (int)index;

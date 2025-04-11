@@ -28,9 +28,9 @@ namespace NativeCollections
         private readonly int* _array;
 
         /// <summary>
-        ///     Length
+        ///     Capacity
         /// </summary>
-        private readonly int _length;
+        private readonly int _capacity;
 
         /// <summary>
         ///     Size
@@ -50,7 +50,7 @@ namespace NativeCollections
         /// <summary>
         ///     Capacity
         /// </summary>
-        public int Capacity => _length;
+        public int Capacity => _capacity;
 
         /// <summary>
         ///     Structure
@@ -65,9 +65,9 @@ namespace NativeCollections
                 capacity = 4;
             _buffer = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * (sizeof(T) + sizeof(int))));
             _array = (int*)((byte*)_buffer + capacity * sizeof(T));
-            _length = capacity;
+            _capacity = capacity;
             _size = capacity;
-            for (var i = 0; i < _length; ++i)
+            for (var i = 0; i < _capacity; ++i)
                 _array[i] = i;
         }
 
@@ -83,8 +83,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reset()
         {
-            _size = _length;
-            for (var i = 0; i < _length; ++i)
+            _size = _capacity;
+            for (var i = 0; i < _capacity; ++i)
                 _array[i] = i;
         }
 
@@ -95,15 +95,15 @@ namespace NativeCollections
         public bool TryRent(out T* ptr)
         {
             var size = _size - 1;
-            if ((uint)size >= (uint)_length)
+            if ((uint)size >= (uint)_capacity)
             {
                 ptr = null;
                 return false;
             }
 
             _size = size;
-            var item = _array[size];
-            ptr = &_buffer[item];
+            var index = _array[size];
+            ptr = &_buffer[index];
             return true;
         }
 
