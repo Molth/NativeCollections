@@ -175,13 +175,13 @@ namespace NativeCollections
             if (id >= 0)
             {
                 spinWait.Reset();
-                var value = 0;
+                int value;
                 location = ref buffer[2 + id];
-                while (value == 0)
+                do
                 {
                     value = Interlocked.Exchange(ref location, 0);
                     spinWait.SpinOnce();
-                }
+                } while (value == 0);
 
                 index = value - 1;
                 return true;
