@@ -44,6 +44,14 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Align
+        /// </summary>
+        /// <param name="size">Size</param>
+        /// <returns>Aligned</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static nuint Align(nuint size) => AlignUp(size, (nuint)sizeof(nint));
+
+        /// <summary>
         ///     Align up
         /// </summary>
         /// <param name="size">Size</param>
