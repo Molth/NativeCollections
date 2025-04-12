@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net9.0;net8.0;net7.0;net6.0;net5.0</TargetFrameworks>
+        <TargetFrameworks>net9.0;net8.0;net7.0;net6.0;net5.0;netstandard2.1</TargetFrameworks>
         <RootNamespace>NativeCollections</RootNamespace>
         <ImplicitUsings>disable</ImplicitUsings>
         <Nullable>enable</Nullable>
@@ -9,7 +9,7 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
         <PackageId>NativeCollections</PackageId>
-        <Version>1.2.2</Version>
+        <Version>1.2.3</Version>
         <Authors>Molth Nevin</Authors>
         <Company>Hell</Company>
         <Description>High performance pure C# native collections.</Description>
@@ -23,6 +23,14 @@
 
         <SolutionRoot>$(MSBuildThisFileDirectory)../</SolutionRoot>
     </PropertyGroup>
+
+    <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+        <LangVersion>10.0</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+        <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
+    </ItemGroup>
 
     <ItemGroup>
         <None Include="$(SolutionRoot)README.md">
