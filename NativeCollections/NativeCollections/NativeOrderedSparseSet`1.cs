@@ -361,7 +361,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan() => _handle->AsReadOnlySpan();
+        public readonly ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan() => _handle->AsReadOnlySpan();
 
         /// <summary>
         ///     As readOnly span
@@ -369,7 +369,7 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan(int start) => _handle->AsReadOnlySpan(start);
+        public readonly ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan(int start) => _handle->AsReadOnlySpan(start);
 
         /// <summary>
         ///     As readOnly span
@@ -378,7 +378,7 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan(int start, int length) => _handle->AsReadOnlySpan(start, length);
+        public readonly ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan(int start, int length) => _handle->AsReadOnlySpan(start, length);
 
         /// <summary>
         ///     Empty

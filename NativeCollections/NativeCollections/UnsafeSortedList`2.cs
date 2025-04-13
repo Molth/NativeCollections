@@ -777,7 +777,7 @@ namespace NativeCollections
             /// </summary>
             /// <returns>ReadOnlySpan</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public ReadOnlySpan<TKey> AsReadOnlySpan()
+            public readonly ReadOnlySpan<TKey> AsReadOnlySpan()
             {
                 var handle = _nativeSortedList;
                 return MemoryMarshal.CreateReadOnlySpan(ref *handle->_keys, handle->_size);
@@ -788,7 +788,7 @@ namespace NativeCollections
             /// </summary>
             /// <returns>ReadOnlySpan</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public ReadOnlySpan<TKey> AsReadOnlySpan(int start)
+            public readonly ReadOnlySpan<TKey> AsReadOnlySpan(int start)
             {
                 var handle = _nativeSortedList;
                 return MemoryMarshal.CreateReadOnlySpan(ref *(handle->_keys + start), handle->_size - start);
@@ -800,7 +800,7 @@ namespace NativeCollections
             /// </summary>
             /// <returns>ReadOnlySpan</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public ReadOnlySpan<TKey> AsReadOnlySpan(int start, int length)
+            public readonly ReadOnlySpan<TKey> AsReadOnlySpan(int start, int length)
             {
                 var handle = _nativeSortedList;
                 return MemoryMarshal.CreateReadOnlySpan(ref *(handle->_keys + start), length);
@@ -913,7 +913,7 @@ namespace NativeCollections
             /// </summary>
             /// <returns>Span</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public Span<TValue> AsSpan()
+            public readonly Span<TValue> AsSpan()
             {
                 var handle = _nativeSortedList;
                 return MemoryMarshal.CreateSpan(ref *handle->_values, handle->_size);
@@ -924,7 +924,7 @@ namespace NativeCollections
             /// </summary>
             /// <returns>Span</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public Span<TValue> AsSpan(int start)
+            public readonly Span<TValue> AsSpan(int start)
             {
                 var handle = _nativeSortedList;
                 return MemoryMarshal.CreateSpan(ref *(handle->_values + start), handle->_size - start);
@@ -936,7 +936,7 @@ namespace NativeCollections
             /// </summary>
             /// <returns>Span</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public Span<TValue> AsSpan(int start, int length)
+            public readonly Span<TValue> AsSpan(int start, int length)
             {
                 var handle = _nativeSortedList;
                 return MemoryMarshal.CreateSpan(ref *(handle->_values + start), length);
