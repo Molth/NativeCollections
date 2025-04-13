@@ -17,9 +17,9 @@ namespace NativeCollections
     public unsafe struct NativeMemoryLinearAllocator : IEquatable<NativeMemoryLinearAllocator>
     {
         /// <summary>
-        ///     Array
+        ///     Buffer
         /// </summary>
-        public readonly byte* Array;
+        public readonly byte* Buffer;
 
         /// <summary>
         ///     Length
@@ -41,7 +41,7 @@ namespace NativeCollections
         {
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            Array = array;
+            Buffer = array;
             Length = length;
             _position = 0;
         }
@@ -49,7 +49,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => Array != null;
+        public bool IsCreated => Buffer != null;
 
         /// <summary>
         ///     Position
@@ -68,7 +68,7 @@ namespace NativeCollections
         public byte* this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => Array + index;
+            get => Buffer + index;
         }
 
         /// <summary>
@@ -78,7 +78,7 @@ namespace NativeCollections
         public byte* this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => Array + index;
+            get => Buffer + index;
         }
 
         /// <summary>
@@ -99,7 +99,7 @@ namespace NativeCollections
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => ((nint)Array).GetHashCode() ^ Length ^ _position;
+        public override int GetHashCode() => ((nint)Buffer).GetHashCode() ^ Length ^ _position;
 
         /// <summary>
         ///     To string
@@ -113,7 +113,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeMemoryLinearAllocator left, NativeMemoryLinearAllocator right) => left.Array == right.Array && left.Length == right.Length && left._position == right._position;
+        public static bool operator ==(NativeMemoryLinearAllocator left, NativeMemoryLinearAllocator right) => left.Buffer == right.Buffer && left.Length == right.Length && left._position == right._position;
 
         /// <summary>
         ///     Not equals
@@ -121,7 +121,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeMemoryLinearAllocator left, NativeMemoryLinearAllocator right) => left.Array != right.Array || left.Length != right.Length || left._position != right._position;
+        public static bool operator !=(NativeMemoryLinearAllocator left, NativeMemoryLinearAllocator right) => left.Buffer != right.Buffer || left.Length != right.Length || left._position != right._position;
 
         /// <summary>
         ///     Advance
@@ -190,7 +190,7 @@ namespace NativeCollections
                 return false;
             }
 
-            ptr = Array + _position;
+            ptr = Buffer + _position;
             _position = (int)newPosition;
             return true;
         }
@@ -208,7 +208,7 @@ namespace NativeCollections
                 return false;
             }
 
-            ptr = Array + _position;
+            ptr = Buffer + _position;
             _position = (int)newPosition;
             Unsafe.InitBlockUnaligned(ptr, 0, byteCount);
             return true;
@@ -219,7 +219,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<byte> AsSpan() => MemoryMarshal.CreateSpan(ref *Array, Length);
+        public Span<byte> AsSpan() => MemoryMarshal.CreateSpan(ref *Buffer, Length);
 
         /// <summary>
         ///     As span
@@ -227,7 +227,7 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<byte> AsSpan(int start) => MemoryMarshal.CreateSpan(ref *(Array + start), Length - start);
+        public Span<byte> AsSpan(int start) => MemoryMarshal.CreateSpan(ref *(Buffer + start), Length - start);
 
         /// <summary>
         ///     As span
@@ -236,14 +236,14 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<byte> AsSpan(int start, int length) => MemoryMarshal.CreateSpan(ref *(Array + start), length);
+        public Span<byte> AsSpan(int start, int length) => MemoryMarshal.CreateSpan(ref *(Buffer + start), length);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<byte> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref *Array, Length);
+        public ReadOnlySpan<byte> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref *Buffer, Length);
 
         /// <summary>
         ///     As readOnly span
@@ -251,7 +251,7 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<byte> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref *(Array + start), Length - start);
+        public ReadOnlySpan<byte> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref *(Buffer + start), Length - start);
 
         /// <summary>
         ///     As readOnly span
@@ -260,14 +260,14 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<byte> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref *(Array + start), length);
+        public ReadOnlySpan<byte> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref *(Buffer + start), length);
 
         /// <summary>
         ///     As pointer
         /// </summary>
         /// <returns>Pointer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator byte*(NativeMemoryLinearAllocator nativeMemoryLinearAllocator) => nativeMemoryLinearAllocator.Array;
+        public static implicit operator byte*(NativeMemoryLinearAllocator nativeMemoryLinearAllocator) => nativeMemoryLinearAllocator.Buffer;
 
         /// <summary>
         ///     As native memory linear allocator
