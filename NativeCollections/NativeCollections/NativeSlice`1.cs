@@ -239,7 +239,7 @@ namespace NativeCollections
         public static implicit operator NativeSlice<T>(NativeArray<T> nativeArray) => new(nativeArray);
 
         /// <summary>
-        ///     As native memory buffer
+        ///     As native memory array
         /// </summary>
         /// <returns>NativeMemoryArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

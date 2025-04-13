@@ -30,7 +30,7 @@ namespace NativeCollections
         private int _budget;
 
         /// <summary>
-        ///     Grow lock buffer
+        ///     Grow lock array
         /// </summary>
         private bool _growLockArray;
 
@@ -95,7 +95,7 @@ namespace NativeCollections
         /// <param name="maxFreeSlabs">Max free slabs</param>
         /// <param name="concurrencyLevel">Concurrency level</param>
         /// <param name="capacity">Capacity</param>
-        /// <param name="growLockArray">Grow lock buffer</param>
+        /// <param name="growLockArray">Grow lock array</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeConcurrentHashSet(int size, int maxFreeSlabs, int concurrencyLevel, int capacity, bool growLockArray)
         {

@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native memory buffer
+    ///     Native memory array
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
@@ -163,21 +163,21 @@ namespace NativeCollections
         public static implicit operator NativeArray<T>(NativeMemoryArray<T> nativeMemoryArray) => new(nativeMemoryArray._buffer, nativeMemoryArray._length);
 
         /// <summary>
-        ///     As native memory buffer
+        ///     As native memory array
         /// </summary>
         /// <returns>NativeMemoryArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator NativeMemoryArray<T>(NativeArray<T> nativeArray) => new(nativeArray.Buffer, nativeArray.Length);
 
         /// <summary>
-        ///     As native memory buffer
+        ///     As native memory array
         /// </summary>
         /// <returns>NativeMemoryArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator NativeMemoryArray<T>(Span<T> span) => new((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(span)), span.Length);
 
         /// <summary>
-        ///     As native memory buffer
+        ///     As native memory array
         /// </summary>
         /// <returns>NativeMemoryArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

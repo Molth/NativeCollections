@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native buffer 2
+    ///     Native array 2
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
@@ -283,7 +283,7 @@ namespace NativeCollections
         public static implicit operator NativeArray<T>(NativeArray2<T> nativeArray2) => new(nativeArray2._buffer, nativeArray2._x * nativeArray2._y);
 
         /// <summary>
-        ///     As native memory buffer
+        ///     As native memory array
         /// </summary>
         /// <returns>NativeMemoryArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

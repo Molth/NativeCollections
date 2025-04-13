@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native bit buffer
+    ///     Native bit array
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Standard)]
