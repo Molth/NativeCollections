@@ -96,7 +96,7 @@ namespace NativeCollections
             if (maxFreeChunks < 0)
                 throw new ArgumentOutOfRangeException(nameof(maxFreeChunks), maxFreeChunks, "MustBeNonNegative");
             var chunk = (MemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemoryChunk) + size * sizeof(T)));
-            chunk->Array = (T*)((byte*)chunk + sizeof(MemoryChunk));
+            chunk->Buffer = (T*)((byte*)chunk + sizeof(MemoryChunk));
             _sentinel = chunk;
             _freeList = null;
             _chunks = 1;
@@ -164,7 +164,7 @@ namespace NativeCollections
                 if (_freeChunks == 0)
                 {
                     chunk = (MemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemoryChunk) + _size * sizeof(T)));
-                    chunk->Array = (T*)((byte*)chunk + sizeof(MemoryChunk));
+                    chunk->Buffer = (T*)((byte*)chunk + sizeof(MemoryChunk));
                 }
                 else
                 {
@@ -179,7 +179,7 @@ namespace NativeCollections
             }
 
             ++_count;
-            _sentinel->Array[index] = item;
+            _sentinel->Buffer[index] = item;
         }
 
         /// <summary>
@@ -198,7 +198,7 @@ namespace NativeCollections
 
             --_count;
             var index = _count % _size;
-            result = _sentinel->Array[index];
+            result = _sentinel->Buffer[index];
             if (index == 0 && _chunks != 1)
             {
                 var chunk = _sentinel;
@@ -235,7 +235,7 @@ namespace NativeCollections
             }
 
             var index = (_count - 1) % _size;
-            result = _sentinel->Array[index];
+            result = _sentinel->Buffer[index];
             return true;
         }
 
@@ -255,7 +255,7 @@ namespace NativeCollections
             {
                 _freeChunks++;
                 var chunk = (MemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemoryChunk) + _size));
-                chunk->Array = (T*)((byte*)chunk + sizeof(MemoryChunk));
+                chunk->Buffer = (T*)((byte*)chunk + sizeof(MemoryChunk));
                 chunk->Next = _freeList;
                 _freeList = chunk;
             }
@@ -315,9 +315,9 @@ namespace NativeCollections
             public MemoryChunk* Next;
 
             /// <summary>
-            ///     Array
+            ///     Buffer
             /// </summary>
-            public T* Array;
+            public T* Buffer;
         }
 
         /// <summary>

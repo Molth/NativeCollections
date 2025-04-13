@@ -18,9 +18,9 @@ namespace NativeCollections
     public unsafe struct UnsafeStack<T> : IDisposable where T : unmanaged
     {
         /// <summary>
-        ///     Array
+        ///     Buffer
         /// </summary>
-        private T* _array;
+        private T* _buffer;
 
         /// <summary>
         ///     Length
@@ -44,7 +44,7 @@ namespace NativeCollections
         public ref T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _array[index];
+            get => ref _buffer[index];
         }
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace NativeCollections
         public ref T this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _array[index];
+            get => ref _buffer[index];
         }
 
         /// <summary>
@@ -83,7 +83,7 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
             if (capacity < 4)
                 capacity = 4;
-            _array = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
+            _buffer = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
             _length = capacity;
             _size = 0;
             _version = 0;
@@ -93,7 +93,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => NativeMemoryAllocator.Free(_array);
+        public void Dispose() => NativeMemoryAllocator.Free(_buffer);
 
         /// <summary>
         ///     Clear
@@ -115,14 +115,14 @@ namespace NativeCollections
             var size = _size;
             if ((uint)size < (uint)_length)
             {
-                _array[size] = item;
+                _buffer[size] = item;
                 _version++;
                 _size = size + 1;
             }
             else
             {
                 Grow(_size + 1);
-                _array[_size] = item;
+                _buffer[_size] = item;
                 _version++;
                 _size++;
             }
@@ -139,7 +139,7 @@ namespace NativeCollections
             var size = _size;
             if ((uint)size < (uint)_length)
             {
-                _array[size] = item;
+                _buffer[size] = item;
                 _version++;
                 _size = size + 1;
                 return true;
@@ -160,7 +160,7 @@ namespace NativeCollections
                 throw new InvalidOperationException("EmptyStack");
             _version++;
             _size = size;
-            var item = _array[size];
+            var item = _buffer[size];
             return item;
         }
 
@@ -181,7 +181,7 @@ namespace NativeCollections
 
             _version++;
             _size = size;
-            result = _array[size];
+            result = _buffer[size];
             return true;
         }
 
@@ -193,7 +193,7 @@ namespace NativeCollections
         public T Peek()
         {
             var size = _size - 1;
-            return (uint)size >= (uint)_length ? throw new InvalidOperationException("EmptyStack") : _array[size];
+            return (uint)size >= (uint)_length ? throw new InvalidOperationException("EmptyStack") : _buffer[size];
         }
 
         /// <summary>
@@ -211,7 +211,7 @@ namespace NativeCollections
                 return false;
             }
 
-            result = _array[size];
+            result = _buffer[size];
             return true;
         }
 
@@ -268,9 +268,9 @@ namespace NativeCollections
         {
             var newArray = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
             if (_size > 0)
-                Unsafe.CopyBlockUnaligned(newArray, _array, (uint)(_length * sizeof(T)));
-            NativeMemoryAllocator.Free(_array);
-            _array = newArray;
+                Unsafe.CopyBlockUnaligned(newArray, _buffer, (uint)(_length * sizeof(T)));
+            NativeMemoryAllocator.Free(_buffer);
+            _buffer = newArray;
             _length = capacity;
         }
 
@@ -357,14 +357,14 @@ namespace NativeCollections
                     _index = handle->_size - 1;
                     returned = _index >= 0;
                     if (returned)
-                        _currentElement = handle->_array[_index];
+                        _currentElement = handle->_buffer[_index];
                     return returned;
                 }
 
                 if (_index == -1)
                     return false;
                 returned = --_index >= 0;
-                _currentElement = returned ? handle->_array[_index] : default;
+                _currentElement = returned ? handle->_buffer[_index] : default;
                 return returned;
             }
 

@@ -79,14 +79,14 @@ namespace NativeCollections
             if (maxFreeSlabs < 0)
                 throw new ArgumentOutOfRangeException(nameof(maxFreeSlabs), maxFreeSlabs, "MustBeNonNegative");
             var nodeSize = sizeof(nint) + length;
-            var array = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemorySlab) + 32 * nodeSize));
-            var slab = (MemorySlab*)array;
+            var buffer = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemorySlab) + 32 * nodeSize));
+            var slab = (MemorySlab*)buffer;
             slab->Next = slab;
             slab->Previous = slab;
             slab->Bitmap = 0U;
-            array += sizeof(MemorySlab);
+            buffer += sizeof(MemorySlab);
             for (nint i = 0; i < 32; ++i)
-                *(nint*)(array + i * nodeSize) = i;
+                *(nint*)(buffer + i * nodeSize) = i;
             _sentinel = slab;
             _freeList = null;
             _slabs = 1;
@@ -137,11 +137,11 @@ namespace NativeCollections
                 {
                     if (_freeSlabs == 0)
                     {
-                        var array = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemorySlab) + 32 * nodeSize));
-                        slab = (MemorySlab*)array;
-                        array += sizeof(MemorySlab);
+                        var buffer = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemorySlab) + 32 * nodeSize));
+                        slab = (MemorySlab*)buffer;
+                        buffer += sizeof(MemorySlab);
                         for (nint i = 0; i < 32; ++i)
-                            *(nint*)(array + i * nodeSize) = i;
+                            *(nint*)(buffer + i * nodeSize) = i;
                     }
                     else
                     {
@@ -173,10 +173,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Return(void* ptr)
         {
-            var array = (byte*)ptr;
-            var id = *(array - sizeof(nint));
-            array -= sizeof(MemorySlab) + id * (sizeof(nint) + _length) + sizeof(nint);
-            var slab = (MemorySlab*)array;
+            var buffer = (byte*)ptr;
+            var id = *(buffer - sizeof(nint));
+            buffer -= sizeof(MemorySlab) + id * (sizeof(nint) + _length) + sizeof(nint);
+            var slab = (MemorySlab*)buffer;
             ref var segment = ref slab->Bitmap;
             segment &= ~(1U << id);
             if (segment == 0 && slab != _sentinel)
@@ -214,11 +214,11 @@ namespace NativeCollections
             while (_freeSlabs < capacity)
             {
                 _freeSlabs++;
-                var array = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemorySlab) + 32 * nodeSize));
-                var slab = (MemorySlab*)array;
-                array += sizeof(MemorySlab);
+                var buffer = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemorySlab) + 32 * nodeSize));
+                var slab = (MemorySlab*)buffer;
+                buffer += sizeof(MemorySlab);
                 for (nint i = 0; i < 32; ++i)
-                    *(nint*)(array + i * nodeSize) = i;
+                    *(nint*)(buffer + i * nodeSize) = i;
                 slab->Next = _freeList;
                 _freeList = slab;
             }

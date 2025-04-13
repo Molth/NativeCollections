@@ -31,7 +31,7 @@ namespace NativeCollections
         /// <param name="maxFreeSlabs">Max free slabs</param>
         /// <param name="concurrencyLevel">Concurrency level</param>
         /// <param name="capacity">Capacity</param>
-        /// <param name="growLockArray">Grow lock array</param>
+        /// <param name="growLockArray">Grow lock buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeConcurrentHashSet(int size, int maxFreeSlabs, int concurrencyLevel, int capacity, bool growLockArray)
         {

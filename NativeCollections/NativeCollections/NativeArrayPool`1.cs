@@ -56,14 +56,14 @@ namespace NativeCollections
                 maxLength = 16;
             var length = SelectBucketIndex(maxLength) + 1;
             var extremeLength = capacity * sizeof(T*);
-            var array = (byte*)NativeMemoryAllocator.Alloc((uint)(length * (sizeof(NativeArrayPoolBucket) + extremeLength)));
-            var buckets = (NativeArrayPoolBucket*)array;
-            array += length * sizeof(NativeArrayPoolBucket);
-            Unsafe.InitBlockUnaligned(array, 0, (uint)(length * extremeLength));
+            var buffer = (byte*)NativeMemoryAllocator.Alloc((uint)(length * (sizeof(NativeArrayPoolBucket) + extremeLength)));
+            var buckets = (NativeArrayPoolBucket*)buffer;
+            buffer += length * sizeof(NativeArrayPoolBucket);
+            Unsafe.InitBlockUnaligned(buffer, 0, (uint)(length * extremeLength));
             for (var i = 0; i < length; ++i)
             {
                 ref var bucket = ref buckets[i];
-                bucket.Array = (T**)(array + i * extremeLength);
+                bucket.Buffer = (T**)(buffer + i * extremeLength);
                 bucket.Length = 16 << i;
                 bucket.Index = 0;
                 bucket.SpinLock = new SpinLock();
@@ -193,7 +193,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="nativeArray">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Return(NativeArray<T> nativeArray) => Return(nativeArray.Length, nativeArray.Array);
+        public void Return(NativeArray<T> nativeArray) => Return(nativeArray.Length, nativeArray.Buffer);
 
         /// <summary>
         ///     Try return buffer
@@ -201,39 +201,39 @@ namespace NativeCollections
         /// <param name="nativeArray">Buffer</param>
         /// <returns>Returned</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryReturn(NativeArray<T> nativeArray) => TryReturn(nativeArray.Length, nativeArray.Array);
+        public bool TryReturn(NativeArray<T> nativeArray) => TryReturn(nativeArray.Length, nativeArray.Buffer);
 
         /// <summary>
         ///     Return buffer
         /// </summary>
         /// <param name="length">Length</param>
-        /// <param name="array">Buffer</param>
+        /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Return(int length, T* array)
+        public void Return(int length, T* buffer)
         {
             if (length < 16 || (length & (length - 1)) != 0)
-                throw new ArgumentException("BufferNotFromPool", nameof(array));
+                throw new ArgumentException("BufferNotFromPool", nameof(buffer));
             var bucket = SelectBucketIndex(length);
             if (bucket >= _length)
-                throw new ArgumentException("BufferNotFromPool", nameof(array));
-            _buckets[bucket].Return(array, (CustomMemoryAllocator*)Unsafe.AsPointer(ref _allocator));
+                throw new ArgumentException("BufferNotFromPool", nameof(buffer));
+            _buckets[bucket].Return(buffer, (CustomMemoryAllocator*)Unsafe.AsPointer(ref _allocator));
         }
 
         /// <summary>
         ///     Try return buffer
         /// </summary>
         /// <param name="length">Length</param>
-        /// <param name="array">Buffer</param>
+        /// <param name="buffer">Buffer</param>
         /// <returns>Returned</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryReturn(int length, T* array)
+        public bool TryReturn(int length, T* buffer)
         {
             if (length < 16 || (length & (length - 1)) != 0)
                 return false;
             var bucket = SelectBucketIndex(length);
             if (bucket >= _length)
                 return false;
-            _buckets[bucket].Return(array, (CustomMemoryAllocator*)Unsafe.AsPointer(ref _allocator));
+            _buckets[bucket].Return(buffer, (CustomMemoryAllocator*)Unsafe.AsPointer(ref _allocator));
             return true;
         }
 
@@ -259,7 +259,7 @@ namespace NativeCollections
             /// <summary>
             ///     Buffers
             /// </summary>
-            public T** Array;
+            public T** Buffer;
 
             /// <summary>
             ///     Length
@@ -284,7 +284,7 @@ namespace NativeCollections
             {
                 for (var i = capacity - 1; i >= 0; --i)
                 {
-                    var buffer = Array[i];
+                    var buffer = Buffer[i];
                     if (buffer == null)
                         break;
                     allocator->Free(buffer);
@@ -298,7 +298,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeArray<T> Rent(int capacity, CustomMemoryAllocator* allocator)
             {
-                var array = Array;
+                var buffer = Buffer;
                 T* ptr = null;
                 ref var spinLock = ref SpinLock;
                 ref var index = ref Index;
@@ -308,8 +308,8 @@ namespace NativeCollections
                     spinLock.Enter(ref lockTaken);
                     if (index < capacity)
                     {
-                        ptr = array[index];
-                        array[index++] = null;
+                        ptr = buffer[index];
+                        buffer[index++] = null;
                     }
 
                     if (ptr == null)
@@ -337,7 +337,7 @@ namespace NativeCollections
                 {
                     spinLock.Enter(ref lockTaken);
                     if (index != 0)
-                        Array[--index] = ptr;
+                        Buffer[--index] = ptr;
                     else
                         allocator->Free(ptr);
                 }

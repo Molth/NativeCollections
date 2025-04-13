@@ -13,24 +13,24 @@ namespace NativeCollections
     public sealed unsafe class NativeMemoryManager<T> : MemoryManager<T> where T : unmanaged
     {
         /// <summary>
-        ///     Array
+        ///     Buffer
         /// </summary>
-        private readonly NativeArray<T> _array;
+        private readonly NativeArray<T> _buffer;
 
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="array">array</param>
+        /// <param name="buffer">buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeMemoryManager(NativeArray<T> array) => _array = array;
+        public NativeMemoryManager(NativeArray<T> buffer) => _buffer = buffer;
 
         /// <summary>
-        ///     Array
+        ///     Buffer
         /// </summary>
-        public NativeArray<T> Array
+        public NativeArray<T> Buffer
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _array;
+            get => _buffer;
         }
 
         /// <summary>
@@ -62,11 +62,11 @@ namespace NativeCollections
         public static implicit operator ReadOnlyMemory<T>(NativeMemoryManager<T> nativeMemoryManager) => nativeMemoryManager.Memory;
 
         /// <summary>
-        ///     As native array
+        ///     As native buffer
         /// </summary>
         /// <returns>NativeArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeArray<T>(NativeMemoryManager<T> nativeMemoryManager) => nativeMemoryManager._array;
+        public static implicit operator NativeArray<T>(NativeMemoryManager<T> nativeMemoryManager) => nativeMemoryManager._buffer;
 
         /// <summary>
         ///     Dispose
@@ -79,14 +79,14 @@ namespace NativeCollections
         /// </summary>
         /// <param name="disposing">Disposing</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected override void Dispose(bool disposing) => _array.Dispose();
+        protected override void Dispose(bool disposing) => _buffer.Dispose();
 
         /// <summary>
         ///     Get span
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override Span<T> GetSpan() => _array.AsSpan();
+        public override Span<T> GetSpan() => _buffer.AsSpan();
 
         /// <summary>
         ///     Pin
@@ -94,7 +94,7 @@ namespace NativeCollections
         /// <param name="elementIndex">Element index</param>
         /// <returns>MemoryHandle</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override MemoryHandle Pin(int elementIndex = 0) => new(_array.Array + elementIndex);
+        public override MemoryHandle Pin(int elementIndex = 0) => new(_buffer.Buffer + elementIndex);
 
         /// <summary>
         ///     Unpin

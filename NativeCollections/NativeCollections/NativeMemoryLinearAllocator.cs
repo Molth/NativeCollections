@@ -34,14 +34,14 @@ namespace NativeCollections
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="array">Array</param>
+        /// <param name="buffer">Buffer</param>
         /// <param name="length">Length</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeMemoryLinearAllocator(byte* array, int length)
+        public NativeMemoryLinearAllocator(byte* buffer, int length)
         {
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            Buffer = array;
+            Buffer = buffer;
             Length = length;
             _position = 0;
         }

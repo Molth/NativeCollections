@@ -27,9 +27,9 @@ namespace NativeCollections
         private int _length;
 
         /// <summary>
-        ///     Array
+        ///     Buffer
         /// </summary>
-        private void** _array;
+        private void** _buffer;
 
         /// <summary>
         ///     Index
@@ -62,7 +62,7 @@ namespace NativeCollections
         {
             _size = size;
             _length = length;
-            _array = (void**)NativeMemoryAllocator.AllocZeroed((uint)(size * sizeof(void*)));
+            _buffer = (void**)NativeMemoryAllocator.AllocZeroed((uint)(size * sizeof(void*)));
             _index = 0;
             _allocator = allocator;
         }
@@ -75,13 +75,13 @@ namespace NativeCollections
         {
             for (var i = _size - 1; i >= 0; --i)
             {
-                var buffer = _array[i];
+                var buffer = _buffer[i];
                 if (buffer == null)
                     break;
                 _allocator.Free(buffer);
             }
 
-            NativeMemoryAllocator.Free(_array);
+            NativeMemoryAllocator.Free(_buffer);
         }
 
         /// <summary>
@@ -94,8 +94,8 @@ namespace NativeCollections
             void* buffer = null;
             if (_index < _size)
             {
-                buffer = _array[_index];
-                _array[_index++] = null;
+                buffer = _buffer[_index];
+                _buffer[_index++] = null;
             }
 
             if (buffer == null)
@@ -111,7 +111,7 @@ namespace NativeCollections
         public void Return(void* ptr)
         {
             if (_index != 0)
-                _array[--_index] = ptr;
+                _buffer[--_index] = ptr;
             else
                 _allocator.Free(ptr);
         }

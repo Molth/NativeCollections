@@ -349,7 +349,7 @@ namespace NativeCollections
         public static float NextSingle() => (sizeof(nint) == 8 ? Next64() >> 40 : Next32() >> 8) * 5.9604645E-08f;
 
         /// <summary>Fills the elements of a specified span of bytes with random numbers.</summary>
-        /// <param name="buffer">The array to be filled with random numbers.</param>
+        /// <param name="buffer">The buffer to be filled with random numbers.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void NextBytes(Span<byte> buffer) => RandomNumberGenerator.Fill(buffer);
 

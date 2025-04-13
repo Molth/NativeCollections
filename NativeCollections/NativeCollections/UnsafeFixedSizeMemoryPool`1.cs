@@ -23,12 +23,12 @@ namespace NativeCollections
         private readonly T* _buffer;
 
         /// <summary>
-        ///     Array
+        ///     Buffer
         /// </summary>
         private readonly int* _index;
 
         /// <summary>
-        ///     Bit array
+        ///     Bit buffer
         /// </summary>
         private readonly int* _bitArray;
 
@@ -38,7 +38,7 @@ namespace NativeCollections
         private readonly int _capacity;
 
         /// <summary>
-        ///     Bit array length
+        ///     Bit buffer length
         /// </summary>
         private readonly int _bitArrayLength;
 

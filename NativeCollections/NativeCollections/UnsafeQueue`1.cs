@@ -18,9 +18,9 @@ namespace NativeCollections
     public unsafe struct UnsafeQueue<T> : IDisposable where T : unmanaged
     {
         /// <summary>
-        ///     Array
+        ///     Buffer
         /// </summary>
-        private T* _array;
+        private T* _buffer;
 
         /// <summary>
         ///     Length
@@ -54,7 +54,7 @@ namespace NativeCollections
         public ref T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _array[(_head + index) % _length];
+            get => ref _buffer[(_head + index) % _length];
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace NativeCollections
         public ref T this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _array[(_head + index) % _length];
+            get => ref _buffer[(_head + index) % _length];
         }
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
             if (capacity < 4)
                 capacity = 4;
-            _array = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
+            _buffer = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
             _length = capacity;
             _head = 0;
             _tail = 0;
@@ -105,7 +105,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => NativeMemoryAllocator.Free(_array);
+        public void Dispose() => NativeMemoryAllocator.Free(_buffer);
 
         /// <summary>
         ///     Clear
@@ -128,7 +128,7 @@ namespace NativeCollections
         {
             if (_size == _length)
                 Grow(_size + 1);
-            _array[_tail] = item;
+            _buffer[_tail] = item;
             MoveNext(ref _tail);
             _size++;
             _version++;
@@ -144,7 +144,7 @@ namespace NativeCollections
         {
             if (_size != _length)
             {
-                _array[_tail] = item;
+                _buffer[_tail] = item;
                 MoveNext(ref _tail);
                 _size++;
                 _version++;
@@ -163,7 +163,7 @@ namespace NativeCollections
         {
             if (_size == 0)
                 throw new InvalidOperationException("EmptyQueue");
-            var removed = _array[_head];
+            var removed = _buffer[_head];
             MoveNext(ref _head);
             _size--;
             _version++;
@@ -184,7 +184,7 @@ namespace NativeCollections
                 return false;
             }
 
-            result = _array[_head];
+            result = _buffer[_head];
             MoveNext(ref _head);
             _size--;
             _version++;
@@ -196,7 +196,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Item</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T Peek() => _size == 0 ? throw new InvalidOperationException("EmptyQueue") : _array[_head];
+        public T Peek() => _size == 0 ? throw new InvalidOperationException("EmptyQueue") : _buffer[_head];
 
         /// <summary>
         ///     Try peek
@@ -212,7 +212,7 @@ namespace NativeCollections
                 return false;
             }
 
-            result = _array[_head];
+            result = _buffer[_head];
             return true;
         }
 
@@ -272,17 +272,17 @@ namespace NativeCollections
             {
                 if (_head < _tail)
                 {
-                    Unsafe.CopyBlockUnaligned(newArray, _array + _head, (uint)(_size * sizeof(T)));
+                    Unsafe.CopyBlockUnaligned(newArray, _buffer + _head, (uint)(_size * sizeof(T)));
                 }
                 else
                 {
-                    Unsafe.CopyBlockUnaligned(newArray, _array + _head, (uint)((_length - _head) * sizeof(T)));
-                    Unsafe.CopyBlockUnaligned(newArray + _length - _head, _array, (uint)(_tail * sizeof(T)));
+                    Unsafe.CopyBlockUnaligned(newArray, _buffer + _head, (uint)((_length - _head) * sizeof(T)));
+                    Unsafe.CopyBlockUnaligned(newArray + _length - _head, _buffer, (uint)(_tail * sizeof(T)));
                 }
             }
 
-            NativeMemoryAllocator.Free(_array);
-            _array = newArray;
+            NativeMemoryAllocator.Free(_buffer);
+            _buffer = newArray;
             _length = capacity;
             _head = 0;
             _tail = _size == capacity ? 0 : _size;
@@ -389,12 +389,12 @@ namespace NativeCollections
                     return false;
                 }
 
-                var array = handle->_array;
+                var buffer = handle->_buffer;
                 var capacity = (uint)handle->_length;
-                var arrayIndex = (uint)(handle->_head + _index);
-                if (arrayIndex >= capacity)
-                    arrayIndex -= capacity;
-                _currentElement = array[arrayIndex];
+                var index = (uint)(handle->_head + _index);
+                if (index >= capacity)
+                    index -= capacity;
+                _currentElement = buffer[index];
                 return true;
             }
 

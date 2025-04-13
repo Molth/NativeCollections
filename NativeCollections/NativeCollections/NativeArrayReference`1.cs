@@ -12,7 +12,7 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native array reference
+    ///     Native buffer reference
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
@@ -59,28 +59,28 @@ namespace NativeCollections
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="array">Array</param>
+        /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeArrayReference(T[] array)
+        public NativeArrayReference(T[] buffer)
         {
-            if (array == null)
-                throw new ArgumentNullException(nameof(array), "MustBeNotNull");
-            _handle = GCHandle.Alloc(array, GCHandleType.Normal);
-            _length = array.Length;
+            if (buffer == null)
+                throw new ArgumentNullException(nameof(buffer), "MustBeNotNull");
+            _handle = GCHandle.Alloc(buffer, GCHandleType.Normal);
+            _length = buffer.Length;
         }
 
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="array">Array</param>
+        /// <param name="buffer">Buffer</param>
         /// <param name="type">GCHandle type</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeArrayReference(T[] array, GCHandleType type)
+        public NativeArrayReference(T[] buffer, GCHandleType type)
         {
-            if (array == null)
-                throw new ArgumentNullException(nameof(array), "MustBeNotNull");
-            _handle = GCHandle.Alloc(array, type);
-            _length = array.Length;
+            if (buffer == null)
+                throw new ArgumentNullException(nameof(buffer), "MustBeNotNull");
+            _handle = GCHandle.Alloc(buffer, type);
+            _length = buffer.Length;
         }
 
         /// <summary>
@@ -100,7 +100,7 @@ namespace NativeCollections
         public ref T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Array[index];
+            get => ref Buffer[index];
         }
 
         /// <summary>
@@ -110,13 +110,13 @@ namespace NativeCollections
         public ref T this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Array[index];
+            get => ref Buffer[index];
         }
 
         /// <summary>
-        ///     Array
+        ///     Buffer
         /// </summary>
-        public T[] Array
+        public T[] Buffer
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => (T[])_handle.Target;
@@ -190,7 +190,7 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
-        public Enumerator GetEnumerator() => new(Array);
+        public Enumerator GetEnumerator() => new(Buffer);
 
         /// <summary>
         ///     Enumerator
@@ -198,9 +198,9 @@ namespace NativeCollections
         public struct Enumerator
         {
             /// <summary>
-            ///     Array
+            ///     Buffer
             /// </summary>
-            private readonly T[] _array;
+            private readonly T[] _buffer;
 
             /// <summary>
             ///     Index
@@ -210,11 +210,11 @@ namespace NativeCollections
             /// <summary>
             ///     Structure
             /// </summary>
-            /// <param name="array">Array</param>
+            /// <param name="buffer">Buffer</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(T[] array)
+            internal Enumerator(T[] buffer)
             {
-                _array = array;
+                _buffer = buffer;
                 _index = -1;
             }
 
@@ -226,7 +226,7 @@ namespace NativeCollections
             public bool MoveNext()
             {
                 var index = _index + 1;
-                if (index < _array.Length)
+                if (index < _buffer.Length)
                 {
                     _index = index;
                     return true;
@@ -241,7 +241,7 @@ namespace NativeCollections
             public ref T Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => ref _array[_index];
+                get => ref _buffer[_index];
             }
         }
     }

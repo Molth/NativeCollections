@@ -35,7 +35,7 @@ namespace NativeCollections
         public NativeDynamicMemoryPool(ulong size)
         {
             ulong actualSize;
-            void* array;
+            void* buffer;
             void* handle;
             if (sizeof(nint) == 8)
             {
@@ -46,11 +46,11 @@ namespace NativeCollections
                 if (actualSize > int.MaxValue)
 #endif
                     throw new ArgumentOutOfRangeException(nameof(size), size, "MustBeLess");
-                array = NativeMemoryAllocator.Alloc((uint)actualSize);
-                handle = TLSF64.tlsf_create_with_pool(array, actualSize);
+                buffer = NativeMemoryAllocator.Alloc((uint)actualSize);
+                handle = TLSF64.tlsf_create_with_pool(buffer, actualSize);
                 if (handle == null)
                 {
-                    NativeMemoryAllocator.Free(array);
+                    NativeMemoryAllocator.Free(buffer);
                     throw new ArgumentOutOfRangeException(nameof(size), "Memory must be aligned to 8 bytes.");
                 }
             }
@@ -59,11 +59,11 @@ namespace NativeCollections
                 actualSize = TLSF32.align_up((uint)(TLSF32.tlsf_size() + TLSF32.tlsf_pool_overhead() + 7 * TLSF32.tlsf_alloc_overhead() + size), 4);
                 if (actualSize > TLSF32.block_size_max)
                     throw new ArgumentOutOfRangeException(nameof(size), size, "MustBeLess");
-                array = NativeMemoryAllocator.Alloc((uint)actualSize);
-                handle = TLSF32.tlsf_create_with_pool(array, (uint)actualSize);
+                buffer = NativeMemoryAllocator.Alloc((uint)actualSize);
+                handle = TLSF32.tlsf_create_with_pool(buffer, (uint)actualSize);
                 if (handle == null)
                 {
-                    NativeMemoryAllocator.Free(array);
+                    NativeMemoryAllocator.Free(buffer);
                     throw new ArgumentOutOfRangeException(nameof(size), "Memory must be aligned to 4 bytes.");
                 }
             }

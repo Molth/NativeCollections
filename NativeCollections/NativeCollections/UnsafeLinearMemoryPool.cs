@@ -79,8 +79,8 @@ namespace NativeCollections
             if (maxFreeSlabs < 0)
                 throw new ArgumentOutOfRangeException(nameof(maxFreeSlabs), maxFreeSlabs, "MustBeNonNegative");
             var size = sizeof(MemoryNode) + maxLength;
-            var array = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemorySlab) + size));
-            var slab = (MemorySlab*)array;
+            var buffer = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemorySlab) + size));
+            var slab = (MemorySlab*)buffer;
             slab->Next = slab;
             slab->Previous = slab;
             slab->Nodes = 0;
@@ -136,8 +136,8 @@ namespace NativeCollections
             {
                 if (_freeSlabs == 0)
                 {
-                    var array = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemorySlab) + size));
-                    slab = (MemorySlab*)array;
+                    var buffer = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemorySlab) + size));
+                    slab = (MemorySlab*)buffer;
                 }
                 else
                 {
@@ -208,8 +208,8 @@ namespace NativeCollections
             while (_freeSlabs < capacity)
             {
                 _freeSlabs++;
-                var array = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemorySlab) + size));
-                var slab = (MemorySlab*)array;
+                var buffer = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemorySlab) + size));
+                var slab = (MemorySlab*)buffer;
                 slab->Next = _freeList;
                 _freeList = slab;
             }

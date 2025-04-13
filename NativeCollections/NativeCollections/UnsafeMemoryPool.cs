@@ -92,15 +92,15 @@ namespace NativeCollections
             if (maxFreeSlabs < 0)
                 throw new ArgumentOutOfRangeException(nameof(maxFreeSlabs), maxFreeSlabs, "MustBeNonNegative");
             var nodeSize = sizeof(MemoryNode) + length;
-            var array = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemorySlab) + size * nodeSize));
-            var slab = (MemorySlab*)array;
+            var buffer = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemorySlab) + size * nodeSize));
+            var slab = (MemorySlab*)buffer;
             slab->Next = slab;
             slab->Previous = slab;
-            array += sizeof(MemorySlab);
+            buffer += sizeof(MemorySlab);
             MemoryNode* next = null;
             for (var i = size - 1; i >= 0; --i)
             {
-                var node = (MemoryNode*)(array + i * nodeSize);
+                var node = (MemoryNode*)(buffer + i * nodeSize);
                 node->Next = next;
                 next = node;
             }
@@ -160,13 +160,13 @@ namespace NativeCollections
                     if (_freeSlabs == 0)
                     {
                         var nodeSize = sizeof(MemoryNode) + _length;
-                        var array = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemorySlab) + size * nodeSize));
-                        slab = (MemorySlab*)array;
-                        array += sizeof(MemorySlab);
+                        var buffer = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemorySlab) + size * nodeSize));
+                        slab = (MemorySlab*)buffer;
+                        buffer += sizeof(MemorySlab);
                         MemoryNode* next = null;
                         for (var i = size - 1; i >= 0; --i)
                         {
-                            node = (MemoryNode*)(array + i * nodeSize);
+                            node = (MemoryNode*)(buffer + i * nodeSize);
                             node->Next = next;
                             next = node;
                         }
@@ -249,13 +249,13 @@ namespace NativeCollections
             while (_freeSlabs < capacity)
             {
                 _freeSlabs++;
-                var array = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemorySlab) + size * nodeSize));
-                var slab = (MemorySlab*)array;
-                array += sizeof(MemorySlab);
+                var buffer = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemorySlab) + size * nodeSize));
+                var slab = (MemorySlab*)buffer;
+                buffer += sizeof(MemorySlab);
                 MemoryNode* next = null;
                 for (var i = size - 1; i >= 0; --i)
                 {
-                    var node = (MemoryNode*)(array + i * nodeSize);
+                    var node = (MemoryNode*)(buffer + i * nodeSize);
                     node->Next = next;
                     next = node;
                 }

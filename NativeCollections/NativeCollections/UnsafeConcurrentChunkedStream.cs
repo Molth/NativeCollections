@@ -178,11 +178,11 @@ namespace NativeCollections
                 nint byteCount = size - _readOffset;
                 if (byteCount > length)
                 {
-                    Unsafe.CopyBlockUnaligned(buffer, _head->Array + _readOffset, (uint)length);
+                    Unsafe.CopyBlockUnaligned(buffer, _head->Buffer + _readOffset, (uint)length);
                 }
                 else
                 {
-                    Unsafe.CopyBlockUnaligned(buffer, _head->Array + _readOffset, (uint)byteCount);
+                    Unsafe.CopyBlockUnaligned(buffer, _head->Buffer + _readOffset, (uint)byteCount);
                     if (byteCount != length)
                     {
                         MemoryChunk* chunk;
@@ -205,7 +205,7 @@ namespace NativeCollections
                             }
 
                             --_chunks;
-                            Unsafe.CopyBlockUnaligned(buffer + byteCount, _head->Array, (uint)size);
+                            Unsafe.CopyBlockUnaligned(buffer + byteCount, _head->Buffer, (uint)size);
                             byteCount += size;
                         }
 
@@ -225,7 +225,7 @@ namespace NativeCollections
                             }
 
                             --_chunks;
-                            Unsafe.CopyBlockUnaligned(buffer + byteCount, _head->Array, (uint)remaining);
+                            Unsafe.CopyBlockUnaligned(buffer + byteCount, _head->Buffer, (uint)remaining);
                         }
                     }
                 }
@@ -246,12 +246,12 @@ namespace NativeCollections
                 nint byteCount = size - _readOffset;
                 if (byteCount > length)
                 {
-                    Unsafe.CopyBlockUnaligned(buffer, _head->Array + _readOffset, (uint)length);
+                    Unsafe.CopyBlockUnaligned(buffer, _head->Buffer + _readOffset, (uint)length);
                     _readOffset += length;
                 }
                 else
                 {
-                    Unsafe.CopyBlockUnaligned(buffer, _head->Array + _readOffset, (uint)byteCount);
+                    Unsafe.CopyBlockUnaligned(buffer, _head->Buffer + _readOffset, (uint)byteCount);
                     MemoryChunk* chunk;
                     var count = length - byteCount;
                     var chunks = count / size;
@@ -272,7 +272,7 @@ namespace NativeCollections
                         }
 
                         --_chunks;
-                        Unsafe.CopyBlockUnaligned(buffer + byteCount, _head->Array, (uint)size);
+                        Unsafe.CopyBlockUnaligned(buffer + byteCount, _head->Buffer, (uint)size);
                         byteCount += size;
                     }
 
@@ -292,7 +292,7 @@ namespace NativeCollections
                         }
 
                         --_chunks;
-                        Unsafe.CopyBlockUnaligned(buffer + byteCount, _head->Array, (uint)remaining);
+                        Unsafe.CopyBlockUnaligned(buffer + byteCount, _head->Buffer, (uint)remaining);
                     }
 
                     _readOffset = (int)remaining;
@@ -322,13 +322,13 @@ namespace NativeCollections
             nint byteCount = size - _writeOffset;
             if (byteCount >= length)
             {
-                Unsafe.CopyBlockUnaligned(_tail->Array + _writeOffset, buffer, (uint)length);
+                Unsafe.CopyBlockUnaligned(_tail->Buffer + _writeOffset, buffer, (uint)length);
                 _writeOffset += length;
             }
             else
             {
                 if (byteCount != 0)
-                    Unsafe.CopyBlockUnaligned(_tail->Array + _writeOffset, buffer, (uint)byteCount);
+                    Unsafe.CopyBlockUnaligned(_tail->Buffer + _writeOffset, buffer, (uint)byteCount);
                 MemoryChunk* chunk;
                 var count = length - byteCount;
                 var chunks = count / size;
@@ -349,7 +349,7 @@ namespace NativeCollections
                     _tail->Next = chunk;
                     _tail = chunk;
                     ++_chunks;
-                    Unsafe.CopyBlockUnaligned(_tail->Array, buffer + byteCount, (uint)size);
+                    Unsafe.CopyBlockUnaligned(_tail->Buffer, buffer + byteCount, (uint)size);
                     byteCount += size;
                 }
 
@@ -369,7 +369,7 @@ namespace NativeCollections
                     _tail->Next = chunk;
                     _tail = chunk;
                     ++_chunks;
-                    Unsafe.CopyBlockUnaligned(_tail->Array, buffer + byteCount, (uint)remaining);
+                    Unsafe.CopyBlockUnaligned(_tail->Buffer, buffer + byteCount, (uint)remaining);
                 }
 
                 _writeOffset = (int)remaining;
@@ -405,11 +405,11 @@ namespace NativeCollections
                 nint byteCount = size - _readOffset;
                 if (byteCount > length)
                 {
-                    Unsafe.CopyBlockUnaligned(ref reference, ref *(_head->Array + _readOffset), (uint)length);
+                    Unsafe.CopyBlockUnaligned(ref reference, ref *(_head->Buffer + _readOffset), (uint)length);
                 }
                 else
                 {
-                    Unsafe.CopyBlockUnaligned(ref reference, ref *(_head->Array + _readOffset), (uint)byteCount);
+                    Unsafe.CopyBlockUnaligned(ref reference, ref *(_head->Buffer + _readOffset), (uint)byteCount);
                     if (byteCount != length)
                     {
                         MemoryChunk* chunk;
@@ -432,7 +432,7 @@ namespace NativeCollections
                             }
 
                             --_chunks;
-                            Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteCount), ref *_head->Array, (uint)size);
+                            Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteCount), ref *_head->Buffer, (uint)size);
                             byteCount += size;
                         }
 
@@ -452,7 +452,7 @@ namespace NativeCollections
                             }
 
                             --_chunks;
-                            Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteCount), ref *_head->Array, (uint)remaining);
+                            Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteCount), ref *_head->Buffer, (uint)remaining);
                         }
                     }
                 }
@@ -473,12 +473,12 @@ namespace NativeCollections
                 nint byteCount = size - _readOffset;
                 if (byteCount > length)
                 {
-                    Unsafe.CopyBlockUnaligned(ref reference, ref *(_head->Array + _readOffset), (uint)length);
+                    Unsafe.CopyBlockUnaligned(ref reference, ref *(_head->Buffer + _readOffset), (uint)length);
                     _readOffset += length;
                 }
                 else
                 {
-                    Unsafe.CopyBlockUnaligned(ref reference, ref *(_head->Array + _readOffset), (uint)byteCount);
+                    Unsafe.CopyBlockUnaligned(ref reference, ref *(_head->Buffer + _readOffset), (uint)byteCount);
                     MemoryChunk* chunk;
                     var count = length - byteCount;
                     var chunks = count / size;
@@ -499,7 +499,7 @@ namespace NativeCollections
                         }
 
                         --_chunks;
-                        Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteCount), ref *_head->Array, (uint)size);
+                        Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteCount), ref *_head->Buffer, (uint)size);
                         byteCount += size;
                     }
 
@@ -519,7 +519,7 @@ namespace NativeCollections
                         }
 
                         --_chunks;
-                        Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteCount), ref *_head->Array, (uint)remaining);
+                        Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteCount), ref *_head->Buffer, (uint)remaining);
                     }
 
                     _readOffset = (int)remaining;
@@ -550,13 +550,13 @@ namespace NativeCollections
             nint byteCount = size - _writeOffset;
             if (byteCount >= length)
             {
-                Unsafe.CopyBlockUnaligned(ref *(_tail->Array + _writeOffset), ref reference, (uint)length);
+                Unsafe.CopyBlockUnaligned(ref *(_tail->Buffer + _writeOffset), ref reference, (uint)length);
                 _writeOffset += length;
             }
             else
             {
                 if (byteCount != 0)
-                    Unsafe.CopyBlockUnaligned(ref *(_tail->Array + _writeOffset), ref reference, (uint)byteCount);
+                    Unsafe.CopyBlockUnaligned(ref *(_tail->Buffer + _writeOffset), ref reference, (uint)byteCount);
                 MemoryChunk* chunk;
                 var count = length - byteCount;
                 var chunks = count / size;
@@ -577,7 +577,7 @@ namespace NativeCollections
                     _tail->Next = chunk;
                     _tail = chunk;
                     ++_chunks;
-                    Unsafe.CopyBlockUnaligned(ref *_tail->Array, ref Unsafe.AddByteOffset(ref reference, byteCount), (uint)size);
+                    Unsafe.CopyBlockUnaligned(ref *_tail->Buffer, ref Unsafe.AddByteOffset(ref reference, byteCount), (uint)size);
                     byteCount += size;
                 }
 
@@ -597,7 +597,7 @@ namespace NativeCollections
                     _tail->Next = chunk;
                     _tail = chunk;
                     ++_chunks;
-                    Unsafe.CopyBlockUnaligned(ref *_tail->Array, ref Unsafe.AddByteOffset(ref reference, byteCount), (uint)remaining);
+                    Unsafe.CopyBlockUnaligned(ref *_tail->Buffer, ref Unsafe.AddByteOffset(ref reference, byteCount), (uint)remaining);
                 }
 
                 _writeOffset = (int)remaining;
@@ -690,9 +690,9 @@ namespace NativeCollections
             public MemoryChunk* Next;
 
             /// <summary>
-            ///     Array
+            ///     Buffer
             /// </summary>
-            public fixed byte Array[1];
+            public fixed byte Buffer[1];
         }
 
         /// <summary>

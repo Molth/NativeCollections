@@ -32,7 +32,7 @@ namespace NativeCollections
         private int _budget;
 
         /// <summary>
-        ///     Grow lock array
+        ///     Grow lock buffer
         /// </summary>
         private bool _growLockArray;
 
@@ -124,7 +124,7 @@ namespace NativeCollections
         /// <param name="maxFreeSlabs">Max free slabs</param>
         /// <param name="concurrencyLevel">Concurrency level</param>
         /// <param name="capacity">Capacity</param>
-        /// <param name="growLockArray">Grow lock array</param>
+        /// <param name="growLockArray">Grow lock buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeConcurrentDictionary(int size, int maxFreeSlabs, int concurrencyLevel, int capacity, bool growLockArray)
         {
@@ -491,7 +491,7 @@ namespace NativeCollections
                 if (_growLockArray && tables->Locks.Length < 1024)
                 {
                     newLocks = new NativeArrayReference<object>(tables->Locks.Length * 2);
-                    Array.Copy(tables->Locks.Array, newLocks.Array, tables->Locks.Length);
+                    Array.Copy(tables->Locks.Buffer, newLocks.Buffer, tables->Locks.Length);
                     for (var i = tables->Locks.Length; i < newLocks.Length; ++i)
                         newLocks[i] = new object();
                 }

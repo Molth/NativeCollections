@@ -111,7 +111,7 @@ namespace NativeCollections
             if (maxFreeChunks < 0)
                 throw new ArgumentOutOfRangeException(nameof(maxFreeChunks), maxFreeChunks, "MustBeNonNegative");
             var chunk = (MemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemoryChunk) + size * sizeof(T)));
-            chunk->Array = (T*)((byte*)chunk + sizeof(MemoryChunk));
+            chunk->Buffer = (T*)((byte*)chunk + sizeof(MemoryChunk));
             _head = chunk;
             _tail = chunk;
             _freeList = null;
@@ -187,7 +187,7 @@ namespace NativeCollections
                     if (_freeChunks == 0)
                     {
                         chunk = (MemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemoryChunk) + _size * sizeof(T)));
-                        chunk->Array = (T*)((byte*)chunk + sizeof(MemoryChunk));
+                        chunk->Buffer = (T*)((byte*)chunk + sizeof(MemoryChunk));
                     }
                     else
                     {
@@ -208,7 +208,7 @@ namespace NativeCollections
             }
 
             ++_count;
-            _head->Array[--_readOffset] = item;
+            _head->Buffer[--_readOffset] = item;
         }
 
         /// <summary>
@@ -225,7 +225,7 @@ namespace NativeCollections
                 if (_freeChunks == 0)
                 {
                     chunk = (MemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemoryChunk) + _size * sizeof(T)));
-                    chunk->Array = (T*)((byte*)chunk + sizeof(MemoryChunk));
+                    chunk->Buffer = (T*)((byte*)chunk + sizeof(MemoryChunk));
                 }
                 else
                 {
@@ -241,7 +241,7 @@ namespace NativeCollections
             }
 
             ++_count;
-            _tail->Array[_writeOffset++] = item;
+            _tail->Buffer[_writeOffset++] = item;
         }
 
         /// <summary>
@@ -259,7 +259,7 @@ namespace NativeCollections
             }
 
             --_count;
-            result = _head->Array[_readOffset++];
+            result = _head->Buffer[_readOffset++];
             if (_readOffset == _size)
             {
                 _readOffset = 0;
@@ -304,7 +304,7 @@ namespace NativeCollections
             }
 
             --_count;
-            result = _tail->Array[--_writeOffset];
+            result = _tail->Buffer[--_writeOffset];
             if (_writeOffset == 0 && _chunks != 1)
             {
                 _writeOffset = _size;
@@ -341,7 +341,7 @@ namespace NativeCollections
                 return false;
             }
 
-            result = _head->Array[_readOffset];
+            result = _head->Buffer[_readOffset];
             return true;
         }
 
@@ -359,7 +359,7 @@ namespace NativeCollections
                 return false;
             }
 
-            result = _tail->Array[_writeOffset - 1];
+            result = _tail->Buffer[_writeOffset - 1];
             return true;
         }
 
@@ -379,7 +379,7 @@ namespace NativeCollections
             {
                 _freeChunks++;
                 var chunk = (MemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemoryChunk) + _size));
-                chunk->Array = (T*)((byte*)chunk + sizeof(MemoryChunk));
+                chunk->Buffer = (T*)((byte*)chunk + sizeof(MemoryChunk));
                 chunk->Next = _freeList;
                 _freeList = chunk;
             }
@@ -444,9 +444,9 @@ namespace NativeCollections
             public MemoryChunk* Previous;
 
             /// <summary>
-            ///     Array
+            ///     Buffer
             /// </summary>
-            public T* Array;
+            public T* Buffer;
         }
 
         /// <summary>

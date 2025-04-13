@@ -18,9 +18,9 @@ namespace NativeCollections
     public unsafe struct StackallocDeque<T> where T : unmanaged
     {
         /// <summary>
-        ///     Array
+        ///     Buffer
         /// </summary>
-        private T* _array;
+        private T* _buffer;
 
         /// <summary>
         ///     Length
@@ -69,7 +69,7 @@ namespace NativeCollections
         public ref T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _array[(_head + index) % _length];
+            get => ref _buffer[(_head + index) % _length];
         }
 
         /// <summary>
@@ -79,7 +79,7 @@ namespace NativeCollections
         public ref T this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _array[(_head + index) % _length];
+            get => ref _buffer[(_head + index) % _length];
         }
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public StackallocDeque(Span<byte> buffer, int capacity)
         {
-            _array = (T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer));
+            _buffer = (T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer));
             _length = capacity;
             _head = 0;
             _tail = 0;
@@ -130,7 +130,7 @@ namespace NativeCollections
                 return false;
             if (--_head == -1)
                 _head = _length - 1;
-            _array[_head] = item;
+            _buffer[_head] = item;
             ++_size;
             ++_version;
             return true;
@@ -146,7 +146,7 @@ namespace NativeCollections
         {
             if (_size == _length)
                 return false;
-            _array[_tail] = item;
+            _buffer[_tail] = item;
             if (++_tail == _length)
                 _tail = 0;
             ++_size;
@@ -168,7 +168,7 @@ namespace NativeCollections
                 return false;
             }
 
-            result = _array[_head];
+            result = _buffer[_head];
             if (++_head == _length)
                 _head = 0;
             --_size;
@@ -192,7 +192,7 @@ namespace NativeCollections
 
             if (--_tail == -1)
                 _tail = _length - 1;
-            result = _array[_tail];
+            result = _buffer[_tail];
             --_size;
             ++_version;
             return true;
@@ -212,7 +212,7 @@ namespace NativeCollections
                 return false;
             }
 
-            result = _array[_head];
+            result = _buffer[_head];
             return true;
         }
 
@@ -231,7 +231,7 @@ namespace NativeCollections
                 return false;
             }
 
-            result = _array[size];
+            result = _buffer[size];
             return true;
         }
 
@@ -305,12 +305,12 @@ namespace NativeCollections
                     return false;
                 }
 
-                var array = handle->_array;
+                var buffer = handle->_buffer;
                 var capacity = (uint)handle->_length;
-                var arrayIndex = (uint)(handle->_head + _index);
-                if (arrayIndex >= capacity)
-                    arrayIndex -= capacity;
-                _currentElement = array[arrayIndex];
+                var index = (uint)(handle->_head + _index);
+                if (index >= capacity)
+                    index -= capacity;
+                _currentElement = buffer[index];
                 return true;
             }
 

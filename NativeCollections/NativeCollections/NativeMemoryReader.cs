@@ -34,14 +34,14 @@ namespace NativeCollections
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="array">Array</param>
+        /// <param name="buffer">Buffer</param>
         /// <param name="length">Length</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeMemoryReader(byte* array, int length)
+        public NativeMemoryReader(byte* buffer, int length)
         {
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            Buffer = array;
+            Buffer = buffer;
             Length = length;
             _position = 0;
         }
@@ -412,21 +412,21 @@ namespace NativeCollections
         /// </summary>
         /// <returns>NativeMemoryReader</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeMemoryReader(NativeArray<byte> nativeArray) => new(nativeArray.Array, nativeArray.Length);
+        public static implicit operator NativeMemoryReader(NativeArray<byte> nativeArray) => new(nativeArray.Buffer, nativeArray.Length);
 
         /// <summary>
         ///     As native memory reader
         /// </summary>
         /// <returns>NativeMemoryReader</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeMemoryReader(NativeMemoryArray<byte> nativeMemoryArray) => new(nativeMemoryArray.Array, nativeMemoryArray.Length);
+        public static implicit operator NativeMemoryReader(NativeMemoryArray<byte> nativeMemoryArray) => new(nativeMemoryArray.Buffer, nativeMemoryArray.Length);
 
         /// <summary>
         ///     As native memory writer
         /// </summary>
         /// <returns>NativeMemoryWriter</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeMemoryReader(NativeSlice<byte> nativeSlice) => new(nativeSlice.Array + nativeSlice.Offset, nativeSlice.Count);
+        public static implicit operator NativeMemoryReader(NativeSlice<byte> nativeSlice) => new(nativeSlice.Buffer + nativeSlice.Offset, nativeSlice.Count);
 
         /// <summary>
         ///     Empty

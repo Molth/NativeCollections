@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native bit array
+    ///     Native bit buffer
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Standard)]
@@ -52,12 +52,12 @@ namespace NativeCollections
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="array">Array</param>
+        /// <param name="buffer">Buffer</param>
         /// <param name="length">Length</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeBitArray(int* array, int length)
+        public NativeBitArray(int* buffer, int length)
         {
-            var value = new UnsafeBitArray(array, length);
+            var value = new UnsafeBitArray(buffer, length);
             var handle = (UnsafeBitArray*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeBitArray));
             *handle = value;
             _handle = handle;
@@ -66,13 +66,13 @@ namespace NativeCollections
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="array">Array</param>
+        /// <param name="buffer">Buffer</param>
         /// <param name="length">Length</param>
         /// <param name="defaultValue">Default value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeBitArray(int* array, int length, bool defaultValue)
+        public NativeBitArray(int* buffer, int length, bool defaultValue)
         {
-            var value = new UnsafeBitArray(array, length, defaultValue);
+            var value = new UnsafeBitArray(buffer, length, defaultValue);
             var handle = (UnsafeBitArray*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeBitArray));
             *handle = value;
             _handle = handle;
@@ -81,12 +81,12 @@ namespace NativeCollections
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="array">Array</param>
+        /// <param name="buffer">Buffer</param>
         /// <param name="length">Length</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeBitArray(NativeArray<int> array, int length)
+        public NativeBitArray(NativeArray<int> buffer, int length)
         {
-            var value = new UnsafeBitArray(array, length);
+            var value = new UnsafeBitArray(buffer, length);
             var handle = (UnsafeBitArray*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeBitArray));
             *handle = value;
             _handle = handle;
@@ -95,13 +95,13 @@ namespace NativeCollections
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="array">Array</param>
+        /// <param name="buffer">Buffer</param>
         /// <param name="length">Length</param>
         /// <param name="defaultValue">Default value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeBitArray(NativeArray<int> array, int length, bool defaultValue)
+        public NativeBitArray(NativeArray<int> buffer, int length, bool defaultValue)
         {
-            var value = new UnsafeBitArray(array, length, defaultValue);
+            var value = new UnsafeBitArray(buffer, length, defaultValue);
             var handle = (UnsafeBitArray*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeBitArray));
             *handle = value;
             _handle = handle;
@@ -113,9 +113,9 @@ namespace NativeCollections
         public bool IsCreated => _handle != null;
 
         /// <summary>
-        ///     Array
+        ///     Buffer
         /// </summary>
-        public NativeArray<int> Array => _handle->Array;
+        public NativeArray<int> Buffer => _handle->Buffer;
 
         /// <summary>
         ///     Length
@@ -375,10 +375,10 @@ namespace NativeCollections
         public bool TryGetSlot(uint index, out NativeBitArraySlot slot) => _handle->TryGetSlot(index, out slot);
 
         /// <summary>
-        ///     Get int32 array length from bit length
+        ///     Get int32 buffer length from bit length
         /// </summary>
         /// <param name="n">Bit length</param>
-        /// <returns>Int32 array length</returns>
+        /// <returns>Int32 buffer length</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetInt32ArrayLengthFromBitLength(int n) => UnsafeBitArray.GetInt32ArrayLengthFromBitLength(n);
 

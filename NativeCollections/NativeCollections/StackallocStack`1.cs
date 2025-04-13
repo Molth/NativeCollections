@@ -18,9 +18,9 @@ namespace NativeCollections
     public unsafe struct StackallocStack<T> where T : unmanaged
     {
         /// <summary>
-        ///     Array
+        ///     Buffer
         /// </summary>
-        private T* _array;
+        private T* _buffer;
 
         /// <summary>
         ///     Length
@@ -44,7 +44,7 @@ namespace NativeCollections
         public ref T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _array[index];
+            get => ref _buffer[index];
         }
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace NativeCollections
         public ref T this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _array[index];
+            get => ref _buffer[index];
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public StackallocStack(Span<byte> buffer, int capacity)
         {
-            _array = (T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer));
+            _buffer = (T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer));
             _length = capacity;
             _size = 0;
             _version = 0;
@@ -115,7 +115,7 @@ namespace NativeCollections
             var size = _size;
             if ((uint)size < (uint)_length)
             {
-                _array[size] = item;
+                _buffer[size] = item;
                 _version++;
                 _size = size + 1;
                 return true;
@@ -136,7 +136,7 @@ namespace NativeCollections
                 throw new InvalidOperationException("EmptyStack");
             _version++;
             _size = size;
-            var item = _array[size];
+            var item = _buffer[size];
             return item;
         }
 
@@ -157,7 +157,7 @@ namespace NativeCollections
 
             _version++;
             _size = size;
-            result = _array[size];
+            result = _buffer[size];
             return true;
         }
 
@@ -169,7 +169,7 @@ namespace NativeCollections
         public T Peek()
         {
             var size = _size - 1;
-            return (uint)size >= (uint)_length ? throw new InvalidOperationException("EmptyStack") : _array[size];
+            return (uint)size >= (uint)_length ? throw new InvalidOperationException("EmptyStack") : _buffer[size];
         }
 
         /// <summary>
@@ -187,7 +187,7 @@ namespace NativeCollections
                 return false;
             }
 
-            result = _array[size];
+            result = _buffer[size];
             return true;
         }
 
@@ -257,14 +257,14 @@ namespace NativeCollections
                     _index = handle->_size - 1;
                     returned = _index >= 0;
                     if (returned)
-                        _currentElement = handle->_array[_index];
+                        _currentElement = handle->_buffer[_index];
                     return returned;
                 }
 
                 if (_index == -1)
                     return false;
                 returned = --_index >= 0;
-                _currentElement = returned ? handle->_array[_index] : default;
+                _currentElement = returned ? handle->_buffer[_index] : default;
                 return returned;
             }
 

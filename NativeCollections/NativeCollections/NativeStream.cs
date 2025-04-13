@@ -18,9 +18,9 @@ namespace NativeCollections
     public unsafe struct NativeStream : IEquatable<NativeStream>
     {
         /// <summary>
-        ///     Array
+        ///     Buffer
         /// </summary>
-        private byte* _array;
+        private byte* _buffer;
 
         /// <summary>
         ///     Position
@@ -47,7 +47,7 @@ namespace NativeCollections
         {
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            _array = buffer;
+            _buffer = buffer;
             _position = 0;
             _length = length;
             _capacity = length;
@@ -56,7 +56,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => _array != null;
+        public bool IsCreated => _buffer != null;
 
         /// <summary>
         ///     Is empty
@@ -70,7 +70,7 @@ namespace NativeCollections
         public ref byte this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _array[index];
+            get => ref _buffer[index];
         }
 
         /// <summary>
@@ -80,7 +80,7 @@ namespace NativeCollections
         public ref byte this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _array[index];
+            get => ref _buffer[index];
         }
 
         /// <summary>
@@ -150,7 +150,7 @@ namespace NativeCollections
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => ((nint)_array).GetHashCode() ^ _position ^ _length ^ _capacity;
+        public override int GetHashCode() => ((nint)_buffer).GetHashCode() ^ _position ^ _length ^ _capacity;
 
         /// <summary>
         ///     To string
@@ -178,7 +178,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeStream left, NativeStream right) => left._array == right._array && left._position == right._position && left._length == right.Length && left._capacity == right._capacity;
+        public static bool operator ==(NativeStream left, NativeStream right) => left._buffer == right._buffer && left._position == right._position && left._length == right.Length && left._capacity == right._capacity;
 
         /// <summary>
         ///     Not equals
@@ -186,14 +186,14 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeStream left, NativeStream right) => left._array != right._array || left._position != right._position || left._length != right.Length || left._capacity != right._capacity;
+        public static bool operator !=(NativeStream left, NativeStream right) => left._buffer != right._buffer || left._position != right._position || left._length != right.Length || left._capacity != right._capacity;
 
         /// <summary>
         ///     As span
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<byte> AsSpan() => MemoryMarshal.CreateSpan(ref *_array, _length);
+        public Span<byte> AsSpan() => MemoryMarshal.CreateSpan(ref *_buffer, _length);
 
         /// <summary>
         ///     As span
@@ -201,7 +201,7 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<byte> AsSpan(int start) => MemoryMarshal.CreateSpan(ref *(_array + start), _length - start);
+        public Span<byte> AsSpan(int start) => MemoryMarshal.CreateSpan(ref *(_buffer + start), _length - start);
 
         /// <summary>
         ///     As span
@@ -210,14 +210,14 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<byte> AsSpan(int start, int length) => MemoryMarshal.CreateSpan(ref *(_array + start), length);
+        public Span<byte> AsSpan(int start, int length) => MemoryMarshal.CreateSpan(ref *(_buffer + start), length);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<byte> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref *_array, _length);
+        public ReadOnlySpan<byte> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref *_buffer, _length);
 
         /// <summary>
         ///     As readOnly span
@@ -225,7 +225,7 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<byte> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref *(_array + start), _length - start);
+        public ReadOnlySpan<byte> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref *(_buffer + start), _length - start);
 
         /// <summary>
         ///     As readOnly span
@@ -234,14 +234,14 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<byte> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref *(_array + start), length);
+        public ReadOnlySpan<byte> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref *(_buffer + start), length);
 
         /// <summary>
         ///     Get buffer
         /// </summary>
         /// <returns>Buffer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public byte* GetBuffer() => _array;
+        public byte* GetBuffer() => _buffer;
 
         /// <summary>
         ///     Seek
@@ -298,7 +298,7 @@ namespace NativeCollections
             if (length > _capacity)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "StreamLength");
             if (length > _length)
-                Unsafe.InitBlockUnaligned(_array + _length, 0, (uint)(length - _length));
+                Unsafe.InitBlockUnaligned(_buffer + _length, 0, (uint)(length - _length));
             _length = length;
             if (_position > length)
                 _position = length;
@@ -323,11 +323,11 @@ namespace NativeCollections
             {
                 var byteCount = n;
                 while (--byteCount >= 0)
-                    buffer[offset + byteCount] = _array[_position + byteCount];
+                    buffer[offset + byteCount] = _buffer[_position + byteCount];
             }
             else
             {
-                Unsafe.CopyBlockUnaligned(buffer + offset, _array + _position, (uint)n);
+                Unsafe.CopyBlockUnaligned(buffer + offset, _buffer + _position, (uint)n);
             }
 
             _position += n;
@@ -346,7 +346,7 @@ namespace NativeCollections
             var n = size < buffer.Length ? size : buffer.Length;
             if (n <= 0)
                 return 0;
-            Unsafe.CopyBlockUnaligned(ref MemoryMarshal.GetReference(buffer), ref *(_array + _position), (uint)n);
+            Unsafe.CopyBlockUnaligned(ref MemoryMarshal.GetReference(buffer), ref *(_buffer + _position), (uint)n);
             _position += n;
             return n;
         }
@@ -356,7 +356,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Byte</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int ReadByte() => _position >= _length ? -1 : _array[_position++];
+        public int ReadByte() => _position >= _length ? -1 : _buffer[_position++];
 
         /// <summary>
         ///     Write
@@ -376,19 +376,19 @@ namespace NativeCollections
                     throw new ArgumentOutOfRangeException(nameof(count), count, "StreamLength");
                 var mustZero = _position > _length;
                 if (mustZero)
-                    Unsafe.InitBlockUnaligned(_array + _length, 0, (uint)(i - _length));
+                    Unsafe.InitBlockUnaligned(_buffer + _length, 0, (uint)(i - _length));
                 _length = i;
             }
 
-            if (count <= 8 && buffer != _array)
+            if (count <= 8 && buffer != _buffer)
             {
                 var byteCount = count;
                 while (--byteCount >= 0)
-                    _array[_position + byteCount] = buffer[offset + byteCount];
+                    _buffer[_position + byteCount] = buffer[offset + byteCount];
             }
             else
             {
-                Unsafe.CopyBlockUnaligned(_array + _position, buffer + offset, (uint)count);
+                Unsafe.CopyBlockUnaligned(_buffer + _position, buffer + offset, (uint)count);
             }
 
             _position = i;
@@ -410,11 +410,11 @@ namespace NativeCollections
                     throw new ArgumentOutOfRangeException(nameof(buffer), buffer.Length, "StreamLength");
                 var mustZero = _position > _length;
                 if (mustZero)
-                    Unsafe.InitBlockUnaligned(_array + _length, 0, (uint)(i - _length));
+                    Unsafe.InitBlockUnaligned(_buffer + _length, 0, (uint)(i - _length));
                 _length = i;
             }
 
-            Unsafe.CopyBlockUnaligned(ref *(_array + _position), ref MemoryMarshal.GetReference(buffer), (uint)buffer.Length);
+            Unsafe.CopyBlockUnaligned(ref *(_buffer + _position), ref MemoryMarshal.GetReference(buffer), (uint)buffer.Length);
             _position = i;
         }
 
@@ -432,11 +432,11 @@ namespace NativeCollections
                     throw new ArgumentOutOfRangeException(nameof(value), 1, "StreamLength");
                 var mustZero = _position > _length;
                 if (mustZero)
-                    Unsafe.InitBlockUnaligned(_array + _length, 0, (uint)(_position - _length));
+                    Unsafe.InitBlockUnaligned(_buffer + _length, 0, (uint)(_position - _length));
                 _length = newLength;
             }
 
-            _array[_position++] = value;
+            _buffer[_position++] = value;
         }
 
         /// <summary>

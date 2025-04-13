@@ -23,7 +23,7 @@ namespace NativeCollections
         private readonly T* _buffer;
 
         /// <summary>
-        ///     Array
+        ///     Buffer
         /// </summary>
         private readonly int* _index;
 
