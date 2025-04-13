@@ -322,7 +322,7 @@ namespace NativeCollections
         public static implicit operator ReadOnlySpan<T>(in NativeArray3<T> nativeArray3) => nativeArray3.AsReadOnlySpan();
 
         /// <summary>
-        ///     As native buffer
+        ///     As native array
         /// </summary>
         /// <returns>NativeArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

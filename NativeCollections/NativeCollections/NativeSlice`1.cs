@@ -225,7 +225,7 @@ namespace NativeCollections
         public static implicit operator NativeSlice<T>(ReadOnlySpan<T> readOnlySpan) => new((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(readOnlySpan)), 0, readOnlySpan.Length);
 
         /// <summary>
-        ///     As native buffer
+        ///     As native array
         /// </summary>
         /// <returns>NativeArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

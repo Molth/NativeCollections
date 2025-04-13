@@ -156,7 +156,7 @@ namespace NativeCollections
         public static implicit operator ReadOnlySpan<T>(in NativeMemoryArray<T> nativeMemoryArray) => nativeMemoryArray.AsReadOnlySpan();
 
         /// <summary>
-        ///     As native buffer
+        ///     As native array
         /// </summary>
         /// <returns>NativeArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

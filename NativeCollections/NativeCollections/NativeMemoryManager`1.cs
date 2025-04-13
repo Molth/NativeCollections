@@ -62,7 +62,7 @@ namespace NativeCollections
         public static implicit operator ReadOnlyMemory<T>(NativeMemoryManager<T> nativeMemoryManager) => nativeMemoryManager.Memory;
 
         /// <summary>
-        ///     As native buffer
+        ///     As native array
         /// </summary>
         /// <returns>NativeArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
