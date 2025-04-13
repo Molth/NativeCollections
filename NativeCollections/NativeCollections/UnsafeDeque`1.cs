@@ -319,22 +319,22 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void SetCapacity(int capacity)
         {
-            var newArray = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
+            var newBuffer = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
             if (_size > 0)
             {
                 if (_head < _tail)
                 {
-                    Unsafe.CopyBlockUnaligned(newArray, _buffer + _head, (uint)(_size * sizeof(T)));
+                    Unsafe.CopyBlockUnaligned(newBuffer, _buffer + _head, (uint)(_size * sizeof(T)));
                 }
                 else
                 {
-                    Unsafe.CopyBlockUnaligned(newArray, _buffer + _head, (uint)((_length - _head) * sizeof(T)));
-                    Unsafe.CopyBlockUnaligned(newArray + _length - _head, _buffer, (uint)(_tail * sizeof(T)));
+                    Unsafe.CopyBlockUnaligned(newBuffer, _buffer + _head, (uint)((_length - _head) * sizeof(T)));
+                    Unsafe.CopyBlockUnaligned(newBuffer + _length - _head, _buffer, (uint)(_tail * sizeof(T)));
                 }
             }
 
             NativeMemoryAllocator.Free(_buffer);
-            _buffer = newArray;
+            _buffer = newBuffer;
             _length = capacity;
             _head = 0;
             _tail = _size == capacity ? 0 : _size;
