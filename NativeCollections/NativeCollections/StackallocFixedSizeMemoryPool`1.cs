@@ -63,12 +63,12 @@ namespace NativeCollections
         public int Capacity => _capacity;
 
         /// <summary>
-        ///     Get buffer size
+        ///     Get byte count
         /// </summary>
         /// <param name="capacity">Capacity</param>
-        /// <returns>Buffer size</returns>
+        /// <returns>Byte count</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetBufferSize(int capacity)
+        public static int GetByteCount(int capacity)
         {
             var extremeLength = UnsafeBitArray.GetInt32ArrayLengthFromBitLength(capacity);
             return capacity * (sizeof(T) + sizeof(int)) + extremeLength * sizeof(int);

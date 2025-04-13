@@ -70,12 +70,12 @@ namespace NativeCollections
         public int Capacity => _capacity;
 
         /// <summary>
-        ///     Get buffer size
+        ///     Get byte count
         /// </summary>
         /// <param name="capacity">Capacity</param>
-        /// <returns>Buffer size</returns>
+        /// <returns>Byte count</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetBufferSize(int capacity) => capacity * (sizeof(TKey) + sizeof(TValue));
+        public static int GetByteCount(int capacity) => capacity * (sizeof(TKey) + sizeof(TValue));
 
         /// <summary>
         ///     Structure

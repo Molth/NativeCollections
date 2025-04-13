@@ -78,12 +78,12 @@ namespace NativeCollections
         public UnorderedItemsCollection UnorderedItems => new(Unsafe.AsPointer(ref this));
 
         /// <summary>
-        ///     Get buffer size
+        ///     Get byte count
         /// </summary>
         /// <param name="capacity">Capacity</param>
-        /// <returns>Buffer size</returns>
+        /// <returns>Byte count</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetBufferSize(int capacity) => capacity * sizeof(TPriority);
+        public static int GetByteCount(int capacity) => capacity * sizeof(TPriority);
 
         /// <summary>
         ///     Structure

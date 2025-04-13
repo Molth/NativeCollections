@@ -73,12 +73,12 @@ namespace NativeCollections
         public int Count => _count - _freeCount;
 
         /// <summary>
-        ///     Get buffer size
+        ///     Get byte count
         /// </summary>
         /// <param name="capacity">Capacity</param>
-        /// <returns>Buffer size</returns>
+        /// <returns>Byte count</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetBufferSize(int capacity) => HashHelpers.GetPrime(capacity) * (sizeof(int) + sizeof(Entry));
+        public static int GetByteCount(int capacity) => HashHelpers.GetPrime(capacity) * (sizeof(int) + sizeof(Entry));
 
         /// <summary>
         ///     Structure

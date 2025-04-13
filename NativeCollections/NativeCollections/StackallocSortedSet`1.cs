@@ -80,12 +80,12 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get buffer size
+        ///     Get byte count
         /// </summary>
         /// <param name="capacity">Capacity</param>
-        /// <returns>Buffer size</returns>
+        /// <returns>Byte count</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetBufferSize(int capacity) => StackallocFixedSizeStackMemoryPool<Node>.GetBufferSize(capacity);
+        public static int GetByteCount(int capacity) => StackallocFixedSizeStackMemoryPool<Node>.GetByteCount(capacity);
 
         /// <summary>
         ///     Structure
