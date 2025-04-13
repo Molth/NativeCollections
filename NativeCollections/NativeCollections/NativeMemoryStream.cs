@@ -260,7 +260,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly Span<byte> AsSpan() => _handle->AsSpan();
+        public Span<byte> AsSpan() => _handle->AsSpan();
 
         /// <summary>
         ///     As span
@@ -268,7 +268,7 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly Span<byte> AsSpan(int start) => _handle->AsSpan(start);
+        public Span<byte> AsSpan(int start) => _handle->AsSpan(start);
 
         /// <summary>
         ///     As span
@@ -277,14 +277,14 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly Span<byte> AsSpan(int start, int length) => _handle->AsSpan(start, length);
+        public Span<byte> AsSpan(int start, int length) => _handle->AsSpan(start, length);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<byte> AsReadOnlySpan() => _handle->AsReadOnlySpan();
+        public ReadOnlySpan<byte> AsReadOnlySpan() => _handle->AsReadOnlySpan();
 
         /// <summary>
         ///     As readOnly span
@@ -292,7 +292,7 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<byte> AsReadOnlySpan(int start) => _handle->AsReadOnlySpan(start);
+        public ReadOnlySpan<byte> AsReadOnlySpan(int start) => _handle->AsReadOnlySpan(start);
 
         /// <summary>
         ///     As readOnly span
@@ -301,7 +301,7 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<byte> AsReadOnlySpan(int start, int length) => _handle->AsReadOnlySpan(start, length);
+        public ReadOnlySpan<byte> AsReadOnlySpan(int start, int length) => _handle->AsReadOnlySpan(start, length);
 
         /// <summary>
         ///     Empty

@@ -433,21 +433,21 @@ namespace NativeCollections
             /// </summary>
             /// <returns>ReadOnlySpan</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public readonly ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan() => _nativePriorityQueue->AsReadOnlySpan();
+            public ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan() => _nativePriorityQueue->AsReadOnlySpan();
 
             /// <summary>
             ///     As readOnly span
             /// </summary>
             /// <returns>ReadOnlySpan</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public readonly ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan(int start) => _nativePriorityQueue->AsReadOnlySpan(start);
+            public ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan(int start) => _nativePriorityQueue->AsReadOnlySpan(start);
 
             /// <summary>
             ///     As readOnly span
             /// </summary>
             /// <returns>ReadOnlySpan</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public readonly ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan(int start, int length) => _nativePriorityQueue->AsReadOnlySpan(start, length);
+            public ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan(int start, int length) => _nativePriorityQueue->AsReadOnlySpan(start, length);
 
             /// <summary>
             ///     Get enumerator

@@ -263,21 +263,21 @@ namespace NativeCollections
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan() => _handle->AsReadOnlySpan();
+        public ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan() => _handle->AsReadOnlySpan();
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan(int start) => _handle->AsReadOnlySpan(start);
+        public ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan(int start) => _handle->AsReadOnlySpan(start);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan(int start, int length) => _handle->AsReadOnlySpan(start, length);
+        public ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan(int start, int length) => _handle->AsReadOnlySpan(start, length);
 
         /// <summary>
         ///     Empty

@@ -245,14 +245,14 @@ namespace NativeCollections
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<T> AsReadOnlySpan() => _handle->AsReadOnlySpan();
+        public ReadOnlySpan<T> AsReadOnlySpan() => _handle->AsReadOnlySpan();
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<T> AsReadOnlySpan(int start) => _handle->AsReadOnlySpan(start);
+        public ReadOnlySpan<T> AsReadOnlySpan(int start) => _handle->AsReadOnlySpan(start);
 
 
         /// <summary>
@@ -260,7 +260,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<T> AsReadOnlySpan(int start, int length) => _handle->AsReadOnlySpan(start, length);
+        public ReadOnlySpan<T> AsReadOnlySpan(int start, int length) => _handle->AsReadOnlySpan(start, length);
 
         /// <summary>
         ///     As readOnly span

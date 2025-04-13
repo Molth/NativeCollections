@@ -208,7 +208,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly Span<T> AsSpan() => MemoryMarshal.CreateSpan(ref *_buffer, _length);
+        public Span<T> AsSpan() => MemoryMarshal.CreateSpan(ref *_buffer, _length);
 
         /// <summary>
         ///     As span
@@ -216,7 +216,7 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly Span<T> AsSpan(int start) => MemoryMarshal.CreateSpan(ref *(_buffer + start), _length - start);
+        public Span<T> AsSpan(int start) => MemoryMarshal.CreateSpan(ref *(_buffer + start), _length - start);
 
         /// <summary>
         ///     As span
@@ -225,14 +225,14 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly Span<T> AsSpan(int start, int length) => MemoryMarshal.CreateSpan(ref *(_buffer + start), length);
+        public Span<T> AsSpan(int start, int length) => MemoryMarshal.CreateSpan(ref *(_buffer + start), length);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref *_buffer, _length);
+        public ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref *_buffer, _length);
 
         /// <summary>
         ///     As readOnly span
@@ -240,7 +240,7 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<T> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref *(_buffer + start), _length - start);
+        public ReadOnlySpan<T> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref *(_buffer + start), _length - start);
 
         /// <summary>
         ///     As readOnly span
@@ -249,7 +249,7 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<T> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref *(_buffer + start), length);
+        public ReadOnlySpan<T> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref *(_buffer + start), length);
 
         /// <summary>
         ///     Slice

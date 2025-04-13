@@ -90,14 +90,14 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly Span<T> AsSpan() => MemoryMarshal.CreateSpan(ref *_handle, 1);
+        public Span<T> AsSpan() => MemoryMarshal.CreateSpan(ref *_handle, 1);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref *_handle, 1);
+        public ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref *_handle, 1);
 
         /// <summary>
         ///     As reference
