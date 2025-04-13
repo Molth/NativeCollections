@@ -184,28 +184,6 @@ namespace NativeCollections
         public int TrimExcess() => _handle->TrimExcess();
 
         /// <summary>
-        ///     Entry
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential)]
-        private struct Entry
-        {
-            /// <summary>
-            ///     HashCode
-            /// </summary>
-            public int HashCode;
-
-            /// <summary>
-            ///     Next
-            /// </summary>
-            public int Next;
-
-            /// <summary>
-            ///     Value
-            /// </summary>
-            public T Value;
-        }
-
-        /// <summary>
         ///     Empty
         /// </summary>
         public static NativeHashSet<T> Empty => new();
