@@ -25,7 +25,7 @@ namespace NativeCollections
         /// <summary>
         ///     Array
         /// </summary>
-        private readonly int* _array;
+        private readonly int* _index;
 
         /// <summary>
         ///     Capacity
@@ -74,13 +74,13 @@ namespace NativeCollections
             if (capacity < 4)
                 capacity = 4;
             _buffer = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * (sizeof(T) + sizeof(int))));
-            _array = (int*)((byte*)_buffer + capacity * sizeof(T));
+            _index = (int*)((byte*)_buffer + capacity * sizeof(T));
             _capacity = capacity;
             _head = 0;
             _tail = 0;
             _size = capacity;
             for (var i = 0; i < _capacity; ++i)
-                _array[i] = i;
+                _index[i] = i;
         }
 
         /// <summary>
@@ -97,7 +97,7 @@ namespace NativeCollections
         {
             _size = _capacity;
             for (var i = 0; i < _capacity; ++i)
-                _array[i] = i;
+                _index[i] = i;
         }
 
         /// <summary>
@@ -112,7 +112,7 @@ namespace NativeCollections
                 return false;
             }
 
-            var index = _array[_head];
+            var index = _index[_head];
             MoveNext(ref _head);
             _size--;
             ptr = &_buffer[index];
@@ -126,7 +126,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Return(T* ptr)
         {
-            _array[_tail] = (int)(ptr - _buffer);
+            _index[_tail] = (int)(ptr - _buffer);
             MoveNext(ref _tail);
             _size++;
         }

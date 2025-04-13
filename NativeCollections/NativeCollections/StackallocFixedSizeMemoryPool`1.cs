@@ -25,7 +25,7 @@ namespace NativeCollections
         /// <summary>
         ///     Array
         /// </summary>
-        private readonly int* _array;
+        private readonly int* _index;
 
         /// <summary>
         ///     Bit array
@@ -84,14 +84,14 @@ namespace NativeCollections
         {
             var extremeLength = UnsafeBitArray.GetInt32ArrayLengthFromBitLength(capacity);
             _buffer = (T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer));
-            _array = (int*)((byte*)_buffer + capacity * sizeof(T));
-            _bitArray = (int*)((byte*)_array + capacity * sizeof(int));
+            _index = (int*)((byte*)_buffer + capacity * sizeof(T));
+            _bitArray = (int*)((byte*)_index + capacity * sizeof(int));
             Unsafe.InitBlockUnaligned(_bitArray, 0, (uint)(extremeLength * sizeof(int)));
             _capacity = capacity;
             _bitArrayLength = extremeLength;
             _size = capacity;
             for (var i = 0; i < capacity; ++i)
-                _array[i] = i;
+                _index[i] = i;
         }
 
         /// <summary>
@@ -103,7 +103,7 @@ namespace NativeCollections
             Unsafe.InitBlockUnaligned(_bitArray, 0, (uint)(_bitArrayLength * sizeof(int)));
             _size = _capacity;
             for (var i = 0; i < _capacity; ++i)
-                _array[i] = i;
+                _index[i] = i;
         }
 
         /// <summary>
@@ -120,7 +120,7 @@ namespace NativeCollections
             }
 
             _size = size;
-            var index = _array[size];
+            var index = _index[size];
             ref var segment = ref _bitArray[index >> 5];
             var bitMask = 1 << index;
             segment |= bitMask;
@@ -143,7 +143,7 @@ namespace NativeCollections
             if ((segment & bitMask) == 0)
                 throw new InvalidOperationException("Duplicate");
             segment &= ~bitMask;
-            _array[_size++] = (int)index;
+            _index[_size++] = (int)index;
         }
 
         /// <summary>

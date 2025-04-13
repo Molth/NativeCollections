@@ -25,7 +25,7 @@ namespace NativeCollections
         /// <summary>
         ///     Array
         /// </summary>
-        private readonly int* _array;
+        private readonly int* _index;
 
         /// <summary>
         ///     Capacity
@@ -69,11 +69,11 @@ namespace NativeCollections
         public StackallocFixedSizeStackMemoryPool(Span<byte> buffer, int capacity)
         {
             _buffer = (T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer));
-            _array = (int*)((byte*)_buffer + capacity * sizeof(T));
+            _index = (int*)((byte*)_buffer + capacity * sizeof(T));
             _capacity = capacity;
             _size = capacity;
             for (var i = 0; i < _capacity; ++i)
-                _array[i] = i;
+                _index[i] = i;
         }
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace NativeCollections
         {
             _size = _capacity;
             for (var i = 0; i < _capacity; ++i)
-                _array[i] = i;
+                _index[i] = i;
         }
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace NativeCollections
             }
 
             _size = size;
-            var index = _array[size];
+            var index = _index[size];
             ptr = &_buffer[index];
             return true;
         }
@@ -111,7 +111,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="ptr">Pointer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Return(T* ptr) => _array[_size++] = (int)(ptr - _buffer);
+        public void Return(T* ptr) => _index[_size++] = (int)(ptr - _buffer);
 
         /// <summary>
         ///     Empty
