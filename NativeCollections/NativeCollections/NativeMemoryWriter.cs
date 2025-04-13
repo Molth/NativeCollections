@@ -306,7 +306,13 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteBytes(ReadOnlySpan<byte> buffer) => WriteBytes((byte*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)), buffer.Length);
+        public void WriteBytes(ReadOnlySpan<byte> buffer)
+        {
+            if (_position + buffer.Length > Length)
+                throw new ArgumentOutOfRangeException(nameof(buffer.Length), $"Requires size is {buffer.Length}, but buffer length is {Remaining}.");
+            Unsafe.CopyBlockUnaligned(ref *(Buffer + _position), ref MemoryMarshal.GetReference(buffer), (uint)buffer.Length);
+            _position += buffer.Length;
+        }
 
         /// <summary>
         ///     Try write bytes
@@ -314,7 +320,14 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <returns>Wrote</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryWriteBytes(ReadOnlySpan<byte> buffer) => TryWriteBytes((byte*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)), buffer.Length);
+        public bool TryWriteBytes(ReadOnlySpan<byte> buffer)
+        {
+            if (_position + buffer.Length > Length)
+                return false;
+            Unsafe.CopyBlockUnaligned(ref *(Buffer + _position), ref MemoryMarshal.GetReference(buffer), (uint)buffer.Length);
+            _position += buffer.Length;
+            return true;
+        }
 
         /// <summary>
         ///     Clear

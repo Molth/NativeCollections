@@ -321,7 +321,13 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void ReadBytes(Span<byte> buffer) => ReadBytes((byte*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)), buffer.Length);
+        public void ReadBytes(Span<byte> buffer)
+        {
+            if (_position + buffer.Length > Length)
+                throw new ArgumentOutOfRangeException(nameof(buffer.Length), $"Requires size is {buffer.Length}, but buffer length is {Remaining}.");
+            Unsafe.CopyBlockUnaligned(ref MemoryMarshal.GetReference(buffer), ref *(Buffer + _position), (uint)buffer.Length);
+            _position += buffer.Length;
+        }
 
         /// <summary>
         ///     Try read bytes
@@ -329,7 +335,14 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <returns>Read</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryReadBytes(Span<byte> buffer) => TryReadBytes((byte*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)), buffer.Length);
+        public bool TryReadBytes(Span<byte> buffer)
+        {
+            if (_position + buffer.Length > Length)
+                return false;
+            Unsafe.CopyBlockUnaligned(ref MemoryMarshal.GetReference(buffer), ref *(Buffer + _position), (uint)buffer.Length);
+            _position += buffer.Length;
+            return true;
+        }
 
         /// <summary>
         ///     As span
