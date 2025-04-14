@@ -182,13 +182,8 @@ namespace NativeCollections
         /// </summary>
         /// <param name="key">Key</param>
         /// <param name="value">Value</param>
-        /// <returns>
-        ///     True if the key was newly added to the collection.
-        ///     False if an existing key's value was replaced.
-        ///     If the key was already set, the previous value is overridden.
-        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Insert(int key, in T value) => _handle->Insert(key, value);
+        public InsertResult Insert(int key, in T value) => _handle->Insert(key, value);
 
         /// <summary>
         ///     Remove

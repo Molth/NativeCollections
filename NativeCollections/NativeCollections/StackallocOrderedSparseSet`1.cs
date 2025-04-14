@@ -193,13 +193,8 @@ namespace NativeCollections
         /// </summary>
         /// <param name="key">Key</param>
         /// <param name="value">Value</param>
-        /// <returns>
-        ///     True if the key was newly added to the collection.
-        ///     False if an existing key's value was replaced.
-        ///     If the key was already set, the previous value is overridden.
-        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Insert(int key, in T value)
+        public InsertResult Insert(int key, in T value)
         {
             if (key < 0)
                 throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
@@ -210,7 +205,7 @@ namespace NativeCollections
             {
                 _dense[index].Value = value;
                 ++_version;
-                return false;
+                return InsertResult.Overwritten;
             }
 
             ref var count = ref _count;
@@ -234,7 +229,7 @@ namespace NativeCollections
             tail = count;
             ++count;
             ++_version;
-            return true;
+            return InsertResult.Success;
         }
 
         /// <summary>

@@ -123,28 +123,27 @@ namespace NativeCollections
         ///     Enqueue head
         /// </summary>
         /// <param name="item">Item</param>
-        /// <returns>Overwritten</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool EnqueueHead(in T item)
+        public InsertResult EnqueueHead(in T item)
         {
-            bool overwritten;
+            InsertResult result;
             if (_size == _length)
             {
                 if (--_tail == -1)
                     _tail = _length - 1;
-                overwritten = true;
+                result = InsertResult.Overwritten;
             }
             else
             {
                 ++_size;
-                overwritten = false;
+                result = InsertResult.Success;
             }
 
             if (--_head == -1)
                 _head = _length - 1;
             _buffer[_head] = item;
             ++_version;
-            return overwritten;
+            return result;
         }
 
         /// <summary>
@@ -169,28 +168,27 @@ namespace NativeCollections
         ///     Enqueue tail
         /// </summary>
         /// <param name="item">Item</param>
-        /// <returns>Overwritten</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool EnqueueTail(in T item)
+        public InsertResult EnqueueTail(in T item)
         {
-            bool overwritten;
+            InsertResult result;
             if (_size == _length)
             {
                 if (++_head == _length)
                     _head = 0;
-                overwritten = true;
+                result = InsertResult.Overwritten;
             }
             else
             {
                 ++_size;
-                overwritten = false;
+                result = InsertResult.Success;
             }
 
             _buffer[_tail] = item;
             if (++_tail == _length)
                 _tail = 0;
             ++_version;
-            return overwritten;
+            return result;
         }
 
         /// <summary>

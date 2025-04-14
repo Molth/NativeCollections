@@ -141,9 +141,8 @@ namespace NativeCollections
         ///     Enqueue head
         /// </summary>
         /// <param name="item">Item</param>
-        /// <returns>Overwritten</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool EnqueueHead(in T item) => _handle->EnqueueHead(item);
+        public InsertResult EnqueueHead(in T item) => _handle->EnqueueHead(item);
 
         /// <summary>
         ///     Try enqueue head
@@ -157,9 +156,8 @@ namespace NativeCollections
         ///     Enqueue tail
         /// </summary>
         /// <param name="item">Item</param>
-        /// <returns>Overwritten</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool EnqueueTail(in T item) => _handle->EnqueueTail(item);
+        public InsertResult EnqueueTail(in T item) => _handle->EnqueueTail(item);
 
         /// <summary>
         ///     Try enqueue tail
