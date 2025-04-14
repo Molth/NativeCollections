@@ -147,6 +147,36 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Enqueue head
+        /// </summary>
+        /// <param name="item">Item</param>
+        /// <param name="overwritten">Overwritten</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public InsertResult EnqueueHead(in T item, out T overwritten)
+        {
+            InsertResult result;
+            if (_size == _length)
+            {
+                if (--_tail == -1)
+                    _tail = _length - 1;
+                overwritten = _buffer[_tail];
+                result = InsertResult.Overwritten;
+            }
+            else
+            {
+                overwritten = default;
+                ++_size;
+                result = InsertResult.Success;
+            }
+
+            if (--_head == -1)
+                _head = _length - 1;
+            _buffer[_head] = item;
+            ++_version;
+            return result;
+        }
+
+        /// <summary>
         ///     Try enqueue head
         /// </summary>
         /// <param name="item">Item</param>
@@ -180,6 +210,36 @@ namespace NativeCollections
             }
             else
             {
+                ++_size;
+                result = InsertResult.Success;
+            }
+
+            _buffer[_tail] = item;
+            if (++_tail == _length)
+                _tail = 0;
+            ++_version;
+            return result;
+        }
+
+        /// <summary>
+        ///     Enqueue tail
+        /// </summary>
+        /// <param name="item">Item</param>
+        /// <param name="overwritten">Overwritten</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public InsertResult EnqueueTail(in T item, out T overwritten)
+        {
+            InsertResult result;
+            if (_size == _length)
+            {
+                overwritten = _buffer[_head];
+                if (++_head == _length)
+                    _head = 0;
+                result = InsertResult.Overwritten;
+            }
+            else
+            {
+                overwritten = default;
                 ++_size;
                 result = InsertResult.Success;
             }
