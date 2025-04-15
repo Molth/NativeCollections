@@ -81,6 +81,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MustBeZeroed(nameof(buffer))]
         public StackallocOrderedHashSet(Span<byte> buffer, int capacity)
         {
             _buckets = (int*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer));
