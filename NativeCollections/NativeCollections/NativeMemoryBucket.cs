@@ -43,9 +43,9 @@ namespace NativeCollections
         public bool IsCreated => _handle != null;
 
         /// <summary>
-        ///     Size
+        ///     Capacity
         /// </summary>
-        public int Size => _handle->Size;
+        public int Capacity => _handle->Capacity;
 
         /// <summary>
         ///     Length

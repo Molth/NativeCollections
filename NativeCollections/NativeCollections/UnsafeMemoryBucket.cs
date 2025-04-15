@@ -17,9 +17,9 @@ namespace NativeCollections
     public unsafe struct UnsafeMemoryBucket : IDisposable
     {
         /// <summary>
-        ///     Size
+        ///     Capacity
         /// </summary>
-        private int _size;
+        private int _capacity;
 
         /// <summary>
         ///     Length
@@ -42,9 +42,9 @@ namespace NativeCollections
         private CustomMemoryAllocator _allocator;
 
         /// <summary>
-        ///     Size
+        ///     Capacity
         /// </summary>
-        public int Size => _size;
+        public int Capacity => _capacity;
 
         /// <summary>
         ///     Length
@@ -54,15 +54,15 @@ namespace NativeCollections
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="size">Size</param>
+        /// <param name="capacity">Capacity</param>
         /// <param name="length">Length</param>
         /// <param name="allocator">Memory allocator</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeMemoryBucket(int size, int length, CustomMemoryAllocator allocator)
+        public UnsafeMemoryBucket(int capacity, int length, CustomMemoryAllocator allocator)
         {
-            _size = size;
+            _capacity = capacity;
             _length = length;
-            _buffer = (void**)NativeMemoryAllocator.AllocZeroed((uint)(size * sizeof(void*)));
+            _buffer = (void**)NativeMemoryAllocator.AllocZeroed((uint)(capacity * sizeof(void*)));
             _index = 0;
             _allocator = allocator;
         }
@@ -73,7 +73,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            for (var i = _size - 1; i >= 0; --i)
+            for (var i = _capacity - 1; i >= 0; --i)
             {
                 var buffer = _buffer[i];
                 if (buffer == null)
@@ -92,7 +92,7 @@ namespace NativeCollections
         public void* Rent()
         {
             void* buffer = null;
-            if (_index < _size)
+            if (_index < _capacity)
             {
                 buffer = _buffer[_index];
                 _buffer[_index++] = null;
