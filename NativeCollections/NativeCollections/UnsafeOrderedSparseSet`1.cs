@@ -6,8 +6,6 @@ using System.Runtime.InteropServices;
 #pragma warning disable CA2208
 #pragma warning disable CS8632
 
-// ReSharper disable ALL
-
 namespace NativeCollections
 {
     /// <summary>
@@ -1068,7 +1066,48 @@ namespace NativeCollections
             ///     Count
             /// </summary>
             public int Count => _nativeSparseSet->_count;
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            /// <param name="count">Count</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void CopyTo(Span<int> buffer, int count)
+            {
+                var dense = _nativeSparseSet->_dense;
+                var current = _nativeSparseSet->_head;
+                for (var index = 0; index < count; ++index)
+                {
+                    var entry = &dense[current];
+                    buffer[index] = entry->Key;
+                    current = entry->Next;
+                }
+            }
 
+            /// <summary>
+            ///     Get byte count
+            /// </summary>
+            /// <returns>Byte count</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int GetByteCount() => _nativeSparseSet->_count * sizeof(int);
+
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void CopyTo(Span<byte> buffer)
+            {
+                ref var reference = ref Unsafe.As<byte, int>(ref MemoryMarshal.GetReference(buffer));
+                var dense = _nativeSparseSet->_dense;
+                var current = _nativeSparseSet->_head;
+                for (var index = 0; index < _nativeSparseSet->_count; ++index)
+                {
+                    var entry = &dense[current];
+                    Unsafe.Add(ref reference, index) = entry->Key;
+                    current = entry->Next;
+                }
+            }
             /// <summary>
             ///     Get enumerator
             /// </summary>
@@ -1166,7 +1205,48 @@ namespace NativeCollections
             ///     Count
             /// </summary>
             public int Count => _nativeSparseSet->_count;
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            /// <param name="count">Count</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void CopyTo(Span<T> buffer, int count)
+            {
+                var dense = _nativeSparseSet->_dense;
+                var current = _nativeSparseSet->_head;
+                for (var index = 0; index < count; ++index)
+                {
+                    var entry = &dense[current];
+                    buffer[index] =  entry->Value;
+                    current = entry->Next;
+                }
+            }
 
+            /// <summary>
+            ///     Get byte count
+            /// </summary>
+            /// <returns>Byte count</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int GetByteCount() => _nativeSparseSet->_count * sizeof( T);
+
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void CopyTo(Span<byte> buffer)
+            {
+                ref var reference = ref Unsafe.As<byte,  T>(ref MemoryMarshal.GetReference(buffer));
+                var dense = _nativeSparseSet->_dense;
+                var current = _nativeSparseSet->_head;
+                for (var index = 0; index < _nativeSparseSet->_count; ++index)
+                {
+                    var entry = &dense[current];
+                    Unsafe.Add(ref reference, index) =entry->Value;
+                    current = entry->Next;
+                }
+            }
             /// <summary>
             ///     Get enumerator
             /// </summary>
@@ -1264,6 +1344,49 @@ namespace NativeCollections
             ///     Count
             /// </summary>
             public int Count => _nativeSparseSet->_count;
+
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            /// <param name="count">Count</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void CopyTo(Span<KeyValuePair<int, T>> buffer, int count)
+            {
+                var dense = _nativeSparseSet->_dense;
+                var current = _nativeSparseSet->_head;
+                for (var index = 0; index < count; ++index)
+                {
+                    var entry = &dense[current];
+                    buffer[index] = new KeyValuePair<int, T>(entry->Key, entry->Value);
+                    current = entry->Next;
+                }
+            }
+
+            /// <summary>
+            ///     Get byte count
+            /// </summary>
+            /// <returns>Byte count</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int GetByteCount() => _nativeSparseSet->_count * sizeof(KeyValuePair<int, T>);
+
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void CopyTo(Span<byte> buffer)
+            {
+                ref var reference = ref Unsafe.As<byte, KeyValuePair<int, T>>(ref MemoryMarshal.GetReference(buffer));
+                var dense = _nativeSparseSet->_dense;
+                var current = _nativeSparseSet->_head;
+                for (var index = 0; index < _nativeSparseSet->_count; ++index)
+                {
+                    var entry = &dense[current];
+                    Unsafe.Add(ref reference, index) = new KeyValuePair<int, T>(entry->Key, entry->Value);
+                    current = entry->Next;
+                }
+            }
 
             /// <summary>
             ///     Get enumerator

@@ -39,8 +39,8 @@ bld/
 
 # JetBrains Rider
 .idea/
-NativeCollections.sln.DotSettings
-NativeCollections.sln.DotSettings.user
+*.DotSettings
+*.DotSettings.user
 
 # Visual Studio 2017 auto generated files
 Generated\ Files/

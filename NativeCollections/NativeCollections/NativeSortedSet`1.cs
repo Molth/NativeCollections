@@ -182,6 +182,25 @@ namespace NativeCollections
         public bool TryGetValueReference(in T equalValue, out NativeReference<T> actualValue) => _handle->TryGetValueReference(equalValue, out actualValue);
 
         /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <param name="count">Count</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void CopyTo(Span<T> buffer, int count) => _handle->CopyTo(buffer,count);
+        /// <summary>
+        ///     Get byte count
+        /// </summary>
+        /// <returns>Byte count</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetByteCount() => _handle->GetByteCount();
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void CopyTo(Span<byte> buffer) => _handle->CopyTo(buffer);
+        /// <summary>
         ///     Empty
         /// </summary>
         public static NativeSortedSet<T> Empty => new();

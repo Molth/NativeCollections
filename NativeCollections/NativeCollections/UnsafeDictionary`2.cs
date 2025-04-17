@@ -633,7 +633,33 @@ namespace NativeCollections
             /// </summary>
             public TValue Value;
         }
-
+        /// <summary>
+        ///     Get byte count
+        /// </summary>
+        /// <returns>Byte count</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetByteCount() => (_count -_freeCount) * sizeof(KeyValuePair<TKey, TValue>);
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void CopyTo(Span<byte> buffer)
+        {
+            ref var reference = ref Unsafe.As<byte, KeyValuePair<TKey, TValue>>(ref MemoryMarshal.GetReference(buffer));
+            var count = _count - _freeCount;
+            var entries = _entries;
+            var offset = 0;
+            for (int index = 0; index <_count && count != 0; ++index)
+            {
+                ref var local = ref entries[index];
+                if (local.Next >= -1)
+                {
+                    Unsafe.Add(ref reference, offset++) = new KeyValuePair<TKey, TValue>(local.Key,local.Value);
+                    --count;
+                }
+            }
+        }
         /// <summary>
         ///     Empty
         /// </summary>
@@ -736,7 +762,34 @@ namespace NativeCollections
             /// <param name="nativeDictionary">NativeDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal KeyCollection(void* nativeDictionary) => _nativeDictionary = (UnsafeDictionary<TKey, TValue>*)nativeDictionary;
+            /// <summary>
+            ///     Get byte count
+            /// </summary>
+            /// <returns>Byte count</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int GetByteCount() => (_nativeDictionary->_count - _nativeDictionary->_freeCount) * sizeof(TKey);
 
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void CopyTo(Span<byte> buffer)
+            {
+                ref var reference = ref Unsafe.As<byte, TKey>(ref MemoryMarshal.GetReference(buffer));
+                var count = _nativeDictionary->_count - _nativeDictionary->_freeCount;
+                var entries = _nativeDictionary->_entries;
+                var offset = 0;
+                for (int index = 0; index <_nativeDictionary->_count && count != 0; ++index)
+                {
+                    ref var local = ref entries[index];
+                    if (local.Next >= -1)
+                    {
+                        Unsafe.Add(ref reference, offset++) = local.Key;
+                        --count;
+                    }
+                }
+            }
             /// <summary>
             ///     Get enumerator
             /// </summary>
@@ -835,7 +888,34 @@ namespace NativeCollections
             /// <param name="nativeDictionary">NativeDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal ValueCollection(void* nativeDictionary) => _nativeDictionary = (UnsafeDictionary<TKey, TValue>*)nativeDictionary;
+            /// <summary>
+            ///     Get byte count
+            /// </summary>
+            /// <returns>Byte count</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int GetByteCount() => (_nativeDictionary->_count - _nativeDictionary->_freeCount) * sizeof(TValue);
 
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void CopyTo(Span<byte> buffer)
+            {
+                ref var reference = ref Unsafe.As<byte, TValue>(ref MemoryMarshal.GetReference(buffer));
+                var count = _nativeDictionary->_count - _nativeDictionary->_freeCount;
+                var entries = _nativeDictionary->_entries;
+                var offset = 0;
+                for (int index = 0; index <_nativeDictionary->_count && count != 0; ++index)
+                {
+                    ref var local = ref entries[index];
+                    if (local.Next >= -1)
+                    {
+                        Unsafe.Add(ref reference, offset++) = local.Value;
+                        --count;
+                    }
+                }
+            }
             /// <summary>
             ///     Get enumerator
             /// </summary>

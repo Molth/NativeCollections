@@ -292,6 +292,27 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Get byte count
+        /// </summary>
+        /// <returns>Byte count</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetByteCount() => _size * sizeof(T);
+
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void CopyTo(Span<byte> buffer)
+        {
+            ref var reference = ref Unsafe.As<byte, T>(ref MemoryMarshal.GetReference(buffer));
+            var num1 = 0;
+            var num2 = _size;
+            while (num1 < _size)
+                Unsafe.Add(ref reference, --num2) = _buffer[num1++];
+        }
+
+        /// <summary>
         ///     Empty
         /// </summary>
         public static UnsafeStack<T> Empty => new();

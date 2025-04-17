@@ -604,7 +604,38 @@ namespace NativeCollections
             /// </summary>
             public T Value;
         }
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <param name="count">Count</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void CopyTo(Span<T> buffer, int count)
+        {
+            var entries = _entries;
+            for (int index = 0; index < count; ++index)
+                buffer[index] = entries[index].Value;
+        }
 
+        /// <summary>
+        ///     Get byte count
+        /// </summary>
+        /// <returns>Byte count</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetByteCount() => _count * sizeof( T);
+
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void CopyTo(Span<byte> buffer)
+        {
+            ref var reference = ref Unsafe.As<byte, T>(ref MemoryMarshal.GetReference(buffer));
+            var entries = _entries;
+            for (int index = 0; index < _count; ++index)
+                Unsafe.Add(ref reference, index) =  entries[index].Value;
+        }
         /// <summary>
         ///     Empty
         /// </summary>

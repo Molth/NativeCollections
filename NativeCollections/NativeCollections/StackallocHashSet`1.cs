@@ -345,7 +345,34 @@ namespace NativeCollections
             /// </summary>
             public T Value;
         }
+        /// <summary>
+        ///     Get byte count
+        /// </summary>
+        /// <returns>Byte count</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetByteCount() => (_count - _freeCount) * sizeof(T);
 
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void CopyTo(Span<byte> buffer)
+        {
+            ref var reference = ref Unsafe.As<byte, T>(ref MemoryMarshal.GetReference(buffer));
+            var count = _count - _freeCount;
+            var entries = this._entries;
+            var offset = 0;
+            for (int index = 0; index < this._count && count != 0; ++index)
+            {
+                ref var local = ref entries[index];
+                if (local.Next >= -1)
+                {
+                    Unsafe.Add(ref reference, offset++) = local.Value;
+                    --count;
+                }
+            }
+        }
         /// <summary>
         ///     Empty
         /// </summary>

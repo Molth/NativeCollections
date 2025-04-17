@@ -749,7 +749,64 @@ namespace NativeCollections
                     Right = newChild;
             }
         }
+/// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <param name="count">Count</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void CopyTo(Span<T> buffer, int count)
+        {
+            if (_root == null)
+                return;
+            var index = 0;
+            using (var nodeStack = new UnsafeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(_count + 1))))
+            {
+                for (var node = _root; node != null; node = node->Left)
+                    nodeStack.Push((nint)node);
+                while (nodeStack.Count != 0)
+                {
+                    if (index >= count)
+                        return;
+                    var node1 = (Node*)nodeStack.Pop();
+                    buffer[index++] = node1->Item;
+                    for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
+                        nodeStack.Push((nint)node2);
+                }
+            }
+        }
 
+        /// <summary>
+        ///     Get byte count
+        /// </summary>
+        /// <returns>Byte count</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetByteCount() => _count * sizeof(T);
+
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void CopyTo(Span<byte> buffer)
+        {
+            if (_root == null)
+                return;
+            ref var reference = ref Unsafe.As<byte, T>(ref MemoryMarshal.GetReference(buffer));
+            var index = 0;
+            using (var nodeStack = new UnsafeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(_count + 1))))
+            {
+                for (var node = _root; node != null; node = node->Left)
+                    nodeStack.Push((nint)node);
+                while (nodeStack.Count != 0)
+                {
+                    var node1 = (Node*)nodeStack.Pop();
+                    Unsafe.Add(ref reference, index++) = node1->Item;
+                    for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
+                        nodeStack.Push((nint)node2);
+                }
+            }
+        }
         /// <summary>
         ///     Empty
         /// </summary>

@@ -318,7 +318,32 @@ namespace NativeCollections
                 tmp = 0;
             index = tmp;
         }
+        /// <summary>
+        ///     Get byte count
+        /// </summary>
+        /// <returns>Byte count</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetByteCount() => _size * sizeof(T);
 
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void CopyTo(Span<byte> buffer) {
+            var size = _size;
+            if (size == 0)
+                return;
+            ref var reference = ref MemoryMarshal.GetReference(buffer);
+            var length1 = _length - _head;
+            var length2 = length1 > size ? size : length1;
+            Unsafe.CopyBlockUnaligned(ref reference, ref *(byte*)(_buffer + _head), (uint)(length2 * sizeof(T)));
+            var length3 = size - length2;
+            if (length3 <= 0)
+                return;
+            nint offset = length1 * sizeof(T);
+            Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, offset), ref *(byte*)_buffer, (uint)(length2 * sizeof(T)));
+        }
         /// <summary>
         ///     Empty
         /// </summary>

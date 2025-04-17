@@ -817,6 +817,39 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <param name="count">Count</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void CopyTo(Span<KeyValuePair<TKey, TValue>> buffer, int count)
+        {
+            var entries = _entries;
+            for (int index = 0; index < count; ++index)
+                buffer[index] = new KeyValuePair<TKey, TValue>(entries[index].Key, entries[index].Value);
+        }
+
+        /// <summary>
+        ///     Get byte count
+        /// </summary>
+        /// <returns>Byte count</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetByteCount() => _count * sizeof(KeyValuePair<TKey, TValue>);
+
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void CopyTo(Span<byte> buffer)
+        {
+            ref var reference = ref Unsafe.As<byte, KeyValuePair<TKey, TValue>>(ref MemoryMarshal.GetReference(buffer));
+            var entries = _entries;
+            for (int index = 0; index < _count; ++index)
+                Unsafe.Add(ref reference, index) = new KeyValuePair<TKey, TValue>(entries[index].Key, entries[index].Value);
+        }
+
+        /// <summary>
         ///     Empty
         /// </summary>
         public static StackallocOrderedDictionary<TKey, TValue> Empty => new();
@@ -915,7 +948,38 @@ namespace NativeCollections
             /// <param name="nativeOrderedDictionary">NativeOrderedDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal KeyCollection(void* nativeOrderedDictionary) => _nativeOrderedDictionary = (StackallocOrderedDictionary<TKey, TValue>*)nativeOrderedDictionary;
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            /// <param name="count">Count</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void CopyTo(Span<TKey> buffer, int count)
+            {
+                var entries = _nativeOrderedDictionary->_entries;
+                for (int index = 0; index < count; ++index)
+                    buffer[index] = (entries[index].Key);
+            }
 
+            /// <summary>
+            ///     Get byte count
+            /// </summary>
+            /// <returns>Byte count</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int GetByteCount() => _nativeOrderedDictionary->_count * sizeof(TKey);
+
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void CopyTo(Span<byte> buffer)
+            {
+                ref var reference = ref Unsafe.As<byte, TKey>(ref MemoryMarshal.GetReference(buffer));
+                var entries = _nativeOrderedDictionary->_entries;
+                for (int index = 0; index < _nativeOrderedDictionary->_count; ++index)
+                    Unsafe.Add(ref reference, index) = entries[index].Key;
+            }
             /// <summary>
             ///     Get enumerator
             /// </summary>
@@ -1011,7 +1075,38 @@ namespace NativeCollections
             /// <param name="nativeOrderedDictionary">NativeOrderedDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal ValueCollection(void* nativeOrderedDictionary) => _nativeOrderedDictionary = (StackallocOrderedDictionary<TKey, TValue>*)nativeOrderedDictionary;
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            /// <param name="count">Count</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void CopyTo(Span< TValue> buffer, int count)
+            {
+                var entries =_nativeOrderedDictionary-> _entries;
+                for (int index = 0; index < count; ++index)
+                    buffer[index] = entries[index].Value;
+            }
 
+            /// <summary>
+            ///     Get byte count
+            /// </summary>
+            /// <returns>Byte count</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int GetByteCount() => _nativeOrderedDictionary->_count * sizeof(TValue);
+
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void CopyTo(Span<byte> buffer)
+            {
+                ref var reference = ref Unsafe.As<byte,  TValue>(ref MemoryMarshal.GetReference(buffer));
+                var entries =_nativeOrderedDictionary-> _entries;
+                for (int index = 0; index <_nativeOrderedDictionary-> _count; ++index)
+                    Unsafe.Add(ref reference, index) = entries[index].Value;
+            }
             /// <summary>
             ///     Get enumerator
             /// </summary>
