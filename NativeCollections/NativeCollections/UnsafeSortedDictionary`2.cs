@@ -975,12 +975,12 @@ namespace NativeCollections
             ///     NativeSortedDictionary
             /// </summary>
             private readonly UnsafeSortedDictionary<TKey, TValue>* _nativeSortedDictionary;
-            
+
             /// <summary>
             ///     Count
             /// </summary>
-            public int Count  => _nativeSortedDictionary->Count;
-            
+            public int Count => _nativeSortedDictionary->Count;
+
             /// <summary>
             ///     Structure
             /// </summary>
@@ -1175,7 +1175,7 @@ namespace NativeCollections
             /// <summary>
             ///     Count
             /// </summary>
-            public int Count  => _nativeSortedDictionary->Count;
+            public int Count => _nativeSortedDictionary->Count;
 
             /// <summary>
             ///     Structure

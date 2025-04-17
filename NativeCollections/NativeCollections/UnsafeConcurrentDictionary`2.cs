@@ -1087,7 +1087,7 @@ namespace NativeCollections
             /// <summary>
             ///     Count
             /// </summary>
-            public int Count  => _nativeConcurrentDictionary->Count;
+            public int Count => _nativeConcurrentDictionary->Count;
 
             /// <summary>
             ///     Structure
@@ -1237,7 +1237,7 @@ namespace NativeCollections
             /// <summary>
             ///     Count
             /// </summary>
-            public int Count  => _nativeConcurrentDictionary->Count;
+            public int Count => _nativeConcurrentDictionary->Count;
 
             /// <summary>
             ///     Structure

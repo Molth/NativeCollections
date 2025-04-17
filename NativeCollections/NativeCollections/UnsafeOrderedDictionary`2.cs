@@ -1079,7 +1079,7 @@ namespace NativeCollections
             /// <summary>
             ///     Count
             /// </summary>
-            public int Count  => _nativeOrderedDictionary->Count;
+            public int Count => _nativeOrderedDictionary->Count;
 
             /// <summary>
             ///     Structure
@@ -1222,7 +1222,7 @@ namespace NativeCollections
             /// <summary>
             ///     Count
             /// </summary>
-            public int Count  => _nativeOrderedDictionary->Count;
+            public int Count => _nativeOrderedDictionary->Count;
 
             /// <summary>
             ///     Structure

@@ -384,6 +384,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void CopyTo(Span<KeyValuePair<TKey, TValue>> buffer) => _handle->CopyTo(buffer);
+
         /// <summary>
         ///     Copy to
         /// </summary>

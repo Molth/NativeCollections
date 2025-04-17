@@ -576,7 +576,7 @@ namespace NativeCollections
             /// <summary>
             ///     Count
             /// </summary>
-            public int Count  => _nativeDictionary->Count;
+            public int Count => _nativeDictionary->Count;
 
             /// <summary>
             ///     Structure
@@ -716,7 +716,7 @@ namespace NativeCollections
             /// <summary>
             ///     Count
             /// </summary>
-            public int Count  => _nativeDictionary->Count;
+            public int Count => _nativeDictionary->Count;
 
             /// <summary>
             ///     Structure
