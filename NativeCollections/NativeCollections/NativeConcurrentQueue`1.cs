@@ -189,12 +189,13 @@ namespace NativeCollections
                     var segment = _head;
                     while (true)
                     {
+                        const nint zero = 0;
                         var next = Volatile.Read(ref segment->NextSegment);
                         if (segment->TryPeek())
                             return false;
-                        if (next != (nint)0)
+                        if (next != zero)
                             segment = (NativeConcurrentQueueSegmentNotArm64<T>*)next;
-                        else if (Volatile.Read(ref segment->NextSegment) == (nint)0)
+                        else if (Volatile.Read(ref segment->NextSegment) == zero)
                             break;
                     }
 
@@ -644,12 +645,13 @@ namespace NativeCollections
                     var segment = _head;
                     while (true)
                     {
+                        const nint zero = 0;
                         var next = Volatile.Read(ref segment->NextSegment);
                         if (segment->TryPeek())
                             return false;
-                        if (next != (nint)0)
+                        if (next != zero)
                             segment = (NativeConcurrentQueueSegmentArm64<T>*)next;
-                        else if (Volatile.Read(ref segment->NextSegment) == (nint)0)
+                        else if (Volatile.Read(ref segment->NextSegment) == zero)
                             break;
                     }
 

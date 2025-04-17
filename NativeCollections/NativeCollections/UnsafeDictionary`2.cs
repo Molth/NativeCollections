@@ -633,12 +633,14 @@ namespace NativeCollections
             /// </summary>
             public TValue Value;
         }
+
         /// <summary>
         ///     Get byte count
         /// </summary>
         /// <returns>Byte count</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int GetByteCount() => (_count -_freeCount) * sizeof(KeyValuePair<TKey, TValue>);
+        public int GetByteCount() => (_count - _freeCount) * sizeof(KeyValuePair<TKey, TValue>);
+
         /// <summary>
         ///     Copy to
         /// </summary>
@@ -650,16 +652,17 @@ namespace NativeCollections
             var count = _count - _freeCount;
             var entries = _entries;
             var offset = 0;
-            for (int index = 0; index <_count && count != 0; ++index)
+            for (var index = 0; index < _count && count != 0; ++index)
             {
                 ref var local = ref entries[index];
                 if (local.Next >= -1)
                 {
-                    Unsafe.Add(ref reference, offset++) = new KeyValuePair<TKey, TValue>(local.Key,local.Value);
+                    Unsafe.Add(ref reference, offset++) = new KeyValuePair<TKey, TValue>(local.Key, local.Value);
                     --count;
                 }
             }
         }
+
         /// <summary>
         ///     Empty
         /// </summary>
@@ -762,6 +765,7 @@ namespace NativeCollections
             /// <param name="nativeDictionary">NativeDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal KeyCollection(void* nativeDictionary) => _nativeDictionary = (UnsafeDictionary<TKey, TValue>*)nativeDictionary;
+
             /// <summary>
             ///     Get byte count
             /// </summary>
@@ -780,7 +784,7 @@ namespace NativeCollections
                 var count = _nativeDictionary->_count - _nativeDictionary->_freeCount;
                 var entries = _nativeDictionary->_entries;
                 var offset = 0;
-                for (int index = 0; index <_nativeDictionary->_count && count != 0; ++index)
+                for (var index = 0; index < _nativeDictionary->_count && count != 0; ++index)
                 {
                     ref var local = ref entries[index];
                     if (local.Next >= -1)
@@ -790,6 +794,7 @@ namespace NativeCollections
                     }
                 }
             }
+
             /// <summary>
             ///     Get enumerator
             /// </summary>
@@ -888,6 +893,7 @@ namespace NativeCollections
             /// <param name="nativeDictionary">NativeDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal ValueCollection(void* nativeDictionary) => _nativeDictionary = (UnsafeDictionary<TKey, TValue>*)nativeDictionary;
+
             /// <summary>
             ///     Get byte count
             /// </summary>
@@ -906,7 +912,7 @@ namespace NativeCollections
                 var count = _nativeDictionary->_count - _nativeDictionary->_freeCount;
                 var entries = _nativeDictionary->_entries;
                 var offset = 0;
-                for (int index = 0; index <_nativeDictionary->_count && count != 0; ++index)
+                for (var index = 0; index < _nativeDictionary->_count && count != 0; ++index)
                 {
                     ref var local = ref entries[index];
                     if (local.Next >= -1)
@@ -916,6 +922,7 @@ namespace NativeCollections
                     }
                 }
             }
+
             /// <summary>
             ///     Get enumerator
             /// </summary>

@@ -767,13 +767,14 @@ namespace NativeCollections
                     Right = newChild;
             }
         }
-   /// <summary>
+
+        /// <summary>
         ///     Copy to
         /// </summary>
         /// <param name="buffer">Buffer</param>
         /// <param name="count">Count</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(Span<KeyValuePair<TKey,TValue>> buffer, int count)
+        public void CopyTo(Span<KeyValuePair<TKey, TValue>> buffer, int count)
         {
             if (_root == null)
                 return;
@@ -793,12 +794,13 @@ namespace NativeCollections
                 }
             }
         }
+
         /// <summary>
         ///     Get byte count
         /// </summary>
         /// <returns>Byte count</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int GetByteCount() => _count * sizeof(KeyValuePair<TKey,TValue>);
+        public int GetByteCount() => _count * sizeof(KeyValuePair<TKey, TValue>);
 
         /// <summary>
         ///     Copy to
@@ -809,7 +811,7 @@ namespace NativeCollections
         {
             if (_root == null)
                 return;
-            ref var reference = ref Unsafe.As<byte, KeyValuePair<TKey,TValue>>(ref MemoryMarshal.GetReference(buffer));
+            ref var reference = ref Unsafe.As<byte, KeyValuePair<TKey, TValue>>(ref MemoryMarshal.GetReference(buffer));
             var index = 0;
             using (var nodeStack = new UnsafeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(_count + 1))))
             {
@@ -824,6 +826,7 @@ namespace NativeCollections
                 }
             }
         }
+
         /// <summary>
         ///     Empty
         /// </summary>
@@ -949,64 +952,66 @@ namespace NativeCollections
             /// <param name="nativeSortedDictionary">NativeSortedDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal KeyCollection(void* nativeSortedDictionary) => _nativeSortedDictionary = (StackallocSortedDictionary<TKey, TValue>*)nativeSortedDictionary;
-      /// <summary>
-        ///     Copy to
-        /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="count">Count</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(Span<TKey> buffer, int count)
-        {
-            if (_nativeSortedDictionary->_root == null)
-                return;
-            var index = 0;
-            using (var nodeStack = new UnsafeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(_nativeSortedDictionary->_count + 1))))
+
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            /// <param name="count">Count</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void CopyTo(Span<TKey> buffer, int count)
             {
-                for (var node = _nativeSortedDictionary->_root; node != null; node = node->Left)
-                    nodeStack.Push((nint)node);
-                while (nodeStack.Count != 0)
+                if (_nativeSortedDictionary->_root == null)
+                    return;
+                var index = 0;
+                using (var nodeStack = new UnsafeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(_nativeSortedDictionary->_count + 1))))
                 {
-                    if (index >= count)
-                        return;
-                    var node1 = (Node*)nodeStack.Pop();
-                    buffer[index++] = node1->Key;
-                    for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
-                        nodeStack.Push((nint)node2);
+                    for (var node = _nativeSortedDictionary->_root; node != null; node = node->Left)
+                        nodeStack.Push((nint)node);
+                    while (nodeStack.Count != 0)
+                    {
+                        if (index >= count)
+                            return;
+                        var node1 = (Node*)nodeStack.Pop();
+                        buffer[index++] = node1->Key;
+                        for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
+                            nodeStack.Push((nint)node2);
+                    }
                 }
             }
-        }
 
-        /// <summary>
-        ///     Get byte count
-        /// </summary>
-        /// <returns>Byte count</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int GetByteCount() => _nativeSortedDictionary->_count * sizeof(TKey);
+            /// <summary>
+            ///     Get byte count
+            /// </summary>
+            /// <returns>Byte count</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int GetByteCount() => _nativeSortedDictionary->_count * sizeof(TKey);
 
-        /// <summary>
-        ///     Copy to
-        /// </summary>
-        /// <param name="buffer">Buffer</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(Span<byte> buffer)
-        {
-            if (_nativeSortedDictionary->_root == null)
-                return;
-            ref var reference = ref Unsafe.As<byte, TKey>(ref MemoryMarshal.GetReference(buffer));
-            var index = 0;
-            using (var nodeStack = new UnsafeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(_nativeSortedDictionary->_count + 1))))
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void CopyTo(Span<byte> buffer)
             {
-                for (var node =_nativeSortedDictionary-> _root; node != null; node = node->Left)
-                    nodeStack.Push((nint)node);
-                while (nodeStack.Count != 0)
+                if (_nativeSortedDictionary->_root == null)
+                    return;
+                ref var reference = ref Unsafe.As<byte, TKey>(ref MemoryMarshal.GetReference(buffer));
+                var index = 0;
+                using (var nodeStack = new UnsafeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(_nativeSortedDictionary->_count + 1))))
                 {
-                    var node1 = (Node*)nodeStack.Pop();
-                    Unsafe.Add(ref reference, index++) = node1->Key;
-                    for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
-                        nodeStack.Push((nint)node2);
+                    for (var node = _nativeSortedDictionary->_root; node != null; node = node->Left)
+                        nodeStack.Push((nint)node);
+                    while (nodeStack.Count != 0)
+                    {
+                        var node1 = (Node*)nodeStack.Pop();
+                        Unsafe.Add(ref reference, index++) = node1->Key;
+                        for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
+                            nodeStack.Push((nint)node2);
+                    }
                 }
             }
-        }
+
             /// <summary>
             ///     Get enumerator
             /// </summary>
@@ -1128,64 +1133,66 @@ namespace NativeCollections
             /// <param name="nativeSortedDictionary">NativeSortedDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal ValueCollection(void* nativeSortedDictionary) => _nativeSortedDictionary = (StackallocSortedDictionary<TKey, TValue>*)nativeSortedDictionary;
-    /// <summary>
-        ///     Copy to
-        /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="count">Count</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(Span<TValue> buffer, int count)
-        {
-            if (_nativeSortedDictionary->_root == null)
-                return;
-            var index = 0;
-            using (var nodeStack = new UnsafeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(_nativeSortedDictionary->_count + 1))))
+
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            /// <param name="count">Count</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void CopyTo(Span<TValue> buffer, int count)
             {
-                for (var node = _nativeSortedDictionary->_root; node != null; node = node->Left)
-                    nodeStack.Push((nint)node);
-                while (nodeStack.Count != 0)
+                if (_nativeSortedDictionary->_root == null)
+                    return;
+                var index = 0;
+                using (var nodeStack = new UnsafeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(_nativeSortedDictionary->_count + 1))))
                 {
-                    if (index >= count)
-                        return;
-                    var node1 = (Node*)nodeStack.Pop();
-                    buffer[index++] = node1->Value;
-                    for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
-                        nodeStack.Push((nint)node2);
+                    for (var node = _nativeSortedDictionary->_root; node != null; node = node->Left)
+                        nodeStack.Push((nint)node);
+                    while (nodeStack.Count != 0)
+                    {
+                        if (index >= count)
+                            return;
+                        var node1 = (Node*)nodeStack.Pop();
+                        buffer[index++] = node1->Value;
+                        for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
+                            nodeStack.Push((nint)node2);
+                    }
                 }
             }
-        }
 
-        /// <summary>
-        ///     Get byte count
-        /// </summary>
-        /// <returns>Byte count</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int GetByteCount() => _nativeSortedDictionary->_count * sizeof(TValue);
+            /// <summary>
+            ///     Get byte count
+            /// </summary>
+            /// <returns>Byte count</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int GetByteCount() => _nativeSortedDictionary->_count * sizeof(TValue);
 
-        /// <summary>
-        ///     Copy to
-        /// </summary>
-        /// <param name="buffer">Buffer</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(Span<byte> buffer)
-        {
-            if (_nativeSortedDictionary->_root == null)
-                return;
-            ref var reference = ref Unsafe.As<byte, TValue>(ref MemoryMarshal.GetReference(buffer));
-            var index = 0;
-            using (var nodeStack = new UnsafeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(_nativeSortedDictionary->_count + 1))))
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void CopyTo(Span<byte> buffer)
             {
-                for (var node = _nativeSortedDictionary->_root; node != null; node = node->Left)
-                    nodeStack.Push((nint)node);
-                while (nodeStack.Count != 0)
+                if (_nativeSortedDictionary->_root == null)
+                    return;
+                ref var reference = ref Unsafe.As<byte, TValue>(ref MemoryMarshal.GetReference(buffer));
+                var index = 0;
+                using (var nodeStack = new UnsafeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(_nativeSortedDictionary->_count + 1))))
                 {
-                    var node1 = (Node*)nodeStack.Pop();
-                    Unsafe.Add(ref reference, index++) = node1->Value;
-                    for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
-                        nodeStack.Push((nint)node2);
+                    for (var node = _nativeSortedDictionary->_root; node != null; node = node->Left)
+                        nodeStack.Push((nint)node);
+                    while (nodeStack.Count != 0)
+                    {
+                        var node1 = (Node*)nodeStack.Pop();
+                        Unsafe.Add(ref reference, index++) = node1->Value;
+                        for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
+                            nodeStack.Push((nint)node2);
+                    }
                 }
             }
-        }
+
             /// <summary>
             ///     Get enumerator
             /// </summary>

@@ -234,6 +234,7 @@ namespace NativeCollections
             result = _buffer[size];
             return true;
         }
+
         /// <summary>
         ///     Get byte count
         /// </summary>
@@ -246,7 +247,8 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(Span<byte> buffer) {
+        public void CopyTo(Span<byte> buffer)
+        {
             var size = _size;
             if (size == 0)
                 return;
@@ -260,6 +262,7 @@ namespace NativeCollections
             nint offset = length1 * sizeof(T);
             Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, offset), ref *(byte*)_buffer, (uint)(length2 * sizeof(T)));
         }
+
         /// <summary>
         ///     Empty
         /// </summary>

@@ -361,7 +361,8 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(Span<byte> buffer) {
+        public void CopyTo(Span<byte> buffer)
+        {
             var size = _size;
             if (size == 0)
                 return;

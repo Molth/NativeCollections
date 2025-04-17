@@ -825,7 +825,7 @@ namespace NativeCollections
         public void CopyTo(Span<KeyValuePair<TKey, TValue>> buffer, int count)
         {
             var entries = _entries;
-            for (int index = 0; index < count; ++index)
+            for (var index = 0; index < count; ++index)
                 buffer[index] = new KeyValuePair<TKey, TValue>(entries[index].Key, entries[index].Value);
         }
 
@@ -845,7 +845,7 @@ namespace NativeCollections
         {
             ref var reference = ref Unsafe.As<byte, KeyValuePair<TKey, TValue>>(ref MemoryMarshal.GetReference(buffer));
             var entries = _entries;
-            for (int index = 0; index < _count; ++index)
+            for (var index = 0; index < _count; ++index)
                 Unsafe.Add(ref reference, index) = new KeyValuePair<TKey, TValue>(entries[index].Key, entries[index].Value);
         }
 
@@ -948,6 +948,7 @@ namespace NativeCollections
             /// <param name="nativeOrderedDictionary">NativeOrderedDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal KeyCollection(void* nativeOrderedDictionary) => _nativeOrderedDictionary = (StackallocOrderedDictionary<TKey, TValue>*)nativeOrderedDictionary;
+
             /// <summary>
             ///     Copy to
             /// </summary>
@@ -957,8 +958,8 @@ namespace NativeCollections
             public void CopyTo(Span<TKey> buffer, int count)
             {
                 var entries = _nativeOrderedDictionary->_entries;
-                for (int index = 0; index < count; ++index)
-                    buffer[index] = (entries[index].Key);
+                for (var index = 0; index < count; ++index)
+                    buffer[index] = entries[index].Key;
             }
 
             /// <summary>
@@ -977,9 +978,10 @@ namespace NativeCollections
             {
                 ref var reference = ref Unsafe.As<byte, TKey>(ref MemoryMarshal.GetReference(buffer));
                 var entries = _nativeOrderedDictionary->_entries;
-                for (int index = 0; index < _nativeOrderedDictionary->_count; ++index)
+                for (var index = 0; index < _nativeOrderedDictionary->_count; ++index)
                     Unsafe.Add(ref reference, index) = entries[index].Key;
             }
+
             /// <summary>
             ///     Get enumerator
             /// </summary>
@@ -1075,16 +1077,17 @@ namespace NativeCollections
             /// <param name="nativeOrderedDictionary">NativeOrderedDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal ValueCollection(void* nativeOrderedDictionary) => _nativeOrderedDictionary = (StackallocOrderedDictionary<TKey, TValue>*)nativeOrderedDictionary;
+
             /// <summary>
             ///     Copy to
             /// </summary>
             /// <param name="buffer">Buffer</param>
             /// <param name="count">Count</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void CopyTo(Span< TValue> buffer, int count)
+            public void CopyTo(Span<TValue> buffer, int count)
             {
-                var entries =_nativeOrderedDictionary-> _entries;
-                for (int index = 0; index < count; ++index)
+                var entries = _nativeOrderedDictionary->_entries;
+                for (var index = 0; index < count; ++index)
                     buffer[index] = entries[index].Value;
             }
 
@@ -1102,11 +1105,12 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void CopyTo(Span<byte> buffer)
             {
-                ref var reference = ref Unsafe.As<byte,  TValue>(ref MemoryMarshal.GetReference(buffer));
-                var entries =_nativeOrderedDictionary-> _entries;
-                for (int index = 0; index <_nativeOrderedDictionary-> _count; ++index)
+                ref var reference = ref Unsafe.As<byte, TValue>(ref MemoryMarshal.GetReference(buffer));
+                var entries = _nativeOrderedDictionary->_entries;
+                for (var index = 0; index < _nativeOrderedDictionary->_count; ++index)
                     Unsafe.Add(ref reference, index) = entries[index].Value;
             }
+
             /// <summary>
             ///     Get enumerator
             /// </summary>

@@ -345,6 +345,7 @@ namespace NativeCollections
             /// </summary>
             public T Value;
         }
+
         /// <summary>
         ///     Get byte count
         /// </summary>
@@ -361,9 +362,9 @@ namespace NativeCollections
         {
             ref var reference = ref Unsafe.As<byte, T>(ref MemoryMarshal.GetReference(buffer));
             var count = _count - _freeCount;
-            var entries = this._entries;
+            var entries = _entries;
             var offset = 0;
-            for (int index = 0; index < this._count && count != 0; ++index)
+            for (var index = 0; index < _count && count != 0; ++index)
             {
                 ref var local = ref entries[index];
                 if (local.Next >= -1)
@@ -373,6 +374,7 @@ namespace NativeCollections
                 }
             }
         }
+
         /// <summary>
         ///     Empty
         /// </summary>

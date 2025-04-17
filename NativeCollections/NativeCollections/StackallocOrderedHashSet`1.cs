@@ -604,6 +604,7 @@ namespace NativeCollections
             /// </summary>
             public T Value;
         }
+
         /// <summary>
         ///     Copy to
         /// </summary>
@@ -613,7 +614,7 @@ namespace NativeCollections
         public void CopyTo(Span<T> buffer, int count)
         {
             var entries = _entries;
-            for (int index = 0; index < count; ++index)
+            for (var index = 0; index < count; ++index)
                 buffer[index] = entries[index].Value;
         }
 
@@ -622,7 +623,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Byte count</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int GetByteCount() => _count * sizeof( T);
+        public int GetByteCount() => _count * sizeof(T);
 
         /// <summary>
         ///     Copy to
@@ -633,9 +634,10 @@ namespace NativeCollections
         {
             ref var reference = ref Unsafe.As<byte, T>(ref MemoryMarshal.GetReference(buffer));
             var entries = _entries;
-            for (int index = 0; index < _count; ++index)
-                Unsafe.Add(ref reference, index) =  entries[index].Value;
+            for (var index = 0; index < _count; ++index)
+                Unsafe.Add(ref reference, index) = entries[index].Value;
         }
+
         /// <summary>
         ///     Empty
         /// </summary>

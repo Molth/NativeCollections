@@ -749,7 +749,8 @@ namespace NativeCollections
                     Right = newChild;
             }
         }
-/// <summary>
+
+        /// <summary>
         ///     Copy to
         /// </summary>
         /// <param name="buffer">Buffer</param>
@@ -807,6 +808,7 @@ namespace NativeCollections
                 }
             }
         }
+
         /// <summary>
         ///     Empty
         /// </summary>

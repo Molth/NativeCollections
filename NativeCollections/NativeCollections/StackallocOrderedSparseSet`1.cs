@@ -1043,6 +1043,7 @@ namespace NativeCollections
             ///     Count
             /// </summary>
             public int Count => _nativeSparseSet->_count;
+
             /// <summary>
             ///     Copy to
             /// </summary>
@@ -1060,6 +1061,7 @@ namespace NativeCollections
                     current = entry->Next;
                 }
             }
+
             /// <summary>
             ///     Get byte count
             /// </summary>
@@ -1084,6 +1086,7 @@ namespace NativeCollections
                     current = entry->Next;
                 }
             }
+
             /// <summary>
             ///     Get enumerator
             /// </summary>
@@ -1181,6 +1184,7 @@ namespace NativeCollections
             ///     Count
             /// </summary>
             public int Count => _nativeSparseSet->_count;
+
             /// <summary>
             ///     Copy to
             /// </summary>
@@ -1194,7 +1198,7 @@ namespace NativeCollections
                 for (var index = 0; index < count; ++index)
                 {
                     var entry = &dense[current];
-                    buffer[index] =  entry->Value;
+                    buffer[index] = entry->Value;
                     current = entry->Next;
                 }
             }
@@ -1204,7 +1208,7 @@ namespace NativeCollections
             /// </summary>
             /// <returns>Byte count</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public int GetByteCount() => _nativeSparseSet->_count * sizeof( T);
+            public int GetByteCount() => _nativeSparseSet->_count * sizeof(T);
 
             /// <summary>
             ///     Copy to
@@ -1213,16 +1217,17 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void CopyTo(Span<byte> buffer)
             {
-                ref var reference = ref Unsafe.As<byte,  T>(ref MemoryMarshal.GetReference(buffer));
+                ref var reference = ref Unsafe.As<byte, T>(ref MemoryMarshal.GetReference(buffer));
                 var dense = _nativeSparseSet->_dense;
                 var current = _nativeSparseSet->_head;
                 for (var index = 0; index < _nativeSparseSet->_count; ++index)
                 {
                     var entry = &dense[current];
-                    Unsafe.Add(ref reference, index) =entry->Value;
+                    Unsafe.Add(ref reference, index) = entry->Value;
                     current = entry->Next;
                 }
             }
+
             /// <summary>
             ///     Get enumerator
             /// </summary>
@@ -1338,6 +1343,7 @@ namespace NativeCollections
                     current = entry->Next;
                 }
             }
+
             /// <summary>
             ///     Get byte count
             /// </summary>
@@ -1362,6 +1368,7 @@ namespace NativeCollections
                     current = entry->Next;
                 }
             }
+
             /// <summary>
             ///     Get enumerator
             /// </summary>

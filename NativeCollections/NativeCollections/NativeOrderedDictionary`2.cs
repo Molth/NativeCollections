@@ -362,25 +362,29 @@ namespace NativeCollections
         /// <returns>New capacity</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity) => _handle->TrimExcess(capacity);
+
         /// <summary>
         ///     Copy to
         /// </summary>
         /// <param name="buffer">Buffer</param>
         /// <param name="count">Count</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(Span<KeyValuePair<TKey,TValue>> buffer, int count) => _handle->CopyTo(buffer,count);
+        public void CopyTo(Span<KeyValuePair<TKey, TValue>> buffer, int count) => _handle->CopyTo(buffer, count);
+
         /// <summary>
         ///     Get byte count
         /// </summary>
         /// <returns>Byte count</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetByteCount() => _handle->GetByteCount();
+
         /// <summary>
         ///     Copy to
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void CopyTo(Span<byte> buffer) => _handle->CopyTo(buffer);
+
         /// <summary>
         ///     Empty
         /// </summary>
