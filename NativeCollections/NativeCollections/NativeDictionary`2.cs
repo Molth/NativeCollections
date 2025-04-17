@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -229,6 +230,13 @@ namespace NativeCollections
         /// <returns>Byte count</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetByteCount() => _handle->GetByteCount();
+
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void CopyTo(Span<KeyValuePair<TKey, TValue>> buffer) => _handle->CopyTo(buffer);
 
         /// <summary>
         ///     Copy to

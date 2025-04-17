@@ -611,11 +611,13 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="count">Count</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(Span<T> buffer, int count)
+        public int CopyTo(Span<T> buffer, int count)
         {
+            count = count > _count ? _count : count;
             var entries = _entries;
             for (var index = 0; index < count; ++index)
                 buffer[index] = entries[index].Value;
+            return count;
         }
 
         /// <summary>
@@ -624,6 +626,13 @@ namespace NativeCollections
         /// <returns>Byte count</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetByteCount() => _count * sizeof(T);
+
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void CopyTo(Span<T> buffer) => CopyTo(MemoryMarshal.Cast<T, byte>(buffer));
 
         /// <summary>
         ///     Copy to

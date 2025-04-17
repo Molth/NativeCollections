@@ -275,7 +275,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="count">Count</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(Span<T> buffer, int count) => _handle->CopyTo(buffer, count);
+        public int CopyTo(Span<T> buffer, int count) => _handle->CopyTo(buffer, count);
 
         /// <summary>
         ///     Get byte count
@@ -283,6 +283,13 @@ namespace NativeCollections
         /// <returns>Byte count</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetByteCount() => _handle->GetByteCount();
+
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void CopyTo(Span<T> buffer) => _handle->CopyTo(buffer);
 
         /// <summary>
         ///     Copy to

@@ -247,6 +247,13 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void CopyTo(Span<T> buffer) => CopyTo(MemoryMarshal.Cast<T, byte>(buffer));
+
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void CopyTo(Span<byte> buffer)
         {
             var size = _size;

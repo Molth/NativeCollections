@@ -646,6 +646,13 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void CopyTo(Span<KeyValuePair<TKey, TValue>> buffer) => CopyTo(MemoryMarshal.Cast<KeyValuePair<TKey, TValue>, byte>(buffer));
+
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void CopyTo(Span<byte> buffer)
         {
             ref var reference = ref Unsafe.As<byte, KeyValuePair<TKey, TValue>>(ref MemoryMarshal.GetReference(buffer));
@@ -760,6 +767,11 @@ namespace NativeCollections
             private readonly UnsafeDictionary<TKey, TValue>* _nativeDictionary;
 
             /// <summary>
+            ///     Count
+            /// </summary>
+            public int Count  => _nativeDictionary->Count;
+
+            /// <summary>
             ///     Structure
             /// </summary>
             /// <param name="nativeDictionary">NativeDictionary</param>
@@ -772,6 +784,13 @@ namespace NativeCollections
             /// <returns>Byte count</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int GetByteCount() => (_nativeDictionary->_count - _nativeDictionary->_freeCount) * sizeof(TKey);
+
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void CopyTo(Span<TKey> buffer) => CopyTo(MemoryMarshal.Cast<TKey, byte>(buffer));
 
             /// <summary>
             ///     Copy to
@@ -888,6 +907,11 @@ namespace NativeCollections
             private readonly UnsafeDictionary<TKey, TValue>* _nativeDictionary;
 
             /// <summary>
+            ///     Count
+            /// </summary>
+            public int Count  => _nativeDictionary->Count;
+
+            /// <summary>
             ///     Structure
             /// </summary>
             /// <param name="nativeDictionary">NativeDictionary</param>
@@ -900,6 +924,13 @@ namespace NativeCollections
             /// <returns>Byte count</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int GetByteCount() => (_nativeDictionary->_count - _nativeDictionary->_freeCount) * sizeof(TValue);
+
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void CopyTo(Span<TValue> buffer) => CopyTo(MemoryMarshal.Cast<TValue, byte>(buffer));
 
             /// <summary>
             ///     Copy to

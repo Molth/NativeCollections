@@ -1085,6 +1085,11 @@ namespace NativeCollections
             private readonly UnsafeConcurrentDictionary<TKey, TValue>* _nativeConcurrentDictionary;
 
             /// <summary>
+            ///     Count
+            /// </summary>
+            public int Count  => _nativeConcurrentDictionary->Count;
+
+            /// <summary>
             ///     Structure
             /// </summary>
             /// <param name="nativeConcurrentDictionary">NativeConcurrentDictionary</param>
@@ -1228,6 +1233,11 @@ namespace NativeCollections
             ///     NativeConcurrentDictionary
             /// </summary>
             private readonly UnsafeConcurrentDictionary<TKey, TValue>* _nativeConcurrentDictionary;
+
+            /// <summary>
+            ///     Count
+            /// </summary>
+            public int Count  => _nativeConcurrentDictionary->Count;
 
             /// <summary>
             ///     Structure

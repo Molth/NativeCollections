@@ -195,6 +195,13 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void CopyTo(Span<T> buffer) => _handle->CopyTo(buffer);
+
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void CopyTo(Span<byte> buffer) => _handle->CopyTo(buffer);
 
         /// <summary>

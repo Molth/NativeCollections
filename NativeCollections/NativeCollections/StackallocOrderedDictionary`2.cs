@@ -841,6 +841,13 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void CopyTo(Span<KeyValuePair<TKey, TValue>> buffer) => CopyTo(MemoryMarshal.Cast<KeyValuePair<TKey, TValue>, byte>(buffer));
+
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void CopyTo(Span<byte> buffer)
         {
             ref var reference = ref Unsafe.As<byte, KeyValuePair<TKey, TValue>>(ref MemoryMarshal.GetReference(buffer));
@@ -943,6 +950,11 @@ namespace NativeCollections
             private readonly StackallocOrderedDictionary<TKey, TValue>* _nativeOrderedDictionary;
 
             /// <summary>
+            ///     Count
+            /// </summary>
+            public int Count  => _nativeOrderedDictionary->Count;
+
+            /// <summary>
             ///     Structure
             /// </summary>
             /// <param name="nativeOrderedDictionary">NativeOrderedDictionary</param>
@@ -955,11 +967,13 @@ namespace NativeCollections
             /// <param name="buffer">Buffer</param>
             /// <param name="count">Count</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void CopyTo(Span<TKey> buffer, int count)
+            public int CopyTo(Span<TKey> buffer, int count)
             {
+                count = count > _nativeOrderedDictionary->_count ? _nativeOrderedDictionary->_count : count;
                 var entries = _nativeOrderedDictionary->_entries;
                 for (var index = 0; index < count; ++index)
                     buffer[index] = entries[index].Key;
+                return count;
             }
 
             /// <summary>
@@ -968,6 +982,13 @@ namespace NativeCollections
             /// <returns>Byte count</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int GetByteCount() => _nativeOrderedDictionary->_count * sizeof(TKey);
+
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void CopyTo(Span<TKey> buffer) => CopyTo(MemoryMarshal.Cast<TKey, byte>(buffer));
 
             /// <summary>
             ///     Copy to
@@ -1072,6 +1093,11 @@ namespace NativeCollections
             private readonly StackallocOrderedDictionary<TKey, TValue>* _nativeOrderedDictionary;
 
             /// <summary>
+            ///     Count
+            /// </summary>
+            public int Count  => _nativeOrderedDictionary->Count;
+
+            /// <summary>
             ///     Structure
             /// </summary>
             /// <param name="nativeOrderedDictionary">NativeOrderedDictionary</param>
@@ -1084,11 +1110,13 @@ namespace NativeCollections
             /// <param name="buffer">Buffer</param>
             /// <param name="count">Count</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void CopyTo(Span<TValue> buffer, int count)
+            public int CopyTo(Span<TValue> buffer, int count)
             {
+                count = count > _nativeOrderedDictionary->_count ? _nativeOrderedDictionary->_count : count;
                 var entries = _nativeOrderedDictionary->_entries;
                 for (var index = 0; index < count; ++index)
                     buffer[index] = entries[index].Value;
+                return count;
             }
 
             /// <summary>
@@ -1097,6 +1125,13 @@ namespace NativeCollections
             /// <returns>Byte count</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int GetByteCount() => _nativeOrderedDictionary->_count * sizeof(TValue);
+
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void CopyTo(Span<TValue> buffer) => CopyTo(MemoryMarshal.Cast<TValue, byte>(buffer));
 
             /// <summary>
             ///     Copy to

@@ -1099,6 +1099,13 @@ namespace NativeCollections
             /// </summary>
             /// <param name="buffer">Buffer</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void CopyTo(Span<int> buffer) => CopyTo(MemoryMarshal.Cast<int, byte>(buffer));
+
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void CopyTo(Span<byte> buffer)
             {
                 ref var reference = ref Unsafe.As<byte, int>(ref MemoryMarshal.GetReference(buffer));
@@ -1216,8 +1223,9 @@ namespace NativeCollections
             /// <param name="buffer">Buffer</param>
             /// <param name="count">Count</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void CopyTo(Span<T> buffer, int count)
+            public int CopyTo(Span<T> buffer, int count)
             {
+                count = count > _nativeSparseSet->_count ? _nativeSparseSet->_count : count;
                 var dense = _nativeSparseSet->_dense;
                 var current = _nativeSparseSet->_head;
                 for (var index = 0; index < count; ++index)
@@ -1226,6 +1234,8 @@ namespace NativeCollections
                     buffer[index] = entry->Value;
                     current = entry->Next;
                 }
+
+                return count;
             }
 
             /// <summary>
@@ -1234,6 +1244,13 @@ namespace NativeCollections
             /// <returns>Byte count</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int GetByteCount() => _nativeSparseSet->_count * sizeof(T);
+
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void CopyTo(Span<T> buffer) => CopyTo(MemoryMarshal.Cast<T, byte>(buffer));
 
             /// <summary>
             ///     Copy to
@@ -1375,6 +1392,13 @@ namespace NativeCollections
             /// <returns>Byte count</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int GetByteCount() => _nativeSparseSet->_count * sizeof(KeyValuePair<int, T>);
+
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void CopyTo(Span<KeyValuePair<int, T>> buffer) => CopyTo(MemoryMarshal.Cast<KeyValuePair<int, T>, byte>(buffer));
 
             /// <summary>
             ///     Copy to
