@@ -797,10 +797,11 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="count">Count</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(Span<KeyValuePair<TKey, TValue>> buffer, int count)
+        public int CopyTo(Span<KeyValuePair<TKey, TValue>> buffer, int count)
         {
             if (_root == null)
-                return;
+                return 0;
+            count = count > _count ? _count : count;
             var index = 0;
             using (var nodeStack = new UnsafeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(_count + 1))))
             {
@@ -809,13 +810,15 @@ namespace NativeCollections
                 while (nodeStack.Count != 0)
                 {
                     if (index >= count)
-                        return;
+                        break;
                     var node1 = (Node*)nodeStack.Pop();
                     buffer[index++] = new KeyValuePair<TKey, TValue>(node1->Key, node1->Value);
                     for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
                         nodeStack.Push((nint)node2);
                 }
             }
+
+            return count;
         }
 
         /// <summary>

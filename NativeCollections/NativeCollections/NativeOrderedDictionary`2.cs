@@ -369,7 +369,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="count">Count</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(Span<KeyValuePair<TKey, TValue>> buffer, int count) => _handle->CopyTo(buffer, count);
+        public int CopyTo(Span<KeyValuePair<TKey, TValue>> buffer, int count) => _handle->CopyTo(buffer, count);
 
         /// <summary>
         ///     Get byte count

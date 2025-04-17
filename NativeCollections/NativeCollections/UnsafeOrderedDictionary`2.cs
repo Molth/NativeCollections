@@ -949,11 +949,13 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="count">Count</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(Span<KeyValuePair<TKey, TValue>> buffer, int count)
+        public int CopyTo(Span<KeyValuePair<TKey, TValue>> buffer, int count)
         {
+            count = count > _count ? _count : count;
             var entries = _entries;
             for (var index = 0; index < count; ++index)
                 buffer[index] = new KeyValuePair<TKey, TValue>(entries[index].Key, entries[index].Value);
+            return count;
         }
 
         /// <summary>

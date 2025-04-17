@@ -1075,8 +1075,9 @@ namespace NativeCollections
             /// <param name="buffer">Buffer</param>
             /// <param name="count">Count</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void CopyTo(Span<int> buffer, int count)
+            public int CopyTo(Span<int> buffer, int count)
             {
+                count = count > _nativeSparseSet->_count ? _nativeSparseSet->_count : count;
                 var dense = _nativeSparseSet->_dense;
                 var current = _nativeSparseSet->_head;
                 for (var index = 0; index < count; ++index)
@@ -1085,6 +1086,8 @@ namespace NativeCollections
                     buffer[index] = entry->Key;
                     current = entry->Next;
                 }
+
+                return count;
             }
 
             /// <summary>
@@ -1374,8 +1377,9 @@ namespace NativeCollections
             /// <param name="buffer">Buffer</param>
             /// <param name="count">Count</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void CopyTo(Span<KeyValuePair<int, T>> buffer, int count)
+            public int CopyTo(Span<KeyValuePair<int, T>> buffer, int count)
             {
+                count = count > _nativeSparseSet->_count ? _nativeSparseSet->_count : count;
                 var dense = _nativeSparseSet->_dense;
                 var current = _nativeSparseSet->_head;
                 for (var index = 0; index < count; ++index)
@@ -1384,6 +1388,8 @@ namespace NativeCollections
                     buffer[index] = new KeyValuePair<int, T>(entry->Key, entry->Value);
                     current = entry->Next;
                 }
+
+                return count;
             }
 
             /// <summary>
