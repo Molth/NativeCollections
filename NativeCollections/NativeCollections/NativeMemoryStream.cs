@@ -204,11 +204,10 @@ namespace NativeCollections
         ///     Read
         /// </summary>
         /// <param name="buffer">Buffer</param>
-        /// <param name="offset">Offset</param>
-        /// <param name="count">Count</param>
+        /// <param name="length">Length</param>
         /// <returns>Bytes</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int Read(byte* buffer, int offset, int count) => _handle->Read(buffer, offset, count);
+        public int Read(byte* buffer, int length) => _handle->Read(buffer, length);
 
         /// <summary>
         ///     Read
@@ -229,10 +228,9 @@ namespace NativeCollections
         ///     Write
         /// </summary>
         /// <param name="buffer">Buffer</param>
-        /// <param name="offset">Offset</param>
-        /// <param name="count">Count</param>
+        /// <param name="length">Length</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(byte* buffer, int offset, int count) => _handle->Write(buffer, offset, count);
+        public void Write(byte* buffer, int length) => _handle->Write(buffer, length);
 
         /// <summary>
         ///     Write

@@ -11,16 +11,16 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe memory stream
+    ///     Stackalloc memory stream
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(FromType.Standard)]
-    public unsafe struct UnsafeMemoryStream : IDisposable
+    [StackallocCollection(FromType.Standard)]
+    public unsafe ref struct StackallocMemoryStream
     {
         /// <summary>
         ///     Buffer
         /// </summary>
-        private byte* _buffer;
+        private readonly Span<byte> _buffer;
 
         /// <summary>
         ///     Position
@@ -31,11 +31,6 @@ namespace NativeCollections
         ///     Length
         /// </summary>
         private int _length;
-
-        /// <summary>
-        ///     Capacity
-        /// </summary>
-        private int _capacity;
 
         /// <summary>
         ///     Is empty
@@ -66,13 +61,7 @@ namespace NativeCollections
         /// <summary>
         ///     Capacity
         /// </summary>
-        public int Capacity
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _capacity;
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => SetCapacity(value);
-        }
+        public int Capacity => _buffer.Length;
 
         /// <summary>
         ///     Get reference
@@ -85,44 +74,23 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get reference
-        /// </summary>
-        /// <param name="index">Index</param>
-        public ref byte this[uint index]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _buffer[index];
-        }
-
-        /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="capacity">Capacity</param>
+        /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeMemoryStream(int capacity)
+        public StackallocMemoryStream(Span<byte> buffer)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            if (capacity < 4)
-                capacity = 4;
-            _buffer = (byte*)NativeMemoryAllocator.Alloc((uint)capacity);
+            _buffer = buffer;
             _position = 0;
             _length = 0;
-            _capacity = capacity;
         }
-
-        /// <summary>
-        ///     Dispose
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => NativeMemoryAllocator.Free(_buffer);
 
         /// <summary>
         ///     Get buffer
         /// </summary>
         /// <returns>Buffer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public byte* GetBuffer() => _buffer;
+        public Span<byte> GetBuffer() => _buffer;
 
         /// <summary>
         ///     Seek
@@ -172,16 +140,24 @@ namespace NativeCollections
         /// </summary>
         /// <param name="length">Length</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetLength(int length)
+        public bool SetLength(int length)
         {
             if ((uint)length > 2147483647)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "StreamLength");
-            var allocatedNewArray = EnsureCapacity(length);
-            if (!allocatedNewArray && length > _length)
-                Unsafe.InitBlockUnaligned(_buffer + _length, 0, (uint)(length - _length));
+            if (length < 0)
+                throw new IOException("IO_StreamTooLong");
+            if (length > Capacity)
+                return false;
+            if (length > _length)
+            {
+                nint offset = _length;
+                Unsafe.InitBlockUnaligned(ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(_buffer), offset), 0, (uint)(length - _length));
+            }
+
             _length = length;
             if (_position > length)
                 _position = length;
+            return true;
         }
 
         /// <summary>
@@ -205,7 +181,8 @@ namespace NativeCollections
             var n = size < buffer.Length ? size : buffer.Length;
             if (n <= 0)
                 return 0;
-            Unsafe.CopyBlockUnaligned(ref MemoryMarshal.GetReference(buffer), ref *(_buffer + _position), (uint)n);
+            nint offset = _position;
+            Unsafe.CopyBlockUnaligned(ref MemoryMarshal.GetReference(buffer), ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(_buffer), offset), (uint)n);
             _position += n;
             return n;
         }
@@ -230,27 +207,29 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(ReadOnlySpan<byte> buffer)
+        public bool Write(ReadOnlySpan<byte> buffer)
         {
             var i = _position + buffer.Length;
             if (i < 0)
                 throw new IOException("IO_StreamTooLong");
             if (i > _length)
             {
+                if (i > Capacity)
+                    return false;
                 var mustZero = _position > _length;
-                if (i > _capacity)
+                if (mustZero)
                 {
-                    EnsureCapacity(i);
-                    mustZero = false;
+                    nint offset1 = _length;
+                    Unsafe.InitBlockUnaligned(ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(_buffer), offset1), 0, (uint)(i - _length));
                 }
 
-                if (mustZero)
-                    Unsafe.InitBlockUnaligned(_buffer + _length, 0, (uint)(i - _length));
                 _length = i;
             }
 
-            Unsafe.CopyBlockUnaligned(ref *(_buffer + _position), ref MemoryMarshal.GetReference(buffer), (uint)buffer.Length);
+            nint offset2 = _position;
+            Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(_buffer), offset2), ref MemoryMarshal.GetReference(buffer), (uint)buffer.Length);
             _position = i;
+            return true;
         }
 
         /// <summary>
@@ -258,77 +237,25 @@ namespace NativeCollections
         /// </summary>
         /// <param name="value">Byte</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void WriteByte(byte value)
+        public bool WriteByte(byte value)
         {
             if (_position >= _length)
             {
                 var newLength = _position + 1;
+                if (newLength > Capacity)
+                    return false;
                 var mustZero = _position > _length;
-                if (newLength > _capacity)
+                if (mustZero)
                 {
-                    EnsureCapacity(newLength);
-                    mustZero = false;
+                    nint offset = _length;
+                    Unsafe.InitBlockUnaligned(ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(_buffer), offset), 0, (uint)(_position - _length));
                 }
 
-                if (mustZero)
-                    Unsafe.InitBlockUnaligned(_buffer + _length, 0, (uint)(_position - _length));
                 _length = newLength;
             }
 
             _buffer[_position++] = value;
-        }
-
-        /// <summary>
-        ///     Set capacity
-        /// </summary>
-        /// <param name="capacity">Capacity</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetCapacity(int capacity)
-        {
-            if (capacity < _length)
-                throw new ArgumentOutOfRangeException(nameof(_capacity), capacity, "SmallCapacity");
-            if (capacity != _capacity)
-            {
-                if (capacity > 0)
-                {
-                    var newBuffer = (byte*)NativeMemoryAllocator.Alloc((uint)capacity);
-                    if (_length > 0)
-                        Unsafe.CopyBlockUnaligned(newBuffer, _buffer, (uint)_length);
-                    NativeMemoryAllocator.Free(_buffer);
-                    _buffer = newBuffer;
-                }
-                else
-                {
-                    NativeMemoryAllocator.Free(_buffer);
-                    _buffer = (byte*)NativeMemoryAllocator.Alloc(0);
-                }
-
-                _capacity = capacity;
-            }
-        }
-
-        /// <summary>
-        ///     Ensure capacity
-        /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>Ensured</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool EnsureCapacity(int capacity)
-        {
-            if (capacity < 0)
-                throw new IOException("IO_StreamTooLong");
-            if (capacity > _capacity)
-            {
-                var newCapacity = capacity > 256 ? capacity : 256;
-                if (newCapacity < _capacity * 2)
-                    newCapacity = _capacity * 2;
-                if ((uint)(_capacity * 2) > 2147483591)
-                    newCapacity = capacity > 2147483591 ? capacity : 2147483591;
-                SetCapacity(newCapacity);
-                return true;
-            }
-
-            return false;
+            return true;
         }
 
         /// <summary>
@@ -336,7 +263,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly Span<byte> AsSpan() => MemoryMarshal.CreateSpan(ref *_buffer, _length);
+        public readonly Span<byte> AsSpan() => _buffer.Slice(0, _length);
 
         /// <summary>
         ///     As span
@@ -344,7 +271,7 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly Span<byte> AsSpan(int start) => MemoryMarshal.CreateSpan(ref *(_buffer + start), _length - start);
+        public readonly Span<byte> AsSpan(int start) => _buffer.Slice(start, _length - start);
 
         /// <summary>
         ///     As span
@@ -353,14 +280,14 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly Span<byte> AsSpan(int start, int length) => MemoryMarshal.CreateSpan(ref *(_buffer + start), length);
+        public readonly Span<byte> AsSpan(int start, int length) => _buffer.Slice(start, length);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<byte> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref *_buffer, _length);
+        public readonly ReadOnlySpan<byte> AsReadOnlySpan() => _buffer.Slice(0, _length);
 
         /// <summary>
         ///     As readOnly span
@@ -368,7 +295,7 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<byte> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref *(_buffer + start), _length - start);
+        public readonly ReadOnlySpan<byte> AsReadOnlySpan(int start) => _buffer.Slice(start, _length - start);
 
         /// <summary>
         ///     As readOnly span
@@ -377,25 +304,25 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<byte> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref *(_buffer + start), length);
+        public readonly ReadOnlySpan<byte> AsReadOnlySpan(int start, int length) => _buffer.Slice(start, length);
 
         /// <summary>
         ///     As span
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<byte>(in UnsafeMemoryStream unsafeMemoryStream) => unsafeMemoryStream.AsSpan();
+        public static implicit operator Span<byte>(in StackallocMemoryStream stackallocMemoryStream) => stackallocMemoryStream.AsSpan();
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<byte>(in UnsafeMemoryStream unsafeMemoryStream) => unsafeMemoryStream.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<byte>(in StackallocMemoryStream stackallocMemoryStream) => stackallocMemoryStream.AsReadOnlySpan();
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeMemoryStream Empty => new();
+        public static StackallocMemoryStream Empty => new();
     }
 }

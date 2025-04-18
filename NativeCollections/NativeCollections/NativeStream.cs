@@ -308,31 +308,10 @@ namespace NativeCollections
         ///     Read
         /// </summary>
         /// <param name="buffer">Buffer</param>
-        /// <param name="offset">Offset</param>
-        /// <param name="count">Count</param>
+        /// <param name="length">Length</param>
         /// <returns>Bytes</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int Read(byte* buffer, int offset, int count)
-        {
-            var n = _length - _position;
-            if (n > count)
-                n = count;
-            if (n <= 0)
-                return 0;
-            if (n <= 8)
-            {
-                var byteCount = n;
-                while (--byteCount >= 0)
-                    buffer[offset + byteCount] = _buffer[_position + byteCount];
-            }
-            else
-            {
-                Unsafe.CopyBlockUnaligned(buffer + offset, _buffer + _position, (uint)n);
-            }
-
-            _position += n;
-            return n;
-        }
+        public int Read(byte* buffer, int length) => Read(MemoryMarshal.CreateSpan(ref *buffer, length));
 
         /// <summary>
         ///     Read
@@ -362,37 +341,9 @@ namespace NativeCollections
         ///     Write
         /// </summary>
         /// <param name="buffer">Buffer</param>
-        /// <param name="offset">Offset</param>
-        /// <param name="count">Count</param>
+        /// <param name="length">Length</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(byte* buffer, int offset, int count)
-        {
-            var i = _position + count;
-            if (i < 0)
-                throw new IOException("IO_StreamTooLong");
-            if (i > _length)
-            {
-                if (i > _capacity)
-                    throw new ArgumentOutOfRangeException(nameof(count), count, "StreamLength");
-                var mustZero = _position > _length;
-                if (mustZero)
-                    Unsafe.InitBlockUnaligned(_buffer + _length, 0, (uint)(i - _length));
-                _length = i;
-            }
-
-            if (count <= 8 && buffer != _buffer)
-            {
-                var byteCount = count;
-                while (--byteCount >= 0)
-                    _buffer[_position + byteCount] = buffer[offset + byteCount];
-            }
-            else
-            {
-                Unsafe.CopyBlockUnaligned(_buffer + _position, buffer + offset, (uint)count);
-            }
-
-            _position = i;
-        }
+        public void Write(byte* buffer, int length) => Write(MemoryMarshal.CreateReadOnlySpan(ref *buffer, length));
 
         /// <summary>
         ///     Write
