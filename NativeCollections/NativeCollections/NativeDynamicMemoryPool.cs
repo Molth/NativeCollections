@@ -137,6 +137,27 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Reset
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Reset()
+        {
+            var size = _size;
+            ulong actualSize;
+            var buffer = _handle;
+            if (sizeof(nint) == 8)
+            {
+                actualSize = TLSF64.align_up(TLSF64.tlsf_size() + TLSF64.tlsf_pool_overhead() + 7 * TLSF64.tlsf_alloc_overhead() + size, 8);
+                TLSF64.tlsf_create_with_pool(buffer, actualSize);
+            }
+            else
+            {
+                actualSize = TLSF32.align_up((uint)(TLSF32.tlsf_size() + TLSF32.tlsf_pool_overhead() + 7 * TLSF32.tlsf_alloc_overhead() + size), 4);
+                TLSF32.tlsf_create_with_pool(buffer, (uint)actualSize);
+            }
+        }
+
+        /// <summary>
         ///     Rent buffer
         /// </summary>
         /// <param name="size">Size</param>
