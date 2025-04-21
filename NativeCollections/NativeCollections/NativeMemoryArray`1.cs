@@ -218,6 +218,12 @@ namespace NativeCollections
         public void Clear() => Unsafe.InitBlockUnaligned(_buffer, 0, (uint)(_length * sizeof(T)));
 
         /// <summary>
+        ///     Cast
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeMemoryArray<TTo> Cast<TTo>() where TTo : unmanaged => MemoryMarshal.Cast<T, TTo>(this);
+
+        /// <summary>
         ///     As span
         /// </summary>
         /// <returns>Span</returns>
