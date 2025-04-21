@@ -292,13 +292,6 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get byte count
-        /// </summary>
-        /// <returns>Byte count</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int GetByteCount() => _size * sizeof(T);
-
-        /// <summary>
         ///     Copy to
         /// </summary>
         /// <param name="buffer">Buffer</param>

@@ -832,13 +832,6 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get byte count
-        /// </summary>
-        /// <returns>Byte count</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int GetByteCount() => _count * sizeof(KeyValuePair<TKey, TValue>);
-
-        /// <summary>
         ///     Copy to
         /// </summary>
         /// <param name="buffer">Buffer</param>
@@ -979,13 +972,6 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Get byte count
-            /// </summary>
-            /// <returns>Byte count</returns>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public int GetByteCount() => _nativeOrderedDictionary->_count * sizeof(TKey);
-
-            /// <summary>
             ///     Copy to
             /// </summary>
             /// <param name="buffer">Buffer</param>
@@ -1120,13 +1106,6 @@ namespace NativeCollections
                     buffer[index] = entries[index].Value;
                 return count;
             }
-
-            /// <summary>
-            ///     Get byte count
-            /// </summary>
-            /// <returns>Byte count</returns>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public int GetByteCount() => _nativeOrderedDictionary->_count * sizeof(TValue);
 
             /// <summary>
             ///     Copy to

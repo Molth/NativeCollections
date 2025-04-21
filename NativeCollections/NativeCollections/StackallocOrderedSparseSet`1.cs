@@ -1066,13 +1066,6 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Get byte count
-            /// </summary>
-            /// <returns>Byte count</returns>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public int GetByteCount() => _nativeSparseSet->_count * sizeof(int);
-
-            /// <summary>
             ///     Copy to
             /// </summary>
             /// <param name="buffer">Buffer</param>
@@ -1217,13 +1210,6 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Get byte count
-            /// </summary>
-            /// <returns>Byte count</returns>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public int GetByteCount() => _nativeSparseSet->_count * sizeof(T);
-
-            /// <summary>
             ///     Copy to
             /// </summary>
             /// <param name="buffer">Buffer</param>
@@ -1366,13 +1352,6 @@ namespace NativeCollections
 
                 return count;
             }
-
-            /// <summary>
-            ///     Get byte count
-            /// </summary>
-            /// <returns>Byte count</returns>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public int GetByteCount() => _nativeSparseSet->_count * sizeof(KeyValuePair<int, T>);
 
             /// <summary>
             ///     Copy to
