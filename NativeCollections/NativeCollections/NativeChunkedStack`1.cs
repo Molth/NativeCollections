@@ -17,7 +17,7 @@ namespace NativeCollections
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
     [BindingType(typeof(UnsafeChunkedStack<>))]
-    public readonly unsafe struct NativeChunkedStack<T> : IDisposable where T : unmanaged
+    public readonly unsafe struct NativeChunkedStack<T> : IDisposable, IEquatable<NativeChunkedStack<T>> where T : unmanaged
     {
         /// <summary>
         ///     Handle

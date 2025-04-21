@@ -16,7 +16,7 @@ namespace NativeCollections
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Standard)]
     [BindingType(typeof(UnsafeSortedList<>))]
-    public readonly unsafe struct NativeSortedList<T> where T : unmanaged, IComparable<T>
+    public readonly unsafe struct NativeSortedList<T> : IDisposable, IEquatable<NativeSortedList<T>> where T : unmanaged, IComparable<T>
     {
         /// <summary>
         ///     Handle

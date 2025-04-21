@@ -15,7 +15,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    public unsafe struct NativeStream : IEquatable<NativeStream>
+    public unsafe struct NativeStream : IDisposable, IEquatable<NativeStream>
     {
         /// <summary>
         ///     Buffer
@@ -51,6 +51,18 @@ namespace NativeCollections
             _position = 0;
             _length = length;
             _capacity = length;
+        }
+
+        /// <summary>
+        ///     Dispose
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Dispose()
+        {
+            var buffer = _buffer;
+            if (buffer == null)
+                return;
+            NativeMemoryAllocator.Free(buffer);
         }
 
         /// <summary>

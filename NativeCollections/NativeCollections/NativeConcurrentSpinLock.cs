@@ -15,7 +15,7 @@ namespace NativeCollections
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
     [BindingType(typeof(UnsafeConcurrentSpinLock))]
-    public readonly unsafe struct NativeConcurrentSpinLock
+    public readonly unsafe struct NativeConcurrentSpinLock : IDisposable, IEquatable<NativeConcurrentSpinLock>
     {
         /// <summary>
         ///     Handle
@@ -28,6 +28,18 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeConcurrentSpinLock(void* buffer) => _handle = (UnsafeConcurrentSpinLock*)buffer;
+
+        /// <summary>
+        ///     Dispose
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Dispose()
+        {
+            var handle = _handle;
+            if (handle == null)
+                return;
+            NativeMemoryAllocator.Free(handle);
+        }
 
         /// <summary>
         ///     Is created

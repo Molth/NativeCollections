@@ -15,7 +15,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Community | FromType.C)]
-    public readonly unsafe struct NativeDynamicMemoryPool : IDisposable
+    public readonly unsafe struct NativeDynamicMemoryPool : IDisposable, IEquatable<NativeDynamicMemoryPool>
     {
         /// <summary>
         ///     Handle
