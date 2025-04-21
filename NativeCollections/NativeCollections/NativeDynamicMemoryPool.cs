@@ -223,7 +223,7 @@ namespace NativeCollections
             public const ulong block_header_prev_free_bit = 1 << 1;
             public const ulong block_header_overhead = sizeof(ulong);
             public const ulong block_start_offset = sizeof(ulong) + sizeof(ulong);
-            public static readonly ulong block_size_min = (ulong)(sizeof(block_header_t) - sizeof(ulong));
+            public const ulong block_size_min = (ulong)(32 - sizeof(ulong));
             public const ulong block_size_max = (ulong)1 << FL_INDEX_MAX;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -833,7 +833,7 @@ namespace NativeCollections
             public const uint block_header_prev_free_bit = 1 << 1;
             public const uint block_header_overhead = sizeof(uint);
             public const uint block_start_offset = sizeof(uint) + sizeof(uint);
-            public static readonly uint block_size_min = (uint)(sizeof(block_header_t) - sizeof(uint));
+            public const uint block_size_min = (uint)(16 - sizeof(uint));
             public const uint block_size_max = (uint)1 << FL_INDEX_MAX;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
