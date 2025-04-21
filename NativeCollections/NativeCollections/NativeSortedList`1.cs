@@ -254,7 +254,6 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ReadOnlySpan<T> AsReadOnlySpan(int start) => _handle->AsReadOnlySpan(start);
 
-
         /// <summary>
         ///     As readOnly span
         /// </summary>

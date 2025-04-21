@@ -653,6 +653,11 @@ namespace NativeCollections
             private readonly StackallocSortedList<TKey, TValue>* _nativeSortedList;
 
             /// <summary>
+            ///     Count
+            /// </summary>
+            public int Count => _nativeSortedList->Count;
+
+            /// <summary>
             ///     Structure
             /// </summary>
             /// <param name="nativeSortedList">NativeSortedList</param>
@@ -680,7 +685,6 @@ namespace NativeCollections
                 var handle = _nativeSortedList;
                 return MemoryMarshal.CreateReadOnlySpan(ref *(handle->_keys + start), handle->_size - start);
             }
-
 
             /// <summary>
             ///     As readOnly span
@@ -789,6 +793,11 @@ namespace NativeCollections
             private readonly StackallocSortedList<TKey, TValue>* _nativeSortedList;
 
             /// <summary>
+            ///     Count
+            /// </summary>
+            public int Count => _nativeSortedList->Count;
+
+            /// <summary>
             ///     Structure
             /// </summary>
             /// <param name="nativeSortedList">NativeSortedList</param>
@@ -816,7 +825,6 @@ namespace NativeCollections
                 var handle = _nativeSortedList;
                 return MemoryMarshal.CreateSpan(ref *(handle->_values + start), handle->_size - start);
             }
-
 
             /// <summary>
             ///     As span
