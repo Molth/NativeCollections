@@ -61,7 +61,7 @@ namespace NativeCollections
 #if NET5_0_OR_GREATER
             return BitOperations.LeadingZeroCount(value);
 #else
-            uint high = (uint)(value >> 32);
+            var high = (uint)(value >> 32);
             return high == 0 ? 32 + LeadingZeroCount((uint)value) : 31 ^ Log2(high);
 #endif
         }
@@ -127,7 +127,7 @@ namespace NativeCollections
             return BitOperations.Log2(value);
 #else
             value |= 1UL;
-            uint num = (uint)(value >> 32);
+            var num = (uint)(value >> 32);
             return num == 0U ? Log2((uint)value) : 32 + Log2(num);
 #endif
         }
