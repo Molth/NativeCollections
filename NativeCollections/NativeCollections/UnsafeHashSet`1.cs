@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -15,7 +17,7 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard)]
-    public unsafe struct UnsafeHashSet<T> : IDisposable where T : unmanaged, IEquatable<T>
+    public unsafe struct UnsafeHashSet<T> : IDisposable, IReadOnlyCollection<T> where T : unmanaged, IEquatable<T>
     {
         /// <summary>
         ///     Buckets
@@ -506,6 +508,16 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Enumerator</returns>
         public Enumerator GetEnumerator() => new(Unsafe.AsPointer(ref this));
+
+        /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+
+        /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
 
         /// <summary>
         ///     Enumerator

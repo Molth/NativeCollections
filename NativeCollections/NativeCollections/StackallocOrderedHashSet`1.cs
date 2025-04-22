@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -15,7 +17,7 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [StackallocCollection(FromType.None)]
-    public unsafe struct StackallocOrderedHashSet<T> where T : unmanaged, IEquatable<T>
+    public unsafe struct StackallocOrderedHashSet<T> : IReadOnlyCollection<T> where T : unmanaged, IEquatable<T>
     {
         /// <summary>
         ///     Buckets
@@ -81,7 +83,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [MustBeZeroed(nameof(buffer))]
+        [MustBeZeroed("buffer")]
         public StackallocOrderedHashSet(Span<byte> buffer, int capacity)
         {
             _buckets = (int*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer));
@@ -650,6 +652,16 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Enumerator</returns>
         public Enumerator GetEnumerator() => new(Unsafe.AsPointer(ref this));
+
+        /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+
+        /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
 
         /// <summary>
         ///     Enumerator

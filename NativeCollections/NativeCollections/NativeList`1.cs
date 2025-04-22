@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -16,7 +18,7 @@ namespace NativeCollections
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Standard)]
     [BindingType(typeof(UnsafeList<>))]
-    public readonly unsafe struct NativeList<T> : IDisposable, IEquatable<NativeList<T>> where T : unmanaged, IEquatable<T>
+    public readonly unsafe struct NativeList<T> : IDisposable, IEquatable<NativeList<T>>, IReadOnlyCollection<T> where T : unmanaged, IEquatable<T>
     {
         /// <summary>
         ///     Handle
@@ -397,5 +399,15 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Enumerator</returns>
         public UnsafeList<T>.Enumerator GetEnumerator() => _handle->GetEnumerator();
+
+        /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+
+        /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
     }
 }

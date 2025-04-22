@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -17,7 +18,7 @@ namespace NativeCollections
     /// <typeparam name="TValue">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [StackallocCollection(FromType.Standard)]
-    public unsafe struct StackallocSortedList<TKey, TValue> where TKey : unmanaged, IComparable<TKey> where TValue : unmanaged
+    public unsafe struct StackallocSortedList<TKey, TValue> : IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IComparable<TKey> where TValue : unmanaged
     {
         /// <summary>
         ///     Keys
@@ -572,6 +573,16 @@ namespace NativeCollections
         public Enumerator GetEnumerator() => new(Unsafe.AsPointer(ref this));
 
         /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+
+        /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+
+        /// <summary>
         ///     Enumerator
         /// </summary>
         public struct Enumerator
@@ -645,7 +656,7 @@ namespace NativeCollections
         ///     Key collection
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public readonly struct KeyCollection
+        public readonly struct KeyCollection : IReadOnlyCollection<TKey>
         {
             /// <summary>
             ///     NativeSortedList
@@ -709,6 +720,16 @@ namespace NativeCollections
             /// </summary>
             /// <returns>Enumerator</returns>
             public Enumerator GetEnumerator() => new(_nativeSortedList);
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
 
             /// <summary>
             ///     Enumerator
@@ -785,7 +806,7 @@ namespace NativeCollections
         ///     Value collection
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public readonly struct ValueCollection
+        public readonly struct ValueCollection : IReadOnlyCollection<TValue>
         {
             /// <summary>
             ///     NativeSortedList
@@ -849,6 +870,16 @@ namespace NativeCollections
             /// </summary>
             /// <returns>Enumerator</returns>
             public Enumerator GetEnumerator() => new(_nativeSortedList);
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
 
             /// <summary>
             ///     Enumerator

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -17,7 +18,7 @@ namespace NativeCollections
     /// <typeparam name="TValue">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [StackallocCollection(FromType.Standard)]
-    public unsafe struct StackallocDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
+    public unsafe struct StackallocDictionary<TKey, TValue> : IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
     {
         /// <summary>
         ///     Buckets
@@ -103,7 +104,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [MustBeZeroed(nameof(buffer))]
+        [MustBeZeroed("buffer")]
         public StackallocDictionary(Span<byte> buffer, int capacity)
         {
             _freeList = -1;
@@ -482,6 +483,16 @@ namespace NativeCollections
         public Enumerator GetEnumerator() => new(Unsafe.AsPointer(ref this));
 
         /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+
+        /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+
+        /// <summary>
         ///     Enumerator
         /// </summary>
         public struct Enumerator
@@ -559,7 +570,7 @@ namespace NativeCollections
         ///     Key collection
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public readonly struct KeyCollection
+        public readonly struct KeyCollection : IReadOnlyCollection<TKey>
         {
             /// <summary>
             ///     NativeDictionary
@@ -612,6 +623,16 @@ namespace NativeCollections
             /// </summary>
             /// <returns>Enumerator</returns>
             public Enumerator GetEnumerator() => new(_nativeDictionary);
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
 
             /// <summary>
             ///     Enumerator
@@ -692,7 +713,7 @@ namespace NativeCollections
         ///     Value collection
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public readonly struct ValueCollection
+        public readonly struct ValueCollection : IReadOnlyCollection<TValue>
         {
             /// <summary>
             ///     NativeDictionary
@@ -745,6 +766,16 @@ namespace NativeCollections
             /// </summary>
             /// <returns>Enumerator</returns>
             public Enumerator GetEnumerator() => new(_nativeDictionary);
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
 
             /// <summary>
             ///     Enumerator

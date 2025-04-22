@@ -47,6 +47,16 @@ namespace NativeCollections
         public int Capacity => _buffer.Length;
 
         /// <summary>
+        ///     Buffer
+        /// </summary>
+        public Span<char> Buffer => _buffer;
+
+        /// <summary>
+        ///     Text
+        /// </summary>
+        public Span<char> Text => _buffer.Slice(0, _length);
+
+        /// <summary>
         ///     Structure
         /// </summary>
         /// <param name="buffer">Buffer</param>

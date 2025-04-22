@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -17,7 +18,7 @@ namespace NativeCollections
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
     [BindingType(typeof(UnsafeOrderedSparseSet<>))]
-    public readonly unsafe struct NativeOrderedSparseSet<T> : IDisposable, IEquatable<NativeOrderedSparseSet<T>> where T : unmanaged
+    public readonly unsafe struct NativeOrderedSparseSet<T> : IDisposable, IEquatable<NativeOrderedSparseSet<T>>, IReadOnlyCollection<KeyValuePair<int, T>> where T : unmanaged
     {
         /// <summary>
         ///     Handle
@@ -385,5 +386,15 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Enumerator</returns>
         public UnsafeOrderedSparseSet<T>.Enumerator GetEnumerator() => _handle->GetEnumerator();
+
+        /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        IEnumerator<KeyValuePair<int, T>> IEnumerable<KeyValuePair<int, T>>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+
+        /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
     }
 }

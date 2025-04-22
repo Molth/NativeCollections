@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -414,12 +416,17 @@ namespace NativeCollections
         ///     Unordered items collection
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public readonly struct UnorderedItemsCollection
+        public readonly struct UnorderedItemsCollection : IReadOnlyCollection<(TElement Element, TPriority Priority)>
         {
             /// <summary>
             ///     NativePriorityQueue
             /// </summary>
             private readonly StackallocPriorityQueue<TElement, TPriority>* _nativePriorityQueue;
+
+            /// <summary>
+            ///     Count
+            /// </summary>
+            public int Count => _nativePriorityQueue->Count;
 
             /// <summary>
             ///     Structure
@@ -454,6 +461,16 @@ namespace NativeCollections
             /// </summary>
             /// <returns>Enumerator</returns>
             public Enumerator GetEnumerator() => new(_nativePriorityQueue);
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            IEnumerator<(TElement Element, TPriority Priority)> IEnumerable<(TElement Element, TPriority Priority)>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
 
             /// <summary>
             ///     Enumerator

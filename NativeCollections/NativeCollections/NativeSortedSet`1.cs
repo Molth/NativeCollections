@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -16,7 +18,7 @@ namespace NativeCollections
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Standard)]
     [BindingType(typeof(UnsafeSortedSet<>))]
-    public readonly unsafe struct NativeSortedSet<T> : IDisposable, IEquatable<NativeSortedSet<T>> where T : unmanaged, IComparable<T>
+    public readonly unsafe struct NativeSortedSet<T> : IDisposable, IEquatable<NativeSortedSet<T>>, IReadOnlyCollection<T> where T : unmanaged, IComparable<T>
     {
         /// <summary>
         ///     Handle
@@ -213,5 +215,15 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Enumerator</returns>
         public UnsafeSortedSet<T>.Enumerator GetEnumerator() => _handle->GetEnumerator();
+
+        /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+
+        /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
     }
 }

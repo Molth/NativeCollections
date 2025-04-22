@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -17,7 +18,7 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [StackallocCollection(FromType.Community | FromType.Rust)]
-    public unsafe struct StackallocSparseSet<T> where T : unmanaged
+    public unsafe struct StackallocSparseSet<T> : IReadOnlyCollection<KeyValuePair<int, T>> where T : unmanaged
     {
         /// <summary>
         ///     Dense
@@ -650,6 +651,16 @@ namespace NativeCollections
         public Enumerator GetEnumerator() => new(Unsafe.AsPointer(ref this));
 
         /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        IEnumerator<KeyValuePair<int, T>> IEnumerable<KeyValuePair<int, T>>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+
+        /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+
+        /// <summary>
         ///     Enumerator
         /// </summary>
         public struct Enumerator
@@ -713,7 +724,7 @@ namespace NativeCollections
         ///     Key collection
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public readonly struct KeyCollection
+        public readonly struct KeyCollection : IReadOnlyCollection<int>
         {
             /// <summary>
             ///     NativeSparseSet
@@ -755,6 +766,16 @@ namespace NativeCollections
             /// </summary>
             /// <returns>Enumerator</returns>
             public Enumerator GetEnumerator() => new(_nativeSparseSet);
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
 
             /// <summary>
             ///     Enumerator
@@ -821,7 +842,7 @@ namespace NativeCollections
         ///     Value collection
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public readonly struct ValueCollection
+        public readonly struct ValueCollection : IReadOnlyCollection<T>
         {
             /// <summary>
             ///     NativeSparseSet
@@ -863,6 +884,16 @@ namespace NativeCollections
             /// </summary>
             /// <returns>Enumerator</returns>
             public Enumerator GetEnumerator() => new(_nativeSparseSet);
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
 
             /// <summary>
             ///     Enumerator
