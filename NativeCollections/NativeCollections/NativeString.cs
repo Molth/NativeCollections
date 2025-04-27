@@ -49,12 +49,12 @@ namespace NativeCollections
         /// <summary>
         ///     Buffer
         /// </summary>
-        public Span<char> Buffer => _buffer;
+        public readonly Span<char> Buffer => _buffer;
 
         /// <summary>
         ///     Text
         /// </summary>
-        public Span<char> Text => _buffer.Slice(0, _length);
+        public readonly Span<char> Text => _buffer.Slice(0, _length);
 
         /// <summary>
         ///     Structure
@@ -123,7 +123,31 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int IndexOf(ReadOnlySpan<char> buffer) => _buffer.Slice(0, _length).IndexOf(buffer);
+        public int IndexOf(ReadOnlySpan<char> buffer) => Text.IndexOf(buffer);
+
+        /// <summary>
+        ///     Last index of
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <returns>Index</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int LastIndexOf(ReadOnlySpan<char> buffer) => Text.LastIndexOf(buffer);
+
+        /// <summary>
+        ///     Index of any
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <returns>Index</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int IndexOfAny(ReadOnlySpan<char> buffer) => Text.IndexOfAny(buffer);
+
+        /// <summary>
+        ///     Last index of any
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <returns>Index</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int LastIndexOfAny(ReadOnlySpan<char> buffer) => Text.LastIndexOfAny(buffer);
 
         /// <summary>
         ///     Contains
@@ -131,7 +155,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <returns>Contains</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Contains(ReadOnlySpan<char> buffer) => _buffer.Slice(0, _length).IndexOf(buffer) >= 0;
+        public bool Contains(ReadOnlySpan<char> buffer) => Text.IndexOf(buffer) >= 0;
 
         /// <summary>
         ///     Remove
@@ -141,29 +165,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(ReadOnlySpan<char> buffer)
         {
-            var index = _buffer.Slice(0, _length).IndexOf(buffer);
+            var index = Text.IndexOf(buffer);
             return index >= 0 && Remove(index, buffer.Length);
-        }
-
-        /// <summary>
-        ///     Remove
-        /// </summary>
-        /// <param name="startIndex">Start index</param>
-        /// <param name="length">Length</param>
-        /// <returns>Removed</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Remove(int startIndex, int length)
-        {
-            if (startIndex < 0 || length < 0 || _length - startIndex < length)
-                return false;
-            if (length > 0)
-            {
-                ref var reference = ref MemoryMarshal.GetReference(_buffer);
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, startIndex)), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, startIndex + length)), (uint)((_length - startIndex - length) * sizeof(char)));
-                _length -= length;
-            }
-
-            return true;
         }
 
         /// <summary>
@@ -195,7 +198,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public InsertResult Replace(ReadOnlySpan<char> oldValue, ReadOnlySpan<char> newValue)
         {
-            var index = _buffer.Slice(0, _length).IndexOf(oldValue);
+            var index = Text.IndexOf(oldValue);
             if (index < 0)
                 return InsertResult.None;
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
@@ -210,6 +213,184 @@ namespace NativeCollections
             _length += count;
             return InsertResult.Success;
         }
+
+        /// <summary>
+        ///     Starts with
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool StartsWith(ReadOnlySpan<char> buffer) => Text.StartsWith(buffer);
+
+        /// <summary>
+        ///     Ends with
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool EndsWith(ReadOnlySpan<char> buffer) => Text.EndsWith(buffer);
+
+        /// <summary>
+        ///     Sequence compare to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int SequenceCompareTo(ReadOnlySpan<char> buffer) => Text.SequenceCompareTo(buffer);
+
+        /// <summary>
+        ///     Append
+        /// </summary>
+        /// <param name="value">Value</param>
+        /// <returns>Appended</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Append(char value)
+        {
+            if (_length + 1 > _buffer.Length)
+                return false;
+            _buffer[_length++] = value;
+            return true;
+        }
+
+        /// <summary>
+        ///     Append line
+        /// </summary>
+        /// <param name="value">Value</param>
+        /// <returns>Appended</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AppendLine(char value)
+        {
+            var newLine = NewLine;
+            if (_length + 1 + newLine.Length > _buffer.Length)
+                return false;
+            _buffer[_length++] = value;
+            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, _length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(newLine)), (uint)(newLine.Length * sizeof(char)));
+            _length += newLine.Length;
+            return true;
+        }
+
+        /// <summary>
+        ///     Index of
+        /// </summary>
+        /// <param name="value">Value</param>
+        /// <returns>Index</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int IndexOf(char value) => Text.IndexOf(value);
+
+        /// <summary>
+        ///     Last index of
+        /// </summary>
+        /// <param name="value">Value</param>
+        /// <returns>Index</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int LastIndexOf(char value) => Text.LastIndexOf(value);
+
+        /// <summary>
+        ///     Contains
+        /// </summary>
+        /// <param name="value">Value</param>
+        /// <returns>Contains</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Contains(char value) => Text.IndexOf(value) >= 0;
+
+        /// <summary>
+        ///     Remove
+        /// </summary>
+        /// <param name="value">Value</param>
+        /// <returns>Removed</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Remove(char value)
+        {
+            var index = Text.IndexOf(value);
+            return index >= 0 && Remove(index, 1);
+        }
+
+        /// <summary>
+        ///     Insert
+        /// </summary>
+        /// <param name="startIndex">Start index</param>
+        /// <param name="value">Value</param>
+        /// <returns>Inserted</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Insert(int startIndex, char value)
+        {
+            if (startIndex < 0 || startIndex > _length || _length + 1 > _buffer.Length)
+                return false;
+            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            var count = _length - startIndex;
+            if (count > 0)
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, startIndex + 1)), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, startIndex)), (uint)(count * sizeof(char)));
+            _buffer[_length++] = value;
+            return true;
+        }
+
+        /// <summary>
+        ///     Replace
+        /// </summary>
+        /// <param name="oldValue">Old value</param>
+        /// <param name="newValue">New value</param>
+        /// <returns>Replaced</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public InsertResult Replace(char oldValue, char newValue)
+        {
+            var index = Text.IndexOf(oldValue);
+            if (index < 0)
+                return InsertResult.None;
+            _buffer[index] = newValue;
+            return InsertResult.Success;
+        }
+
+        /// <summary>
+        ///     Starts with
+        /// </summary>
+        /// <param name="value">Value</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool StartsWith(char value) => _length > 1 && _buffer[0] == value;
+
+        /// <summary>
+        ///     Ends with
+        /// </summary>
+        /// <param name="value">Value</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool EndsWith(char value) => _length > 1 && _buffer[_length - 1] == value;
+
+        /// <summary>
+        ///     Binary search
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int BinarySearch(char value) => Text.BinarySearch(value);
+
+        /// <summary>
+        ///     Remove
+        /// </summary>
+        /// <param name="startIndex">Start index</param>
+        /// <param name="length">Length</param>
+        /// <returns>Removed</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Remove(int startIndex, int length)
+        {
+            if (startIndex < 0 || length < 0 || _length - startIndex < length)
+                return false;
+            if (length > 0)
+            {
+                ref var reference = ref MemoryMarshal.GetReference(_buffer);
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, startIndex)), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, startIndex + length)), (uint)((_length - startIndex - length) * sizeof(char)));
+                _length -= length;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        ///     Reverse
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Reverse() => Text.Reverse();
+
+        /// <summary>
+        ///     Fill
+        /// </summary>
+        /// <param name="value">Value</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Fill(char value) => Text.Fill(value);
 
         /// <summary>
         ///     Trim start
@@ -277,10 +458,36 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Slice
+        /// </summary>
+        /// <param name="start">Start</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeString Slice(int start) => new(Text.Slice(start));
+
+        /// <summary>
+        ///     Slice
+        /// </summary>
+        /// <param name="start">Start</param>
+        /// <param name="length">Length</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeString Slice(int start, int length) => new(Text.Slice(start, length));
+
+        /// <summary>
         ///     Clear
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear() => _length = 0;
+
+        /// <summary>
+        ///     Clear
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Clear(bool zeroed)
+        {
+            if (zeroed)
+                _buffer.Clear();
+            _length = 0;
+        }
 
         /// <summary>
         ///     Set length
@@ -315,7 +522,7 @@ namespace NativeCollections
         ///     Equals
         /// </summary>
         /// <returns>Equals</returns>
-        public bool Equals(ReadOnlySpan<char> buffer) => _buffer.Slice(0, _length).SequenceEqual(buffer);
+        public bool Equals(ReadOnlySpan<char> buffer) => Text.SequenceEqual(buffer);
 
         /// <summary>
         ///     Equals
@@ -333,28 +540,28 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => _buffer.Slice(0, _length).ToString();
+        public override string ToString() => Text.ToString();
 
         /// <summary>
         ///     Copy to
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(Span<char> buffer) => _buffer.Slice(0, _length).CopyTo(buffer);
+        public void CopyTo(Span<char> buffer) => Text.CopyTo(buffer);
 
         /// <summary>
         ///     Try copy to
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryCopyTo(Span<char> buffer) => _buffer.Slice(0, _length).TryCopyTo(buffer);
+        public bool TryCopyTo(Span<char> buffer) => Text.TryCopyTo(buffer);
 
         /// <summary>
         ///     As span
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly Span<char> AsSpan() => _buffer.Slice(0, _length);
+        public readonly Span<char> AsSpan() => Text;
 
         /// <summary>
         ///     As span
@@ -378,7 +585,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<char> AsReadOnlySpan() => _buffer.Slice(0, _length);
+        public readonly ReadOnlySpan<char> AsReadOnlySpan() => Text;
 
         /// <summary>
         ///     As readOnly span
@@ -427,5 +634,10 @@ namespace NativeCollections
         ///     Empty
         /// </summary>
         public static NativeString Empty => new();
+
+        /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        public Span<char>.Enumerator GetEnumerator() => Text.GetEnumerator();
     }
 }
