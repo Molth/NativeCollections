@@ -412,6 +412,13 @@ namespace NativeCollections
         public static implicit operator ReadOnlySpan<char>(in NativeString nativeString) => nativeString.AsReadOnlySpan();
 
         /// <summary>
+        ///     As native string
+        /// </summary>
+        /// <returns>NativeString</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator NativeString(Span<char> buffer) => new(buffer);
+
+        /// <summary>
         ///     New line
         /// </summary>
         public static ReadOnlySpan<char> NewLine => Environment.NewLine;
