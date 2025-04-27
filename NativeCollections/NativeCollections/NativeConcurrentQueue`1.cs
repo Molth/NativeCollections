@@ -151,6 +151,11 @@ namespace NativeCollections
     internal static partial class NativeConcurrentQueue
     {
         /// <summary>
+        ///     Not Arm64
+        /// </summary>
+        public static readonly bool NotArm64 = RuntimeInformation.ProcessArchitecture != Architecture.Arm64;
+
+        /// <summary>
         ///     Native concurrentQueue
         ///     (Slower than ConcurrentQueue, disable Enumerator, try peek either)
         /// </summary>
