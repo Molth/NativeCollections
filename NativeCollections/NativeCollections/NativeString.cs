@@ -5,6 +5,8 @@ using System.Runtime.InteropServices;
 #pragma warning disable CA2208
 #pragma warning disable CS8632
 
+// ReSharper disable ALL
+
 namespace NativeCollections
 {
     /// <summary>
@@ -473,7 +475,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="start">Start</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeString Slice(int start) => new(Text.Slice(start));
+        public NativeString Substring(int start) => new(Text.Slice(start));
 
         /// <summary>
         ///     Slice
@@ -481,7 +483,7 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <param name="length">Length</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeString Slice(int start, int length) => new(Text.Slice(start, length));
+        public NativeString Substring(int start, int length) => new(Text.Slice(start, length));
 
         /// <summary>
         ///     Clear
@@ -598,7 +600,7 @@ namespace NativeCollections
         public void Advance(int count)
         {
             var newLength = _length + count;
-            if ((uint)newLength > Capacity)
+            if ((uint)newLength > (uint)Capacity)
                 throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeLessOrEqual");
             _length = newLength;
         }
@@ -663,6 +665,51 @@ namespace NativeCollections
                 ref var value = ref Unsafe.Add(ref reference, index);
                 value = char.ToLowerInvariant(value);
             }
+        }
+
+        /// <summary>
+        ///     Pad left
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool PadLeft(int totalWidth) => PadLeft(totalWidth, ' ');
+
+        /// <summary>
+        ///     Pad left
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool PadLeft(int totalWidth, char paddingChar)
+        {
+            if ((uint)totalWidth > (uint)Capacity)
+                return false;
+            var num = totalWidth - _length;
+            if (num <= 0)
+                return true;
+            _ = Text.TryCopyTo(_buffer.Slice(num));
+            _buffer.Slice(0, num).Fill(paddingChar);
+            _length = totalWidth;
+            return true;
+        }
+
+        /// <summary>
+        ///     Pad right
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool PadRight(int totalWidth) => PadRight(totalWidth, ' ');
+
+        /// <summary>
+        ///     Pad right
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool PadRight(int totalWidth, char paddingChar)
+        {
+            if ((uint)totalWidth > (uint)Capacity)
+                return false;
+            var num = totalWidth - _length;
+            if (num <= 0)
+                return true;
+            _buffer.Slice(_length, num).Fill(paddingChar);
+            _length = totalWidth;
+            return true;
         }
 
         /// <summary>
