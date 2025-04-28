@@ -610,6 +610,62 @@ namespace NativeCollections
         public readonly Span<char> GetSpan(int sizeHint = 0) => _buffer.Slice(_length, sizeHint);
 
         /// <summary>
+        ///     To upper
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void ToUpper()
+        {
+            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            for (var index = 0; index < _length; ++index)
+            {
+                ref var value = ref Unsafe.Add(ref reference, index);
+                value = char.ToUpper(value);
+            }
+        }
+
+        /// <summary>
+        ///     To lower
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void ToLower()
+        {
+            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            for (var index = 0; index < _length; ++index)
+            {
+                ref var value = ref Unsafe.Add(ref reference, index);
+                value = char.ToLower(value);
+            }
+        }
+
+        /// <summary>
+        ///     To upper
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void ToUpperInvariant()
+        {
+            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            for (var index = 0; index < _length; ++index)
+            {
+                ref var value = ref Unsafe.Add(ref reference, index);
+                value = char.ToUpperInvariant(value);
+            }
+        }
+
+        /// <summary>
+        ///     To lower
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void ToLowerInvariant()
+        {
+            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            for (var index = 0; index < _length; ++index)
+            {
+                ref var value = ref Unsafe.Add(ref reference, index);
+                value = char.ToLowerInvariant(value);
+            }
+        }
+
+        /// <summary>
         ///     As span
         /// </summary>
         /// <returns>Span</returns>
