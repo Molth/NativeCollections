@@ -519,6 +519,24 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Cast
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Span<TTo> Cast<TTo>() where TTo : unmanaged => MemoryMarshal.Cast<char, TTo>(AsSpan());
+
+        /// <summary>
+        ///     Cast
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Span<TTo> Cast<TTo>(int start) where TTo : unmanaged => MemoryMarshal.Cast<char, TTo>(AsSpan(start));
+
+        /// <summary>
+        ///     Cast
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Span<TTo> Cast<TTo>(int start, int length) where TTo : unmanaged => MemoryMarshal.Cast<char, TTo>(AsSpan(start, length));
+
+        /// <summary>
         ///     Equals
         /// </summary>
         /// <returns>Equals</returns>
