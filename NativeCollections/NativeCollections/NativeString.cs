@@ -91,7 +91,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Append(ReadOnlySpan<char> buffer)
         {
-            if (_length + buffer.Length > _buffer.Length)
+            if (_length + buffer.Length > Capacity)
                 return false;
             Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref MemoryMarshal.GetReference(_buffer), _length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(buffer.Length * sizeof(char)));
             _length += buffer.Length;
@@ -107,7 +107,7 @@ namespace NativeCollections
         public bool AppendLine(ReadOnlySpan<char> buffer)
         {
             var newLine = NewLine;
-            if (_length + buffer.Length + newLine.Length > _buffer.Length)
+            if (_length + buffer.Length + newLine.Length > Capacity)
                 return false;
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
             Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, _length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(buffer.Length * sizeof(char)));
@@ -178,7 +178,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Insert(int startIndex, ReadOnlySpan<char> buffer)
         {
-            if (startIndex < 0 || startIndex > _length || _length + buffer.Length > _buffer.Length)
+            if (startIndex < 0 || startIndex > _length || _length + buffer.Length > Capacity)
                 return false;
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
             var count = _length - startIndex;
@@ -205,7 +205,7 @@ namespace NativeCollections
             var oldLength = oldValue.Length;
             var newLength = newValue.Length;
             var count = newLength - oldLength;
-            if (count > 0 && _length + count > _buffer.Length)
+            if (count > 0 && _length + count > Capacity)
                 return InsertResult.InsufficientCapacity;
             if (count != 0)
                 Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, index + newLength)), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, index + oldLength)), (uint)((_length - index - oldLength) * sizeof(char)));
@@ -243,7 +243,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Append(char value)
         {
-            if (_length + 1 > _buffer.Length)
+            if (_length + 1 > Capacity)
                 return false;
             _buffer[_length++] = value;
             return true;
@@ -258,7 +258,7 @@ namespace NativeCollections
         public bool AppendLine(char value)
         {
             var newLine = NewLine;
-            if (_length + 1 + newLine.Length > _buffer.Length)
+            if (_length + 1 + newLine.Length > Capacity)
                 return false;
             _buffer[_length++] = value;
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
@@ -312,7 +312,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Insert(int startIndex, char value)
         {
-            if (startIndex < 0 || startIndex > _length || _length + 1 > _buffer.Length)
+            if (startIndex < 0 || startIndex > _length || _length + 1 > Capacity)
                 return false;
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
             var count = _length - startIndex;
@@ -497,7 +497,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool SetLength(int length)
         {
-            if (length < 0 || length > _buffer.Length)
+            if (length < 0 || length > Capacity)
                 return false;
             _length = length;
             return true;
@@ -512,7 +512,7 @@ namespace NativeCollections
         public bool Skip(int length)
         {
             var newLength = _length + length;
-            if (newLength < 0 || newLength > _buffer.Length)
+            if (newLength < 0 || newLength > Capacity)
                 return false;
             _length = newLength;
             return true;
@@ -573,6 +573,24 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryCopyTo(Span<char> buffer) => Text.TryCopyTo(buffer);
+
+        /// <summary>
+        ///     Advance
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Advance(int count)
+        {
+            var result = _length + count;
+            if ((uint)result > Capacity)
+                throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeLessOrEqual");
+            _length = result;
+        }
+
+        /// <summary>
+        ///     GetSpan
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly Span<char> GetSpan(int sizeHint = 0) => _buffer.Slice(_length, sizeHint);
 
         /// <summary>
         ///     As span
