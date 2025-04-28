@@ -83,6 +83,23 @@ namespace NativeCollections
             _length = length;
         }
 
+#if NET6_0_OR_GREATER
+        /// <summary>
+        ///     Append
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AppendSpanFormattable<T>(in T obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) where T : ISpanFormattable
+        {
+            if (obj.TryFormat(_buffer.Slice(_length), out var charsWritten, format, provider))
+            {
+                _length += charsWritten;
+                return true;
+            }
+
+            return false;
+        }
+#endif
+
         /// <summary>
         ///     Append
         /// </summary>
@@ -318,7 +335,8 @@ namespace NativeCollections
             var count = _length - startIndex;
             if (count > 0)
                 Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, startIndex + 1)), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, startIndex)), (uint)(count * sizeof(char)));
-            _buffer[_length++] = value;
+            _buffer[startIndex] = value;
+            ++_length;
             return true;
         }
 
@@ -351,12 +369,6 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool EndsWith(char value) => _length > 1 && _buffer[_length - 1] == value;
-
-        /// <summary>
-        ///     Binary search
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int BinarySearch(char value) => Text.BinarySearch(value);
 
         /// <summary>
         ///     Remove
