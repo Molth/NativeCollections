@@ -5,8 +5,6 @@ using System.Runtime.InteropServices;
 #pragma warning disable CA2208
 #pragma warning disable CS8632
 
-// ReSharper disable ALL
-
 namespace NativeCollections
 {
     /// <summary>
@@ -458,15 +456,16 @@ namespace NativeCollections
                 start++;
             while (end >= start && char.IsWhiteSpace(Unsafe.Add(ref reference, end)))
                 end--;
-            if (start <= end)
-            {
-                _length = end - start + 1;
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref reference), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, start)), (uint)(_length * sizeof(char)));
-            }
-            else
+            var newLength = end - start + 1;
+            if (newLength <= 0)
             {
                 _length = 0;
+                return;
             }
+
+            if (start > 0)
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref reference), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, start)), (uint)(newLength * sizeof(char)));
+            _length = newLength;
         }
 
         /// <summary>
@@ -592,10 +591,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Advance(int count)
         {
-            var result = _length + count;
-            if ((uint)result > Capacity)
+            var newLength = _length + count;
+            if ((uint)newLength > Capacity)
                 throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeLessOrEqual");
-            _length = result;
+            _length = newLength;
         }
 
         /// <summary>
