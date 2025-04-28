@@ -551,6 +551,12 @@ namespace NativeCollections
         ///     Equals
         /// </summary>
         /// <returns>Equals</returns>
+        public bool Equals(NativeString other) => Text.SequenceEqual(other.Text);
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <returns>Equals</returns>
         public bool Equals(ReadOnlySpan<char> buffer) => Text.SequenceEqual(buffer);
 
         /// <summary>
