@@ -36,7 +36,7 @@ namespace NativeCollections
         /// <param name="allocZeroed">AllocZeroed</param>
         /// <param name="free">Free</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Custom(delegate*<uint, void*> alloc, delegate*<uint, void*> allocZeroed, delegate*<void*, void> free)
+        public static void Custom(delegate* managed<uint, void*> alloc, delegate* managed<uint, void*> allocZeroed, delegate* managed<void*, void> free)
         {
             _alloc = alloc;
             _allocZeroed = allocZeroed;
