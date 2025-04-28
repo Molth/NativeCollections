@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -180,11 +181,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Remove(ReadOnlySpan<char> buffer)
-        {
-            var index = Text.IndexOf(buffer);
-            return index >= 0 && Remove(index, buffer.Length);
-        }
+        public void Remove(ReadOnlySpan<char> buffer) => Replace(buffer, string.Empty);
 
         /// <summary>
         ///     Insert
@@ -213,22 +210,88 @@ namespace NativeCollections
         /// <param name="newValue">New value</param>
         /// <returns>Replaced</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public InsertResult Replace(ReadOnlySpan<char> oldValue, ReadOnlySpan<char> newValue)
+        public bool Replace(ReadOnlySpan<char> oldValue, ReadOnlySpan<char> newValue)
         {
-            var index = Text.IndexOf(oldValue);
-            if (index < 0)
-                return InsertResult.None;
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
-            var oldLength = oldValue.Length;
-            var newLength = newValue.Length;
-            var count = newLength - oldLength;
-            if (count > 0 && _length + count > Capacity)
-                return InsertResult.InsufficientCapacity;
-            if (count != 0)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, index + newLength)), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, index + oldLength)), (uint)((_length - index - oldLength) * sizeof(char)));
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, index)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(newValue)), (uint)(newLength * sizeof(char)));
-            _length += count;
-            return InsertResult.Success;
+            if (Unsafe.AsPointer(ref MemoryMarshal.GetReference(oldValue)) == null)
+                return false;
+            if (Unsafe.AsPointer(ref MemoryMarshal.GetReference(newValue)) == null)
+                newValue = (ReadOnlySpan<char>)string.Empty;
+            var valueListBuilder = new NativeValueListBuilder<int>(stackalloc int[128]);
+            var elementOffset1 = 0;
+            ref var local1 = ref MemoryMarshal.GetReference(_buffer);
+            if (oldValue.Length == 1)
+            {
+                if (newValue.Length == 1)
+                {
+                    Replace(oldValue[0], newValue[0]);
+                    return true;
+                }
+
+                var ch = oldValue[0];
+                while (true)
+                {
+                    var num = MemoryMarshal.CreateSpan(ref Unsafe.Add(ref local1, elementOffset1), _length - elementOffset1).IndexOf(ch);
+                    if (num >= 0)
+                    {
+                        valueListBuilder.Append(elementOffset1 + num);
+                        elementOffset1 += num + 1;
+                    }
+                    else
+                        break;
+                }
+            }
+            else
+            {
+                while (true)
+                {
+                    var num = MemoryMarshal.CreateSpan(ref Unsafe.Add(ref local1, elementOffset1), _length - elementOffset1).IndexOf(oldValue);
+                    if (num >= 0)
+                    {
+                        valueListBuilder.Append(elementOffset1 + num);
+                        elementOffset1 += num + oldValue.Length;
+                    }
+                    else
+                        break;
+                }
+            }
+
+            if (valueListBuilder.Length == 0)
+                return true;
+            var readOnlySpan = valueListBuilder.AsReadOnlySpan();
+            var minimumLength = _length + (newValue.Length - oldValue.Length) * readOnlySpan.Length;
+            if ((uint)minimumLength > (uint)Capacity)
+            {
+                valueListBuilder.Dispose();
+                return false;
+            }
+
+            char[]? array = null;
+            ref var local2 = ref MemoryMarshal.GetReference(minimumLength <= 128 ? stackalloc char[minimumLength] : (Span<char>)(array = ArrayPool<char>.Shared.Rent(minimumLength)));
+            var elementOffset2 = 0;
+            var elementOffset3 = 0;
+            ref var local3 = ref MemoryMarshal.GetReference(newValue);
+            for (var index = 0; index < readOnlySpan.Length; ++index)
+            {
+                var num1 = readOnlySpan[index];
+                var num2 = num1 - elementOffset2;
+                if (num2 != 0)
+                {
+                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref local2, elementOffset3)), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref local1, elementOffset2)), (uint)(num2 * 2));
+                    elementOffset3 += num2;
+                }
+
+                elementOffset2 = num1 + oldValue.Length;
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref local2, elementOffset3)), ref Unsafe.As<char, byte>(ref local3), (uint)(newValue.Length * 2));
+                elementOffset3 += newValue.Length;
+            }
+
+            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref local2, elementOffset3)), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref local1, elementOffset2)), (uint)((_length - elementOffset2) * 2));
+            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref local1), ref Unsafe.As<char, byte>(ref local2), (uint)(minimumLength * 2));
+            _length = minimumLength;
+            valueListBuilder.Dispose();
+            if (array != null)
+                ArrayPool<char>.Shared.Return(array);
+            return true;
         }
 
         /// <summary>
@@ -314,10 +377,18 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Remove(char value)
+        public void Remove(char value)
         {
-            var index = Text.IndexOf(value);
-            return index >= 0 && Remove(index, 1);
+            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            var newLength = 0;
+            for (var index = 0; index < _length; ++index)
+            {
+                var ch = Unsafe.Add(ref reference, index);
+                if (ch != value)
+                    Unsafe.Add(ref reference, newLength++) = ch;
+            }
+
+            _length = newLength;
         }
 
         /// <summary>
@@ -347,13 +418,19 @@ namespace NativeCollections
         /// <param name="newValue">New value</param>
         /// <returns>Replaced</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public InsertResult Replace(char oldValue, char newValue)
+        public void Replace(char oldValue, char newValue)
         {
-            var index = Text.IndexOf(oldValue);
-            if (index < 0)
-                return InsertResult.None;
-            _buffer[index] = newValue;
-            return InsertResult.Success;
+#if NET8_0_OR_GREATER
+            Text.Replace(oldValue, newValue);
+#else
+            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            for (var index = 0; index < _length; ++index)
+            {
+                ref var value = ref Unsafe.Add(ref reference, index);
+                if (value == oldValue)
+                    value = newValue;
+            }
+#endif
         }
 
         /// <summary>
