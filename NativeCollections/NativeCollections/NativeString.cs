@@ -14,7 +14,7 @@ namespace NativeCollections
     ///     Native string
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection(FromType.None)]
+    [NativeCollection(FromType.Standard)]
     public unsafe ref struct NativeString
     {
         /// <summary>
