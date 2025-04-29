@@ -395,7 +395,7 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
             if (capacity < _size || capacity >= _length)
                 return _length;
-            SetCapacity(_size);
+            SetCapacity(capacity);
             return _length;
         }
 

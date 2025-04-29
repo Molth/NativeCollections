@@ -21,3 +21,4 @@ These are some of the types that have already been implemented:
 17. SortedSet`1
 18. SparseSet`1
 19. Stack`1
+20. String

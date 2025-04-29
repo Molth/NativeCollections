@@ -212,7 +212,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Replace(ReadOnlySpan<char> oldValue, ReadOnlySpan<char> newValue)
         {
-            if (Unsafe.AsPointer(ref MemoryMarshal.GetReference(oldValue)) == null)
+            if (Unsafe.AsPointer(ref MemoryMarshal.GetReference(oldValue)) == null || oldValue.Length == 0)
                 return false;
             if (Unsafe.AsPointer(ref MemoryMarshal.GetReference(newValue)) == null)
                 newValue = (ReadOnlySpan<char>)string.Empty;
@@ -572,9 +572,9 @@ namespace NativeCollections
         ///     Clear
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Clear(bool zeroed)
+        public void Clear(bool clear)
         {
-            if (zeroed)
+            if (clear)
                 _buffer.Clear();
             _length = 0;
         }
@@ -648,7 +648,15 @@ namespace NativeCollections
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => throw new NotSupportedException("CannotCallGetHashCode");
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override int GetHashCode()
+        {
+#if NETCOREAPP3_0_OR_GREATER
+            return string.GetHashCode(Text);
+#else
+            return MarvinHelpers.ComputeHash32(MemoryMarshal.Cast<char, byte>(Text), MarvinHelpers.DefaultSeed);
+#endif
+        }
 
         /// <summary>
         ///     To string
@@ -862,6 +870,20 @@ namespace NativeCollections
         ///     New line
         /// </summary>
         public static ReadOnlySpan<char> NewLine => Environment.NewLine;
+
+        /// <summary>
+        ///     Get hashCode
+        /// </summary>
+        /// <returns>HashCode</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int GetHashCode(ReadOnlySpan<char> buffer)
+        {
+#if NETCOREAPP3_0_OR_GREATER
+            return string.GetHashCode(buffer);
+#else
+            return MarvinHelpers.ComputeHash32(MemoryMarshal.Cast<char, byte>(buffer), MarvinHelpers.DefaultSeed);
+#endif
+        }
 
         /// <summary>
         ///     Empty

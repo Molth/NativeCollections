@@ -40,6 +40,17 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Capacity
+        /// </summary>
+        public int Capacity
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _buffer.Length;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set => SetCapacity(value);
+        }
+
+        /// <summary>
         ///     Get reference
         /// </summary>
         /// <param name="index">Index</param>
@@ -78,6 +89,23 @@ namespace NativeCollections
                 return;
             _array = null;
             ArrayPool<T>.Shared.Return(array);
+        }
+
+        /// <summary>
+        ///     Clear
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Clear() => _length = 0;
+
+        /// <summary>
+        ///     Clear
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Clear(bool clear)
+        {
+            if (clear)
+                _buffer.Clear();
+            _length = 0;
         }
 
         /// <summary>
@@ -162,6 +190,72 @@ namespace NativeCollections
         public Span<TTo> Cast<TTo>() where TTo : unmanaged => MemoryMarshal.Cast<T, TTo>(AsSpan());
 
         /// <summary>
+        ///     Ensure capacity
+        /// </summary>
+        /// <param name="capacity">Capacity</param>
+        /// <returns>New capacity</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int EnsureCapacity(int capacity)
+        {
+            if (capacity < 0)
+                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            if (_buffer.Length < capacity)
+                Grow(capacity - _buffer.Length);
+            return _buffer.Length;
+        }
+
+        /// <summary>
+        ///     Trim excess
+        /// </summary>
+        /// <returns>New capacity</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int TrimExcess()
+        {
+            var threshold = (int)(_buffer.Length * 0.9);
+            if (_length < threshold)
+                SetCapacity(_length);
+            return _buffer.Length;
+        }
+
+        /// <summary>
+        ///     Trim excess
+        /// </summary>
+        /// <param name="capacity">Capacity</param>
+        /// <returns>New capacity</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int TrimExcess(int capacity)
+        {
+            if (capacity < 0)
+                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            if (capacity < _length || capacity >= _buffer.Length)
+                return _buffer.Length;
+            SetCapacity(capacity);
+            return _buffer.Length;
+        }
+
+        /// <summary>
+        ///     Set capacity
+        /// </summary>
+        /// <param name="capacity">Capacity</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetCapacity(int capacity)
+        {
+            if (capacity < _length)
+                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "SmallCapacity");
+            if (capacity != _buffer.Length)
+            {
+                var destination = ArrayPool<T>.Shared.Rent(capacity);
+                if (_length > 0)
+                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference((Span<T>)destination)), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(_buffer)), (uint)(_length * sizeof(T)));
+                var array = _array;
+                _buffer = (Span<T>)(_array = destination);
+                if (array == null)
+                    return;
+                ArrayPool<T>.Shared.Return(array);
+            }
+        }
+
+        /// <summary>
         ///     Grow
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -170,13 +264,7 @@ namespace NativeCollections
             var minimumLength = Math.Max(_buffer.Length != 0 ? _buffer.Length * 2 : 4, _buffer.Length + additionalCapacityRequired);
             if ((uint)minimumLength > 2147483591U)
                 minimumLength = Math.Max(Math.Max(_buffer.Length + 1, 2147483591), _buffer.Length);
-            var destination = ArrayPool<T>.Shared.Rent(minimumLength);
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference((Span<T>)destination)), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(_buffer)), (uint)(_length * sizeof(T)));
-            var array = _array;
-            _buffer = (Span<T>)(_array = destination);
-            if (array == null)
-                return;
-            ArrayPool<T>.Shared.Return(array);
+            SetCapacity(minimumLength);
         }
 
         /// <summary>
