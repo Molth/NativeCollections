@@ -58,6 +58,11 @@ namespace NativeCollections
         public readonly Span<char> Text => _buffer.Slice(0, _length);
 
         /// <summary>
+        ///     Space
+        /// </summary>
+        public readonly Span<char> Space => _buffer.Slice(_length);
+
+        /// <summary>
         ///     Structure
         /// </summary>
         /// <param name="buffer">Buffer</param>
@@ -83,23 +88,6 @@ namespace NativeCollections
             _buffer = buffer;
             _length = length;
         }
-
-#if NET6_0_OR_GREATER
-        /// <summary>
-        ///     Append
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool AppendSpanFormattable<T>(in T obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) where T : ISpanFormattable
-        {
-            if (obj.TryFormat(_buffer.Slice(_length), out var charsWritten, format, provider))
-            {
-                _length += charsWritten;
-                return true;
-            }
-
-            return false;
-        }
-#endif
 
         /// <summary>
         ///     Append
@@ -309,11 +297,11 @@ namespace NativeCollections
         public bool EndsWith(ReadOnlySpan<char> buffer) => Text.EndsWith(buffer);
 
         /// <summary>
-        ///     Sequence compare to
+        ///     Compare
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int SequenceCompareTo(ReadOnlySpan<char> buffer) => Text.SequenceCompareTo(buffer);
+        public int Compare(ReadOnlySpan<char> buffer) => Text.SequenceCompareTo(buffer);
 
         /// <summary>
         ///     Append
@@ -798,6 +786,30 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Is null or white space
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IsNullOrWhiteSpace()
+        {
+            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            if (Unsafe.AsPointer(ref reference) == null)
+                return true;
+            for (var index = 0; index < _length; ++index)
+            {
+                if (!char.IsWhiteSpace(Unsafe.Add(ref reference, index)))
+                    return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        ///     Is null or empty
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IsNullOrEmpty() => Unsafe.AsPointer(ref MemoryMarshal.GetReference(_buffer)) == null || _length == 0;
+
+        /// <summary>
         ///     As span
         /// </summary>
         /// <returns>Span</returns>
@@ -894,5 +906,306 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         public Span<char>.Enumerator GetEnumerator() => Text.GetEnumerator();
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AppendFormattable(bool obj, ReadOnlySpan<char> _ = default, IFormatProvider? __ = null)
+        {
+            if (obj.TryFormat(Space, out var charsWritten))
+            {
+                _length += charsWritten;
+                return true;
+            }
+
+            return false;
+        }
+
+#if NET6_0_OR_GREATER
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AppendFormattable<T>(in T obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) where T : ISpanFormattable
+        {
+            if (obj.TryFormat(Space, out var charsWritten, format, provider))
+            {
+                _length += charsWritten;
+                return true;
+            }
+
+            return false;
+        }
+#else
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AppendFormattable(decimal obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            if (obj.TryFormat(Space, out var charsWritten, format, provider))
+            {
+                _length += charsWritten;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AppendFormattable(DateTime obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            if (obj.TryFormat(Space, out var charsWritten, format, provider))
+            {
+                _length += charsWritten;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AppendFormattable(byte obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            if (obj.TryFormat(Space, out var charsWritten, format, provider))
+            {
+                _length += charsWritten;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AppendFormattable(DateTimeOffset obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            if (obj.TryFormat(Space, out var charsWritten, format, provider))
+            {
+                _length += charsWritten;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AppendFormattable(double obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            if (obj.TryFormat(Space, out var charsWritten, format, provider))
+            {
+                _length += charsWritten;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AppendFormattable(Guid obj, ReadOnlySpan<char> format = default, IFormatProvider? _ = null)
+        {
+            if (obj.TryFormat(Space, out var charsWritten, format))
+            {
+                _length += charsWritten;
+                return true;
+            }
+
+            return false;
+        }
+
+#if NET5_0_OR_GREATER
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AppendFormattable(Half obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            if (obj.TryFormat(Space, out var charsWritten, format, provider))
+            {
+                _length += charsWritten;
+                return true;
+            }
+
+            return false;
+        }
+#endif
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AppendFormattable(short obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            if (obj.TryFormat(Space, out var charsWritten, format, provider))
+            {
+                _length += charsWritten;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AppendFormattable(int obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            if (obj.TryFormat(Space, out var charsWritten, format, provider))
+            {
+                _length += charsWritten;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AppendFormattable(long obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            if (obj.TryFormat(Space, out var charsWritten, format, provider))
+            {
+                _length += charsWritten;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AppendFormattable(sbyte obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            if (obj.TryFormat(Space, out var charsWritten, format, provider))
+            {
+                _length += charsWritten;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AppendFormattable(float obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            if (obj.TryFormat(Space, out var charsWritten, format, provider))
+            {
+                _length += charsWritten;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AppendFormattable(TimeSpan obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            if (obj.TryFormat(Space, out var charsWritten, format, provider))
+            {
+                _length += charsWritten;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AppendFormattable(ushort obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            if (obj.TryFormat(Space, out var charsWritten, format, provider))
+            {
+                _length += charsWritten;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AppendFormattable(uint obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            if (obj.TryFormat(Space, out var charsWritten, format, provider))
+            {
+                _length += charsWritten;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AppendFormattable(ulong obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            if (obj.TryFormat(Space, out var charsWritten, format, provider))
+            {
+                _length += charsWritten;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AppendFormattable(nint obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) => sizeof(nint) == 8 ? AppendFormattable((long)obj, format, provider) : AppendFormattable((int)obj, format, provider);
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AppendFormattable(nuint obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) => sizeof(nint) == 8 ? AppendFormattable((ulong)obj, format, provider) : AppendFormattable((uint)obj, format, provider);
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AppendFormattable(Version obj, ReadOnlySpan<char> _ = default, IFormatProvider? __ = null)
+        {
+            if (obj.TryFormat(Space, out var charsWritten))
+            {
+                _length += charsWritten;
+                return true;
+            }
+
+            return false;
+        }
+#endif
     }
 }
