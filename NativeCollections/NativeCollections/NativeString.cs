@@ -63,6 +63,16 @@ namespace NativeCollections
         public readonly Span<char> Space => _buffer.Slice(_length);
 
         /// <summary>
+        ///     Get reference
+        /// </summary>
+        /// <param name="index">Index</param>
+        public ref char this[int index]
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => ref _buffer[index];
+        }
+
+        /// <summary>
         ///     Structure
         /// </summary>
         /// <param name="buffer">Buffer</param>
@@ -879,6 +889,36 @@ namespace NativeCollections
         public static implicit operator NativeString(Span<char> buffer) => new(buffer);
 
         /// <summary>
+        ///     Equals
+        /// </summary>
+        public static bool operator ==(NativeString left, NativeString right) => left.Equals(right);
+
+        /// <summary>
+        ///     Not equals
+        /// </summary>
+        public static bool operator !=(NativeString left, NativeString right) => !left.Equals(right);
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        public static bool operator ==(NativeString left, ReadOnlySpan<char> right) => left.Equals(right);
+
+        /// <summary>
+        ///     Not equals
+        /// </summary>
+        public static bool operator !=(NativeString left, ReadOnlySpan<char> right) => !left.Equals(right);
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        public static bool operator ==(ReadOnlySpan<char> left, NativeString right) => right.Equals(left);
+
+        /// <summary>
+        ///     Not equals
+        /// </summary>
+        public static bool operator !=(ReadOnlySpan<char> left, NativeString right) => !right.Equals(left);
+
+        /// <summary>
         ///     New line
         /// </summary>
         public static ReadOnlySpan<char> NewLine => Environment.NewLine;
@@ -896,6 +936,16 @@ namespace NativeCollections
             return MarvinHelpers.ComputeHash32(MemoryMarshal.Cast<char, byte>(buffer), MarvinHelpers.DefaultSeed);
 #endif
         }
+
+        /// <summary>
+        ///     Create
+        /// </summary>
+        public static NativeString Create(ReadOnlySpan<char> buffer) => new(MemoryMarshal.CreateSpan(ref MemoryMarshal.GetReference(buffer), buffer.Length));
+
+        /// <summary>
+        ///     Create
+        /// </summary>
+        public static NativeString Create(ReadOnlySpan<char> buffer, int length) => new(MemoryMarshal.CreateSpan(ref MemoryMarshal.GetReference(buffer), buffer.Length), length);
 
         /// <summary>
         ///     Empty
