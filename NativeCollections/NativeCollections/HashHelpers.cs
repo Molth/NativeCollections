@@ -14,37 +14,15 @@ namespace NativeCollections
         /// <summary>
         ///     Primes
         /// </summary>
-        private static ReadOnlySpan<int> Primes => new int[72]
+        private static ReadOnlySpan<int> Primes => new int[96]
         {
+            0, 0, 1, 2, 3, 6, 9, 12, 16, 19, 23, 27, 31, 34, 38, 42, 46, 50, 53, 57, 61, 65, 69, 0,
             3, 7, 11, 17, 23, 29, 37, 47, 59, 71, 89, 107, 131, 163, 197, 239, 293, 353, 431, 521, 631, 761, 919,
             1103, 1327, 1597, 1931, 2333, 2801, 3371, 4049, 4861, 5839, 7013, 8419, 10103, 12143, 14591,
             17519, 21023, 25229, 30293, 36353, 43627, 52361, 62851, 75431, 90523, 108631, 130363, 156437,
             187751, 225307, 270371, 324449, 389357, 467237, 560689, 672827, 807403, 968897, 1162687, 1395263,
             1674319, 2009191, 2411033, 2893249, 3471899, 4166287, 4999559, 5999471, 7199369
         };
-
-        /// <summary>
-        ///     Binary search
-        /// </summary>
-        /// <param name="min">Min</param>
-        /// <returns>Prime</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int BinarySearch(int min)
-        {
-            var left = 0;
-            var right = 71;
-            ref var value = ref MemoryMarshal.GetReference(Primes);
-            while (left <= right)
-            {
-                var mid = left + (right - left) / 2;
-                if (Unsafe.Add(ref value, mid) >= min)
-                    right = mid - 1;
-                else
-                    left = mid + 1;
-            }
-
-            return Unsafe.Add(ref value, left);
-        }
 
         /// <summary>
         ///     Is prime
@@ -80,7 +58,18 @@ namespace NativeCollections
             if (min < 0)
                 throw new ArgumentException("HTCapacityOverflow");
             if (min <= 7199369)
-                return BinarySearch(min);
+            {
+                ref var local1 = ref MemoryMarshal.GetReference(Primes);
+                var num = Unsafe.Add(ref local1, BitOperationsHelpers.Log2((uint)min));
+                ref var local2 = ref Unsafe.Add(ref local1, 24);
+                for (var elementOffset = num; elementOffset < 72; ++elementOffset)
+                {
+                    var prime = Unsafe.Add(ref local2, elementOffset);
+                    if (prime >= min)
+                        return prime;
+                }
+            }
+
             for (var i = min | 1; i < int.MaxValue; i += 2)
             {
                 if (IsPrime(i) && (i - 1) % 101 != 0)

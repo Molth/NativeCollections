@@ -767,7 +767,7 @@ namespace NativeCollections
             var num = totalWidth - _length;
             if (num <= 0)
                 return true;
-            _ = Text.TryCopyTo(_buffer.Slice(num));
+            Text.CopyTo(_buffer.Slice(num));
             _buffer.Slice(0, num).Fill(paddingChar);
             _length = totalWidth;
             return true;

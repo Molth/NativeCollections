@@ -158,17 +158,16 @@ namespace NativeCollections
         /// <summary>
         ///     Add range
         /// </summary>
-        /// <param name="collection">Collection</param>
+        /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddRange(UnsafeList<T>* collection)
+        public void AddRange(ReadOnlySpan<T> buffer)
         {
-            var other = collection;
-            var count = other->_size;
+            var count = buffer.Length;
             if (count > 0)
             {
                 if (_length - _size < count)
                     Grow(checked(_size + count));
-                Unsafe.CopyBlockUnaligned(_buffer + _size, other->_buffer, (uint)(other->_size * sizeof(T)));
+                Unsafe.CopyBlockUnaligned(ref *(byte*)(_buffer + _size), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(count * sizeof(T)));
                 _size += count;
                 _version++;
             }
@@ -197,30 +196,20 @@ namespace NativeCollections
         ///     Insert
         /// </summary>
         /// <param name="index">Index</param>
-        /// <param name="collection">Collection</param>
+        /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void InsertRange(int index, UnsafeList<T>* collection)
+        public void InsertRange(int index, ReadOnlySpan<T> buffer)
         {
             if ((uint)index > (uint)_size)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
-            var other = collection;
-            var count = other->_size;
+            var count = buffer.Length;
             if (count > 0)
             {
                 if (_length - _size < count)
                     Grow(checked(_size + count));
                 if (index < _size)
                     Unsafe.CopyBlockUnaligned(_buffer + index + count, _buffer + index, (uint)((_size - index) * sizeof(T)));
-                if (Unsafe.AsPointer(ref this) == collection)
-                {
-                    Unsafe.CopyBlockUnaligned(_buffer + index, _buffer, (uint)(index * sizeof(T)));
-                    Unsafe.CopyBlockUnaligned(_buffer + index * 2, _buffer + index + count, (uint)((_size - index) * sizeof(T)));
-                }
-                else
-                {
-                    Unsafe.CopyBlockUnaligned(_buffer + index, other->_buffer, (uint)(other->_size * sizeof(T)));
-                }
-
+                buffer.CopyTo(MemoryMarshal.CreateSpan(ref *(_buffer + index), count));
                 _size += count;
                 _version++;
             }

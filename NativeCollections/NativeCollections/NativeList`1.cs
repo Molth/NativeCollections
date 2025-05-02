@@ -177,9 +177,9 @@ namespace NativeCollections
         /// <summary>
         ///     Add range
         /// </summary>
-        /// <param name="collection">Collection</param>
+        /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddRange(NativeList<T> collection) => _handle->AddRange(collection._handle);
+        public void AddRange(ReadOnlySpan<T> buffer) => _handle->AddRange(buffer);
 
         /// <summary>
         ///     Insert
@@ -193,9 +193,9 @@ namespace NativeCollections
         ///     Insert
         /// </summary>
         /// <param name="index">Index</param>
-        /// <param name="collection">Collection</param>
+        /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void InsertRange(int index, NativeList<T> collection) => _handle->InsertRange(index, collection._handle);
+        public void InsertRange(int index, ReadOnlySpan<T> buffer) => _handle->InsertRange(index, buffer);
 
         /// <summary>
         ///     Remove
