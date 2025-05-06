@@ -1,9 +1,8 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
-#if !NET5_0_OR_GREATER
-using System;
-#endif
 
 #pragma warning disable CS8632
 
@@ -16,8 +15,54 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    public struct NativeSpinWait
+    public unsafe struct NativeSpinWait
     {
+        /// <summary>
+        ///     Optimal max spinWaits per spin iteration
+        /// </summary>
+        private static readonly delegate* managed<int> _OptimalMaxSpinWaitsPerSpinIteration;
+
+        /// <summary>
+        ///     Optimal max spinWaits per spin iteration
+        /// </summary>
+        public static int OptimalMaxSpinWaitsPerSpinIteration => _OptimalMaxSpinWaitsPerSpinIteration();
+
+        /// <summary>
+        ///     Is single processor
+        /// </summary>
+        public static bool IsSingleProcessor => Environment.ProcessorCount == 1;
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        static NativeSpinWait()
+        {
+            try
+            {
+                var property = typeof(Thread).GetProperty("OptimalMaxSpinWaitsPerSpinIteration", BindingFlags.Static | BindingFlags.NonPublic);
+                if (property != null)
+                {
+                    var method = property.GetMethod;
+                    if (method != null)
+                    {
+                        _OptimalMaxSpinWaitsPerSpinIteration = (delegate* managed<int>)method.MethodHandle.GetFunctionPointer();
+                        _ = _OptimalMaxSpinWaitsPerSpinIteration();
+                        return;
+                    }
+                }
+            }
+            catch
+            {
+                //
+            }
+
+            _OptimalMaxSpinWaitsPerSpinIteration = &Fallback;
+            return;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            static int Fallback() => Math.Max(Environment.ProcessorCount / 2 - 1, 1);
+        }
+
 #if NET5_0_OR_GREATER
         /// <summary>
         ///     Spin wait
@@ -56,7 +101,7 @@ namespace NativeCollections
 #if NET5_0_OR_GREATER
                 return _spinWait.NextSpinWillYield;
 #else
-                return _count >= 10 || Environment.ProcessorCount == 1;
+                return _count >= 10 || IsSingleProcessor;
 #endif
             }
         }
@@ -83,7 +128,7 @@ namespace NativeCollections
 #if NET5_0_OR_GREATER
             _spinWait.SpinOnce(-1);
 #else
-            if ((_count >= 10 && (_count - 10) % 2 == 0) || Environment.ProcessorCount == 1)
+            if ((_count >= 10 && (_count - 10) % 2 == 0) || IsSingleProcessor)
             {
                 var yieldsSoFar = _count >= 10 ? (_count - 10) / 2 : _count;
                 if (yieldsSoFar % 5 == 4)
@@ -93,7 +138,7 @@ namespace NativeCollections
             }
             else
             {
-                var iterations = Environment.ProcessorCount / 2;
+                var iterations = OptimalMaxSpinWaitsPerSpinIteration;
                 if (_count <= 30 && 1 << _count < iterations)
                     iterations = 1 << _count;
                 Thread.SpinWait(iterations);
@@ -115,7 +160,7 @@ namespace NativeCollections
 #else
             if (sleepThreshold < -1)
                 sleepThreshold = -1;
-            if ((_count >= 10 && ((_count >= sleepThreshold && sleepThreshold >= 0) || (_count - 10) % 2 == 0)) || Environment.ProcessorCount == 1)
+            if ((_count >= 10 && ((_count >= sleepThreshold && sleepThreshold >= 0) || (_count - 10) % 2 == 0)) || IsSingleProcessor)
             {
                 if (_count >= sleepThreshold && sleepThreshold >= 0)
                     Thread.Sleep(1);
@@ -126,7 +171,7 @@ namespace NativeCollections
             }
             else
             {
-                var iterations = Environment.ProcessorCount / 2;
+                var iterations = OptimalMaxSpinWaitsPerSpinIteration;
                 if (_count <= 30 && 1 << _count < iterations)
                     iterations = 1 << _count;
                 Thread.SpinWait(iterations);

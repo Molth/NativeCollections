@@ -69,6 +69,19 @@ namespace NativeCollections
         /// <summary>
         ///     Structure
         /// </summary>
+        /// <param name="capacity">Capacity</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeValueListBuilder(int capacity)
+        {
+            if (capacity < 0)
+                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            _buffer = _array = ArrayPool<T>.Shared.Rent(capacity);
+            _length = 0;
+        }
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeValueListBuilder(Span<T> buffer)

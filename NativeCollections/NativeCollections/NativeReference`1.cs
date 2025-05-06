@@ -23,20 +23,6 @@ namespace NativeCollections
         private readonly T* _handle;
 
         /// <summary>
-        ///     Structure
-        /// </summary>
-        /// <param name="handle">Handle</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeReference(void* handle) => _handle = (T*)handle;
-
-        /// <summary>
-        ///     Structure
-        /// </summary>
-        /// <param name="handle">Handle</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeReference(nint handle) => _handle = (T*)handle;
-
-        /// <summary>
         ///     Is created
         /// </summary>
         public bool IsCreated => _handle != null;
@@ -58,6 +44,40 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => ref *_handle;
         }
+
+        /// <summary>
+        ///     Get reference
+        /// </summary>
+        /// <param name="index">Index</param>
+        public ref T this[int index]
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => ref _handle[index];
+        }
+
+        /// <summary>
+        ///     Get reference
+        /// </summary>
+        /// <param name="index">Index</param>
+        public ref T this[uint index]
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => ref _handle[index];
+        }
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="handle">Handle</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeReference(void* handle) => _handle = (T*)handle;
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="handle">Handle</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeReference(nint handle) => _handle = (T*)handle;
 
         /// <summary>
         ///     Equals
@@ -86,58 +106,74 @@ namespace NativeCollections
         public override string ToString() => $"NativeReference<{typeof(T).Name}>";
 
         /// <summary>
+        ///     Cast
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeReference<TTo> Cast<TTo>() where TTo : unmanaged => new(_handle);
+
+        /// <summary>
+        ///     Slice
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeReference<T> Slice(int start) => new(_handle + start);
+
+        /// <summary>
         ///     As span
         /// </summary>
-        /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Span<T> AsSpan() => MemoryMarshal.CreateSpan(ref *_handle, 1);
 
         /// <summary>
+        ///     As span
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Span<T> AsSpan(int start, int length) => MemoryMarshal.CreateSpan(ref _handle[start], length);
+
+        /// <summary>
         ///     As readOnly span
         /// </summary>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref *_handle, 1);
 
         /// <summary>
+        ///     As readOnly span
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ReadOnlySpan<T> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref _handle[start], length);
+
+        /// <summary>
         ///     As reference
         /// </summary>
-        /// <returns>NativeReference</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator NativeReference<T>(void* handle) => new(handle);
 
         /// <summary>
         ///     As handle
         /// </summary>
-        /// <returns>Handle</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator T*(NativeReference<T> nativeReference) => nativeReference._handle;
 
         /// <summary>
         ///     As reference
         /// </summary>
-        /// <returns>NativeReference</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator NativeReference<T>(nint handle) => new((void*)handle);
 
         /// <summary>
         ///     As handle
         /// </summary>
-        /// <returns>Handle</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator nint(NativeReference<T> nativeReference) => (nint)nativeReference._handle;
 
         /// <summary>
         ///     As span
         /// </summary>
-        /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator Span<T>(in NativeReference<T> nativeReference) => nativeReference.AsSpan();
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator ReadOnlySpan<T>(in NativeReference<T> nativeReference) => nativeReference.AsReadOnlySpan();
 
@@ -173,9 +209,15 @@ namespace NativeCollections
         ///     Create
         /// </summary>
         /// <param name="reference">Reference</param>
-        /// <returns>NativeReference</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeReference<T> Create(ref T reference) => new(Unsafe.AsPointer(ref reference));
+
+        /// <summary>
+        ///     Create
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeReference<T> Create(Span<T> buffer) => new(Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)));
 
         /// <summary>
         ///     Empty

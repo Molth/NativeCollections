@@ -116,7 +116,7 @@ namespace NativeCollections
             if (sizeof(nint) == 4 && Vector128.IsHardwareAccelerated)
                 return Vector128.LoadUnsafe(ref Unsafe.As<CustomMemoryAllocator, byte>(ref Unsafe.AsRef(in this))).GetHashCode();
 #endif
-            return HashCode.Combine((nint)_user, (nint)_alloc, (nint)_allocZeroed, (nint)_free);
+            return XxHash.ComputeHash32(this);
         }
 
         /// <summary>

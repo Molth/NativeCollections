@@ -68,7 +68,7 @@ namespace NativeCollections
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => HashCode.Combine((nint)Alloc, (nint)AllocZeroed, (nint)Free);
+        public override int GetHashCode() => XxHash.ComputeHash32(this);
 
         /// <summary>
         ///     To string
