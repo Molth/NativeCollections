@@ -41,7 +41,14 @@ namespace NativeCollections
         public static int GetHashCode(ReadOnlySpan<byte> buffer)
         {
             var hashCode = new HashCode();
+#if NET6_0_OR_GREATER
             hashCode.AddBytes(buffer);
+#else
+            for (; buffer.Length >= 4; buffer = buffer.Slice(4))
+                hashCode.Add(Unsafe.ReadUnaligned<int>(ref MemoryMarshal.GetReference(buffer)));
+            for (var i = 0; i < buffer.Length; ++i)
+                hashCode.Add((int)buffer[i]);
+#endif
             return hashCode.ToHashCode();
         }
     }
