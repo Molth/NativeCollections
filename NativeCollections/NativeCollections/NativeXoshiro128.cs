@@ -87,11 +87,7 @@ namespace NativeCollections
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode()
-        {
-            ref var local = ref Unsafe.As<NativeXoshiro128, int>(ref this);
-            return local ^ Unsafe.Add(ref local, 1) ^ Unsafe.Add(ref local, 2) ^ Unsafe.Add(ref local, 3);
-        }
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string

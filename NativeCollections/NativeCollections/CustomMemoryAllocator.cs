@@ -108,16 +108,7 @@ namespace NativeCollections
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode()
-        {
-#if NET7_0_OR_GREATER
-            if (sizeof(nint) == 8 && Vector256.IsHardwareAccelerated)
-                return Vector256.LoadUnsafe(ref Unsafe.As<CustomMemoryAllocator, byte>(ref Unsafe.AsRef(in this))).GetHashCode();
-            if (sizeof(nint) == 4 && Vector128.IsHardwareAccelerated)
-                return Vector128.LoadUnsafe(ref Unsafe.As<CustomMemoryAllocator, byte>(ref Unsafe.AsRef(in this))).GetHashCode();
-#endif
-            return XxHash.ComputeHash32(this);
-        }
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string

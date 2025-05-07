@@ -1,8 +1,10 @@
-﻿using System;
-using System.Reflection;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
+#if !NET5_0_OR_GREATER
+using System;
+using System.Reflection;
+#endif
 
 #pragma warning disable CS8632
 
@@ -17,6 +19,7 @@ namespace NativeCollections
     [NativeCollection(FromType.None)]
     public unsafe struct NativeSpinWait
     {
+#if !NET5_0_OR_GREATER
         /// <summary>
         ///     Optimal max spinWaits per spin iteration
         /// </summary>
@@ -25,12 +28,12 @@ namespace NativeCollections
         /// <summary>
         ///     Optimal max spinWaits per spin iteration
         /// </summary>
-        public static int OptimalMaxSpinWaitsPerSpinIteration => _OptimalMaxSpinWaitsPerSpinIteration();
+        private static int OptimalMaxSpinWaitsPerSpinIteration => _OptimalMaxSpinWaitsPerSpinIteration();
 
         /// <summary>
         ///     Is single processor
         /// </summary>
-        public static bool IsSingleProcessor => Environment.ProcessorCount == 1;
+        private static readonly bool IsSingleProcessor = Environment.ProcessorCount == 1;
 
         /// <summary>
         ///     Structure
@@ -62,6 +65,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             static int Fallback() => Math.Max(Environment.ProcessorCount / 2 - 1, 1);
         }
+#endif
 
 #if NET5_0_OR_GREATER
         /// <summary>
@@ -160,6 +164,8 @@ namespace NativeCollections
 #else
             if (sleepThreshold < -1)
                 sleepThreshold = -1;
+            else if (sleepThreshold >= 0 && sleepThreshold < 10)
+                sleepThreshold = 10;
             if ((_count >= 10 && ((_count >= sleepThreshold && sleepThreshold >= 0) || (_count - 10) % 2 == 0)) || IsSingleProcessor)
             {
                 if (_count >= sleepThreshold && sleepThreshold >= 0)
