@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using static NativeCollections.TLSF;
 
 #pragma warning disable CA2208
 #pragma warning disable CS8632
