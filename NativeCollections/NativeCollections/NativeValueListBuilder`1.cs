@@ -3,6 +3,9 @@ using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+#pragma warning disable CA2208
+#pragma warning disable CS8632
+
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -69,6 +72,35 @@ namespace NativeCollections
         /// <summary>
         ///     Structure
         /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeValueListBuilder(Span<T> buffer)
+        {
+            _buffer = buffer;
+            _array = null;
+            _length = 0;
+        }
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <param name="length">Length</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeValueListBuilder(Span<T> buffer, int length)
+        {
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            if (length > buffer.Length)
+                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeLessOrEqual");
+            _buffer = buffer;
+            _array = null;
+            _length = length;
+        }
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
         /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeValueListBuilder(int capacity)
@@ -82,13 +114,19 @@ namespace NativeCollections
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="buffer">Buffer</param>
+        /// <param name="capacity">Capacity</param>
+        /// <param name="length">Length</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeValueListBuilder(Span<T> buffer)
+        public NativeValueListBuilder(int capacity, int length)
         {
-            _buffer = buffer;
-            _array = null;
-            _length = 0;
+            if (capacity < 0)
+                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            if (length > capacity)
+                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeLessOrEqual");
+            _buffer = _array = ArrayPool<T>.Shared.Rent(capacity);
+            _length = length;
         }
 
         /// <summary>

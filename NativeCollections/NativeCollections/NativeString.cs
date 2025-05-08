@@ -117,6 +117,22 @@ namespace NativeCollections
         /// <summary>
         ///     Append line
         /// </summary>
+        /// <returns>Appended</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AppendLine()
+        {
+            var newLine = NewLine;
+            if (_length + newLine.Length > Capacity)
+                return false;
+            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, _length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(newLine)), (uint)(newLine.Length * sizeof(char)));
+            _length += newLine.Length;
+            return true;
+        }
+
+        /// <summary>
+        ///     Append line
+        /// </summary>
         /// <param name="buffer">Buffer</param>
         /// <returns>Appended</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
