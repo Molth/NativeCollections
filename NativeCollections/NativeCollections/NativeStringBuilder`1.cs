@@ -594,7 +594,7 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => Text.ToString();
+        public override string ToString() => typeof(T) == typeof(char) ? Text.ToString() : $"NativeStringBuilder<{typeof(T).Name}>[{_length}]";
 
         /// <summary>
         ///     Copy to
