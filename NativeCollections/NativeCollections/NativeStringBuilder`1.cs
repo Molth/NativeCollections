@@ -775,7 +775,7 @@ namespace NativeCollections
         ///     Grow
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void Grow(int additionalCapacityRequired = 1)
+        private void Grow(int additionalCapacityRequired)
         {
             var minimumLength = Math.Max(_buffer.Length != 0 ? _buffer.Length * 2 : 4, _buffer.Length + additionalCapacityRequired);
             if ((uint)minimumLength > 2147483591U)
