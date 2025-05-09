@@ -16,7 +16,7 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Standard)]
-    [IsAssignableTo(typeof(IDisposable), typeof(IEquatable<>))]
+    [IsAssignableTo(typeof(IDisposable))]
     public unsafe ref struct NativeValueListBuilder<T> where T : unmanaged
     {
         /// <summary>
@@ -159,18 +159,6 @@ namespace NativeCollections
                 _buffer.Clear();
             _length = 0;
         }
-
-        /// <summary>
-        ///     Equals
-        /// </summary>
-        /// <returns>Equals</returns>
-        public bool Equals(NativeValueListBuilder<T> other) => AsReadOnlySpan().SequenceEqual(other.AsReadOnlySpan());
-
-        /// <summary>
-        ///     Equals
-        /// </summary>
-        /// <returns>Equals</returns>
-        public bool Equals(ReadOnlySpan<T> buffer) => AsReadOnlySpan().SequenceEqual(buffer);
 
         /// <summary>
         ///     Equals
@@ -331,16 +319,6 @@ namespace NativeCollections
                 minimumLength = Math.Max(Math.Max(_buffer.Length + 1, 2147483591), _buffer.Length);
             SetCapacity(minimumLength);
         }
-
-        /// <summary>
-        ///     Equals
-        /// </summary>
-        public static bool operator ==(NativeValueListBuilder<T> left, NativeValueListBuilder<T> right) => left.Equals(right);
-
-        /// <summary>
-        ///     Not equals
-        /// </summary>
-        public static bool operator !=(NativeValueListBuilder<T> left, NativeValueListBuilder<T> right) => !left.Equals(right);
 
         /// <summary>
         ///     Empty

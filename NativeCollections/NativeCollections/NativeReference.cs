@@ -44,7 +44,11 @@ namespace NativeCollections
         public ref byte this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(_buffer), new nint(index));
+            get
+            {
+                nint byteOffset = index;
+                return ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(_buffer), byteOffset);
+            }
         }
 
         /// <summary>
@@ -54,7 +58,11 @@ namespace NativeCollections
         public ref byte this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(_buffer), new nint(index));
+            get
+            {
+                var byteOffset = (nint)index;
+                return ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(_buffer), byteOffset);
+            }
         }
 
         /// <summary>
