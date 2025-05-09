@@ -143,6 +143,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
+            _buffer = new Span<T>();
+            _length = 0;
             var array = _array;
             if (array == null)
                 return;
