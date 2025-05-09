@@ -798,13 +798,6 @@ namespace NativeCollections
         public static implicit operator ReadOnlySpan<T>(in NativeStringBuilder<T> nativeStringBuilder) => nativeStringBuilder.AsReadOnlySpan();
 
         /// <summary>
-        ///     As native string
-        /// </summary>
-        /// <returns>NativeString</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeStringBuilder<T>(Span<T> buffer) => new(buffer);
-
-        /// <summary>
         ///     Equals
         /// </summary>
         public static bool operator ==(NativeStringBuilder<T> left, NativeStringBuilder<T> right) => left.Equals(right);
