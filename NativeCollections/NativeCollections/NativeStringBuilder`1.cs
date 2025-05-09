@@ -835,16 +835,6 @@ namespace NativeCollections
         public static bool operator !=(ReadOnlySpan<T> left, NativeStringBuilder<T> right) => !right.Equals(left);
 
         /// <summary>
-        ///     Create
-        /// </summary>
-        public static NativeStringBuilder<T> Create(ReadOnlySpan<T> buffer) => new(MemoryMarshal.CreateSpan(ref MemoryMarshal.GetReference(buffer), buffer.Length));
-
-        /// <summary>
-        ///     Create
-        /// </summary>
-        public static NativeStringBuilder<T> Create(ReadOnlySpan<T> buffer, int length) => new(MemoryMarshal.CreateSpan(ref MemoryMarshal.GetReference(buffer), buffer.Length), length);
-
-        /// <summary>
         ///     Empty
         /// </summary>
         public static NativeStringBuilder<T> Empty => new();
