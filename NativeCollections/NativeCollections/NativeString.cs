@@ -617,7 +617,7 @@ namespace NativeCollections
         public bool Skip(int length)
         {
             var newLength = _length + length;
-            if (newLength < 0 || newLength > Capacity)
+            if ((uint)newLength > (uint)Capacity)
                 return false;
             _length = newLength;
             return true;
