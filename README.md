@@ -22,3 +22,4 @@ These are some of the types that have already been implemented:
 18. SparseSet`1
 19. Stack`1
 20. String
+21. StringBuilder`1
