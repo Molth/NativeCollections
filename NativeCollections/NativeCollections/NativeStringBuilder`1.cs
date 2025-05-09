@@ -491,7 +491,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="start">Start</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeStringBuilder<T> Substring(int start) => new(Text.Slice(start));
+        public Span<T> Substring(int start) => Text.Slice(start);
 
         /// <summary>
         ///     Slice
@@ -499,7 +499,7 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <param name="length">Length</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeStringBuilder<T> Substring(int start, int length) => new(Text.Slice(start, length));
+        public Span<T> Substring(int start, int length) => Text.Slice(start, length);
 
         /// <summary>
         ///     Clear
