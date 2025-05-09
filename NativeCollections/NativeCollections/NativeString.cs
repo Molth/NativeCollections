@@ -15,6 +15,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Standard)]
+    [IsAssignableTo(typeof(IEquatable<>))]
     public unsafe ref struct NativeString
     {
         /// <summary>

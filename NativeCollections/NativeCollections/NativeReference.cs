@@ -14,6 +14,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
+    [IsAssignableTo(typeof(IEquatable<>))]
     public readonly unsafe ref struct NativeReference
     {
         /// <summary>
@@ -43,7 +44,7 @@ namespace NativeCollections
         public ref byte this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(_buffer), new IntPtr(index));
+            get => ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(_buffer), new nint(index));
         }
 
         /// <summary>
@@ -53,7 +54,7 @@ namespace NativeCollections
         public ref byte this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(_buffer), new IntPtr(index));
+            get => ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(_buffer), new nint(index));
         }
 
         /// <summary>

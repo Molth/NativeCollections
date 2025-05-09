@@ -13,8 +13,10 @@ namespace NativeCollections
     /// <summary>
     ///     Native string builder
     /// </summary>
+    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Standard)]
+    [IsAssignableTo(typeof(IDisposable), typeof(IEquatable<>))]
     public unsafe ref struct NativeStringBuilder<T> where T : unmanaged, IComparable<T>, IEquatable<T>
     {
         /// <summary>
