@@ -1,5 +1,7 @@
 This project is a pure C# native collections.
 
+[![NuGet](https://img.shields.io/nuget/v/NativeCollections.svg?style=flat-square)](https://www.nuget.org/packages/NativeCollections/)
+
 These are some of the types that have already been implemented:
 
 1. BitArray
