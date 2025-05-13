@@ -155,6 +155,12 @@ namespace NativeCollections
 
 #if NET6_0_OR_GREATER
         /// <summary>
+        ///     Append formatted
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AppendFormatted(ref this NativeStringBuilder<char> builder, ref DefaultInterpolatedStringHandler message, bool clear = true) => DefaultInterpolatedStringHandlerHelpers.AppendFormatted(ref builder, ref message, clear);
+
+        /// <summary>
         ///     Append formattable
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
