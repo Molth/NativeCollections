@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 #pragma warning disable CA2208
+#pragma warning disable CS8500
 #pragma warning disable CS8632
 
 // ReSharper disable ALL
@@ -14,7 +15,7 @@ namespace NativeCollections
     /// <summary>
     ///     DefaultInterpolatedStringHandler helpers
     /// </summary>
-    internal static class DefaultInterpolatedStringHandlerHelpers
+    internal static unsafe class DefaultInterpolatedStringHandlerHelpers
     {
         /// <summary>
         ///     Get text
@@ -85,30 +86,30 @@ namespace NativeCollections
         ///     Append formatted
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void AppendFormatted(ref NativeStringBuilder<char> builder, ref DefaultInterpolatedStringHandler message, bool clear)
+        public static void AppendFormatted(NativeStringBuilder<char>* ptr, ref DefaultInterpolatedStringHandler message, bool clear)
         {
             if (GetText != null)
             {
                 var text = GetText(ref message);
                 var buffer = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(text), text.Length);
-                builder.Append(buffer);
+                ptr->Append(buffer);
                 if (clear)
                     Clear!(ref message);
                 return;
             }
 
-            AppendFormattedFallback(ref builder, ref message, clear);
+            AppendFormattedFallback(ptr, ref message, clear);
         }
 
         /// <summary>
         ///     Append formatted
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void AppendFormattedFallback(ref NativeStringBuilder<char> builder, ref DefaultInterpolatedStringHandler message, bool clear)
+        private static void AppendFormattedFallback(NativeStringBuilder<char>* ptr, ref DefaultInterpolatedStringHandler message, bool clear)
         {
             ReadOnlySpan<char> text = clear ? message.ToStringAndClear() : message.ToString();
             var buffer = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(text), text.Length);
-            builder.Append(buffer);
+            ptr->Append(buffer);
         }
 
         /// <summary>
