@@ -633,6 +633,12 @@ namespace NativeCollections
         public readonly Span<T> GetSpan(int sizeHint = 0) => _buffer.Slice(_length, sizeHint);
 
         /// <summary>
+        ///     GetMemory
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly Memory<T> GetMemory(int sizeHint = 0) => new(_array, _length, sizeHint);
+
+        /// <summary>
         ///     Pad left
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
