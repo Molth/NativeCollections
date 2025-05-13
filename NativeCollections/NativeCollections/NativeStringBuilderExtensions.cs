@@ -142,12 +142,6 @@ namespace NativeCollections
         public static bool IsNullOrWhiteSpace(ref this NativeStringBuilder<char> builder) => ((NativeString)builder.Text).IsNullOrWhiteSpace();
 
         /// <summary>
-        ///     Is null or empty
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsNullOrEmpty(ref this NativeStringBuilder<char> builder) => ((NativeString)builder.Text).IsNullOrEmpty();
-
-        /// <summary>
         ///     Append formattable
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

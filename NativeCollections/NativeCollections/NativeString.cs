@@ -664,14 +664,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>HashCode</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override int GetHashCode()
-        {
-#if NETCOREAPP3_0_OR_GREATER
-            return string.GetHashCode(Text);
-#else
-            return MarvinHelpers.ComputeHash32(MemoryMarshal.Cast<char, byte>(Text), MarvinHelpers.DefaultSeed);
-#endif
-        }
+        public override int GetHashCode() => GetHashCode(Text);
 
         /// <summary>
         ///     To string

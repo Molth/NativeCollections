@@ -592,7 +592,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>HashCode</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override int GetHashCode() => typeof(T) == typeof(char) ? ((NativeString)MemoryMarshal.Cast<T, char>(Text)).GetHashCode() : NativeHashCode.GetHashCode<T>(Text);
+        public override int GetHashCode() => typeof(T) == typeof(char) ? NativeString.GetHashCode(MemoryMarshal.Cast<T, char>(Text)) : NativeHashCode.GetHashCode<T>(Text);
 
         /// <summary>
         ///     To string
@@ -660,6 +660,12 @@ namespace NativeCollections
             _buffer.Slice(_length, num).Fill(paddingT);
             _length = totalWidth;
         }
+
+        /// <summary>
+        ///     Is null or empty
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IsNullOrEmpty() => Unsafe.AsPointer(ref MemoryMarshal.GetReference(_buffer)) == null || _length == 0;
 
         /// <summary>
         ///     As span
