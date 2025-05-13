@@ -224,7 +224,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Insert(int startIndex, ReadOnlySpan<T> buffer)
         {
-            if (startIndex < 0 || startIndex > _length)
+            if ((uint)startIndex > (uint)_length)
                 return false;
             EnsureCapacity(_length + buffer.Length);
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
@@ -408,7 +408,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Insert(int startIndex, in T value)
         {
-            if (startIndex < 0 || startIndex > _length)
+            if ((uint)startIndex > (uint)_length)
                 return false;
             EnsureCapacity(_length + 1);
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
@@ -465,7 +465,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(int startIndex, int length)
         {
-            if (startIndex < 0 || length < 0 || _length - startIndex < length)
+            if ((uint)startIndex > (uint)_length || (uint)length > (uint)(_length - startIndex))
                 return false;
             if (length > 0)
             {
@@ -530,7 +530,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool SetLength(int length)
         {
-            if (length < 0 || length > Capacity)
+            if ((uint)length > (uint)Capacity)
                 return false;
             _length = length;
             return true;
