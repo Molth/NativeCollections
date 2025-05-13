@@ -716,6 +716,54 @@ namespace NativeCollections
         public readonly ReadOnlySpan<T> AsReadOnlySpan(int start, int length) => _buffer.Slice(start, length);
 
         /// <summary>
+        ///     As memory
+        /// </summary>
+        /// <returns>Memory</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly Memory<T> AsMemory() => _array;
+
+        /// <summary>
+        ///     As memory
+        /// </summary>
+        /// <param name="start">Start</param>
+        /// <returns>Memory</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly Memory<T> AsMemory(int start) => new(_array, start, _length - start);
+
+        /// <summary>
+        ///     As memory
+        /// </summary>
+        /// <param name="start">Start</param>
+        /// <param name="length">Length</param>
+        /// <returns>Memory</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly Memory<T> AsMemory(int start, int length) => new(_array, start, length);
+
+        /// <summary>
+        ///     As readOnly memory
+        /// </summary>
+        /// <returns>ReadOnlyMemory</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly ReadOnlyMemory<T> AsReadOnlyMemory() => _array;
+
+        /// <summary>
+        ///     As readOnly memory
+        /// </summary>
+        /// <param name="start">Start</param>
+        /// <returns>ReadOnlyMemory</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly ReadOnlyMemory<T> AsReadOnlyMemory(int start) => new(_array, start, _length - start);
+
+        /// <summary>
+        ///     As readOnly memory
+        /// </summary>
+        /// <param name="start">Start</param>
+        /// <param name="length">Length</param>
+        /// <returns>ReadOnlyMemory</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly ReadOnlyMemory<T> AsReadOnlyMemory(int start, int length) => new(_array, start, length);
+
+        /// <summary>
         ///     Ensure capacity
         /// </summary>
         /// <param name="capacity">Capacity</param>

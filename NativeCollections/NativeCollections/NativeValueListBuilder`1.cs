@@ -237,6 +237,20 @@ namespace NativeCollections
         public ReadOnlySpan<T> AsReadOnlySpan() => _buffer.Slice(0, _length);
 
         /// <summary>
+        ///     As memory
+        /// </summary>
+        /// <returns>Memory</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly Memory<T> AsMemory() => _array;
+
+        /// <summary>
+        ///     As readOnly memory
+        /// </summary>
+        /// <returns>ReadOnlyMemory</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly ReadOnlyMemory<T> AsReadOnlyMemory() => _array;
+
+        /// <summary>
         ///     Cast
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
