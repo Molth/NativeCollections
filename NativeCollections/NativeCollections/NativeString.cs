@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -17,7 +18,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Standard)]
-    [IsAssignableTo(typeof(IEquatable<>))]
+    [IsAssignableTo(typeof(IEquatable<>), typeof(IReadOnlyCollection<char>))]
     public unsafe ref struct NativeString
     {
         /// <summary>

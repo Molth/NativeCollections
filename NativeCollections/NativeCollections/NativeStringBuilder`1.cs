@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -17,7 +18,7 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Standard)]
-    [IsAssignableTo(typeof(IDisposable), typeof(IEquatable<>))]
+    [IsAssignableTo(typeof(IDisposable), typeof(IEquatable<>), typeof(IReadOnlyCollection<>))]
     public unsafe ref struct NativeStringBuilder<T> where T : unmanaged, IComparable<T>, IEquatable<T>
     {
         /// <summary>
