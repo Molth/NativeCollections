@@ -294,7 +294,7 @@ namespace NativeCollections
             var minimumLength = _length + (newValue.Length - oldValue.Length) * readOnlySpan.Length;
             EnsureCapacity(minimumLength);
             T[]? array = null;
-            ref var local2 = ref MemoryMarshal.GetReference(minimumLength <= 128 ? stackalloc T[minimumLength] : (Span<T>)(array = ArrayPool<T>.Shared.Rent(minimumLength)));
+            ref var local2 = ref MemoryMarshal.GetReference(minimumLength <= 512 / sizeof(T) ? stackalloc T[minimumLength] : (Span<T>)(array = ArrayPool<T>.Shared.Rent(minimumLength)));
             var elementOffset2 = 0;
             var elementOffset3 = 0;
             ref var local3 = ref MemoryMarshal.GetReference(newValue);

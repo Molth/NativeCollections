@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 
 #pragma warning disable CA2208
 #pragma warning disable CS8500
@@ -197,13 +199,7 @@ namespace NativeCollections
         ///     Append formatted
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void AppendFormatted(in this NativeStringBuilder<char> builder, ref DefaultInterpolatedStringHandler message, bool clear = true)
-        {
-            fixed (NativeStringBuilder<char>* ptr = &builder)
-            {
-                DefaultInterpolatedStringHandlerHelpers.AppendFormatted(ptr, ref message, clear);
-            }
-        }
+        public static void AppendFormatted(in this NativeStringBuilder<char> builder, ref DefaultInterpolatedStringHandler message, bool clear = true) => DefaultInterpolatedStringHandlerHelpers.AppendFormatted(builder, ref message, clear);
 
         /// <summary>
         ///     Append formattable
@@ -501,8 +497,109 @@ namespace NativeCollections
             }
         }
 #endif
+        /// <summary>
+        ///     Append
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Append(in this NativeStringBuilder<byte> builder, ReadOnlySpan<char> buffer)
+        {
+            var byteCount = Encoding.UTF8.GetByteCount(buffer);
+            byte[]? array = null;
+            var bytes = byteCount <= 1024 ? stackalloc byte[byteCount] : (array = ArrayPool<byte>.Shared.Rent(byteCount)).AsSpan(0, byteCount);
+            try
+            {
+                Encoding.UTF8.GetBytes(buffer, bytes);
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
+                {
+                    ptr->EnsureCapacity(ptr->Length + bytes.Length);
+                    ref var reference = ref MemoryMarshal.GetReference(ptr->Buffer);
+                    nint byteOffset = ptr->Length;
+                    Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteOffset), ref MemoryMarshal.GetReference(bytes), (uint)bytes.Length);
+                    ptr->Advance(bytes.Length);
+                }
+            }
+            finally
+            {
+                if (array != null)
+                    ArrayPool<byte>.Shared.Return(array);
+            }
+        }
 
+        /// <summary>
+        ///     Append
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Append(in this NativeStringBuilder<byte> builder, char value)
+        {
+            ReadOnlySpan<char> buffer = stackalloc char[1] { value };
+            builder.Append(buffer);
+        }
+
+        /// <summary>
+        ///     Append line
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AppendLine(in this NativeStringBuilder<byte> builder)
+        {
+            var newLine = NativeString.NewLineUtf8;
+            fixed (NativeStringBuilder<byte>* ptr = &builder)
+            {
+                ptr->EnsureCapacity(ptr->Length + newLine.Length);
+                ref var reference = ref MemoryMarshal.GetReference(ptr->Buffer);
+                nint byteOffset = ptr->Length;
+                Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteOffset), ref MemoryMarshal.GetReference(newLine), (uint)newLine.Length);
+                ptr->Advance(newLine.Length);
+            }
+        }
+
+        /// <summary>
+        ///     Append line
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AppendLine(in this NativeStringBuilder<byte> builder, ReadOnlySpan<char> buffer)
+        {
+            var newLine = NativeString.NewLineUtf8;
+            var byteCount = Encoding.UTF8.GetByteCount(buffer);
+            byte[]? array = null;
+            var bytes = byteCount <= 1024 ? stackalloc byte[byteCount] : (array = ArrayPool<byte>.Shared.Rent(byteCount)).AsSpan(0, byteCount);
+            try
+            {
+                Encoding.UTF8.GetBytes(buffer, bytes);
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
+                {
+                    ptr->EnsureCapacity(ptr->Length + bytes.Length + newLine.Length);
+                    ref var reference = ref MemoryMarshal.GetReference(ptr->Buffer);
+                    nint byteOffset1 = ptr->Length;
+                    Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteOffset1), ref MemoryMarshal.GetReference(bytes), (uint)bytes.Length);
+                    ptr->Advance(bytes.Length);
+                    nint byteOffset2 = ptr->Length;
+                    Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteOffset2), ref MemoryMarshal.GetReference(newLine), (uint)newLine.Length);
+                    ptr->Advance(newLine.Length);
+                }
+            }
+            finally
+            {
+                if (array != null)
+                    ArrayPool<byte>.Shared.Return(array);
+            }
+        }
+
+        /// <summary>
+        ///     Append line
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AppendLine(in this NativeStringBuilder<byte> builder, char value)
+        {
+            ReadOnlySpan<char> buffer = stackalloc char[1] { value };
+            builder.AppendLine(buffer);
+        }
 #if NET8_0_OR_GREATER
+        /// <summary>
+        ///     Append formatted
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AppendFormatted(in this NativeStringBuilder<byte> builder, ref DefaultInterpolatedStringHandler message, bool clear = true) => DefaultInterpolatedStringHandlerHelpers.AppendFormatted(builder, ref message, clear);
+
         /// <summary>
         ///     Append formattable
         /// </summary>

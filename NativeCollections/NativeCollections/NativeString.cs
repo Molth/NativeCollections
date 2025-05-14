@@ -2,6 +2,7 @@
 using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 
 #pragma warning disable CA2208
 #pragma warning disable CS8632
@@ -281,7 +282,7 @@ namespace NativeCollections
             }
 
             char[]? array = null;
-            ref var local2 = ref MemoryMarshal.GetReference(minimumLength <= 128 ? stackalloc char[minimumLength] : (Span<char>)(array = ArrayPool<char>.Shared.Rent(minimumLength)));
+            ref var local2 = ref MemoryMarshal.GetReference(minimumLength <= 256 ? stackalloc char[minimumLength] : (Span<char>)(array = ArrayPool<char>.Shared.Rent(minimumLength)));
             var elementOffset2 = 0;
             var elementOffset3 = 0;
             ref var local3 = ref MemoryMarshal.GetReference(newValue);
@@ -931,7 +932,22 @@ namespace NativeCollections
         /// <summary>
         ///     New line
         /// </summary>
-        public static ReadOnlySpan<char> NewLine => Environment.NewLine;
+        private static readonly char[] _NewLine = Environment.NewLine.ToCharArray();
+
+        /// <summary>
+        ///     New line
+        /// </summary>
+        private static readonly byte[] _NewLineUtf8 = Encoding.UTF8.GetBytes(Environment.NewLine);
+
+        /// <summary>
+        ///     New line
+        /// </summary>
+        public static ReadOnlySpan<char> NewLine => _NewLine;
+
+        /// <summary>
+        ///     New line
+        /// </summary>
+        public static ReadOnlySpan<byte> NewLineUtf8 => _NewLineUtf8;
 
         /// <summary>
         ///     Get hashCode
