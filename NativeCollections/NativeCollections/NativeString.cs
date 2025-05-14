@@ -6,6 +6,7 @@ using System.Text;
 
 #pragma warning disable CA2208
 #pragma warning disable CS8632
+#pragma warning disable CS9081
 
 // ReSharper disable ALL
 
@@ -232,7 +233,7 @@ namespace NativeCollections
                 return false;
             if (Unsafe.AsPointer(ref MemoryMarshal.GetReference(newValue)) == null)
                 newValue = (ReadOnlySpan<char>)string.Empty;
-            var valueListBuilder = new NativeValueListBuilder<int>(stackalloc int[128]);
+            NativeValueListBuilder<int> valueListBuilder;
             var elementOffset1 = 0;
             ref var local1 = ref MemoryMarshal.GetReference(_buffer);
             if (oldValue.Length == 1)
@@ -243,6 +244,7 @@ namespace NativeCollections
                     return true;
                 }
 
+                valueListBuilder = new NativeValueListBuilder<int>(stackalloc int[128]);
                 var ch = oldValue[0];
                 while (true)
                 {
@@ -258,6 +260,7 @@ namespace NativeCollections
             }
             else
             {
+                valueListBuilder = new NativeValueListBuilder<int>(stackalloc int[128]);
                 while (true)
                 {
                     var num = MemoryMarshal.CreateSpan(ref Unsafe.Add(ref local1, elementOffset1), _length - elementOffset1).IndexOf(oldValue);
