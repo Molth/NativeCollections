@@ -1,9 +1,7 @@
 ﻿#if NET6_0_OR_GREATER
 using System;
-using System.Buffers;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Text;
 
 #pragma warning disable CA2208
 #pragma warning disable CS8500
@@ -126,26 +124,13 @@ namespace NativeCollections
             if (GetText != null)
             {
                 var text = GetText(ref message);
-                var byteCount = Encoding.UTF8.GetByteCount(text);
-                byte[]? array = null;
-                var bytes = byteCount <= 1024 ? stackalloc byte[byteCount] : (array = ArrayPool<byte>.Shared.Rent(byteCount)).AsSpan(0, byteCount);
-                try
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
                 {
-                    Encoding.UTF8.GetBytes(text, bytes);
-                    fixed (NativeStringBuilder<byte>* ptr = &builder)
-                    {
-                        ptr->Append(bytes);
-                    }
-
-                    if (clear)
-                        Clear!(ref message);
-                }
-                finally
-                {
-                    if (array != null)
-                        ArrayPool<byte>.Shared.Return(array);
+                    ptr->Append(text);
                 }
 
+                if (clear)
+                    Clear!(ref message);
                 return;
             }
 
@@ -159,21 +144,9 @@ namespace NativeCollections
         private static void AppendFormattedFallback(in NativeStringBuilder<byte> builder, ref DefaultInterpolatedStringHandler message, bool clear)
         {
             ReadOnlySpan<char> text = clear ? message.ToStringAndClear() : message.ToString();
-            var byteCount = Encoding.UTF8.GetByteCount(text);
-            byte[]? array = null;
-            var bytes = byteCount <= 1024 ? stackalloc byte[byteCount] : (array = ArrayPool<byte>.Shared.Rent(byteCount)).AsSpan(0, byteCount);
-            try
+            fixed (NativeStringBuilder<byte>* ptr = &builder)
             {
-                Encoding.UTF8.GetBytes(text, bytes);
-                fixed (NativeStringBuilder<byte>* ptr = &builder)
-                {
-                    ptr->Append(bytes);
-                }
-            }
-            finally
-            {
-                if (array != null)
-                    ArrayPool<byte>.Shared.Return(array);
+                ptr->Append(text);
             }
         }
 

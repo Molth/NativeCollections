@@ -7,6 +7,7 @@ using System.Text;
 #pragma warning disable CA2208
 #pragma warning disable CS8500
 #pragma warning disable CS8632
+#pragma warning disable CS9080
 
 // ReSharper disable ALL
 
@@ -498,30 +499,276 @@ namespace NativeCollections
         }
 #endif
         /// <summary>
-        ///     Append
+        ///     Index of
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Append(in this NativeStringBuilder<byte> builder, ReadOnlySpan<char> buffer)
+        public static int IndexOf(in this NativeStringBuilder<byte> builder, ReadOnlySpan<char> buffer)
         {
             var byteCount = Encoding.UTF8.GetByteCount(buffer);
             byte[]? array = null;
             var bytes = byteCount <= 1024 ? stackalloc byte[byteCount] : (array = ArrayPool<byte>.Shared.Rent(byteCount)).AsSpan(0, byteCount);
             try
             {
-                Encoding.UTF8.GetBytes(buffer, bytes);
                 fixed (NativeStringBuilder<byte>* ptr = &builder)
                 {
-                    ptr->EnsureCapacity(ptr->Length + bytes.Length);
-                    ref var reference = ref MemoryMarshal.GetReference(ptr->Buffer);
-                    nint byteOffset = ptr->Length;
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteOffset), ref MemoryMarshal.GetReference(bytes), (uint)bytes.Length);
-                    ptr->Advance(bytes.Length);
+                    return ptr->IndexOf(bytes);
                 }
             }
             finally
             {
                 if (array != null)
                     ArrayPool<byte>.Shared.Return(array);
+            }
+        }
+
+        /// <summary>
+        ///     Last index of
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int LastIndexOf(in this NativeStringBuilder<byte> builder, ReadOnlySpan<char> buffer)
+        {
+            var byteCount = Encoding.UTF8.GetByteCount(buffer);
+            byte[]? array = null;
+            var bytes = byteCount <= 1024 ? stackalloc byte[byteCount] : (array = ArrayPool<byte>.Shared.Rent(byteCount)).AsSpan(0, byteCount);
+            try
+            {
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
+                {
+                    return ptr->LastIndexOf(bytes);
+                }
+            }
+            finally
+            {
+                if (array != null)
+                    ArrayPool<byte>.Shared.Return(array);
+            }
+        }
+
+        /// <summary>
+        ///     Index of any
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int IndexOfAny(in this NativeStringBuilder<byte> builder, ReadOnlySpan<char> buffer)
+        {
+            var byteCount = Encoding.UTF8.GetByteCount(buffer);
+            byte[]? array = null;
+            var bytes = byteCount <= 1024 ? stackalloc byte[byteCount] : (array = ArrayPool<byte>.Shared.Rent(byteCount)).AsSpan(0, byteCount);
+            try
+            {
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
+                {
+                    return ptr->IndexOfAny(bytes);
+                }
+            }
+            finally
+            {
+                if (array != null)
+                    ArrayPool<byte>.Shared.Return(array);
+            }
+        }
+
+        /// <summary>
+        ///     Last index of any
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int LastIndexOfAny(in this NativeStringBuilder<byte> builder, ReadOnlySpan<char> buffer)
+        {
+            var byteCount = Encoding.UTF8.GetByteCount(buffer);
+            byte[]? array = null;
+            var bytes = byteCount <= 1024 ? stackalloc byte[byteCount] : (array = ArrayPool<byte>.Shared.Rent(byteCount)).AsSpan(0, byteCount);
+            try
+            {
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
+                {
+                    return ptr->LastIndexOfAny(bytes);
+                }
+            }
+            finally
+            {
+                if (array != null)
+                    ArrayPool<byte>.Shared.Return(array);
+            }
+        }
+
+        /// <summary>
+        ///     Contains
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool Contains(in this NativeStringBuilder<byte> builder, ReadOnlySpan<char> buffer)
+        {
+            var byteCount = Encoding.UTF8.GetByteCount(buffer);
+            byte[]? array = null;
+            var bytes = byteCount <= 1024 ? stackalloc byte[byteCount] : (array = ArrayPool<byte>.Shared.Rent(byteCount)).AsSpan(0, byteCount);
+            try
+            {
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
+                {
+                    return ptr->Contains(bytes);
+                }
+            }
+            finally
+            {
+                if (array != null)
+                    ArrayPool<byte>.Shared.Return(array);
+            }
+        }
+
+        /// <summary>
+        ///     Remove
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Remove(in this NativeStringBuilder<byte> builder, ReadOnlySpan<char> buffer)
+        {
+            var byteCount = Encoding.UTF8.GetByteCount(buffer);
+            byte[]? array = null;
+            var bytes = byteCount <= 1024 ? stackalloc byte[byteCount] : (array = ArrayPool<byte>.Shared.Rent(byteCount)).AsSpan(0, byteCount);
+            try
+            {
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
+                {
+                    ptr->Remove(bytes);
+                }
+            }
+            finally
+            {
+                if (array != null)
+                    ArrayPool<byte>.Shared.Return(array);
+            }
+        }
+
+        /// <summary>
+        ///     Insert
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool Insert(in this NativeStringBuilder<byte> builder, int startIndex, ReadOnlySpan<char> buffer)
+        {
+            var byteCount = Encoding.UTF8.GetByteCount(buffer);
+            byte[]? array = null;
+            var bytes = byteCount <= 1024 ? stackalloc byte[byteCount] : (array = ArrayPool<byte>.Shared.Rent(byteCount)).AsSpan(0, byteCount);
+            try
+            {
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
+                {
+                    return ptr->Insert(startIndex, bytes);
+                }
+            }
+            finally
+            {
+                if (array != null)
+                    ArrayPool<byte>.Shared.Return(array);
+            }
+        }
+
+        /// <summary>
+        ///     Replace
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool Replace(in this NativeStringBuilder<byte> builder, ReadOnlySpan<char> oldValue, ReadOnlySpan<char> newValue)
+        {
+            var byteCount1 = Encoding.UTF8.GetByteCount(oldValue);
+            var byteCount2 = Encoding.UTF8.GetByteCount(newValue);
+            var byteCount = byteCount1 + byteCount2;
+            byte[]? array = null;
+            var bytes1 = byteCount <= 1024 ? stackalloc byte[byteCount1] : (array = ArrayPool<byte>.Shared.Rent(byteCount)).AsSpan(0, byteCount1);
+            var bytes2 = byteCount <= 1024 ? stackalloc byte[byteCount2] : array.AsSpan(byteCount1, byteCount2);
+            try
+            {
+                Encoding.UTF8.GetBytes(oldValue, bytes1);
+                Encoding.UTF8.GetBytes(newValue, bytes2);
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
+                {
+                    return ptr->Replace(bytes1, bytes2);
+                }
+            }
+            finally
+            {
+                if (array != null)
+                    ArrayPool<byte>.Shared.Return(array);
+            }
+        }
+
+        /// <summary>
+        ///     Starts with
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool StartsWith(in this NativeStringBuilder<byte> builder, ReadOnlySpan<char> buffer)
+        {
+            var byteCount = Encoding.UTF8.GetByteCount(buffer);
+            byte[]? array = null;
+            var bytes = byteCount <= 1024 ? stackalloc byte[byteCount] : (array = ArrayPool<byte>.Shared.Rent(byteCount)).AsSpan(0, byteCount);
+            try
+            {
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
+                {
+                    return ptr->StartsWith(bytes);
+                }
+            }
+            finally
+            {
+                if (array != null)
+                    ArrayPool<byte>.Shared.Return(array);
+            }
+        }
+
+        /// <summary>
+        ///     Ends with
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool EndsWith(in this NativeStringBuilder<byte> builder, ReadOnlySpan<char> buffer)
+        {
+            var byteCount = Encoding.UTF8.GetByteCount(buffer);
+            byte[]? array = null;
+            var bytes = byteCount <= 1024 ? stackalloc byte[byteCount] : (array = ArrayPool<byte>.Shared.Rent(byteCount)).AsSpan(0, byteCount);
+            try
+            {
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
+                {
+                    return ptr->EndsWith(bytes);
+                }
+            }
+            finally
+            {
+                if (array != null)
+                    ArrayPool<byte>.Shared.Return(array);
+            }
+        }
+
+        /// <summary>
+        ///     Compare
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Compare(in this NativeStringBuilder<byte> builder, ReadOnlySpan<char> buffer)
+        {
+            var byteCount = Encoding.UTF8.GetByteCount(buffer);
+            byte[]? array = null;
+            var bytes = byteCount <= 1024 ? stackalloc byte[byteCount] : (array = ArrayPool<byte>.Shared.Rent(byteCount)).AsSpan(0, byteCount);
+            try
+            {
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
+                {
+                    return ptr->Compare(bytes);
+                }
+            }
+            finally
+            {
+                if (array != null)
+                    ArrayPool<byte>.Shared.Return(array);
+            }
+        }
+
+        /// <summary>
+        ///     Append
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Append(in this NativeStringBuilder<byte> builder, ReadOnlySpan<char> buffer)
+        {
+            var byteCount = Encoding.UTF8.GetByteCount(buffer);
+            fixed (NativeStringBuilder<byte>* ptr = &builder)
+            {
+                ptr->EnsureCapacity(ptr->Length + byteCount);
+                var bytes = ptr->GetSpan(byteCount);
+                Encoding.UTF8.GetBytes(buffer, bytes);
+                ptr->Advance(bytes.Length);
             }
         }
 
@@ -544,11 +791,7 @@ namespace NativeCollections
             var newLine = NativeString.NewLineUtf8;
             fixed (NativeStringBuilder<byte>* ptr = &builder)
             {
-                ptr->EnsureCapacity(ptr->Length + newLine.Length);
-                ref var reference = ref MemoryMarshal.GetReference(ptr->Buffer);
-                nint byteOffset = ptr->Length;
-                Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteOffset), ref MemoryMarshal.GetReference(newLine), (uint)newLine.Length);
-                ptr->Advance(newLine.Length);
+                ptr->Append(newLine);
             }
         }
 
@@ -560,27 +803,15 @@ namespace NativeCollections
         {
             var newLine = NativeString.NewLineUtf8;
             var byteCount = Encoding.UTF8.GetByteCount(buffer);
-            byte[]? array = null;
-            var bytes = byteCount <= 1024 ? stackalloc byte[byteCount] : (array = ArrayPool<byte>.Shared.Rent(byteCount)).AsSpan(0, byteCount);
-            try
+            fixed (NativeStringBuilder<byte>* ptr = &builder)
             {
+                ptr->EnsureCapacity(ptr->Length + byteCount + newLine.Length);
+                var bytes = ptr->GetSpan(byteCount);
                 Encoding.UTF8.GetBytes(buffer, bytes);
-                fixed (NativeStringBuilder<byte>* ptr = &builder)
-                {
-                    ptr->EnsureCapacity(ptr->Length + bytes.Length + newLine.Length);
-                    ref var reference = ref MemoryMarshal.GetReference(ptr->Buffer);
-                    nint byteOffset1 = ptr->Length;
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteOffset1), ref MemoryMarshal.GetReference(bytes), (uint)bytes.Length);
-                    ptr->Advance(bytes.Length);
-                    nint byteOffset2 = ptr->Length;
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteOffset2), ref MemoryMarshal.GetReference(newLine), (uint)newLine.Length);
-                    ptr->Advance(newLine.Length);
-                }
-            }
-            finally
-            {
-                if (array != null)
-                    ArrayPool<byte>.Shared.Return(array);
+                ptr->Advance(bytes.Length);
+                nint byteOffset = ptr->Length;
+                Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(ptr->Buffer), byteOffset), ref MemoryMarshal.GetReference(newLine), (uint)newLine.Length);
+                ptr->Advance(newLine.Length);
             }
         }
 
@@ -593,13 +824,14 @@ namespace NativeCollections
             ReadOnlySpan<char> buffer = stackalloc char[1] { value };
             builder.AppendLine(buffer);
         }
-#if NET8_0_OR_GREATER
+#if NET6_0_OR_GREATER
         /// <summary>
         ///     Append formatted
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormatted(in this NativeStringBuilder<byte> builder, ref DefaultInterpolatedStringHandler message, bool clear = true) => DefaultInterpolatedStringHandlerHelpers.AppendFormatted(builder, ref message, clear);
-
+#endif
+#if NET8_0_OR_GREATER
         /// <summary>
         ///     Append formattable
         /// </summary>
@@ -612,6 +844,320 @@ namespace NativeCollections
                 while (!obj.TryFormat(ptr->Space, out bytesWritten, format, provider))
                     ptr->EnsureCapacity(ptr->Capacity + 1);
                 ptr->Advance(bytesWritten);
+            }
+        }
+#elif NET6_0_OR_GREATER
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AppendFormattable<T>(in this NativeStringBuilder<byte> builder, in T obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) where T : ISpanFormattable
+        {
+            using (var temp = new NativeStringBuilder<char>(stackalloc char[512], 0))
+            {
+                temp.AppendFormattable(obj, format, provider);
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
+                {
+                    ptr->Append(temp);
+                }
+            }
+        }
+#else
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AppendFormattable(in this NativeStringBuilder<byte> builder, decimal obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            using (var temp = new NativeStringBuilder<char>(stackalloc char[512], 0))
+            {
+                temp.AppendFormattable(obj, format, provider);
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
+                {
+                    ptr->Append(temp);
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AppendFormattable(in this NativeStringBuilder<byte> builder, DateTime obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            using (var temp = new NativeStringBuilder<char>(stackalloc char[512], 0))
+            {
+                temp.AppendFormattable(obj, format, provider);
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
+                {
+                    ptr->Append(temp);
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AppendFormattable(in this NativeStringBuilder<byte> builder, byte obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            using (var temp = new NativeStringBuilder<char>(stackalloc char[512], 0))
+            {
+                temp.AppendFormattable(obj, format, provider);
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
+                {
+                    ptr->Append(temp);
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AppendFormattable(in this NativeStringBuilder<byte> builder, DateTimeOffset obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            using (var temp = new NativeStringBuilder<char>(stackalloc char[512], 0))
+            {
+                temp.AppendFormattable(obj, format, provider);
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
+                {
+                    ptr->Append(temp);
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AppendFormattable(in this NativeStringBuilder<byte> builder, double obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            using (var temp = new NativeStringBuilder<char>(stackalloc char[512], 0))
+            {
+                temp.AppendFormattable(obj, format, provider);
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
+                {
+                    ptr->Append(temp);
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AppendFormattable(in this NativeStringBuilder<byte> builder, Guid obj, ReadOnlySpan<char> format = default, IFormatProvider? _ = null)
+        {
+            using (var temp = new NativeStringBuilder<char>(stackalloc char[512], 0))
+            {
+                temp.AppendFormattable(obj, format, _);
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
+                {
+                    ptr->Append(temp);
+                }
+            }
+        }
+
+#if NET5_0_OR_GREATER
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AppendFormattable(in this NativeStringBuilder<byte> builder, Half obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            using (var temp = new NativeStringBuilder<char>(stackalloc char[512], 0))
+            {
+                temp.AppendFormattable(obj, format, provider);
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
+                {
+                    ptr->Append(temp);
+                }
+            }
+        }
+#endif
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AppendFormattable(in this NativeStringBuilder<byte> builder, short obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            using (var temp = new NativeStringBuilder<char>(stackalloc char[512], 0))
+            {
+                temp.AppendFormattable(obj, format, provider);
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
+                {
+                    ptr->Append(temp);
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AppendFormattable(in this NativeStringBuilder<byte> builder, int obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            using (var temp = new NativeStringBuilder<char>(stackalloc char[512], 0))
+            {
+                temp.AppendFormattable(obj, format, provider);
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
+                {
+                    ptr->Append(temp);
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AppendFormattable(in this NativeStringBuilder<byte> builder, long obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            using (var temp = new NativeStringBuilder<char>(stackalloc char[512], 0))
+            {
+                temp.AppendFormattable(obj, format, provider);
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
+                {
+                    ptr->Append(temp);
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AppendFormattable(in this NativeStringBuilder<byte> builder, sbyte obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            using (var temp = new NativeStringBuilder<char>(stackalloc char[512], 0))
+            {
+                temp.AppendFormattable(obj, format, provider);
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
+                {
+                    ptr->Append(temp);
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AppendFormattable(in this NativeStringBuilder<byte> builder, float obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            using (var temp = new NativeStringBuilder<char>(stackalloc char[512], 0))
+            {
+                temp.AppendFormattable(obj, format, provider);
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
+                {
+                    ptr->Append(temp);
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AppendFormattable(in this NativeStringBuilder<byte> builder, TimeSpan obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            using (var temp = new NativeStringBuilder<char>(stackalloc char[512], 0))
+            {
+                temp.AppendFormattable(obj, format, provider);
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
+                {
+                    ptr->Append(temp);
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AppendFormattable(in this NativeStringBuilder<byte> builder, ushort obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            using (var temp = new NativeStringBuilder<char>(stackalloc char[512], 0))
+            {
+                temp.AppendFormattable(obj, format, provider);
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
+                {
+                    ptr->Append(temp);
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AppendFormattable(in this NativeStringBuilder<byte> builder, uint obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            using (var temp = new NativeStringBuilder<char>(stackalloc char[512], 0))
+            {
+                temp.AppendFormattable(obj, format, provider);
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
+                {
+                    ptr->Append(temp);
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AppendFormattable(in this NativeStringBuilder<byte> builder, ulong obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            using (var temp = new NativeStringBuilder<char>(stackalloc char[512], 0))
+            {
+                temp.AppendFormattable(obj, format, provider);
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
+                {
+                    ptr->Append(temp);
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AppendFormattable(in this NativeStringBuilder<byte> builder, nint obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            if (sizeof(nint) == 8)
+                AppendFormattable(builder, (long)obj, format, provider);
+            else
+                AppendFormattable(builder, (int)obj, format, provider);
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AppendFormattable(in this NativeStringBuilder<byte> builder, nuint obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            if (sizeof(nint) == 8)
+                AppendFormattable(builder, (ulong)obj, format, provider);
+            else
+                AppendFormattable(builder, (uint)obj, format, provider);
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AppendFormattable(in this NativeStringBuilder<byte> builder, Version obj, ReadOnlySpan<char> _ = default, IFormatProvider? __ = null)
+        {
+            using (var temp = new NativeStringBuilder<char>(stackalloc char[512], 0))
+            {
+                temp.AppendFormattable(obj, _, __);
+                fixed (NativeStringBuilder<byte>* ptr = &builder)
+                {
+                    ptr->Append(temp);
+                }
             }
         }
 #endif
