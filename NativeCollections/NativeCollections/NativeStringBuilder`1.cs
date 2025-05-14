@@ -298,13 +298,14 @@ namespace NativeCollections
             var elementOffset2 = 0;
             var elementOffset3 = 0;
             ref var local3 = ref MemoryMarshal.GetReference(newValue);
+            ref var local4 = ref MemoryMarshal.GetReference(_buffer);
             for (var index = 0; index < readOnlySpan.Length; ++index)
             {
                 var num1 = readOnlySpan[index];
                 var num2 = num1 - elementOffset2;
                 if (num2 != 0)
                 {
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local2, elementOffset3)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local1, elementOffset2)), (uint)(num2 * 2));
+                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local2, elementOffset3)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local4, elementOffset2)), (uint)(num2 * 2));
                     elementOffset3 += num2;
                 }
 
@@ -313,8 +314,8 @@ namespace NativeCollections
                 elementOffset3 += newValue.Length;
             }
 
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local2, elementOffset3)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local1, elementOffset2)), (uint)((_length - elementOffset2) * 2));
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref local1), ref Unsafe.As<T, byte>(ref local2), (uint)(minimumLength * 2));
+            Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local2, elementOffset3)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local4, elementOffset2)), (uint)((_length - elementOffset2) * 2));
+            Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref local4), ref Unsafe.As<T, byte>(ref local2), (uint)(minimumLength * 2));
             _length = minimumLength;
             valueListBuilder.Dispose();
             if (array != null)
