@@ -824,6 +824,45 @@ namespace NativeCollections
             ReadOnlySpan<char> buffer = stackalloc char[1] { value };
             builder.AppendLine(buffer);
         }
+
+        /// <summary>
+        ///     Append line
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AppendLine(in this NativeStringBuilder<byte> builder, ReadOnlySpan<byte> buffer)
+        {
+            var newLine = NativeString.NewLineUtf8;
+            fixed (NativeStringBuilder<byte>* ptr = &builder)
+            {
+                ptr->EnsureCapacity(ptr->Length + buffer.Length + newLine.Length);
+                ref var reference = ref MemoryMarshal.GetReference(ptr->Buffer);
+                nint byteOffset1 = ptr->Length;
+                Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteOffset1), ref MemoryMarshal.GetReference(buffer), (uint)buffer.Length);
+                ptr->Advance(buffer.Length);
+                nint byteOffset2 = ptr->Length;
+                Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteOffset2), ref MemoryMarshal.GetReference(newLine), (uint)newLine.Length);
+                ptr->Advance(newLine.Length);
+            }
+        }
+
+        /// <summary>
+        ///     Append line
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AppendLine(in this NativeStringBuilder<byte> builder, byte value)
+        {
+            var newLine = NativeString.NewLineUtf8;
+            fixed (NativeStringBuilder<byte>* ptr = &builder)
+            {
+                ptr->EnsureCapacity(ptr->Length + 1 + newLine.Length);
+                ptr->Buffer[ptr->Length] = value;
+                ptr->Advance(1);
+                ref var reference = ref MemoryMarshal.GetReference(ptr->Buffer);
+                nint byteOffset = ptr->Length;
+                Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteOffset), ref MemoryMarshal.GetReference(newLine), (uint)newLine.Length);
+                ptr->Advance(newLine.Length);
+            }
+        }
 #if NET6_0_OR_GREATER
         /// <summary>
         ///     Append formatted
@@ -831,6 +870,19 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormatted(in this NativeStringBuilder<byte> builder, ref DefaultInterpolatedStringHandler message, bool clear = true) => DefaultInterpolatedStringHandlerHelpers.AppendFormatted(builder, ref message, clear);
 #endif
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AppendFormattable(in this NativeStringBuilder<byte> builder, bool obj, ReadOnlySpan<char> _ = default, IFormatProvider? __ = null)
+        {
+            Span<char> destination = stackalloc char[8];
+            obj.TryFormat(destination, out var charsWritten);
+            fixed (NativeStringBuilder<byte>* ptr = &builder)
+            {
+                ptr->Append(destination.Slice(0, charsWritten));
+            }
+        }
 #if NET8_0_OR_GREATER
         /// <summary>
         ///     Append formattable
