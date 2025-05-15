@@ -19,8 +19,14 @@ namespace NativeCollections
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Standard)]
     [IsAssignableTo(typeof(IEquatable<>), typeof(IReadOnlyCollection<char>))]
+    [Customizable("public static int GetHashCode(ReadOnlySpan<char> buffer)")]
     public unsafe ref struct NativeString
     {
+        /// <summary>
+        ///     GetHashCode
+        /// </summary>
+        private static delegate* managed<ReadOnlySpan<char>, int> _getHashCode;
+
         /// <summary>
         ///     Buffer
         /// </summary>
@@ -954,12 +960,22 @@ namespace NativeCollections
         public static ReadOnlySpan<byte> NewLineUtf8 => _NewLineUtf8;
 
         /// <summary>
+        ///     Custom GetHashCode
+        /// </summary>
+        /// <param name="getHashCode">GetHashCode</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Custom(delegate* managed<ReadOnlySpan<char>, int> getHashCode) => _getHashCode = getHashCode;
+
+        /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetHashCode(ReadOnlySpan<char> buffer)
         {
+            if (_getHashCode != null)
+                return _getHashCode(buffer);
+
 #if NETCOREAPP3_0_OR_GREATER
             return string.GetHashCode(buffer);
 #else

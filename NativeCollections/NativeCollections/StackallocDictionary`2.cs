@@ -104,7 +104,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [MustBeZeroed("buffer")]
+        [MustBeZeroed("Span<byte> buffer")]
         public StackallocDictionary(Span<byte> buffer, int capacity)
         {
             _freeList = -1;

@@ -12,6 +12,7 @@ namespace NativeCollections
     /// <summary>
     ///     Native memory allocator
     /// </summary>
+    [Customizable("public static void* Alloc(uint byteCount)", "public static void* AllocZeroed(uint byteCount)", "public static void Free(void* ptr)")]
     public static unsafe class NativeMemoryAllocator
     {
         /// <summary>

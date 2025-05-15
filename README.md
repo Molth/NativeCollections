@@ -40,6 +40,9 @@ For example:
 - For `StackallocCollection` series, you can use the `stackalloc` syntax. Alternatively, you can provide any fixed buffer from outside, such as unmanaged memory or fixed managed memory.
 - For `NativeCollection` series, they act as wrappers around the `UnsafeCollection` series and additionally store a handle pointer for managing the underlying resource.
 - For `UnsafeCollection` series, they do not store a handle pointer themselves and are implemented directly as structs, providing a more lightweight but less managed usage.
+- You can use `NativeMemoryAllocator.Custom` to override `Alloc`, `AllocZeroed`, `Free`.
+- You can use `NativeHashCode.Custom` to override `GetHashCode`.
+- You can use `NativeString.Custom` to override `GetHashCode`.
 
 ---
 

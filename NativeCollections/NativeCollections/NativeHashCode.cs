@@ -14,8 +14,21 @@ namespace NativeCollections
     /// <summary>
     ///     Native hashCode
     /// </summary>
+    [Customizable("public static int GetHashCode(ReadOnlySpan<byte> buffer)")]
     public static unsafe class NativeHashCode
     {
+        /// <summary>
+        ///     GetHashCode
+        /// </summary>
+        private static delegate* managed<ReadOnlySpan<byte>, int> _getHashCode;
+
+        /// <summary>
+        ///     Custom GetHashCode
+        /// </summary>
+        /// <param name="getHashCode">GetHashCode</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Custom(delegate* managed<ReadOnlySpan<byte>, int> getHashCode) => _getHashCode = getHashCode;
+
         /// <summary>
         ///     Compute hash 32
         /// </summary>
@@ -40,6 +53,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetHashCode(ReadOnlySpan<byte> buffer)
         {
+            if (_getHashCode != null)
+                return _getHashCode(buffer);
+
             var hashCode = new HashCode();
 #if NET6_0_OR_GREATER
             hashCode.AddBytes(buffer);
