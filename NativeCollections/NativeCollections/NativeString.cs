@@ -973,8 +973,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetHashCode(ReadOnlySpan<char> buffer)
         {
-            if (_getHashCode != null)
-                return _getHashCode(buffer);
+            var getHashCode = _getHashCode;
+            if (getHashCode != null)
+                return getHashCode(buffer);
 
 #if NETCOREAPP3_0_OR_GREATER
             return string.GetHashCode(buffer);

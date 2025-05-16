@@ -78,8 +78,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void* Alloc(uint byteCount)
         {
-            if (_alloc != null)
-                return _alloc(byteCount);
+            var alloc = _alloc;
+            if (alloc != null)
+                return alloc(byteCount);
 
 #if NET6_0_OR_GREATER
             return NativeMemory.Alloc(byteCount);
@@ -96,13 +97,15 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void* AllocZeroed(uint byteCount)
         {
-            if (_allocZeroed != null)
-                return _allocZeroed(byteCount);
+            var allocZeroed = _allocZeroed;
+            if (allocZeroed != null)
+                return allocZeroed(byteCount);
 
             void* ptr;
-            if (_alloc != null)
+            var alloc = _alloc;
+            if (alloc != null)
             {
-                ptr = _alloc(byteCount);
+                ptr = alloc(byteCount);
                 Unsafe.InitBlockUnaligned(ptr, 0, byteCount);
                 return ptr;
             }
@@ -123,9 +126,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Free(void* ptr)
         {
-            if (_free != null)
+            var free = _free;
+            if (free != null)
             {
-                _free(ptr);
+                free(ptr);
                 return;
             }
 

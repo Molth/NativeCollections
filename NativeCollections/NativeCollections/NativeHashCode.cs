@@ -53,8 +53,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetHashCode(ReadOnlySpan<byte> buffer)
         {
-            if (_getHashCode != null)
-                return _getHashCode(buffer);
+            var getHashCode = _getHashCode;
+            if (getHashCode != null)
+                return getHashCode(buffer);
 
             var hashCode = new HashCode();
 #if NET6_0_OR_GREATER
