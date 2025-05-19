@@ -254,7 +254,6 @@ namespace NativeCollections
             var elementOffset1 = 0;
             ref var local1 = ref MemoryMarshal.GetReference(_buffer);
             NativeValueListBuilder<int> valueListBuilder;
-            int length;
             if (oldValue.Length == 1)
             {
                 if (newValue.Length == 1)
@@ -270,10 +269,7 @@ namespace NativeCollections
                     var num = MemoryMarshal.CreateSpan(ref Unsafe.Add(ref local1, elementOffset1), _length - elementOffset1).IndexOf(obj);
                     if (num >= 0)
                     {
-                        ref var local2 = ref valueListBuilder;
-                        length = elementOffset1 + num;
-                        ref var local3 = ref length;
-                        local2.Append(in local3);
+                        valueListBuilder.Append(elementOffset1 + num);
                         elementOffset1 += num + 1;
                     }
                     else
@@ -288,10 +284,7 @@ namespace NativeCollections
                     var num = MemoryMarshal.CreateSpan(ref Unsafe.Add(ref local1, elementOffset1), _length - elementOffset1).IndexOf(oldValue);
                     if (num >= 0)
                     {
-                        ref var local4 = ref valueListBuilder;
-                        length = elementOffset1 + num;
-                        ref var local5 = ref length;
-                        local4.Append(in local5);
+                        valueListBuilder.Append(elementOffset1 + num);
                         elementOffset1 += num + oldValue.Length;
                     }
                     else
@@ -302,23 +295,26 @@ namespace NativeCollections
             if (valueListBuilder.Length == 0)
                 return true;
             var readOnlySpan = valueListBuilder.AsReadOnlySpan();
-            var num1 = _length + (newValue.Length - oldValue.Length) * readOnlySpan.Length;
+            var num1 = _length + (newValue.Length - oldValue.Length) * (long)readOnlySpan.Length;
+            if (num1 > int.MaxValue)
+                return false;
+            var num2 = (int)num1;
             T[]? objArray = null;
             T[]? array = null;
             var elementOffset2 = 0;
             var elementOffset3 = 0;
-            ref var local6 = ref MemoryMarshal.GetReference(newValue);
-            ref var local7 = ref MemoryMarshal.GetReference(_buffer);
+            ref var local2 = ref MemoryMarshal.GetReference(newValue);
+            ref var local3 = ref MemoryMarshal.GetReference(_buffer);
             Span<T> span;
-            if (num1 >= _buffer.Length)
+            if (num2 >= _buffer.Length)
             {
-                if (num1 == _buffer.Length)
+                if (num2 == _buffer.Length)
                 {
-                    objArray = ArrayPool<T>.Shared.Rent(num1);
+                    objArray = ArrayPool<T>.Shared.Rent(num2);
                 }
                 else
                 {
-                    var minimumLength = Math.Max(_buffer.Length != 0 ? _buffer.Length * 2 : 4, num1);
+                    var minimumLength = Math.Max(_buffer.Length != 0 ? _buffer.Length * 2 : 4, num2);
                     if ((uint)minimumLength > 2147483591U)
                         minimumLength = Math.Max(Math.Max(_buffer.Length + 1, 2147483591), _buffer.Length);
                     objArray = ArrayPool<T>.Shared.Rent(minimumLength);
@@ -328,35 +324,35 @@ namespace NativeCollections
             }
             else
             {
-                span = num1 <= 512 / sizeof(T) ? stackalloc T[num1] : (Span<T>)(array = ArrayPool<T>.Shared.Rent(num1));
+                span = num2 <= 512 / sizeof(T) ? stackalloc T[num2] : (Span<T>)(array = ArrayPool<T>.Shared.Rent(num2));
             }
 
-            ref var local8 = ref MemoryMarshal.GetReference(span);
+            ref var local4 = ref MemoryMarshal.GetReference(span);
             for (var index = 0; index < readOnlySpan.Length; ++index)
             {
-                var num2 = readOnlySpan[index];
-                var num3 = num2 - elementOffset2;
-                if (num3 != 0)
+                var num3 = readOnlySpan[index];
+                var num4 = num3 - elementOffset2;
+                if (num4 != 0)
                 {
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local8, elementOffset3)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local7, elementOffset2)), (uint)(num3 * sizeof(T)));
-                    elementOffset3 += num3;
+                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local4, elementOffset3)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local3, elementOffset2)), (uint)(num4 * sizeof(T)));
+                    elementOffset3 += num4;
                 }
 
-                elementOffset2 = num2 + oldValue.Length;
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local8, elementOffset3)), ref Unsafe.As<T, byte>(ref local6), (uint)(newValue.Length * sizeof(T)));
+                elementOffset2 = num3 + oldValue.Length;
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local4, elementOffset3)), ref Unsafe.As<T, byte>(ref local2), (uint)(newValue.Length * sizeof(T)));
                 elementOffset3 += newValue.Length;
             }
 
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local8, elementOffset3)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local7, elementOffset2)), (uint)((_length - elementOffset2) * sizeof(T)));
+            Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local4, elementOffset3)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local3, elementOffset2)), (uint)((_length - elementOffset2) * sizeof(T)));
             if (objArray != null)
             {
                 array = _array;
                 _buffer = (Span<T>)(_array = objArray);
             }
             else
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref local7), ref Unsafe.As<T, byte>(ref local8), (uint)(num1 * sizeof(T)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref local3), ref Unsafe.As<T, byte>(ref local4), (uint)(num2 * sizeof(T)));
 
-            _length = num1;
+            _length = num2;
             valueListBuilder.Dispose();
             if (array != null)
                 ArrayPool<T>.Shared.Return(array);
