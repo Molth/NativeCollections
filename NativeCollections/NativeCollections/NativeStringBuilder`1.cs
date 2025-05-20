@@ -763,7 +763,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Memory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly Memory<T> AsMemory() => _array;
+        public readonly Memory<T> AsMemory() => new(_array, 0, _length);
 
         /// <summary>
         ///     As memory
@@ -787,7 +787,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>ReadOnlyMemory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlyMemory<T> AsReadOnlyMemory() => _array;
+        public readonly ReadOnlyMemory<T> AsReadOnlyMemory() => new(_array, 0, _length);
 
         /// <summary>
         ///     As readOnly memory

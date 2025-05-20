@@ -122,7 +122,7 @@ namespace NativeCollections
             get
             {
 #if NET5_0_OR_GREATER
-                return ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(Buffer), index);
+                return ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(Buffer), (nint)index);
 #else
                 return ref Buffer[index];
 #endif
