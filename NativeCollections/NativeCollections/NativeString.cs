@@ -8,7 +8,6 @@ using System.Text;
 #pragma warning disable CA2208
 #pragma warning disable CS8632
 #pragma warning disable CS9081
-#pragma warning disable CS9087
 
 // ReSharper disable ALL
 
@@ -845,7 +844,7 @@ namespace NativeCollections
         ///     Split
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeSplit<char> Split(char separator) => new(Text, separator);
+        public NativeSplit<char> Split(in char separator) => new(Text, separator);
 
         /// <summary>
         ///     Split
@@ -863,7 +862,7 @@ namespace NativeCollections
         ///     Split
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeSplitRange<char> SplitRange(char separator) => new(Text, separator);
+        public NativeSplitRange<char> SplitRange(in char separator) => new(Text, separator);
 
         /// <summary>
         ///     Split
