@@ -822,9 +822,9 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     As span
+            ///     As readOnlySpan
             /// </summary>
-            /// <returns>Span</returns>
+            /// <returns>ReadOnlySpan</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static implicit operator ReadOnlySpan<TKey>(in KeyCollection keyCollection) => keyCollection.AsReadOnlySpan();
 
@@ -972,11 +972,51 @@ namespace NativeCollections
             }
 
             /// <summary>
+            ///     As readOnly span
+            /// </summary>
+            /// <returns>ReadOnlySpan</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public ReadOnlySpan<TValue> AsReadOnlySpan()
+            {
+                var handle = _nativeSortedList;
+                return MemoryMarshal.CreateReadOnlySpan(ref *handle->_values, handle->_size);
+            }
+
+            /// <summary>
+            ///     As readOnly span
+            /// </summary>
+            /// <returns>ReadOnlySpan</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public ReadOnlySpan<TValue> AsReadOnlySpan(int start)
+            {
+                var handle = _nativeSortedList;
+                return MemoryMarshal.CreateReadOnlySpan(ref *(handle->_values + start), handle->_size - start);
+            }
+
+            /// <summary>
+            ///     As readOnly span
+            /// </summary>
+            /// <returns>ReadOnlySpan</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public ReadOnlySpan<TValue> AsReadOnlySpan(int start, int length)
+            {
+                var handle = _nativeSortedList;
+                return MemoryMarshal.CreateReadOnlySpan(ref *(handle->_values + start), length);
+            }
+
+            /// <summary>
             ///     As span
             /// </summary>
             /// <returns>Span</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static implicit operator Span<TValue>(in ValueCollection valueCollection) => valueCollection.AsSpan();
+
+            /// <summary>
+            ///     As readOnlySpan
+            /// </summary>
+            /// <returns>ReadOnlySpan</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static implicit operator ReadOnlySpan<TValue>(in ValueCollection valueCollection) => valueCollection.AsReadOnlySpan();
 
             /// <summary>
             ///     Get enumerator
