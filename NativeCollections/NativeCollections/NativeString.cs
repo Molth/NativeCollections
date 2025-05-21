@@ -8,6 +8,7 @@ using System.Text;
 #pragma warning disable CA2208
 #pragma warning disable CS8632
 #pragma warning disable CS9081
+#pragma warning disable CS9087
 
 // ReSharper disable ALL
 

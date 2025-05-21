@@ -714,7 +714,7 @@ namespace NativeCollections
         ///     Split
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeSplit<T> Split(T separator) => new(Text, separator);
+        public NativeSplit<T> Split(in T separator) => new(Text, separator);
 
         /// <summary>
         ///     Split
@@ -732,7 +732,7 @@ namespace NativeCollections
         ///     Split
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeSplitRange<T> SplitRange(T separator) => new(Text, separator);
+        public NativeSplitRange<T> SplitRange(in T separator) => new(Text, separator);
 
         /// <summary>
         ///     Split
