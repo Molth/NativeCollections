@@ -711,6 +711,42 @@ namespace NativeCollections
         public bool IsNullOrEmpty() => Unsafe.AsPointer(ref MemoryMarshal.GetReference(_buffer)) == null || _length == 0;
 
         /// <summary>
+        ///     Split
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeSplit<T> Split(T separator) => new(Text, separator);
+
+        /// <summary>
+        ///     Split
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeSplit<T> Split(ReadOnlySpan<T> separator) => new(Text, separator);
+
+        /// <summary>
+        ///     Split
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeSplitAny<T> SplitAny(ReadOnlySpan<T> separator) => new(Text, separator);
+
+        /// <summary>
+        ///     Split
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeSplitRange<T> SplitRange(T separator) => new(Text, separator);
+
+        /// <summary>
+        ///     Split
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeSplitRange<T> SplitRange(ReadOnlySpan<T> separator) => new(Text, separator);
+
+        /// <summary>
+        ///     Split
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeSplitAnyRange<T> SplitAnyRange(ReadOnlySpan<T> separator) => new(Text, separator);
+
+        /// <summary>
         ///     As span
         /// </summary>
         /// <returns>Span</returns>

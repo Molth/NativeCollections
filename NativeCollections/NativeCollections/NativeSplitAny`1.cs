@@ -37,7 +37,7 @@ namespace NativeCollections
         {
             if (Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)) == null || buffer.Length == 0)
                 throw new ArgumentNullException(nameof(buffer));
-            if (separator == null)
+            if (!typeof(T).IsValueType && separator == null)
                 throw new ArgumentNullException(nameof(separator));
             _buffer = buffer;
             _separator = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in separator), 1);
