@@ -1,4 +1,6 @@
+#if !NET7_0_OR_GREATER
 using System;
+#endif
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 #if NET7_0_OR_GREATER
@@ -156,7 +158,14 @@ namespace NativeCollections
         /// <param name="source">Source</param>
         /// <param name="byteCount">Byte count</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Move(void* destination, void* source, uint byteCount) => Buffer.MemoryCopy(source, destination, byteCount, byteCount);
+        public static void Move(void* destination, void* source, uint byteCount)
+        {
+#if NET7_0_OR_GREATER
+            NativeMemory.Copy(source, destination, byteCount);
+#else
+            Buffer.MemoryCopy(source, destination, byteCount, byteCount);
+#endif
+        }
 
         /// <summary>
         ///     Set
