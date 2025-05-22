@@ -250,7 +250,12 @@ namespace NativeCollections
             if (Unsafe.AsPointer(ref MemoryMarshal.GetReference(oldValue)) == null || oldValue.Length == 0)
                 return false;
             if (Unsafe.AsPointer(ref MemoryMarshal.GetReference(newValue)) == null)
+            {
+                if (newValue.Length != 0)
+                    return false;
                 newValue = (ReadOnlySpan<T>)Array.Empty<T>();
+            }
+
             var elementOffset1 = 0;
             ref var local1 = ref MemoryMarshal.GetReference(_buffer);
             NativeValueListBuilder<int> valueListBuilder;
