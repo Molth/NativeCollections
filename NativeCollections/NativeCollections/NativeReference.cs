@@ -25,7 +25,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => Unsafe.AsPointer(ref MemoryMarshal.GetReference(_buffer)) != null;
+        public bool IsCreated => !Unsafe.IsNullRef(ref MemoryMarshal.GetReference(_buffer));
 
         /// <summary>
         ///     Is empty
@@ -146,7 +146,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeReference left, NativeReference right) => Unsafe.AsPointer(ref MemoryMarshal.GetReference(left._buffer)) == Unsafe.AsPointer(ref MemoryMarshal.GetReference(right._buffer));
+        public static bool operator ==(NativeReference left, NativeReference right) => Unsafe.AreSame(ref MemoryMarshal.GetReference(left._buffer), ref MemoryMarshal.GetReference(right._buffer));
 
         /// <summary>
         ///     Not equals
@@ -154,7 +154,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeReference left, NativeReference right) => Unsafe.AsPointer(ref MemoryMarshal.GetReference(left._buffer)) != Unsafe.AsPointer(ref MemoryMarshal.GetReference(right._buffer));
+        public static bool operator !=(NativeReference left, NativeReference right) => !Unsafe.AreSame(ref MemoryMarshal.GetReference(left._buffer), ref MemoryMarshal.GetReference(right._buffer));
 
         /// <summary>
         ///     As span

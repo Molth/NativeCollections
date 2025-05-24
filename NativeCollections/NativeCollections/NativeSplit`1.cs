@@ -15,7 +15,7 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    public readonly unsafe ref struct NativeSplit<T> where T : IEquatable<T>
+    public readonly ref struct NativeSplit<T> where T : IEquatable<T>
     {
         /// <summary>
         ///     Buffer
@@ -35,7 +35,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeSplit(ReadOnlySpan<T> buffer, in T separator)
         {
-            if (Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)) == null || buffer.Length == 0)
+            if (Unsafe.IsNullRef(ref MemoryMarshal.GetReference(buffer)) || buffer.Length == 0)
                 throw new ArgumentNullException(nameof(buffer));
             if (!typeof(T).IsValueType && separator == null)
                 throw new ArgumentNullException(nameof(separator));
@@ -51,9 +51,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeSplit(ReadOnlySpan<T> buffer, ReadOnlySpan<T> separator)
         {
-            if (Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)) == null || buffer.Length == 0)
+            if (Unsafe.IsNullRef(ref MemoryMarshal.GetReference(buffer)) || buffer.Length == 0)
                 throw new ArgumentNullException(nameof(buffer));
-            if (Unsafe.AsPointer(ref MemoryMarshal.GetReference(separator)) == null || separator.Length == 0)
+            if (Unsafe.IsNullRef(ref MemoryMarshal.GetReference(separator)) || separator.Length == 0)
                 throw new ArgumentNullException(nameof(separator));
             _buffer = buffer;
             _separator = separator;

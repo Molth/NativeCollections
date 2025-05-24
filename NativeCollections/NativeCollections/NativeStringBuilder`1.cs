@@ -39,7 +39,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => Unsafe.AsPointer(ref MemoryMarshal.GetReference(_buffer)) != null;
+        public bool IsCreated => !Unsafe.IsNullRef(ref MemoryMarshal.GetReference(_buffer));
 
         /// <summary>
         ///     Is empty
@@ -247,9 +247,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Replace(ReadOnlySpan<T> oldValue, ReadOnlySpan<T> newValue)
         {
-            if (Unsafe.AsPointer(ref MemoryMarshal.GetReference(oldValue)) == null || oldValue.Length == 0)
+            if (Unsafe.IsNullRef(ref MemoryMarshal.GetReference(oldValue)) || oldValue.Length == 0)
                 return false;
-            if (Unsafe.AsPointer(ref MemoryMarshal.GetReference(newValue)) == null)
+            if (Unsafe.IsNullRef(ref MemoryMarshal.GetReference(newValue)))
             {
                 if (newValue.Length != 0)
                     return false;
@@ -713,7 +713,7 @@ namespace NativeCollections
         ///     Is null or empty
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsNullOrEmpty() => Unsafe.AsPointer(ref MemoryMarshal.GetReference(_buffer)) == null || _length == 0;
+        public bool IsNullOrEmpty() => Unsafe.IsNullRef(ref MemoryMarshal.GetReference(_buffer)) || _length == 0;
 
         /// <summary>
         ///     Split

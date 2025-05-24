@@ -75,7 +75,7 @@ namespace NativeCollections
             get
             {
                 ref var value = ref FindValue(key);
-                if (Unsafe.AsPointer(ref Unsafe.AsRef(in value)) != null)
+                if (!Unsafe.IsNullRef(ref Unsafe.AsRef(in value)))
                     return value;
                 throw new KeyNotFoundException(key.ToString());
             }
@@ -247,7 +247,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Contains key</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool ContainsKey(in TKey key) => Unsafe.AsPointer(ref Unsafe.AsRef(in FindValue(key))) != null;
+        public bool ContainsKey(in TKey key) => !Unsafe.IsNullRef(ref Unsafe.AsRef(in FindValue(key)));
 
         /// <summary>
         ///     Try to get the value
@@ -259,7 +259,7 @@ namespace NativeCollections
         public bool TryGetValue(in TKey key, out TValue value)
         {
             ref var valRef = ref FindValue(key);
-            if (Unsafe.AsPointer(ref Unsafe.AsRef(in valRef)) != null)
+            if (!Unsafe.IsNullRef(ref Unsafe.AsRef(in valRef)))
             {
                 value = valRef;
                 return true;
@@ -279,7 +279,7 @@ namespace NativeCollections
         public bool TryGetValueReference(in TKey key, out NativeReference<TValue> value)
         {
             ref var valRef = ref FindValue(key);
-            if (Unsafe.AsPointer(ref Unsafe.AsRef(in valRef)) != null)
+            if (!Unsafe.IsNullRef(ref Unsafe.AsRef(in valRef)))
             {
                 value = new NativeReference<TValue>(Unsafe.AsPointer(ref valRef));
                 return true;
