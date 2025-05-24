@@ -533,6 +533,138 @@ namespace NativeCollections
         public void Fill(in T value) => Text.Fill(value);
 
         /// <summary>
+        ///     Trim start
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void TrimStart(in T value)
+        {
+            if (_length == 0)
+                return;
+            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            var start = 0;
+            while (start < _length && Unsafe.Add(ref reference, start).Equals(value))
+                start++;
+            if (start > 0 && start < _length)
+            {
+                var count = _length - start;
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, start)), (uint)(count * sizeof(T)));
+                _length = count;
+            }
+            else if (start >= _length)
+            {
+                _length = 0;
+            }
+        }
+
+        /// <summary>
+        ///     Trim end
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void TrimEnd(in T value)
+        {
+            if (_length == 0)
+                return;
+            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            var end = _length - 1;
+            while (end >= 0 && Unsafe.Add(ref reference, end).Equals(value))
+                end--;
+            _length = end + 1;
+        }
+
+        /// <summary>
+        ///     Trim
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Trim(in T value)
+        {
+            if (_length == 0)
+                return;
+            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            var start = 0;
+            var end = _length - 1;
+            while (start <= end && Unsafe.Add(ref reference, start).Equals(value))
+                start++;
+            while (end >= start && Unsafe.Add(ref reference, end).Equals(value))
+                end--;
+            var newLength = end - start + 1;
+            if (newLength <= 0)
+            {
+                _length = 0;
+                return;
+            }
+
+            if (start > 0)
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, start)), (uint)(newLength * sizeof(T)));
+            _length = newLength;
+        }
+
+        /// <summary>
+        ///     Trim start
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void TrimStart(ReadOnlySpan<T> buffer)
+        {
+            if (_length == 0)
+                return;
+            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            var start = 0;
+            while (start < _length && buffer.IndexOf(Unsafe.Add(ref reference, start)) >= 0)
+                start++;
+            if (start > 0 && start < _length)
+            {
+                var count = _length - start;
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, start)), (uint)(count * sizeof(T)));
+                _length = count;
+            }
+            else if (start >= _length)
+            {
+                _length = 0;
+            }
+        }
+
+        /// <summary>
+        ///     Trim end
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void TrimEnd(ReadOnlySpan<T> buffer)
+        {
+            if (_length == 0)
+                return;
+            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            var end = _length - 1;
+            while (end >= 0 && buffer.IndexOf(Unsafe.Add(ref reference, end)) >= 0)
+                end--;
+            _length = end + 1;
+        }
+
+        /// <summary>
+        ///     Trim
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Trim(ReadOnlySpan<T> buffer)
+        {
+            if (_length == 0)
+                return;
+            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            var start = 0;
+            var end = _length - 1;
+            while (start <= end && buffer.IndexOf(Unsafe.Add(ref reference, start)) >= 0)
+                start++;
+            while (end >= start && buffer.IndexOf(Unsafe.Add(ref reference, end)) >= 0)
+                end--;
+            var newLength = end - start + 1;
+            if (newLength <= 0)
+            {
+                _length = 0;
+                return;
+            }
+
+            if (start > 0)
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, start)), (uint)(newLength * sizeof(T)));
+            _length = newLength;
+        }
+
+        /// <summary>
         ///     Slice
         /// </summary>
         /// <param name="start">Start</param>
