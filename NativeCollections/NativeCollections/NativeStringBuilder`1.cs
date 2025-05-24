@@ -604,7 +604,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void TrimStart(ReadOnlySpan<T> buffer)
         {
-            if (_length == 0)
+            if (_length == 0 || Unsafe.IsNullRef(ref MemoryMarshal.GetReference(buffer)) || buffer.Length == 0)
                 return;
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
             var start = 0;
@@ -628,7 +628,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void TrimEnd(ReadOnlySpan<T> buffer)
         {
-            if (_length == 0)
+            if (_length == 0 || Unsafe.IsNullRef(ref MemoryMarshal.GetReference(buffer)) || buffer.Length == 0)
                 return;
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
             var end = _length - 1;
@@ -643,7 +643,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Trim(ReadOnlySpan<T> buffer)
         {
-            if (_length == 0)
+            if (_length == 0 || Unsafe.IsNullRef(ref MemoryMarshal.GetReference(buffer)) || buffer.Length == 0)
                 return;
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
             var start = 0;
