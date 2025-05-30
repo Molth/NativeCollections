@@ -34,5 +34,16 @@ namespace NativeCollections
             return (ulong)ah * bh + (t >> 32) + (tl >> 32);
 #endif
         }
+
+        /// <summary>Produces the quotient and the remainder of two signed native-size numbers.</summary>
+        /// <param name="left">The dividend.</param>
+        /// <param name="right">The divisor.</param>
+        /// <returns>The quotient and the remainder of the specified numbers.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static (nint Quotient, nint Remainder) DivRem(nint left, nint right)
+        {
+            var quotient = left / right;
+            return (quotient, left - quotient * right);
+        }
     }
 }

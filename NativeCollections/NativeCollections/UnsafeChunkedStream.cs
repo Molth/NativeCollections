@@ -193,8 +193,7 @@ namespace NativeCollections
                     {
                         MemoryChunk* chunk;
                         var count = length - byteCount;
-                        var chunks = count / size;
-                        var remaining = count % size;
+                        var (chunks, remaining) = MathHelpers.DivRem(count, size);
                         for (var i = 0; i < chunks; ++i)
                         {
                             chunk = _head;
@@ -256,8 +255,7 @@ namespace NativeCollections
                     Unsafe.CopyBlockUnaligned(ref reference, ref *(_head->Buffer + _readOffset), (uint)byteCount);
                     MemoryChunk* chunk;
                     var count = length - byteCount;
-                    var chunks = count / size;
-                    var remaining = count % size;
+                    var (chunks, remaining) = MathHelpers.DivRem(count, size);
                     for (var i = 0; i < chunks; ++i)
                     {
                         chunk = _head;
@@ -332,8 +330,7 @@ namespace NativeCollections
                     Unsafe.CopyBlockUnaligned(ref *(_tail->Buffer + _writeOffset), ref reference, (uint)byteCount);
                 MemoryChunk* chunk;
                 var count = length - byteCount;
-                var chunks = count / size;
-                var remaining = count % size;
+                var (chunks, remaining) = MathHelpers.DivRem(count, size);
                 for (var i = 0; i < chunks; ++i)
                 {
                     if (_freeChunks == 0)
