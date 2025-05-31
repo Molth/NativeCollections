@@ -615,7 +615,7 @@ namespace NativeCollections
                         {
                             if (updateIfExists)
                             {
-                                if (TypeProps<TValue>.IsWriteAtomic)
+                                if (TypeHelpers<TValue>.IsWriteAtomic)
                                 {
                                     node->Value = value;
                                 }
@@ -719,7 +719,7 @@ namespace NativeCollections
                         {
                             if (node->Value.Equals(comparisonValue))
                             {
-                                if (TypeProps<TValue>.IsWriteAtomic)
+                                if (TypeHelpers<TValue>.IsWriteAtomic)
                                 {
                                     node->Value = newValue;
                                 }

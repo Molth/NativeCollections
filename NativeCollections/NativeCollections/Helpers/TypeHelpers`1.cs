@@ -9,10 +9,10 @@ using System.Runtime.CompilerServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Type props
+    ///     Type helpers
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
-    internal static unsafe class TypeProps<T> where T : unmanaged, IEquatable<T>
+    internal static unsafe class TypeHelpers<T> where T : unmanaged, IEquatable<T>
     {
         /// <summary>
         ///     Is write atomic
