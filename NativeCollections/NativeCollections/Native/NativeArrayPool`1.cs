@@ -42,6 +42,16 @@ namespace NativeCollections
         /// </summary>
         /// <param name="capacity">Capacity</param>
         /// <param name="maxLength">Max length</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeArrayPool(int capacity, int maxLength) : this(capacity, maxLength, CustomMemoryAllocator.Default)
+        {
+        }
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="capacity">Capacity</param>
+        /// <param name="maxLength">Max length</param>
         /// <param name="allocator">Allocator</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArrayPool(int capacity, int maxLength, CustomMemoryAllocator allocator)

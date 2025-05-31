@@ -156,6 +156,22 @@ namespace NativeCollections
         public void Free(void* ptr) => _free(_user, ptr);
 
         /// <summary>
+        ///     Default
+        /// </summary>
+        public static CustomMemoryAllocator Default
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                return new CustomMemoryAllocator(null, &Alloc, &AllocZeroed, &Free);
+
+                static void* Alloc(void* user, uint byteCount) => NativeMemoryAllocator.Alloc(byteCount);
+                static void* AllocZeroed(void* user, uint byteCount) => NativeMemoryAllocator.AllocZeroed(byteCount);
+                static void Free(void* user, void* ptr) => NativeMemoryAllocator.Free(ptr);
+            }
+        }
+
+        /// <summary>
         ///     Empty
         /// </summary>
         public static CustomMemoryAllocator Empty => new();

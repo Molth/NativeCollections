@@ -25,13 +25,23 @@ namespace NativeCollections
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="size">Size</param>
+        /// <param name="capacity">Capacity</param>
+        /// <param name="length">Length</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeMemoryBucket(int capacity, int length) : this(capacity, length, CustomMemoryAllocator.Default)
+        {
+        }
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="capacity">Capacity</param>
         /// <param name="length">Length</param>
         /// <param name="allocator">Memory allocator</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeMemoryBucket(int size, int length, CustomMemoryAllocator allocator)
+        public NativeMemoryBucket(int capacity, int length, CustomMemoryAllocator allocator)
         {
-            var value = new UnsafeMemoryBucket(size, length, allocator);
+            var value = new UnsafeMemoryBucket(capacity, length, allocator);
             var handle = (UnsafeMemoryBucket*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeMemoryBucket));
             *handle = value;
             _handle = handle;

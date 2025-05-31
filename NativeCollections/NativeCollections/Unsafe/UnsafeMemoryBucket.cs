@@ -56,6 +56,16 @@ namespace NativeCollections
         /// </summary>
         /// <param name="capacity">Capacity</param>
         /// <param name="length">Length</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public UnsafeMemoryBucket(int capacity, int length) : this(capacity, length, CustomMemoryAllocator.Default)
+        {
+        }
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="capacity">Capacity</param>
+        /// <param name="length">Length</param>
         /// <param name="allocator">Memory allocator</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeMemoryBucket(int capacity, int length, CustomMemoryAllocator allocator)
