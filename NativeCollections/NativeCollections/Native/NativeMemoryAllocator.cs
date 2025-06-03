@@ -186,14 +186,14 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool Compare(void* left, void* right, uint byteCount)
         {
-            ref var first = ref *(byte*)left;
-            ref var second = ref *(byte*)right;
+            ref var local1 = ref Unsafe.AsRef<byte>(left);
+            ref var local2 = ref Unsafe.AsRef<byte>(right);
+#if NET7_0_OR_GREATER
             nuint length = byteCount;
             if (length >= (nuint)sizeof(nuint))
             {
-                if (!Unsafe.AreSame(ref first, ref second))
+                if (!Unsafe.AreSame(ref local1, ref local2))
                 {
-#if NET7_0_OR_GREATER
                     if (Vector128.IsHardwareAccelerated)
                     {
 #if NET8_0_OR_GREATER
@@ -205,13 +205,13 @@ namespace NativeCollections
                             {
                                 do
                                 {
-                                    if (Vector512.LoadUnsafe(ref first, offset) != Vector512.LoadUnsafe(ref second, offset))
+                                    if (Vector512.LoadUnsafe(ref local1, offset) != Vector512.LoadUnsafe(ref local2, offset))
                                         return false;
                                     offset += (nuint)Vector512<byte>.Count;
                                 } while (lengthToExamine > offset);
                             }
 
-                            return Vector512.LoadUnsafe(ref first, lengthToExamine) == Vector512.LoadUnsafe(ref second, lengthToExamine);
+                            return Vector512.LoadUnsafe(ref local1, lengthToExamine) == Vector512.LoadUnsafe(ref local2, lengthToExamine);
                         }
 #endif
                         if (Vector256.IsHardwareAccelerated && length >= (nuint)Vector256<byte>.Count)
@@ -222,13 +222,13 @@ namespace NativeCollections
                             {
                                 do
                                 {
-                                    if (Vector256.LoadUnsafe(ref first, offset) != Vector256.LoadUnsafe(ref second, offset))
+                                    if (Vector256.LoadUnsafe(ref local1, offset) != Vector256.LoadUnsafe(ref local2, offset))
                                         return false;
                                     offset += (nuint)Vector256<byte>.Count;
                                 } while (lengthToExamine > offset);
                             }
 
-                            return Vector256.LoadUnsafe(ref first, lengthToExamine) == Vector256.LoadUnsafe(ref second, lengthToExamine);
+                            return Vector256.LoadUnsafe(ref local1, lengthToExamine) == Vector256.LoadUnsafe(ref local2, lengthToExamine);
                         }
 
                         if (length >= (nuint)Vector128<byte>.Count)
@@ -239,25 +239,24 @@ namespace NativeCollections
                             {
                                 do
                                 {
-                                    if (Vector128.LoadUnsafe(ref first, offset) != Vector128.LoadUnsafe(ref second, offset))
+                                    if (Vector128.LoadUnsafe(ref local1, offset) != Vector128.LoadUnsafe(ref local2, offset))
                                         return false;
                                     offset += (nuint)Vector128<byte>.Count;
                                 } while (lengthToExamine > offset);
                             }
 
-                            return Vector128.LoadUnsafe(ref first, lengthToExamine) == Vector128.LoadUnsafe(ref second, lengthToExamine);
+                            return Vector128.LoadUnsafe(ref local1, lengthToExamine) == Vector128.LoadUnsafe(ref local2, lengthToExamine);
                         }
                     }
 
                     if (sizeof(nint) == 8 && Vector128.IsHardwareAccelerated)
                     {
                         var offset = length - (nuint)sizeof(nuint);
-                        var differentBits = Unsafe.ReadUnaligned<nuint>(ref first) - Unsafe.ReadUnaligned<nuint>(ref second);
-                        differentBits |= Unsafe.ReadUnaligned<nuint>(ref Unsafe.AddByteOffset(ref first, offset)) - Unsafe.ReadUnaligned<nuint>(ref Unsafe.AddByteOffset(ref second, offset));
+                        var differentBits = Unsafe.ReadUnaligned<nuint>(ref local1) - Unsafe.ReadUnaligned<nuint>(ref local2);
+                        differentBits |= Unsafe.ReadUnaligned<nuint>(ref Unsafe.AddByteOffset(ref local1, offset)) - Unsafe.ReadUnaligned<nuint>(ref Unsafe.AddByteOffset(ref local2, offset));
                         return differentBits == 0;
                     }
                     else
-#endif
                     {
                         nuint offset = 0;
                         var lengthToExamine = length - (nuint)sizeof(nuint);
@@ -265,20 +264,13 @@ namespace NativeCollections
                         {
                             do
                             {
-#if NET7_0_OR_GREATER
-                                if (Unsafe.ReadUnaligned<nuint>(ref Unsafe.AddByteOffset(ref first, offset)) != Unsafe.ReadUnaligned<nuint>(ref Unsafe.AddByteOffset(ref second, offset)))
-#else
-                                if (Unsafe.ReadUnaligned<nuint>(ref Unsafe.AddByteOffset(ref first, (nint)offset)) != Unsafe.ReadUnaligned<nuint>(ref Unsafe.AddByteOffset(ref second, (nint)offset)))
-#endif
+                                if (Unsafe.ReadUnaligned<nuint>(ref Unsafe.AddByteOffset(ref local1, offset)) != Unsafe.ReadUnaligned<nuint>(ref Unsafe.AddByteOffset(ref local2, offset)))
                                     return false;
                                 offset += (nuint)sizeof(nuint);
                             } while (lengthToExamine > offset);
                         }
-#if NET7_0_OR_GREATER
-                        return Unsafe.ReadUnaligned<nuint>(ref Unsafe.AddByteOffset(ref first, lengthToExamine)) == Unsafe.ReadUnaligned<nuint>(ref Unsafe.AddByteOffset(ref second, lengthToExamine));
-#else
-                        return Unsafe.ReadUnaligned<nuint>(ref Unsafe.AddByteOffset(ref first, (nint)lengthToExamine)) == Unsafe.ReadUnaligned<nuint>(ref Unsafe.AddByteOffset(ref second, (nint)lengthToExamine));
-#endif
+
+                        return Unsafe.ReadUnaligned<nuint>(ref Unsafe.AddByteOffset(ref local1, lengthToExamine)) == Unsafe.ReadUnaligned<nuint>(ref Unsafe.AddByteOffset(ref local2, lengthToExamine));
                     }
                 }
 
@@ -291,29 +283,33 @@ namespace NativeCollections
                 var offset = length & 2;
                 if (offset != 0)
                 {
-                    differentBits = Unsafe.ReadUnaligned<ushort>(ref first);
-                    differentBits -= Unsafe.ReadUnaligned<ushort>(ref second);
+                    differentBits = Unsafe.ReadUnaligned<ushort>(ref local1);
+                    differentBits -= Unsafe.ReadUnaligned<ushort>(ref local2);
                 }
 
                 if ((length & 1) != 0)
-#if NET7_0_OR_GREATER
-                    differentBits |= Unsafe.AddByteOffset(ref first, offset) - (uint)Unsafe.AddByteOffset(ref second, offset);
-#else
-                    differentBits |= Unsafe.AddByteOffset(ref first, (nint)offset) - (uint)Unsafe.AddByteOffset(ref second, (nint)offset);
-#endif
+                    differentBits |= Unsafe.AddByteOffset(ref local1, offset) - (uint)Unsafe.AddByteOffset(ref local2, offset);
                 return differentBits == 0;
             }
             else
             {
                 var offset = length - sizeof(uint);
-                var differentBits = Unsafe.ReadUnaligned<uint>(ref first) - Unsafe.ReadUnaligned<uint>(ref second);
-#if NET7_0_OR_GREATER
-                differentBits |= Unsafe.ReadUnaligned<uint>(ref Unsafe.AddByteOffset(ref first, offset)) - Unsafe.ReadUnaligned<uint>(ref Unsafe.AddByteOffset(ref second, offset));
-#else
-                differentBits |= Unsafe.ReadUnaligned<uint>(ref Unsafe.AddByteOffset(ref first, (nint)offset)) - Unsafe.ReadUnaligned<uint>(ref Unsafe.AddByteOffset(ref second, (nint)offset));
-#endif
+                var differentBits = Unsafe.ReadUnaligned<uint>(ref local1) - Unsafe.ReadUnaligned<uint>(ref local2);
+                differentBits |= Unsafe.ReadUnaligned<uint>(ref Unsafe.AddByteOffset(ref local1, offset)) - Unsafe.ReadUnaligned<uint>(ref Unsafe.AddByteOffset(ref local2, offset));
                 return differentBits == 0;
             }
+#else
+            var (quotient, remainder) = MathHelpers.DivRem(byteCount, 1073741824);
+            for (uint i = 0; i < quotient; ++i)
+            {
+                if (!MemoryMarshal.CreateReadOnlySpan(ref local1, 1073741824).SequenceEqual(MemoryMarshal.CreateReadOnlySpan(ref local2, 1073741824)))
+                    return false;
+                local1 = ref Unsafe.AddByteOffset(ref local1, (nint)1073741824);
+                local2 = ref Unsafe.AddByteOffset(ref local2, (nint)1073741824);
+            }
+
+            return MemoryMarshal.CreateReadOnlySpan(ref local1, (int)remainder).SequenceEqual(MemoryMarshal.CreateReadOnlySpan(ref local2, (int)remainder));
+#endif
         }
     }
 }

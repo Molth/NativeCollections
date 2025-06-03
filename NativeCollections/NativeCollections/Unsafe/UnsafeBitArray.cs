@@ -488,19 +488,8 @@ namespace NativeCollections
             var intCount = GetInt32ArrayLengthFromBitLength(_length);
             if (extraBits != 0)
                 intCount--;
-#if NET8_0_OR_GREATER
-            if (_buffer.AsSpan(0, intCount).ContainsAnyExcept(-1))
+            if (SpanHelpers.ContainsAnyExcept(_buffer.AsReadOnlySpan(0, intCount), -1))
                 return false;
-#elif NET7_0_OR_GREATER
-            if (_buffer.AsSpan(0, intCount).IndexOfAnyExcept(-1) >= 0)
-                return false;
-#else
-            for (var i = 0; i < intCount; ++i)
-            {
-                if (_buffer[i] != -1)
-                    return false;
-            }
-#endif
             if (extraBits == 0)
                 return true;
             var mask = (1 << extraBits) - 1;
@@ -518,19 +507,8 @@ namespace NativeCollections
             var intCount = GetInt32ArrayLengthFromBitLength(_length);
             if (extraBits != 0)
                 intCount--;
-#if NET8_0_OR_GREATER
-            if (_buffer.AsSpan(0, intCount).ContainsAnyExcept(0))
+            if (SpanHelpers.ContainsAnyExcept(_buffer.AsReadOnlySpan(0, intCount), 0))
                 return true;
-#elif NET7_0_OR_GREATER
-            if (_buffer.AsSpan(0, intCount).IndexOfAnyExcept(0) >= 0)
-                return true;
-#else
-            for (var i = 0; i < intCount; ++i)
-            {
-                if (_buffer[i] != 0)
-                    return true;
-            }
-#endif
             return extraBits != 0 && (_buffer[intCount] & ((1 << extraBits) - 1)) != 0;
         }
 

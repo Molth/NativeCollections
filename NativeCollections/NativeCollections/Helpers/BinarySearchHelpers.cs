@@ -22,7 +22,7 @@ namespace NativeCollections
         {
             var low = 0;
             var high = length - 1;
-            ref var reference = ref *start;
+            ref var reference = ref Unsafe.AsRef<TKey>(start);
             while (low <= high)
             {
                 var i = (int)(((uint)high + (uint)low) >> 1);

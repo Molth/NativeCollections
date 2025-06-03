@@ -45,5 +45,16 @@ namespace NativeCollections
             var quotient = left / right;
             return (quotient, left - quotient * right);
         }
+
+        /// <summary>Produces the quotient and the remainder of two unsigned 32-bit numbers.</summary>
+        /// <param name="left">The dividend.</param>
+        /// <param name="right">The divisor.</param>
+        /// <returns>The quotient and the remainder of the specified numbers.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static (uint Quotient, uint Remainder) DivRem(uint left, uint right)
+        {
+            var num = left / right;
+            return (num, left - num * right);
+        }
     }
 }

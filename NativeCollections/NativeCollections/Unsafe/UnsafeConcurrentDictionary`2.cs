@@ -439,22 +439,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>All buckets are empty</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool AreAllBucketsEmpty()
-        {
-#if NET8_0_OR_GREATER
-            return !_tables->CountPerLock.AsSpan().ContainsAnyExcept(0);
-#elif NET7_0_OR_GREATER
-            return !(_tables->CountPerLock.AsSpan().IndexOfAnyExcept(0) >= 0);
-#else
-            for (var i = 0; i < _tables->CountPerLock.Length; ++i)
-            {
-                if (_tables->CountPerLock[i] != 0)
-                    return false;
-            }
-
-            return true;
-#endif
-        }
+        private bool AreAllBucketsEmpty() => !SpanHelpers.ContainsAnyExcept(_tables->CountPerLock.AsReadOnlySpan(), 0);
 
         /// <summary>
         ///     Grow table
