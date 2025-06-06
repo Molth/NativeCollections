@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 // ReSharper disable ALL
 
@@ -26,9 +27,10 @@ namespace NativeCollections
 #elif NET7_0_OR_GREATER
             return buffer.IndexOfAnyExcept(value) >= 0;
 #else
+            ref var reference = ref MemoryMarshal.GetReference(buffer);
             for (var i = 0; i < buffer.Length; ++i)
             {
-                if (!buffer[i].Equals(value))
+                if (!Unsafe.Add(ref reference, i).Equals(value))
                     return true;
             }
 
