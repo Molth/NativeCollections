@@ -216,6 +216,25 @@ namespace NativeCollections
         ///     Get or add value
         /// </summary>
         /// <param name="key">Key</param>
+        /// <param name="valueFactory">Value factory</param>
+        /// <returns>Value</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public TValue GetOrAdd(in TKey key, Func<TKey, TValue> valueFactory) => _handle->GetOrAdd(key, valueFactory);
+
+        /// <summary>
+        ///     Get or add value
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="valueFactory">Value factory</param>
+        /// <param name="factoryArgument">Factory argument</param>
+        /// <returns>Value</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public TValue GetOrAdd<TArg>(in TKey key, Func<TKey, TArg, TValue> valueFactory, in TArg factoryArgument) => _handle->GetOrAdd(key, valueFactory, factoryArgument);
+
+        /// <summary>
+        ///     Get or add value
+        /// </summary>
+        /// <param name="key">Key</param>
         /// <param name="value">Value</param>
         /// <returns>Value</returns>
         public TValue GetOrAdd(in TKey key, in TValue value) => _handle->GetOrAdd(key, value);

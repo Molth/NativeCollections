@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
-#if !NET7_0_OR_GREATER
-using System.Runtime.InteropServices;
-#endif
 
 // ReSharper disable ALL
 
@@ -22,14 +19,20 @@ namespace NativeCollections
         ///     If all of the values are <paramref name="value" />, returns <see langword="false" />.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool ContainsAnyExcept<T>(ReadOnlySpan<T> buffer, in T value) where T : unmanaged, IComparable<T>, IEquatable<T>
+        public static bool ContainsAnyExcept<T>(ReadOnlySpan<T> buffer, in T value) where T : unmanaged, IEquatable<T>
         {
 #if NET8_0_OR_GREATER
             return buffer.ContainsAnyExcept(value);
 #elif NET7_0_OR_GREATER
             return buffer.IndexOfAnyExcept(value) >= 0;
 #else
-            return buffer.SequenceCompareTo(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in value), 1)) != buffer.Length - 1;
+            for (var i = 0; i < buffer.Length; ++i)
+            {
+                if (!buffer[i].Equals(value))
+                    return true;
+            }
+
+            return false;
 #endif
         }
     }

@@ -97,6 +97,7 @@ namespace NativeCollections
         [MustBeZeroed("Span<byte> buffer")]
         public StackallocOrderedDictionary(Span<byte> buffer, int capacity)
         {
+            capacity = HashHelpers.GetPrime(capacity);
             _buckets = (int*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer));
             _entries = (Entry*)((byte*)_buckets + capacity * sizeof(int));
             _bucketsLength = capacity;

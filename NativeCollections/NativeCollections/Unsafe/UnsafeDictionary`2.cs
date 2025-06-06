@@ -451,13 +451,14 @@ namespace NativeCollections
             {
                 if ((uint)i >= (uint)_entriesLength)
                     break;
-                if (_entries[i].HashCode == hashCode && _entries[i].Key.Equals(key))
+                ref var entry = ref _entries[i];
+                if (entry.HashCode == hashCode && entry.Key.Equals(key))
                 {
-                    _entries[i].Value = value;
+                    entry.Value = value;
                     return;
                 }
 
-                i = _entries[i].Next;
+                i = entry.Next;
                 collisionCount++;
                 if (collisionCount > (uint)_entriesLength)
                     throw new InvalidOperationException("ConcurrentOperationsNotSupported");
@@ -483,11 +484,11 @@ namespace NativeCollections
                 _count = count + 1;
             }
 
-            ref var entry = ref _entries[index];
-            entry.HashCode = hashCode;
-            entry.Next = bucket - 1;
-            entry.Key = key;
-            entry.Value = value;
+            ref var newEntry = ref _entries[index];
+            newEntry.HashCode = hashCode;
+            newEntry.Next = bucket - 1;
+            newEntry.Key = key;
+            newEntry.Value = value;
             bucket = index + 1;
             _version++;
         }
@@ -508,9 +509,10 @@ namespace NativeCollections
             {
                 if ((uint)i >= (uint)_entriesLength)
                     break;
-                if (_entries[i].HashCode == hashCode && _entries[i].Key.Equals(key))
+                ref var entry = ref _entries[i];
+                if (entry.HashCode == hashCode && entry.Key.Equals(key))
                     throw new ArgumentException($"AddingDuplicateWithKey, {key}");
-                i = _entries[i].Next;
+                i = entry.Next;
                 collisionCount++;
                 if (collisionCount > (uint)_entriesLength)
                     throw new InvalidOperationException("ConcurrentOperationsNotSupported");
@@ -536,11 +538,11 @@ namespace NativeCollections
                 _count = count + 1;
             }
 
-            ref var entry = ref _entries[index];
-            entry.HashCode = hashCode;
-            entry.Next = bucket - 1;
-            entry.Key = key;
-            entry.Value = value;
+            ref var newEntry = ref _entries[index];
+            newEntry.HashCode = hashCode;
+            newEntry.Next = bucket - 1;
+            newEntry.Key = key;
+            newEntry.Value = value;
             bucket = index + 1;
             _version++;
             return true;
@@ -562,9 +564,10 @@ namespace NativeCollections
             {
                 if ((uint)i >= (uint)_entriesLength)
                     break;
-                if (_entries[i].HashCode == hashCode && _entries[i].Key.Equals(key))
+                ref var entry = ref _entries[i];
+                if (entry.HashCode == hashCode && entry.Key.Equals(key))
                     return false;
-                i = _entries[i].Next;
+                i = entry.Next;
                 collisionCount++;
                 if (collisionCount > (uint)_entriesLength)
                     throw new InvalidOperationException("ConcurrentOperationsNotSupported");
@@ -590,11 +593,11 @@ namespace NativeCollections
                 _count = count + 1;
             }
 
-            ref var entry = ref _entries[index];
-            entry.HashCode = hashCode;
-            entry.Next = bucket - 1;
-            entry.Key = key;
-            entry.Value = value;
+            ref var newEntry = ref _entries[index];
+            newEntry.HashCode = hashCode;
+            newEntry.Next = bucket - 1;
+            newEntry.Key = key;
+            newEntry.Value = value;
             bucket = index + 1;
             _version++;
             return true;

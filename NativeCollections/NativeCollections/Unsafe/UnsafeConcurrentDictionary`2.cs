@@ -61,7 +61,7 @@ namespace NativeCollections
                 return value;
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => TryAddInternal(_tables, key, value, true, true, out _);
+            set => TryAddInternal(_tables, key, key.GetHashCode(), value, true, true, out _);
         }
 
         /// <summary>
@@ -211,7 +211,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Added</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryAdd(in TKey key, in TValue value) => TryAddInternal(_tables, key, value, false, true, out _);
+        public bool TryAdd(in TKey key, in TValue value) => TryAddInternal(_tables, key, key.GetHashCode(), value, false, true, out _);
 
         /// <summary>
         ///     Try remove
@@ -423,14 +423,52 @@ namespace NativeCollections
         ///     Get or add value
         /// </summary>
         /// <param name="key">Key</param>
+        /// <param name="valueFactory">Value factory</param>
+        /// <returns>Value</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public TValue GetOrAdd(in TKey key, Func<TKey, TValue> valueFactory)
+        {
+            if (valueFactory == null)
+                throw new ArgumentNullException(nameof(valueFactory));
+            var tables = _tables;
+            var hashCode = key.GetHashCode();
+            if (!TryGetValueInternal(tables, key, hashCode, out var resultingValue))
+                TryAddInternal(tables, key, hashCode, valueFactory(key), false, true, out resultingValue);
+            return resultingValue;
+        }
+
+        /// <summary>
+        ///     Get or add value
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="valueFactory">Value factory</param>
+        /// <param name="factoryArgument">Factory argument</param>
+        /// <returns>Value</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public TValue GetOrAdd<TArg>(in TKey key, Func<TKey, TArg, TValue> valueFactory, in TArg factoryArgument)
+        {
+            if (valueFactory == null)
+                throw new ArgumentNullException(nameof(valueFactory));
+            var tables = _tables;
+            var hashCode = key.GetHashCode();
+            if (!TryGetValueInternal(tables, key, hashCode, out var resultingValue))
+                TryAddInternal(tables, key, hashCode, valueFactory(key, factoryArgument), false, true, out resultingValue);
+            return resultingValue;
+        }
+
+        /// <summary>
+        ///     Get or add value
+        /// </summary>
+        /// <param name="key">Key</param>
         /// <param name="value">Value</param>
         /// <returns>Value</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TValue GetOrAdd(in TKey key, in TValue value)
         {
             var tables = _tables;
             var hashCode = key.GetHashCode();
             if (!TryGetValueInternal(tables, key, hashCode, out var resultingValue))
-                TryAddInternal(tables, key, value, false, true, out resultingValue);
+                TryAddInternal(tables, key, hashCode, value, false, true, out resultingValue);
             return resultingValue;
         }
 
@@ -574,9 +612,8 @@ namespace NativeCollections
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool TryAddInternal(Tables* tables, in TKey key, in TValue value, bool updateIfExists, bool acquireLock, out TValue resultingValue)
+        private bool TryAddInternal(Tables* tables, in TKey key, int hashCode, in TValue value, bool updateIfExists, bool acquireLock, out TValue resultingValue)
         {
-            var hashCode = key.GetHashCode();
             while (true)
             {
                 var locks = tables->Locks;

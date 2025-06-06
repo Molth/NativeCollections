@@ -1,6 +1,4 @@
-#if !NET7_0_OR_GREATER
 using System;
-#endif
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 #if NET7_0_OR_GREATER
@@ -33,17 +31,24 @@ namespace NativeCollections
         private static delegate* managed<void*, void> _free;
 
         /// <summary>
+        ///     Abort
+        /// </summary>
+        private static delegate* managed<void> _abort;
+
+        /// <summary>
         ///     Custom allocator
         /// </summary>
         /// <param name="alloc">Alloc</param>
         /// <param name="allocZeroed">AllocZeroed</param>
         /// <param name="free">Free</param>
+        /// <param name="abort">Abort</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Custom(delegate* managed<uint, void*> alloc, delegate* managed<uint, void*> allocZeroed, delegate* managed<void*, void> free)
+        public static void Custom(delegate* managed<uint, void*> alloc, delegate* managed<uint, void*> allocZeroed, delegate* managed<void*, void> free, delegate* managed<void> abort = null)
         {
             _alloc = alloc;
             _allocZeroed = allocZeroed;
             _free = free;
+            _abort = abort;
         }
 
         /// <summary>
@@ -82,12 +87,55 @@ namespace NativeCollections
         {
             var alloc = _alloc;
             if (alloc != null)
-                return alloc(byteCount);
+            {
+                var ptr = alloc(byteCount);
+                if (ptr == null)
+                {
+                    var abort = _abort;
+                    if (abort != null)
+                    {
+                        abort();
+                        return null;
+                    }
+
+                    throw new OutOfMemoryException();
+                }
+
+                return ptr;
+            }
 
 #if NET6_0_OR_GREATER
-            return NativeMemory.Alloc(byteCount);
+            try
+            {
+                return NativeMemory.Alloc(byteCount);
+            }
+            catch
+            {
+                var abort = _abort;
+                if (abort != null)
+                {
+                    abort();
+                    return null;
+                }
+
+                throw;
+            }
 #else
-            return (void*)Marshal.AllocHGlobal((nint)byteCount);
+            try
+            {
+                return (void*)Marshal.AllocHGlobal((nint)byteCount);
+            }
+            catch
+            {
+                var abort = _abort;
+                if (abort != null)
+                {
+                    abort();
+                    return null;
+                }
+
+                throw;
+            }
 #endif
         }
 
@@ -99,23 +147,79 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void* AllocZeroed(uint byteCount)
         {
+            void* ptr;
             var allocZeroed = _allocZeroed;
             if (allocZeroed != null)
-                return allocZeroed(byteCount);
+            {
+                ptr = allocZeroed(byteCount);
+                if (ptr == null)
+                {
+                    var abort = _abort;
+                    if (abort != null)
+                    {
+                        abort();
+                        return null;
+                    }
 
-            void* ptr;
+                    throw new OutOfMemoryException();
+                }
+
+                return ptr;
+            }
+
             var alloc = _alloc;
             if (alloc != null)
             {
                 ptr = alloc(byteCount);
+                if (ptr == null)
+                {
+                    var abort = _abort;
+                    if (abort != null)
+                    {
+                        abort();
+                        return null;
+                    }
+
+                    throw new OutOfMemoryException();
+                }
+
                 Unsafe.InitBlockUnaligned(ptr, 0, byteCount);
                 return ptr;
             }
 
 #if NET6_0_OR_GREATER
-            return NativeMemory.AllocZeroed(byteCount, 1);
+            try
+            {
+                return NativeMemory.AllocZeroed(byteCount, 1);
+            }
+            catch
+            {
+                var abort = _abort;
+                if (abort != null)
+                {
+                    abort();
+                    return null;
+                }
+
+                throw;
+            }
 #else
-            ptr = (void*)Marshal.AllocHGlobal((nint)byteCount);
+            try
+            {
+                ptr = (void*)Marshal.AllocHGlobal((nint)byteCount);
+            }
+            catch
+            {
+                var abort = _abort;
+                if (abort != null)
+                {
+                    abort();
+                    return null;
+                }
+
+                throw;
+            }
+
             Unsafe.InitBlockUnaligned(ptr, 0, byteCount);
             return ptr;
 #endif
@@ -186,6 +290,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool Compare(void* left, void* right, uint byteCount)
         {
+            if (left == null && right == null)
+                return true;
+
+            if (left == null || right == null)
+                throw new ArgumentNullException(left == null ? nameof(left) : nameof(right));
+
             ref var local1 = ref Unsafe.AsRef<byte>(left);
             ref var local2 = ref Unsafe.AsRef<byte>(right);
 #if NET7_0_OR_GREATER

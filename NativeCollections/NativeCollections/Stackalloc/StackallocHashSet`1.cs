@@ -91,6 +91,7 @@ namespace NativeCollections
         [MustBeZeroed("Span<byte> buffer")]
         public StackallocHashSet(Span<byte> buffer, int capacity)
         {
+            capacity = HashHelpers.GetPrime(capacity);
             _freeList = -1;
             _buckets = (int*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer));
             _entries = (Entry*)((byte*)_buckets + capacity * sizeof(int));
