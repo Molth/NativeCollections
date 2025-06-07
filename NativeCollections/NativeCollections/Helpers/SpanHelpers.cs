@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+#if !NET7_0_OR_GREATER
 using System.Runtime.InteropServices;
+#endif
 
 // ReSharper disable ALL
 
