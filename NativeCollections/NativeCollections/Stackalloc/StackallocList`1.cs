@@ -332,6 +332,22 @@ namespace NativeCollections
         public bool Contains(in T item) => _size != 0 && IndexOf(item) >= 0;
 
         /// <summary>
+        ///     Set count
+        /// </summary>
+        /// <param name="count">Count</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public InsertResult SetCount(int count)
+        {
+            if (count < 0)
+                throw new ArgumentOutOfRangeException(nameof(count), count, "NeedNonNegNum");
+            if (_length < count)
+                return InsertResult.InsufficientCapacity;
+            _size = count;
+            _version++;
+            return InsertResult.Success;
+        }
+
+        /// <summary>
         ///     Index of
         /// </summary>
         /// <param name="item">Item</param>

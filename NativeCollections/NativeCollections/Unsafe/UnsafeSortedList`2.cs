@@ -626,27 +626,17 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "Small_Capacity");
             if (capacity != _capacity)
             {
-                if (capacity > 0)
+                var keys = (TKey*)NativeMemoryAllocator.Alloc((uint)(capacity * (sizeof(TKey) + sizeof(TValue))));
+                var values = (TValue*)((byte*)keys + capacity * sizeof(TKey));
+                if (_size > 0)
                 {
-                    var keys = (TKey*)NativeMemoryAllocator.Alloc((uint)(capacity * (sizeof(TKey) + sizeof(TValue))));
-                    var values = (TValue*)((byte*)keys + capacity * sizeof(TKey));
-                    if (_size > 0)
-                    {
-                        Unsafe.CopyBlockUnaligned(keys, _keys, (uint)(_size * sizeof(TKey)));
-                        Unsafe.CopyBlockUnaligned(values, _values, (uint)(_size * sizeof(TValue)));
-                        NativeMemoryAllocator.Free(_keys);
-                    }
-
-                    _keys = keys;
-                    _values = values;
-                }
-                else
-                {
-                    NativeMemoryAllocator.Free(_keys);
-                    _keys = null;
-                    _values = null;
+                    Unsafe.CopyBlockUnaligned(keys, _keys, (uint)(_size * sizeof(TKey)));
+                    Unsafe.CopyBlockUnaligned(values, _values, (uint)(_size * sizeof(TValue)));
                 }
 
+                NativeMemoryAllocator.Free(_keys);
+                _keys = keys;
+                _values = values;
                 _capacity = capacity;
             }
         }

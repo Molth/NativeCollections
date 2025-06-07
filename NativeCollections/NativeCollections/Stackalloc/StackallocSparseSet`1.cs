@@ -88,6 +88,64 @@ namespace NativeCollections
         public int Count => _count;
 
         /// <summary>
+        ///     Min
+        /// </summary>
+        public KeyValuePair<int, T>? Min
+        {
+            get
+            {
+                if (_count > 0)
+                {
+                    var index = 0;
+                    var min = _dense[0].Key;
+                    for (var i = 1; i < _count; ++i)
+                    {
+                        var key = _dense[i].Key;
+                        if (key < min)
+                        {
+                            min = key;
+                            index = i;
+                        }
+                    }
+
+                    ref var entry = ref _dense[index];
+                    return Unsafe.As<Entry, KeyValuePair<int, T>>(ref entry);
+                }
+
+                return null;
+            }
+        }
+
+        /// <summary>
+        ///     Max
+        /// </summary>
+        public KeyValuePair<int, T>? Max
+        {
+            get
+            {
+                if (_count > 0)
+                {
+                    var index = 0;
+                    var max = _dense[0].Key;
+                    for (var i = 1; i < _count; ++i)
+                    {
+                        var key = _dense[i].Key;
+                        if (key > max)
+                        {
+                            max = key;
+                            index = i;
+                        }
+                    }
+
+                    ref var entry = ref _dense[index];
+                    return Unsafe.As<Entry, KeyValuePair<int, T>>(ref entry);
+                }
+
+                return null;
+            }
+        }
+
+        /// <summary>
         ///     Get byte count
         /// </summary>
         /// <param name="capacity">Capacity</param>
@@ -411,7 +469,7 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
             if (index >= _count)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
-            return *(KeyValuePair<int, T>*)&_dense[index];
+            return Unsafe.As<Entry, KeyValuePair<int, T>>(ref _dense[index]);
         }
 
         /// <summary>
@@ -445,7 +503,7 @@ namespace NativeCollections
                 return false;
             }
 
-            keyValuePair = *(KeyValuePair<int, T>*)&_dense[index];
+            keyValuePair = Unsafe.As<Entry, KeyValuePair<int, T>>(ref _dense[index]);
             return true;
         }
 

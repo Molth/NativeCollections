@@ -88,6 +88,64 @@ namespace NativeCollections
         public int Count => _count;
 
         /// <summary>
+        ///     Min
+        /// </summary>
+        public KeyValuePair<int, T>? Min
+        {
+            get
+            {
+                if (_count > 0)
+                {
+                    var index = 0;
+                    var min = _dense[0].Key;
+                    for (var i = 1; i < _count; ++i)
+                    {
+                        var key = _dense[i].Key;
+                        if (key < min)
+                        {
+                            min = key;
+                            index = i;
+                        }
+                    }
+
+                    ref var entry = ref _dense[index];
+                    return Unsafe.As<Entry, KeyValuePair<int, T>>(ref entry);
+                }
+
+                return null;
+            }
+        }
+
+        /// <summary>
+        ///     Max
+        /// </summary>
+        public KeyValuePair<int, T>? Max
+        {
+            get
+            {
+                if (_count > 0)
+                {
+                    var index = 0;
+                    var max = _dense[0].Key;
+                    for (var i = 1; i < _count; ++i)
+                    {
+                        var key = _dense[i].Key;
+                        if (key > max)
+                        {
+                            max = key;
+                            index = i;
+                        }
+                    }
+
+                    ref var entry = ref _dense[index];
+                    return Unsafe.As<Entry, KeyValuePair<int, T>>(ref entry);
+                }
+
+                return null;
+            }
+        }
+
+        /// <summary>
         ///     Structure
         /// </summary>
         /// <param name="capacity">Capacity</param>
@@ -130,20 +188,22 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetCapacity(int capacity)
         {
-            if (capacity < _count)
+            var max = Max;
+            var maxKey = max?.Key ?? 0;
+            if (capacity < maxKey)
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "SmallCapacity");
             if (capacity != _length)
             {
                 var dense = (Entry*)NativeMemoryAllocator.Alloc((uint)(capacity * (sizeof(Entry) + sizeof(int))));
                 var sparse = (int*)((byte*)dense + capacity * sizeof(Entry));
                 Unsafe.CopyBlockUnaligned(dense, _dense, (uint)(_count * sizeof(Entry)));
-                Unsafe.CopyBlockUnaligned(sparse, _sparse, (uint)(_count * sizeof(int)));
-                if (capacity > _length)
-                    MemoryMarshal.CreateSpan(ref *(sparse + _length), capacity - _length).Fill(-1);
+                Unsafe.CopyBlockUnaligned(sparse, _sparse, (uint)(maxKey * sizeof(int)));
+                if (capacity > maxKey)
+                    MemoryMarshal.CreateSpan(ref *(sparse + maxKey), capacity - maxKey).Fill(-1);
+                NativeMemoryAllocator.Free(_dense);
                 _dense = dense;
                 _sparse = sparse;
                 _length = capacity;
-                ++_version;
             }
         }
 
@@ -436,7 +496,7 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
             if (index >= _count)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
-            return *(KeyValuePair<int, T>*)&_dense[index];
+            return Unsafe.As<Entry, KeyValuePair<int, T>>(ref _dense[index]);
         }
 
         /// <summary>
@@ -470,7 +530,7 @@ namespace NativeCollections
                 return false;
             }
 
-            keyValuePair = *(KeyValuePair<int, T>*)&_dense[index];
+            keyValuePair = Unsafe.As<Entry, KeyValuePair<int, T>>(ref _dense[index]);
             return true;
         }
 

@@ -258,6 +258,13 @@ namespace NativeCollections
         public bool Contains(in T item) => _handle->Contains(item);
 
         /// <summary>
+        ///     Set count
+        /// </summary>
+        /// <param name="count">Count</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetCount(int count) => _handle->SetCount(count);
+
+        /// <summary>
         ///     Ensure capacity
         /// </summary>
         /// <param name="capacity">Capacity</param>

@@ -345,6 +345,21 @@ namespace NativeCollections
         public bool Contains(in T item) => _size != 0 && IndexOf(item) >= 0;
 
         /// <summary>
+        ///     Set count
+        /// </summary>
+        /// <param name="count">Count</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetCount(int count)
+        {
+            if (count < 0)
+                throw new ArgumentOutOfRangeException(nameof(count), count, "NeedNonNegNum");
+            if (_length < count)
+                Grow(count);
+            _size = count;
+            _version++;
+        }
+
+        /// <summary>
         ///     Ensure capacity
         /// </summary>
         /// <param name="capacity">Capacity</param>
@@ -514,21 +529,12 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "SmallCapacity");
             if (capacity != _length)
             {
-                if (capacity > 0)
-                {
-                    var newItems = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
-                    if (_size > 0)
-                        Unsafe.CopyBlockUnaligned(newItems, _buffer, (uint)(_size * sizeof(T)));
-                    NativeMemoryAllocator.Free(_buffer);
-                    _buffer = newItems;
-                    _length = capacity;
-                }
-                else
-                {
-                    NativeMemoryAllocator.Free(_buffer);
-                    _buffer = (T*)NativeMemoryAllocator.Alloc(0);
-                    _length = 0;
-                }
+                var newItems = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
+                if (_size > 0)
+                    Unsafe.CopyBlockUnaligned(newItems, _buffer, (uint)(_size * sizeof(T)));
+                NativeMemoryAllocator.Free(_buffer);
+                _buffer = newItems;
+                _length = capacity;
             }
         }
 

@@ -270,7 +270,7 @@ namespace NativeCollections
         {
             var newBuffer = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
             if (_size > 0)
-                Unsafe.CopyBlockUnaligned(newBuffer, _buffer, (uint)(_length * sizeof(T)));
+                Unsafe.CopyBlockUnaligned(newBuffer, _buffer, (uint)(_size * sizeof(T)));
             NativeMemoryAllocator.Free(_buffer);
             _buffer = newBuffer;
             _length = capacity;
