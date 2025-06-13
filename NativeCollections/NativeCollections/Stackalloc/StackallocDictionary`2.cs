@@ -340,6 +340,71 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Try to get value ref or add default
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="value">Value</param>
+        /// <param name="exists">Exists</param>
+        /// <returns>Got</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetValueRefOrAddDefault(in TKey key, out NativeReference<TValue> value, out bool exists)
+        {
+            var hashCode = (uint)key.GetHashCode();
+            uint collisionCount = 0;
+            ref var bucket = ref GetBucket(hashCode);
+            var i = bucket - 1;
+            while (true)
+            {
+                if ((uint)i >= (uint)_entriesLength)
+                    break;
+                ref var entry = ref _entries[i];
+                if (entry.HashCode == hashCode && entry.Key.Equals(key))
+                {
+                    value = new NativeReference<TValue>(Unsafe.AsPointer(ref entry.Value));
+                    exists = true;
+                    return true;
+                }
+
+                i = entry.Next;
+                collisionCount++;
+                if (collisionCount > (uint)_entriesLength)
+                    throw new InvalidOperationException("ConcurrentOperationsNotSupported");
+            }
+
+            int index;
+            if (_freeCount > 0)
+            {
+                index = _freeList;
+                _freeList = -3 - _entries[_freeList].Next;
+                _freeCount--;
+            }
+            else
+            {
+                var count = _count;
+                if (count == _entriesLength)
+                {
+                    value = default;
+                    exists = false;
+                    return false;
+                }
+
+                index = count;
+                _count = count + 1;
+            }
+
+            ref var newEntry = ref _entries[index];
+            newEntry.HashCode = hashCode;
+            newEntry.Next = bucket - 1;
+            newEntry.Key = key;
+            newEntry.Value = default;
+            bucket = index + 1;
+            _version++;
+            value = new NativeReference<TValue>(Unsafe.AsPointer(ref newEntry.Value));
+            exists = false;
+            return true;
+        }
+
+        /// <summary>
         ///     Find value
         /// </summary>
         /// <param name="key">Key</param>
@@ -354,7 +419,7 @@ namespace NativeCollections
             do
             {
                 if ((uint)i >= (uint)_entriesLength)
-                    return ref Unsafe.AsRef<TValue>(null);
+                    return ref Unsafe.NullRef<TValue>();
                 ref var entry = ref _entries[i];
                 if (entry.HashCode == hashCode && entry.Key.Equals(key))
                     return ref entry.Value;

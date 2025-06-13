@@ -659,7 +659,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool TryInsertThrowOnExisting(int index, in T item)
+        private void TryInsertThrowOnExisting(int index, in T item)
         {
             uint outHashCode = 0;
             uint outCollisionCount = 0;
@@ -687,7 +687,6 @@ namespace NativeCollections
             PushEntryIntoBucket(ref local, index);
             ++_count;
             ++_version;
-            return true;
         }
 
         /// <summary>

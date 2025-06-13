@@ -211,6 +211,15 @@ namespace NativeCollections
         public ref TValue GetValueRefOrAddDefault(in TKey key) => ref _handle->GetValueRefOrAddDefault(key);
 
         /// <summary>
+        ///     Get value ref or add default
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="exists">Exists</param>
+        /// <returns>Value ref</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref TValue GetValueRefOrAddDefault(in TKey key, out bool exists) => ref _handle->GetValueRefOrAddDefault(key, out exists);
+
+        /// <summary>
         ///     Ensure capacity
         /// </summary>
         /// <param name="capacity">Capacity</param>

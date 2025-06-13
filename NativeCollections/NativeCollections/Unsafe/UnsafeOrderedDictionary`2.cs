@@ -873,7 +873,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool TryInsertThrowOnExisting(int index, in TKey key, in TValue value)
+        private void TryInsertThrowOnExisting(int index, in TKey key, in TValue value)
         {
             uint outHashCode = 0;
             uint outCollisionCount = 0;
@@ -902,7 +902,6 @@ namespace NativeCollections
             PushEntryIntoBucket(ref local, index);
             ++_count;
             ++_version;
-            return true;
         }
 
         /// <summary>
