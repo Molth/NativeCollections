@@ -9,7 +9,7 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
         <PackageId>NativeCollections</PackageId>
-        <Version>1.5.1</Version>
+        <Version>1.5.2</Version>
         <Authors>Molth Nevin</Authors>
         <Company>Hell</Company>
         <Description>High performance pure C# native collections.</Description>
