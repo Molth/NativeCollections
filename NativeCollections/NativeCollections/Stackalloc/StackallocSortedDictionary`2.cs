@@ -442,6 +442,194 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Get value ref
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="exists">Exists</param>
+        /// <returns>Value ref</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref TValue GetValueRef(in TKey key, out bool exists)
+        {
+            var node = FindNode(key);
+            if (node != null)
+            {
+                exists = true;
+                return ref node->Value;
+            }
+
+            exists = false;
+            return ref Unsafe.NullRef<TValue>();
+        }
+
+        /// <summary>
+        ///     Try get value ref or add default
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="value">Value</param>
+        /// <returns>Value ref</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetValueRefOrAddDefault(in TKey key, out NativeReference<TValue> value)
+        {
+            if (_root == null)
+            {
+                if (!_nodePool.TryRent(out _root))
+                {
+                    value = default;
+                    return false;
+                }
+
+                _root->Key = key;
+                _root->Value = default;
+                _root->Left = null;
+                _root->Right = null;
+                _root->Color = NodeColor.Black;
+                _count = 1;
+                _version++;
+                value = new NativeReference<TValue>(Unsafe.AsPointer(ref _root->Value));
+                return true;
+            }
+
+            var current = _root;
+            Node* parent = null;
+            Node* grandParent = null;
+            Node* greatGrandParent = null;
+            _version++;
+            var order = 0;
+            while (current != null)
+            {
+                order = key.CompareTo(current->Key);
+                if (order == 0)
+                {
+                    _root->ColorBlack();
+                    value = new NativeReference<TValue>(Unsafe.AsPointer(ref current->Value));
+                    return true;
+                }
+
+                if (current->Is4Node)
+                {
+                    current->Split4Node();
+                    if (Node.IsNonNullRed(parent))
+                        InsertionBalance(current, parent, grandParent, greatGrandParent);
+                }
+
+                greatGrandParent = grandParent;
+                grandParent = parent;
+                parent = current;
+                current = order < 0 ? current->Left : current->Right;
+            }
+
+            if (!_nodePool.TryRent(out var node))
+            {
+                _root->ColorBlack();
+                value = default;
+                return false;
+            }
+
+            node->Key = key;
+            node->Value = default;
+            node->Left = null;
+            node->Right = null;
+            node->Color = NodeColor.Red;
+            if (order > 0)
+                parent->Right = node;
+            else
+                parent->Left = node;
+            if (parent->IsRed)
+                InsertionBalance(node, parent, grandParent, greatGrandParent);
+            _root->ColorBlack();
+            ++_count;
+            value = new NativeReference<TValue>(Unsafe.AsPointer(ref node->Value));
+            return true;
+        }
+
+        /// <summary>
+        ///     Try get value ref or add default
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="value">Value</param>
+        /// <param name="exists">Exists</param>
+        /// <returns>Value ref</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetValueRefOrAddDefault(in TKey key, out NativeReference<TValue> value, out bool exists)
+        {
+            if (_root == null)
+            {
+                if (!_nodePool.TryRent(out _root))
+                {
+                    value = default;
+                    exists = false;
+                    return false;
+                }
+
+                _root->Key = key;
+                _root->Value = default;
+                _root->Left = null;
+                _root->Right = null;
+                _root->Color = NodeColor.Black;
+                _count = 1;
+                _version++;
+                value = new NativeReference<TValue>(Unsafe.AsPointer(ref _root->Value));
+                exists = false;
+                return true;
+            }
+
+            var current = _root;
+            Node* parent = null;
+            Node* grandParent = null;
+            Node* greatGrandParent = null;
+            _version++;
+            var order = 0;
+            while (current != null)
+            {
+                order = key.CompareTo(current->Key);
+                if (order == 0)
+                {
+                    _root->ColorBlack();
+                    value = new NativeReference<TValue>(Unsafe.AsPointer(ref current->Value));
+                    exists = true;
+                    return true;
+                }
+
+                if (current->Is4Node)
+                {
+                    current->Split4Node();
+                    if (Node.IsNonNullRed(parent))
+                        InsertionBalance(current, parent, grandParent, greatGrandParent);
+                }
+
+                greatGrandParent = grandParent;
+                grandParent = parent;
+                parent = current;
+                current = order < 0 ? current->Left : current->Right;
+            }
+
+            if (!_nodePool.TryRent(out var node))
+            {
+                _root->ColorBlack();
+                value = default;
+                exists = false;
+                return false;
+            }
+
+            node->Key = key;
+            node->Value = default;
+            node->Left = null;
+            node->Right = null;
+            node->Color = NodeColor.Red;
+            if (order > 0)
+                parent->Right = node;
+            else
+                parent->Left = node;
+            if (parent->IsRed)
+                InsertionBalance(node, parent, grandParent, greatGrandParent);
+            _root->ColorBlack();
+            ++_count;
+            value = new NativeReference<TValue>(Unsafe.AsPointer(ref node->Value));
+            exists = false;
+            return true;
+        }
+
+        /// <summary>
         ///     Insertion balance
         /// </summary>
         /// <param name="current">Current</param>

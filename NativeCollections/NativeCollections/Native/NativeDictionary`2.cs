@@ -203,6 +203,15 @@ namespace NativeCollections
         public bool TryGetValueReference(in TKey key, out NativeReference<TValue> value) => _handle->TryGetValueReference(key, out value);
 
         /// <summary>
+        ///     Get value ref
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="exists">Exists</param>
+        /// <returns>Value ref</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref TValue GetValueRef(in TKey key, out bool exists) => ref _handle->GetValueRef(key, out exists);
+
+        /// <summary>
         ///     Get value ref or add default
         /// </summary>
         /// <param name="key">Key</param>

@@ -148,7 +148,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Added</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryAdd(in TKey key, in TValue value) => TryInsertIgnoreInsertion(-1, key, value);
+        public bool TryAdd(in TKey key, in TValue value) => TryInsertIgnoreInsertion(key, value);
 
         /// <summary>
         ///     Remove
@@ -353,6 +353,106 @@ namespace NativeCollections
 
             value = default;
             return false;
+        }
+
+        /// <summary>
+        ///     Get value ref
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="exists">Exists</param>
+        /// <returns>Value ref</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref TValue GetValueRef(in TKey key, out bool exists)
+        {
+            var index = IndexOf(key);
+            if (index >= 0)
+            {
+                exists = true;
+                return ref _entries[index].Value;
+            }
+
+            exists = false;
+            return ref Unsafe.NullRef<TValue>();
+        }
+
+        /// <summary>
+        ///     Get value ref or add default
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <returns>Value ref</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref TValue GetValueRefOrAddDefault(in TKey key)
+        {
+            uint outHashCode = 0;
+            uint outCollisionCount = 0;
+            var index1 = IndexOf(key, ref outHashCode, ref outCollisionCount);
+            if (index1 >= 0)
+                return ref _entries[index1].Value;
+            var index = _count;
+            var entries = _entries;
+            if (_entriesLength == _count)
+            {
+                Resize(HashHelpers.ExpandPrime(_entriesLength));
+                entries = _entries;
+            }
+
+            for (var entryIndex = _count - 1; entryIndex >= index; --entryIndex)
+            {
+                entries[entryIndex + 1] = entries[entryIndex];
+                UpdateBucketIndex(entryIndex, 1);
+            }
+
+            ref var local = ref entries[index];
+            local.HashCode = outHashCode;
+            local.Key = key;
+            local.Value = default;
+            PushEntryIntoBucket(ref local, index);
+            ++_count;
+            ++_version;
+            return ref local.Value;
+        }
+
+        /// <summary>
+        ///     Get value ref or add default
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="exists">Exists</param>
+        /// <returns>Value ref</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref TValue GetValueRefOrAddDefault(in TKey key, out bool exists)
+        {
+            uint outHashCode = 0;
+            uint outCollisionCount = 0;
+            var index1 = IndexOf(key, ref outHashCode, ref outCollisionCount);
+            if (index1 >= 0)
+            {
+                exists = true;
+                return ref _entries[index1].Value;
+            }
+
+            var index = _count;
+            var entries = _entries;
+            if (_entriesLength == _count)
+            {
+                Resize(HashHelpers.ExpandPrime(_entriesLength));
+                entries = _entries;
+            }
+
+            for (var entryIndex = _count - 1; entryIndex >= index; --entryIndex)
+            {
+                entries[entryIndex + 1] = entries[entryIndex];
+                UpdateBucketIndex(entryIndex, 1);
+            }
+
+            ref var local = ref entries[index];
+            local.HashCode = outHashCode;
+            local.Key = key;
+            local.Value = default;
+            PushEntryIntoBucket(ref local, index);
+            ++_count;
+            ++_version;
+            exists = false;
+            return ref local.Value;
         }
 
         /// <summary>
@@ -787,19 +887,17 @@ namespace NativeCollections
         /// <summary>
         ///     Insert
         /// </summary>
-        /// <param name="index">Index</param>
         /// <param name="key">Key</param>
         /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool TryInsertIgnoreInsertion(int index, in TKey key, in TValue value)
+        private bool TryInsertIgnoreInsertion(in TKey key, in TValue value)
         {
             uint outHashCode = 0;
             uint outCollisionCount = 0;
             var index1 = IndexOf(key, ref outHashCode, ref outCollisionCount);
             if (index1 >= 0)
                 return false;
-            if (index < 0)
-                index = _count;
+            var index = _count;
             var entries = _entries;
             if (_entriesLength == _count)
             {

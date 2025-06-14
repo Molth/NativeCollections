@@ -465,6 +465,162 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Get value ref
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="exists">Exists</param>
+        /// <returns>Value ref</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref TValue GetValueRef(in TKey key, out bool exists)
+        {
+            var node = FindNode(key);
+            if (node != null)
+            {
+                exists = true;
+                return ref node->Value;
+            }
+
+            exists = false;
+            return ref Unsafe.NullRef<TValue>();
+        }
+
+        /// <summary>
+        ///     Get value ref or add default
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <returns>Value ref</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref TValue GetValueRefOrAddDefault(in TKey key)
+        {
+            if (_root == null)
+            {
+                _root = (Node*)_nodePool.Rent();
+                _root->Key = key;
+                _root->Value = default;
+                _root->Left = null;
+                _root->Right = null;
+                _root->Color = NodeColor.Black;
+                _count = 1;
+                _version++;
+                return ref _root->Value;
+            }
+
+            var current = _root;
+            Node* parent = null;
+            Node* grandParent = null;
+            Node* greatGrandParent = null;
+            _version++;
+            var order = 0;
+            while (current != null)
+            {
+                order = key.CompareTo(current->Key);
+                if (order == 0)
+                {
+                    _root->ColorBlack();
+                    return ref current->Value;
+                }
+
+                if (current->Is4Node)
+                {
+                    current->Split4Node();
+                    if (Node.IsNonNullRed(parent))
+                        InsertionBalance(current, parent, grandParent, greatGrandParent);
+                }
+
+                greatGrandParent = grandParent;
+                grandParent = parent;
+                parent = current;
+                current = order < 0 ? current->Left : current->Right;
+            }
+
+            var node = (Node*)_nodePool.Rent();
+            node->Key = key;
+            node->Value = default;
+            node->Left = null;
+            node->Right = null;
+            node->Color = NodeColor.Red;
+            if (order > 0)
+                parent->Right = node;
+            else
+                parent->Left = node;
+            if (parent->IsRed)
+                InsertionBalance(node, parent, grandParent, greatGrandParent);
+            _root->ColorBlack();
+            ++_count;
+            return ref node->Value;
+        }
+
+        /// <summary>
+        ///     Get value ref or add default
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="exists">Exists</param>
+        /// <returns>Value ref</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref TValue GetValueRefOrAddDefault(in TKey key, out bool exists)
+        {
+            if (_root == null)
+            {
+                _root = (Node*)_nodePool.Rent();
+                _root->Key = key;
+                _root->Value = default;
+                _root->Left = null;
+                _root->Right = null;
+                _root->Color = NodeColor.Black;
+                _count = 1;
+                _version++;
+                exists = false;
+                return ref _root->Value;
+            }
+
+            var current = _root;
+            Node* parent = null;
+            Node* grandParent = null;
+            Node* greatGrandParent = null;
+            _version++;
+            var order = 0;
+            while (current != null)
+            {
+                order = key.CompareTo(current->Key);
+                if (order == 0)
+                {
+                    _root->ColorBlack();
+                    exists = true;
+                    return ref current->Value;
+                }
+
+                if (current->Is4Node)
+                {
+                    current->Split4Node();
+                    if (Node.IsNonNullRed(parent))
+                        InsertionBalance(current, parent, grandParent, greatGrandParent);
+                }
+
+                greatGrandParent = grandParent;
+                grandParent = parent;
+                parent = current;
+                current = order < 0 ? current->Left : current->Right;
+            }
+
+            var node = (Node*)_nodePool.Rent();
+            node->Key = key;
+            node->Value = default;
+            node->Left = null;
+            node->Right = null;
+            node->Color = NodeColor.Red;
+            if (order > 0)
+                parent->Right = node;
+            else
+                parent->Left = node;
+            if (parent->IsRed)
+                InsertionBalance(node, parent, grandParent, greatGrandParent);
+            _root->ColorBlack();
+            ++_count;
+            exists = false;
+            return ref node->Value;
+        }
+
+        /// <summary>
         ///     Insertion balance
         /// </summary>
         /// <param name="current">Current</param>

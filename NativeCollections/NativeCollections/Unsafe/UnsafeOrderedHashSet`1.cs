@@ -111,7 +111,7 @@ namespace NativeCollections
         /// <param name="item">Item</param>
         /// <returns>Added</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Add(in T item) => TryInsertIgnoreInsertion(-1, item);
+        public bool Add(in T item) => TryInsertIgnoreInsertion(item);
 
         /// <summary>
         ///     Remove
@@ -619,18 +619,16 @@ namespace NativeCollections
         /// <summary>
         ///     Insert
         /// </summary>
-        /// <param name="index">Index</param>
         /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool TryInsertIgnoreInsertion(int index, in T item)
+        private bool TryInsertIgnoreInsertion(in T item)
         {
             uint outHashCode = 0;
             uint outCollisionCount = 0;
             var index1 = IndexOf(item, ref outHashCode, ref outCollisionCount);
             if (index1 >= 0)
                 return false;
-            if (index < 0)
-                index = _count;
+            var index = _count;
             var entries = _entries;
             if (_entriesLength == _count)
             {

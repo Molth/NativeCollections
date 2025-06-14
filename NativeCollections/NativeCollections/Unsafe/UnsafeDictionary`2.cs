@@ -290,6 +290,20 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Get value ref
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="exists">Exists</param>
+        /// <returns>Value ref</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref TValue GetValueRef(in TKey key, out bool exists)
+        {
+            ref var valRef = ref FindValue(key);
+            exists = !Unsafe.IsNullRef(ref Unsafe.AsRef(in valRef));
+            return ref valRef;
+        }
+
+        /// <summary>
         ///     Get value ref or add default
         /// </summary>
         /// <param name="key">Key</param>

@@ -344,6 +344,117 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Get value ref
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="exists">Exists</param>
+        /// <returns>Value ref</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref TValue GetValueRef(in TKey key, out bool exists)
+        {
+            var index = IndexOf(key);
+            if (index >= 0)
+            {
+                exists = true;
+                return ref _entries[index].Value;
+            }
+
+            exists = false;
+            return ref Unsafe.NullRef<TValue>();
+        }
+
+
+        /// <summary>
+        ///     Get value ref or add default
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="value">Value</param>
+        /// <returns>Value ref</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetValueRefOrAddDefault(in TKey key, out NativeReference<TValue> value)
+        {
+            uint outHashCode = 0;
+            uint outCollisionCount = 0;
+            var index1 = IndexOf(key, ref outHashCode, ref outCollisionCount);
+            if (index1 >= 0)
+            {
+                value = new NativeReference<TValue>(Unsafe.AsPointer(ref _entries[index1].Value));
+                return true;
+            }
+
+            var index = _count;
+            var entries = _entries;
+            if (_entriesLength == _count)
+            {
+                value = default;
+                return false;
+            }
+
+            for (var entryIndex = _count - 1; entryIndex >= index; --entryIndex)
+            {
+                entries[entryIndex + 1] = entries[entryIndex];
+                UpdateBucketIndex(entryIndex, 1);
+            }
+
+            ref var local = ref entries[index];
+            local.HashCode = outHashCode;
+            local.Key = key;
+            local.Value = default;
+            PushEntryIntoBucket(ref local, index);
+            ++_count;
+            ++_version;
+            value = new NativeReference<TValue>(Unsafe.AsPointer(ref local.Value));
+            return true;
+        }
+
+        /// <summary>
+        ///     Get value ref or add default
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="value">Value</param>
+        /// <param name="exists">Exists</param>
+        /// <returns>Value ref</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetValueRefOrAddDefault(in TKey key, out NativeReference<TValue> value, out bool exists)
+        {
+            uint outHashCode = 0;
+            uint outCollisionCount = 0;
+            var index1 = IndexOf(key, ref outHashCode, ref outCollisionCount);
+            if (index1 >= 0)
+            {
+                value = new NativeReference<TValue>(Unsafe.AsPointer(ref _entries[index1].Value));
+                exists = true;
+                return true;
+            }
+
+            var index = _count;
+            var entries = _entries;
+            if (_entriesLength == _count)
+            {
+                value = default;
+                exists = false;
+                return false;
+            }
+
+            for (var entryIndex = _count - 1; entryIndex >= index; --entryIndex)
+            {
+                entries[entryIndex + 1] = entries[entryIndex];
+                UpdateBucketIndex(entryIndex, 1);
+            }
+
+            ref var local = ref entries[index];
+            local.HashCode = outHashCode;
+            local.Key = key;
+            local.Value = default;
+            PushEntryIntoBucket(ref local, index);
+            ++_count;
+            ++_version;
+            value = new NativeReference<TValue>(Unsafe.AsPointer(ref local.Value));
+            exists = false;
+            return true;
+        }
+
+        /// <summary>
         ///     Get key at index
         /// </summary>
         /// <param name="index">Index</param>
