@@ -60,6 +60,11 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Empty
+        /// </summary>
+        public static NativeSplitRange<T> Empty => new();
+
+        /// <summary>
         ///     Get enumerator
         /// </summary>
         public Enumerator GetEnumerator() => new(_buffer, _separator);

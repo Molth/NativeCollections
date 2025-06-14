@@ -347,6 +347,18 @@ namespace NativeCollections
         ///     Get value ref
         /// </summary>
         /// <param name="key">Key</param>
+        /// <returns>Value ref</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref TValue GetValueRefOrNullRef(in TKey key)
+        {
+            var index = IndexOf(key);
+            return ref index >= 0 ? ref _entries[index].Value : ref Unsafe.NullRef<TValue>();
+        }
+
+        /// <summary>
+        ///     Get value ref
+        /// </summary>
+        /// <param name="key">Key</param>
         /// <param name="exists">Exists</param>
         /// <returns>Value ref</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -362,7 +374,6 @@ namespace NativeCollections
             exists = false;
             return ref Unsafe.NullRef<TValue>();
         }
-
 
         /// <summary>
         ///     Get value ref or add default

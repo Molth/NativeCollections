@@ -282,6 +282,14 @@ namespace NativeCollections
         ///     Get value ref
         /// </summary>
         /// <param name="key">Key</param>
+        /// <returns>Value ref</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref TValue GetValueRefOrNullRef(in TKey key) => ref FindValue(key);
+
+        /// <summary>
+        ///     Get value ref
+        /// </summary>
+        /// <param name="key">Key</param>
         /// <param name="exists">Exists</param>
         /// <returns>Value ref</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
