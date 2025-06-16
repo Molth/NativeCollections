@@ -55,9 +55,9 @@ namespace NativeCollections
                 //
             }
 
-            uint num;
-            NativeRandom.Next(&num, 4);
-            DefaultSeed = num;
+            Span<byte> buffer = stackalloc byte[4];
+            NativeRandom.NextBytes(buffer);
+            DefaultSeed = Unsafe.ReadUnaligned<uint>(ref MemoryMarshal.GetReference(buffer));
         }
 
         /// <summary>

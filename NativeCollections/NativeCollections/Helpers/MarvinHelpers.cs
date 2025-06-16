@@ -15,7 +15,7 @@ namespace NativeCollections
     /// <summary>
     ///     Marvin helpers
     /// </summary>
-    internal static unsafe class MarvinHelpers
+    internal static class MarvinHelpers
     {
         /// <summary>
         ///     Default seed
@@ -49,9 +49,9 @@ namespace NativeCollections
                 //
             }
 
-            ulong num;
-            NativeRandom.Next(&num, 8);
-            DefaultSeed = num;
+            Span<byte> buffer = stackalloc byte[8];
+            NativeRandom.NextBytes(buffer);
+            DefaultSeed = Unsafe.ReadUnaligned<ulong>(ref MemoryMarshal.GetReference(buffer));
         }
 
         /// <summary>

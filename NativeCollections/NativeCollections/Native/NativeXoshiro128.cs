@@ -460,7 +460,7 @@ namespace NativeCollections
             {
                 var num7 = s1 * 5U;
                 var num8 = (uint)((((int)num7 << 7) | (int)(num7 >> 25)) * 9);
-                Unsafe.CopyBlockUnaligned(ref MemoryMarshal.GetReference(buffer), ref *(byte*)&num8, (uint)buffer.Length);
+                Unsafe.CopyBlockUnaligned(ref MemoryMarshal.GetReference(buffer), ref Unsafe.As<uint, byte>(ref num8), (uint)buffer.Length);
                 var num9 = s1 << 9;
                 var num10 = num1 ^ s0;
                 var num11 = num2 ^ s1;

@@ -414,7 +414,7 @@ namespace NativeCollections
 
             if (!buffer.IsEmpty)
             {
-                Unsafe.CopyBlockUnaligned(ref MemoryMarshal.GetReference(buffer), ref *(byte*)&num1, (uint)buffer.Length);
+                Unsafe.CopyBlockUnaligned(ref MemoryMarshal.GetReference(buffer), ref Unsafe.As<uint, byte>(ref num1), (uint)buffer.Length);
                 num1 ^= num1 << 13;
                 num1 ^= num1 >> 17;
                 num1 ^= num1 << 5;
