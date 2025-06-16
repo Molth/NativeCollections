@@ -507,6 +507,9 @@ namespace NativeCollections
                 Monitor.Exit(locks[i]);
         }
 
+        /// <summary>
+        ///     Get count no locks
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int GetCountNoLocks()
         {

@@ -61,7 +61,7 @@ namespace NativeCollections
                 return value;
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => TryAddInternal(_tables, key, key.GetHashCode(), value, true, true, out _);
+            set => TryAddInternal(_tables, key, key.GetHashCode(), value, true, out _);
         }
 
         /// <summary>
@@ -211,7 +211,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Added</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryAdd(in TKey key, in TValue value) => TryAddInternal(_tables, key, key.GetHashCode(), value, false, true, out _);
+        public bool TryAdd(in TKey key, in TValue value) => TryAddInternal(_tables, key, key.GetHashCode(), value, false, out _);
 
         /// <summary>
         ///     Try remove
@@ -433,7 +433,7 @@ namespace NativeCollections
             var tables = _tables;
             var hashCode = key.GetHashCode();
             if (!TryGetValueInternal(tables, key, hashCode, out var resultingValue))
-                TryAddInternal(tables, key, hashCode, valueFactory(key), false, true, out resultingValue);
+                TryAddInternal(tables, key, hashCode, valueFactory(key), false, out resultingValue);
             return resultingValue;
         }
 
@@ -452,7 +452,7 @@ namespace NativeCollections
             var tables = _tables;
             var hashCode = key.GetHashCode();
             if (!TryGetValueInternal(tables, key, hashCode, out var resultingValue))
-                TryAddInternal(tables, key, hashCode, valueFactory(key, factoryArgument), false, true, out resultingValue);
+                TryAddInternal(tables, key, hashCode, valueFactory(key, factoryArgument), false, out resultingValue);
             return resultingValue;
         }
 
@@ -468,7 +468,7 @@ namespace NativeCollections
             var tables = _tables;
             var hashCode = key.GetHashCode();
             if (!TryGetValueInternal(tables, key, hashCode, out var resultingValue))
-                TryAddInternal(tables, key, hashCode, value, false, true, out resultingValue);
+                TryAddInternal(tables, key, hashCode, value, false, out resultingValue);
             return resultingValue;
         }
 
@@ -611,8 +611,11 @@ namespace NativeCollections
                 Monitor.Exit(locks[i]);
         }
 
+        /// <summary>
+        ///     Try add internal
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool TryAddInternal(Tables* tables, in TKey key, int hashCode, in TValue value, bool updateIfExists, bool acquireLock, out TValue resultingValue)
+        private bool TryAddInternal(Tables* tables, in TKey key, int hashCode, in TValue value, bool updateIfExists, out TValue resultingValue)
         {
             while (true)
             {
@@ -622,8 +625,7 @@ namespace NativeCollections
                 var lockTaken = false;
                 try
                 {
-                    if (acquireLock)
-                        Monitor.Enter(locks[lockNo], ref lockTaken);
+                    Monitor.Enter(locks[lockNo], ref lockTaken);
                     if (tables != _tables)
                     {
                         tables = _tables;
@@ -717,6 +719,9 @@ namespace NativeCollections
             }
         }
 
+        /// <summary>
+        ///     Try update internal
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool TryUpdateInternal(Tables* tables, in TKey key, in TValue newValue, in TValue comparisonValue)
         {
@@ -816,6 +821,9 @@ namespace NativeCollections
             return false;
         }
 
+        /// <summary>
+        ///     Get count no locks
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int GetCountNoLocks()
         {
