@@ -240,6 +240,24 @@ namespace NativeCollections
         public TValue GetOrAdd(in TKey key, in TValue value) => _handle->GetOrAdd(key, value);
 
         /// <summary>
+        ///     Add or add value
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public TValue AddOrUpdate<TArg>(in TKey key, Func<TKey, TArg, TValue> addValueFactory, Func<TKey, TValue, TArg, TValue> updateValueFactory, in TArg factoryArgument) => _handle->AddOrUpdate(key, addValueFactory, updateValueFactory, factoryArgument);
+
+        /// <summary>
+        ///     Add or add value
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public TValue AddOrUpdate(in TKey key, Func<TKey, TValue> addValueFactory, Func<TKey, TValue, TValue> updateValueFactory) => _handle->AddOrUpdate(key, addValueFactory, updateValueFactory);
+
+        /// <summary>
+        ///     Add or add value
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public TValue AddOrUpdate(in TKey key, in TValue addValue, Func<TKey, TValue, TValue> updateValueFactory) => _handle->AddOrUpdate(key, addValue, updateValueFactory);
+
+        /// <summary>
         ///     Empty
         /// </summary>
         public static NativeConcurrentDictionary<TKey, TValue> Empty => new();

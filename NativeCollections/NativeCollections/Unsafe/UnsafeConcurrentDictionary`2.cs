@@ -417,7 +417,7 @@ namespace NativeCollections
         /// <param name="comparisonValue">Comparison value</param>
         /// <returns>Updated</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryUpdate(in TKey key, in TValue newValue, in TValue comparisonValue) => TryUpdateInternal(_tables, key, newValue, comparisonValue);
+        public bool TryUpdate(in TKey key, in TValue newValue, in TValue comparisonValue) => TryUpdateInternal(_tables, key, key.GetHashCode(), newValue, comparisonValue);
 
         /// <summary>
         ///     Get or add value
@@ -470,6 +470,118 @@ namespace NativeCollections
             if (!TryGetValueInternal(tables, key, hashCode, out var resultingValue))
                 TryAddInternal(tables, key, hashCode, value, false, out resultingValue);
             return resultingValue;
+        }
+
+        /// <summary>
+        ///     Add or add value
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public TValue AddOrUpdate<TArg>(in TKey key, Func<TKey, TArg, TValue> addValueFactory, Func<TKey, TValue, TArg, TValue> updateValueFactory, in TArg factoryArgument)
+        {
+            if (addValueFactory == null)
+                throw new ArgumentNullException(nameof(addValueFactory));
+            if (updateValueFactory == null)
+                throw new ArgumentNullException(nameof(updateValueFactory));
+            var tables = _tables;
+            var hashCode = key.GetHashCode();
+            while (true)
+            {
+                do
+                {
+                    do
+                    {
+                        TValue comparisonValue;
+                        if (TryGetValueInternal(tables, key, hashCode, out comparisonValue))
+                        {
+                            var newValue = updateValueFactory(key, comparisonValue, factoryArgument);
+                            if (TryUpdateInternal(tables, key, hashCode, newValue, comparisonValue))
+                                return newValue;
+                        }
+                        else
+                        {
+                            TValue resultingValue;
+                            if (TryAddInternal(tables, key, hashCode, addValueFactory(key, factoryArgument), false, out resultingValue))
+                                return resultingValue;
+                        }
+                    } while (tables == _tables);
+
+                    tables = _tables;
+                } while (true);
+            }
+        }
+
+        /// <summary>
+        ///     Add or add value
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public TValue AddOrUpdate(in TKey key, Func<TKey, TValue> addValueFactory, Func<TKey, TValue, TValue> updateValueFactory)
+        {
+            if (addValueFactory == null)
+                throw new ArgumentNullException(nameof(addValueFactory));
+            if (updateValueFactory == null)
+                throw new ArgumentNullException(nameof(updateValueFactory));
+            var tables = _tables;
+            var hashCode = key.GetHashCode();
+            while (true)
+            {
+                do
+                {
+                    do
+                    {
+                        TValue comparisonValue;
+                        if (TryGetValueInternal(tables, key, hashCode, out comparisonValue))
+                        {
+                            var newValue = updateValueFactory(key, comparisonValue);
+                            if (TryUpdateInternal(tables, key, hashCode, newValue, comparisonValue))
+                                return newValue;
+                        }
+                        else
+                        {
+                            TValue resultingValue;
+                            if (TryAddInternal(tables, key, hashCode, addValueFactory(key), false, out resultingValue))
+                                return resultingValue;
+                        }
+                    } while (tables == _tables);
+
+                    tables = _tables;
+                } while (true);
+            }
+        }
+
+        /// <summary>
+        ///     Add or add value
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public TValue AddOrUpdate(in TKey key, in TValue addValue, Func<TKey, TValue, TValue> updateValueFactory)
+        {
+            if (updateValueFactory == null)
+                throw new ArgumentNullException(nameof(updateValueFactory));
+            var tables = _tables;
+            var hashCode = key.GetHashCode();
+            while (true)
+            {
+                do
+                {
+                    do
+                    {
+                        TValue comparisonValue;
+                        if (TryGetValueInternal(tables, key, hashCode, out comparisonValue))
+                        {
+                            var newValue = updateValueFactory(key, comparisonValue);
+                            if (TryUpdateInternal(tables, key, hashCode, newValue, comparisonValue))
+                                return newValue;
+                        }
+                        else
+                        {
+                            TValue resultingValue;
+                            if (TryAddInternal(tables, key, hashCode, addValue, false, out resultingValue))
+                                return resultingValue;
+                        }
+                    } while (tables == _tables);
+
+                    tables = _tables;
+                } while (true);
+            }
         }
 
         /// <summary>
@@ -723,9 +835,8 @@ namespace NativeCollections
         ///     Try update internal
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool TryUpdateInternal(Tables* tables, in TKey key, in TValue newValue, in TValue comparisonValue)
+        private bool TryUpdateInternal(Tables* tables, in TKey key, int hashCode, in TValue newValue, in TValue comparisonValue)
         {
-            var hashCode = key.GetHashCode();
             while (true)
             {
                 var locks = tables->Locks;
