@@ -362,7 +362,7 @@ namespace NativeCollections
         /// <param name="exists">Exists</param>
         /// <returns>Value ref</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref TValue GetValueRef(in TKey key, out bool exists)
+        public ref TValue GetValueRefOrNullRef(in TKey key, out bool exists)
         {
             var index = IndexOf(key);
             if (index >= 0)

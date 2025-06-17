@@ -293,7 +293,7 @@ namespace NativeCollections
         /// <param name="exists">Exists</param>
         /// <returns>Value ref</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref TValue GetValueRef(in TKey key, out bool exists)
+        public ref TValue GetValueRefOrNullRef(in TKey key, out bool exists)
         {
             ref var valRef = ref FindValue(key);
             exists = !Unsafe.IsNullRef(ref Unsafe.AsRef(in valRef));

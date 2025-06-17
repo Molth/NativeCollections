@@ -245,7 +245,7 @@ namespace NativeCollections
         /// <param name="exists">Exists</param>
         /// <returns>Value ref</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref TValue GetValueRef(in TKey key, out bool exists) => ref _handle->GetValueRef(key, out exists);
+        public ref TValue GetValueRefOrNullRef(in TKey key, out bool exists) => ref _handle->GetValueRefOrNullRef(key, out exists);
 
         /// <summary>
         ///     Get value ref or add default
