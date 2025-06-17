@@ -410,6 +410,182 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Get value ref
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <returns>Value ref</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref TValue GetValueRefOrNullRef(in TKey key)
+        {
+            var tables = _tables;
+            var hashCode = key.GetHashCode();
+            for (var node = (Node*)GetBucket(tables, hashCode); node != null; node = node->Next)
+            {
+                if (hashCode == node->HashCode && node->Key.Equals(key))
+                    return ref node->Value;
+            }
+
+            return ref Unsafe.NullRef<TValue>();
+        }
+
+        /// <summary>
+        ///     Get value ref
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="exists">Exists</param>
+        /// <returns>Value ref</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref TValue GetValueRefOrNullRef(in TKey key, out bool exists)
+        {
+            var tables = _tables;
+            var hashCode = key.GetHashCode();
+            for (var node = (Node*)GetBucket(tables, hashCode); node != null; node = node->Next)
+            {
+                if (hashCode == node->HashCode && node->Key.Equals(key))
+                {
+                    exists = true;
+                    return ref node->Value;
+                }
+            }
+
+            exists = false;
+            return ref Unsafe.NullRef<TValue>();
+        }
+
+        /// <summary>
+        ///     Get value ref or add default
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <returns>Value ref</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref TValue GetValueRefOrAddDefault(in TKey key)
+        {
+            var tables = _tables;
+            var hashCode = key.GetHashCode();
+            while (true)
+            {
+                var locks = tables->Locks;
+                ref var bucket = ref GetBucketAndLock(tables, hashCode, out var lockNo);
+                var resizeDesired = false;
+                var lockTaken = false;
+                Node* resultNode;
+                try
+                {
+                    Monitor.Enter(locks[lockNo], ref lockTaken);
+                    if (tables != _tables)
+                    {
+                        tables = _tables;
+                        continue;
+                    }
+
+                    for (var node = (Node*)bucket; node != null; node = node->Next)
+                    {
+                        if (hashCode == node->HashCode && node->Key.Equals(key))
+                            return ref node->Value;
+                    }
+
+                    _nodeLock.Enter();
+                    try
+                    {
+                        resultNode = (Node*)_nodePool.Rent();
+                    }
+                    finally
+                    {
+                        _nodeLock.Exit();
+                    }
+
+                    resultNode->Initialize(key, default, hashCode, (Node*)bucket);
+                    Volatile.Write(ref bucket, (nint)resultNode);
+                    checked
+                    {
+                        tables->CountPerLock[lockNo]++;
+                    }
+
+                    if (tables->CountPerLock[lockNo] > _budget)
+                        resizeDesired = true;
+                }
+                finally
+                {
+                    if (lockTaken)
+                        Monitor.Exit(locks[lockNo]);
+                }
+
+                if (resizeDesired)
+                    GrowTable(tables, resizeDesired);
+                return ref resultNode->Value;
+            }
+        }
+
+        /// <summary>
+        ///     Get value ref or add default
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="exists">Exists</param>
+        /// <returns>Value ref</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref TValue GetValueRefOrAddDefault(in TKey key, out bool exists)
+        {
+            var tables = _tables;
+            var hashCode = key.GetHashCode();
+            while (true)
+            {
+                var locks = tables->Locks;
+                ref var bucket = ref GetBucketAndLock(tables, hashCode, out var lockNo);
+                var resizeDesired = false;
+                var lockTaken = false;
+                Node* resultNode;
+                try
+                {
+                    Monitor.Enter(locks[lockNo], ref lockTaken);
+                    if (tables != _tables)
+                    {
+                        tables = _tables;
+                        continue;
+                    }
+
+                    for (var node = (Node*)bucket; node != null; node = node->Next)
+                    {
+                        if (hashCode == node->HashCode && node->Key.Equals(key))
+                        {
+                            exists = true;
+                            return ref node->Value;
+                        }
+                    }
+
+                    _nodeLock.Enter();
+                    try
+                    {
+                        resultNode = (Node*)_nodePool.Rent();
+                    }
+                    finally
+                    {
+                        _nodeLock.Exit();
+                    }
+
+                    resultNode->Initialize(key, default, hashCode, (Node*)bucket);
+                    Volatile.Write(ref bucket, (nint)resultNode);
+                    checked
+                    {
+                        tables->CountPerLock[lockNo]++;
+                    }
+
+                    if (tables->CountPerLock[lockNo] > _budget)
+                        resizeDesired = true;
+                }
+                finally
+                {
+                    if (lockTaken)
+                        Monitor.Exit(locks[lockNo]);
+                }
+
+                if (resizeDesired)
+                    GrowTable(tables, resizeDesired);
+                exists = false;
+                return ref resultNode->Value;
+            }
+        }
+
+        /// <summary>
         ///     Try update
         /// </summary>
         /// <param name="key">Key</param>
