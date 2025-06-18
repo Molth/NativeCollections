@@ -51,10 +51,29 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="length">Length</param>
+        /// <param name="zeroed">Zeroed</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeTempBuffer(int length, bool zeroed)
+        {
+            _array = ArrayPool<T>.Shared.Rent(length);
+            _length = length;
+            if (zeroed)
+                AsSpan().Clear();
+        }
+
+        /// <summary>
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => ArrayPool<T>.Shared.Return(_array);
+        public void Dispose()
+        {
+            if (_array == null)
+                return;
+            ArrayPool<T>.Shared.Return(_array);
+        }
 
         /// <summary>
         ///     As span

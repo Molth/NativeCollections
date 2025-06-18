@@ -419,7 +419,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Contains</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Contains(in T value) => Text.IndexOf(value) >= 0;
+        public bool Contains(in T value) => SpanHelpers.Contains(Text, value);
 
         /// <summary>
         ///     Remove
@@ -608,7 +608,7 @@ namespace NativeCollections
                 return;
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
             var start = 0;
-            while (start < _length && buffer.IndexOf(Unsafe.Add(ref reference, start)) >= 0)
+            while (start < _length && SpanHelpers.Contains(buffer, Unsafe.Add(ref reference, start)))
                 start++;
             if (start > 0 && start < _length)
             {
@@ -632,7 +632,7 @@ namespace NativeCollections
                 return;
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
             var end = _length - 1;
-            while (end >= 0 && buffer.IndexOf(Unsafe.Add(ref reference, end)) >= 0)
+            while (end >= 0 && SpanHelpers.Contains(buffer, Unsafe.Add(ref reference, end)))
                 end--;
             _length = end + 1;
         }
@@ -648,9 +648,9 @@ namespace NativeCollections
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
             var start = 0;
             var end = _length - 1;
-            while (start <= end && buffer.IndexOf(Unsafe.Add(ref reference, start)) >= 0)
+            while (start <= end && SpanHelpers.Contains(buffer, Unsafe.Add(ref reference, start)))
                 start++;
-            while (end >= start && buffer.IndexOf(Unsafe.Add(ref reference, end)) >= 0)
+            while (end >= start && SpanHelpers.Contains(buffer, Unsafe.Add(ref reference, end)))
                 end--;
             var newLength = end - start + 1;
             if (newLength <= 0)

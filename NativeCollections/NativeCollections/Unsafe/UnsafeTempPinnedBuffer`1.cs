@@ -57,11 +57,28 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="length">Length</param>
+        /// <param name="zeroed">Zeroed</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public UnsafeTempPinnedBuffer(int length, bool zeroed)
+        {
+            _array = ArrayPool<byte>.Shared.Rent(length * sizeof(T));
+            _length = length;
+            _handle = GCHandle.Alloc(_array, GCHandleType.Pinned);
+            if (zeroed)
+                AsSpan().Clear();
+        }
+
+        /// <summary>
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
+            if (_array == null)
+                return;
             ArrayPool<byte>.Shared.Return(_array);
             _handle.Free();
         }
