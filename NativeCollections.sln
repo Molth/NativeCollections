@@ -2,6 +2,10 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NativeCollections", "NativeCollections\NativeCollections.csproj", "{D87271C2-87E2-40C2-A162-8C9F750CBAFA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examples", "Examples\Examples.csproj", "{685876EC-617C-45E7-8353-85F816F6515A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmarks", "Benchmarks\Benchmarks.csproj", "{2CCADB79-1991-4C90-8B9B-1018F3D8EC4F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +16,13 @@ Global
 		{D87271C2-87E2-40C2-A162-8C9F750CBAFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D87271C2-87E2-40C2-A162-8C9F750CBAFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D87271C2-87E2-40C2-A162-8C9F750CBAFA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{685876EC-617C-45E7-8353-85F816F6515A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{685876EC-617C-45E7-8353-85F816F6515A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{685876EC-617C-45E7-8353-85F816F6515A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{685876EC-617C-45E7-8353-85F816F6515A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2CCADB79-1991-4C90-8B9B-1018F3D8EC4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2CCADB79-1991-4C90-8B9B-1018F3D8EC4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2CCADB79-1991-4C90-8B9B-1018F3D8EC4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2CCADB79-1991-4C90-8B9B-1018F3D8EC4F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
