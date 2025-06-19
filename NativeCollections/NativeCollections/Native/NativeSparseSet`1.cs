@@ -70,6 +70,16 @@ namespace NativeCollections
         public int Count => _handle->Count;
 
         /// <summary>
+        ///     Min
+        /// </summary>
+        public KeyValuePair<int, T>? Min => _handle->Min;
+
+        /// <summary>
+        ///     Max
+        /// </summary>
+        public KeyValuePair<int, T>? Max => _handle->Max;
+
+        /// <summary>
         ///     Get or set value
         /// </summary>
         /// <param name="key">Key</param>

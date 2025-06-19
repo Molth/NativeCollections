@@ -92,6 +92,7 @@ namespace NativeCollections
         /// </summary>
         public KeyValuePair<int, T>? Min
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 if (_count > 0)
@@ -121,6 +122,7 @@ namespace NativeCollections
         /// </summary>
         public KeyValuePair<int, T>? Max
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 if (_count > 0)
