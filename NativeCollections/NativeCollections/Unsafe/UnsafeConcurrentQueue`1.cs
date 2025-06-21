@@ -51,7 +51,7 @@ namespace NativeCollections
         public UnsafeConcurrentQueue(int size, int maxFreeSlabs)
         {
             this = new UnsafeConcurrentQueue<T>();
-            if (NativeConcurrentQueue.NotArm64)
+            if (ArchitectureHelpers.NotArm64)
                 *NotArm64Handle = new NativeConcurrentQueue.NativeConcurrentQueueNotArm64<T>(size, maxFreeSlabs);
             else
                 *Arm64Handle = new NativeConcurrentQueue.NativeConcurrentQueueArm64<T>(size, maxFreeSlabs);
@@ -63,7 +63,7 @@ namespace NativeCollections
         public bool IsEmpty
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => NativeConcurrentQueue.NotArm64 ? NotArm64Handle->IsEmpty : Arm64Handle->IsEmpty;
+            get => ArchitectureHelpers.NotArm64 ? NotArm64Handle->IsEmpty : Arm64Handle->IsEmpty;
         }
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace NativeCollections
         public int Count
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => NativeConcurrentQueue.NotArm64 ? NotArm64Handle->Count : Arm64Handle->Count;
+            get => ArchitectureHelpers.NotArm64 ? NotArm64Handle->Count : Arm64Handle->Count;
         }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            if (NativeConcurrentQueue.NotArm64)
+            if (ArchitectureHelpers.NotArm64)
                 NotArm64Handle->Dispose();
             else
                 Arm64Handle->Dispose();
@@ -93,7 +93,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
-            if (NativeConcurrentQueue.NotArm64)
+            if (ArchitectureHelpers.NotArm64)
                 NotArm64Handle->Clear();
             else
                 Arm64Handle->Clear();
@@ -106,7 +106,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Enqueue(in T item)
         {
-            if (NativeConcurrentQueue.NotArm64)
+            if (ArchitectureHelpers.NotArm64)
                 NotArm64Handle->Enqueue(item);
             else
                 Arm64Handle->Enqueue(item);
@@ -118,7 +118,7 @@ namespace NativeCollections
         /// <param name="result">Item</param>
         /// <returns>Dequeued</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDequeue(out T result) => NativeConcurrentQueue.NotArm64 ? NotArm64Handle->TryDequeue(out result) : Arm64Handle->TryDequeue(out result);
+        public bool TryDequeue(out T result) => ArchitectureHelpers.NotArm64 ? NotArm64Handle->TryDequeue(out result) : Arm64Handle->TryDequeue(out result);
 
         /// <summary>
         ///     Empty

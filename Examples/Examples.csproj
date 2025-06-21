@@ -5,10 +5,15 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>disable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\NativeCollections\NativeCollections.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="mimalloc-csharp" Version="1.0.7" />
     </ItemGroup>
 
 </Project>

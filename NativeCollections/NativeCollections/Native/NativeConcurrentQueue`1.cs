@@ -151,11 +151,6 @@ namespace NativeCollections
     internal static partial class NativeConcurrentQueue
     {
         /// <summary>
-        ///     Not Arm64
-        /// </summary>
-        public static readonly bool NotArm64 = RuntimeInformation.ProcessArchitecture != Architecture.Arm64;
-
-        /// <summary>
         ///     Native concurrentQueue
         ///     (Slower than ConcurrentQueue, disable Enumerator, try peek either)
         /// </summary>
@@ -602,7 +597,7 @@ namespace NativeCollections
             /// <summary>
             ///     Catch line size
             /// </summary>
-            public const int CACHE_LINE_SIZE = 64;
+            private const int CACHE_LINE_SIZE = ArchitectureHelpers.CACHE_LINE_SIZE_NOT_ARM64;
         }
     }
 
@@ -1058,7 +1053,7 @@ namespace NativeCollections
             /// <summary>
             ///     Catch line size
             /// </summary>
-            public const int CACHE_LINE_SIZE = 128;
+            private const int CACHE_LINE_SIZE = ArchitectureHelpers.CACHE_LINE_SIZE_ARM64;
         }
     }
 

@@ -51,7 +51,7 @@ namespace NativeCollections
         /// <param name="right">The divisor.</param>
         /// <returns>The quotient and the remainder of the specified numbers.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static (uint Quotient, uint Remainder) DivRem(uint left, uint right)
+        public static (nuint Quotient, nuint Remainder) DivRem(nuint left, nuint right)
         {
             var num = left / right;
             return (num, left - num * right);

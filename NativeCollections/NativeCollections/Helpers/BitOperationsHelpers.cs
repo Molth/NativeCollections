@@ -17,6 +17,13 @@ namespace NativeCollections
     /// </summary>
     internal static class BitOperationsHelpers
     {
+        /// <summary>
+        ///     Evaluate whether a given integral value is a power of 2.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsPow2(uint value) => (value & (value - 1)) == 0 && value != 0;
+
         /// <summary>Rotates the specified value left by the specified number of bits.</summary>
         /// <param name="value">The value to rotate.</param>
         /// <param name="offset">
