@@ -166,7 +166,7 @@ namespace NativeCollections
             /// <summary>
             ///     Segment pool
             /// </summary>
-            private UnsafeMemoryPool _segmentPool;
+            private UnsafeAlignedMemoryPool _segmentPool;
 
             /// <summary>
             ///     Tail
@@ -262,7 +262,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeConcurrentQueueNotArm64(int size, int maxFreeSlabs)
             {
-                var segmentPool = new UnsafeMemoryPool(size, sizeof(NativeConcurrentQueueSegmentNotArm64<T>), maxFreeSlabs);
+                var segmentPool = new UnsafeAlignedMemoryPool(size, sizeof(NativeConcurrentQueueSegmentNotArm64<T>), maxFreeSlabs, (int)Math.Max(NativeMemoryAllocator.AlignOf<T>(), ArchitectureHelpers.CACHE_LINE_SIZE_NOT_ARM64));
                 _crossSegmentLock = GCHandle.Alloc(new object(), GCHandleType.Normal);
                 _segmentPool = segmentPool;
                 var segment = (NativeConcurrentQueueSegmentNotArm64<T>*)_segmentPool.Rent();
@@ -597,7 +597,7 @@ namespace NativeCollections
             /// <summary>
             ///     Catch line size
             /// </summary>
-            private const int CACHE_LINE_SIZE = ArchitectureHelpers.CACHE_LINE_SIZE_NOT_ARM64;
+            private const int CACHE_LINE_SIZE = (int)ArchitectureHelpers.CACHE_LINE_SIZE_NOT_ARM64;
         }
     }
 
@@ -622,7 +622,7 @@ namespace NativeCollections
             /// <summary>
             ///     Segment pool
             /// </summary>
-            private UnsafeMemoryPool _segmentPool;
+            private UnsafeAlignedMemoryPool _segmentPool;
 
             /// <summary>
             ///     Tail
@@ -718,7 +718,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeConcurrentQueueArm64(int size, int maxFreeSlabs)
             {
-                var segmentPool = new UnsafeMemoryPool(size, sizeof(NativeConcurrentQueueSegmentArm64<T>), maxFreeSlabs);
+                var segmentPool = new UnsafeAlignedMemoryPool(size, sizeof(NativeConcurrentQueueSegmentArm64<T>), maxFreeSlabs, (int)Math.Max(NativeMemoryAllocator.AlignOf<T>(), ArchitectureHelpers.CACHE_LINE_SIZE_ARM64));
                 _crossSegmentLock = GCHandle.Alloc(new object(), GCHandleType.Normal);
                 _segmentPool = segmentPool;
                 var segment = (NativeConcurrentQueueSegmentArm64<T>*)_segmentPool.Rent();
@@ -1053,7 +1053,7 @@ namespace NativeCollections
             /// <summary>
             ///     Catch line size
             /// </summary>
-            private const int CACHE_LINE_SIZE = ArchitectureHelpers.CACHE_LINE_SIZE_ARM64;
+            private const int CACHE_LINE_SIZE = (int)ArchitectureHelpers.CACHE_LINE_SIZE_ARM64;
         }
     }
 

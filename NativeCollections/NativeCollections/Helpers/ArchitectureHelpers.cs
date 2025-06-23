@@ -12,12 +12,12 @@ namespace NativeCollections
         /// <summary>
         ///     Catch line size
         /// </summary>
-        public const int CACHE_LINE_SIZE_NOT_ARM64 = 64;
+        public const nuint CACHE_LINE_SIZE_NOT_ARM64 = 64;
 
         /// <summary>
         ///     Catch line size
         /// </summary>
-        public const int CACHE_LINE_SIZE_ARM64 = 128;
+        public const nuint CACHE_LINE_SIZE_ARM64 = 128;
 
         /// <summary>
         ///     Not Arm64

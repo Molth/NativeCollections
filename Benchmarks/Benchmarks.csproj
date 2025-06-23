@@ -5,17 +5,16 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>disable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <RootNamespace>Benchmark</RootNamespace>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="BenchmarkDotNet" Version="0.15.2" />
-      <PackageReference Include="mimalloc-csharp" Version="1.0.7" />
+        <ProjectReference Include="..\NativeCollections\NativeCollections.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\NativeCollections\NativeCollections.csproj" />
+        <PackageReference Include="BenchmarkDotNet" Version="0.15.2" />
+        <PackageReference Include="mimalloc-csharp" Version="1.0.7" />
     </ItemGroup>
 
 </Project>

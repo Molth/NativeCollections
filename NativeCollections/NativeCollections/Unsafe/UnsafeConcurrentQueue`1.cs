@@ -22,7 +22,7 @@ namespace NativeCollections
         /// <summary>
         ///     Handle
         /// </summary>
-        private NativeConcurrentQueue.UnsafeConcurrentQueue _handle;
+        private NativeConcurrentQueue.UnsafeConcurrentQueueHandle _handle;
 
         /// <summary>
         ///     Not arm64
@@ -129,13 +129,13 @@ namespace NativeCollections
     /// <summary>
     ///     Native concurrentQueue
     /// </summary>
-    internal static partial class NativeConcurrentQueue
+    internal static unsafe partial class NativeConcurrentQueue
     {
         /// <summary>
         ///     Unsafe concurrentQueue
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        internal struct UnsafeConcurrentQueue
+        internal struct UnsafeConcurrentQueueHandle
         {
             /// <summary>
             ///     Cross segment lock
@@ -145,17 +145,17 @@ namespace NativeCollections
             /// <summary>
             ///     Segment pool
             /// </summary>
-            private UnsafeMemoryPool _segmentPool;
+            private UnsafeAlignedMemoryPool _segmentPool;
 
             /// <summary>
             ///     Tail
             /// </summary>
-            private nint _tail;
+            private volatile void* _tail;
 
             /// <summary>
             ///     Head
             /// </summary>
-            private nint _head;
+            private volatile void* _head;
         }
     }
 }
