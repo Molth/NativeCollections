@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 #pragma warning disable CA2208
 #pragma warning disable CS8632
 
-// ReSharper disable SB
+// ReSharper disable ALL
 
 namespace NativeCollections
 {
@@ -136,11 +136,13 @@ namespace NativeCollections
             slab->Previous = slab;
             buffer += alignedSlabSize;
             MemoryNode* next = null;
-            for (var i = size - 1; i >= 0; --i) {
+            for (var i = size - 1; i >= 0; --i)
+            {
                 var node = (MemoryNode*)(buffer + i * nodeSize);
                 node->Next = next;
                 next = node;
             }
+
             slab->Sentinel = next;
             slab->Count = size;
             _sentinel = slab;

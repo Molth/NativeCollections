@@ -217,7 +217,7 @@ namespace NativeCollections
             if (!BitOperationsHelpers.IsPow2(alignment))
                 throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
             var byteOffset = (nuint)alignment - 1 + (nuint)sizeof(nint);
-            void* ptr = Alloc(byteCount + (uint)byteOffset);
+            var ptr = Alloc(byteCount + (uint)byteOffset);
             if (ptr == null)
                 return null;
             var result = (void*)(((nint)ptr + (nint)byteOffset) & ~((nint)alignment - 1));
@@ -235,7 +235,7 @@ namespace NativeCollections
             if (!BitOperationsHelpers.IsPow2(alignment))
                 throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
             var byteOffset = (nuint)alignment - 1 + (nuint)sizeof(nint);
-            void* ptr = AllocZeroed(byteCount + (uint)byteOffset);
+            var ptr = AllocZeroed(byteCount + (uint)byteOffset);
             if (ptr == null)
                 return null;
             var result = (void*)(((nint)ptr + (nint)byteOffset) & ~((nint)alignment - 1));

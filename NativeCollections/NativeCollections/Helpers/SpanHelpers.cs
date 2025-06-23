@@ -13,7 +13,7 @@ namespace NativeCollections
     /// <summary>
     ///     Span helpers
     /// </summary>
-    internal static unsafe class SpanHelpers
+    internal static class SpanHelpers
     {
         /// <summary>Searches for any value other than the specified <paramref name="value" />.</summary>
         /// <param name="buffer">The span to search.</param>
@@ -83,7 +83,7 @@ namespace NativeCollections
         public static bool Compare(ref byte left, ref byte right, nuint byteCount)
         {
 #if NET7_0_OR_GREATER
-            if (byteCount >= (nuint)sizeof(nuint))
+            if (byteCount >= (nuint)Unsafe.SizeOf<nuint>())
             {
                 if (!Unsafe.AreSame(ref left, ref right))
                 {
@@ -142,9 +142,9 @@ namespace NativeCollections
                         }
                     }
 
-                    if (sizeof(nint) == 8 && Vector128.IsHardwareAccelerated)
+                    if (Unsafe.SizeOf<nint>() == 8 && Vector128.IsHardwareAccelerated)
                     {
-                        var offset = byteCount - (nuint)sizeof(nuint);
+                        var offset = byteCount - (nuint)Unsafe.SizeOf<nuint>();
                         var differentBits = Unsafe.ReadUnaligned<nuint>(ref left) - Unsafe.ReadUnaligned<nuint>(ref right);
                         differentBits |= Unsafe.ReadUnaligned<nuint>(ref Unsafe.AddByteOffset(ref left, offset)) - Unsafe.ReadUnaligned<nuint>(ref Unsafe.AddByteOffset(ref right, offset));
                         return differentBits == 0;
@@ -152,14 +152,14 @@ namespace NativeCollections
                     else
                     {
                         nuint offset = 0;
-                        var lengthToExamine = byteCount - (nuint)sizeof(nuint);
+                        var lengthToExamine = byteCount - (nuint)Unsafe.SizeOf<nuint>();
                         if (lengthToExamine > 0)
                         {
                             do
                             {
                                 if (Unsafe.ReadUnaligned<nuint>(ref Unsafe.AddByteOffset(ref left, offset)) != Unsafe.ReadUnaligned<nuint>(ref Unsafe.AddByteOffset(ref right, offset)))
                                     return false;
-                                offset += (nuint)sizeof(nuint);
+                                offset += (nuint)Unsafe.SizeOf<nuint>();
                             } while (lengthToExamine > offset);
                         }
 
@@ -170,7 +170,7 @@ namespace NativeCollections
                 return true;
             }
 
-            if (byteCount < sizeof(uint) || sizeof(nint) != 8)
+            if (byteCount < sizeof(uint) || Unsafe.SizeOf<nint>() != 8)
             {
                 uint differentBits = 0;
                 var offset = byteCount & 2;

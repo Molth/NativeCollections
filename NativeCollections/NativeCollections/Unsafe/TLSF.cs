@@ -435,7 +435,8 @@ namespace NativeCollections
                     return null;
                 if (pool_bytes < block_size_min || pool_bytes > block_size_max)
                     return null;
-                block = offset_to_block(mem, unchecked((uint)-(nint)block_header_overhead));
+                const uint size = unchecked((uint)-(nint)block_header_overhead);
+                block = offset_to_block(mem, size);
                 block_set_size(block, pool_bytes);
                 block_set_free(block);
                 block_set_prev_used(block);
@@ -1042,7 +1043,8 @@ namespace NativeCollections
                     return null;
                 if (pool_bytes < block_size_min || pool_bytes > block_size_max)
                     return null;
-                block = offset_to_block(mem, unchecked((ulong)-(nint)block_header_overhead));
+                const ulong size = unchecked((ulong)-(nint)block_header_overhead);
+                block = offset_to_block(mem, size);
                 block_set_size(block, pool_bytes);
                 block_set_free(block);
                 block_set_prev_used(block);

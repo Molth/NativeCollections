@@ -9,21 +9,21 @@ namespace Benchmarks
         private static void Main()
         {
             Custom();
-            
+
             BenchmarkRunner.Run<BenchmarkDistinct>();
         }
-        
+
         private static unsafe void Custom()
         {
             try
             {
-             _=  MiMalloc.mi_version();
+                _ = MiMalloc.mi_version();
             }
             catch
             {
                 return;
             }
-            
+
             NativeMemoryAllocator.Custom(&Alloc, &AllocZeroed, &Free);
             return;
 
