@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,11 +11,7 @@ namespace Examples
 {
     internal sealed unsafe class Program
     {
-        private static void Main()
-        {
-            const uint a = 8;
-            Console.WriteLine((nint)(-a));
-        }
+        private static void Main() => TestDictionary();
 
         static void TestDictionary()
         {
