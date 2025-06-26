@@ -93,7 +93,7 @@ namespace NativeCollections
                 throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
             if (typeof(T) != typeof(byte) && (uint)alignment < NativeMemoryAllocator.AlignOf<T>())
                 throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "MustBeGreaterOrEqual");
-            _buffer = zeroed ? NativeMemoryAllocator.AlignedAllocZeroed<T>((uint)(length * sizeof(T))) : NativeMemoryAllocator.AlignedAlloc<T>((uint)(length * sizeof(T)));
+            _buffer = zeroed ? (T*)NativeMemoryAllocator.AlignedAllocZeroed((uint)(length * sizeof(T)), (uint)alignment) : (T*)NativeMemoryAllocator.AlignedAlloc((uint)(length * sizeof(T)), (uint)alignment);
             _length = length;
         }
 
