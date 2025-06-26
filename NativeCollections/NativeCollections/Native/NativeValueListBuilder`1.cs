@@ -218,7 +218,7 @@ namespace NativeCollections
             {
                 if ((uint)(_length + source.Length) > (uint)_buffer.Length)
                     Grow(_buffer.Length - _length + source.Length);
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref MemoryMarshal.GetReference(_buffer), _length)), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(source)), (uint)(source.Length * sizeof(T)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref MemoryMarshal.GetReference(_buffer), (nint)_length)), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(source)), (uint)(source.Length * sizeof(T)));
                 _length += source.Length;
             }
         }

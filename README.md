@@ -43,9 +43,9 @@ For example:
 - For `NativeCollection` series, they act as wrappers around the `UnsafeCollection` series and additionally store a handle pointer for managing the underlying resource.
 - For `UnsafeCollection` series, they do not store a handle pointer themselves and are implemented directly as structs, providing a more lightweight but less managed usage.
 - You can use `NativeMemoryAllocator.Custom` to override:
-  - `public static void* Alloc(uint byteCount)`
-  - `public static void* AllocZeroed(uint byteCount)`
-  - `public static void Free(void* ptr)`
+  - `public static void* AlignedAlloc(uint byteCount, uint alignment)`
+  - `public static void* AlignedAllocZeroed(uint byteCount, uint alignment)`
+  - `public static void AlignedFree(void* ptr)`
 - You can use `NativeHashCode.Custom` to override:
   - `public static int GetHashCode(ReadOnlySpan<byte> buffer)`.
 - You can use `NativeString.Custom` to override:

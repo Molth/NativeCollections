@@ -807,7 +807,7 @@ namespace NativeCollections
                 while (nodeStack.Count != 0)
                 {
                     var node1 = (Node*)nodeStack.Pop();
-                    Unsafe.Add(ref reference, index++) = node1->Item;
+                    Unsafe.Add(ref reference, (nint)index++) = node1->Item;
                     for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
                         nodeStack.Push((nint)node2);
                 }

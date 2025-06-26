@@ -9,23 +9,23 @@ namespace NativeCollections
     /// <summary>
     ///     Native memory allocator
     /// </summary>
-    [Customizable("public static void* Alloc(uint byteCount)", "public static void* AllocZeroed(uint byteCount)", "public static void Free(void* ptr)")]
+    [Customizable("public static void* AlignedAlloc(uint byteCount, uint alignment)", "public static void* AlignedAllocZeroed(uint byteCount, uint alignment)", "public static void AlignedFree(void* ptr)")]
     public static unsafe class NativeMemoryAllocator
     {
         /// <summary>
-        ///     Alloc
+        ///     AlignedAlloc
         /// </summary>
-        private static delegate* managed<uint, void*> _alloc;
+        private static delegate* managed<uint, uint, void*> _alignedAlloc;
 
         /// <summary>
-        ///     AllocZeroed
+        ///     AlignedAllocZeroed
         /// </summary>
-        private static delegate* managed<uint, void*> _allocZeroed;
+        private static delegate* managed<uint, uint, void*> _alignedAllocZeroed;
 
         /// <summary>
-        ///     Free
+        ///     AlignedFree
         /// </summary>
-        private static delegate* managed<void*, void> _free;
+        private static delegate* managed<void*, void> _alignedFree;
 
         /// <summary>
         ///     Abort
@@ -36,175 +36,34 @@ namespace NativeCollections
         ///     Configures custom memory allocation handlers.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Custom(delegate* managed<uint, void*> alloc, delegate* managed<uint, void*> allocZeroed, delegate* managed<void*, void> free, delegate* managed<void> abort = null)
+        public static void Custom(delegate* managed<uint, uint, void*> alignedAlloc, delegate* managed<uint, uint, void*> alignedAllocZeroed, delegate* managed<void*, void> alignedFree, delegate* managed<void> abort = null)
         {
-            _alloc = alloc;
-            _allocZeroed = allocZeroed;
-            _free = free;
+            _alignedAlloc = alignedAlloc;
+            _alignedAllocZeroed = alignedAllocZeroed;
+            _alignedFree = alignedFree;
             _abort = abort;
         }
 
-        /// <summary>Allocates a block of memory of the specified size, in bytes.</summary>
-        /// <param name="byteCount">The size, in bytes, of the block to allocate.</param>
-        /// <returns>A pointer to the allocated block of memory.</returns>
+        /// <summary>Allocates an aligned block of memory of the specified size and alignment, in bytes.</summary>
+        /// <param name="elementCount">The count, in elements, of the block to allocate.</param>
+        /// <returns>A pointer to the allocated aligned block of memory.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void* Alloc(uint byteCount)
+        public static T* AlignedAlloc<T>(uint elementCount) where T : unmanaged
         {
-            var alloc = _alloc;
-            if (alloc != null)
-            {
-                var ptr = alloc(byteCount);
-                if (ptr == null)
-                {
-                    var abort = _abort;
-                    if (abort != null)
-                    {
-                        abort();
-                        return null;
-                    }
-
-                    throw new OutOfMemoryException();
-                }
-
-                return ptr;
-            }
-
-#if NET6_0_OR_GREATER
-            try
-            {
-                return NativeMemory.Alloc(byteCount);
-            }
-            catch
-            {
-                var abort = _abort;
-                if (abort != null)
-                {
-                    abort();
-                    return null;
-                }
-
-                throw;
-            }
-#else
-            try
-            {
-                return (void*)Marshal.AllocHGlobal((nint)byteCount);
-            }
-            catch
-            {
-                var abort = _abort;
-                if (abort != null)
-                {
-                    abort();
-                    return null;
-                }
-
-                throw;
-            }
-#endif
+            var byteCount = elementCount * (uint)sizeof(T);
+            var alignment = (uint)AlignOf<T>();
+            return (T*)AlignedAlloc(byteCount, alignment);
         }
 
-        /// <summary>Allocates and zeroes a block of memory of the specified size, in bytes.</summary>
-        /// <param name="byteCount">The size, in bytes, of the block to allocate.</param>
-        /// <returns>A pointer to the allocated and zeroed block of memory.</returns>
+        /// <summary>Allocates and zeroes an aligned block of memory of the specified size and alignment, in bytes.</summary>
+        /// <param name="elementCount">The count, in elements, of the block to allocate.</param>
+        /// <returns>A pointer to the allocated and zeroed aligned block of memory.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void* AllocZeroed(uint byteCount)
+        public static T* AlignedAllocZeroed<T>(uint elementCount) where T : unmanaged
         {
-            void* ptr;
-            var allocZeroed = _allocZeroed;
-            if (allocZeroed != null)
-            {
-                ptr = allocZeroed(byteCount);
-                if (ptr == null)
-                {
-                    var abort = _abort;
-                    if (abort != null)
-                    {
-                        abort();
-                        return null;
-                    }
-
-                    throw new OutOfMemoryException();
-                }
-
-                return ptr;
-            }
-
-            var alloc = _alloc;
-            if (alloc != null)
-            {
-                ptr = alloc(byteCount);
-                if (ptr == null)
-                {
-                    var abort = _abort;
-                    if (abort != null)
-                    {
-                        abort();
-                        return null;
-                    }
-
-                    throw new OutOfMemoryException();
-                }
-
-                Unsafe.InitBlockUnaligned(ptr, 0, byteCount);
-                return ptr;
-            }
-
-#if NET6_0_OR_GREATER
-            try
-            {
-                return NativeMemory.AllocZeroed(byteCount, 1);
-            }
-            catch
-            {
-                var abort = _abort;
-                if (abort != null)
-                {
-                    abort();
-                    return null;
-                }
-
-                throw;
-            }
-#else
-            try
-            {
-                ptr = (void*)Marshal.AllocHGlobal((nint)byteCount);
-            }
-            catch
-            {
-                var abort = _abort;
-                if (abort != null)
-                {
-                    abort();
-                    return null;
-                }
-
-                throw;
-            }
-
-            Unsafe.InitBlockUnaligned(ptr, 0, byteCount);
-            return ptr;
-#endif
-        }
-
-        /// <summary>Frees a block of memory.</summary>
-        /// <param name="ptr">A pointer to the block of memory that should be freed.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Free(void* ptr)
-        {
-            var free = _free;
-            if (free != null)
-            {
-                free(ptr);
-                return;
-            }
-
-#if NET6_0_OR_GREATER
-            NativeMemory.Free(ptr);
-#else
-            Marshal.FreeHGlobal((nint)ptr);
-#endif
+            var byteCount = elementCount * (uint)sizeof(T);
+            var alignment = (uint)AlignOf<T>();
+            return (T*)AlignedAllocZeroed(byteCount, alignment);
         }
 
         /// <summary>Allocates an aligned block of memory of the specified size and alignment, in bytes.</summary>
@@ -214,15 +73,68 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void* AlignedAlloc(uint byteCount, uint alignment)
         {
+            void* ptr;
+            var alignedAlloc = _alignedAlloc;
+            if (alignedAlloc != null)
+            {
+                if (!BitOperationsHelpers.IsPow2(alignment))
+                    throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
+                ptr = alignedAlloc(byteCount, alignment);
+                if (ptr == null)
+                {
+                    var abort = _abort;
+                    if (abort != null)
+                    {
+                        abort();
+                        return null;
+                    }
+
+                    throw new OutOfMemoryException();
+                }
+
+                return ptr;
+            }
+
+#if NET6_0_OR_GREATER
+            try
+            {
+                return NativeMemory.AlignedAlloc(byteCount, alignment);
+            }
+            catch
+            {
+                var abort = _abort;
+                if (abort != null)
+                {
+                    abort();
+                    return null;
+                }
+
+                throw;
+            }
+#else
             if (!BitOperationsHelpers.IsPow2(alignment))
                 throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
             var byteOffset = (nuint)alignment - 1 + (nuint)sizeof(nint);
-            var ptr = Alloc(byteCount + (uint)byteOffset);
-            if (ptr == null)
-                return null;
-            var result = (void*)(((nint)ptr + (nint)byteOffset) & ~((nint)alignment - 1));
-            ((void**)result)[-1] = ptr;
+            try
+            {
+                ptr = (void*)Marshal.AllocHGlobal((nint)(byteCount + (uint)byteOffset));
+            }
+            catch
+            {
+                var abort = _abort;
+                if (abort != null)
+                {
+                    abort();
+                    return null;
+                }
+
+                throw;
+            }
+
+            var result = (byte*)(((nint)ptr + (nint)byteOffset) & ~((nint)alignment - 1));
+            Unsafe.Subtract(ref Unsafe.AsRef<nint>(result), 1) = (nint)ptr;
             return result;
+#endif
         }
 
         /// <summary>Allocates and zeroes an aligned block of memory of the specified size and alignment, in bytes.</summary>
@@ -232,15 +144,93 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void* AlignedAllocZeroed(uint byteCount, uint alignment)
         {
+            void* ptr;
+            var alignedAllocZeroed = _alignedAllocZeroed;
+            if (alignedAllocZeroed != null)
+            {
+                if (!BitOperationsHelpers.IsPow2(alignment))
+                    throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
+                ptr = alignedAllocZeroed(byteCount, alignment);
+                if (ptr == null)
+                {
+                    var abort = _abort;
+                    if (abort != null)
+                    {
+                        abort();
+                        return null;
+                    }
+
+                    throw new OutOfMemoryException();
+                }
+
+                return ptr;
+            }
+
+            var alignedAlloc = _alignedAlloc;
+            if (alignedAlloc != null)
+            {
+                if (!BitOperationsHelpers.IsPow2(alignment))
+                    throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
+                ptr = alignedAlloc(byteCount, alignment);
+                if (ptr == null)
+                {
+                    var abort = _abort;
+                    if (abort != null)
+                    {
+                        abort();
+                        return null;
+                    }
+
+                    throw new OutOfMemoryException();
+                }
+
+                return ptr;
+            }
+
+#if NET6_0_OR_GREATER
+            try
+            {
+                ptr = NativeMemory.AlignedAlloc(byteCount, alignment);
+            }
+            catch
+            {
+                var abort = _abort;
+                if (abort != null)
+                {
+                    abort();
+                    return null;
+                }
+
+                throw;
+            }
+
+            Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(ptr), 0, byteCount);
+            return ptr;
+#else
             if (!BitOperationsHelpers.IsPow2(alignment))
                 throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
             var byteOffset = (nuint)alignment - 1 + (nuint)sizeof(nint);
-            var ptr = AllocZeroed(byteCount + (uint)byteOffset);
-            if (ptr == null)
-                return null;
+            try
+            {
+                ptr = (void*)Marshal.AllocHGlobal((nint)(byteCount + (uint)byteOffset));
+            }
+            catch
+            {
+                var abort = _abort;
+                if (abort != null)
+                {
+                    abort();
+                    return null;
+                }
+
+                throw;
+            }
+
             var result = (void*)(((nint)ptr + (nint)byteOffset) & ~((nint)alignment - 1));
-            ((void**)result)[-1] = ptr;
+            Unsafe.Subtract(ref Unsafe.AsRef<nint>(result), 1) = (nint)ptr;
+            Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(result), 0, byteCount);
             return result;
+#endif
         }
 
         /// <summary>Frees an aligned block of memory.</summary>
@@ -248,9 +238,20 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AlignedFree(void* ptr)
         {
+            var alignedFree = _alignedFree;
+            if (alignedFree != null)
+            {
+                alignedFree(ptr);
+                return;
+            }
+
+#if NET6_0_OR_GREATER
+            NativeMemory.AlignedFree(ptr);
+#else
             if (ptr == null)
                 return;
-            Free(((void**)ptr)[-1]);
+            Marshal.FreeHGlobal(Unsafe.Subtract(ref Unsafe.AsRef<nint>(ptr), 1));
+#endif
         }
 
         /// <summary>
@@ -258,7 +259,7 @@ namespace NativeCollections
         ///     of the addresses.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Copy(void* destination, void* source, uint byteCount) => Unsafe.CopyBlockUnaligned(destination, source, byteCount);
+        public static void Copy(void* destination, void* source, uint byteCount) => Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(destination), ref Unsafe.AsRef<byte>(source), byteCount);
 
         /// <summary>
         ///     Copies bytes from the source address to the destination address without assuming architecture dependent alignment
@@ -302,7 +303,7 @@ namespace NativeCollections
         ///     without assuming architecture dependent alignment of the address.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Set(void* startAddress, byte value, uint byteCount) => Unsafe.InitBlockUnaligned(startAddress, value, byteCount);
+        public static void Set(void* startAddress, byte value, uint byteCount) => Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(startAddress), value, byteCount);
 
         /// <summary>
         ///     Initializes a block of memory at the given location with a given initial value
@@ -336,12 +337,6 @@ namespace NativeCollections
                 throw new ArgumentNullException(Unsafe.IsNullRef(ref left) ? nameof(left) : nameof(right));
             return SpanHelpers.Compare(ref left, ref right, byteCount);
         }
-
-        /// <summary>Aligns a size to the platform's native integer size.</summary>
-        /// <param name="size">The size, in bytes, to align.</param>
-        /// <returns>The size aligned to the platform's native integer size.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static nuint Align(nuint size) => AlignUp(size, (nuint)sizeof(nint));
 
         /// <summary>Rounds a size up to the specified alignment boundary.</summary>
         /// <param name="size">The size, in bytes, to align.</param>

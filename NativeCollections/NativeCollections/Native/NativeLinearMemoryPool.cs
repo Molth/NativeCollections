@@ -31,8 +31,8 @@ namespace NativeCollections
         public NativeLinearMemoryPool(int maxLength, int maxFreeSlabs)
         {
             var value = new UnsafeLinearMemoryPool(maxLength, maxFreeSlabs);
-            var handle = (UnsafeLinearMemoryPool*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeLinearMemoryPool));
-            *handle = value;
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeLinearMemoryPool>(1);
+            Unsafe.AsRef<UnsafeLinearMemoryPool>(handle) = value;
             _handle = handle;
         }
 
@@ -113,16 +113,14 @@ namespace NativeCollections
             if (handle == null)
                 return;
             handle->Dispose();
-            NativeMemoryAllocator.Free(handle);
+            NativeMemoryAllocator.AlignedFree(handle);
         }
 
         /// <summary>
         ///     Rent buffer
         /// </summary>
-        /// <param name="length">Length</param>
-        /// <returns>Buffer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void* Rent(int length) => _handle->Rent(length);
+        public void* Rent(int length, int alignment) => _handle->Rent(length, alignment);
 
         /// <summary>
         ///     Return buffer

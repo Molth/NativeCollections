@@ -427,7 +427,7 @@ namespace NativeCollections
         /// <param name="ptr">A pointer to the memory location where the random bytes will be written.</param>
         /// <param name="byteCount">The number of bytes to fill with random numbers.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Next(void* ptr, int byteCount) => NextBytes(MemoryMarshal.CreateSpan(ref *(byte*)ptr, byteCount));
+        public void Next(void* ptr, int byteCount) => NextBytes(MemoryMarshal.CreateSpan(ref Unsafe.AsRef<byte>(ptr), byteCount));
 
         /// <summary>Returns a boolean.</summary>
         /// <returns>True, or false.</returns>

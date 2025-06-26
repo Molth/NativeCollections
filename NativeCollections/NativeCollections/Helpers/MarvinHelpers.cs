@@ -99,7 +99,7 @@ namespace NativeCollections
             p0 += Unsafe.ReadUnaligned<uint>(ref data);
             Block(ref p0, ref p1);
             label_1:
-            var num4 = (int)Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref Unsafe.AddByteOffset(ref data, (nint)((nuint)count & new UIntPtr(7U))), -4));
+            var num4 = (int)Unsafe.ReadUnaligned<uint>(ref Unsafe.Subtract(ref Unsafe.AddByteOffset(ref data, (nint)((nuint)count & new UIntPtr(7U))), 4));
             count = (uint)(~(int)count << 3);
             num1 = (uint)(((uint)num4 >> 8) | 18446744071562067968UL) >> (int)count;
             label_2:

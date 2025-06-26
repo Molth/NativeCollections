@@ -42,7 +42,7 @@ namespace NativeCollections
         public ref T Value
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref *_handle;
+            get => ref Unsafe.AsRef<T>(_handle);
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace NativeCollections
         public ref T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _handle[index];
+            get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_handle), (nint)index);
         }
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace NativeCollections
         public ref T this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _handle[index];
+            get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_handle), (nint)index);
         }
 
         /// <summary>
@@ -70,14 +70,24 @@ namespace NativeCollections
         /// </summary>
         /// <param name="handle">Handle</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeReference(void* handle) => _handle = (T*)handle;
+        public NativeReference(void* handle)
+        {
+            if (typeof(T) != typeof(byte) && (nint)handle % (nint)NativeMemoryAllocator.AlignOf<T>() != 0)
+                throw new AccessViolationException("MustBeAligned");
+            _handle = (T*)handle;
+        }
 
         /// <summary>
         ///     Structure
         /// </summary>
         /// <param name="handle">Handle</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeReference(nint handle) => _handle = (T*)handle;
+        public NativeReference(nint handle)
+        {
+            if (typeof(T) != typeof(byte) && handle % (nint)NativeMemoryAllocator.AlignOf<T>() != 0)
+                throw new AccessViolationException("MustBeAligned");
+            _handle = (T*)handle;
+        }
 
         /// <summary>
         ///     Equals
@@ -115,31 +125,31 @@ namespace NativeCollections
         ///     Slice
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeReference<T> Slice(int start) => new(_handle + start);
+        public NativeReference<T> Slice(int start) => new(UnsafeHelpers.Add<T>(_handle, start));
 
         /// <summary>
         ///     As span
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<T> AsSpan() => MemoryMarshal.CreateSpan(ref *_handle, 1);
+        public Span<T> AsSpan() => MemoryMarshal.CreateSpan(ref Unsafe.AsRef<T>(_handle), 1);
 
         /// <summary>
         ///     As span
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<T> AsSpan(int start, int length) => MemoryMarshal.CreateSpan(ref _handle[start], length);
+        public Span<T> AsSpan(int start, int length) => MemoryMarshal.CreateSpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_handle), (nint)start), length);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref *_handle, 1);
+        public ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<T>(_handle), 1);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<T> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref _handle[start], length);
+        public ReadOnlySpan<T> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_handle), (nint)start), length);
 
         /// <summary>
         ///     As reference
@@ -202,7 +212,7 @@ namespace NativeCollections
             var handle = _handle;
             if (handle == null)
                 return;
-            NativeMemoryAllocator.Free(handle);
+            NativeMemoryAllocator.AlignedFree(handle);
         }
 
         /// <summary>

@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Threading;
 using System.Threading.Tasks;
-using mimalloc;
 using NativeCollections;
 
 // ReSharper disable ALL
@@ -12,32 +13,94 @@ namespace Examples
 {
     internal sealed unsafe class Program
     {
-        public static int GetByteCount<T>(uint elementCount, out uint byteCount, out uint alignment, out uint byteOffset) where T : unmanaged
-        {
-            byteCount = elementCount * (uint)sizeof(T);
-            alignment = (uint)NativeMemoryAllocator.AlignOf<T>();
-            byteOffset = alignment - 1 + (uint)sizeof(nint);
-            return (int)(byteCount + (uint)byteOffset);
-        }
-
-        public static T* ToAlignedPtr<T>(void* ptr, uint byteCount, uint alignment, uint byteOffset) where T : unmanaged
-        {
-            var result = (void*)(((nint)ptr + (nint)byteOffset) & ~((nint)alignment - 1));
-            ((void**)result)[-1] = ptr;
-            return (T*)result;
-        }
-
         private static void Main()
         {
-            void* ptr = stackalloc byte[GetByteCount<Vector512<byte>>(4, out uint byteCount, out uint alignment, out uint byteOffset)];
-            var buffer = ToAlignedPtr<Vector512<byte>>(ptr, byteCount, alignment, byteOffset);
-            Console.WriteLine(((nint)buffer) % alignment);
+            const uint a = 8;
+            Console.WriteLine((nint)(-a));
+        }
+
+        static void TestDictionary()
+        {
+            const int capacity = 4;
+            var byteCount = StackallocDictionary<int, Vector512<byte>>.GetByteCount(capacity);
+            Console.WriteLine(byteCount);
+            Span<byte> buffer = stackalloc byte[byteCount];
+            var stack = new StackallocDictionary<int, Vector512<byte>>(buffer, capacity);
+            stack.TryAdd(0, Vector512<byte>.One);
+            if (stack.TryGetValueReference(0, out var reference))
+                Console.WriteLine(reference.Value == Vector512<byte>.One);
+        }
+
+        private static void TestSortedDictionary()
+        {
+            const int capacity = 4;
+            var byteCount = StackallocSortedDictionary<int, Vector512<byte>>.GetByteCount(capacity);
+            var sortedSet = new StackallocSortedDictionary<int, Vector512<byte>>(stackalloc byte[byteCount], capacity);
+            sortedSet.TryAdd(0, Vector512<byte>.One);
+            if (sortedSet.TryGetValueReference(0, out var reference))
+                Console.WriteLine(reference.Value == Vector512<byte>.One);
+        }
+
+        private static void TestLinearMemoryPool()
+        {
+            using var buffer = new NativeLinearMemoryPool(1024, 4);
+            var ptr1 = buffer.Rent(64, 64);
+
+            Console.WriteLine((nint)ptr1 % 64 == 0);
+
+            var a1 = Vector512.LoadAligned((byte*)ptr1);
+            Console.WriteLine("Load 1");
+
+            var ptr2 = buffer.Rent(64, 64);
+            Console.WriteLine((nint)ptr2 % 64 == 0);
+
+            var a2 = Vector512.LoadAligned((byte*)ptr2);
+            Console.WriteLine("Load 2");
+
+            Console.WriteLine((nint)ptr2 - (nint)ptr1);
+
+            NativeRandom.Next(ptr2, 64);
+
+            var a3 = Vector512.LoadAligned((byte*)ptr1);
+
+            Console.WriteLine(a1 == a3);
+
+            buffer.Return(ptr1);
+            buffer.Return(ptr2);
+        }
+
+        private static void TestStackalloc2()
+        {
+            var ptr = stackalloc byte[1024];
+            var buffer = new NativeMemoryLinearAllocator(ptr, 1024);
+            var result = buffer.TryAlignedAlloc<Vector512<byte>>(1, out var ptr1);
+
+            var position1 = buffer.Position;
+
+            if (result)
+            {
+                Console.WriteLine((nint)ptr1 % 64 == 0);
+                Console.WriteLine(buffer.Position);
+            }
+
+            var result2 = buffer.TryAlignedAlloc<Vector512<byte>>(1, out var ptr2);
+            if (result2)
+            {
+                Console.WriteLine((nint)ptr2 % 64 == 0);
+                Console.WriteLine(buffer.Position);
+            }
+
+            Vector512.LoadAligned((byte*)ptr1);
+            Console.WriteLine("Load 1");
+
+            Vector512.LoadAligned((byte*)ptr2);
+            Console.WriteLine("Load 2");
+
+            Console.WriteLine((nint)ptr % 64 + " " + (position1 - 64));
         }
 
         private static void TestConcurrent()
         {
-            Custom();
-
             const int testNumTotal = 4096 + 3333;
             var testThreadCount = Math.Min(Environment.ProcessorCount, 16);
 
@@ -155,25 +218,6 @@ namespace Examples
                 sum += i;
 
             Console.WriteLine(enqueueSum == dequeueSum && dequeueSum == sum ? "Success" : "Mismatch");
-        }
-
-        private static unsafe void Custom()
-        {
-            try
-            {
-                _ = MiMalloc.mi_version();
-            }
-            catch
-            {
-                return;
-            }
-
-            NativeMemoryAllocator.Custom(&Alloc, &AllocZeroed, &Free);
-            return;
-
-            static void* Alloc(uint byteCount) => MiMalloc.mi_malloc(byteCount);
-            static void* AllocZeroed(uint byteCount) => MiMalloc.mi_zalloc(byteCount);
-            static void Free(void* ptr) => MiMalloc.mi_free(ptr);
         }
     }
 }

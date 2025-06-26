@@ -65,7 +65,7 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
             if (capacity < 4)
                 capacity = 4;
-            _items = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
+            _items = NativeMemoryAllocator.AlignedAlloc<T>((uint)capacity);
             _size = 0;
             _version = 0;
             _capacity = capacity;
@@ -75,7 +75,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => NativeMemoryAllocator.Free(_items);
+        public void Dispose() => NativeMemoryAllocator.AlignedFree(_items);
 
         /// <summary>
         ///     Clear
@@ -140,7 +140,7 @@ namespace NativeCollections
             {
                 --_size;
                 if (index < _size)
-                    Unsafe.CopyBlockUnaligned(_items + index, _items + index + 1, (uint)((_size - index) * sizeof(T)));
+                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * sizeof(T)));
                 ++_version;
                 return true;
             }
@@ -161,7 +161,7 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
             --_size;
             if (index < _size)
-                Unsafe.CopyBlockUnaligned(_items + index, _items + index + 1, (uint)((_size - index) * sizeof(T)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * sizeof(T)));
             ++_version;
         }
 
@@ -177,10 +177,10 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
             if (index >= _size)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
-            item = _items[index];
+            item = Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index);
             --_size;
             if (index < _size)
-                Unsafe.CopyBlockUnaligned(_items + index, _items + index + 1, (uint)((_size - index) * sizeof(T)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * sizeof(T)));
             ++_version;
         }
 
@@ -195,7 +195,7 @@ namespace NativeCollections
                 return false;
             --_size;
             if (index < _size)
-                Unsafe.CopyBlockUnaligned(_items + index, _items + index + 1, (uint)((_size - index) * sizeof(T)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * sizeof(T)));
             ++_version;
             return true;
         }
@@ -214,10 +214,10 @@ namespace NativeCollections
                 return false;
             }
 
-            item = _items[index];
+            item = Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index);
             --_size;
             if (index < _size)
-                Unsafe.CopyBlockUnaligned(_items + index, _items + index + 1, (uint)((_size - index) * sizeof(T)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * sizeof(T)));
             ++_version;
             return true;
         }
@@ -240,7 +240,7 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeLess");
             _size -= count;
             if (index < _size)
-                Unsafe.CopyBlockUnaligned(_items + index, _items + index + count, (uint)((_size - index) * sizeof(T)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + count))), (uint)((_size - index) * sizeof(T)));
             ++_version;
         }
 
@@ -255,7 +255,7 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
             if (index >= _size)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
-            return _items[index];
+            return Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index);
         }
 
         /// <summary>
@@ -281,7 +281,7 @@ namespace NativeCollections
                 return false;
             }
 
-            item = _items[index];
+            item = Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index);
             return true;
         }
 
@@ -348,10 +348,10 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "Small_Capacity");
             if (capacity != _capacity)
             {
-                var items = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
+                var items = NativeMemoryAllocator.AlignedAlloc<T>((uint)capacity);
                 if (_size > 0)
-                    Unsafe.CopyBlockUnaligned(items, _items, (uint)(_size * sizeof(T)));
-                NativeMemoryAllocator.Free(_items);
+                    Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(items), ref Unsafe.AsRef<byte>(_items), (uint)(_size * sizeof(T)));
+                NativeMemoryAllocator.AlignedFree(_items);
                 _items = items;
                 _capacity = capacity;
             }
@@ -362,21 +362,21 @@ namespace NativeCollections
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref *_items, _size);
+        public readonly ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<T>(_items), _size);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<T> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref *(_items + start), _size - start);
+        public readonly ReadOnlySpan<T> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)start), _size - start);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<T> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref *(_items + start), length);
+        public readonly ReadOnlySpan<T> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)start), length);
 
         /// <summary>
         ///     As readOnly span
@@ -396,8 +396,8 @@ namespace NativeCollections
             if (_size == _capacity)
                 EnsureCapacity(_size + 1);
             if (index < _size)
-                Unsafe.CopyBlockUnaligned(_items + index + 1, _items + index, (uint)((_size - index) * sizeof(T)));
-            _items[index] = item;
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), (uint)((_size - index) * sizeof(T)));
+            Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index) = item;
             ++_size;
             ++_version;
         }
@@ -474,7 +474,7 @@ namespace NativeCollections
                     throw new InvalidOperationException("EnumFailedVersion");
                 if ((uint)_index < (uint)handle->_size)
                 {
-                    _current = handle->_items[_index];
+                    _current = Unsafe.Add(ref Unsafe.AsRef<T>(handle->_items), (nint)_index);
                     ++_index;
                     return true;
                 }

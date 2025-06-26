@@ -102,14 +102,7 @@ namespace NativeCollections
         public ref T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-#if NET5_0_OR_GREATER
-                return ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(Buffer), index);
-#else
-                return ref Buffer[index];
-#endif
-            }
+            get => ref Buffer[index];
         }
 
         /// <summary>
@@ -119,14 +112,7 @@ namespace NativeCollections
         public ref T this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-#if NET5_0_OR_GREATER
-                return ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(Buffer), (nint)index);
-#else
-                return ref Buffer[index];
-#endif
-            }
+            get => ref Buffer[index];
         }
 
         /// <summary>

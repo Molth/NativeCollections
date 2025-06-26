@@ -30,8 +30,8 @@ namespace NativeCollections
         public NativeBitArray(int length)
         {
             var value = new UnsafeBitArray(length);
-            var handle = (UnsafeBitArray*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeBitArray));
-            *handle = value;
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeBitArray>(1);
+            Unsafe.AsRef<UnsafeBitArray>(handle) = value;
             _handle = handle;
         }
 
@@ -44,8 +44,8 @@ namespace NativeCollections
         public NativeBitArray(int length, bool defaultValue)
         {
             var value = new UnsafeBitArray(length, defaultValue);
-            var handle = (UnsafeBitArray*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeBitArray));
-            *handle = value;
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeBitArray>(1);
+            Unsafe.AsRef<UnsafeBitArray>(handle) = value;
             _handle = handle;
         }
 
@@ -58,8 +58,8 @@ namespace NativeCollections
         public NativeBitArray(int* buffer, int length)
         {
             var value = new UnsafeBitArray(buffer, length);
-            var handle = (UnsafeBitArray*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeBitArray));
-            *handle = value;
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeBitArray>(1);
+            Unsafe.AsRef<UnsafeBitArray>(handle) = value;
             _handle = handle;
         }
 
@@ -73,8 +73,8 @@ namespace NativeCollections
         public NativeBitArray(int* buffer, int length, bool defaultValue)
         {
             var value = new UnsafeBitArray(buffer, length, defaultValue);
-            var handle = (UnsafeBitArray*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeBitArray));
-            *handle = value;
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeBitArray>(1);
+            Unsafe.AsRef<UnsafeBitArray>(handle) = value;
             _handle = handle;
         }
 
@@ -87,8 +87,8 @@ namespace NativeCollections
         public NativeBitArray(NativeArray<int> buffer, int length)
         {
             var value = new UnsafeBitArray(buffer, length);
-            var handle = (UnsafeBitArray*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeBitArray));
-            *handle = value;
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeBitArray>(1);
+            Unsafe.AsRef<UnsafeBitArray>(handle) = value;
             _handle = handle;
         }
 
@@ -102,8 +102,8 @@ namespace NativeCollections
         public NativeBitArray(NativeArray<int> buffer, int length, bool defaultValue)
         {
             var value = new UnsafeBitArray(buffer, length, defaultValue);
-            var handle = (UnsafeBitArray*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeBitArray));
-            *handle = value;
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeBitArray>(1);
+            Unsafe.AsRef<UnsafeBitArray>(handle) = value;
             _handle = handle;
         }
 
@@ -204,7 +204,7 @@ namespace NativeCollections
             if (handle == null)
                 return;
             handle->Dispose();
-            NativeMemoryAllocator.Free(handle);
+            NativeMemoryAllocator.AlignedFree(handle);
         }
 
         /// <summary>

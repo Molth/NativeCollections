@@ -94,7 +94,7 @@ namespace NativeCollections
         /// <param name="elementIndex">Element index</param>
         /// <returns>MemoryHandle</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override MemoryHandle Pin(int elementIndex = 0) => new(_buffer.Buffer + elementIndex);
+        public override MemoryHandle Pin(int elementIndex = 0) => new(UnsafeHelpers.Add<T>(_buffer.Buffer, elementIndex));
 
         /// <summary>
         ///     Unpin

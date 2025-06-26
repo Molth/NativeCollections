@@ -71,7 +71,9 @@ namespace NativeCollections
         public static int GetByteCount(int capacity)
         {
             var extremeLength = UnsafeBitArray.GetInt32ArrayLengthFromBitLength(capacity);
-            return capacity * (sizeof(T) + sizeof(int)) + extremeLength * sizeof(int);
+            var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<T>(), NativeMemoryAllocator.AlignOf<int>());
+            var bufferByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * sizeof(T)), alignment);
+            return (int)(bufferByteCount + (capacity + extremeLength) * sizeof(int) + alignment - 1);
         }
 
         /// <summary>
@@ -83,15 +85,17 @@ namespace NativeCollections
         public StackallocFixedSizeMemoryPool(Span<byte> buffer, int capacity)
         {
             var extremeLength = UnsafeBitArray.GetInt32ArrayLengthFromBitLength(capacity);
-            _buffer = (T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer));
-            _index = (int*)((byte*)_buffer + capacity * sizeof(T));
-            _bitArray = (int*)((byte*)_index + capacity * sizeof(int));
-            Unsafe.InitBlockUnaligned(_bitArray, 0, (uint)(extremeLength * sizeof(int)));
+            var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<T>(), NativeMemoryAllocator.AlignOf<int>());
+            var bufferByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * sizeof(T)), alignment);
+            _buffer = (T*)NativeArray<byte>.Create(buffer, alignment).Buffer;
+            _index = UnsafeHelpers.AddByteOffset<int>(_buffer, (nint)bufferByteCount);
+            _bitArray = UnsafeHelpers.AddByteOffset<int>(_index, capacity * sizeof(int));
+            Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(_bitArray), 0, (uint)(extremeLength * sizeof(int)));
             _capacity = capacity;
             _bitArrayLength = extremeLength;
             _size = capacity;
             for (var i = 0; i < capacity; ++i)
-                _index[i] = i;
+                Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)i) = i;
         }
 
         /// <summary>
@@ -100,10 +104,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reset()
         {
-            Unsafe.InitBlockUnaligned(_bitArray, 0, (uint)(_bitArrayLength * sizeof(int)));
+            Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(_bitArray), 0, (uint)(_bitArrayLength * sizeof(int)));
             _size = _capacity;
             for (var i = 0; i < _capacity; ++i)
-                _index[i] = i;
+                Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)i) = i;
         }
 
         /// <summary>
@@ -120,11 +124,11 @@ namespace NativeCollections
             }
 
             _size = size;
-            var index = _index[size];
-            ref var segment = ref _bitArray[index >> 5];
+            var index = Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)size);
+            ref var segment = ref Unsafe.Add(ref Unsafe.AsRef<int>(_bitArray), (nint)(index >> 5));
             var bitMask = 1 << index;
             segment |= bitMask;
-            ptr = &_buffer[index];
+            ptr = (T*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index));
             return true;
         }
 
@@ -135,15 +139,16 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Return(T* ptr)
         {
-            var index = ptr - _buffer;
-            if ((ulong)index >= (ulong)_capacity)
+            var byteOffset = UnsafeHelpers.ByteOffset(_buffer, ptr);
+            var (index, remainder) = MathHelpers.DivRem(byteOffset, sizeof(T));
+            if ((ulong)index >= (ulong)_capacity || remainder != 0)
                 throw new InvalidOperationException("Mismatch");
-            ref var segment = ref _bitArray[index >> 5];
+            ref var segment = ref Unsafe.Add(ref Unsafe.AsRef<int>(_bitArray), index >> 5);
             var bitMask = 1 << (int)index;
             if ((segment & bitMask) == 0)
                 throw new InvalidOperationException("Duplicate");
             segment &= ~bitMask;
-            _index[_size++] = (int)index;
+            Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)_size++) = (int)index;
         }
 
         /// <summary>

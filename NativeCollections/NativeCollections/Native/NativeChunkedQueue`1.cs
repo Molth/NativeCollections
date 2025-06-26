@@ -33,8 +33,8 @@ namespace NativeCollections
         public NativeChunkedQueue(int size, int maxFreeChunks)
         {
             var value = new UnsafeChunkedQueue<T>(size, maxFreeChunks);
-            var handle = (UnsafeChunkedQueue<T>*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeChunkedQueue<T>));
-            *handle = value;
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeChunkedQueue<T>>(1);
+            Unsafe.AsRef<UnsafeChunkedQueue<T>>(handle) = value;
             _handle = handle;
         }
 
@@ -125,7 +125,7 @@ namespace NativeCollections
             if (handle == null)
                 return;
             handle->Dispose();
-            NativeMemoryAllocator.Free(handle);
+            NativeMemoryAllocator.AlignedFree(handle);
         }
 
         /// <summary>

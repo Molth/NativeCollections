@@ -55,7 +55,7 @@ namespace NativeCollections
             var buffer = Buffer;
             if (buffer == null)
                 return;
-            NativeMemoryAllocator.Free(buffer);
+            NativeMemoryAllocator.AlignedFree(buffer);
         }
 
         /// <summary>
@@ -80,7 +80,7 @@ namespace NativeCollections
         public byte* this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => Buffer + index;
+            get => UnsafeHelpers.AddByteOffset<byte>(Buffer, index);
         }
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace NativeCollections
         public byte* this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => Buffer + index;
+            get => UnsafeHelpers.AddByteOffset<byte>(Buffer, (nint)index);
         }
 
         /// <summary>
@@ -189,40 +189,67 @@ namespace NativeCollections
             return true;
         }
 
-        /// <summary>
-        ///     Alloc
-        /// </summary>
+        /// <summary>Allocates an aligned block of memory of the specified size and alignment, in bytes.</summary>
+        /// <returns>A pointer to the allocated aligned block of memory.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryAlloc(uint byteCount, out void* ptr)
+        public bool TryAlignedAlloc<T>(uint elementCount, out T* ptr) where T : unmanaged
         {
-            var newPosition = _position + byteCount;
-            if (newPosition > Length)
+            var byteCount = elementCount * (uint)sizeof(T);
+            var alignment = (uint)NativeMemoryAllocator.AlignOf<T>();
+            if (TryAlignedAlloc(byteCount, alignment, out var voidPtr))
+            {
+                ptr = (T*)voidPtr;
+                return true;
+            }
+
+            ptr = null;
+            return false;
+        }
+
+        /// <summary>Allocates and zeroes an aligned block of memory of the specified size and alignment, in bytes.</summary>
+        /// <returns>A pointer to the allocated and zeroed aligned block of memory.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryAlignedAllocZeroed<T>(uint elementCount, out T* ptr) where T : unmanaged
+        {
+            var byteCount = elementCount * (uint)sizeof(T);
+            var alignment = (uint)NativeMemoryAllocator.AlignOf<T>();
+            if (TryAlignedAllocZeroed(byteCount, alignment, out var voidPtr))
+            {
+                ptr = (T*)voidPtr;
+                return true;
+            }
+
+            ptr = null;
+            return false;
+        }
+
+        /// <summary>Allocates an aligned block of memory of the specified size and alignment, in bytes.</summary>
+        /// <returns>A pointer to the allocated aligned block of memory.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryAlignedAlloc(uint byteCount, uint alignment, out void* ptr)
+        {
+            if (!BitOperationsHelpers.IsPow2(alignment))
+                throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
+            var position = (nint)NativeMemoryAllocator.AlignUp((nuint)((nint)Buffer + _position), alignment);
+            if (position + (nint)byteCount > (nint)Buffer + Length)
             {
                 ptr = null;
                 return false;
             }
 
-            ptr = Buffer + _position;
-            _position = (int)newPosition;
+            ptr = (void*)position;
+            _position = (int)(position + (nint)byteCount - (nint)Buffer);
             return true;
         }
 
-        /// <summary>
-        ///     Alloc zeroed
-        /// </summary>
+        /// <summary>Allocates and zeroes an aligned block of memory of the specified size and alignment, in bytes.</summary>
+        /// <returns>A pointer to the allocated and zeroed aligned block of memory.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryAllocZeroed(uint byteCount, out void* ptr)
+        public bool TryAlignedAllocZeroed(uint byteCount, uint alignment, out void* ptr)
         {
-            var newPosition = _position + byteCount;
-            if (newPosition > Length)
-            {
-                ptr = null;
+            if (!TryAlignedAlloc(byteCount, alignment, out ptr))
                 return false;
-            }
-
-            ptr = Buffer + _position;
-            _position = (int)newPosition;
-            Unsafe.InitBlockUnaligned(ptr, 0, byteCount);
+            Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(ptr), 0, byteCount);
             return true;
         }
 
@@ -231,7 +258,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly Span<byte> AsSpan() => MemoryMarshal.CreateSpan(ref *Buffer, Length);
+        public readonly Span<byte> AsSpan() => MemoryMarshal.CreateSpan(ref Unsafe.AsRef<byte>(Buffer), Length);
 
         /// <summary>
         ///     As span
@@ -239,7 +266,7 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly Span<byte> AsSpan(int start) => MemoryMarshal.CreateSpan(ref *(Buffer + start), Length - start);
+        public readonly Span<byte> AsSpan(int start) => MemoryMarshal.CreateSpan(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(Buffer), UnsafeHelpers.ToIntPtr(start)), Length - start);
 
         /// <summary>
         ///     As span
@@ -248,14 +275,14 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly Span<byte> AsSpan(int start, int length) => MemoryMarshal.CreateSpan(ref *(Buffer + start), length);
+        public readonly Span<byte> AsSpan(int start, int length) => MemoryMarshal.CreateSpan(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(Buffer), UnsafeHelpers.ToIntPtr(start)), length);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<byte> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref *Buffer, Length);
+        public readonly ReadOnlySpan<byte> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<byte>(Buffer), Length);
 
         /// <summary>
         ///     As readOnly span
@@ -263,7 +290,7 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<byte> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref *(Buffer + start), Length - start);
+        public readonly ReadOnlySpan<byte> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(Buffer), UnsafeHelpers.ToIntPtr(start)), Length - start);
 
         /// <summary>
         ///     As readOnly span
@@ -272,7 +299,7 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<byte> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref *(Buffer + start), length);
+        public readonly ReadOnlySpan<byte> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(Buffer), UnsafeHelpers.ToIntPtr(start)), length);
 
         /// <summary>
         ///     As pointer

@@ -36,7 +36,7 @@ namespace NativeCollections
         {
             if (capacity < 0)
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            _buffer = (int*)NativeMemoryAllocator.AllocZeroed((uint)((2 + capacity) * sizeof(int)));
+            _buffer = NativeMemoryAllocator.AlignedAllocZeroed<int>((uint)(2 + capacity));
             _length = capacity;
         }
 
@@ -67,7 +67,7 @@ namespace NativeCollections
             get
             {
                 var buffer = _buffer;
-                return buffer[0] - buffer[1] == _length;
+                return Unsafe.Add(ref Unsafe.AsRef<int>(buffer), (nint)0) - Unsafe.Add(ref Unsafe.AsRef<int>(buffer), (nint)1) == _length;
             }
         }
 
@@ -84,7 +84,7 @@ namespace NativeCollections
             get
             {
                 var buffer = _buffer;
-                return buffer[0] - buffer[1];
+                return Unsafe.Add(ref Unsafe.AsRef<int>(buffer), (nint)0) - Unsafe.Add(ref Unsafe.AsRef<int>(buffer), (nint)1);
             }
         }
 
@@ -96,7 +96,7 @@ namespace NativeCollections
             get
             {
                 var buffer = _buffer;
-                return _length - (buffer[0] - buffer[1]);
+                return _length - (Unsafe.Add(ref Unsafe.AsRef<int>(buffer), (nint)0) - Unsafe.Add(ref Unsafe.AsRef<int>(buffer), (nint)1));
             }
         }
 
@@ -151,7 +151,7 @@ namespace NativeCollections
             var buffer = _buffer;
             if (buffer == null)
                 return;
-            NativeMemoryAllocator.Free(buffer);
+            NativeMemoryAllocator.AlignedFree(buffer);
         }
 
         /// <summary>
@@ -164,7 +164,7 @@ namespace NativeCollections
         {
             var spinWait = new NativeSpinWait();
             var buffer = _buffer;
-            ref var location = ref buffer[1];
+            ref var location = ref Unsafe.Add(ref Unsafe.AsRef<int>(buffer), (nint)1);
             var id = location - 1;
             while (id >= 0 && Interlocked.CompareExchange(ref location, id, id + 1) != id + 1)
             {
@@ -176,7 +176,7 @@ namespace NativeCollections
             {
                 spinWait.Reset();
                 int value;
-                location = ref buffer[2 + id];
+                location = ref Unsafe.Add(ref Unsafe.AsRef<int>(buffer), (nint)(2 + id));
                 do
                 {
                     value = Interlocked.Exchange(ref location, 0);
@@ -187,7 +187,7 @@ namespace NativeCollections
                 return true;
             }
 
-            location = ref buffer[0];
+            location = ref Unsafe.Add(ref Unsafe.AsRef<int>(buffer), (nint)0);
             id = Interlocked.Increment(ref location) - 1;
             if (id >= _length)
             {
@@ -209,8 +209,8 @@ namespace NativeCollections
         {
             var spinWait = new NativeSpinWait();
             var buffer = _buffer;
-            var id = Interlocked.Increment(ref buffer[1]) - 1;
-            ref var location = ref buffer[id + 2];
+            var id = Interlocked.Increment(ref Unsafe.Add(ref Unsafe.AsRef<int>(buffer), (nint)1)) - 1;
+            ref var location = ref Unsafe.Add(ref Unsafe.AsRef<int>(buffer), (nint)(id + 2));
             var value = index + 1;
             while (Interlocked.CompareExchange(ref location, value, 0) != 0)
                 spinWait.SpinOnce();

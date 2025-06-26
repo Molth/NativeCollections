@@ -52,9 +52,9 @@ namespace NativeCollections
         {
             this = new UnsafeConcurrentQueue<T>();
             if (ArchitectureHelpers.NotArm64)
-                *NotArm64Handle = new NativeConcurrentQueue.NativeConcurrentQueueNotArm64<T>(size, maxFreeSlabs);
+                Unsafe.AsRef<NativeConcurrentQueue.NativeConcurrentQueueNotArm64<T>>(NotArm64Handle) = new NativeConcurrentQueue.NativeConcurrentQueueNotArm64<T>(size, maxFreeSlabs);
             else
-                *Arm64Handle = new NativeConcurrentQueue.NativeConcurrentQueueArm64<T>(size, maxFreeSlabs);
+                Unsafe.AsRef<NativeConcurrentQueue.NativeConcurrentQueueArm64<T>>(Arm64Handle) = new NativeConcurrentQueue.NativeConcurrentQueueArm64<T>(size, maxFreeSlabs);
         }
 
         /// <summary>
@@ -145,7 +145,7 @@ namespace NativeCollections
             /// <summary>
             ///     Segment pool
             /// </summary>
-            private UnsafeAlignedMemoryPool _segmentPool;
+            private UnsafeMemoryPool _segmentPool;
 
             /// <summary>
             ///     Tail

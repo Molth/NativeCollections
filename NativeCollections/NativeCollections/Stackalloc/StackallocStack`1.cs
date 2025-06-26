@@ -46,7 +46,7 @@ namespace NativeCollections
         public ref T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _buffer[index];
+            get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index);
         }
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace NativeCollections
         public ref T this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _buffer[index];
+            get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index);
         }
 
         /// <summary>
@@ -80,7 +80,7 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         /// <returns>Byte count</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetByteCount(int capacity) => capacity * sizeof(T);
+        public static int GetByteCount(int capacity) => capacity * sizeof(T) + (int)NativeMemoryAllocator.AlignOf<T>() - 1;
 
         /// <summary>
         ///     Structure
@@ -90,7 +90,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public StackallocStack(Span<byte> buffer, int capacity)
         {
-            _buffer = (T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer));
+            _buffer = NativeArray<T>.Create(buffer).Buffer;
             _length = capacity;
             _size = 0;
             _version = 0;
@@ -117,7 +117,7 @@ namespace NativeCollections
             var size = _size;
             if ((uint)size < (uint)_length)
             {
-                _buffer[size] = item;
+                Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)size) = item;
                 _version++;
                 _size = size + 1;
                 return true;
@@ -138,7 +138,7 @@ namespace NativeCollections
                 throw new InvalidOperationException("EmptyStack");
             _version++;
             _size = size;
-            var item = _buffer[size];
+            var item = Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)size);
             return item;
         }
 
@@ -159,7 +159,7 @@ namespace NativeCollections
 
             _version++;
             _size = size;
-            result = _buffer[size];
+            result = Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)size);
             return true;
         }
 
@@ -171,7 +171,7 @@ namespace NativeCollections
         public T Peek()
         {
             var size = _size - 1;
-            return (uint)size >= (uint)_length ? throw new InvalidOperationException("EmptyStack") : _buffer[size];
+            return (uint)size >= (uint)_length ? throw new InvalidOperationException("EmptyStack") : Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)size);
         }
 
         /// <summary>
@@ -189,7 +189,7 @@ namespace NativeCollections
                 return false;
             }
 
-            result = _buffer[size];
+            result = Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)size);
             return true;
         }
 
@@ -211,7 +211,7 @@ namespace NativeCollections
             var num1 = 0;
             var num2 = _size;
             while (num1 < _size)
-                Unsafe.Add(ref reference, --num2) = _buffer[num1++];
+                Unsafe.Add(ref reference, (nint)(--num2)) = Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)num1++);
         }
 
         /// <summary>
@@ -290,14 +290,14 @@ namespace NativeCollections
                     _index = handle->_size - 1;
                     returned = _index >= 0;
                     if (returned)
-                        _currentElement = handle->_buffer[_index];
+                        _currentElement = Unsafe.Add(ref Unsafe.AsRef<T>(handle->_buffer), (nint)_index);
                     return returned;
                 }
 
                 if (_index == -1)
                     return false;
                 returned = --_index >= 0;
-                _currentElement = returned ? handle->_buffer[_index] : default;
+                _currentElement = returned ? Unsafe.Add(ref Unsafe.AsRef<T>(handle->_buffer), (nint)_index) : default;
                 return returned;
             }
 

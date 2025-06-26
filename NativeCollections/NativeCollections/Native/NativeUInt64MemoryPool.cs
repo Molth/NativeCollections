@@ -27,12 +27,13 @@ namespace NativeCollections
         /// </summary>
         /// <param name="length">Length</param>
         /// <param name="maxFreeSlabs">Max free slabs</param>
+        /// <param name="alignment">Alignment</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeUInt64MemoryPool(int length, int maxFreeSlabs)
+        public NativeUInt64MemoryPool(int length, int maxFreeSlabs, int alignment)
         {
-            var value = new UnsafeUInt64MemoryPool(length, maxFreeSlabs);
-            var handle = (UnsafeUInt64MemoryPool*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeUInt64MemoryPool));
-            *handle = value;
+            var value = new UnsafeUInt64MemoryPool(length, maxFreeSlabs, alignment);
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeUInt64MemoryPool>(1);
+            Unsafe.AsRef<UnsafeUInt64MemoryPool>(handle) = value;
             _handle = handle;
         }
 
@@ -60,6 +61,16 @@ namespace NativeCollections
         ///     Length
         /// </summary>
         public int Length => _handle->Length;
+
+        /// <summary>
+        ///     Alignment
+        /// </summary>
+        public int Alignment => _handle->Alignment;
+
+        /// <summary>
+        ///     Aligned length
+        /// </summary>
+        public int AlignedLength => _handle->AlignedLength;
 
         /// <summary>
         ///     Equals
@@ -113,7 +124,7 @@ namespace NativeCollections
             if (handle == null)
                 return;
             handle->Dispose();
-            NativeMemoryAllocator.Free(handle);
+            NativeMemoryAllocator.AlignedFree(handle);
         }
 
         /// <summary>

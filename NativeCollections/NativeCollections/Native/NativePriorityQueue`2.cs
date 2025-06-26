@@ -32,8 +32,8 @@ namespace NativeCollections
         public NativePriorityQueue(int capacity)
         {
             var value = new UnsafePriorityQueue<TElement, TPriority>(capacity);
-            var handle = (UnsafePriorityQueue<TElement, TPriority>*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafePriorityQueue<TElement, TPriority>));
-            *handle = value;
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafePriorityQueue<TElement, TPriority>>(1);
+            Unsafe.AsRef<UnsafePriorityQueue<TElement, TPriority>>(handle) = value;
             _handle = handle;
         }
 
@@ -134,7 +134,7 @@ namespace NativeCollections
             if (handle == null)
                 return;
             handle->Dispose();
-            NativeMemoryAllocator.Free(handle);
+            NativeMemoryAllocator.AlignedFree(handle);
         }
 
         /// <summary>

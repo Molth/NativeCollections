@@ -33,8 +33,8 @@ namespace NativeCollections
         public NativeSortedList(int capacity)
         {
             var value = new UnsafeSortedList<T>(capacity);
-            var handle = (UnsafeSortedList<T>*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeSortedList<T>));
-            *handle = value;
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeSortedList<T>>(1);
+            Unsafe.AsRef<UnsafeSortedList<T>>(handle) = value;
             _handle = handle;
         }
 
@@ -110,7 +110,7 @@ namespace NativeCollections
             if (handle == null)
                 return;
             handle->Dispose();
-            NativeMemoryAllocator.Free(handle);
+            NativeMemoryAllocator.AlignedFree(handle);
         }
 
         /// <summary>

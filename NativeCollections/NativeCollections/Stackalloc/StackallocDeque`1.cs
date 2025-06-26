@@ -71,7 +71,7 @@ namespace NativeCollections
         public ref T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _buffer[(_head + index) % _length];
+            get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)((_head + index) % _length));
         }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace NativeCollections
         public ref T this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _buffer[(_head + index) % _length];
+            get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)((_head + index) % _length));
         }
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         /// <returns>Byte count</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetByteCount(int capacity) => capacity * sizeof(T);
+        public static int GetByteCount(int capacity) => capacity * sizeof(T) + (int)NativeMemoryAllocator.AlignOf<T>() - 1;
 
         /// <summary>
         ///     Structure
@@ -100,7 +100,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public StackallocDeque(Span<byte> buffer, int capacity)
         {
-            _buffer = (T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer));
+            _buffer = NativeArray<T>.Create(buffer).Buffer;
             _length = capacity;
             _head = 0;
             _tail = 0;
@@ -132,7 +132,7 @@ namespace NativeCollections
                 return false;
             if (--_head == -1)
                 _head = _length - 1;
-            _buffer[_head] = item;
+            Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_head) = item;
             ++_size;
             ++_version;
             return true;
@@ -148,7 +148,7 @@ namespace NativeCollections
         {
             if (_size == _length)
                 return false;
-            _buffer[_tail] = item;
+            Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_tail) = item;
             if (++_tail == _length)
                 _tail = 0;
             ++_size;
@@ -170,7 +170,7 @@ namespace NativeCollections
                 return false;
             }
 
-            result = _buffer[_head];
+            result = Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_head);
             if (++_head == _length)
                 _head = 0;
             --_size;
@@ -194,7 +194,7 @@ namespace NativeCollections
 
             if (--_tail == -1)
                 _tail = _length - 1;
-            result = _buffer[_tail];
+            result = Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_tail);
             --_size;
             ++_version;
             return true;
@@ -214,7 +214,7 @@ namespace NativeCollections
                 return false;
             }
 
-            result = _buffer[_head];
+            result = Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_head);
             return true;
         }
 
@@ -233,7 +233,7 @@ namespace NativeCollections
                 return false;
             }
 
-            result = _buffer[size];
+            result = Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)size);
             return true;
         }
 
@@ -257,12 +257,11 @@ namespace NativeCollections
             ref var reference = ref MemoryMarshal.GetReference(buffer);
             var length1 = _length - _head;
             var length2 = length1 > size ? size : length1;
-            Unsafe.CopyBlockUnaligned(ref reference, ref *(byte*)(_buffer + _head), (uint)(length2 * sizeof(T)));
+            Unsafe.CopyBlockUnaligned(ref reference, ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_head)), (uint)(length2 * sizeof(T)));
             var length3 = size - length2;
             if (length3 <= 0)
                 return;
-            nint offset = length1 * sizeof(T);
-            Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, offset), ref *(byte*)_buffer, (uint)(length2 * sizeof(T)));
+            Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, UnsafeHelpers.ToIntPtr(length1 * sizeof(T))), ref Unsafe.AsRef<byte>(_buffer), (uint)(length2 * sizeof(T)));
         }
 
         /// <summary>
@@ -350,7 +349,7 @@ namespace NativeCollections
                 var index = (uint)(handle->_head + _index);
                 if (index >= capacity)
                     index -= capacity;
-                _currentElement = buffer[index];
+                _currentElement = Unsafe.Add(ref Unsafe.AsRef<T>(buffer), (nint)index);
                 return true;
             }
 

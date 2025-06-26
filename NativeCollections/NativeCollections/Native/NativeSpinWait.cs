@@ -17,18 +17,18 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    public unsafe struct NativeSpinWait
+    public struct NativeSpinWait
     {
 #if !NET5_0_OR_GREATER
         /// <summary>
         ///     Optimal max spinWaits per spin iteration
         /// </summary>
-        private static readonly delegate* managed<int> _OptimalMaxSpinWaitsPerSpinIteration;
+        private static readonly unsafe delegate* managed<int> _optimalMaxSpinWaitsPerSpinIteration;
 
         /// <summary>
         ///     Optimal max spinWaits per spin iteration
         /// </summary>
-        private static int OptimalMaxSpinWaitsPerSpinIteration => _OptimalMaxSpinWaitsPerSpinIteration();
+        private static unsafe int OptimalMaxSpinWaitsPerSpinIteration => _optimalMaxSpinWaitsPerSpinIteration();
 
         /// <summary>
         ///     Is single processor
@@ -38,7 +38,7 @@ namespace NativeCollections
         /// <summary>
         ///     Structure
         /// </summary>
-        static NativeSpinWait()
+        static unsafe NativeSpinWait()
         {
             try
             {
@@ -48,8 +48,8 @@ namespace NativeCollections
                     var method = property.GetMethod;
                     if (method != null)
                     {
-                        _OptimalMaxSpinWaitsPerSpinIteration = (delegate* managed<int>)method.MethodHandle.GetFunctionPointer();
-                        _ = _OptimalMaxSpinWaitsPerSpinIteration();
+                        _optimalMaxSpinWaitsPerSpinIteration = (delegate* managed<int>)method.MethodHandle.GetFunctionPointer();
+                        _ = _optimalMaxSpinWaitsPerSpinIteration();
                         return;
                     }
                 }
@@ -59,7 +59,7 @@ namespace NativeCollections
                 //
             }
 
-            _OptimalMaxSpinWaitsPerSpinIteration = &Fallback;
+            _optimalMaxSpinWaitsPerSpinIteration = &Fallback;
             return;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -33,8 +33,8 @@ namespace NativeCollections
         public NativeConcurrentStack(int size, int maxFreeSlabs)
         {
             var value = new UnsafeConcurrentStack<T>(size, maxFreeSlabs);
-            var handle = (UnsafeConcurrentStack<T>*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeConcurrentStack<T>));
-            *handle = value;
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeConcurrentStack<T>>(1);
+            Unsafe.AsRef<UnsafeConcurrentStack<T>>(handle) = value;
             _handle = handle;
         }
 
@@ -109,7 +109,7 @@ namespace NativeCollections
             if (handle == null)
                 return;
             handle->Dispose();
-            NativeMemoryAllocator.Free(handle);
+            NativeMemoryAllocator.AlignedFree(handle);
         }
 
         /// <summary>

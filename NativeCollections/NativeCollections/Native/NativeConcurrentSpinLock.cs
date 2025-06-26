@@ -27,7 +27,12 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeConcurrentSpinLock(void* buffer) => _handle = (UnsafeConcurrentSpinLock*)buffer;
+        public NativeConcurrentSpinLock(void* buffer)
+        {
+            if ((nint)buffer % (nint)NativeMemoryAllocator.AlignOf<UnsafeConcurrentSpinLock>() != 0)
+                throw new AccessViolationException("MustBeAligned");
+            _handle = (UnsafeConcurrentSpinLock*)buffer;
+        }
 
         /// <summary>
         ///     Dispose
@@ -38,7 +43,7 @@ namespace NativeCollections
             var handle = _handle;
             if (handle == null)
                 return;
-            NativeMemoryAllocator.Free(handle);
+            NativeMemoryAllocator.AlignedFree(handle);
         }
 
         /// <summary>

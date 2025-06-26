@@ -73,7 +73,7 @@ namespace NativeCollections
 #endif
             ref var left = ref Unsafe.As<NativeXoshiro128, int>(ref this);
             ref var right = ref Unsafe.As<NativeXoshiro128, int>(ref other);
-            return left == right && Unsafe.Add(ref left, 1) == Unsafe.Add(ref right, 1) && Unsafe.Add(ref left, 2) == Unsafe.Add(ref right, 2) && Unsafe.Add(ref left, 3) == Unsafe.Add(ref right, 3);
+            return left == right && Unsafe.Add(ref left, (nint)1) == Unsafe.Add(ref right, (nint)1) && Unsafe.Add(ref left, (nint)2) == Unsafe.Add(ref right, (nint)2) && Unsafe.Add(ref left, (nint)3) == Unsafe.Add(ref right, (nint)3);
         }
 
         /// <summary>
@@ -480,7 +480,7 @@ namespace NativeCollections
         /// <param name="ptr">A pointer to the memory location where the random bytes will be written.</param>
         /// <param name="byteCount">The number of bytes to fill with random numbers.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Next(void* ptr, int byteCount) => NextBytes(MemoryMarshal.CreateSpan(ref *(byte*)ptr, byteCount));
+        public void Next(void* ptr, int byteCount) => NextBytes(MemoryMarshal.CreateSpan(ref Unsafe.AsRef<byte>(ptr), byteCount));
 
         /// <summary>Returns a boolean.</summary>
         /// <returns>True, or false.</returns>

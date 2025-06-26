@@ -128,7 +128,7 @@ namespace NativeCollections
         /// <param name="maxFreeSlabs">MemoryPool maxFreeSlabs</param>
         public UnsafeSortedDictionary(int size, int maxFreeSlabs)
         {
-            var nodePool = new UnsafeMemoryPool(size, sizeof(Node), maxFreeSlabs);
+            var nodePool = new UnsafeMemoryPool(size, sizeof(Node), maxFreeSlabs, (int)NativeMemoryAllocator.AlignOf<Node>());
             _root = null;
             _count = 0;
             _version = 0;
@@ -1015,7 +1015,7 @@ namespace NativeCollections
                 while (nodeStack.Count != 0)
                 {
                     var node1 = (Node*)nodeStack.Pop();
-                    Unsafe.Add(ref reference, index++) = new KeyValuePair<TKey, TValue>(node1->Key, node1->Value);
+                    Unsafe.Add(ref reference, (nint)index++) = new KeyValuePair<TKey, TValue>(node1->Key, node1->Value);
                     for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
                         nodeStack.Push((nint)node2);
                 }
@@ -1218,7 +1218,7 @@ namespace NativeCollections
                     while (nodeStack.Count != 0)
                     {
                         var node1 = (Node*)nodeStack.Pop();
-                        Unsafe.Add(ref reference, index++) = node1->Key;
+                        Unsafe.Add(ref reference, (nint)index++) = node1->Key;
                         for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
                             nodeStack.Push((nint)node2);
                     }
@@ -1417,7 +1417,7 @@ namespace NativeCollections
                     while (nodeStack.Count != 0)
                     {
                         var node1 = (Node*)nodeStack.Pop();
-                        Unsafe.Add(ref reference, index++) = node1->Value;
+                        Unsafe.Add(ref reference, (nint)index++) = node1->Value;
                         for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
                             nodeStack.Push((nint)node2);
                     }

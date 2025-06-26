@@ -60,11 +60,11 @@ namespace NativeCollections
             if (min <= 7199369)
             {
                 ref var local1 = ref MemoryMarshal.GetReference(Primes);
-                var num = Unsafe.Add(ref local1, BitOperationsHelpers.Log2((uint)min));
-                ref var local2 = ref Unsafe.Add(ref local1, 24);
+                var num = Unsafe.Add(ref local1, (nint)BitOperationsHelpers.Log2((uint)min));
+                ref var local2 = ref Unsafe.Add(ref local1, (nint)24);
                 for (var elementOffset = num; elementOffset < 72; ++elementOffset)
                 {
-                    var prime = Unsafe.Add(ref local2, elementOffset);
+                    var prime = Unsafe.Add(ref local2, (nint)elementOffset);
                     if (prime >= min)
                         return prime;
                 }

@@ -68,7 +68,12 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         /// <returns>Byte count</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetByteCount(int capacity) => capacity * (sizeof(T) + sizeof(int));
+        public static int GetByteCount(int capacity)
+        {
+            var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<T>(), NativeMemoryAllocator.AlignOf<int>());
+            var bufferByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * sizeof(T)), alignment);
+            return (int)(bufferByteCount + capacity * sizeof(int) + alignment - 1);
+        }
 
         /// <summary>
         ///     Structure
@@ -78,14 +83,16 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public StackallocFixedSizeQueueMemoryPool(Span<byte> buffer, int capacity)
         {
-            _buffer = (T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer));
-            _index = (int*)((byte*)_buffer + capacity * sizeof(T));
+            var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<T>(), NativeMemoryAllocator.AlignOf<int>());
+            var bufferByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * sizeof(T)), alignment);
+            _buffer = (T*)NativeArray<byte>.Create(buffer, alignment).Buffer;
+            _index = UnsafeHelpers.AddByteOffset<int>(_buffer, (nint)bufferByteCount);
             _capacity = capacity;
             _head = 0;
             _tail = 0;
             _size = capacity;
             for (var i = 0; i < _capacity; ++i)
-                _index[i] = i;
+                Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)i) = i;
         }
 
         /// <summary>
@@ -96,7 +103,7 @@ namespace NativeCollections
         {
             _size = _capacity;
             for (var i = 0; i < _capacity; ++i)
-                _index[i] = i;
+                Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)i) = i;
         }
 
         /// <summary>
@@ -111,10 +118,10 @@ namespace NativeCollections
                 return false;
             }
 
-            var index = _index[_head];
+            var index = Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)_head);
             MoveNext(ref _head);
             _size--;
-            ptr = &_buffer[index];
+            ptr = (T*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index));
             return true;
         }
 
@@ -125,7 +132,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Return(T* ptr)
         {
-            _index[_tail] = (int)(ptr - _buffer);
+            var byteOffset = UnsafeHelpers.ByteOffset(_buffer, ptr);
+            var index = byteOffset / sizeof(T);
+            Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)_tail) = (int)index;
             MoveNext(ref _tail);
             _size++;
         }

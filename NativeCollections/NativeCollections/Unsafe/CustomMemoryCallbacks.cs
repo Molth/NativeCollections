@@ -16,33 +16,24 @@ namespace NativeCollections
     [UnsafeCollection(FromType.None)]
     public unsafe struct CustomMemoryCallbacks : IEquatable<CustomMemoryCallbacks>
     {
-        /// <summary>
-        ///     Alloc
-        /// </summary>
-        public delegate* managed<void*, uint, void*> Alloc;
+        /// <summary>Allocates an aligned block of memory of the specified size and alignment, in bytes.</summary>
+        public readonly delegate* managed<void*, uint, uint, void*> AlignedAlloc;
 
-        /// <summary>
-        ///     AllocZeroed
-        /// </summary>
-        public delegate* managed<void*, uint, void*> AllocZeroed;
+        /// <summary>Allocates and zeroes an aligned block of memory of the specified size and alignment, in bytes.</summary>
+        public readonly delegate* managed<void*, uint, uint, void*> AlignedAllocZeroed;
 
-        /// <summary>
-        ///     Free
-        /// </summary>
-        public delegate* managed<void*, void*, void> Free;
+        /// <summary>Frees an aligned block of memory.</summary>
+        public readonly delegate* managed<void*, void*, void> AlignedFree;
 
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="alloc">Alloc</param>
-        /// <param name="allocZeroed">AllocZeroed</param>
-        /// <param name="free">Free</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public CustomMemoryCallbacks(delegate* managed<void*, uint, void*> alloc, delegate* managed<void*, uint, void*> allocZeroed, delegate* managed<void*, void*, void> free)
+        public CustomMemoryCallbacks(delegate* managed<void*, uint, uint, void*> alignedAlloc, delegate* managed<void*, uint, uint, void*> alignedAllocZeroed, delegate* managed<void*, void*, void> alignedFree)
         {
-            Alloc = alloc;
-            AllocZeroed = allocZeroed;
-            Free = free;
+            AlignedAlloc = alignedAlloc;
+            AlignedAllocZeroed = alignedAllocZeroed;
+            AlignedFree = alignedFree;
         }
 
         /// <summary>
@@ -54,7 +45,7 @@ namespace NativeCollections
         {
             ref var left = ref Unsafe.As<CustomMemoryCallbacks, nint>(ref Unsafe.AsRef(in this));
             ref var right = ref Unsafe.As<CustomMemoryCallbacks, nint>(ref other);
-            return left == right && Unsafe.Add(ref left, 1) == Unsafe.Add(ref right, 1) && Unsafe.Add(ref left, 2) == Unsafe.Add(ref right, 2);
+            return left == right && Unsafe.Add(ref left, (nint)1) == Unsafe.Add(ref right, (nint)1) && Unsafe.Add(ref left, (nint)2) == Unsafe.Add(ref right, (nint)2);
         }
 
         /// <summary>

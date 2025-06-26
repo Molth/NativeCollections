@@ -29,7 +29,7 @@ namespace NativeCollections
         /// <summary>
         ///     Buffer
         /// </summary>
-        private void** _buffer;
+        private nint* _buffer;
 
         /// <summary>
         ///     Index
@@ -72,7 +72,7 @@ namespace NativeCollections
         {
             _capacity = capacity;
             _length = length;
-            _buffer = (void**)NativeMemoryAllocator.AllocZeroed((uint)(capacity * sizeof(void*)));
+            _buffer = NativeMemoryAllocator.AlignedAllocZeroed<nint>((uint)capacity);
             _index = 0;
             _allocator = allocator;
         }
@@ -85,13 +85,13 @@ namespace NativeCollections
         {
             for (var i = _capacity - 1; i >= 0; --i)
             {
-                var buffer = _buffer[i];
+                var buffer = (void*)Unsafe.Add(ref Unsafe.AsRef<nint>(_buffer), (nint)i);
                 if (buffer == null)
                     break;
-                _allocator.Free(buffer);
+                _allocator.AlignedFree(buffer);
             }
 
-            NativeMemoryAllocator.Free(_buffer);
+            NativeMemoryAllocator.AlignedFree(_buffer);
         }
 
         /// <summary>
@@ -104,12 +104,12 @@ namespace NativeCollections
             void* buffer = null;
             if (_index < _capacity)
             {
-                buffer = _buffer[_index];
-                _buffer[_index++] = null;
+                buffer = (void*)Unsafe.Add(ref Unsafe.AsRef<nint>(_buffer), (nint)_index);
+                Unsafe.Add(ref Unsafe.AsRef<nint>(_buffer), (nint)_index++) = 0;
             }
 
             if (buffer == null)
-                buffer = _allocator.Alloc((uint)_length);
+                buffer = _allocator.AlignedAlloc<byte>((uint)_length);
             return buffer;
         }
 
@@ -121,9 +121,9 @@ namespace NativeCollections
         public void Return(void* ptr)
         {
             if (_index != 0)
-                _buffer[--_index] = ptr;
+                Unsafe.Add(ref Unsafe.AsRef<nint>(_buffer), (nint)(--_index)) = (nint)ptr;
             else
-                _allocator.Free(ptr);
+                _allocator.AlignedFree(ptr);
         }
 
         /// <summary>

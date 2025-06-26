@@ -33,7 +33,7 @@ namespace NativeCollections
             public const uint block_size_max = (uint)1 << FL_INDEX_MAX;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void memcpy(void* dst, void* src, uint size) => Unsafe.CopyBlockUnaligned(dst, src, size);
+            public static void memcpy(void* dst, void* src, uint size) => Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(dst), ref Unsafe.AsRef<byte>(src), size);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static int tlsf_fls(uint word)
@@ -91,10 +91,10 @@ namespace NativeCollections
             public static void block_set_prev_used(block_header_t* block) => block->size &= ~block_header_prev_free_bit;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static block_header_t* block_from_ptr(void* ptr) => (block_header_t*)((byte*)ptr - block_start_offset);
+            public static block_header_t* block_from_ptr(void* ptr) => UnsafeHelpers.SubtractByteOffset<block_header_t>(ptr, (nint)block_start_offset);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void* block_to_ptr(block_header_t* block) => (byte*)block + block_start_offset;
+            public static void* block_to_ptr(block_header_t* block) => UnsafeHelpers.AddByteOffset(block, (nint)block_start_offset);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static block_header_t* offset_to_block(void* ptr, uint size) => (block_header_t*)((nint)ptr + (nint)size);
@@ -176,8 +176,8 @@ namespace NativeCollections
                     fl -= FL_INDEX_SHIFT - 1;
                 }
 
-                *fli = fl;
-                *sli = sl;
+                Unsafe.AsRef<int>(fli) = fl;
+                Unsafe.AsRef<int>(sli) = sl;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -195,22 +195,22 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static block_header_t* search_suitable_block(control_t* control, int* fli, int* sli)
             {
-                var fl = *fli;
-                var sl = *sli;
-                var sl_map = control->sl_bitmap[fl] & (~0U << sl);
+                var fl = Unsafe.AsRef<int>(fli);
+                var sl = Unsafe.AsRef<int>(sli);
+                var sl_map = Unsafe.Add(ref Unsafe.AsRef<uint>(control->sl_bitmap), (nint)fl) & (~0U << sl);
                 if (!(sl_map != 0))
                 {
                     var fl_map = control->fl_bitmap & (~0U << (fl + 1));
                     if (!(fl_map != 0))
                         return null;
                     fl = tlsf_ffs(fl_map);
-                    *fli = fl;
-                    sl_map = control->sl_bitmap[fl];
+                    Unsafe.AsRef<int>(fli) = fl;
+                    sl_map = Unsafe.Add(ref Unsafe.AsRef<uint>(control->sl_bitmap), (nint)fl);
                 }
 
                 sl = tlsf_ffs(sl_map);
-                *sli = sl;
-                return control->blocks[fl][sl];
+                Unsafe.AsRef<int>(sli) = sl;
+                return Unsafe.Add(ref Unsafe.AsRef<block_header_t_ptr>(control->blocks[fl]), (nint)sl);
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -220,13 +220,13 @@ namespace NativeCollections
                 var next = block->next_free;
                 next->prev_free = prev;
                 prev->next_free = next;
-                if (control->blocks[fl][sl] == block)
+                if (Unsafe.Add(ref Unsafe.AsRef<block_header_t_ptr>(control->blocks[fl]), (nint)sl) == block)
                 {
-                    control->blocks[fl][sl] = next;
+                    Unsafe.Add(ref Unsafe.AsRef<block_header_t_ptr>(control->blocks[fl]), (nint)sl) = next;
                     if (next == &control->block_null)
                     {
-                        control->sl_bitmap[fl] &= ~(1U << sl);
-                        if (!(control->sl_bitmap[fl] != 0))
+                        Unsafe.Add(ref Unsafe.AsRef<uint>(control->sl_bitmap), (nint)fl) &= ~(1U << sl);
+                        if (!(Unsafe.Add(ref Unsafe.AsRef<uint>(control->sl_bitmap), (nint)fl) != 0))
                             control->fl_bitmap &= ~(1U << fl);
                     }
                 }
@@ -235,13 +235,13 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static void insert_free_block(control_t* control, block_header_t* block, int fl, int sl)
             {
-                var current = (block_header_t*)control->blocks[fl][sl];
+                var current = (block_header_t*)Unsafe.Add(ref Unsafe.AsRef<block_header_t_ptr>(control->blocks[fl]), (nint)sl);
                 block->next_free = current;
                 block->prev_free = &control->block_null;
                 current->prev_free = block;
-                control->blocks[fl][sl] = block;
+                Unsafe.Add(ref Unsafe.AsRef<block_header_t_ptr>(control->blocks[fl]), (nint)sl) = block;
                 control->fl_bitmap |= 1U << fl;
-                control->sl_bitmap[fl] |= 1U << sl;
+                Unsafe.Add(ref Unsafe.AsRef<uint>(control->sl_bitmap), (nint)fl) |= 1U << sl;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -387,9 +387,9 @@ namespace NativeCollections
                 control->fl_bitmap = 0;
                 for (i = 0; i < FL_INDEX_COUNT; ++i)
                 {
-                    control->sl_bitmap[i] = 0;
+                    Unsafe.Add(ref Unsafe.AsRef<uint>(control->sl_bitmap), (nint)i) = 0;
                     for (j = 0; j < SL_INDEX_COUNT; ++j)
-                        control->blocks[i][j] = &control->block_null;
+                        Unsafe.Add(ref Unsafe.AsRef<block_header_t_ptr>(control->blocks[i]), (nint)j) = &control->block_null;
                 }
             }
 
@@ -435,7 +435,7 @@ namespace NativeCollections
                     return null;
                 if (pool_bytes < block_size_min || pool_bytes > block_size_max)
                     return null;
-                const uint size = unchecked((uint)-(nint)block_header_overhead);
+                const uint size = 4294967292U;
                 block = offset_to_block(mem, size);
                 block_set_size(block, pool_bytes);
                 block_set_free(block);
@@ -471,12 +471,12 @@ namespace NativeCollections
             public static void* tlsf_create_with_pool(void* mem, uint bytes)
             {
                 var tlsf = tlsf_create(mem);
-                tlsf_add_pool(tlsf, (byte*)mem + tlsf_size(), bytes - tlsf_size());
+                tlsf_add_pool(tlsf, UnsafeHelpers.AddByteOffset(mem, (nint)tlsf_size()), bytes - tlsf_size());
                 return tlsf;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void* tlsf_get_pool(void* tlsf) => (byte*)tlsf + tlsf_size();
+            public static void* tlsf_get_pool(void* tlsf) => UnsafeHelpers.AddByteOffset(tlsf, (nint)tlsf_size());
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static void* tlsf_malloc(void* tlsf, uint size)
@@ -599,7 +599,7 @@ namespace NativeCollections
                 public block_header_t_ptr* this[int i]
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                    get => (block_header_t_ptr*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<block_header_t_ptr>(Unsafe.AsPointer(ref this)), i * SL_INDEX_COUNT));
+                    get => (block_header_t_ptr*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.As<blocks_t, block_header_t_ptr>(ref this), (nint)(i * SL_INDEX_COUNT)));
                 }
             }
 
@@ -637,7 +637,7 @@ namespace NativeCollections
             public const ulong block_size_max = (ulong)1 << FL_INDEX_MAX;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void memcpy(void* dst, void* src, ulong size) => Unsafe.CopyBlockUnaligned(dst, src, (uint)size);
+            public static void memcpy(void* dst, void* src, ulong size) => Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(dst), ref Unsafe.AsRef<byte>(src), (uint)size);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static int tlsf_fls(uint word)
@@ -699,10 +699,10 @@ namespace NativeCollections
             public static void block_set_prev_used(block_header_t* block) => block->size &= ~block_header_prev_free_bit;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static block_header_t* block_from_ptr(void* ptr) => (block_header_t*)((byte*)ptr - block_start_offset);
+            public static block_header_t* block_from_ptr(void* ptr) => UnsafeHelpers.SubtractByteOffset<block_header_t>(ptr, (nint)block_start_offset);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void* block_to_ptr(block_header_t* block) => (byte*)block + block_start_offset;
+            public static void* block_to_ptr(block_header_t* block) => UnsafeHelpers.AddByteOffset(block, (nint)block_start_offset);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static block_header_t* offset_to_block(void* ptr, ulong size) => (block_header_t*)((nint)ptr + (nint)size);
@@ -784,8 +784,8 @@ namespace NativeCollections
                     fl -= FL_INDEX_SHIFT - 1;
                 }
 
-                *fli = fl;
-                *sli = sl;
+                Unsafe.AsRef<int>(fli) = fl;
+                Unsafe.AsRef<int>(sli) = sl;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -803,22 +803,22 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static block_header_t* search_suitable_block(control_t* control, int* fli, int* sli)
             {
-                var fl = *fli;
-                var sl = *sli;
-                var sl_map = control->sl_bitmap[fl] & (~0U << sl);
+                var fl = Unsafe.AsRef<int>(fli);
+                var sl = Unsafe.AsRef<int>(sli);
+                var sl_map = Unsafe.Add(ref Unsafe.AsRef<uint>(control->sl_bitmap), (nint)fl) & (~0U << sl);
                 if (!(sl_map != 0))
                 {
                     var fl_map = control->fl_bitmap & (~0U << (fl + 1));
                     if (!(fl_map != 0))
                         return null;
                     fl = tlsf_ffs(fl_map);
-                    *fli = fl;
-                    sl_map = control->sl_bitmap[fl];
+                    Unsafe.AsRef<int>(fli) = fl;
+                    sl_map = Unsafe.Add(ref Unsafe.AsRef<uint>(control->sl_bitmap), (nint)fl);
                 }
 
                 sl = tlsf_ffs(sl_map);
-                *sli = sl;
-                return control->blocks[fl][sl];
+                Unsafe.AsRef<int>(sli) = sl;
+                return Unsafe.Add(ref Unsafe.AsRef<block_header_t_ptr>(control->blocks[fl]), (nint)sl);
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -828,13 +828,13 @@ namespace NativeCollections
                 var next = block->next_free;
                 next->prev_free = prev;
                 prev->next_free = next;
-                if (control->blocks[fl][sl] == block)
+                if (Unsafe.Add(ref Unsafe.AsRef<block_header_t_ptr>(control->blocks[fl]), (nint)sl) == block)
                 {
-                    control->blocks[fl][sl] = next;
+                    Unsafe.Add(ref Unsafe.AsRef<block_header_t_ptr>(control->blocks[fl]), (nint)sl) = next;
                     if (next == &control->block_null)
                     {
-                        control->sl_bitmap[fl] &= ~(1U << sl);
-                        if (!(control->sl_bitmap[fl] != 0))
+                        Unsafe.Add(ref Unsafe.AsRef<uint>(control->sl_bitmap), (nint)fl) &= ~(1U << sl);
+                        if (!(Unsafe.Add(ref Unsafe.AsRef<uint>(control->sl_bitmap), (nint)fl) != 0))
                             control->fl_bitmap &= ~(1U << fl);
                     }
                 }
@@ -843,13 +843,13 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static void insert_free_block(control_t* control, block_header_t* block, int fl, int sl)
             {
-                var current = (block_header_t*)control->blocks[fl][sl];
+                var current = (block_header_t*)Unsafe.Add(ref Unsafe.AsRef<block_header_t_ptr>(control->blocks[fl]), (nint)sl);
                 block->next_free = current;
                 block->prev_free = &control->block_null;
                 current->prev_free = block;
-                control->blocks[fl][sl] = block;
+                Unsafe.Add(ref Unsafe.AsRef<block_header_t_ptr>(control->blocks[fl]), (nint)sl) = block;
                 control->fl_bitmap |= 1U << fl;
-                control->sl_bitmap[fl] |= 1U << sl;
+                Unsafe.Add(ref Unsafe.AsRef<uint>(control->sl_bitmap), (nint)fl) |= 1U << sl;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -995,9 +995,9 @@ namespace NativeCollections
                 control->fl_bitmap = 0;
                 for (i = 0; i < FL_INDEX_COUNT; ++i)
                 {
-                    control->sl_bitmap[i] = 0;
+                    Unsafe.Add(ref Unsafe.AsRef<uint>(control->sl_bitmap), (nint)i) = 0;
                     for (j = 0; j < SL_INDEX_COUNT; ++j)
-                        control->blocks[i][j] = &control->block_null;
+                        Unsafe.Add(ref Unsafe.AsRef<block_header_t_ptr>(control->blocks[i]), (nint)j) = &control->block_null;
                 }
             }
 
@@ -1043,7 +1043,7 @@ namespace NativeCollections
                     return null;
                 if (pool_bytes < block_size_min || pool_bytes > block_size_max)
                     return null;
-                const ulong size = unchecked((ulong)-(nint)block_header_overhead);
+                const ulong size = 18446744073709551608UL;
                 block = offset_to_block(mem, size);
                 block_set_size(block, pool_bytes);
                 block_set_free(block);
@@ -1079,12 +1079,12 @@ namespace NativeCollections
             public static void* tlsf_create_with_pool(void* mem, ulong bytes)
             {
                 var tlsf = tlsf_create(mem);
-                tlsf_add_pool(tlsf, (byte*)mem + tlsf_size(), bytes - tlsf_size());
+                tlsf_add_pool(tlsf, UnsafeHelpers.AddByteOffset(mem, (nint)tlsf_size()), bytes - tlsf_size());
                 return tlsf;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void* tlsf_get_pool(void* tlsf) => (byte*)tlsf + tlsf_size();
+            public static void* tlsf_get_pool(void* tlsf) => UnsafeHelpers.AddByteOffset(tlsf, (nint)tlsf_size());
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static void* tlsf_malloc(void* tlsf, ulong size)
@@ -1207,7 +1207,7 @@ namespace NativeCollections
                 public block_header_t_ptr* this[int i]
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                    get => (block_header_t_ptr*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<block_header_t_ptr>(Unsafe.AsPointer(ref this)), i * SL_INDEX_COUNT));
+                    get => (block_header_t_ptr*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.As<blocks_t, block_header_t_ptr>(ref this), (nint)(i * SL_INDEX_COUNT)));
                 }
             }
 

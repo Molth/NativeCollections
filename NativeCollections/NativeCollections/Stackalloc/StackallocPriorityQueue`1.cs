@@ -61,7 +61,7 @@ namespace NativeCollections
         public TPriority this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _nodes[index];
+            get => Unsafe.Add(ref Unsafe.AsRef<TPriority>(_nodes), (nint)index);
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace NativeCollections
         public TPriority this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _nodes[index];
+            get => Unsafe.Add(ref Unsafe.AsRef<TPriority>(_nodes), (nint)index);
         }
 
         /// <summary>
@@ -85,7 +85,7 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         /// <returns>Byte count</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetByteCount(int capacity) => capacity * sizeof(TPriority);
+        public static int GetByteCount(int capacity) => capacity * sizeof(TPriority) + (int)NativeMemoryAllocator.AlignOf<TPriority>() - 1;
 
         /// <summary>
         ///     Structure
@@ -95,7 +95,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public StackallocPriorityQueue(Span<byte> buffer, int capacity)
         {
-            _nodes = (TPriority*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer));
+            _nodes = NativeArray<TPriority>.Create(buffer).Buffer;
             _length = capacity;
             _size = 0;
             _version = 0;
@@ -141,7 +141,7 @@ namespace NativeCollections
         {
             if (_size != 0)
             {
-                var node = _nodes[0];
+                var node = Unsafe.Add(ref Unsafe.AsRef<TPriority>(_nodes), (nint)0);
                 if (priority.CompareTo(node) > 0)
                 {
                     MoveDown(priority, 0);
@@ -164,7 +164,7 @@ namespace NativeCollections
         {
             if (_size != 0)
             {
-                var node = _nodes[0];
+                var node = Unsafe.Add(ref Unsafe.AsRef<TPriority>(_nodes), (nint)0);
                 if (priority.CompareTo(node) > 0)
                 {
                     MoveDown(priority, 0);
@@ -187,7 +187,7 @@ namespace NativeCollections
         {
             if (_size == 0)
                 throw new InvalidOperationException("EmptyQueue");
-            var priority = _nodes[0];
+            var priority = Unsafe.Add(ref Unsafe.AsRef<TPriority>(_nodes), (nint)0);
             RemoveRootNode();
             return priority;
         }
@@ -202,7 +202,7 @@ namespace NativeCollections
         {
             if (_size != 0)
             {
-                priority = _nodes[0];
+                priority = Unsafe.Add(ref Unsafe.AsRef<TPriority>(_nodes), (nint)0);
                 RemoveRootNode();
                 return true;
             }
@@ -220,11 +220,11 @@ namespace NativeCollections
         {
             if (_size == 0)
                 throw new InvalidOperationException("EmptyQueue");
-            var node = _nodes[0];
+            var node = Unsafe.Add(ref Unsafe.AsRef<TPriority>(_nodes), (nint)0);
             if (priority.CompareTo(node) > 0)
                 MoveDown(priority, 0);
             else
-                _nodes[0] = priority;
+                Unsafe.Add(ref Unsafe.AsRef<TPriority>(_nodes), (nint)0) = priority;
             ++_version;
             return node;
         }
@@ -243,11 +243,11 @@ namespace NativeCollections
                 return false;
             }
 
-            var node = _nodes[0];
+            var node = Unsafe.Add(ref Unsafe.AsRef<TPriority>(_nodes), (nint)0);
             if (priority.CompareTo(node) > 0)
                 MoveDown(priority, 0);
             else
-                _nodes[0] = priority;
+                Unsafe.Add(ref Unsafe.AsRef<TPriority>(_nodes), (nint)0) = priority;
             ++_version;
             result = node;
             return true;
@@ -258,7 +258,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Item</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TPriority Peek() => _size == 0 ? throw new InvalidOperationException("EmptyQueue") : _nodes[0];
+        public TPriority Peek() => _size == 0 ? throw new InvalidOperationException("EmptyQueue") : Unsafe.Add(ref Unsafe.AsRef<TPriority>(_nodes), (nint)0);
 
         /// <summary>
         ///     Try peek
@@ -270,7 +270,7 @@ namespace NativeCollections
         {
             if (_size != 0)
             {
-                priority = _nodes[0];
+                priority = Unsafe.Add(ref Unsafe.AsRef<TPriority>(_nodes), (nint)0);
                 return true;
             }
 
@@ -283,21 +283,21 @@ namespace NativeCollections
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<TPriority> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref *_nodes, _size);
+        public readonly ReadOnlySpan<TPriority> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<TPriority>(_nodes), _size);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<TPriority> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref *(_nodes + start), _size - start);
+        public readonly ReadOnlySpan<TPriority> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<TPriority>(_nodes), (nint)start), _size - start);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<TPriority> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref *(_nodes + start), length);
+        public readonly ReadOnlySpan<TPriority> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<TPriority>(_nodes), (nint)start), length);
 
         /// <summary>
         ///     Remove root node
@@ -309,7 +309,7 @@ namespace NativeCollections
             ++_version;
             if (index > 0)
             {
-                var node = _nodes[index];
+                var node = Unsafe.Add(ref Unsafe.AsRef<TPriority>(_nodes), (nint)index);
                 MoveDown(node, 0);
             }
         }
@@ -327,14 +327,14 @@ namespace NativeCollections
             for (; nodeIndex > 0; nodeIndex = parentIndex)
             {
                 parentIndex = (nodeIndex - 1) >> 2;
-                var priority = nodes[parentIndex];
+                var priority = Unsafe.Add(ref Unsafe.AsRef<TPriority>(nodes), (nint)parentIndex);
                 if (node.CompareTo(priority) < 0)
-                    nodes[nodeIndex] = priority;
+                    Unsafe.Add(ref Unsafe.AsRef<TPriority>(nodes), (nint)nodeIndex) = priority;
                 else
                     break;
             }
 
-            nodes[nodeIndex] = node;
+            Unsafe.Add(ref Unsafe.AsRef<TPriority>(nodes), (nint)nodeIndex) = node;
         }
 
         /// <summary>
@@ -350,13 +350,13 @@ namespace NativeCollections
             int first;
             for (var size = _size; (firstChildIndex = (nodeIndex << 2) + 1) < size; nodeIndex = first)
             {
-                var priority1 = nodes[firstChildIndex];
+                var priority1 = Unsafe.Add(ref Unsafe.AsRef<TPriority>(nodes), (nint)firstChildIndex);
                 first = firstChildIndex;
                 var minSize = firstChildIndex + 4;
                 var second = minSize <= size ? minSize : size;
                 while (++firstChildIndex < second)
                 {
-                    var priority2 = nodes[firstChildIndex];
+                    var priority2 = Unsafe.Add(ref Unsafe.AsRef<TPriority>(nodes), (nint)firstChildIndex);
                     if (priority2.CompareTo(priority1) < 0)
                     {
                         priority1 = priority2;
@@ -365,12 +365,12 @@ namespace NativeCollections
                 }
 
                 if (node.CompareTo(priority1) > 0)
-                    nodes[nodeIndex] = priority1;
+                    Unsafe.Add(ref Unsafe.AsRef<TPriority>(nodes), (nint)nodeIndex) = priority1;
                 else
                     break;
             }
 
-            nodes[nodeIndex] = node;
+            Unsafe.Add(ref Unsafe.AsRef<TPriority>(nodes), (nint)nodeIndex) = node;
         }
 
         /// <summary>
@@ -494,7 +494,7 @@ namespace NativeCollections
                         return false;
                     }
 
-                    _current = handle->_nodes[_index];
+                    _current = Unsafe.Add(ref Unsafe.AsRef<TPriority>(handle->_nodes), (nint)_index);
                     ++_index;
                     return true;
                 }

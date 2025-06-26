@@ -33,8 +33,8 @@ namespace NativeCollections
         public NativeSortedSet(int size, int maxFreeSlabs)
         {
             var value = new UnsafeSortedSet<T>(size, maxFreeSlabs);
-            var handle = (UnsafeSortedSet<T>*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeSortedSet<T>));
-            *handle = value;
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeSortedSet<T>>(1);
+            Unsafe.AsRef<UnsafeSortedSet<T>>(handle) = value;
             _handle = handle;
         }
 
@@ -115,7 +115,7 @@ namespace NativeCollections
             if (handle == null)
                 return;
             handle->Dispose();
-            NativeMemoryAllocator.Free(handle);
+            NativeMemoryAllocator.AlignedFree(handle);
         }
 
         /// <summary>

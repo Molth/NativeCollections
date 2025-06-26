@@ -80,7 +80,13 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         /// <returns>Byte count</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetByteCount(int capacity) => HashHelpers.GetPrime(capacity) * (sizeof(int) + sizeof(Entry));
+        public static int GetByteCount(int capacity)
+        {
+            var size = HashHelpers.GetPrime(capacity);
+            var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<int>(), NativeMemoryAllocator.AlignOf<Entry>());
+            var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(size * sizeof(int)), alignment);
+            return (int)(bucketsByteCount + size * sizeof(Entry) + alignment - 1);
+        }
 
         /// <summary>
         ///     Structure
@@ -91,13 +97,15 @@ namespace NativeCollections
         [MustBeZeroed("Span<byte> buffer")]
         public StackallocHashSet(Span<byte> buffer, int capacity)
         {
-            capacity = HashHelpers.GetPrime(capacity);
+            var size = HashHelpers.GetPrime(capacity);
             _freeList = -1;
-            _buckets = (int*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer));
-            _entries = (Entry*)((byte*)_buckets + capacity * sizeof(int));
-            _bucketsLength = capacity;
-            _entriesLength = capacity;
-            _fastModMultiplier = sizeof(nint) == 8 ? HashHelpers.GetFastModMultiplier((uint)capacity) : 0;
+            var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<int>(), NativeMemoryAllocator.AlignOf<Entry>());
+            var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(size * sizeof(int)), alignment);
+            _buckets = (int*)NativeArray<byte>.Create(buffer, alignment).Buffer;
+            _entries = UnsafeHelpers.AddByteOffset<Entry>(_buckets, (nint)bucketsByteCount);
+            _bucketsLength = size;
+            _entriesLength = size;
+            _fastModMultiplier = sizeof(nint) == 8 ? HashHelpers.GetFastModMultiplier((uint)size) : 0;
             _count = 0;
             _freeCount = 0;
             _version = 0;
@@ -112,7 +120,8 @@ namespace NativeCollections
             var count = _count;
             if (count > 0)
             {
-                Unsafe.InitBlockUnaligned(_buckets, 0, (uint)(_bucketsLength * sizeof(int) + count * sizeof(Entry)));
+                Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(_buckets), 0, (uint)(count * sizeof(int)));
+                Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(_entries), 0, (uint)(count * sizeof(Entry)));
                 _count = 0;
                 _freeList = -1;
                 _freeCount = 0;
@@ -133,7 +142,7 @@ namespace NativeCollections
             var i = bucket - 1;
             while (i >= 0)
             {
-                ref var entry = ref _entries[i];
+                ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)i);
                 if (entry.HashCode == hashCode && entry.Value.Equals(item))
                     return InsertResult.AlreadyExists;
                 i = entry.Next;
@@ -147,7 +156,7 @@ namespace NativeCollections
             {
                 index = _freeList;
                 _freeCount--;
-                _freeList = -3 - _entries[_freeList].Next;
+                _freeList = -3 - Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)_freeList).Next;
             }
             else
             {
@@ -158,7 +167,7 @@ namespace NativeCollections
                 _count = count + 1;
             }
 
-            ref var newEntry = ref _entries[index];
+            ref var newEntry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
             newEntry.HashCode = hashCode;
             newEntry.Next = bucket - 1;
             newEntry.Value = item;
@@ -182,13 +191,13 @@ namespace NativeCollections
             var i = bucket - 1;
             while (i >= 0)
             {
-                ref var entry = ref _entries[i];
+                ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)i);
                 if (entry.HashCode == hashCode && entry.Value.Equals(item))
                 {
                     if (last < 0)
                         bucket = entry.Next + 1;
                     else
-                        _entries[last].Next = entry.Next;
+                        Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)last).Next = entry.Next;
                     entry.Next = -3 - _freeList;
                     _freeList = i;
                     _freeCount++;
@@ -221,13 +230,13 @@ namespace NativeCollections
             var i = bucket - 1;
             while (i >= 0)
             {
-                ref var entry = ref _entries[i];
+                ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)i);
                 if (entry.HashCode == hashCode && entry.Value.Equals(equalValue))
                 {
                     if (last < 0)
                         bucket = entry.Next + 1;
                     else
-                        _entries[last].Next = entry.Next;
+                        Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)last).Next = entry.Next;
                     entry.Next = -3 - _freeList;
                     _freeList = i;
                     _freeCount++;
@@ -266,7 +275,7 @@ namespace NativeCollections
             var index = FindItemIndex(equalValue);
             if (index >= 0)
             {
-                actualValue = _entries[index].Value;
+                actualValue = Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index).Value;
                 return true;
             }
 
@@ -286,7 +295,7 @@ namespace NativeCollections
             var index = FindItemIndex(equalValue);
             if (index >= 0)
             {
-                actualValue = new NativeReference<T>(Unsafe.AsPointer(ref _entries[index].Value));
+                actualValue = new NativeReference<T>(Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index).Value));
                 return true;
             }
 
@@ -307,7 +316,7 @@ namespace NativeCollections
             var i = GetBucket(hashCode) - 1;
             while (i >= 0)
             {
-                ref var entry = ref _entries[i];
+                ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)i);
                 if (entry.HashCode == hashCode && entry.Value.Equals(item))
                     return i;
                 i = entry.Next;
@@ -325,7 +334,7 @@ namespace NativeCollections
         /// <param name="hashCode">HashCode</param>
         /// <returns>Bucket ref</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ref int GetBucket(uint hashCode) => ref sizeof(nint) == 8 ? ref _buckets[HashHelpers.FastMod(hashCode, (uint)_bucketsLength, _fastModMultiplier)] : ref _buckets[hashCode % (uint)_bucketsLength];
+        private ref int GetBucket(uint hashCode) => ref sizeof(nint) == 8 ? ref Unsafe.Add(ref Unsafe.AsRef<int>(_buckets), (nint)HashHelpers.FastMod(hashCode, (uint)_bucketsLength, _fastModMultiplier)) : ref Unsafe.Add(ref Unsafe.AsRef<int>(_buckets), (nint)(hashCode % (uint)_bucketsLength));
 
         /// <summary>
         ///     Entry
@@ -369,10 +378,10 @@ namespace NativeCollections
             var offset = 0;
             for (var index = 0; index < _count && count != 0; ++index)
             {
-                ref var local = ref entries[index];
+                ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index);
                 if (local.Next >= -1)
                 {
-                    Unsafe.Add(ref reference, offset++) = local.Value;
+                    Unsafe.Add(ref reference, (nint)offset++) = local.Value;
                     --count;
                 }
             }
@@ -450,7 +459,7 @@ namespace NativeCollections
                     throw new InvalidOperationException("EnumFailedVersion");
                 while ((uint)_index < (uint)handle->_count)
                 {
-                    ref var entry = ref handle->_entries[_index++];
+                    ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(handle->_entries), (nint)_index++);
                     if (entry.Next >= -1)
                     {
                         _current = entry.Value;

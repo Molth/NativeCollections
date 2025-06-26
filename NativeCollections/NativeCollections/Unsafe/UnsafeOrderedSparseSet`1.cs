@@ -122,10 +122,10 @@ namespace NativeCollections
                 if (_count > 0)
                 {
                     var index = 0;
-                    var min = _dense[0].Key;
+                    var min = Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)0).Key;
                     for (var i = 1; i < _count; ++i)
                     {
-                        var key = _dense[i].Key;
+                        var key = Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)i).Key;
                         if (key < min)
                         {
                             min = key;
@@ -133,7 +133,7 @@ namespace NativeCollections
                         }
                     }
 
-                    ref var entry = ref _dense[index];
+                    ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index);
                     return Unsafe.As<Entry, KeyValuePair<int, T>>(ref entry);
                 }
 
@@ -152,10 +152,10 @@ namespace NativeCollections
                 if (_count > 0)
                 {
                     var index = 0;
-                    var max = _dense[0].Key;
+                    var max = Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)0).Key;
                     for (var i = 1; i < _count; ++i)
                     {
-                        var key = _dense[i].Key;
+                        var key = Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)i).Key;
                         if (key > max)
                         {
                             max = key;
@@ -163,7 +163,7 @@ namespace NativeCollections
                         }
                     }
 
-                    ref var entry = ref _dense[index];
+                    ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index);
                     return Unsafe.As<Entry, KeyValuePair<int, T>>(ref entry);
                 }
 
@@ -182,9 +182,11 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
             if (capacity < 4)
                 capacity = 4;
-            _dense = (Entry*)NativeMemoryAllocator.Alloc((uint)(capacity * (sizeof(Entry) + sizeof(int))));
-            _sparse = (int*)((byte*)_dense + capacity * sizeof(Entry));
-            MemoryMarshal.CreateSpan(ref *_sparse, capacity).Fill(-1);
+            var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<Entry>(), NativeMemoryAllocator.AlignOf<int>());
+            var denseByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * sizeof(Entry)), alignment);
+            _dense = (Entry*)NativeMemoryAllocator.AlignedAlloc((uint)(denseByteCount + capacity * sizeof(int)), alignment);
+            _sparse = UnsafeHelpers.AddByteOffset<int>(_dense, (nint)denseByteCount);
+            MemoryMarshal.CreateSpan(ref Unsafe.AsRef<int>(_sparse), capacity).Fill(-1);
             _length = capacity;
             _head = -1;
             _tail = -1;
@@ -196,7 +198,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => NativeMemoryAllocator.Free(_dense);
+        public void Dispose() => NativeMemoryAllocator.AlignedFree(_dense);
 
         /// <summary>
         ///     Clear
@@ -204,7 +206,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
-            MemoryMarshal.CreateSpan(ref *_sparse, _length).Fill(-1);
+            MemoryMarshal.CreateSpan(ref Unsafe.AsRef<int>(_sparse), _length).Fill(-1);
             _head = -1;
             _tail = -1;
             _count = 0;
@@ -224,13 +226,15 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "SmallCapacity");
             if (capacity != _length)
             {
-                var dense = (Entry*)NativeMemoryAllocator.Alloc((uint)(capacity * (sizeof(Entry) + sizeof(int))));
-                var sparse = (int*)((byte*)dense + capacity * sizeof(Entry));
-                Unsafe.CopyBlockUnaligned(dense, _dense, (uint)(_count * sizeof(Entry)));
-                Unsafe.CopyBlockUnaligned(sparse, _sparse, (uint)(maxKey * sizeof(int)));
+                var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<Entry>(), NativeMemoryAllocator.AlignOf<int>());
+                var denseByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * sizeof(Entry)), alignment);
+                var dense = (Entry*)NativeMemoryAllocator.AlignedAlloc((uint)(denseByteCount + capacity * sizeof(int)), alignment);
+                var sparse = UnsafeHelpers.AddByteOffset<int>(dense, (nint)denseByteCount);
+                Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(dense), ref Unsafe.AsRef<byte>(_dense), (uint)(_count * sizeof(Entry)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(sparse), ref Unsafe.AsRef<byte>(_sparse), (uint)(maxKey * sizeof(int)));
                 if (capacity > maxKey)
-                    MemoryMarshal.CreateSpan(ref *(sparse + maxKey), capacity - maxKey).Fill(-1);
-                NativeMemoryAllocator.Free(_dense);
+                    MemoryMarshal.CreateSpan(ref Unsafe.Add(ref Unsafe.AsRef<int>(sparse), (nint)maxKey), capacity - maxKey).Fill(-1);
+                NativeMemoryAllocator.AlignedFree(_dense);
                 _dense = dense;
                 _sparse = sparse;
                 _length = capacity;
@@ -249,19 +253,19 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
             if (key >= _length)
                 throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeLessOrEqual");
-            var index = _sparse[key];
+            var index = Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key);
             if (index != -1)
                 return false;
             ref var count = ref _count;
-            ref var entry = ref _dense[count];
+            ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)count);
             entry.Key = key;
             entry.Value = value;
             entry.Next = -1;
-            _sparse[key] = count;
+            Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key) = count;
             ref var tail = ref _tail;
             if (tail != -1)
             {
-                _dense[tail].Next = count;
+                Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)tail).Next = count;
                 entry.Previous = tail;
             }
             else
@@ -288,24 +292,24 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
             if (key >= _length)
                 throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeLessOrEqual");
-            var index = _sparse[key];
+            var index = Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key);
             if (index != -1)
             {
-                _dense[index].Value = value;
+                Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index).Value = value;
                 ++_version;
                 return InsertResult.Overwritten;
             }
 
             ref var count = ref _count;
-            ref var entry = ref _dense[count];
+            ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)count);
             entry.Key = key;
             entry.Value = value;
             entry.Next = -1;
-            _sparse[key] = count;
+            Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key) = count;
             ref var tail = ref _tail;
             if (tail != -1)
             {
-                _dense[tail].Next = count;
+                Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)tail).Next = count;
                 entry.Previous = tail;
             }
             else
@@ -330,35 +334,35 @@ namespace NativeCollections
         {
             if ((uint)key >= (uint)_length)
                 return false;
-            var index = _sparse[key];
+            var index = Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key);
             if (index == -1)
                 return false;
-            ref var entry = ref _dense[index];
+            ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index);
             if (entry.Next != -1)
-                _dense[entry.Next].Previous = entry.Previous;
+                Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)entry.Next).Previous = entry.Previous;
             else
                 _tail = entry.Previous;
             if (entry.Previous != -1)
-                _dense[entry.Previous].Next = entry.Next;
+                Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)entry.Previous).Next = entry.Next;
             else
                 _head = entry.Next;
             --_count;
             if (index != _count)
             {
-                ref var lastEntry = ref _dense[_count];
+                ref var lastEntry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)_count);
                 entry = lastEntry;
                 if (entry.Next != -1)
-                    _dense[entry.Next].Previous = index;
+                    Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)entry.Next).Previous = index;
                 else
                     _tail = index;
                 if (entry.Previous != -1)
-                    _dense[entry.Previous].Next = index;
+                    Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)entry.Previous).Next = index;
                 else
                     _head = index;
-                _sparse[lastEntry.Key] = index;
+                Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)lastEntry.Key) = index;
             }
 
-            _sparse[key] = -1;
+            Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key) = -1;
             ++_version;
             return true;
         }
@@ -378,40 +382,40 @@ namespace NativeCollections
                 return false;
             }
 
-            var index = _sparse[key];
+            var index = Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key);
             if (index == -1)
             {
                 value = default;
                 return false;
             }
 
-            ref var entry = ref _dense[index];
+            ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index);
             value = entry.Value;
             if (entry.Next != -1)
-                _dense[entry.Next].Previous = entry.Previous;
+                Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)entry.Next).Previous = entry.Previous;
             else
                 _tail = entry.Previous;
             if (entry.Previous != -1)
-                _dense[entry.Previous].Next = entry.Next;
+                Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)entry.Previous).Next = entry.Next;
             else
                 _head = entry.Next;
             --_count;
             if (index != _count)
             {
-                ref var lastEntry = ref _dense[_count];
+                ref var lastEntry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)_count);
                 entry = lastEntry;
                 if (entry.Next != -1)
-                    _dense[entry.Next].Previous = index;
+                    Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)entry.Next).Previous = index;
                 else
                     _tail = index;
                 if (entry.Previous != -1)
-                    _dense[entry.Previous].Next = index;
+                    Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)entry.Previous).Next = index;
                 else
                     _head = index;
-                _sparse[lastEntry.Key] = index;
+                Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)lastEntry.Key) = index;
             }
 
-            _sparse[key] = -1;
+            Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key) = -1;
             ++_version;
             return true;
         }
@@ -422,7 +426,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Contains key</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool ContainsKey(int key) => key >= 0 && key < _length && _sparse[key] != -1;
+        public bool ContainsKey(int key) => key >= 0 && key < _length && Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key) != -1;
 
         /// <summary>
         ///     Try to get the value
@@ -439,10 +443,10 @@ namespace NativeCollections
                 return false;
             }
 
-            var index = _sparse[key];
+            var index = Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key);
             if (index != -1)
             {
-                value = _dense[index].Value;
+                value = Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index).Value;
                 return true;
             }
 
@@ -465,10 +469,10 @@ namespace NativeCollections
                 return false;
             }
 
-            var index = _sparse[key];
+            var index = Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key);
             if (index != -1)
             {
-                ref var entry = ref _dense[index];
+                ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index);
                 value = new NativeReference<T>(Unsafe.AsPointer(ref entry.Value));
                 return true;
             }
@@ -483,7 +487,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int IndexOf(int key) => (uint)key >= (uint)_length ? -1 : _sparse[key];
+        public int IndexOf(int key) => (uint)key >= (uint)_length ? -1 : Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key);
 
         /// <summary>
         ///     Get at
@@ -497,7 +501,7 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
             if (index >= _count)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
-            return _dense[index].Key;
+            return Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index).Key;
         }
 
         /// <summary>
@@ -512,7 +516,7 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
             if (index >= _count)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
-            return ref _dense[index].Value;
+            return ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index).Value;
         }
 
         /// <summary>
@@ -530,7 +534,7 @@ namespace NativeCollections
                 return false;
             }
 
-            key = _dense[index].Key;
+            key = Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index).Key;
             return true;
         }
 
@@ -549,7 +553,7 @@ namespace NativeCollections
                 return false;
             }
 
-            value = _dense[index].Value;
+            value = Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index).Value;
             return true;
         }
 
@@ -568,7 +572,7 @@ namespace NativeCollections
                 return false;
             }
 
-            value = new NativeReference<T>(Unsafe.AsPointer(ref _dense[index].Value));
+            value = new NativeReference<T>(Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index).Value));
             return true;
         }
 
@@ -584,7 +588,7 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
             if (index >= _count)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
-            return Unsafe.As<Entry, KeyValuePair<int, T>>(ref _dense[index]);
+            return Unsafe.As<Entry, KeyValuePair<int, T>>(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index));
         }
 
         /// <summary>
@@ -599,7 +603,7 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
             if (index >= _count)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
-            ref var entry = ref _dense[index];
+            ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index);
             return new KeyValuePair<int, NativeReference<T>>(entry.Key, new NativeReference<T>(Unsafe.AsPointer(ref entry.Value)));
         }
 
@@ -618,7 +622,7 @@ namespace NativeCollections
                 return false;
             }
 
-            keyValuePair = Unsafe.As<Entry, KeyValuePair<int, T>>(ref _dense[index]);
+            keyValuePair = Unsafe.As<Entry, KeyValuePair<int, T>>(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index));
             return true;
         }
 
@@ -637,7 +641,7 @@ namespace NativeCollections
                 return false;
             }
 
-            ref var entry = ref _dense[index];
+            ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index);
             keyValuePair = new KeyValuePair<int, NativeReference<T>>(entry.Key, new NativeReference<T>(Unsafe.AsPointer(ref entry.Value)));
             return true;
         }
@@ -654,7 +658,7 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
             if (index >= _count)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
-            _dense[index].Value = value;
+            Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index).Value = value;
             ++_version;
         }
 
@@ -669,17 +673,17 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
             if (index >= _count)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
-            ref var entry = ref _dense[index];
+            ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index);
             var key = entry.Key;
             --_count;
             if (index != _count)
             {
-                ref var lastEntry = ref _dense[_count];
+                ref var lastEntry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)_count);
                 entry = lastEntry;
-                _sparse[lastEntry.Key] = index;
+                Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)lastEntry.Key) = index;
             }
 
-            _sparse[key] = -1;
+            Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key) = -1;
             ++_version;
         }
 
@@ -695,18 +699,18 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
             if (index >= _count)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
-            ref var entry = ref _dense[index];
+            ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index);
             var key = entry.Key;
-            keyValuePair = *(KeyValuePair<int, T>*)Unsafe.AsPointer(ref entry);
+            keyValuePair = Unsafe.As<Entry, KeyValuePair<int, T>>(ref entry);
             --_count;
             if (index != _count)
             {
-                ref var lastEntry = ref _dense[_count];
+                ref var lastEntry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)_count);
                 entry = lastEntry;
-                _sparse[lastEntry.Key] = index;
+                Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)lastEntry.Key) = index;
             }
 
-            _sparse[key] = -1;
+            Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key) = -1;
             ++_version;
         }
 
@@ -719,17 +723,17 @@ namespace NativeCollections
         {
             if ((uint)index >= (uint)_count)
                 return false;
-            ref var entry = ref _dense[index];
+            ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index);
             var key = entry.Key;
             --_count;
             if (index != _count)
             {
-                ref var lastEntry = ref _dense[_count];
+                ref var lastEntry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)_count);
                 entry = lastEntry;
-                _sparse[lastEntry.Key] = index;
+                Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)lastEntry.Key) = index;
             }
 
-            _sparse[key] = -1;
+            Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key) = -1;
             ++_version;
             return true;
         }
@@ -748,18 +752,18 @@ namespace NativeCollections
                 return false;
             }
 
-            ref var entry = ref _dense[index];
+            ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index);
             var key = entry.Key;
-            keyValuePair = *(KeyValuePair<int, T>*)Unsafe.AsPointer(ref entry);
+            keyValuePair = Unsafe.As<Entry, KeyValuePair<int, T>>(ref entry);
             --_count;
             if (index != _count)
             {
-                ref var lastEntry = ref _dense[_count];
+                ref var lastEntry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)_count);
                 entry = lastEntry;
-                _sparse[lastEntry.Key] = index;
+                Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)lastEntry.Key) = index;
             }
 
-            _sparse[key] = -1;
+            Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key) = -1;
             ++_version;
             return true;
         }
@@ -769,7 +773,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref *(KeyValuePair<int, T>*)_dense, _count);
+        public readonly ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<KeyValuePair<int, T>>(_dense), _count);
 
         /// <summary>
         ///     As readOnly span
@@ -777,7 +781,7 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref *(KeyValuePair<int, T>*)(_dense + start), _count - start);
+        public readonly ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<KeyValuePair<int, T>>(_dense), (nint)start), _count - start);
 
         /// <summary>
         ///     As readOnly span
@@ -786,7 +790,7 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref *(KeyValuePair<int, T>*)(_dense + start), length);
+        public readonly ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<KeyValuePair<int, T>>(_dense), (nint)start), length);
 
         /// <summary>
         ///     As readOnly span
@@ -899,7 +903,7 @@ namespace NativeCollections
             public KeyValuePair<int, T> Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => *(KeyValuePair<int, T>*)(&_nativeSparseSet->_dense[_index]);
+                get => Unsafe.Add(ref Unsafe.AsRef<KeyValuePair<int, T>>(_nativeSparseSet->_dense), (nint)_index);
             }
         }
 
@@ -940,7 +944,7 @@ namespace NativeCollections
                         throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
                     if (index >= handle->_count)
                         throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
-                    return handle->_dense[index].Key;
+                    return Unsafe.Add(ref Unsafe.AsRef<Entry>(handle->_dense), (nint)index).Key;
                 }
             }
 
@@ -1016,7 +1020,7 @@ namespace NativeCollections
                 public int Current
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                    get => _nativeSparseSet->_dense[_index].Key;
+                    get => Unsafe.Add(ref Unsafe.AsRef<Entry>(_nativeSparseSet->_dense), (nint)_index).Key;
                 }
             }
         }
@@ -1058,7 +1062,7 @@ namespace NativeCollections
                         throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
                     if (index >= handle->_count)
                         throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
-                    return ref handle->_dense[index].Value;
+                    return ref Unsafe.Add(ref Unsafe.AsRef<Entry>(handle->_dense), (nint)index).Value;
                 }
             }
 
@@ -1134,7 +1138,7 @@ namespace NativeCollections
                 public T Current
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                    get => _nativeSparseSet->_dense[_index].Value;
+                    get => Unsafe.Add(ref Unsafe.AsRef<Entry>(_nativeSparseSet->_dense), (nint)_index).Value;
                 }
             }
         }
@@ -1175,9 +1179,9 @@ namespace NativeCollections
                 var current = _nativeSparseSet->_head;
                 for (var index = 0; index < count; ++index)
                 {
-                    var entry = &dense[current];
-                    buffer[index] = entry->Key;
-                    current = entry->Next;
+                    ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(dense), (nint)current);
+                    buffer[index] = entry.Key;
+                    current = entry.Next;
                 }
 
                 return count;
@@ -1202,9 +1206,9 @@ namespace NativeCollections
                 var current = _nativeSparseSet->_head;
                 for (var index = 0; index < _nativeSparseSet->_count; ++index)
                 {
-                    var entry = &dense[current];
-                    Unsafe.Add(ref reference, index) = entry->Key;
-                    current = entry->Next;
+                    ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(dense), (nint)current);
+                    Unsafe.Add(ref reference, (nint)index) = entry.Key;
+                    current = entry.Next;
                 }
             }
 
@@ -1250,7 +1254,7 @@ namespace NativeCollections
                     _nativeSparseSet = handle;
                     _version = handle->_version;
                     _index = -1;
-                    _current = handle->_head != -1 ? &handle->_dense[handle->_head] : null;
+                    _current = handle->_head != -1 ? (Entry*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(handle->_dense), (nint)handle->_head)) : null;
                 }
 
                 /// <summary>
@@ -1268,7 +1272,7 @@ namespace NativeCollections
                         return false;
                     _index = num;
                     if (num != 0)
-                        _current = &handle->_dense[_current->Next];
+                        _current = (Entry*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(handle->_dense), (nint)_current->Next));
                     return true;
                 }
 
@@ -1319,9 +1323,9 @@ namespace NativeCollections
                 var current = _nativeSparseSet->_head;
                 for (var index = 0; index < count; ++index)
                 {
-                    var entry = &dense[current];
-                    buffer[index] = entry->Value;
-                    current = entry->Next;
+                    ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(dense), (nint)current);
+                    buffer[index] = entry.Value;
+                    current = entry.Next;
                 }
 
                 return count;
@@ -1346,9 +1350,9 @@ namespace NativeCollections
                 var current = _nativeSparseSet->_head;
                 for (var index = 0; index < _nativeSparseSet->_count; ++index)
                 {
-                    var entry = &dense[current];
-                    Unsafe.Add(ref reference, index) = entry->Value;
-                    current = entry->Next;
+                    ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(dense), (nint)current);
+                    Unsafe.Add(ref reference, (nint)index) = entry.Value;
+                    current = entry.Next;
                 }
             }
 
@@ -1394,7 +1398,7 @@ namespace NativeCollections
                     _nativeSparseSet = handle;
                     _version = handle->_version;
                     _index = -1;
-                    _current = handle->_head != -1 ? &handle->_dense[handle->_head] : null;
+                    _current = handle->_head != -1 ? (Entry*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(handle->_dense), (nint)handle->_head)) : null;
                 }
 
                 /// <summary>
@@ -1412,7 +1416,7 @@ namespace NativeCollections
                         return false;
                     _index = num;
                     if (num != 0)
-                        _current = &handle->_dense[_current->Next];
+                        _current = (Entry*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(handle->_dense), (nint)_current->Next));
                     return true;
                 }
 
@@ -1463,9 +1467,9 @@ namespace NativeCollections
                 var current = _nativeSparseSet->_head;
                 for (var index = 0; index < count; ++index)
                 {
-                    var entry = &dense[current];
-                    buffer[index] = new KeyValuePair<int, T>(entry->Key, entry->Value);
-                    current = entry->Next;
+                    ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(dense), (nint)current);
+                    buffer[index] = new KeyValuePair<int, T>(entry.Key, entry.Value);
+                    current = entry.Next;
                 }
 
                 return count;
@@ -1490,9 +1494,9 @@ namespace NativeCollections
                 var current = _nativeSparseSet->_head;
                 for (var index = 0; index < _nativeSparseSet->_count; ++index)
                 {
-                    var entry = &dense[current];
-                    Unsafe.Add(ref reference, index) = new KeyValuePair<int, T>(entry->Key, entry->Value);
-                    current = entry->Next;
+                    ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(dense), (nint)current);
+                    Unsafe.Add(ref reference, (nint)index) = new KeyValuePair<int, T>(entry.Key, entry.Value);
+                    current = entry.Next;
                 }
             }
 
@@ -1538,7 +1542,7 @@ namespace NativeCollections
                     _nativeSparseSet = handle;
                     _version = handle->_version;
                     _index = -1;
-                    _current = handle->_head != -1 ? &handle->_dense[handle->_head] : null;
+                    _current = handle->_head != -1 ? (Entry*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(handle->_dense), (nint)handle->_head)) : null;
                 }
 
                 /// <summary>
@@ -1556,7 +1560,7 @@ namespace NativeCollections
                         return false;
                     _index = num;
                     if (num != 0)
-                        _current = &handle->_dense[_current->Next];
+                        _current = (Entry*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(handle->_dense), (nint)_current->Next));
                     return true;
                 }
 
@@ -1566,7 +1570,7 @@ namespace NativeCollections
                 public KeyValuePair<int, T> Current
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                    get => *(KeyValuePair<int, T>*)_current;
+                    get => Unsafe.AsRef<KeyValuePair<int, T>>(_current);
                 }
             }
         }

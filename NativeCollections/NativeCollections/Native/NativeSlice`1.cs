@@ -44,6 +44,8 @@ namespace NativeCollections
         {
             if (count < 0)
                 throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeNonNegative");
+            if (typeof(T) != typeof(byte) && (nint)buffer % (nint)NativeMemoryAllocator.AlignOf<T>() != 0)
+                throw new AccessViolationException("MustBeAligned");
             _buffer = buffer;
             _offset = 0;
             _count = count;
@@ -62,6 +64,8 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(offset), offset, "MustBeNonNegative");
             if (count < 0)
                 throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeNonNegative");
+            if (typeof(T) != typeof(byte) && (nint)buffer % (nint)NativeMemoryAllocator.AlignOf<T>() != 0)
+                throw new AccessViolationException("MustBeAligned");
             _buffer = buffer;
             _offset = offset;
             _count = count;
@@ -136,7 +140,7 @@ namespace NativeCollections
         public ref T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _buffer[_offset + index];
+            get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(_offset + index));
         }
 
         /// <summary>
@@ -146,7 +150,7 @@ namespace NativeCollections
         public ref T this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _buffer[_offset + index];
+            get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(_offset + index));
         }
 
         /// <summary>
@@ -279,7 +283,7 @@ namespace NativeCollections
             var buffer = _buffer;
             if (buffer == null)
                 return;
-            NativeMemoryAllocator.Free(buffer);
+            NativeMemoryAllocator.AlignedFree(buffer);
         }
 
         /// <summary>
@@ -287,7 +291,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<T> AsSpan() => MemoryMarshal.CreateSpan(ref *(_buffer + _offset), _count);
+        public Span<T> AsSpan() => MemoryMarshal.CreateSpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_offset), _count);
 
         /// <summary>
         ///     As span
@@ -295,7 +299,7 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<T> AsSpan(int start) => MemoryMarshal.CreateSpan(ref *(_buffer + _offset + start), _count - start);
+        public Span<T> AsSpan(int start) => MemoryMarshal.CreateSpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(_offset + start)), _count - start);
 
         /// <summary>
         ///     As span
@@ -304,14 +308,14 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<T> AsSpan(int start, int length) => MemoryMarshal.CreateSpan(ref *(_buffer + _offset + start), length);
+        public Span<T> AsSpan(int start, int length) => MemoryMarshal.CreateSpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(_offset + start)), length);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref *(_buffer + _offset), _count);
+        public ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_offset), _count);
 
         /// <summary>
         ///     As readOnly span
@@ -319,7 +323,7 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<T> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref *(_buffer + _offset + start), _count - start);
+        public ReadOnlySpan<T> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(_offset + start)), _count - start);
 
         /// <summary>
         ///     As readOnly span
@@ -328,7 +332,7 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<T> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref *(_buffer + _offset + start), length);
+        public ReadOnlySpan<T> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(_offset + start)), length);
 
         /// <summary>
         ///     Slice

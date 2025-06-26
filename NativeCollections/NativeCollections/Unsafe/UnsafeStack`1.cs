@@ -46,7 +46,7 @@ namespace NativeCollections
         public ref T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _buffer[index];
+            get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index);
         }
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace NativeCollections
         public ref T this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _buffer[index];
+            get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index);
         }
 
         /// <summary>
@@ -85,7 +85,7 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
             if (capacity < 4)
                 capacity = 4;
-            _buffer = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
+            _buffer = NativeMemoryAllocator.AlignedAlloc<T>((uint)capacity);
             _length = capacity;
             _size = 0;
             _version = 0;
@@ -95,7 +95,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => NativeMemoryAllocator.Free(_buffer);
+        public void Dispose() => NativeMemoryAllocator.AlignedFree(_buffer);
 
         /// <summary>
         ///     Clear
@@ -117,14 +117,14 @@ namespace NativeCollections
             var size = _size;
             if ((uint)size < (uint)_length)
             {
-                _buffer[size] = item;
+                Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)size) = item;
                 _version++;
                 _size = size + 1;
             }
             else
             {
                 Grow(_size + 1);
-                _buffer[_size] = item;
+                Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_size) = item;
                 _version++;
                 _size++;
             }
@@ -141,7 +141,7 @@ namespace NativeCollections
             var size = _size;
             if ((uint)size < (uint)_length)
             {
-                _buffer[size] = item;
+                Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)size) = item;
                 _version++;
                 _size = size + 1;
                 return true;
@@ -162,7 +162,7 @@ namespace NativeCollections
                 throw new InvalidOperationException("EmptyStack");
             _version++;
             _size = size;
-            var item = _buffer[size];
+            var item = Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)size);
             return item;
         }
 
@@ -183,7 +183,7 @@ namespace NativeCollections
 
             _version++;
             _size = size;
-            result = _buffer[size];
+            result = Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)size);
             return true;
         }
 
@@ -195,7 +195,7 @@ namespace NativeCollections
         public T Peek()
         {
             var size = _size - 1;
-            return (uint)size >= (uint)_length ? throw new InvalidOperationException("EmptyStack") : _buffer[size];
+            return (uint)size >= (uint)_length ? throw new InvalidOperationException("EmptyStack") : Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)size);
         }
 
         /// <summary>
@@ -213,7 +213,7 @@ namespace NativeCollections
                 return false;
             }
 
-            result = _buffer[size];
+            result = Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)size);
             return true;
         }
 
@@ -268,10 +268,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void SetCapacity(int capacity)
         {
-            var newBuffer = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * sizeof(T)));
+            var newBuffer = NativeMemoryAllocator.AlignedAlloc<T>((uint)capacity);
             if (_size > 0)
-                Unsafe.CopyBlockUnaligned(newBuffer, _buffer, (uint)(_size * sizeof(T)));
-            NativeMemoryAllocator.Free(_buffer);
+                Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(newBuffer), ref Unsafe.AsRef<byte>(_buffer), (uint)(_size * sizeof(T)));
+            NativeMemoryAllocator.AlignedFree(_buffer);
             _buffer = newBuffer;
             _length = capacity;
         }
@@ -311,7 +311,7 @@ namespace NativeCollections
             var num1 = 0;
             var num2 = _size;
             while (num1 < _size)
-                Unsafe.Add(ref reference, --num2) = _buffer[num1++];
+                Unsafe.Add(ref reference, (nint)(--num2)) = Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)num1++);
         }
 
         /// <summary>
@@ -390,14 +390,14 @@ namespace NativeCollections
                     _index = handle->_size - 1;
                     returned = _index >= 0;
                     if (returned)
-                        _currentElement = handle->_buffer[_index];
+                        _currentElement = Unsafe.Add(ref Unsafe.AsRef<T>(handle->_buffer), (nint)_index);
                     return returned;
                 }
 
                 if (_index == -1)
                     return false;
                 returned = --_index >= 0;
-                _currentElement = returned ? handle->_buffer[_index] : default;
+                _currentElement = returned ? Unsafe.Add(ref Unsafe.AsRef<T>(handle->_buffer), (nint)_index) : default;
                 return returned;
             }
 

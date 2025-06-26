@@ -12,8 +12,4 @@
         <ProjectReference Include="..\NativeCollections\NativeCollections.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-        <PackageReference Include="mimalloc-csharp" Version="1.0.7" />
-    </ItemGroup>
-
 </Project>

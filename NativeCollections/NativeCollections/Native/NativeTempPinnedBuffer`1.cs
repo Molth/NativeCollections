@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -12,17 +11,17 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native temp pinned buffer
+    ///     Unsafe temp pinned buffer
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection(FromType.None)]
-    public struct NativeTempPinnedBuffer<T> : IDisposable
+    [UnsafeCollection(FromType.None)]
+    public readonly unsafe struct NativeTempPinnedBuffer<T> : IDisposable where T : unmanaged
     {
         /// <summary>
-        ///     Array
+        ///     Buffer
         /// </summary>
-        private readonly T[] _array;
+        private readonly T* _buffer;
 
         /// <summary>
         ///     Length
@@ -30,14 +29,9 @@ namespace NativeCollections
         private readonly int _length;
 
         /// <summary>
-        ///     Handle
-        /// </summary>
-        private GCHandle _handle;
-
-        /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => _array != null;
+        public bool IsCreated => _buffer != null;
 
         /// <summary>
         ///     Length
@@ -51,9 +45,45 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeTempPinnedBuffer(int length)
         {
-            _array = ArrayPool<T>.Shared.Rent(length);
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            _buffer = ManagedMemoryHelpers.AlignedAlloc<T>((uint)length);
             _length = length;
-            _handle = GCHandle.Alloc(_array, GCHandleType.Pinned);
+        }
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="length">Length</param>
+        /// 5
+        /// <param name="zeroed">Zeroed</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeTempPinnedBuffer(int length, bool zeroed)
+        {
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            _buffer = zeroed ? ManagedMemoryHelpers.AlignedAllocZeroed<T>((uint)length) : ManagedMemoryHelpers.AlignedAlloc<T>((uint)length);
+            _length = length;
+        }
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="length">Length</param>
+        /// <param name="alignment">Alignment</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeTempPinnedBuffer(int length, int alignment)
+        {
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            if (alignment < 0)
+                throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "MustBeNonNegative");
+            if (!BitOperationsHelpers.IsPow2((uint)alignment))
+                throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
+            if (typeof(T) != typeof(byte) && (uint)alignment < NativeMemoryAllocator.AlignOf<T>())
+                throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "MustBeGreaterOrEqual");
+            _buffer = (T*)ManagedMemoryHelpers.AlignedAlloc((uint)(length * sizeof(T)), (uint)alignment);
+            _length = length;
         }
 
         /// <summary>
@@ -61,14 +91,20 @@ namespace NativeCollections
         /// </summary>
         /// <param name="length">Length</param>
         /// <param name="zeroed">Zeroed</param>
+        /// <param name="alignment">Alignment</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeTempPinnedBuffer(int length, bool zeroed)
+        public NativeTempPinnedBuffer(int length, bool zeroed, int alignment)
         {
-            _array = ArrayPool<T>.Shared.Rent(length);
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            if (alignment < 0)
+                throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "MustBeNonNegative");
+            if (!BitOperationsHelpers.IsPow2((uint)alignment))
+                throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
+            if (typeof(T) != typeof(byte) && (uint)alignment < NativeMemoryAllocator.AlignOf<T>())
+                throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "MustBeGreaterOrEqual");
+            _buffer = zeroed ? ManagedMemoryHelpers.AlignedAllocZeroed<T>((uint)(length * sizeof(T))) : ManagedMemoryHelpers.AlignedAlloc<T>((uint)(length * sizeof(T)));
             _length = length;
-            _handle = GCHandle.Alloc(_array, GCHandleType.Pinned);
-            if (zeroed)
-                AsSpan().Clear();
         }
 
         /// <summary>
@@ -77,35 +113,22 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            if (_array == null)
+            if (_buffer == null)
                 return;
-            ArrayPool<T>.Shared.Return(_array);
-            _handle.Free();
+            ManagedMemoryHelpers.AlignedFree(_buffer);
         }
 
         /// <summary>
         ///     As span
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<T> AsSpan() => _array.AsSpan(0, _length);
+        public Span<T> AsSpan() => MemoryMarshal.CreateSpan(ref Unsafe.AsRef<T>(_buffer), _length);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<T> AsReadOnlySpan() => _array.AsSpan(0, _length);
-
-        /// <summary>
-        ///     As memory
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Memory<T> AsMemory() => new(_array, 0, _length);
-
-        /// <summary>
-        ///     As readOnly memory
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlyMemory<T> AsReadOnlyMemory() => new(_array, 0, _length);
+        public ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<T>(_buffer), _length);
 
         /// <summary>
         ///     Equals

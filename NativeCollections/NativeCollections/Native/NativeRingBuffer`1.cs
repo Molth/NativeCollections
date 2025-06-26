@@ -33,8 +33,8 @@ namespace NativeCollections
         public NativeRingBuffer(int capacity)
         {
             var value = new UnsafeRingBuffer<T>(capacity);
-            var handle = (UnsafeRingBuffer<T>*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeRingBuffer<T>));
-            *handle = value;
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeRingBuffer<T>>(1);
+            Unsafe.AsRef<UnsafeRingBuffer<T>>(handle) = value;
             _handle = handle;
         }
 
@@ -130,7 +130,7 @@ namespace NativeCollections
             if (handle == null)
                 return;
             handle->Dispose();
-            NativeMemoryAllocator.Free(handle);
+            NativeMemoryAllocator.AlignedFree(handle);
         }
 
         /// <summary>

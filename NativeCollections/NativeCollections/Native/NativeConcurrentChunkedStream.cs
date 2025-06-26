@@ -31,8 +31,8 @@ namespace NativeCollections
         public NativeConcurrentChunkedStream(int size, int maxFreeChunks)
         {
             var value = new UnsafeConcurrentChunkedStream(size, maxFreeChunks);
-            var handle = (UnsafeConcurrentChunkedStream*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeConcurrentChunkedStream));
-            *handle = value;
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeConcurrentChunkedStream>(1);
+            Unsafe.AsRef<UnsafeConcurrentChunkedStream>(handle) = value;
             _handle = handle;
         }
 
@@ -123,7 +123,7 @@ namespace NativeCollections
             if (handle == null)
                 return;
             handle->Dispose();
-            NativeMemoryAllocator.Free(handle);
+            NativeMemoryAllocator.AlignedFree(handle);
         }
 
         /// <summary>

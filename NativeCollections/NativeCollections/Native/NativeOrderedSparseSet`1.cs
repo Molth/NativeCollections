@@ -58,8 +58,8 @@ namespace NativeCollections
         public NativeOrderedSparseSet(int capacity)
         {
             var value = new UnsafeOrderedSparseSet<T>(capacity);
-            var handle = (UnsafeOrderedSparseSet<T>*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeOrderedSparseSet<T>));
-            *handle = value;
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeOrderedSparseSet<T>>(1);
+            Unsafe.AsRef<UnsafeOrderedSparseSet<T>>(handle) = value;
             _handle = handle;
         }
 
@@ -164,7 +164,7 @@ namespace NativeCollections
             if (handle == null)
                 return;
             handle->Dispose();
-            NativeMemoryAllocator.Free(handle);
+            NativeMemoryAllocator.AlignedFree(handle);
         }
 
         /// <summary>

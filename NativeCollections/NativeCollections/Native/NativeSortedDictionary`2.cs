@@ -44,8 +44,8 @@ namespace NativeCollections
         public NativeSortedDictionary(int size, int maxFreeSlabs)
         {
             var value = new UnsafeSortedDictionary<TKey, TValue>(size, maxFreeSlabs);
-            var handle = (UnsafeSortedDictionary<TKey, TValue>*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeSortedDictionary<TKey, TValue>));
-            *handle = value;
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeSortedDictionary<TKey, TValue>>(1);
+            Unsafe.AsRef<UnsafeSortedDictionary<TKey, TValue>>(handle) = value;
             _handle = handle;
         }
 
@@ -138,7 +138,7 @@ namespace NativeCollections
             if (handle == null)
                 return;
             handle->Dispose();
-            NativeMemoryAllocator.Free(handle);
+            NativeMemoryAllocator.AlignedFree(handle);
         }
 
         /// <summary>

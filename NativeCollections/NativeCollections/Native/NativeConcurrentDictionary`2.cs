@@ -49,8 +49,8 @@ namespace NativeCollections
         public NativeConcurrentDictionary(int size, int maxFreeSlabs, int concurrencyLevel, int capacity, bool growLockArray)
         {
             var value = new UnsafeConcurrentDictionary<TKey, TValue>(size, maxFreeSlabs, concurrencyLevel, capacity, growLockArray);
-            var handle = (UnsafeConcurrentDictionary<TKey, TValue>*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeConcurrentDictionary<TKey, TValue>));
-            *handle = value;
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeConcurrentDictionary<TKey, TValue>>(1);
+            Unsafe.AsRef<UnsafeConcurrentDictionary<TKey, TValue>>(handle) = value;
             _handle = handle;
         }
 
@@ -141,7 +141,7 @@ namespace NativeCollections
             if (handle == null)
                 return;
             handle->Dispose();
-            NativeMemoryAllocator.Free(handle);
+            NativeMemoryAllocator.AlignedFree(handle);
         }
 
         /// <summary>

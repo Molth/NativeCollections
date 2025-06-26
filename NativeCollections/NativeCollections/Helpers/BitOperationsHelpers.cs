@@ -24,6 +24,20 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsPow2(uint value) => (value & (value - 1)) == 0 && value != 0;
 
+        /// <summary>
+        ///     Evaluate whether a given integral value is a power of 2.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsPow2(ulong value) => (value & (value - 1)) == 0 && value != 0;
+
+        /// <summary>
+        ///     Evaluate whether a given integral value is a power of 2.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsPow2(nuint value) => (value & (value - 1)) == 0 && value != 0;
+
         /// <summary>Rotates the specified value left by the specified number of bits.</summary>
         /// <param name="value">The value to rotate.</param>
         /// <param name="offset">
@@ -256,11 +270,11 @@ namespace NativeCollections
             }
 
             for (; i < count; ++i)
-                Unsafe.Add(ref left, i) &= Unsafe.Add(ref right, i);
+                Unsafe.Add(ref left, (nint)i) &= Unsafe.Add(ref right, (nint)i);
 #else
             var i = 0;
             for (; i < count; ++i)
-                Unsafe.Add(ref left, i) &= Unsafe.Add(ref right, i);
+                Unsafe.Add(ref left, (nint)i) &= Unsafe.Add(ref right, (nint)i);
 #endif
         }
 
@@ -324,11 +338,11 @@ namespace NativeCollections
             }
 
             for (; i < count; ++i)
-                Unsafe.Add(ref left, i) |= Unsafe.Add(ref right, i);
+                Unsafe.Add(ref left, (nint)i) |= Unsafe.Add(ref right, (nint)i);
 #else
             var i = 0;
             for (; i < count; ++i)
-                Unsafe.Add(ref left, i) |= Unsafe.Add(ref right, i);
+                Unsafe.Add(ref left, (nint)i) |= Unsafe.Add(ref right, (nint)i);
 #endif
         }
 
@@ -392,11 +406,11 @@ namespace NativeCollections
             }
 
             for (; i < count; ++i)
-                Unsafe.Add(ref left, i) ^= Unsafe.Add(ref right, i);
+                Unsafe.Add(ref left, (nint)i) ^= Unsafe.Add(ref right, (nint)i);
 #else
             var i = 0;
             for (; i < count; ++i)
-                Unsafe.Add(ref left, i) ^= Unsafe.Add(ref right, i);
+                Unsafe.Add(ref left, (nint)i) ^= Unsafe.Add(ref right, (nint)i);
 #endif
         }
 
@@ -458,11 +472,11 @@ namespace NativeCollections
             }
 
             for (; i < count; ++i)
-                Unsafe.Add(ref value, i) = ~ Unsafe.Add(ref value, i);
+                Unsafe.Add(ref value, (nint)i) = ~ Unsafe.Add(ref value, (nint)i);
 #else
             var i = 0;
             for (; i < count; ++i)
-                Unsafe.Add(ref value, i) = ~ Unsafe.Add(ref value, i);
+                Unsafe.Add(ref value, (nint)i) = ~ Unsafe.Add(ref value, (nint)i);
 #endif
         }
 

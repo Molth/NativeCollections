@@ -63,19 +63,21 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
             if (capacity < 4)
                 capacity = 4;
-            _buffer = (T*)NativeMemoryAllocator.Alloc((uint)(capacity * (sizeof(T) + sizeof(int))));
-            _index = (int*)((byte*)_buffer + capacity * sizeof(T));
+            var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<T>(), NativeMemoryAllocator.AlignOf<int>());
+            var bufferByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * sizeof(T)), alignment);
+            _buffer = (T*)NativeMemoryAllocator.AlignedAlloc((uint)(bufferByteCount + capacity * sizeof(int)), alignment);
+            _index = UnsafeHelpers.AddByteOffset<int>(_buffer, (nint)bufferByteCount);
             _capacity = capacity;
             _size = capacity;
             for (var i = 0; i < _capacity; ++i)
-                _index[i] = i;
+                Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)i) = i;
         }
 
         /// <summary>
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => NativeMemoryAllocator.Free(_buffer);
+        public void Dispose() => NativeMemoryAllocator.AlignedFree(_buffer);
 
         /// <summary>
         ///     Reset
@@ -85,7 +87,7 @@ namespace NativeCollections
         {
             _size = _capacity;
             for (var i = 0; i < _capacity; ++i)
-                _index[i] = i;
+                Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)i) = i;
         }
 
         /// <summary>
@@ -102,8 +104,8 @@ namespace NativeCollections
             }
 
             _size = size;
-            var index = _index[size];
-            ptr = &_buffer[index];
+            var index = Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)size);
+            ptr = (T*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index));
             return true;
         }
 
@@ -112,7 +114,12 @@ namespace NativeCollections
         /// </summary>
         /// <param name="ptr">Pointer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Return(T* ptr) => _index[_size++] = (int)(ptr - _buffer);
+        public void Return(T* ptr)
+        {
+            var byteOffset = UnsafeHelpers.ByteOffset(_buffer, ptr);
+            var index = byteOffset / sizeof(T);
+            Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)_size++) = (int)index;
+        }
 
         /// <summary>
         ///     Empty

@@ -44,8 +44,8 @@ namespace NativeCollections
         public NativeSparseSet(int capacity)
         {
             var value = new UnsafeSparseSet<T>(capacity);
-            var handle = (UnsafeSparseSet<T>*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeSparseSet<T>));
-            *handle = value;
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeSparseSet<T>>(1);
+            Unsafe.AsRef<UnsafeSparseSet<T>>(handle) = value;
             _handle = handle;
         }
 
@@ -150,7 +150,7 @@ namespace NativeCollections
             if (handle == null)
                 return;
             handle->Dispose();
-            NativeMemoryAllocator.Free(handle);
+            NativeMemoryAllocator.AlignedFree(handle);
         }
 
         /// <summary>

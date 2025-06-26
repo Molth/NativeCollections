@@ -101,7 +101,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeConcurrentHashSet(int size, int maxFreeSlabs, int concurrencyLevel, int capacity, bool growLockArray)
         {
-            var nodePool = new UnsafeMemoryPool(size, sizeof(Node), maxFreeSlabs);
+            var nodePool = new UnsafeMemoryPool(size, sizeof(Node), maxFreeSlabs, (int)NativeMemoryAllocator.AlignOf<Node>());
             if (concurrencyLevel <= 0)
                 concurrencyLevel = Environment.ProcessorCount;
             if (capacity < concurrencyLevel)
@@ -112,7 +112,7 @@ namespace NativeCollections
                 locks[i] = new object();
             var countPerLock = new NativeArray<int>(locks.Length, true);
             var buckets = new NativeArray<VolatileNode>(capacity, true);
-            _tables = (Tables*)NativeMemoryAllocator.Alloc((uint)sizeof(Tables));
+            _tables = NativeMemoryAllocator.AlignedAlloc<Tables>(1);
             _tables->Initialize(buckets, locks, countPerLock);
             _growLockArray = growLockArray;
             _budget = buckets.Length / locks.Length;
@@ -129,7 +129,7 @@ namespace NativeCollections
         {
             _tables->Dispose();
             _nodePool.Dispose();
-            NativeMemoryAllocator.Free(_tables);
+            NativeMemoryAllocator.AlignedFree(_tables);
         }
 
         /// <summary>
@@ -418,7 +418,7 @@ namespace NativeCollections
 
                 var newBuckets = new NativeArray<VolatileNode>(newLength, true);
                 var newCountPerLock = new NativeArray<int>(newLocks.Length, true);
-                var newTables = (Tables*)NativeMemoryAllocator.Alloc((uint)sizeof(Tables));
+                var newTables = NativeMemoryAllocator.AlignedAlloc<Tables>(1);
                 newTables->Initialize(newBuckets, newLocks, newCountPerLock);
                 AcquirePostFirstLock(tables, ref locksAcquired);
                 foreach (var bucket in tables->Buckets)
@@ -447,7 +447,7 @@ namespace NativeCollections
                 if (_tables->Locks != newLocks)
                     _tables->Locks.Dispose();
                 _tables->CountPerLock.Dispose();
-                NativeMemoryAllocator.Free(_tables);
+                NativeMemoryAllocator.AlignedFree(_tables);
                 _tables = newTables;
             }
             finally

@@ -116,7 +116,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => NativeMemoryAllocator.Free(_buckets);
+        public void Dispose() => NativeMemoryAllocator.AlignedFree(_buckets);
 
         /// <summary>
         ///     Clear
@@ -127,7 +127,8 @@ namespace NativeCollections
             var count = _count;
             if (count > 0)
             {
-                Unsafe.InitBlockUnaligned(_buckets, 0, (uint)(_bucketsLength * sizeof(int) + count * sizeof(Entry)));
+                Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(_buckets), 0, (uint)(count * sizeof(int)));
+                Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(_entries), 0, (uint)(count * sizeof(Entry)));
                 _count = 0;
                 ++_version;
             }
@@ -165,11 +166,11 @@ namespace NativeCollections
                 var entries = _entries;
                 for (var entryIndex = index + 1; entryIndex < count; ++entryIndex)
                 {
-                    entries[entryIndex - 1] = entries[entryIndex];
+                    Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)(entryIndex - 1)) = Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)entryIndex);
                     UpdateBucketIndex(entryIndex, -1);
                 }
 
-                entries[--_count] = new Entry();
+                Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)(--_count)) = new Entry();
                 ++_version;
                 return true;
             }
@@ -188,17 +189,17 @@ namespace NativeCollections
             var index = IndexOf(key);
             if (index >= 0)
             {
-                value = _entries[index].Value;
+                value = Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index).Value;
                 var count = _count;
                 RemoveEntryFromBucket(index);
                 var entries = _entries;
                 for (var entryIndex = index + 1; entryIndex < count; ++entryIndex)
                 {
-                    entries[entryIndex - 1] = entries[entryIndex];
+                    Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)(entryIndex - 1)) = Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)entryIndex);
                     UpdateBucketIndex(entryIndex, -1);
                 }
 
-                entries[--_count] = new Entry();
+                Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)(--_count)) = new Entry();
                 ++_version;
                 return true;
             }
@@ -221,11 +222,11 @@ namespace NativeCollections
             var entries = _entries;
             for (var entryIndex = index + 1; entryIndex < count; ++entryIndex)
             {
-                entries[entryIndex - 1] = entries[entryIndex];
+                Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)(entryIndex - 1)) = Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)entryIndex);
                 UpdateBucketIndex(entryIndex, -1);
             }
 
-            entries[--_count] = new Entry();
+            Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)(--_count)) = new Entry();
             ++_version;
         }
 
@@ -240,17 +241,17 @@ namespace NativeCollections
             var count = _count;
             if ((uint)index >= (uint)count)
                 throw new ArgumentOutOfRangeException(nameof(index));
-            ref var local = ref _entries[index];
+            ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
             keyValuePair = new KeyValuePair<TKey, TValue>(local.Key, local.Value);
             RemoveEntryFromBucket(index);
             var entries = _entries;
             for (var entryIndex = index + 1; entryIndex < count; ++entryIndex)
             {
-                entries[entryIndex - 1] = entries[entryIndex];
+                Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)(entryIndex - 1)) = Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)entryIndex);
                 UpdateBucketIndex(entryIndex, -1);
             }
 
-            entries[--_count] = new Entry();
+            Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)(--_count)) = new Entry();
             ++_version;
         }
 
@@ -268,11 +269,11 @@ namespace NativeCollections
             var entries = _entries;
             for (var entryIndex = index + 1; entryIndex < count; ++entryIndex)
             {
-                entries[entryIndex - 1] = entries[entryIndex];
+                Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)(entryIndex - 1)) = Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)entryIndex);
                 UpdateBucketIndex(entryIndex, -1);
             }
 
-            entries[--_count] = new Entry();
+            Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)(--_count)) = new Entry();
             ++_version;
             return true;
         }
@@ -292,17 +293,17 @@ namespace NativeCollections
                 return false;
             }
 
-            ref var local = ref _entries[index];
+            ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
             keyValuePair = new KeyValuePair<TKey, TValue>(local.Key, local.Value);
             RemoveEntryFromBucket(index);
             var entries = _entries;
             for (var entryIndex = index + 1; entryIndex < count; ++entryIndex)
             {
-                entries[entryIndex - 1] = entries[entryIndex];
+                Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)(entryIndex - 1)) = Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)entryIndex);
                 UpdateBucketIndex(entryIndex, -1);
             }
 
-            entries[--_count] = new Entry();
+            Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)(--_count)) = new Entry();
             ++_version;
             return true;
         }
@@ -327,7 +328,7 @@ namespace NativeCollections
             var index = IndexOf(key);
             if (index >= 0)
             {
-                value = _entries[index].Value;
+                value = Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index).Value;
                 return true;
             }
 
@@ -347,7 +348,7 @@ namespace NativeCollections
             var index = IndexOf(key);
             if (index >= 0)
             {
-                value = new NativeReference<TValue>(Unsafe.AsPointer(ref _entries[index].Value));
+                value = new NativeReference<TValue>(Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index).Value));
                 return true;
             }
 
@@ -364,7 +365,7 @@ namespace NativeCollections
         public ref TValue GetValueRefOrNullRef(in TKey key)
         {
             var index = IndexOf(key);
-            return ref index >= 0 ? ref _entries[index].Value : ref Unsafe.NullRef<TValue>();
+            return ref index >= 0 ? ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index).Value : ref Unsafe.NullRef<TValue>();
         }
 
         /// <summary>
@@ -380,7 +381,7 @@ namespace NativeCollections
             if (index >= 0)
             {
                 exists = true;
-                return ref _entries[index].Value;
+                return ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index).Value;
             }
 
             exists = false;
@@ -399,7 +400,7 @@ namespace NativeCollections
             uint outCollisionCount = 0;
             var index1 = IndexOf(key, ref outHashCode, ref outCollisionCount);
             if (index1 >= 0)
-                return ref _entries[index1].Value;
+                return ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index1).Value;
             var index = _count;
             var entries = _entries;
             if (_entriesLength == _count)
@@ -410,11 +411,11 @@ namespace NativeCollections
 
             for (var entryIndex = _count - 1; entryIndex >= index; --entryIndex)
             {
-                entries[entryIndex + 1] = entries[entryIndex];
+                Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)(entryIndex + 1)) = Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)entryIndex);
                 UpdateBucketIndex(entryIndex, 1);
             }
 
-            ref var local = ref entries[index];
+            ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index);
             local.HashCode = outHashCode;
             local.Key = key;
             local.Value = default;
@@ -439,7 +440,7 @@ namespace NativeCollections
             if (index1 >= 0)
             {
                 exists = true;
-                return ref _entries[index1].Value;
+                return ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index1).Value;
             }
 
             var index = _count;
@@ -452,11 +453,11 @@ namespace NativeCollections
 
             for (var entryIndex = _count - 1; entryIndex >= index; --entryIndex)
             {
-                entries[entryIndex + 1] = entries[entryIndex];
+                Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)(entryIndex + 1)) = Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)entryIndex);
                 UpdateBucketIndex(entryIndex, 1);
             }
 
-            ref var local = ref entries[index];
+            ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index);
             local.HashCode = outHashCode;
             local.Key = key;
             local.Value = default;
@@ -477,7 +478,7 @@ namespace NativeCollections
         {
             if ((uint)index >= (uint)_count)
                 throw new ArgumentOutOfRangeException(nameof(index));
-            ref var local = ref _entries[index];
+            ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
             return local.Key;
         }
 
@@ -491,7 +492,7 @@ namespace NativeCollections
         {
             if ((uint)index >= (uint)_count)
                 throw new ArgumentOutOfRangeException(nameof(index));
-            ref var local = ref _entries[index];
+            ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
             return ref local.Value;
         }
 
@@ -510,7 +511,7 @@ namespace NativeCollections
                 return false;
             }
 
-            ref var local = ref _entries[index];
+            ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
             key = local.Key;
             return true;
         }
@@ -530,7 +531,7 @@ namespace NativeCollections
                 return false;
             }
 
-            ref var local = ref _entries[index];
+            ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
             value = local.Value;
             return true;
         }
@@ -550,7 +551,7 @@ namespace NativeCollections
                 return false;
             }
 
-            ref var local = ref _entries[index];
+            ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
             value = new NativeReference<TValue>(Unsafe.AsPointer(ref local.Value));
             return true;
         }
@@ -565,7 +566,7 @@ namespace NativeCollections
         {
             if ((uint)index >= (uint)_count)
                 throw new ArgumentOutOfRangeException(nameof(index));
-            ref var local = ref _entries[index];
+            ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
             return new KeyValuePair<TKey, TValue>(local.Key, local.Value);
         }
 
@@ -579,7 +580,7 @@ namespace NativeCollections
         {
             if ((uint)index >= (uint)_count)
                 throw new ArgumentOutOfRangeException(nameof(index));
-            ref var local = ref _entries[index];
+            ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
             return new KeyValuePair<TKey, NativeReference<TValue>>(local.Key, new NativeReference<TValue>(Unsafe.AsPointer(ref local.Value)));
         }
 
@@ -598,7 +599,7 @@ namespace NativeCollections
                 return false;
             }
 
-            ref var local = ref _entries[index];
+            ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
             keyValuePair = new KeyValuePair<TKey, TValue>(local.Key, local.Value);
             return true;
         }
@@ -618,7 +619,7 @@ namespace NativeCollections
                 return false;
             }
 
-            ref var local = ref _entries[index];
+            ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
             keyValuePair = new KeyValuePair<TKey, NativeReference<TValue>>(local.Key, new NativeReference<TValue>(Unsafe.AsPointer(ref local.Value)));
             return true;
         }
@@ -651,7 +652,7 @@ namespace NativeCollections
             var index = GetBucket(hashCode) - 1;
             while ((uint)index < (uint)_entriesLength)
             {
-                ref var local = ref entries[index];
+                ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index);
                 if ((int)local.HashCode != (int)hashCode || !local.Key.Equals(key))
                 {
                     index = local.Next;
@@ -695,7 +696,7 @@ namespace NativeCollections
         {
             if ((uint)index >= (uint)_count)
                 throw new ArgumentOutOfRangeException(nameof(index));
-            _entries[index].Value = value;
+            Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index).Value = value;
         }
 
         /// <summary>
@@ -709,7 +710,7 @@ namespace NativeCollections
         {
             if ((uint)index >= (uint)_count)
                 throw new ArgumentOutOfRangeException(nameof(index));
-            ref var local = ref _entries[index];
+            ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
             if (key.Equals(local.Key))
             {
                 local.Value = value;
@@ -793,7 +794,7 @@ namespace NativeCollections
         private void RemoveEntryFromBucket(int entryIndex)
         {
             var entries = _entries;
-            var entry = entries[entryIndex];
+            var entry = Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)entryIndex);
             ref var local1 = ref GetBucket(entry.HashCode);
             if (local1 == entryIndex + 1)
             {
@@ -807,7 +808,7 @@ namespace NativeCollections
                 {
                     do
                     {
-                        ref var local2 = ref entries[index];
+                        ref var local2 = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index);
                         if (local2.Next == entryIndex)
                         {
                             local2.Next = entry.Next;
@@ -831,7 +832,7 @@ namespace NativeCollections
         private void UpdateBucketIndex(int entryIndex, int shiftAmount)
         {
             var entries = _entries;
-            ref var local1 = ref GetBucket(entries[entryIndex].HashCode);
+            ref var local1 = ref GetBucket(Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)entryIndex).HashCode);
             if (local1 == entryIndex + 1)
             {
                 local1 += shiftAmount;
@@ -844,7 +845,7 @@ namespace NativeCollections
                 {
                     do
                     {
-                        ref var local2 = ref entries[index];
+                        ref var local2 = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index);
                         if (local2.Next == entryIndex)
                         {
                             local2.Next += shiftAmount;
@@ -868,8 +869,10 @@ namespace NativeCollections
         private void Initialize(int capacity)
         {
             var size = HashHelpers.GetPrime(capacity);
-            _buckets = (int*)NativeMemoryAllocator.AllocZeroed((uint)(size * (sizeof(int) + sizeof(Entry))));
-            _entries = (Entry*)((byte*)_buckets + size * sizeof(int));
+            var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<int>(), NativeMemoryAllocator.AlignOf<Entry>());
+            var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(size * sizeof(int)), alignment);
+            _buckets = (int*)NativeMemoryAllocator.AlignedAllocZeroed((uint)(bucketsByteCount + size * sizeof(Entry)), alignment);
+            _entries = UnsafeHelpers.AddByteOffset<Entry>(_buckets, (nint)bucketsByteCount);
             _bucketsLength = size;
             _entriesLength = size;
             _fastModMultiplier = sizeof(nint) == 8 ? HashHelpers.GetFastModMultiplier((uint)size) : 0;
@@ -882,16 +885,18 @@ namespace NativeCollections
         private void Resize(int newSize)
         {
             var oldBuckets = _buckets;
-            var buckets = (int*)NativeMemoryAllocator.AllocZeroed((uint)(newSize * (sizeof(int) + sizeof(Entry))));
-            var entries = (Entry*)((byte*)buckets + newSize * sizeof(int));
+            var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<int>(), NativeMemoryAllocator.AlignOf<Entry>());
+            var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(newSize * sizeof(int)), alignment);
+            var buckets = (int*)NativeMemoryAllocator.AlignedAllocZeroed((uint)(bucketsByteCount + newSize * sizeof(Entry)), alignment);
+            var entries = UnsafeHelpers.AddByteOffset<Entry>(buckets, (nint)bucketsByteCount);
             var count = _count;
-            Unsafe.CopyBlockUnaligned(entries, _entries, (uint)(count * sizeof(Entry)));
+            Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(entries), ref Unsafe.AsRef<byte>(_entries), (uint)(count * sizeof(Entry)));
             _buckets = buckets;
             _bucketsLength = newSize;
             _fastModMultiplier = sizeof(nint) == 8 ? HashHelpers.GetFastModMultiplier((uint)newSize) : 0;
             for (var entryIndex = 0; entryIndex < count; ++entryIndex)
-                PushEntryIntoBucket(ref entries[entryIndex], entryIndex);
-            NativeMemoryAllocator.Free(oldBuckets);
+                PushEntryIntoBucket(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)entryIndex), entryIndex);
+            NativeMemoryAllocator.AlignedFree(oldBuckets);
             _entries = entries;
             _entriesLength = newSize;
         }
@@ -919,11 +924,11 @@ namespace NativeCollections
 
             for (var entryIndex = _count - 1; entryIndex >= index; --entryIndex)
             {
-                entries[entryIndex + 1] = entries[entryIndex];
+                Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)(entryIndex + 1)) = Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)entryIndex);
                 UpdateBucketIndex(entryIndex, 1);
             }
 
-            ref var local = ref entries[index];
+            ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index);
             local.HashCode = outHashCode;
             local.Key = key;
             local.Value = value;
@@ -947,7 +952,7 @@ namespace NativeCollections
             var index1 = IndexOf(key, ref outHashCode, ref outCollisionCount);
             if (index1 >= 0)
             {
-                _entries[index1].Value = value;
+                Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index1).Value = value;
                 return true;
             }
 
@@ -962,11 +967,11 @@ namespace NativeCollections
 
             for (var entryIndex = _count - 1; entryIndex >= index; --entryIndex)
             {
-                entries[entryIndex + 1] = entries[entryIndex];
+                Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)(entryIndex + 1)) = Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)entryIndex);
                 UpdateBucketIndex(entryIndex, 1);
             }
 
-            ref var local = ref entries[index];
+            ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index);
             local.HashCode = outHashCode;
             local.Key = key;
             local.Value = value;
@@ -1001,11 +1006,11 @@ namespace NativeCollections
 
             for (var entryIndex = _count - 1; entryIndex >= index; --entryIndex)
             {
-                entries[entryIndex + 1] = entries[entryIndex];
+                Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)(entryIndex + 1)) = Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)entryIndex);
                 UpdateBucketIndex(entryIndex, 1);
             }
 
-            ref var local = ref entries[index];
+            ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index);
             local.HashCode = outHashCode;
             local.Key = key;
             local.Value = value;
@@ -1023,7 +1028,7 @@ namespace NativeCollections
         private ref int GetBucket(uint hashCode)
         {
             var buckets = _buckets;
-            return ref sizeof(nint) == 8 ? ref buckets[(int)HashHelpers.FastMod(hashCode, (uint)_bucketsLength, _fastModMultiplier)] : ref buckets[hashCode % _bucketsLength];
+            return ref sizeof(nint) == 8 ? ref Unsafe.Add(ref Unsafe.AsRef<int>(buckets), (nint)HashHelpers.FastMod(hashCode, (uint)_bucketsLength, _fastModMultiplier)) : ref Unsafe.Add(ref Unsafe.AsRef<int>(buckets), (nint)(hashCode % _bucketsLength));
         }
 
         /// <summary>
@@ -1064,7 +1069,7 @@ namespace NativeCollections
             count = count > _count ? _count : count;
             var entries = _entries;
             for (var index = 0; index < count; ++index)
-                buffer[index] = new KeyValuePair<TKey, TValue>(entries[index].Key, entries[index].Value);
+                buffer[index] = new KeyValuePair<TKey, TValue>(Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index).Key, Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index).Value);
             return count;
         }
 
@@ -1085,7 +1090,7 @@ namespace NativeCollections
             ref var reference = ref Unsafe.As<byte, KeyValuePair<TKey, TValue>>(ref MemoryMarshal.GetReference(buffer));
             var entries = _entries;
             for (var index = 0; index < _count; ++index)
-                Unsafe.Add(ref reference, index) = new KeyValuePair<TKey, TValue>(entries[index].Key, entries[index].Value);
+                Unsafe.Add(ref reference, (nint)index) = new KeyValuePair<TKey, TValue>(Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index).Key, Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index).Value);
         }
 
         /// <summary>
@@ -1160,7 +1165,7 @@ namespace NativeCollections
                     throw new InvalidOperationException("EnumFailedVersion");
                 if (_index < handle->_count)
                 {
-                    ref var local = ref handle->_entries[_index];
+                    ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(handle->_entries), (nint)_index);
                     _current = new KeyValuePair<TKey, TValue>(local.Key, local.Value);
                     ++_index;
                     return true;
@@ -1214,7 +1219,7 @@ namespace NativeCollections
                 count = count > _nativeOrderedDictionary->_count ? _nativeOrderedDictionary->_count : count;
                 var entries = _nativeOrderedDictionary->_entries;
                 for (var index = 0; index < count; ++index)
-                    buffer[index] = entries[index].Key;
+                    buffer[index] = Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index).Key;
                 return count;
             }
 
@@ -1235,7 +1240,7 @@ namespace NativeCollections
                 ref var reference = ref Unsafe.As<byte, TKey>(ref MemoryMarshal.GetReference(buffer));
                 var entries = _nativeOrderedDictionary->_entries;
                 for (var index = 0; index < _nativeOrderedDictionary->_count; ++index)
-                    Unsafe.Add(ref reference, index) = entries[index].Key;
+                    Unsafe.Add(ref reference, (nint)index) = Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index).Key;
             }
 
             /// <summary>
@@ -1305,7 +1310,7 @@ namespace NativeCollections
                         throw new InvalidOperationException("EnumFailedVersion");
                     if (_index < handle->_count)
                     {
-                        ref var local = ref handle->_entries[_index];
+                        ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(handle->_entries), (nint)_index);
                         _currentKey = local.Key;
                         ++_index;
                         return true;
@@ -1360,7 +1365,7 @@ namespace NativeCollections
                 count = count > _nativeOrderedDictionary->_count ? _nativeOrderedDictionary->_count : count;
                 var entries = _nativeOrderedDictionary->_entries;
                 for (var index = 0; index < count; ++index)
-                    buffer[index] = entries[index].Value;
+                    buffer[index] = Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index).Value;
                 return count;
             }
 
@@ -1381,7 +1386,7 @@ namespace NativeCollections
                 ref var reference = ref Unsafe.As<byte, TValue>(ref MemoryMarshal.GetReference(buffer));
                 var entries = _nativeOrderedDictionary->_entries;
                 for (var index = 0; index < _nativeOrderedDictionary->_count; ++index)
-                    Unsafe.Add(ref reference, index) = entries[index].Value;
+                    Unsafe.Add(ref reference, (nint)index) = Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index).Value;
             }
 
             /// <summary>
@@ -1451,7 +1456,7 @@ namespace NativeCollections
                         throw new InvalidOperationException("EnumFailedVersion");
                     if (_index < handle->_count)
                     {
-                        ref var local = ref handle->_entries[_index];
+                        ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(handle->_entries), (nint)_index);
                         _currentValue = local.Value;
                         ++_index;
                         return true;

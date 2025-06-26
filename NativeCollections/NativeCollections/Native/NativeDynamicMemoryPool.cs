@@ -47,22 +47,22 @@ namespace NativeCollections
             if (sizeof(nint) == 8)
             {
                 bytes = TLSF64.align_up(TLSF64.tlsf_size() + TLSF64.tlsf_pool_overhead() + blocks * TLSF64.tlsf_alloc_overhead() + size, 8);
-                buffer = NativeMemoryAllocator.Alloc((uint)bytes);
+                buffer = NativeMemoryAllocator.AlignedAlloc((uint)bytes, (uint)NativeMemoryAllocator.AlignOf<TLSF32.control_t>());
                 handle = TLSF64.tlsf_create_with_pool(buffer, bytes);
                 if (handle == null)
                 {
-                    NativeMemoryAllocator.Free(buffer);
+                    NativeMemoryAllocator.AlignedFree(buffer);
                     throw new ArgumentOutOfRangeException(nameof(size), "Memory must be aligned to 8 bytes.");
                 }
             }
             else
             {
                 bytes = TLSF32.align_up((uint)(TLSF32.tlsf_size() + TLSF32.tlsf_pool_overhead() + blocks * TLSF32.tlsf_alloc_overhead() + size), 4);
-                buffer = NativeMemoryAllocator.Alloc((uint)bytes);
+                buffer = NativeMemoryAllocator.AlignedAlloc((uint)bytes, (uint)NativeMemoryAllocator.AlignOf<TLSF64.control_t>());
                 handle = TLSF32.tlsf_create_with_pool(buffer, (uint)bytes);
                 if (handle == null)
                 {
-                    NativeMemoryAllocator.Free(buffer);
+                    NativeMemoryAllocator.AlignedFree(buffer);
                     throw new ArgumentOutOfRangeException(nameof(size), "Memory must be aligned to 4 bytes.");
                 }
             }
@@ -138,7 +138,7 @@ namespace NativeCollections
             var handle = _handle;
             if (handle == null)
                 return;
-            NativeMemoryAllocator.Free(handle);
+            NativeMemoryAllocator.AlignedFree(handle);
         }
 
         /// <summary>
@@ -167,9 +167,10 @@ namespace NativeCollections
         ///     Rent buffer
         /// </summary>
         /// <param name="size">Size</param>
+        /// <param name="alignment">Alignment</param>
         /// <returns>Buffer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void* Rent(ulong size) => sizeof(nint) == 8 ? TLSF64.tlsf_malloc(_handle, size) : TLSF32.tlsf_malloc(_handle, (uint)size);
+        public void* Rent(ulong size, uint alignment) => sizeof(nint) == 8 ? TLSF64.tlsf_memalign(_handle, size, alignment) : TLSF32.tlsf_memalign(_handle, (uint)size, alignment);
 
         /// <summary>
         ///     Rent buffer

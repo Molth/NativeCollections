@@ -95,8 +95,10 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(size), size, "MustBePositive");
             if (maxFreeChunks < 0)
                 throw new ArgumentOutOfRangeException(nameof(maxFreeChunks), maxFreeChunks, "MustBeNonNegative");
-            var chunk = (MemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemoryChunk) + size * sizeof(T)));
-            chunk->Buffer = (T*)((byte*)chunk + sizeof(MemoryChunk));
+            var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<MemoryChunk>(), NativeMemoryAllocator.AlignOf<T>());
+            var chunkByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)sizeof(MemoryChunk), alignment);
+            var chunk = (MemoryChunk*)NativeMemoryAllocator.AlignedAlloc((uint)(chunkByteCount + size * sizeof(T)), alignment);
+            chunk->Buffer = UnsafeHelpers.AddByteOffset<T>(chunk, (nint)chunkByteCount);
             _sentinel = chunk;
             _freeList = null;
             _chunks = 1;
@@ -118,7 +120,7 @@ namespace NativeCollections
                 _chunks--;
                 var temp = node;
                 node = node->Next;
-                NativeMemoryAllocator.Free(temp);
+                NativeMemoryAllocator.AlignedFree(temp);
             }
 
             node = _freeList;
@@ -127,7 +129,7 @@ namespace NativeCollections
                 _freeChunks--;
                 var temp = node;
                 node = node->Next;
-                NativeMemoryAllocator.Free(temp);
+                NativeMemoryAllocator.AlignedFree(temp);
             }
         }
 
@@ -163,8 +165,10 @@ namespace NativeCollections
                 MemoryChunk* chunk;
                 if (_freeChunks == 0)
                 {
-                    chunk = (MemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemoryChunk) + _size * sizeof(T)));
-                    chunk->Buffer = (T*)((byte*)chunk + sizeof(MemoryChunk));
+                    var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<MemoryChunk>(), NativeMemoryAllocator.AlignOf<T>());
+                    var chunkByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)sizeof(MemoryChunk), alignment);
+                    chunk = (MemoryChunk*)NativeMemoryAllocator.AlignedAlloc((uint)(chunkByteCount + _size * sizeof(T)), alignment);
+                    chunk->Buffer = UnsafeHelpers.AddByteOffset<T>(chunk, (nint)chunkByteCount);
                 }
                 else
                 {
@@ -179,7 +183,7 @@ namespace NativeCollections
             }
 
             ++_count;
-            _sentinel->Buffer[index] = item;
+            Unsafe.Add(ref Unsafe.AsRef<T>(_sentinel->Buffer), (nint)index) = item;
         }
 
         /// <summary>
@@ -198,14 +202,14 @@ namespace NativeCollections
 
             --_count;
             var index = _count % _size;
-            result = _sentinel->Buffer[index];
+            result = Unsafe.Add(ref Unsafe.AsRef<T>(_sentinel->Buffer), (nint)index);
             if (index == 0 && _chunks != 1)
             {
                 var chunk = _sentinel;
                 _sentinel = chunk->Next;
                 if (_freeChunks == _maxFreeChunks)
                 {
-                    NativeMemoryAllocator.Free(chunk);
+                    NativeMemoryAllocator.AlignedFree(chunk);
                 }
                 else
                 {
@@ -235,7 +239,7 @@ namespace NativeCollections
             }
 
             var index = (_count - 1) % _size;
-            result = _sentinel->Buffer[index];
+            result = Unsafe.Add(ref Unsafe.AsRef<T>(_sentinel->Buffer), (nint)index);
             return true;
         }
 
@@ -254,8 +258,10 @@ namespace NativeCollections
             while (_freeChunks < capacity)
             {
                 _freeChunks++;
-                var chunk = (MemoryChunk*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemoryChunk) + _size));
-                chunk->Buffer = (T*)((byte*)chunk + sizeof(MemoryChunk));
+                var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<MemoryChunk>(), NativeMemoryAllocator.AlignOf<T>());
+                var chunkByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)sizeof(MemoryChunk), alignment);
+                var chunk = (MemoryChunk*)NativeMemoryAllocator.AlignedAlloc((uint)(chunkByteCount + _size * sizeof(T)), alignment);
+                chunk->Buffer = UnsafeHelpers.AddByteOffset<T>(chunk, (nint)chunkByteCount);
                 chunk->Next = _freeList;
                 _freeList = chunk;
             }
@@ -275,7 +281,7 @@ namespace NativeCollections
                 _freeChunks--;
                 var temp = node;
                 node = node->Next;
-                NativeMemoryAllocator.Free(temp);
+                NativeMemoryAllocator.AlignedFree(temp);
             }
 
             _freeList = node;
@@ -296,7 +302,7 @@ namespace NativeCollections
                 _freeChunks--;
                 var temp = node;
                 node = node->Next;
-                NativeMemoryAllocator.Free(temp);
+                NativeMemoryAllocator.AlignedFree(temp);
             }
 
             _freeList = node;

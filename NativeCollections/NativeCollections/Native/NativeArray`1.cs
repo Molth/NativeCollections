@@ -38,7 +38,7 @@ namespace NativeCollections
         {
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            _buffer = (T*)NativeMemoryAllocator.Alloc((uint)(length * sizeof(T)));
+            _buffer = NativeMemoryAllocator.AlignedAlloc<T>((uint)length);
             _length = length;
         }
 
@@ -52,7 +52,48 @@ namespace NativeCollections
         {
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            _buffer = zeroed ? (T*)NativeMemoryAllocator.AllocZeroed((uint)(length * sizeof(T))) : (T*)NativeMemoryAllocator.Alloc((uint)(length * sizeof(T)));
+            _buffer = zeroed ? NativeMemoryAllocator.AlignedAllocZeroed<T>((uint)length) : NativeMemoryAllocator.AlignedAlloc<T>((uint)length);
+            _length = length;
+        }
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="length">Length</param>
+        /// <param name="alignment">Alignment</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeArray(int length, int alignment)
+        {
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            if (alignment < 0)
+                throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "MustBeNonNegative");
+            if (!BitOperationsHelpers.IsPow2((uint)alignment))
+                throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
+            if (typeof(T) != typeof(byte) && (uint)alignment < NativeMemoryAllocator.AlignOf<T>())
+                throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "MustBeGreaterOrEqual");
+            _buffer = (T*)NativeMemoryAllocator.AlignedAlloc((uint)(length * sizeof(T)), (uint)alignment);
+            _length = length;
+        }
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="length">Length</param>
+        /// <param name="zeroed">Zeroed</param>
+        /// <param name="alignment">Alignment</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeArray(int length, bool zeroed, int alignment)
+        {
+            if (length < 0)
+                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            if (alignment < 0)
+                throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "MustBeNonNegative");
+            if (!BitOperationsHelpers.IsPow2((uint)alignment))
+                throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
+            if (typeof(T) != typeof(byte) && (uint)alignment < NativeMemoryAllocator.AlignOf<T>())
+                throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "MustBeGreaterOrEqual");
+            _buffer = zeroed ? NativeMemoryAllocator.AlignedAllocZeroed<T>((uint)(length * sizeof(T))) : NativeMemoryAllocator.AlignedAlloc<T>((uint)(length * sizeof(T)));
             _length = length;
         }
 
@@ -66,6 +107,8 @@ namespace NativeCollections
         {
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            if (typeof(T) != typeof(byte) && (nint)buffer % (nint)NativeMemoryAllocator.AlignOf<T>() != 0)
+                throw new AccessViolationException("MustBeAligned");
             _buffer = buffer;
             _length = length;
         }
@@ -87,7 +130,7 @@ namespace NativeCollections
         public ref T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _buffer[index];
+            get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index);
         }
 
         /// <summary>
@@ -97,7 +140,7 @@ namespace NativeCollections
         public ref T this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _buffer[index];
+            get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index);
         }
 
         /// <summary>
@@ -201,14 +244,14 @@ namespace NativeCollections
             var buffer = _buffer;
             if (buffer == null)
                 return;
-            NativeMemoryAllocator.Free(buffer);
+            NativeMemoryAllocator.AlignedFree(buffer);
         }
 
         /// <summary>
         ///     Clear
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Clear() => Unsafe.InitBlockUnaligned(_buffer, 0, (uint)(_length * sizeof(T)));
+        public void Clear() => Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(_buffer), 0, (uint)(_length * sizeof(T)));
 
         /// <summary>
         ///     Cast
@@ -221,7 +264,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<T> AsSpan() => MemoryMarshal.CreateSpan(ref *_buffer, _length);
+        public Span<T> AsSpan() => MemoryMarshal.CreateSpan(ref Unsafe.AsRef<T>(_buffer), _length);
 
         /// <summary>
         ///     As span
@@ -229,7 +272,7 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<T> AsSpan(int start) => MemoryMarshal.CreateSpan(ref *(_buffer + start), _length - start);
+        public Span<T> AsSpan(int start) => MemoryMarshal.CreateSpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)start), _length - start);
 
         /// <summary>
         ///     As span
@@ -238,14 +281,14 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<T> AsSpan(int start, int length) => MemoryMarshal.CreateSpan(ref *(_buffer + start), length);
+        public Span<T> AsSpan(int start, int length) => MemoryMarshal.CreateSpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)start), length);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref *_buffer, _length);
+        public ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<T>(_buffer), _length);
 
         /// <summary>
         ///     As readOnly span
@@ -253,7 +296,7 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<T> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref *(_buffer + start), _length - start);
+        public ReadOnlySpan<T> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)start), _length - start);
 
         /// <summary>
         ///     As readOnly span
@@ -262,7 +305,7 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<T> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref *(_buffer + start), length);
+        public ReadOnlySpan<T> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)start), length);
 
         /// <summary>
         ///     Slice
@@ -270,7 +313,7 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <returns>NativeArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeArray<T> Slice(int start) => new(_buffer + start, _length - start);
+        public NativeArray<T> Slice(int start) => new(UnsafeHelpers.Add<T>(_buffer, start), _length - start);
 
         /// <summary>
         ///     Slice
@@ -279,12 +322,72 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <returns>NativeArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeArray<T> Slice(int start, int length) => new(_buffer + start, length);
+        public NativeArray<T> Slice(int start, int length) => new(UnsafeHelpers.Add<T>(_buffer, start), length);
 
         /// <summary>
         ///     Empty
         /// </summary>
         public static NativeArray<T> Empty => new();
+
+        /// <summary>
+        ///     Get byte count
+        /// </summary>
+        /// <param name="capacity">Capacity</param>
+        /// <returns>Byte count</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int GetByteCount(int capacity) => capacity * sizeof(T) + (int)NativeMemoryAllocator.AlignOf<T>() - 1;
+
+        /// <summary>
+        ///     Create aligned native array
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <param name="alignment">Alignment</param>
+        /// <returns>NativeArray</returns>
+        public static NativeArray<T> Create(Span<byte> buffer, uint alignment)
+        {
+            if (!BitOperationsHelpers.IsPow2(alignment))
+                throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
+            var ptr = Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer));
+            var alignedPtr = (nint)NativeMemoryAllocator.AlignUp((nuint)(nint)ptr, alignment);
+            var byteOffset = alignedPtr - (nint)ptr;
+            var alignedBuffer = MemoryMarshal.Cast<byte, T>(buffer.Slice((int)byteOffset));
+            return new NativeArray<T>((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(alignedBuffer)), alignedBuffer.Length);
+        }
+
+        /// <summary>
+        ///     Create aligned native array
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <param name="alignment">Alignment</param>
+        /// <param name="byteOffset">Byte offset</param>
+        /// <returns>NativeArray</returns>
+        public static NativeArray<T> Create(Span<byte> buffer, uint alignment, out nint byteOffset)
+        {
+            if (!BitOperationsHelpers.IsPow2(alignment))
+                throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
+            var ptr = Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer));
+            var alignedPtr = (nint)NativeMemoryAllocator.AlignUp((nuint)(nint)ptr, alignment);
+            byteOffset = alignedPtr - (nint)ptr;
+            var alignedBuffer = MemoryMarshal.Cast<byte, T>(buffer.Slice((int)byteOffset));
+            return new NativeArray<T>((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(alignedBuffer)), alignedBuffer.Length);
+        }
+
+        /// <summary>
+        ///     Create aligned native array
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <returns>NativeArray</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeArray<T> Create(Span<byte> buffer) => Create(buffer, (uint)NativeMemoryAllocator.AlignOf<T>());
+
+        /// <summary>
+        ///     Create aligned native array
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <param name="byteOffset">Byte offset</param>
+        /// <returns>NativeArray</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeArray<T> Create(Span<byte> buffer, out nint byteOffset) => Create(buffer, (uint)NativeMemoryAllocator.AlignOf<T>(), out byteOffset);
 
         /// <summary>
         ///     Get enumerator

@@ -33,8 +33,8 @@ namespace NativeCollections
         public NativeOrderedHashSet(int capacity)
         {
             var value = new UnsafeOrderedHashSet<T>(capacity);
-            var handle = (UnsafeOrderedHashSet<T>*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeOrderedHashSet<T>));
-            *handle = value;
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeOrderedHashSet<T>>(1);
+            Unsafe.AsRef<UnsafeOrderedHashSet<T>>(handle) = value;
             _handle = handle;
         }
 
@@ -110,7 +110,7 @@ namespace NativeCollections
             if (handle == null)
                 return;
             handle->Dispose();
-            NativeMemoryAllocator.Free(handle);
+            NativeMemoryAllocator.AlignedFree(handle);
         }
 
         /// <summary>

@@ -26,7 +26,7 @@ namespace NativeCollections
             while (low <= high)
             {
                 var i = (int)(((uint)high + (uint)low) >> 1);
-                var c = comparable.CompareTo(Unsafe.Add(ref reference, i));
+                var c = comparable.CompareTo(Unsafe.Add(ref reference, (nint)i));
                 switch (c)
                 {
                     case 0:

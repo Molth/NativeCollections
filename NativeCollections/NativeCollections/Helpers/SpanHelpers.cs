@@ -1,10 +1,10 @@
-﻿using System;
-using System.Runtime.CompilerServices;
-#if NET7_0_OR_GREATER
+﻿#if NET7_0_OR_GREATER
 using System.Runtime.Intrinsics;
 #else
 using System.Runtime.InteropServices;
 #endif
+using System;
+using System.Runtime.CompilerServices;
 
 // ReSharper disable ALL
 
@@ -15,6 +15,40 @@ namespace NativeCollections
     /// </summary>
     internal static class SpanHelpers
     {
+        public static unsafe NativeArray<TTo> Cast<TFrom, TTo>(NativeArray<TFrom> span) where TFrom : unmanaged where TTo : unmanaged
+        {
+            // Use unsigned integers - unsigned division by constant (especially by power of 2)
+            // and checked casts are faster and smaller.
+            var fromSize = (uint)sizeof(TFrom);
+            var toSize = (uint)sizeof(TTo);
+            var fromLength = (uint)span.Length;
+            int toLength;
+            if (fromSize == toSize)
+            {
+                // Special case for same size types - `(ulong)fromLength * (ulong)fromSize / (ulong)toSize`
+                // should be optimized to just `length` but the JIT doesn't do that today.
+                toLength = (int)fromLength;
+            }
+            else if (fromSize == 1)
+            {
+                // Special case for byte sized TFrom - `(ulong)fromLength * (ulong)fromSize / (ulong)toSize`
+                // becomes `(ulong)fromLength / (ulong)toSize` but the JIT can't narrow it down to `int`
+                // and can't eliminate the checked cast. This also avoids a 32 bit specific issue,
+                // the JIT can't eliminate long multiply by 1.
+                toLength = (int)(fromLength / toSize);
+            }
+            else
+            {
+                // Ensure that casts are done in such a way that the JIT is able to "see"
+                // the uint->ulong casts and the multiply together so that on 32 bit targets
+                // 32x32to64 multiplication is used.
+                var toLengthUInt64 = fromLength * (ulong)fromSize / toSize;
+                toLength = checked((int)toLengthUInt64);
+            }
+
+            return new NativeArray<TTo>((TTo*)span.Buffer, toLength);
+        }
+
         /// <summary>Searches for any value other than the specified <paramref name="value" />.</summary>
         /// <param name="buffer">The span to search.</param>
         /// <param name="value">The value to exclude from the search.</param>
@@ -34,7 +68,7 @@ namespace NativeCollections
             ref var reference = ref MemoryMarshal.GetReference(buffer);
             for (var i = 0; i < buffer.Length; ++i)
             {
-                if (!Unsafe.Add(ref reference, i).Equals(value))
+                if (!Unsafe.Add(ref reference, (nint)i).Equals(value))
                     return true;
             }
 

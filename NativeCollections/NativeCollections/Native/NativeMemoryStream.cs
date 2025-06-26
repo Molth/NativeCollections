@@ -31,8 +31,8 @@ namespace NativeCollections
         public NativeMemoryStream(int capacity)
         {
             var value = new UnsafeMemoryStream(capacity);
-            var handle = (UnsafeMemoryStream*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeMemoryStream));
-            *handle = value;
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeMemoryStream>(1);
+            Unsafe.AsRef<UnsafeMemoryStream>(handle) = value;
             _handle = handle;
         }
 
@@ -174,7 +174,7 @@ namespace NativeCollections
             if (handle == null)
                 return;
             handle->Dispose();
-            NativeMemoryAllocator.Free(handle);
+            NativeMemoryAllocator.AlignedFree(handle);
         }
 
         /// <summary>

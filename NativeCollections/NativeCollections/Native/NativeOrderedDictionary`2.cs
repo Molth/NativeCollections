@@ -44,8 +44,8 @@ namespace NativeCollections
         public NativeOrderedDictionary(int capacity)
         {
             var value = new UnsafeOrderedDictionary<TKey, TValue>(capacity);
-            var handle = (UnsafeOrderedDictionary<TKey, TValue>*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeOrderedDictionary<TKey, TValue>));
-            *handle = value;
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeOrderedDictionary<TKey, TValue>>(1);
+            Unsafe.AsRef<UnsafeOrderedDictionary<TKey, TValue>>(handle) = value;
             _handle = handle;
         }
 
@@ -133,7 +133,7 @@ namespace NativeCollections
             if (handle == null)
                 return;
             handle->Dispose();
-            NativeMemoryAllocator.Free(handle);
+            NativeMemoryAllocator.AlignedFree(handle);
         }
 
         /// <summary>

@@ -33,8 +33,8 @@ namespace NativeCollections
         public NativeStack(int capacity)
         {
             var value = new UnsafeStack<T>(capacity);
-            var handle = (UnsafeStack<T>*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeStack<T>));
-            *handle = value;
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeStack<T>>(1);
+            Unsafe.AsRef<UnsafeStack<T>>(handle) = value;
             _handle = handle;
         }
 
@@ -130,7 +130,7 @@ namespace NativeCollections
             if (handle == null)
                 return;
             handle->Dispose();
-            NativeMemoryAllocator.Free(handle);
+            NativeMemoryAllocator.AlignedFree(handle);
         }
 
         /// <summary>

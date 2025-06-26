@@ -38,8 +38,8 @@ namespace NativeCollections
         public NativeConcurrentHashSet(int size, int maxFreeSlabs, int concurrencyLevel, int capacity, bool growLockArray)
         {
             var value = new UnsafeConcurrentHashSet<T>(size, maxFreeSlabs, concurrencyLevel, capacity, growLockArray);
-            var handle = (UnsafeConcurrentHashSet<T>*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeConcurrentHashSet<T>));
-            *handle = value;
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeConcurrentHashSet<T>>(1);
+            Unsafe.AsRef<UnsafeConcurrentHashSet<T>>(handle) = value;
             _handle = handle;
         }
 
@@ -118,7 +118,7 @@ namespace NativeCollections
             if (handle == null)
                 return;
             handle->Dispose();
-            NativeMemoryAllocator.Free(handle);
+            NativeMemoryAllocator.AlignedFree(handle);
         }
 
         /// <summary>

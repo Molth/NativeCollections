@@ -137,7 +137,7 @@ namespace NativeCollections
             var handle = _handle;
             if (handle == null)
                 return;
-            NativeMemoryAllocator.Free(handle);
+            NativeMemoryAllocator.AlignedFree(handle);
         }
 
         /// <summary>

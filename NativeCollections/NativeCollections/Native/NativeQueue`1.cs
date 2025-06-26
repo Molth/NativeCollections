@@ -33,8 +33,8 @@ namespace NativeCollections
         public NativeQueue(int capacity)
         {
             var value = new UnsafeQueue<T>(capacity);
-            var handle = (UnsafeQueue<T>*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeQueue<T>));
-            *handle = value;
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeQueue<T>>(1);
+            Unsafe.AsRef<UnsafeQueue<T>>(handle) = value;
             _handle = handle;
         }
 
@@ -130,7 +130,7 @@ namespace NativeCollections
             if (handle == null)
                 return;
             handle->Dispose();
-            NativeMemoryAllocator.Free(handle);
+            NativeMemoryAllocator.AlignedFree(handle);
         }
 
         /// <summary>

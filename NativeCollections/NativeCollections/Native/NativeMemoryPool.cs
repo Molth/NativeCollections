@@ -28,12 +28,13 @@ namespace NativeCollections
         /// <param name="size">Size</param>
         /// <param name="length">Length</param>
         /// <param name="maxFreeSlabs">Max free slabs</param>
+        /// <param name="alignment">Alignment</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeMemoryPool(int size, int length, int maxFreeSlabs)
+        public NativeMemoryPool(int size, int length, int maxFreeSlabs, int alignment)
         {
-            var value = new UnsafeMemoryPool(size, length, maxFreeSlabs);
-            var handle = (UnsafeMemoryPool*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeMemoryPool));
-            *handle = value;
+            var value = new UnsafeMemoryPool(size, length, maxFreeSlabs, alignment);
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeMemoryPool>(1);
+            Unsafe.AsRef<UnsafeMemoryPool>(handle) = value;
             _handle = handle;
         }
 
@@ -68,6 +69,16 @@ namespace NativeCollections
         public int Length => _handle->Length;
 
         /// <summary>
+        ///     Alignment
+        /// </summary>
+        public int Alignment => _handle->Alignment;
+
+        /// <summary>
+        ///     Aligned length
+        /// </summary>
+        public int AlignedLength => _handle->AlignedLength;
+
+        /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="other">Other</param>
@@ -79,7 +90,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeMemoryPool nativeMemoryPool && nativeMemoryPool == this;
+        public override bool Equals(object? obj) => obj is NativeMemoryPool nativeAlignedMemoryPool && nativeAlignedMemoryPool == this;
 
         /// <summary>
         ///     Get hashCode
@@ -119,7 +130,7 @@ namespace NativeCollections
             if (handle == null)
                 return;
             handle->Dispose();
-            NativeMemoryAllocator.Free(handle);
+            NativeMemoryAllocator.AlignedFree(handle);
         }
 
         /// <summary>

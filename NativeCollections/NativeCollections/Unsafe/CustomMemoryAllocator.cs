@@ -24,35 +24,25 @@ namespace NativeCollections
         /// </summary>
         private readonly void* _user;
 
-        /// <summary>
-        ///     Alloc
-        /// </summary>
-        private readonly delegate* managed<void*, uint, void*> _alloc;
+        /// <summary>Allocates an aligned block of memory of the specified size and alignment, in bytes.</summary>
+        private readonly delegate* managed<void*, uint, uint, void*> _alignedAlloc;
 
-        /// <summary>
-        ///     AllocZeroed
-        /// </summary>
-        private readonly delegate* managed<void*, uint, void*> _allocZeroed;
+        /// <summary>Allocates and zeroes an aligned block of memory of the specified size and alignment, in bytes.</summary>
+        private readonly delegate* managed<void*, uint, uint, void*> _alignedAllocZeroed;
 
-        /// <summary>
-        ///     Free
-        /// </summary>
-        private readonly delegate* managed<void*, void*, void> _free;
+        /// <summary>Frees an aligned block of memory.</summary>
+        private readonly delegate* managed<void*, void*, void> _alignedFree;
 
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="user">User</param>
-        /// <param name="alloc">Alloc</param>
-        /// <param name="allocZeroed">AllocZeroed</param>
-        /// <param name="free">Free</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public CustomMemoryAllocator(void* user, delegate* managed<void*, uint, void*> alloc, delegate* managed<void*, uint, void*> allocZeroed, delegate* managed<void*, void*, void> free)
+        public CustomMemoryAllocator(void* user, delegate* managed<void*, uint, uint, void*> alignedAlloc, delegate* managed<void*, uint, uint, void*> alignedAllocZeroed, delegate* managed<void*, void*, void> alignedFree)
         {
             _user = user;
-            _alloc = alloc;
-            _allocZeroed = allocZeroed;
-            _free = free;
+            _alignedAlloc = alignedAlloc;
+            _alignedAllocZeroed = alignedAllocZeroed;
+            _alignedFree = alignedFree;
         }
 
         /// <summary>
@@ -64,9 +54,9 @@ namespace NativeCollections
         public CustomMemoryAllocator(void* user, CustomMemoryCallbacks* callbacks)
         {
             _user = user;
-            _alloc = callbacks->Alloc;
-            _allocZeroed = callbacks->AllocZeroed;
-            _free = callbacks->Free;
+            _alignedAlloc = callbacks->AlignedAlloc;
+            _alignedAllocZeroed = callbacks->AlignedAllocZeroed;
+            _alignedFree = callbacks->AlignedFree;
         }
 
         /// <summary>
@@ -77,7 +67,7 @@ namespace NativeCollections
         /// <summary>
         ///     Callbacks
         /// </summary>
-        public CustomMemoryCallbacks Callbacks => new(_alloc, _allocZeroed, _free);
+        public CustomMemoryCallbacks Callbacks => new(_alignedAlloc, _alignedAllocZeroed, _alignedFree);
 
         /// <summary>
         ///     Equals
@@ -94,7 +84,7 @@ namespace NativeCollections
 #endif
             ref var left = ref Unsafe.As<CustomMemoryAllocator, nint>(ref Unsafe.AsRef(in this));
             ref var right = ref Unsafe.As<CustomMemoryAllocator, nint>(ref other);
-            return left == right && Unsafe.Add(ref left, 1) == Unsafe.Add(ref right, 1) && Unsafe.Add(ref left, 2) == Unsafe.Add(ref right, 2) && Unsafe.Add(ref left, 3) == Unsafe.Add(ref right, 3);
+            return left == right && Unsafe.Add(ref left, (nint)1) == Unsafe.Add(ref right, (nint)1) && Unsafe.Add(ref left, (nint)2) == Unsafe.Add(ref right, (nint)2) && Unsafe.Add(ref left, (nint)3) == Unsafe.Add(ref right, (nint)3);
         }
 
         /// <summary>
@@ -132,28 +122,46 @@ namespace NativeCollections
         /// <returns>Not equals</returns>
         public static bool operator !=(CustomMemoryAllocator left, CustomMemoryAllocator right) => !left.Equals(right);
 
-        /// <summary>
-        ///     Alloc
-        /// </summary>
-        /// <param name="byteCount">Byte count</param>
-        /// <returns>Memory</returns>
+        /// <summary>Allocates an aligned block of memory of the specified size and alignment, in bytes.</summary>
+        /// <param name="elementCount">The count, in elements, of the block to allocate.</param>
+        /// <returns>A pointer to the allocated aligned block of memory.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void* Alloc(uint byteCount) => _alloc(_user, byteCount);
+        public T* AlignedAlloc<T>(uint elementCount) where T : unmanaged
+        {
+            var byteCount = elementCount * (uint)sizeof(T);
+            var alignment = (uint)NativeMemoryAllocator.AlignOf<T>();
+            return (T*)AlignedAlloc(byteCount, alignment);
+        }
 
-        /// <summary>
-        ///     Alloc zeroed
-        /// </summary>
-        /// <param name="byteCount">Byte count</param>
-        /// <returns>Memory</returns>
+        /// <summary>Allocates and zeroes an aligned block of memory of the specified size and alignment, in bytes.</summary>
+        /// <param name="elementCount">The count, in elements, of the block to allocate.</param>
+        /// <returns>A pointer to the allocated and zeroed aligned block of memory.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void* AllocZeroed(uint byteCount) => _allocZeroed(_user, byteCount);
+        public T* AlignedAllocZeroed<T>(uint elementCount) where T : unmanaged
+        {
+            var byteCount = elementCount * (uint)sizeof(T);
+            var alignment = (uint)NativeMemoryAllocator.AlignOf<T>();
+            return (T*)AlignedAllocZeroed(byteCount, alignment);
+        }
 
-        /// <summary>
-        ///     Free
-        /// </summary>
-        /// <param name="ptr">Pointer</param>
+        /// <summary>Allocates an aligned block of memory of the specified size and alignment, in bytes.</summary>
+        /// <param name="byteCount">The size, in bytes, of the block to allocate.</param>
+        /// <param name="alignment">The alignment, in bytes, of the block to allocate. This must be a power of <c>2</c>.</param>
+        /// <returns>A pointer to the allocated aligned block of memory.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Free(void* ptr) => _free(_user, ptr);
+        public void* AlignedAlloc(uint byteCount, uint alignment) => _alignedAlloc(_user, byteCount, alignment);
+
+        /// <summary>Allocates and zeroes an aligned block of memory of the specified size and alignment, in bytes.</summary>
+        /// <param name="byteCount">The size, in bytes, of the block to allocate.</param>
+        /// <param name="alignment">The alignment, in bytes, of the block to allocate. This must be a power of <c>2</c>.</param>
+        /// <returns>A pointer to the allocated and zeroed aligned block of memory.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void* AlignedAllocZeroed(uint byteCount, uint alignment) => _alignedAllocZeroed(_user, byteCount, alignment);
+
+        /// <summary>Frees an aligned block of memory.</summary>
+        /// <param name="ptr">A pointer to the aligned block of memory that should be freed.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void AlignedFree(void* ptr) => _alignedFree(_user, ptr);
 
         /// <summary>
         ///     Default
@@ -163,11 +171,11 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                return new CustomMemoryAllocator(null, &Alloc, &AllocZeroed, &Free);
+                return new CustomMemoryAllocator(null, &AlignedAlloc, &AlignedAllocZeroed, &AlignedFree);
 
-                static void* Alloc(void* user, uint byteCount) => NativeMemoryAllocator.Alloc(byteCount);
-                static void* AllocZeroed(void* user, uint byteCount) => NativeMemoryAllocator.AllocZeroed(byteCount);
-                static void Free(void* user, void* ptr) => NativeMemoryAllocator.Free(ptr);
+                static void* AlignedAlloc(void* user, uint byteCount, uint alignment) => NativeMemoryAllocator.AlignedAlloc(byteCount, alignment);
+                static void* AlignedAllocZeroed(void* user, uint byteCount, uint alignment) => NativeMemoryAllocator.AlignedAllocZeroed(byteCount, alignment);
+                static void AlignedFree(void* user, void* ptr) => NativeMemoryAllocator.AlignedFree(ptr);
             }
         }
 

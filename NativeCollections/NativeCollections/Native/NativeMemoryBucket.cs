@@ -42,8 +42,8 @@ namespace NativeCollections
         public NativeMemoryBucket(int capacity, int length, CustomMemoryAllocator allocator)
         {
             var value = new UnsafeMemoryBucket(capacity, length, allocator);
-            var handle = (UnsafeMemoryBucket*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeMemoryBucket));
-            *handle = value;
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeMemoryBucket>(1);
+            Unsafe.AsRef<UnsafeMemoryBucket>(handle) = value;
             _handle = handle;
         }
 
@@ -114,7 +114,7 @@ namespace NativeCollections
             if (handle == null)
                 return;
             handle->Dispose();
-            NativeMemoryAllocator.Free(handle);
+            NativeMemoryAllocator.AlignedFree(handle);
         }
 
         /// <summary>

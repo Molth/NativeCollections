@@ -79,7 +79,7 @@ namespace NativeCollections
             if (maxFreeSlabs < 0)
                 throw new ArgumentOutOfRangeException(nameof(maxFreeSlabs), maxFreeSlabs, "MustBeNonNegative");
             var size = sizeof(MemoryNode) + maxLength;
-            var buffer = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemorySlab) + size));
+            var buffer = (byte*)NativeMemoryAllocator.AlignedAlloc((uint)(sizeof(MemorySlab) + size), (uint)NativeMemoryAllocator.AlignOf<nint>());
             var slab = (MemorySlab*)buffer;
             slab->Next = slab;
             slab->Previous = slab;
@@ -105,7 +105,7 @@ namespace NativeCollections
                 _slabs--;
                 var temp = node;
                 node = node->Next;
-                NativeMemoryAllocator.Free(temp);
+                NativeMemoryAllocator.AlignedFree(temp);
             }
 
             node = _freeList;
@@ -114,29 +114,39 @@ namespace NativeCollections
                 _freeSlabs--;
                 var temp = node;
                 node = node->Next;
-                NativeMemoryAllocator.Free(temp);
+                NativeMemoryAllocator.AlignedFree(temp);
             }
         }
 
         /// <summary>
         ///     Rent buffer
         /// </summary>
-        /// <param name="length">Length</param>
-        /// <returns>Buffer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void* Rent(int length)
+        public void* Rent(int length, int alignment)
         {
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            var size = _size;
-            if (length + sizeof(MemoryNode) > size)
+            if (alignment < 0)
+                throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "MustBeNonNegative");
+            if (!BitOperationsHelpers.IsPow2((uint)alignment))
+                throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
+            alignment = Math.Max(alignment, (int)NativeMemoryAllocator.AlignOf<MemoryNode>());
+            var nodeSize = sizeof(MemoryNode);
+            var maxPadding = alignment - 1;
+            var byteCount = nodeSize + maxPadding + length;
+            if (byteCount > _size)
+            {
+                if (nodeSize + maxPadding > _size)
+                    throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "MustBeLessOrEqual");
                 throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeLessOrEqual");
+            }
+
             var slab = _sentinel;
-            if (slab->Length + sizeof(MemoryNode) + length > size)
+            if (slab->Length + byteCount > _size)
             {
                 if (_freeSlabs == 0)
                 {
-                    var buffer = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemorySlab) + size));
+                    var buffer = (byte*)NativeMemoryAllocator.AlignedAlloc((uint)(sizeof(MemorySlab) + _size), (uint)NativeMemoryAllocator.AlignOf<nint>());
                     slab = (MemorySlab*)buffer;
                 }
                 else
@@ -156,11 +166,14 @@ namespace NativeCollections
                 _slabs++;
             }
 
-            var node = (MemoryNode*)((byte*)slab + sizeof(MemorySlab) + slab->Length);
+            var node = UnsafeHelpers.AddByteOffset<MemoryNode>(slab, sizeof(MemorySlab) + slab->Length);
             node->Slab = slab;
             slab->Nodes++;
-            slab->Length += sizeof(MemoryNode) + length;
-            return (byte*)node + sizeof(MemoryNode);
+            var ptr = UnsafeHelpers.AddByteOffset(node, nodeSize);
+            var result = (byte*)(nint)NativeMemoryAllocator.AlignUp((nuint)(nint)ptr, (nuint)alignment);
+            Unsafe.Subtract(ref Unsafe.AsRef<nint>(result), 1) = UnsafeHelpers.ByteOffset(node, result);
+            slab->Length += nodeSize + (int)UnsafeHelpers.ByteOffset(ptr, result) + length;
+            return result;
         }
 
         /// <summary>
@@ -170,7 +183,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Return(void* ptr)
         {
-            var node = (MemoryNode*)((byte*)ptr - sizeof(MemoryNode));
+            var byteOffset = (int)Unsafe.Subtract(ref Unsafe.AsRef<nint>(ptr), 1);
+            var node = UnsafeHelpers.SubtractByteOffset<MemoryNode>(ptr, byteOffset);
             var slab = node->Slab;
             slab->Nodes--;
             if (slab->Nodes == 0 && slab != _sentinel)
@@ -179,7 +193,7 @@ namespace NativeCollections
                 slab->Next->Previous = slab->Previous;
                 if (_freeSlabs == _maxFreeSlabs)
                 {
-                    NativeMemoryAllocator.Free(slab);
+                    NativeMemoryAllocator.AlignedFree(slab);
                 }
                 else
                 {
@@ -208,7 +222,7 @@ namespace NativeCollections
             while (_freeSlabs < capacity)
             {
                 _freeSlabs++;
-                var buffer = (byte*)NativeMemoryAllocator.Alloc((uint)(sizeof(MemorySlab) + size));
+                var buffer = (byte*)NativeMemoryAllocator.AlignedAlloc((uint)(sizeof(MemorySlab) + size), (uint)NativeMemoryAllocator.AlignOf<nint>());
                 var slab = (MemorySlab*)buffer;
                 slab->Next = _freeList;
                 _freeList = slab;
@@ -229,7 +243,7 @@ namespace NativeCollections
                 _freeSlabs--;
                 var temp = node;
                 node = node->Next;
-                NativeMemoryAllocator.Free(temp);
+                NativeMemoryAllocator.AlignedFree(temp);
             }
 
             _freeList = node;
@@ -250,7 +264,7 @@ namespace NativeCollections
                 _freeSlabs--;
                 var temp = node;
                 node = node->Next;
-                NativeMemoryAllocator.Free(temp);
+                NativeMemoryAllocator.AlignedFree(temp);
             }
 
             _freeList = node;
@@ -294,6 +308,11 @@ namespace NativeCollections
             ///     Slab
             /// </summary>
             public MemorySlab* Slab;
+
+            /// <summary>
+            ///     Dummy
+            /// </summary>
+            private nint _dummy;
         }
 
         /// <summary>

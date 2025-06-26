@@ -35,8 +35,8 @@ namespace NativeCollections
         public NativeConcurrentQueue(int size, int maxFreeSlabs)
         {
             var value = new UnsafeConcurrentQueue<T>(size, maxFreeSlabs);
-            var handle = (UnsafeConcurrentQueue<T>*)NativeMemoryAllocator.Alloc((uint)sizeof(UnsafeConcurrentQueue<T>));
-            *handle = value;
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeConcurrentQueue<T>>(1);
+            Unsafe.AsRef<UnsafeConcurrentQueue<T>>(handle) = value;
             _handle = handle;
         }
 
@@ -115,7 +115,7 @@ namespace NativeCollections
             if (handle == null)
                 return;
             handle->Dispose();
-            NativeMemoryAllocator.Free(handle);
+            NativeMemoryAllocator.AlignedFree(handle);
         }
 
         /// <summary>
@@ -166,7 +166,7 @@ namespace NativeCollections
             /// <summary>
             ///     Segment pool
             /// </summary>
-            private UnsafeAlignedMemoryPool _segmentPool;
+            private UnsafeMemoryPool _segmentPool;
 
             /// <summary>
             ///     Tail
@@ -189,13 +189,12 @@ namespace NativeCollections
                     var segment = _head;
                     while (true)
                     {
-                        const nint zero = 0;
                         var next = Volatile.Read(ref segment->NextSegment);
                         if (segment->TryPeek())
                             return false;
-                        if (next != zero)
+                        if (next != UnsafeHelpers.ToIntPtr(0))
                             segment = (NativeConcurrentQueueSegmentNotArm64<T>*)next;
-                        else if (Volatile.Read(ref segment->NextSegment) == zero)
+                        else if (Volatile.Read(ref segment->NextSegment) == UnsafeHelpers.ToIntPtr(0))
                             break;
                     }
 
@@ -262,7 +261,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeConcurrentQueueNotArm64(int size, int maxFreeSlabs)
             {
-                var segmentPool = new UnsafeAlignedMemoryPool(size, sizeof(NativeConcurrentQueueSegmentNotArm64<T>), maxFreeSlabs, (int)Math.Max(NativeMemoryAllocator.AlignOf<T>(), ArchitectureHelpers.CACHE_LINE_SIZE_NOT_ARM64));
+                var segmentPool = new UnsafeMemoryPool(size, sizeof(NativeConcurrentQueueSegmentNotArm64<T>), maxFreeSlabs, (int)Math.Max(NativeMemoryAllocator.AlignOf<T>(), ArchitectureHelpers.CACHE_LINE_SIZE_NOT_ARM64));
                 _crossSegmentLock = GCHandle.Alloc(new object(), GCHandleType.Normal);
                 _segmentPool = segmentPool;
                 var segment = (NativeConcurrentQueueSegmentNotArm64<T>*)_segmentPool.Rent();
@@ -459,7 +458,7 @@ namespace NativeCollections
             {
                 var slots = (NativeConcurrentQueueSegmentSlot<T>*)Unsafe.AsPointer(ref Slots);
                 for (var i = 0; i < LENGTH; ++i)
-                    slots[i].SequenceNumber = i;
+                    Unsafe.Add(ref Unsafe.AsRef<NativeConcurrentQueueSegmentSlot<T>>(slots), (nint)i).SequenceNumber = i;
                 HeadAndTail = new NativeConcurrentQueuePaddedHeadAndTailNotArm64();
                 FrozenForEnqueues = false;
                 NextSegment = 0;
@@ -492,14 +491,14 @@ namespace NativeCollections
                 {
                     var currentHead = Volatile.Read(ref HeadAndTail.Head);
                     var slotsIndex = currentHead & SLOTS_MASK;
-                    var sequenceNumber = Volatile.Read(ref slots[slotsIndex].SequenceNumber);
+                    var sequenceNumber = Volatile.Read(ref Unsafe.Add(ref Unsafe.AsRef<NativeConcurrentQueueSegmentSlot<T>>(slots), (nint)slotsIndex).SequenceNumber);
                     var diff = sequenceNumber - (currentHead + 1);
                     if (diff == 0)
                     {
                         if (Interlocked.CompareExchange(ref HeadAndTail.Head, currentHead + 1, currentHead) == currentHead)
                         {
-                            result = slots[slotsIndex].Item;
-                            Volatile.Write(ref slots[slotsIndex].SequenceNumber, currentHead + LENGTH);
+                            result = Unsafe.Add(ref Unsafe.AsRef<NativeConcurrentQueueSegmentSlot<T>>(slots), (nint)slotsIndex).Item;
+                            Volatile.Write(ref Unsafe.Add(ref Unsafe.AsRef<NativeConcurrentQueueSegmentSlot<T>>(slots), (nint)slotsIndex).SequenceNumber, currentHead + LENGTH);
                             return true;
                         }
                     }
@@ -531,7 +530,7 @@ namespace NativeCollections
                 {
                     var currentHead = Volatile.Read(ref HeadAndTail.Head);
                     var slotsIndex = currentHead & SLOTS_MASK;
-                    var sequenceNumber = Volatile.Read(ref slots[slotsIndex].SequenceNumber);
+                    var sequenceNumber = Volatile.Read(ref Unsafe.Add(ref Unsafe.AsRef<NativeConcurrentQueueSegmentSlot<T>>(slots), (nint)slotsIndex).SequenceNumber);
                     var diff = sequenceNumber - (currentHead + 1);
                     if (diff == 0)
                         return true;
@@ -559,14 +558,14 @@ namespace NativeCollections
                 {
                     var currentTail = Volatile.Read(ref HeadAndTail.Tail);
                     var slotsIndex = currentTail & SLOTS_MASK;
-                    var sequenceNumber = Volatile.Read(ref slots[slotsIndex].SequenceNumber);
+                    var sequenceNumber = Volatile.Read(ref Unsafe.Add(ref Unsafe.AsRef<NativeConcurrentQueueSegmentSlot<T>>(slots), (nint)slotsIndex).SequenceNumber);
                     var diff = sequenceNumber - currentTail;
                     if (diff == 0)
                     {
                         if (Interlocked.CompareExchange(ref HeadAndTail.Tail, currentTail + 1, currentTail) == currentTail)
                         {
-                            slots[slotsIndex].Item = item;
-                            Volatile.Write(ref slots[slotsIndex].SequenceNumber, currentTail + 1);
+                            Unsafe.Add(ref Unsafe.AsRef<NativeConcurrentQueueSegmentSlot<T>>(slots), (nint)slotsIndex).Item = item;
+                            Volatile.Write(ref Unsafe.Add(ref Unsafe.AsRef<NativeConcurrentQueueSegmentSlot<T>>(slots), (nint)slotsIndex).SequenceNumber, currentTail + 1);
                             return true;
                         }
                     }
@@ -622,7 +621,7 @@ namespace NativeCollections
             /// <summary>
             ///     Segment pool
             /// </summary>
-            private UnsafeAlignedMemoryPool _segmentPool;
+            private UnsafeMemoryPool _segmentPool;
 
             /// <summary>
             ///     Tail
@@ -645,13 +644,12 @@ namespace NativeCollections
                     var segment = _head;
                     while (true)
                     {
-                        const nint zero = 0;
                         var next = Volatile.Read(ref segment->NextSegment);
                         if (segment->TryPeek())
                             return false;
-                        if (next != zero)
+                        if (next != UnsafeHelpers.ToIntPtr(0))
                             segment = (NativeConcurrentQueueSegmentArm64<T>*)next;
-                        else if (Volatile.Read(ref segment->NextSegment) == zero)
+                        else if (Volatile.Read(ref segment->NextSegment) == UnsafeHelpers.ToIntPtr(0))
                             break;
                     }
 
@@ -718,7 +716,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeConcurrentQueueArm64(int size, int maxFreeSlabs)
             {
-                var segmentPool = new UnsafeAlignedMemoryPool(size, sizeof(NativeConcurrentQueueSegmentArm64<T>), maxFreeSlabs, (int)Math.Max(NativeMemoryAllocator.AlignOf<T>(), ArchitectureHelpers.CACHE_LINE_SIZE_ARM64));
+                var segmentPool = new UnsafeMemoryPool(size, sizeof(NativeConcurrentQueueSegmentArm64<T>), maxFreeSlabs, (int)Math.Max(NativeMemoryAllocator.AlignOf<T>(), ArchitectureHelpers.CACHE_LINE_SIZE_ARM64));
                 _crossSegmentLock = GCHandle.Alloc(new object(), GCHandleType.Normal);
                 _segmentPool = segmentPool;
                 var segment = (NativeConcurrentQueueSegmentArm64<T>*)_segmentPool.Rent();
@@ -915,7 +913,7 @@ namespace NativeCollections
             {
                 var slots = (NativeConcurrentQueueSegmentSlot<T>*)Unsafe.AsPointer(ref Slots);
                 for (var i = 0; i < LENGTH; ++i)
-                    slots[i].SequenceNumber = i;
+                    Unsafe.Add(ref Unsafe.AsRef<NativeConcurrentQueueSegmentSlot<T>>(slots), (nint)i).SequenceNumber = i;
                 HeadAndTail = new NativeConcurrentQueuePaddedHeadAndTailArm64();
                 FrozenForEnqueues = false;
                 NextSegment = 0;
@@ -948,14 +946,14 @@ namespace NativeCollections
                 {
                     var currentHead = Volatile.Read(ref HeadAndTail.Head);
                     var slotsIndex = currentHead & SLOTS_MASK;
-                    var sequenceNumber = Volatile.Read(ref slots[slotsIndex].SequenceNumber);
+                    var sequenceNumber = Volatile.Read(ref Unsafe.Add(ref Unsafe.AsRef<NativeConcurrentQueueSegmentSlot<T>>(slots), (nint)slotsIndex).SequenceNumber);
                     var diff = sequenceNumber - (currentHead + 1);
                     if (diff == 0)
                     {
                         if (Interlocked.CompareExchange(ref HeadAndTail.Head, currentHead + 1, currentHead) == currentHead)
                         {
-                            result = slots[slotsIndex].Item;
-                            Volatile.Write(ref slots[slotsIndex].SequenceNumber, currentHead + LENGTH);
+                            result = Unsafe.Add(ref Unsafe.AsRef<NativeConcurrentQueueSegmentSlot<T>>(slots), (nint)slotsIndex).Item;
+                            Volatile.Write(ref Unsafe.Add(ref Unsafe.AsRef<NativeConcurrentQueueSegmentSlot<T>>(slots), (nint)slotsIndex).SequenceNumber, currentHead + LENGTH);
                             return true;
                         }
                     }
@@ -987,7 +985,7 @@ namespace NativeCollections
                 {
                     var currentHead = Volatile.Read(ref HeadAndTail.Head);
                     var slotsIndex = currentHead & SLOTS_MASK;
-                    var sequenceNumber = Volatile.Read(ref slots[slotsIndex].SequenceNumber);
+                    var sequenceNumber = Volatile.Read(ref Unsafe.Add(ref Unsafe.AsRef<NativeConcurrentQueueSegmentSlot<T>>(slots), (nint)slotsIndex).SequenceNumber);
                     var diff = sequenceNumber - (currentHead + 1);
                     if (diff == 0)
                         return true;
@@ -1015,14 +1013,14 @@ namespace NativeCollections
                 {
                     var currentTail = Volatile.Read(ref HeadAndTail.Tail);
                     var slotsIndex = currentTail & SLOTS_MASK;
-                    var sequenceNumber = Volatile.Read(ref slots[slotsIndex].SequenceNumber);
+                    var sequenceNumber = Volatile.Read(ref Unsafe.Add(ref Unsafe.AsRef<NativeConcurrentQueueSegmentSlot<T>>(slots), (nint)slotsIndex).SequenceNumber);
                     var diff = sequenceNumber - currentTail;
                     if (diff == 0)
                     {
                         if (Interlocked.CompareExchange(ref HeadAndTail.Tail, currentTail + 1, currentTail) == currentTail)
                         {
-                            slots[slotsIndex].Item = item;
-                            Volatile.Write(ref slots[slotsIndex].SequenceNumber, currentTail + 1);
+                            Unsafe.Add(ref Unsafe.AsRef<NativeConcurrentQueueSegmentSlot<T>>(slots), (nint)slotsIndex).Item = item;
+                            Volatile.Write(ref Unsafe.Add(ref Unsafe.AsRef<NativeConcurrentQueueSegmentSlot<T>>(slots), (nint)slotsIndex).SequenceNumber, currentTail + 1);
                             return true;
                         }
                     }

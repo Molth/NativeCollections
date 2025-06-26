@@ -225,8 +225,8 @@ namespace NativeCollections
             if (newLength > _buffer.Length || newLength + 256 < _buffer.Length)
             {
                 var buffer = new NativeArray<int>(newLength);
-                Unsafe.CopyBlockUnaligned(buffer.Buffer, _buffer.Buffer, (uint)(_buffer.Length * sizeof(int)));
-                Unsafe.InitBlockUnaligned(buffer.Buffer + _buffer.Length, 0, (uint)(newLength - _buffer.Length));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(buffer.Buffer), ref Unsafe.AsRef<byte>(_buffer.Buffer), (uint)(_buffer.Length * sizeof(int)));
+                Unsafe.InitBlockUnaligned(ref Unsafe.As<int, byte>(ref Unsafe.Add(ref Unsafe.AsRef<int>(buffer.Buffer), (nint)buffer.Length)), 0, (uint)(newLength - _buffer.Length));
                 _buffer.Dispose();
                 _buffer = buffer;
             }
@@ -406,7 +406,7 @@ namespace NativeCollections
                         _buffer[length - 1] &= (int)mask;
                     }
 
-                    Unsafe.CopyBlockUnaligned(_buffer.Buffer, _buffer.Buffer + fromIndex, (uint)((length - fromIndex) * sizeof(int)));
+                    Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(_buffer.Buffer), ref Unsafe.As<int, byte>(ref Unsafe.Add(ref Unsafe.AsRef<int>(_buffer.Buffer), (nint)fromIndex)), (uint)((length - fromIndex) * sizeof(int)));
                     toIndex = length - fromIndex;
                 }
                 else
@@ -450,7 +450,7 @@ namespace NativeCollections
                 lengthToClear = Div32Rem(count, out var shiftCount);
                 if (shiftCount == 0)
                 {
-                    Unsafe.CopyBlockUnaligned(_buffer.Buffer + lengthToClear, _buffer.Buffer, (uint)((lastIndex + 1 - lengthToClear) * sizeof(int)));
+                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<int, byte>(ref Unsafe.Add(ref Unsafe.AsRef<int>(_buffer.Buffer), (nint)lengthToClear)), ref Unsafe.AsRef<byte>(_buffer.Buffer), (uint)((lastIndex + 1 - lengthToClear) * sizeof(int)));
                 }
                 else
                 {
@@ -521,7 +521,7 @@ namespace NativeCollections
         {
             if ((uint)index >= (uint)_length)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
-            return new NativeBitArraySlot(&_buffer.Buffer[index >> 5], 1 << index);
+            return new NativeBitArraySlot((int*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<int>(_buffer.Buffer), (nint)(index >> 5))), 1 << index);
         }
 
         /// <summary>
@@ -538,7 +538,7 @@ namespace NativeCollections
                 return false;
             }
 
-            slot = new NativeBitArraySlot(&_buffer.Buffer[index >> 5], 1 << index);
+            slot = new NativeBitArraySlot((int*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<int>(_buffer.Buffer), (nint)(index >> 5))), 1 << index);
             return true;
         }
 
@@ -551,7 +551,7 @@ namespace NativeCollections
         {
             if (index >= (uint)_length)
                 throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
-            return new NativeBitArraySlot(&_buffer.Buffer[index >> 5], 1 << (int)index);
+            return new NativeBitArraySlot((int*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<int>(_buffer.Buffer), (nint)index >> 5)), 1 << (int)index);
         }
 
         /// <summary>
@@ -568,7 +568,7 @@ namespace NativeCollections
                 return false;
             }
 
-            slot = new NativeBitArraySlot(&_buffer.Buffer[index >> 5], 1 << (int)index);
+            slot = new NativeBitArraySlot((int*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<int>(_buffer.Buffer), (nint)(index >> 5))), 1 << (int)index);
             return true;
         }
 
