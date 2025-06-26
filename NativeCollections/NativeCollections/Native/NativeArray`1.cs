@@ -80,10 +80,10 @@ namespace NativeCollections
         ///     Structure
         /// </summary>
         /// <param name="length">Length</param>
-        /// <param name="zeroed">Zeroed</param>
         /// <param name="alignment">Alignment</param>
+        /// <param name="zeroed">Zeroed</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeArray(int length, bool zeroed, int alignment)
+        public NativeArray(int length, int alignment, bool zeroed)
         {
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
