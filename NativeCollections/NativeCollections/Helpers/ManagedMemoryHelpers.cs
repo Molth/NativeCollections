@@ -53,7 +53,7 @@ namespace NativeCollections
 #endif
             var ptr = (byte*)Unsafe.AsPointer(ref reference);
             var result = (byte*)(((nint)ptr + (nint)byteOffset) & ~((nint)alignment - 1));
-            Unsafe.WriteUnaligned(UnsafeHelpers.SubtractByteOffset<byte>(result, sizeof(GCHandle)), gcHandle);
+            Unsafe.WriteUnaligned(UnsafeHelpers.Subtract<GCHandle>(result, 1), gcHandle);
             return result;
         }
 
@@ -74,7 +74,7 @@ namespace NativeCollections
 #endif
             var ptr = (byte*)Unsafe.AsPointer(ref reference);
             var result = (byte*)(((nint)ptr + (nint)byteOffset) & ~((nint)alignment - 1));
-            Unsafe.WriteUnaligned(UnsafeHelpers.SubtractByteOffset<byte>(result, sizeof(GCHandle)), gcHandle);
+            Unsafe.WriteUnaligned(UnsafeHelpers.Subtract<GCHandle>(result, 1), gcHandle);
             Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(result), 0, byteCount);
             return result;
         }

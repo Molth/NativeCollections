@@ -37,7 +37,7 @@ namespace NativeCollections
         ///     Subtracts an element offset from the given reference.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T* Subtract<T>(void* source, nint elementOffset) where T : unmanaged => (T*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<T>(source), elementOffset));
+        public static T* Subtract<T>(void* source, nint elementOffset) where T : unmanaged => (T*)Unsafe.AsPointer(ref Unsafe.Subtract(ref Unsafe.AsRef<T>(source), elementOffset));
 
         /// <summary>
         ///     Subtracts a byte offset from the given reference.
