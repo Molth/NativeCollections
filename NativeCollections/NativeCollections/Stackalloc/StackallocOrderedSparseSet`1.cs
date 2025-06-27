@@ -1544,7 +1544,7 @@ namespace NativeCollections
                 public KeyValuePair<int, T> Current
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                    get => Unsafe.Read<KeyValuePair<int, T>>(_current);
+                    get => Unsafe.AsRef<KeyValuePair<int, T>>(_current);
                 }
             }
         }
