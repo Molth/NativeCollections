@@ -197,22 +197,49 @@ namespace NativeCollections
         ///     Copy to
         /// </summary>
         /// <param name="buffer">Buffer</param>
+        /// <param name="count">Count</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(Span<T> buffer) => CopyTo(MemoryMarshal.Cast<T, byte>(buffer));
+        public int CopyTo(Span<T> buffer, int count)
+        {
+            if (count < 0)
+                throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeNonNegative");
+            ref var reference = ref MemoryMarshal.GetReference(buffer);
+            var size = Math.Min(buffer.Length, Math.Min(count, _size));
+            for (var i = 0; i < size; ++i)
+                Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)i)), Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(_size - 1 - i)));
+            return size;
+        }
+
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <param name="count">Count</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int CopyTo(Span<byte> buffer, int count) => CopyTo(MemoryMarshal.Cast<byte, T>(buffer), count);
 
         /// <summary>
         ///     Copy to
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(Span<byte> buffer)
+        public void CopyTo(Span<T> buffer)
         {
-            ref var reference = ref Unsafe.As<byte, T>(ref MemoryMarshal.GetReference(buffer));
+            if (buffer.Length < Count)
+                throw new ArgumentOutOfRangeException(nameof(buffer), buffer.Length, $"Requires size is {Count}, but buffer length is {buffer.Length}.");
+            ref var reference = ref MemoryMarshal.GetReference(buffer);
             var num1 = 0;
             var num2 = _size;
             while (num1 < _size)
-                Unsafe.Add(ref reference, (nint)(--num2)) = Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)num1++);
+                Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)(--num2))), Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)num1++));
         }
+
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, T>(buffer));
 
         /// <summary>
         ///     Empty

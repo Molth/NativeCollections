@@ -13,19 +13,19 @@ namespace NativeCollections
     /// <summary>
     ///     Unsafe concurrent spinLock
     /// </summary>
-    [StructLayout(LayoutKind.Explicit, Size = 8)]
+    [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.None)]
     public struct UnsafeConcurrentSpinLock : IEquatable<UnsafeConcurrentSpinLock>
     {
         /// <summary>
         ///     Sequence number
         /// </summary>
-        [FieldOffset(0)] private volatile int _sequenceNumber;
+        private volatile int _sequenceNumber;
 
         /// <summary>
         ///     Next sequence number
         /// </summary>
-        [FieldOffset(4)] private volatile int _nextSequenceNumber;
+        private volatile int _nextSequenceNumber;
 
         /// <summary>
         ///     Sequence number

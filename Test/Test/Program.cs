@@ -11,7 +11,29 @@ namespace Examples
 {
     internal sealed unsafe class Program
     {
-        private static void Main() => TestDictionary();
+        private static void Main()
+        {
+            const int capacity = 4;
+            var queue1 = new Queue<int>(capacity);
+            var queue2 = new NativeQueue<int>(capacity);
+            for (int i = 0; i < Random.Shared.Next(128,1024); ++i)
+            {
+                var item = Random.Shared.Next();
+                queue1.Enqueue(item);
+                queue2.Enqueue(item);
+            }
+
+            var array1 = new int[queue1.Count].AsSpan();
+            var array2 = new int[queue2.Count].AsSpan();
+
+            var index = 0;
+            foreach (var item in queue1)
+                array1[index++] = item;
+            
+            queue2.CopyTo(array2);
+            
+            Console.WriteLine(array1.SequenceEqual(array2));
+        }
 
         static void TestDictionary()
         {

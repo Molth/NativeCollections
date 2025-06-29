@@ -356,28 +356,61 @@ namespace NativeCollections
         ///     Copy to
         /// </summary>
         /// <param name="buffer">Buffer</param>
+        /// <param name="count">Count</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(Span<T> buffer) => CopyTo(MemoryMarshal.Cast<T, byte>(buffer));
+        public int CopyTo(Span<T> buffer, int count)
+        {
+            if (count < 0)
+                throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeNonNegative");
+            ref var reference = ref MemoryMarshal.GetReference(buffer);
+            var size = Math.Min(buffer.Length, Math.Min(count, _size));
+            if (size == 0)
+                return 0;
+            var length1 = _length - _head;
+            var length2 = length1 > size ? size : length1;
+            Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_head)), (uint)(length2 * sizeof(T)));
+            var length3 = size - length2;
+            if (length3 > 0)
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, length1)), ref Unsafe.AsRef<byte>(_buffer), (uint)(length2 * sizeof(T)));
+            return size;
+        }
+
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <param name="count">Count</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int CopyTo(Span<byte> buffer, int count) => CopyTo(MemoryMarshal.Cast<byte, T>(buffer), count);
 
         /// <summary>
         ///     Copy to
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(Span<byte> buffer)
+        public void CopyTo(Span<T> buffer)
         {
+            if (buffer.Length < Count)
+                throw new ArgumentOutOfRangeException(nameof(buffer), buffer.Length, $"Requires size is {Count}, but buffer length is {buffer.Length}.");
+            ref var reference = ref MemoryMarshal.GetReference(buffer);
             var size = _size;
             if (size == 0)
                 return;
-            ref var reference = ref MemoryMarshal.GetReference(buffer);
             var length1 = _length - _head;
             var length2 = length1 > size ? size : length1;
-            Unsafe.CopyBlockUnaligned(ref reference, ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_head)), (uint)(length2 * sizeof(T)));
+            Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_head)), (uint)(length2 * sizeof(T)));
             var length3 = size - length2;
             if (length3 <= 0)
                 return;
-            Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, UnsafeHelpers.ToIntPtr(length1 * sizeof(T))), ref Unsafe.AsRef<byte>(_buffer), (uint)(length2 * sizeof(T)));
+            Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, length1)), ref Unsafe.AsRef<byte>(_buffer), (uint)(length2 * sizeof(T)));
         }
+
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, T>(buffer));
 
         /// <summary>
         ///     Empty

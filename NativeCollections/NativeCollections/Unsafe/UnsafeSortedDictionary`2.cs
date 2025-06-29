@@ -968,9 +968,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int CopyTo(Span<KeyValuePair<TKey, TValue>> buffer, int count)
         {
+            if (count < 0)
+                throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeNonNegative");
+            ref var reference = ref MemoryMarshal.GetReference(buffer);
             if (_root == null)
                 return 0;
-            count = count > _count ? _count : count;
+            count = Math.Min(buffer.Length, Math.Min(count, _count));
             var index = 0;
             using (var nodeStack = new UnsafeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(_count + 1))))
             {
@@ -981,7 +984,7 @@ namespace NativeCollections
                     if (index >= count)
                         break;
                     var node1 = (Node*)nodeStack.Pop();
-                    buffer[index++] = new KeyValuePair<TKey, TValue>(node1->Key, node1->Value);
+                    Unsafe.WriteUnaligned(ref Unsafe.As<KeyValuePair<TKey, TValue>, byte>(ref Unsafe.Add(ref reference, index++)), new KeyValuePair<TKey, TValue>(node1->Key, node1->Value));
                     for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
                         nodeStack.Push((nint)node2);
                 }
@@ -994,19 +997,22 @@ namespace NativeCollections
         ///     Copy to
         /// </summary>
         /// <param name="buffer">Buffer</param>
+        /// <param name="count">Count</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(Span<KeyValuePair<TKey, TValue>> buffer) => CopyTo(MemoryMarshal.Cast<KeyValuePair<TKey, TValue>, byte>(buffer));
+        public int CopyTo(Span<byte> buffer, int count) => CopyTo(MemoryMarshal.Cast<byte, KeyValuePair<TKey, TValue>>(buffer), count);
 
         /// <summary>
         ///     Copy to
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(Span<byte> buffer)
+        public void CopyTo(Span<KeyValuePair<TKey, TValue>> buffer)
         {
+            if (buffer.Length < Count)
+                throw new ArgumentOutOfRangeException(nameof(buffer), buffer.Length, $"Requires size is {Count}, but buffer length is {buffer.Length}.");
+            ref var reference = ref MemoryMarshal.GetReference(buffer);
             if (_root == null)
                 return;
-            ref var reference = ref Unsafe.As<byte, KeyValuePair<TKey, TValue>>(ref MemoryMarshal.GetReference(buffer));
             var index = 0;
             using (var nodeStack = new UnsafeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(_count + 1))))
             {
@@ -1015,12 +1021,19 @@ namespace NativeCollections
                 while (nodeStack.Count != 0)
                 {
                     var node1 = (Node*)nodeStack.Pop();
-                    Unsafe.Add(ref reference, (nint)index++) = new KeyValuePair<TKey, TValue>(node1->Key, node1->Value);
+                    Unsafe.WriteUnaligned(ref Unsafe.As<KeyValuePair<TKey, TValue>, byte>(ref Unsafe.Add(ref reference, (nint)index++)), new KeyValuePair<TKey, TValue>(node1->Key, node1->Value));
                     for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
                         nodeStack.Push((nint)node2);
                 }
             }
         }
+
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, KeyValuePair<TKey, TValue>>(buffer));
 
         /// <summary>
         ///     Empty
@@ -1171,9 +1184,12 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int CopyTo(Span<TKey> buffer, int count)
             {
+                if (count < 0)
+                    throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeNonNegative");
+                ref var reference = ref MemoryMarshal.GetReference(buffer);
                 if (_nativeSortedDictionary->_root == null)
                     return 0;
-                count = count > _nativeSortedDictionary->_count ? _nativeSortedDictionary->_count : count;
+                count = Math.Min(buffer.Length, Math.Min(count, _nativeSortedDictionary->_count));
                 var index = 0;
                 using (var nodeStack = new UnsafeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(_nativeSortedDictionary->_count + 1))))
                 {
@@ -1184,7 +1200,7 @@ namespace NativeCollections
                         if (index >= count)
                             break;
                         var node1 = (Node*)nodeStack.Pop();
-                        buffer[index++] = node1->Key;
+                        Unsafe.WriteUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref reference, index++)), node1->Key);
                         for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
                             nodeStack.Push((nint)node2);
                     }
@@ -1197,19 +1213,22 @@ namespace NativeCollections
             ///     Copy to
             /// </summary>
             /// <param name="buffer">Buffer</param>
+            /// <param name="count">Count</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void CopyTo(Span<TKey> buffer) => CopyTo(MemoryMarshal.Cast<TKey, byte>(buffer));
+            public int CopyTo(Span<byte> buffer, int count) => CopyTo(MemoryMarshal.Cast<byte, TKey>(buffer), count);
 
             /// <summary>
             ///     Copy to
             /// </summary>
             /// <param name="buffer">Buffer</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void CopyTo(Span<byte> buffer)
+            public void CopyTo(Span<TKey> buffer)
             {
+                if (buffer.Length < Count)
+                    throw new ArgumentOutOfRangeException(nameof(buffer), buffer.Length, $"Requires size is {Count}, but buffer length is {buffer.Length}.");
+                ref var reference = ref MemoryMarshal.GetReference(buffer);
                 if (_nativeSortedDictionary->_root == null)
                     return;
-                ref var reference = ref Unsafe.As<byte, TKey>(ref MemoryMarshal.GetReference(buffer));
                 var index = 0;
                 using (var nodeStack = new UnsafeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(_nativeSortedDictionary->_count + 1))))
                 {
@@ -1218,12 +1237,19 @@ namespace NativeCollections
                     while (nodeStack.Count != 0)
                     {
                         var node1 = (Node*)nodeStack.Pop();
-                        Unsafe.Add(ref reference, (nint)index++) = node1->Key;
+                        Unsafe.WriteUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref reference, (nint)index++)), node1->Key);
                         for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
                             nodeStack.Push((nint)node2);
                     }
                 }
             }
+
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, TKey>(buffer));
 
             /// <summary>
             ///     Get enumerator
@@ -1370,9 +1396,12 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int CopyTo(Span<TValue> buffer, int count)
             {
+                if (count < 0)
+                    throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeNonNegative");
+                ref var reference = ref MemoryMarshal.GetReference(buffer);
                 if (_nativeSortedDictionary->_root == null)
                     return 0;
-                count = count > _nativeSortedDictionary->_count ? _nativeSortedDictionary->_count : count;
+                count = Math.Min(buffer.Length, Math.Min(count, _nativeSortedDictionary->_count));
                 var index = 0;
                 using (var nodeStack = new UnsafeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(_nativeSortedDictionary->_count + 1))))
                 {
@@ -1383,7 +1412,7 @@ namespace NativeCollections
                         if (index >= count)
                             break;
                         var node1 = (Node*)nodeStack.Pop();
-                        buffer[index++] = node1->Value;
+                        Unsafe.WriteUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref reference, index++)), node1->Value);
                         for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
                             nodeStack.Push((nint)node2);
                     }
@@ -1396,19 +1425,22 @@ namespace NativeCollections
             ///     Copy to
             /// </summary>
             /// <param name="buffer">Buffer</param>
+            /// <param name="count">Count</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void CopyTo(Span<TValue> buffer) => CopyTo(MemoryMarshal.Cast<TValue, byte>(buffer));
+            public int CopyTo(Span<byte> buffer, int count) => CopyTo(MemoryMarshal.Cast<byte, TValue>(buffer), count);
 
             /// <summary>
             ///     Copy to
             /// </summary>
             /// <param name="buffer">Buffer</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void CopyTo(Span<byte> buffer)
+            public void CopyTo(Span<TValue> buffer)
             {
+                if (buffer.Length < Count)
+                    throw new ArgumentOutOfRangeException(nameof(buffer), buffer.Length, $"Requires size is {Count}, but buffer length is {buffer.Length}.");
+                ref var reference = ref MemoryMarshal.GetReference(buffer);
                 if (_nativeSortedDictionary->_root == null)
                     return;
-                ref var reference = ref Unsafe.As<byte, TValue>(ref MemoryMarshal.GetReference(buffer));
                 var index = 0;
                 using (var nodeStack = new UnsafeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(_nativeSortedDictionary->_count + 1))))
                 {
@@ -1417,12 +1449,19 @@ namespace NativeCollections
                     while (nodeStack.Count != 0)
                     {
                         var node1 = (Node*)nodeStack.Pop();
-                        Unsafe.Add(ref reference, (nint)index++) = node1->Value;
+                        Unsafe.WriteUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref reference, (nint)index++)), node1->Value);
                         for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
                             nodeStack.Push((nint)node2);
                     }
                 }
             }
+
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, TValue>(buffer));
 
             /// <summary>
             ///     Get enumerator
