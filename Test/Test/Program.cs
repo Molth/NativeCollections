@@ -16,7 +16,7 @@ namespace Examples
             const int capacity = 4;
             var queue1 = new Queue<int>(capacity);
             var queue2 = new NativeQueue<int>(capacity);
-            for (int i = 0; i < Random.Shared.Next(128,1024); ++i)
+            for (int i = 0; i < Random.Shared.Next(128, 1024); ++i)
             {
                 var item = Random.Shared.Next();
                 queue1.Enqueue(item);
@@ -24,14 +24,14 @@ namespace Examples
             }
 
             var array1 = new int[queue1.Count].AsSpan();
-            var array2 = new int[queue2.Count].AsSpan();
+            Span<int> array2 = stackalloc int[queue2.Count];
 
             var index = 0;
             foreach (var item in queue1)
                 array1[index++] = item;
-            
+
             queue2.CopyTo(array2);
-            
+
             Console.WriteLine(array1.SequenceEqual(array2));
         }
 
