@@ -155,8 +155,6 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(y), y, "MustBeNonNegative");
             if (z < 0)
                 throw new ArgumentOutOfRangeException(nameof(z), z, "MustBeNonNegative");
-            if (typeof(T) != typeof(byte) && (nint)buffer % (nint)NativeMemoryAllocator.AlignOf<T>() != 0)
-                throw new AccessViolationException("MustBeAligned");
             _buffer = buffer;
             _x = x;
             _y = y;

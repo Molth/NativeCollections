@@ -51,8 +51,8 @@ namespace NativeCollections
 #else
             ref var reference = ref MemoryMarshal.GetReference(array.AsSpan());
 #endif
-            var ptr = (byte*)Unsafe.AsPointer(ref reference);
-            var result = (byte*)(((nint)ptr + (nint)byteOffset) & ~((nint)alignment - 1));
+            var ptr = Unsafe.AsPointer(ref reference);
+            var result = (void*)(((nint)ptr + (nint)byteOffset) & ~((nint)alignment - 1));
             Unsafe.WriteUnaligned(UnsafeHelpers.SubtractByteOffset(result, sizeof(GCHandle)), gcHandle);
             return result;
         }
@@ -72,8 +72,8 @@ namespace NativeCollections
 #else
             ref var reference = ref MemoryMarshal.GetReference(array.AsSpan());
 #endif
-            var ptr = (byte*)Unsafe.AsPointer(ref reference);
-            var result = (byte*)(((nint)ptr + (nint)byteOffset) & ~((nint)alignment - 1));
+            var ptr = Unsafe.AsPointer(ref reference);
+            var result = (void*)(((nint)ptr + (nint)byteOffset) & ~((nint)alignment - 1));
             Unsafe.WriteUnaligned(UnsafeHelpers.SubtractByteOffset(result, sizeof(GCHandle)), gcHandle);
             Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(result), 0, byteCount);
             return result;

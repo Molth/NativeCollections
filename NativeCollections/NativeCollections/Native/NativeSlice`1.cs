@@ -44,8 +44,6 @@ namespace NativeCollections
         {
             if (count < 0)
                 throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeNonNegative");
-            if (typeof(T) != typeof(byte) && (nint)buffer % (nint)NativeMemoryAllocator.AlignOf<T>() != 0)
-                throw new AccessViolationException("MustBeAligned");
             _buffer = buffer;
             _offset = 0;
             _count = count;
@@ -64,8 +62,6 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(nameof(offset), offset, "MustBeNonNegative");
             if (count < 0)
                 throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeNonNegative");
-            if (typeof(T) != typeof(byte) && (nint)buffer % (nint)NativeMemoryAllocator.AlignOf<T>() != 0)
-                throw new AccessViolationException("MustBeAligned");
             _buffer = buffer;
             _offset = offset;
             _count = count;

@@ -131,7 +131,7 @@ namespace NativeCollections
                 throw;
             }
 
-            var result = (byte*)(((nint)ptr + (nint)byteOffset) & ~((nint)alignment - 1));
+            var result = (void*)(((nint)ptr + (nint)byteOffset) & ~((nint)alignment - 1));
             Unsafe.Subtract(ref Unsafe.AsRef<nint>(result), 1) = (nint)ptr;
             return result;
 #endif
@@ -289,9 +289,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Move(ref byte destination, ref byte source, uint byteCount)
         {
-            fixed (byte* pinnedDestination = &destination)
+            fixed (void* pinnedDestination = &destination)
             {
-                fixed (byte* pinnedSource = &source)
+                fixed (void* pinnedSource = &source)
                 {
                     Move(pinnedDestination, pinnedSource, byteCount);
                 }
@@ -359,6 +359,38 @@ namespace NativeCollections
         /// <returns>The alignment, in bytes, of type <typeparamref name="T" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static nuint AlignOf<T>() where T : unmanaged => (nuint)sizeof(AlignOfHelper<T>) - (nuint)sizeof(T);
+
+        /// <summary>
+        ///     Determines whether the specified unmanaged type <typeparamref name="T" /> is naturally aligned,
+        ///     meaning its size is a multiple of its alignment requirement.
+        /// </summary>
+        /// <typeparam name="T">The unmanaged type to check for alignment.</typeparam>
+        /// <returns><c>true</c> if the size of <typeparamref name="T" /> is a multiple of its alignment; otherwise, <c>false</c>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsAligned<T>() where T : unmanaged => (nuint)sizeof(T) % AlignOf<T>() == 0;
+
+        /// <summary>
+        ///     Determines whether a pointer is correctly aligned for the specified unmanaged type <typeparamref name="T" />,
+        ///     optionally taking into account the number of elements to be accessed.
+        /// </summary>
+        /// <typeparam name="T">
+        ///     The unmanaged type whose alignment requirements are being enforced.
+        /// </typeparam>
+        /// <param name="ptr">
+        ///     A pointer to the memory location to check for alignment.
+        /// </param>
+        /// <param name="elementCount">
+        ///     The number of contiguous <typeparamref name="T" /> elements that will be accessed.
+        ///     If greater than 1, this method also verifies that <typeparamref name="T" /> itself is naturally aligned
+        ///     (its size is a multiple of its alignment). If 1 or 0, only the pointer’s alignment is checked.
+        /// </param>
+        /// <returns>
+        ///     <c>true</c> if the pointer address is a multiple of <typeparamref name="T" />'s alignment boundary,
+        ///     and—when <paramref name="elementCount" /> &gt; 1—if <typeparamref name="T" /> is naturally aligned; otherwise,
+        ///     <c>false</c>.
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsAligned<T>(void* ptr, nuint elementCount) where T : unmanaged => elementCount > 1 ? IsAligned<T>() && (nint)ptr % (nint)AlignOf<T>() == 0 : (nint)ptr % (nint)AlignOf<T>() == 0;
 
         /// <summary>Helper structure for calculating type alignment.</summary>
         /// <typeparam name="T">The unmanaged type being measured.</typeparam>

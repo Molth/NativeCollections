@@ -70,24 +70,14 @@ namespace NativeCollections
         /// </summary>
         /// <param name="handle">Handle</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeReference(void* handle)
-        {
-            if (typeof(T) != typeof(byte) && (nint)handle % (nint)NativeMemoryAllocator.AlignOf<T>() != 0)
-                throw new AccessViolationException("MustBeAligned");
-            _handle = (T*)handle;
-        }
+        public NativeReference(void* handle) => _handle = (T*)handle;
 
         /// <summary>
         ///     Structure
         /// </summary>
         /// <param name="handle">Handle</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeReference(nint handle)
-        {
-            if (typeof(T) != typeof(byte) && handle % (nint)NativeMemoryAllocator.AlignOf<T>() != 0)
-                throw new AccessViolationException("MustBeAligned");
-            _handle = (T*)handle;
-        }
+        public NativeReference(nint handle) => _handle = (T*)handle;
 
         /// <summary>
         ///     Equals

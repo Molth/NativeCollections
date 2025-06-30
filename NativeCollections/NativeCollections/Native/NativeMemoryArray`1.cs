@@ -107,8 +107,6 @@ namespace NativeCollections
         {
             if (length < 0)
                 throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            if (typeof(T) != typeof(byte) && (nint)buffer % (nint)NativeMemoryAllocator.AlignOf<T>() != 0)
-                throw new AccessViolationException("MustBeAligned");
             _buffer = buffer;
             _length = length;
         }

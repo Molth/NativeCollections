@@ -54,11 +54,7 @@ namespace NativeCollections
         public ref byte this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-                var byteOffset = (nint)index;
-                return ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(_buffer), byteOffset);
-            }
+            get => ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(_buffer), (nint)index);
         }
 
         /// <summary>
@@ -72,13 +68,7 @@ namespace NativeCollections
         ///     Cast
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref T Cast<T>() where T : unmanaged
-        {
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
-            if ((nint)Unsafe.AsPointer(ref reference) % (nint)NativeMemoryAllocator.AlignOf<T>() != 0)
-                throw new AccessViolationException("MustBeAligned");
-            return ref Unsafe.As<byte, T>(ref reference);
-        }
+        public ref T Cast<T>() where T : unmanaged => ref Unsafe.As<byte, T>(ref MemoryMarshal.GetReference(_buffer));
 
         /// <summary>
         ///     Cast
@@ -90,61 +80,31 @@ namespace NativeCollections
         ///     Slice
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeReference Slice<T>(int start) where T : unmanaged
-        {
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
-            if ((nint)Unsafe.AsPointer(ref reference) % (nint)NativeMemoryAllocator.AlignOf<T>() != 0)
-                throw new AccessViolationException("MustBeAligned");
-            return new NativeReference(_buffer.Slice(start * sizeof(T)));
-        }
+        public NativeReference Slice<T>(int start) where T : unmanaged => new(_buffer.Slice(start * sizeof(T)));
 
         /// <summary>
         ///     As span
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<T> AsSpan<T>() where T : unmanaged
-        {
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
-            if ((nint)Unsafe.AsPointer(ref reference) % (nint)NativeMemoryAllocator.AlignOf<T>() != 0)
-                throw new AccessViolationException("MustBeAligned");
-            return MemoryMarshal.Cast<byte, T>(_buffer);
-        }
+        public Span<T> AsSpan<T>() where T : unmanaged => MemoryMarshal.Cast<byte, T>(_buffer);
 
         /// <summary>
         ///     As span
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<T> AsSpan<T>(int start, int length) where T : unmanaged
-        {
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
-            if ((nint)Unsafe.AsPointer(ref reference) % (nint)NativeMemoryAllocator.AlignOf<T>() != 0)
-                throw new AccessViolationException("MustBeAligned");
-            return MemoryMarshal.CreateSpan(ref Unsafe.Add(ref Unsafe.As<byte, T>(ref reference), (nint)start), length);
-        }
+        public Span<T> AsSpan<T>(int start, int length) where T : unmanaged => MemoryMarshal.CreateSpan(ref Unsafe.Add(ref Unsafe.As<byte, T>(ref MemoryMarshal.GetReference(_buffer)), (nint)start), length);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<T> AsReadOnlySpan<T>() where T : unmanaged
-        {
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
-            if ((nint)Unsafe.AsPointer(ref reference) % (nint)NativeMemoryAllocator.AlignOf<T>() != 0)
-                throw new AccessViolationException("MustBeAligned");
-            return MemoryMarshal.Cast<byte, T>(_buffer);
-        }
+        public ReadOnlySpan<T> AsReadOnlySpan<T>() where T : unmanaged => MemoryMarshal.Cast<byte, T>(_buffer);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<T> AsReadOnlySpan<T>(int start, int length) where T : unmanaged
-        {
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
-            if ((nint)Unsafe.AsPointer(ref reference) % (nint)NativeMemoryAllocator.AlignOf<T>() != 0)
-                throw new AccessViolationException("MustBeAligned");
-            return MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.As<byte, T>(ref reference), (nint)start), length);
-        }
+        public ReadOnlySpan<T> AsReadOnlySpan<T>(int start, int length) where T : unmanaged => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.As<byte, T>(ref MemoryMarshal.GetReference(_buffer)), (nint)start), length);
 
         /// <summary>
         ///     Equals

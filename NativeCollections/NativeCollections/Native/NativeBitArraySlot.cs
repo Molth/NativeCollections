@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 #pragma warning disable CA2208
@@ -39,8 +38,6 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeBitArraySlot(int* segment, int bitMask)
         {
-            if ((nint)segment % (nint)NativeMemoryAllocator.AlignOf<int>() != 0)
-                throw new AccessViolationException("MustBeAligned");
             _segment = segment;
             _bitMask = bitMask;
         }

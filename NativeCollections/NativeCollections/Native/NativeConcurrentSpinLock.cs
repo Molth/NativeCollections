@@ -27,12 +27,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeConcurrentSpinLock(void* buffer)
-        {
-            if ((nint)buffer % (nint)NativeMemoryAllocator.AlignOf<UnsafeConcurrentSpinLock>() != 0)
-                throw new AccessViolationException("MustBeAligned");
-            _handle = (UnsafeConcurrentSpinLock*)buffer;
-        }
+        public NativeConcurrentSpinLock(void* buffer) => _handle = (UnsafeConcurrentSpinLock*)buffer;
 
         /// <summary>
         ///     Dispose
@@ -170,6 +165,18 @@ namespace NativeCollections
         /// <returns>NativeConcurrentSpinLock</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator NativeConcurrentSpinLock(ReadOnlySpan<byte> readOnlySpan) => new(Unsafe.AsPointer(ref MemoryMarshal.GetReference(readOnlySpan)));
+
+        /// <summary>
+        ///     Create
+        /// </summary>
+        /// <returns>NativeXoshiro256</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeConcurrentSpinLock Create()
+        {
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeConcurrentSpinLock>(1);
+            handle->Reset();
+            return new NativeConcurrentSpinLock(handle);
+        }
 
         /// <summary>
         ///     Empty
