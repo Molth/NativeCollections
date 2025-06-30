@@ -55,7 +55,6 @@ namespace NativeCollections
         ///     Structure
         /// </summary>
         /// <param name="length">Length</param>
-        /// 5
         /// <param name="zeroed">Zeroed</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeTempPinnedBuffer(int length, bool zeroed)
@@ -113,9 +112,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            if (_buffer == null)
+            var buffer = _buffer;
+            if (buffer == null)
                 return;
-            ManagedMemoryHelpers.AlignedFree(_buffer);
+            ManagedMemoryHelpers.AlignedFree(buffer);
         }
 
         /// <summary>
