@@ -106,7 +106,7 @@ namespace NativeCollections
         /// <param name="argument">The reference type argument to validate as non-null.</param>
         /// <param name="paramName">The name of the parameter with which <paramref name="argument" /> corresponds.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfNull<T>(T? argument, string? paramName)
+        public static void ThrowIfNull<T>(T? argument, string? paramName) where T : class
         {
             if (argument == null)
                 throw new ArgumentNullException(paramName, "MustBeNotNull");
