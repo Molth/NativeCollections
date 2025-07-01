@@ -185,8 +185,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TPriority Dequeue()
         {
-            if (_size == 0)
-                throw new InvalidOperationException("EmptyQueue");
+            ThrowHelpers.ThrowIfEmptyQueue(_size);
             var priority = Unsafe.Add(ref Unsafe.AsRef<TPriority>(_nodes), (nint)0);
             RemoveRootNode();
             return priority;
@@ -218,8 +217,7 @@ namespace NativeCollections
         /// <returns>Priority</returns>
         public TPriority DequeueEnqueue(in TPriority priority)
         {
-            if (_size == 0)
-                throw new InvalidOperationException("EmptyQueue");
+            ThrowHelpers.ThrowIfEmptyQueue(_size);
             var node = Unsafe.Add(ref Unsafe.AsRef<TPriority>(_nodes), (nint)0);
             if (priority.CompareTo(node) > 0)
                 MoveDown(priority, 0);
@@ -258,7 +256,11 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Item</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TPriority Peek() => _size == 0 ? throw new InvalidOperationException("EmptyQueue") : Unsafe.Add(ref Unsafe.AsRef<TPriority>(_nodes), (nint)0);
+        public TPriority Peek()
+        {
+            ThrowHelpers.ThrowIfEmptyQueue(_size);
+            return Unsafe.Add(ref Unsafe.AsRef<TPriority>(_nodes), (nint)0);
+        }
 
         /// <summary>
         ///     Try peek
@@ -431,12 +433,20 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
-            IEnumerator<TPriority> IEnumerable<TPriority>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+            IEnumerator<TPriority> IEnumerable<TPriority>.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
 
             /// <summary>
             ///     Get enumerator
             /// </summary>
-            IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
 
             /// <summary>
             ///     Enumerator
@@ -485,8 +495,7 @@ namespace NativeCollections
                 public bool MoveNext()
                 {
                     var handle = _nativePriorityQueue;
-                    if (_version != handle->_version)
-                        throw new InvalidOperationException("EnumFailedVersion");
+                    ThrowHelpers.ThrowIfEnumFailedVersion(_version, handle->_version);
                     if ((uint)_index >= (uint)handle->_size)
                     {
                         _index = handle->_size + 1;

@@ -39,8 +39,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeMemoryWriter(byte* buffer, int length)
         {
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(length, nameof(length));
             Buffer = buffer;
             Length = length;
             _position = 0;
@@ -143,8 +142,7 @@ namespace NativeCollections
         public void Advance(int count)
         {
             var newPosition = _position + count;
-            if ((uint)newPosition > (uint)Length)
-                throw new ArgumentOutOfRangeException(nameof(count), "Cannot advance past the end of the buffer.");
+            ThrowHelpers.ThrowIfGreaterThan((uint)newPosition, (uint)Length, nameof(count));
             _position = newPosition;
         }
 
@@ -170,8 +168,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetPosition(int position)
         {
-            if ((uint)position > (uint)Length)
-                throw new ArgumentOutOfRangeException(nameof(position), "Cannot advance past the end of the buffer.");
+            ThrowHelpers.ThrowIfGreaterThan((uint)position, (uint)Length, nameof(position));
             _position = position;
         }
 
@@ -197,8 +194,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write<T>(T* obj) where T : unmanaged
         {
-            if (_position + sizeof(T) > Length)
-                throw new ArgumentOutOfRangeException(nameof(T), $"Requires size is {sizeof(T)}, but buffer length is {Remaining}.");
+            ThrowHelpers.ThrowIfGreaterThan(_position + sizeof(T), Length, nameof(T));
             Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(Buffer), UnsafeHelpers.ToIntPtr(_position)), ref Unsafe.AsRef<byte>(obj), (uint)sizeof(T));
             _position += sizeof(T);
         }
@@ -245,8 +241,7 @@ namespace NativeCollections
         public void WriteSpan<T>(ReadOnlySpan<T> buffer) where T : unmanaged
         {
             var count = buffer.Length * sizeof(T);
-            if (_position + count > Length)
-                throw new ArgumentOutOfRangeException(nameof(T), $"Requires size is {count}, but buffer length is {Remaining}.");
+            ThrowHelpers.ThrowIfGreaterThan(_position + count, Length, nameof(T));
             Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(Buffer), UnsafeHelpers.ToIntPtr(_position)), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)count);
             _position += count;
         }
@@ -273,8 +268,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write<T>(in T obj) where T : unmanaged
         {
-            if (_position + sizeof(T) > Length)
-                throw new ArgumentOutOfRangeException(nameof(T), $"Requires size is {sizeof(T)}, but buffer length is {Remaining}.");
+            ThrowHelpers.ThrowIfGreaterThan(_position + sizeof(T), Length, nameof(T));
             Unsafe.WriteUnaligned(UnsafeHelpers.AddByteOffset(Buffer, UnsafeHelpers.ToIntPtr(_position)), obj);
             _position += sizeof(T);
         }
@@ -303,8 +297,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteBytes(byte* buffer, int length)
         {
-            if (_position + length > Length)
-                throw new ArgumentOutOfRangeException(nameof(length), $"Requires size is {length}, but buffer length is {Remaining}.");
+            ThrowHelpers.ThrowIfGreaterThan(_position + length, Length, nameof(length));
             Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(Buffer), UnsafeHelpers.ToIntPtr(_position)), ref Unsafe.AsRef<byte>(buffer), (uint)length);
             _position += length;
         }
@@ -332,8 +325,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteBytes(ReadOnlySpan<byte> buffer)
         {
-            if (_position + buffer.Length > Length)
-                throw new ArgumentOutOfRangeException(nameof(buffer.Length), $"Requires size is {buffer.Length}, but buffer length is {Remaining}.");
+            ThrowHelpers.ThrowIfGreaterThan(_position + buffer.Length, Length, nameof(buffer));
             Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(Buffer), UnsafeHelpers.ToIntPtr(_position)), ref MemoryMarshal.GetReference(buffer), (uint)buffer.Length);
             _position += buffer.Length;
         }

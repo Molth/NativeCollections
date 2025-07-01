@@ -57,7 +57,7 @@ namespace NativeCollections
             get
             {
                 if (!TryGetValue(key, out var value))
-                    throw new KeyNotFoundException(key.ToString());
+                    ThrowHelpers.ThrowKeyNotFoundException(key);
                 return value;
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -604,8 +604,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TValue GetOrAdd(in TKey key, Func<TKey, TValue> valueFactory)
         {
-            if (valueFactory == null)
-                throw new ArgumentNullException(nameof(valueFactory));
+            ThrowHelpers.ThrowIfNull(valueFactory, nameof(valueFactory));
             var tables = _tables;
             var hashCode = key.GetHashCode();
             if (!TryGetValueInternal(tables, key, hashCode, out var resultingValue))
@@ -623,8 +622,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TValue GetOrAdd<TArg>(in TKey key, Func<TKey, TArg, TValue> valueFactory, in TArg factoryArgument)
         {
-            if (valueFactory == null)
-                throw new ArgumentNullException(nameof(valueFactory));
+            ThrowHelpers.ThrowIfNull(valueFactory, nameof(valueFactory));
             var tables = _tables;
             var hashCode = key.GetHashCode();
             if (!TryGetValueInternal(tables, key, hashCode, out var resultingValue))
@@ -654,10 +652,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TValue AddOrUpdate<TArg>(in TKey key, Func<TKey, TArg, TValue> addValueFactory, Func<TKey, TValue, TArg, TValue> updateValueFactory, in TArg factoryArgument)
         {
-            if (addValueFactory == null)
-                throw new ArgumentNullException(nameof(addValueFactory));
-            if (updateValueFactory == null)
-                throw new ArgumentNullException(nameof(updateValueFactory));
+            ThrowHelpers.ThrowIfNull(addValueFactory, nameof(addValueFactory));
+            ThrowHelpers.ThrowIfNull(updateValueFactory, nameof(updateValueFactory));
             var tables = _tables;
             var hashCode = key.GetHashCode();
             while (true)
@@ -692,10 +688,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TValue AddOrUpdate(in TKey key, Func<TKey, TValue> addValueFactory, Func<TKey, TValue, TValue> updateValueFactory)
         {
-            if (addValueFactory == null)
-                throw new ArgumentNullException(nameof(addValueFactory));
-            if (updateValueFactory == null)
-                throw new ArgumentNullException(nameof(updateValueFactory));
+            ThrowHelpers.ThrowIfNull(addValueFactory, nameof(addValueFactory));
+            ThrowHelpers.ThrowIfNull(updateValueFactory, nameof(updateValueFactory));
             var tables = _tables;
             var hashCode = key.GetHashCode();
             while (true)
@@ -730,8 +724,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TValue AddOrUpdate(in TKey key, in TValue addValue, Func<TKey, TValue, TValue> updateValueFactory)
         {
-            if (updateValueFactory == null)
-                throw new ArgumentNullException(nameof(updateValueFactory));
+            ThrowHelpers.ThrowIfNull(updateValueFactory, nameof(updateValueFactory));
             var tables = _tables;
             var hashCode = key.GetHashCode();
             while (true)
@@ -1274,12 +1267,20 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+        IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
 
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
 
         /// <summary>
         ///     Enumerator
@@ -1433,12 +1434,20 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
-            IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+            IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
 
             /// <summary>
             ///     Get enumerator
             /// </summary>
-            IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
 
             /// <summary>
             ///     Enumerator
@@ -1593,12 +1602,20 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
-            IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+            IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
 
             /// <summary>
             ///     Get enumerator
             /// </summary>
-            IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
 
             /// <summary>
             ///     Enumerator

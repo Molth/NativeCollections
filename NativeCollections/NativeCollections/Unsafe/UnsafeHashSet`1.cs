@@ -86,8 +86,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeHashSet(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             if (capacity < 4)
                 capacity = 4;
             this = new UnsafeHashSet<T>();
@@ -137,7 +136,7 @@ namespace NativeCollections
                 i = entry.Next;
                 collisionCount++;
                 if (collisionCount > (uint)_entriesLength)
-                    throw new InvalidOperationException("ConcurrentOperationsNotSupported");
+                    ThrowHelpers.ThrowConcurrentOperationsNotSupportedException();
             }
 
             int index;
@@ -201,7 +200,7 @@ namespace NativeCollections
                 i = entry.Next;
                 collisionCount++;
                 if (collisionCount > (uint)_entriesLength)
-                    throw new InvalidOperationException("ConcurrentOperationsNotSupported");
+                    ThrowHelpers.ThrowConcurrentOperationsNotSupportedException();
             }
 
             return false;
@@ -241,7 +240,7 @@ namespace NativeCollections
                 i = entry.Next;
                 collisionCount++;
                 if (collisionCount > (uint)_entriesLength)
-                    throw new InvalidOperationException("ConcurrentOperationsNotSupported");
+                    ThrowHelpers.ThrowConcurrentOperationsNotSupportedException();
             }
 
             actualValue = default;
@@ -304,8 +303,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int EnsureCapacity(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             var currentCapacity = _entriesLength;
             if (currentCapacity >= capacity)
                 return currentCapacity;
@@ -329,8 +327,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             var newSize = HashHelpers.GetPrime(capacity);
             var oldBuckets = _buckets;
             var oldEntries = _entries;
@@ -438,7 +435,7 @@ namespace NativeCollections
                 i = entry.Next;
                 collisionCount++;
                 if (collisionCount > (uint)_entriesLength)
-                    throw new InvalidOperationException("ConcurrentOperationsNotSupported");
+                    ThrowHelpers.ThrowConcurrentOperationsNotSupportedException();
             }
 
             return -1;
@@ -481,8 +478,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void CopyTo(Span<T> buffer)
         {
-            if (buffer.Length < Count)
-                throw new ArgumentOutOfRangeException(nameof(buffer), buffer.Length, $"Requires size is {Count}, but buffer length is {buffer.Length}.");
+            ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, nameof(buffer));
             ref var reference = ref MemoryMarshal.GetReference(buffer);
             var count = _count - _freeCount;
             var entries = _entries;
@@ -519,12 +515,20 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
 
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
 
         /// <summary>
         ///     Enumerator
@@ -573,8 +577,7 @@ namespace NativeCollections
             public bool MoveNext()
             {
                 var handle = _nativeHashSet;
-                if (_version != handle->_version)
-                    throw new InvalidOperationException("EnumFailedVersion");
+                ThrowHelpers.ThrowIfEnumFailedVersion(_version, handle->_version);
                 while ((uint)_index < (uint)handle->_count)
                 {
                     ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(handle->_entries), (nint)_index++);

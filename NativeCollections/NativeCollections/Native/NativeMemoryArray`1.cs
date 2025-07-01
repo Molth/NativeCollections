@@ -36,8 +36,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeMemoryArray(int length)
         {
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(length, nameof(length));
             _buffer = NativeMemoryAllocator.AlignedAlloc<T>((uint)length);
             _length = length;
         }
@@ -50,8 +49,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeMemoryArray(int length, bool zeroed)
         {
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(length, nameof(length));
             _buffer = zeroed ? NativeMemoryAllocator.AlignedAllocZeroed<T>((uint)length) : NativeMemoryAllocator.AlignedAlloc<T>((uint)length);
             _length = length;
         }
@@ -64,14 +62,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeMemoryArray(int length, int alignment)
         {
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            if (alignment < 0)
-                throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "MustBeNonNegative");
-            if (!BitOperationsHelpers.IsPow2((uint)alignment))
-                throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
-            if (typeof(T) != typeof(byte) && (uint)alignment < NativeMemoryAllocator.AlignOf<T>())
-                throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "MustBeGreaterOrEqual");
+            ThrowHelpers.ThrowIfNegative(length, nameof(length));
+            ThrowHelpers.ThrowIfNegative(alignment, nameof(alignment));
+            ThrowHelpers.ThrowIfAlignmentNotBePow2((uint)alignment, nameof(alignment));
+            ThrowHelpers.ThrowIfLessThan((uint)alignment, (uint)NativeMemoryAllocator.AlignOf<T>(), nameof(alignment));
             _buffer = (T*)NativeMemoryAllocator.AlignedAlloc((uint)(length * sizeof(T)), (uint)alignment);
             _length = length;
         }
@@ -85,14 +79,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeMemoryArray(int length, int alignment, bool zeroed)
         {
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            if (alignment < 0)
-                throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "MustBeNonNegative");
-            if (!BitOperationsHelpers.IsPow2((uint)alignment))
-                throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
-            if (typeof(T) != typeof(byte) && (uint)alignment < NativeMemoryAllocator.AlignOf<T>())
-                throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "MustBeGreaterOrEqual");
+            ThrowHelpers.ThrowIfNegative(length, nameof(length));
+            ThrowHelpers.ThrowIfNegative(alignment, nameof(alignment));
+            ThrowHelpers.ThrowIfAlignmentNotBePow2((uint)alignment, nameof(alignment));
+            ThrowHelpers.ThrowIfLessThan((uint)alignment, (uint)NativeMemoryAllocator.AlignOf<T>(), nameof(alignment));
             _buffer = zeroed ? (T*)NativeMemoryAllocator.AlignedAllocZeroed((uint)(length * sizeof(T)), (uint)alignment) : (T*)NativeMemoryAllocator.AlignedAlloc((uint)(length * sizeof(T)), (uint)alignment);
             _length = length;
         }
@@ -105,8 +95,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeMemoryArray(T* buffer, int length)
         {
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(length, nameof(length));
             _buffer = buffer;
             _length = length;
         }
@@ -333,12 +322,20 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
 
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
 
         /// <summary>
         ///     Enumerator

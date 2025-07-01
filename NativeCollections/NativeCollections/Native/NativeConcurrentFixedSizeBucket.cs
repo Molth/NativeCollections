@@ -34,8 +34,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeConcurrentFixedSizeBucket(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             _buffer = NativeMemoryAllocator.AlignedAllocZeroed<int>((uint)(2 + capacity));
             _length = capacity;
         }
@@ -48,8 +47,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeConcurrentFixedSizeBucket(int* buffer, int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             _buffer = buffer;
             _length = capacity;
         }

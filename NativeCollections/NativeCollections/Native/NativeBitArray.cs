@@ -262,7 +262,7 @@ namespace NativeCollections
         public NativeBitArray And(NativeBitArray value)
         {
             if (!value.IsCreated)
-                throw new ArgumentNullException(nameof(value));
+                ThrowHelpers.ThrowArgumentNullException(nameof(value));
             _handle->And(value._handle);
             return this;
         }
@@ -276,7 +276,7 @@ namespace NativeCollections
         public NativeBitArray Or(NativeBitArray value)
         {
             if (!value.IsCreated)
-                throw new ArgumentNullException(nameof(value));
+                ThrowHelpers.ThrowArgumentNullException(nameof(value));
             _handle->Or(value._handle);
             return this;
         }
@@ -290,7 +290,7 @@ namespace NativeCollections
         public NativeBitArray Xor(NativeBitArray value)
         {
             if (!value.IsCreated)
-                throw new ArgumentNullException(nameof(value));
+                ThrowHelpers.ThrowArgumentNullException(nameof(value));
             _handle->Xor(value._handle);
             return this;
         }

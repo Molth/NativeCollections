@@ -91,8 +91,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeDeque(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             if (capacity < 4)
                 capacity = 4;
             _buffer = NativeMemoryAllocator.AlignedAlloc<T>((uint)capacity);
@@ -278,8 +277,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int EnsureCapacity(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             if (_length < capacity)
                 Grow(capacity);
             return _length;
@@ -306,8 +304,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             if (capacity < _size || capacity >= _length)
                 return _length;
             SetCapacity(capacity);
@@ -368,8 +365,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int CopyTo(Span<T> buffer, int count)
         {
-            if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(count, nameof(count));
             ref var reference = ref MemoryMarshal.GetReference(buffer);
             var size = Math.Min(buffer.Length, Math.Min(count, _size));
             if (size == 0)
@@ -398,8 +394,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void CopyTo(Span<T> buffer)
         {
-            if (buffer.Length < Count)
-                throw new ArgumentOutOfRangeException(nameof(buffer), buffer.Length, $"Requires size is {Count}, but buffer length is {buffer.Length}.");
+            ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, nameof(buffer));
             ref var reference = ref MemoryMarshal.GetReference(buffer);
             var size = _size;
             if (size == 0)
@@ -434,12 +429,20 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
 
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
 
         /// <summary>
         ///     Enumerator
@@ -488,8 +491,7 @@ namespace NativeCollections
             public bool MoveNext()
             {
                 var handle = _nativeDeque;
-                if (_version != handle->_version)
-                    throw new InvalidOperationException("EnumFailedVersion");
+                ThrowHelpers.ThrowIfEnumFailedVersion(_version, handle->_version);
                 if (_index == -2)
                     return false;
                 _index++;
@@ -515,7 +517,11 @@ namespace NativeCollections
             public T Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => _index < 0 ? throw new InvalidOperationException(_index == -1 ? "EnumNotStarted" : "EnumEnded") : _currentElement;
+                get
+                {
+                    ThrowHelpers.ThrowIfEnumInvalidVersion(_index, -1);
+                    return _currentElement;
+                }
             }
         }
     }

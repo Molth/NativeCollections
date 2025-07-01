@@ -134,8 +134,7 @@ namespace NativeCollections
         public T Pop()
         {
             var size = _size - 1;
-            if ((uint)size >= (uint)_length)
-                throw new InvalidOperationException("EmptyStack");
+            ThrowHelpers.ThrowIfEmptyStack((uint)size, (uint)_length);
             _version++;
             _size = size;
             var item = Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)size);
@@ -171,7 +170,8 @@ namespace NativeCollections
         public T Peek()
         {
             var size = _size - 1;
-            return (uint)size >= (uint)_length ? throw new InvalidOperationException("EmptyStack") : Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)size);
+            ThrowHelpers.ThrowIfEmptyStack((uint)size, (uint)_length);
+            return Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)size);
         }
 
         /// <summary>
@@ -201,8 +201,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int CopyTo(Span<T> buffer, int count)
         {
-            if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(count, nameof(count));
             ref var reference = ref MemoryMarshal.GetReference(buffer);
             var size = Math.Min(buffer.Length, Math.Min(count, _size));
             for (var i = 0; i < size; ++i)
@@ -225,8 +224,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void CopyTo(Span<T> buffer)
         {
-            if (buffer.Length < Count)
-                throw new ArgumentOutOfRangeException(nameof(buffer), buffer.Length, $"Requires size is {Count}, but buffer length is {buffer.Length}.");
+            ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, nameof(buffer));
             ref var reference = ref MemoryMarshal.GetReference(buffer);
             var num1 = 0;
             var num2 = _size;
@@ -255,12 +253,20 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
 
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
 
         /// <summary>
         ///     Enumerator
@@ -309,8 +315,7 @@ namespace NativeCollections
             public bool MoveNext()
             {
                 var handle = _nativeStack;
-                if (_version != handle->_version)
-                    throw new InvalidOperationException("EnumFailedVersion");
+                ThrowHelpers.ThrowIfEnumFailedVersion(_version, handle->_version);
                 bool returned;
                 if (_index == -2)
                 {
@@ -334,7 +339,11 @@ namespace NativeCollections
             public T Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => _index < 0 ? throw new InvalidOperationException(_index == -1 ? "EnumNotStarted" : "EnumEnded") : _currentElement;
+                get
+                {
+                    ThrowHelpers.ThrowIfEnumInvalidVersion(_index, -1);
+                    return _currentElement;
+                }
             }
         }
     }

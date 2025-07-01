@@ -772,8 +772,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int CopyTo(Span<T> buffer, int count)
         {
-            if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(count, nameof(count));
             ref var reference = ref MemoryMarshal.GetReference(buffer);
             if (_root == null)
                 return 0;
@@ -812,8 +811,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void CopyTo(Span<T> buffer)
         {
-            if (buffer.Length < Count)
-                throw new ArgumentOutOfRangeException(nameof(buffer), buffer.Length, $"Requires size is {Count}, but buffer length is {buffer.Length}.");
+            ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, nameof(buffer));
             ref var reference = ref MemoryMarshal.GetReference(buffer);
             if (_root == null)
                 return;
@@ -853,12 +851,20 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
 
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
 
         /// <summary>
         ///     Enumerator
@@ -919,8 +925,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext()
             {
-                if (_version != _nativeSortedSet->_version)
-                    throw new InvalidOperationException("EnumFailedVersion");
+                ThrowHelpers.ThrowIfEnumFailedVersion(_version, _nativeSortedSet->_version);
                 if (!_nodeStack.TryPop(out var result))
                 {
                     _currentNode = null;

@@ -45,8 +45,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeTempPinnedBuffer(int length)
         {
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(length, nameof(length));
             _buffer = ManagedMemoryHelpers.AlignedAlloc<T>((uint)length);
             _length = length;
         }
@@ -59,8 +58,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeTempPinnedBuffer(int length, bool zeroed)
         {
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(length, nameof(length));
             _buffer = zeroed ? ManagedMemoryHelpers.AlignedAllocZeroed<T>((uint)length) : ManagedMemoryHelpers.AlignedAlloc<T>((uint)length);
             _length = length;
         }
@@ -73,14 +71,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeTempPinnedBuffer(int length, int alignment)
         {
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            if (alignment < 0)
-                throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "MustBeNonNegative");
-            if (!BitOperationsHelpers.IsPow2((uint)alignment))
-                throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
-            if (typeof(T) != typeof(byte) && (uint)alignment < NativeMemoryAllocator.AlignOf<T>())
-                throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "MustBeGreaterOrEqual");
+            ThrowHelpers.ThrowIfNegative(length, nameof(length));
+            ThrowHelpers.ThrowIfNegative(alignment, nameof(alignment));
+            ThrowHelpers.ThrowIfAlignmentNotBePow2((uint)alignment, nameof(alignment));
+            ThrowHelpers.ThrowIfLessThan((uint)alignment, (uint)NativeMemoryAllocator.AlignOf<T>(), nameof(alignment));
             _buffer = (T*)ManagedMemoryHelpers.AlignedAlloc((uint)(length * sizeof(T)), (uint)alignment);
             _length = length;
         }
@@ -94,14 +88,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeTempPinnedBuffer(int length, int alignment, bool zeroed)
         {
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            if (alignment < 0)
-                throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "MustBeNonNegative");
-            if (!BitOperationsHelpers.IsPow2((uint)alignment))
-                throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
-            if (typeof(T) != typeof(byte) && (uint)alignment < NativeMemoryAllocator.AlignOf<T>())
-                throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "MustBeGreaterOrEqual");
+            ThrowHelpers.ThrowIfNegative(length, nameof(length));
+            ThrowHelpers.ThrowIfNegative(alignment, nameof(alignment));
+            ThrowHelpers.ThrowIfAlignmentNotBePow2((uint)alignment, nameof(alignment));
+            ThrowHelpers.ThrowIfLessThan((uint)alignment, (uint)NativeMemoryAllocator.AlignOf<T>(), nameof(alignment));
             _buffer = zeroed ? ManagedMemoryHelpers.AlignedAllocZeroed<T>((uint)(length * sizeof(T))) : ManagedMemoryHelpers.AlignedAlloc<T>((uint)(length * sizeof(T)));
             _length = length;
         }
@@ -134,13 +124,21 @@ namespace NativeCollections
         ///     Equals
         /// </summary>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => throw new NotSupportedException("CannotCallEquals");
+        public override bool Equals(object? obj)
+        {
+            ThrowHelpers.ThrowCannotCallEqualsException();
+            return default;
+        }
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => throw new NotSupportedException("CannotCallGetHashCode");
+        public override int GetHashCode()
+        {
+            ThrowHelpers.ThrowCannotCallGetHashCodeException();
+            return default;
+        }
 
         /// <summary>
         ///     To string

@@ -39,8 +39,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeMemoryLinearAllocator(byte* buffer, int length)
         {
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(length, nameof(length));
             Buffer = buffer;
             Length = length;
             _position = 0;
@@ -143,8 +142,7 @@ namespace NativeCollections
         public void Advance(int count)
         {
             var newPosition = _position + count;
-            if ((uint)newPosition > (uint)Length)
-                throw new ArgumentOutOfRangeException(nameof(count), "Cannot advance past the end of the buffer.");
+            ThrowHelpers.ThrowIfGreaterThan((uint)newPosition, (uint)Length, nameof(count));
             _position = newPosition;
         }
 
@@ -170,8 +168,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetPosition(int position)
         {
-            if ((uint)position > (uint)Length)
-                throw new ArgumentOutOfRangeException(nameof(position), "Cannot advance past the end of the buffer.");
+            ThrowHelpers.ThrowIfGreaterThan((uint)position, (uint)Length, nameof(position));
             _position = position;
         }
 
@@ -228,8 +225,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryAlignedAlloc(uint byteCount, uint alignment, out void* ptr)
         {
-            if (!BitOperationsHelpers.IsPow2(alignment))
-                throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
+            ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, nameof(alignment));
             var position = (nint)NativeMemoryAllocator.AlignUp((nuint)((nint)Buffer + _position), alignment);
             if (position + (nint)byteCount > (nint)Buffer + Length)
             {

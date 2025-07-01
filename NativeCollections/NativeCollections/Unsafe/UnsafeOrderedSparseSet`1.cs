@@ -90,7 +90,8 @@ namespace NativeCollections
             {
                 if (TryGetValue(key, out var obj))
                     return obj;
-                throw new KeyNotFoundException(key.ToString());
+                ThrowHelpers.ThrowKeyNotFoundException(key);
+                return default;
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set => Insert(key, value);
@@ -178,8 +179,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeOrderedSparseSet(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             if (capacity < 4)
                 capacity = 4;
             var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<Entry>(), NativeMemoryAllocator.AlignOf<int>());
@@ -222,8 +222,7 @@ namespace NativeCollections
         {
             var max = Max;
             var maxKey = max?.Key ?? 0;
-            if (capacity < maxKey)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "SmallCapacity");
+            ThrowHelpers.ThrowIfLessThan(capacity, maxKey, nameof(capacity));
             if (capacity != _length)
             {
                 var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<Entry>(), NativeMemoryAllocator.AlignOf<int>());
@@ -249,10 +248,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Add(int key, in T value)
         {
-            if (key < 0)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
-            if (key >= _length)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeLessOrEqual");
+            ThrowHelpers.ThrowIfNegative(key, nameof(key));
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(key, _length, nameof(key));
             var index = Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key);
             if (index != -1)
                 return false;
@@ -288,10 +285,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public InsertResult Insert(int key, in T value)
         {
-            if (key < 0)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeNonNegative");
-            if (key >= _length)
-                throw new ArgumentOutOfRangeException(nameof(key), key, "MustBeLessOrEqual");
+            ThrowHelpers.ThrowIfNegative(key, nameof(key));
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(key, _length, nameof(key));
             var index = Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key);
             if (index != -1)
             {
@@ -497,10 +492,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetKeyAt(int index)
         {
-            if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
-            if (index >= _count)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
+            ThrowHelpers.ThrowIfNegative(index, nameof(index));
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _count, nameof(index));
             return Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index).Key;
         }
 
@@ -512,10 +505,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ref T GetValueAt(int index)
         {
-            if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
-            if (index >= _count)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
+            ThrowHelpers.ThrowIfNegative(index, nameof(index));
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _count, nameof(index));
             return ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index).Value;
         }
 
@@ -584,10 +575,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public KeyValuePair<int, T> GetAt(int index)
         {
-            if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
-            if (index >= _count)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
+            ThrowHelpers.ThrowIfNegative(index, nameof(index));
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _count, nameof(index));
             return Unsafe.As<Entry, KeyValuePair<int, T>>(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index));
         }
 
@@ -599,10 +588,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public KeyValuePair<int, NativeReference<T>> GetReferenceAt(int index)
         {
-            if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
-            if (index >= _count)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
+            ThrowHelpers.ThrowIfNegative(index, nameof(index));
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _count, nameof(index));
             ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index);
             return new KeyValuePair<int, NativeReference<T>>(entry.Key, new NativeReference<T>(Unsafe.AsPointer(ref entry.Value)));
         }
@@ -654,10 +641,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetAt(int index, in T value)
         {
-            if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
-            if (index >= _count)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
+            ThrowHelpers.ThrowIfNegative(index, nameof(index));
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _count, nameof(index));
             Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index).Value = value;
             ++_version;
         }
@@ -669,10 +654,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveAt(int index)
         {
-            if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
-            if (index >= _count)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
+            ThrowHelpers.ThrowIfNegative(index, nameof(index));
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _count, nameof(index));
             ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index);
             var key = entry.Key;
             --_count;
@@ -695,10 +678,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveAt(int index, out KeyValuePair<int, T> keyValuePair)
         {
-            if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
-            if (index >= _count)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
+            ThrowHelpers.ThrowIfNegative(index, nameof(index));
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _count, nameof(index));
             ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index);
             var key = entry.Key;
             keyValuePair = Unsafe.As<Entry, KeyValuePair<int, T>>(ref entry);
@@ -840,12 +821,20 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator<KeyValuePair<int, T>> IEnumerable<KeyValuePair<int, T>>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+        IEnumerator<KeyValuePair<int, T>> IEnumerable<KeyValuePair<int, T>>.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
 
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
 
         /// <summary>
         ///     Enumerator
@@ -888,8 +877,7 @@ namespace NativeCollections
             public bool MoveNext()
             {
                 var handle = _nativeSparseSet;
-                if (_version != handle->_version)
-                    throw new InvalidOperationException("EnumFailedVersion");
+                ThrowHelpers.ThrowIfEnumFailedVersion(_version, handle->_version);
                 var num = _index + 1;
                 if (num >= handle->_count)
                     return false;
@@ -940,10 +928,8 @@ namespace NativeCollections
                 get
                 {
                     var handle = _nativeSparseSet;
-                    if (index < 0)
-                        throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
-                    if (index >= handle->_count)
-                        throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
+                    ThrowHelpers.ThrowIfNegative(index, nameof(index));
+                    ThrowHelpers.ThrowIfGreaterThanOrEqual(index, handle->_count, nameof(index));
                     return Unsafe.Add(ref Unsafe.AsRef<Entry>(handle->_dense), (nint)index).Key;
                 }
             }
@@ -957,12 +943,20 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
-            IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+            IEnumerator<int> IEnumerable<int>.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
 
             /// <summary>
             ///     Get enumerator
             /// </summary>
-            IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
 
             /// <summary>
             ///     Enumerator
@@ -1005,8 +999,7 @@ namespace NativeCollections
                 public bool MoveNext()
                 {
                     var handle = _nativeSparseSet;
-                    if (_version != handle->_version)
-                        throw new InvalidOperationException("EnumFailedVersion");
+                    ThrowHelpers.ThrowIfEnumFailedVersion(_version, handle->_version);
                     var num = _index + 1;
                     if (num >= handle->_count)
                         return false;
@@ -1058,10 +1051,8 @@ namespace NativeCollections
                 get
                 {
                     var handle = _nativeSparseSet;
-                    if (index < 0)
-                        throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
-                    if (index >= handle->_count)
-                        throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
+                    ThrowHelpers.ThrowIfNegative(index, nameof(index));
+                    ThrowHelpers.ThrowIfGreaterThanOrEqual(index, handle->_count, nameof(index));
                     return ref Unsafe.Add(ref Unsafe.AsRef<Entry>(handle->_dense), (nint)index).Value;
                 }
             }
@@ -1075,12 +1066,20 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
-            IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+            IEnumerator<T> IEnumerable<T>.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
 
             /// <summary>
             ///     Get enumerator
             /// </summary>
-            IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
 
             /// <summary>
             ///     Enumerator
@@ -1123,8 +1122,7 @@ namespace NativeCollections
                 public bool MoveNext()
                 {
                     var handle = _nativeSparseSet;
-                    if (_version != handle->_version)
-                        throw new InvalidOperationException("EnumFailedVersion");
+                    ThrowHelpers.ThrowIfEnumFailedVersion(_version, handle->_version);
                     var num = _index + 1;
                     if (num >= handle->_count)
                         return false;
@@ -1174,8 +1172,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int CopyTo(Span<int> buffer, int count)
             {
-                if (count < 0)
-                    throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeNonNegative");
+                ThrowHelpers.ThrowIfNegative(count, nameof(count));
                 ref var reference = ref MemoryMarshal.GetReference(buffer);
                 count = Math.Min(buffer.Length, Math.Min(count, _nativeSparseSet->_count));
                 var dense = _nativeSparseSet->_dense;
@@ -1205,8 +1202,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void CopyTo(Span<int> buffer)
             {
-                if (buffer.Length < Count)
-                    throw new ArgumentOutOfRangeException(nameof(buffer), buffer.Length, $"Requires size is {Count}, but buffer length is {buffer.Length}.");
+                ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, nameof(buffer));
                 ref var reference = ref MemoryMarshal.GetReference(buffer);
                 var dense = _nativeSparseSet->_dense;
                 var current = _nativeSparseSet->_head;
@@ -1278,8 +1274,7 @@ namespace NativeCollections
                 public bool MoveNext()
                 {
                     var handle = _nativeSparseSet;
-                    if (_version != handle->_version)
-                        throw new InvalidOperationException("EnumFailedVersion");
+                    ThrowHelpers.ThrowIfEnumFailedVersion(_version, handle->_version);
                     var num = _index + 1;
                     if (num >= handle->_count)
                         return false;
@@ -1331,8 +1326,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int CopyTo(Span<T> buffer, int count)
             {
-                if (count < 0)
-                    throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeNonNegative");
+                ThrowHelpers.ThrowIfNegative(count, nameof(count));
                 ref var reference = ref MemoryMarshal.GetReference(buffer);
                 count = Math.Min(buffer.Length, Math.Min(count, _nativeSparseSet->_count));
                 var dense = _nativeSparseSet->_dense;
@@ -1362,8 +1356,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void CopyTo(Span<T> buffer)
             {
-                if (buffer.Length < Count)
-                    throw new ArgumentOutOfRangeException(nameof(buffer), buffer.Length, $"Requires size is {Count}, but buffer length is {buffer.Length}.");
+                ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, nameof(buffer));
                 ref var reference = ref MemoryMarshal.GetReference(buffer);
                 var dense = _nativeSparseSet->_dense;
                 var current = _nativeSparseSet->_head;
@@ -1435,8 +1428,7 @@ namespace NativeCollections
                 public bool MoveNext()
                 {
                     var handle = _nativeSparseSet;
-                    if (_version != handle->_version)
-                        throw new InvalidOperationException("EnumFailedVersion");
+                    ThrowHelpers.ThrowIfEnumFailedVersion(_version, handle->_version);
                     var num = _index + 1;
                     if (num >= handle->_count)
                         return false;
@@ -1488,8 +1480,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int CopyTo(Span<KeyValuePair<int, T>> buffer, int count)
             {
-                if (count < 0)
-                    throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeNonNegative");
+                ThrowHelpers.ThrowIfNegative(count, nameof(count));
                 ref var reference = ref MemoryMarshal.GetReference(buffer);
                 count = Math.Min(buffer.Length, Math.Min(count, _nativeSparseSet->_count));
                 var dense = _nativeSparseSet->_dense;
@@ -1519,8 +1510,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void CopyTo(Span<KeyValuePair<int, T>> buffer)
             {
-                if (buffer.Length < Count)
-                    throw new ArgumentOutOfRangeException(nameof(buffer), buffer.Length, $"Requires size is {Count}, but buffer length is {buffer.Length}.");
+                ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, nameof(buffer));
                 ref var reference = ref MemoryMarshal.GetReference(buffer);
                 var dense = _nativeSparseSet->_dense;
                 var current = _nativeSparseSet->_head;
@@ -1592,8 +1582,7 @@ namespace NativeCollections
                 public bool MoveNext()
                 {
                     var handle = _nativeSparseSet;
-                    if (_version != handle->_version)
-                        throw new InvalidOperationException("EnumFailedVersion");
+                    ThrowHelpers.ThrowIfEnumFailedVersion(_version, handle->_version);
                     var num = _index + 1;
                     if (num >= handle->_count)
                         return false;

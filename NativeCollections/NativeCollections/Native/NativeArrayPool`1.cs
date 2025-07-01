@@ -56,10 +56,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArrayPool(int capacity, int maxLength, CustomMemoryAllocator allocator)
         {
-            if (capacity <= 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBePositive");
-            if (maxLength < 0)
-                throw new ArgumentOutOfRangeException(nameof(maxLength), maxLength, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegativeOrZero(capacity, nameof(capacity));
+            ThrowHelpers.ThrowIfNegative(maxLength, nameof(maxLength));
             if (maxLength > 1073741824)
                 maxLength = 1073741824;
             else if (maxLength < 16)
@@ -166,12 +164,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArray<T> Rent(int minimumLength)
         {
-            if (minimumLength < 0)
-                throw new ArgumentOutOfRangeException(nameof(minimumLength), minimumLength, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(minimumLength, nameof(minimumLength));
             var index = SelectBucketIndex(minimumLength);
-            if (index < _length)
-                return Unsafe.Add(ref Unsafe.AsRef<NativeArrayPoolBucket>(_buckets), (nint)index).Rent(_capacity, (CustomMemoryAllocator*)Unsafe.AsPointer(ref _allocator));
-            throw new ArgumentOutOfRangeException(nameof(minimumLength), minimumLength, "BiggerThanCollection");
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _length, nameof(minimumLength));
+            return Unsafe.Add(ref Unsafe.AsRef<NativeArrayPoolBucket>(_buckets), (nint)index).Rent(_capacity, (CustomMemoryAllocator*)Unsafe.AsPointer(ref _allocator));
         }
 
         /// <summary>
@@ -224,10 +220,10 @@ namespace NativeCollections
         public void Return(int length, T* buffer)
         {
             if (length < 16 || (length & (length - 1)) != 0)
-                throw new ArgumentException("BufferNotFromPool", nameof(buffer));
+                ThrowHelpers.ThrowBufferNotFromPoolException(nameof(buffer));
             var bucket = SelectBucketIndex(length);
             if (bucket >= _length)
-                throw new ArgumentException("BufferNotFromPool", nameof(buffer));
+                ThrowHelpers.ThrowBufferNotFromPoolException(nameof(buffer));
             Unsafe.Add(ref Unsafe.AsRef<NativeArrayPoolBucket>(_buckets), (nint)bucket).Return(buffer, (CustomMemoryAllocator*)Unsafe.AsPointer(ref _allocator));
         }
 

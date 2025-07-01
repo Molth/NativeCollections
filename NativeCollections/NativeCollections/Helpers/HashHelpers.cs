@@ -55,8 +55,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetPrime(int min)
         {
-            if (min < 0)
-                throw new ArgumentException("HTCapacityOverflow");
+            ThrowHelpers.ThrowIfHashtableCapacityOverflow(min);
             if (min <= 7199369)
             {
                 ref var local1 = ref MemoryMarshal.GetReference(Primes);

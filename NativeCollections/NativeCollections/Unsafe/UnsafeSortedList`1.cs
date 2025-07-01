@@ -61,8 +61,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeSortedList(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             if (capacity < 4)
                 capacity = 4;
             _items = NativeMemoryAllocator.AlignedAlloc<T>((uint)capacity);
@@ -108,7 +107,7 @@ namespace NativeCollections
         {
             var num = IndexOf(item);
             if (num >= 0)
-                throw new ArgumentException($"AddingDuplicate, {item}", nameof(item));
+                ThrowHelpers.ThrowAddingDuplicateWithKeyException(item);
             Insert(~num, item);
         }
 
@@ -155,10 +154,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveAt(int index)
         {
-            if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
-            if (index >= _size)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
+            ThrowHelpers.ThrowIfNegative(index, nameof(index));
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, nameof(index));
             --_size;
             if (index < _size)
                 Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * sizeof(T)));
@@ -173,10 +170,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveAt(int index, out T item)
         {
-            if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
-            if (index >= _size)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
+            ThrowHelpers.ThrowIfNegative(index, nameof(index));
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, nameof(index));
             item = Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index);
             --_size;
             if (index < _size)
@@ -230,14 +225,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveRange(int index, int count)
         {
-            if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
-            if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(index, nameof(index));
+            ThrowHelpers.ThrowIfNegative(count, nameof(count));
             if (count == 0)
                 return;
-            if (index + count > _size)
-                throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeLess");
+            ThrowHelpers.ThrowIfGreaterThan(index + count, _size, nameof(count));
             _size -= count;
             if (index < _size)
                 Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + count))), (uint)((_size - index) * sizeof(T)));
@@ -251,10 +243,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T GetAt(int index)
         {
-            if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "MustBeNonNegative");
-            if (index >= _size)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
+            ThrowHelpers.ThrowIfNegative(index, nameof(index));
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, nameof(index));
             return Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index);
         }
 
@@ -329,8 +319,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             if (capacity < _size || capacity >= _capacity)
                 return _capacity;
             SetCapacity(capacity);
@@ -344,8 +333,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetCapacity(int capacity)
         {
-            if (capacity < _size)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "Small_Capacity");
+            ThrowHelpers.ThrowIfLessThan(capacity, _size, nameof(capacity));
             if (capacity != _capacity)
             {
                 var items = NativeMemoryAllocator.AlignedAlloc<T>((uint)capacity);
@@ -416,12 +404,20 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
 
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
 
         /// <summary>
         ///     Enumerator
@@ -470,8 +466,7 @@ namespace NativeCollections
             public bool MoveNext()
             {
                 var handle = _nativeSortedList;
-                if (_version != handle->_version)
-                    throw new InvalidOperationException("EnumFailedVersion");
+                ThrowHelpers.ThrowIfEnumFailedVersion(_version, handle->_version);
                 if ((uint)_index < (uint)handle->_size)
                 {
                     _current = Unsafe.Add(ref Unsafe.AsRef<T>(handle->_items), (nint)_index);

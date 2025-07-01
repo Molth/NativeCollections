@@ -118,13 +118,21 @@ namespace NativeCollections
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => throw new NotSupportedException("CannotCallEquals");
+        public override bool Equals(object? obj)
+        {
+            ThrowHelpers.ThrowCannotCallEqualsException();
+            return default;
+        }
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => throw new NotSupportedException("CannotCallGetHashCode");
+        public override int GetHashCode()
+        {
+            ThrowHelpers.ThrowCannotCallGetHashCodeException();
+            return default;
+        }
 
         /// <summary>
         ///     To string

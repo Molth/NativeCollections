@@ -106,10 +106,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeChunkedQueue(int size, int maxFreeChunks)
         {
-            if (size <= 0)
-                throw new ArgumentOutOfRangeException(nameof(size), size, "MustBePositive");
-            if (maxFreeChunks < 0)
-                throw new ArgumentOutOfRangeException(nameof(maxFreeChunks), maxFreeChunks, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegativeOrZero(size, nameof(size));
+            ThrowHelpers.ThrowIfNegative(maxFreeChunks, nameof(maxFreeChunks));
             var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<MemoryChunk>(), NativeMemoryAllocator.AlignOf<T>());
             var chunkByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)sizeof(MemoryChunk), alignment);
             var chunk = (MemoryChunk*)NativeMemoryAllocator.AlignedAlloc((uint)(chunkByteCount + size * sizeof(T)), alignment);
@@ -278,8 +276,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int EnsureCapacity(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             if (capacity > _maxFreeChunks)
                 capacity = _maxFreeChunks;
             while (_freeChunks < capacity)
@@ -321,8 +318,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             var node = _freeList;
             while (_freeChunks > capacity)
             {

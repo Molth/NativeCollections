@@ -52,7 +52,7 @@ namespace NativeCollections
                 if (handle == null)
                 {
                     NativeMemoryAllocator.AlignedFree(buffer);
-                    throw new ArgumentOutOfRangeException(nameof(size), "Memory must be aligned to 8 bytes.");
+                    ThrowHelpers.ThrowMustBeAlignedToException(8, nameof(size));
                 }
             }
             else
@@ -63,7 +63,7 @@ namespace NativeCollections
                 if (handle == null)
                 {
                     NativeMemoryAllocator.AlignedFree(buffer);
-                    throw new ArgumentOutOfRangeException(nameof(size), "Memory must be aligned to 4 bytes.");
+                    ThrowHelpers.ThrowMustBeAlignedToException(4, nameof(size));
                 }
             }
 

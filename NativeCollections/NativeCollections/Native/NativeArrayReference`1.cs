@@ -38,8 +38,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArrayReference(int length)
         {
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(length, nameof(length));
             _handle = GCHandle.Alloc(new T[length], GCHandleType.Normal);
             _length = length;
         }
@@ -52,8 +51,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArrayReference(int length, GCHandleType type)
         {
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(length, nameof(length));
             _handle = GCHandle.Alloc(new T[length], type);
             _length = length;
         }
@@ -65,8 +63,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArrayReference(T[] buffer)
         {
-            if (buffer == null)
-                throw new ArgumentNullException(nameof(buffer), "MustBeNotNull");
+            ThrowHelpers.ThrowIfNull(buffer, nameof(buffer));
             _handle = GCHandle.Alloc(buffer, GCHandleType.Normal);
             _length = buffer.Length;
         }
@@ -79,8 +76,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArrayReference(T[] buffer, GCHandleType type)
         {
-            if (buffer == null)
-                throw new ArgumentNullException(nameof(buffer), "MustBeNotNull");
+            ThrowHelpers.ThrowIfNull(buffer, nameof(buffer));
             _handle = GCHandle.Alloc(buffer, type);
             _length = buffer.Length;
         }
@@ -202,12 +198,20 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
 
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
 
         /// <summary>
         ///     Enumerator

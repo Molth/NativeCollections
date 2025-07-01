@@ -87,8 +87,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeList(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             if (capacity < 4)
                 capacity = 4;
             _buffer = NativeMemoryAllocator.AlignedAlloc<T>((uint)capacity);
@@ -181,8 +180,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Insert(int index, in T item)
         {
-            if ((uint)index > (uint)_size)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
+            ThrowHelpers.ThrowIfGreaterThan((uint)index, (uint)_size, nameof(index));
             if (_size == _length)
                 Grow(_size + 1);
             if (index < _size)
@@ -200,8 +198,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void InsertRange(int index, ReadOnlySpan<T> buffer)
         {
-            if ((uint)index > (uint)_size)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
+            ThrowHelpers.ThrowIfGreaterThan((uint)index, (uint)_size, nameof(index));
             var count = buffer.Length;
             if (count > 0)
             {
@@ -258,8 +255,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveAt(int index)
         {
-            if ((uint)index >= (uint)_size)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
+            ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_size, nameof(index));
             _size--;
             if (index < _size)
                 Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(index + 1))), (uint)((_size - index) * sizeof(T)));
@@ -273,8 +269,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SwapRemoveAt(int index)
         {
-            if ((uint)index >= (uint)_size)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
+            ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_size, nameof(index));
             _size--;
             if (index != _size)
                 Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index) = Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_size);
@@ -289,13 +284,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveRange(int index, int count)
         {
-            if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "NeedNonNegNum");
-            if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), count, "NeedNonNegNum");
+            ThrowHelpers.ThrowIfNegative(index, nameof(index));
+            ThrowHelpers.ThrowIfNegative(count, nameof(count));
             var offset = _size - index;
-            if (offset < count)
-                throw new ArgumentOutOfRangeException(nameof(count), "MustBeLess");
+            ThrowHelpers.ThrowIfGreaterThan(count, offset, nameof(count));
             if (count > 0)
             {
                 _size -= count;
@@ -324,13 +316,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reverse(int index, int count)
         {
-            if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "NeedNonNegNum");
-            if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), count, "NeedNonNegNum");
+            ThrowHelpers.ThrowIfNegative(index, nameof(index));
+            ThrowHelpers.ThrowIfNegative(count, nameof(count));
             var offset = _size - index;
-            if (offset < count)
-                throw new ArgumentOutOfRangeException(nameof(count), "MustBeLess");
+            ThrowHelpers.ThrowIfGreaterThan(count, offset, nameof(count));
             if (count > 1)
                 MemoryMarshal.CreateSpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index), count).Reverse();
             _version++;
@@ -351,8 +340,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetCount(int count)
         {
-            if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), count, "NeedNonNegNum");
+            ThrowHelpers.ThrowIfNegative(count, nameof(count));
             if (_length < count)
                 Grow(count);
             _size = count;
@@ -367,8 +355,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int EnsureCapacity(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             if (_length < capacity)
                 Grow(capacity);
             return _length;
@@ -395,8 +382,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             if (capacity < _size || capacity >= _length)
                 return _length;
             SetCapacity(capacity);
@@ -439,10 +425,8 @@ namespace NativeCollections
         {
             if (_size == 0)
                 return -1;
-            if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "NeedNonNegNum");
-            if (index > _size)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
+            ThrowHelpers.ThrowIfNegative(index, nameof(index));
+            ThrowHelpers.ThrowIfGreaterThan(index, _size, nameof(index));
             return MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index), _size - index).IndexOf(item);
         }
 
@@ -458,14 +442,10 @@ namespace NativeCollections
         {
             if (_size == 0)
                 return -1;
-            if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "NeedNonNegNum");
-            if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), count, "NeedNonNegNum");
-            if (index > _size)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLessOrEqual");
-            if (index > _size - count)
-                throw new ArgumentOutOfRangeException(nameof(count), count, "BiggerThanCollection");
+            ThrowHelpers.ThrowIfNegative(index, nameof(index));
+            ThrowHelpers.ThrowIfNegative(count, nameof(count));
+            ThrowHelpers.ThrowIfGreaterThan(index, _size, nameof(index));
+            ThrowHelpers.ThrowIfGreaterThan(index, _size - count, nameof(count));
             return MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index), count).IndexOf(item);
         }
 
@@ -488,10 +468,8 @@ namespace NativeCollections
         {
             if (_size == 0)
                 return -1;
-            if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "NeedNonNegNum");
-            if (index >= _size)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
+            ThrowHelpers.ThrowIfNegative(index, nameof(index));
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, nameof(index));
             return MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index), index + 1).LastIndexOf(item);
         }
 
@@ -507,14 +485,10 @@ namespace NativeCollections
         {
             if (_size == 0)
                 return -1;
-            if (index < 0)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "NeedNonNegNum");
-            if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), count, "NeedNonNegNum");
-            if (index >= _size)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "BiggerThanCollection");
-            if (count > index + 1)
-                throw new ArgumentOutOfRangeException(nameof(count), count, "BiggerThanCollection");
+            ThrowHelpers.ThrowIfNegative(index, nameof(index));
+            ThrowHelpers.ThrowIfNegative(count, nameof(count));
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, nameof(index));
+            ThrowHelpers.ThrowIfGreaterThan(count, index + 1, nameof(count));
             return MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index), count).LastIndexOf(item);
         }
 
@@ -525,8 +499,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetCapacity(int capacity)
         {
-            if (capacity < _size)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "SmallCapacity");
+            ThrowHelpers.ThrowIfLessThan(capacity, _size, nameof(capacity));
             if (capacity != _length)
             {
                 var newItems = NativeMemoryAllocator.AlignedAlloc<T>((uint)capacity);
@@ -614,12 +587,20 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
 
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
 
         /// <summary>
         ///     Enumerator
@@ -675,8 +656,7 @@ namespace NativeCollections
                     return true;
                 }
 
-                if (_version != handle->_version)
-                    throw new InvalidOperationException("EnumFailedVersion");
+                ThrowHelpers.ThrowIfEnumFailedVersion(_version, handle->_version);
                 _index = handle->_size + 1;
                 _current = default;
                 return false;

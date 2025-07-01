@@ -977,8 +977,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int CopyTo(Span<KeyValuePair<TKey, TValue>> buffer, int count)
         {
-            if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(count, nameof(count));
             ref var reference = ref MemoryMarshal.GetReference(buffer);
             if (_root == null)
                 return 0;
@@ -1017,8 +1016,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void CopyTo(Span<KeyValuePair<TKey, TValue>> buffer)
         {
-            if (buffer.Length < Count)
-                throw new ArgumentOutOfRangeException(nameof(buffer), buffer.Length, $"Requires size is {Count}, but buffer length is {buffer.Length}.");
+            ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, nameof(buffer));
             ref var reference = ref MemoryMarshal.GetReference(buffer);
             if (_root == null)
                 return;
@@ -1058,12 +1056,20 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+        IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
 
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
 
         /// <summary>
         ///     Enumerator
@@ -1124,8 +1130,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext()
             {
-                if (_version != _nativeSortedDictionary->_version)
-                    throw new InvalidOperationException("EnumFailedVersion");
+                ThrowHelpers.ThrowIfEnumFailedVersion(_version, _nativeSortedDictionary->_version);
                 if (!_nodeStack.TryPop(out var result))
                 {
                     _currentNode = null;
@@ -1193,8 +1198,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int CopyTo(Span<TKey> buffer, int count)
             {
-                if (count < 0)
-                    throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeNonNegative");
+                ThrowHelpers.ThrowIfNegative(count, nameof(count));
                 ref var reference = ref MemoryMarshal.GetReference(buffer);
                 if (_nativeSortedDictionary->_root == null)
                     return 0;
@@ -1233,8 +1237,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void CopyTo(Span<TKey> buffer)
             {
-                if (buffer.Length < Count)
-                    throw new ArgumentOutOfRangeException(nameof(buffer), buffer.Length, $"Requires size is {Count}, but buffer length is {buffer.Length}.");
+                ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, nameof(buffer));
                 ref var reference = ref MemoryMarshal.GetReference(buffer);
                 if (_nativeSortedDictionary->_root == null)
                     return;
@@ -1269,12 +1272,20 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
-            IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+            IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
 
             /// <summary>
             ///     Get enumerator
             /// </summary>
-            IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
 
             /// <summary>
             ///     Enumerator
@@ -1335,8 +1346,7 @@ namespace NativeCollections
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public bool MoveNext()
                 {
-                    if (_version != _nativeSortedDictionary->_version)
-                        throw new InvalidOperationException("EnumFailedVersion");
+                    ThrowHelpers.ThrowIfEnumFailedVersion(_version, _nativeSortedDictionary->_version);
                     if (!_nodeStack.TryPop(out var result))
                     {
                         _currentNode = null;
@@ -1405,8 +1415,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int CopyTo(Span<TValue> buffer, int count)
             {
-                if (count < 0)
-                    throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeNonNegative");
+                ThrowHelpers.ThrowIfNegative(count, nameof(count));
                 ref var reference = ref MemoryMarshal.GetReference(buffer);
                 if (_nativeSortedDictionary->_root == null)
                     return 0;
@@ -1445,8 +1454,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void CopyTo(Span<TValue> buffer)
             {
-                if (buffer.Length < Count)
-                    throw new ArgumentOutOfRangeException(nameof(buffer), buffer.Length, $"Requires size is {Count}, but buffer length is {buffer.Length}.");
+                ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, nameof(buffer));
                 ref var reference = ref MemoryMarshal.GetReference(buffer);
                 if (_nativeSortedDictionary->_root == null)
                     return;
@@ -1481,12 +1489,20 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
-            IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+            IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
 
             /// <summary>
             ///     Get enumerator
             /// </summary>
-            IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
 
             /// <summary>
             ///     Enumerator
@@ -1547,8 +1563,7 @@ namespace NativeCollections
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public bool MoveNext()
                 {
-                    if (_version != _nativeSortedDictionary->_version)
-                        throw new InvalidOperationException("EnumFailedVersion");
+                    ThrowHelpers.ThrowIfEnumFailedVersion(_version, _nativeSortedDictionary->_version);
                     if (!_nodeStack.TryPop(out var result))
                     {
                         _currentNode = null;

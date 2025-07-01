@@ -74,10 +74,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeLinearMemoryPool(int maxLength, int maxFreeSlabs)
         {
-            if (maxLength <= 0)
-                throw new ArgumentOutOfRangeException(nameof(maxLength), maxLength, "MustBePositive");
-            if (maxFreeSlabs < 0)
-                throw new ArgumentOutOfRangeException(nameof(maxFreeSlabs), maxFreeSlabs, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegativeOrZero(maxLength, nameof(maxLength));
+            ThrowHelpers.ThrowIfNegative(maxFreeSlabs, nameof(maxFreeSlabs));
             var size = sizeof(MemoryNode) + maxLength;
             var buffer = (byte*)NativeMemoryAllocator.AlignedAlloc((uint)(sizeof(MemorySlab) + size), (uint)NativeMemoryAllocator.AlignOf<nint>());
             var slab = (MemorySlab*)buffer;
@@ -124,21 +122,17 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void* Rent(int length, int alignment)
         {
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            if (alignment < 0)
-                throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "MustBeNonNegative");
-            if (!BitOperationsHelpers.IsPow2((uint)alignment))
-                throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
+            ThrowHelpers.ThrowIfNegative(length, nameof(length));
+            ThrowHelpers.ThrowIfNegative(alignment, nameof(alignment));
+            ThrowHelpers.ThrowIfAlignmentNotBePow2((uint)alignment, nameof(alignment));
             alignment = Math.Max(alignment, (int)NativeMemoryAllocator.AlignOf<MemoryNode>());
             var nodeSize = sizeof(MemoryNode);
             var maxPadding = alignment - 1;
             var byteCount = nodeSize + maxPadding + length;
             if (byteCount > _size)
             {
-                if (nodeSize + maxPadding > _size)
-                    throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "MustBeLessOrEqual");
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeLessOrEqual");
+                ThrowHelpers.ThrowIfGreaterThan(nodeSize + maxPadding, _size, nameof(alignment));
+                ThrowHelpers.ThrowMustBeLessOrEqualException(length, nameof(length));
             }
 
             var slab = _sentinel;
@@ -214,8 +208,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int EnsureCapacity(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             if (capacity > _maxFreeSlabs)
                 capacity = _maxFreeSlabs;
             var size = _size;
@@ -256,8 +249,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             var node = _freeList;
             while (_freeSlabs > capacity)
             {

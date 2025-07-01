@@ -52,8 +52,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                if (value < 0)
-                    throw new ArgumentOutOfRangeException(nameof(Position), value, "MustBeNonNegative");
+                ThrowHelpers.ThrowIfNegative(value, nameof(Position));
                 _position = value;
             }
         }
@@ -101,35 +100,34 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Seek(int offset, SeekOrigin loc)
         {
-            if (offset > 2147483647)
-                throw new ArgumentOutOfRangeException(nameof(offset), offset, "StreamLength");
+            ThrowHelpers.ThrowIfGreaterThan(offset, 2147483647, nameof(offset));
             switch (loc)
             {
                 case SeekOrigin.Begin:
                 {
-                    if (offset < 0)
-                        throw new IOException("IO_SeekBeforeBegin");
+                    ThrowHelpers.ThrowIfSeekBeforeBegin(offset);
                     _position = offset;
                     break;
                 }
                 case SeekOrigin.Current:
                 {
                     var tempPosition = unchecked(_position + offset);
-                    if (tempPosition < 0)
-                        throw new IOException("IO_SeekBeforeBegin");
+                    ThrowHelpers.ThrowIfSeekBeforeBegin(tempPosition);
                     _position = tempPosition;
                     break;
                 }
                 case SeekOrigin.End:
                 {
                     var tempPosition = unchecked(_length + offset);
-                    if (tempPosition < 0)
-                        throw new IOException("IO_SeekBeforeBegin");
+                    ThrowHelpers.ThrowIfSeekBeforeBegin(tempPosition);
                     _position = tempPosition;
                     break;
                 }
                 default:
-                    throw new ArgumentException("InvalidSeekOrigin");
+                {
+                    ThrowHelpers.ThrowInvalidSeekOriginException();
+                    return default;
+                }
             }
 
             return _position;
@@ -142,10 +140,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool SetLength(int length)
         {
-            if ((uint)length > 2147483647)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "StreamLength");
-            if (length < 0)
-                throw new IOException("IO_StreamTooLong");
+            ThrowHelpers.ThrowIfGreaterThan((uint)length, 2147483647U, nameof(length));
+            ThrowHelpers.ThrowIfStreamTooLong(length);
             if (length > Capacity)
                 return false;
             if (length > _length)
@@ -205,8 +201,7 @@ namespace NativeCollections
         public bool Write(ReadOnlySpan<byte> buffer)
         {
             var i = _position + buffer.Length;
-            if (i < 0)
-                throw new IOException("IO_StreamTooLong");
+            ThrowHelpers.ThrowIfStreamTooLong(i);
             if (i > _length)
             {
                 if (i > Capacity)

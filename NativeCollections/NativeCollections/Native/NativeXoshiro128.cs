@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -52,11 +51,10 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         public NativeXoshiro128(ReadOnlySpan<byte> buffer)
         {
-            if (buffer.Length < sizeof(NativeXoshiro128))
-                throw new ArgumentOutOfRangeException(nameof(buffer), $"Requires size is {sizeof(NativeXoshiro128)}, but buffer length is {buffer.Length}.");
+            ThrowHelpers.ThrowIfLessThan(buffer.Length, sizeof(NativeXoshiro128), nameof(buffer));
             var random = Unsafe.ReadUnaligned<NativeXoshiro128>(ref MemoryMarshal.GetReference(buffer));
             if (!random.IsCreated)
-                throw new InvalidDataException("Cannot be entirely zero.");
+                ThrowHelpers.ThrowMustBeNonEntirelyZeroException();
             this = random;
         }
 

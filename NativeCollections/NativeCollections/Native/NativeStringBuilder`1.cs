@@ -101,10 +101,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeStringBuilder(Span<T> buffer, int length)
         {
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            if (length > buffer.Length)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeLessOrEqual");
+            ThrowHelpers.ThrowIfNegative(length, nameof(length));
+            ThrowHelpers.ThrowIfGreaterThan(length, buffer.Length, nameof(length));
             _buffer = buffer;
             _array = null;
             _length = length;
@@ -117,8 +115,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeStringBuilder(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             _buffer = _array = ArrayPool<T>.Shared.Rent(capacity);
             _length = 0;
         }
@@ -131,12 +128,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeStringBuilder(int capacity, int length)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            if (length > capacity)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeLessOrEqual");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
+            ThrowHelpers.ThrowIfNegative(length, nameof(length));
+            ThrowHelpers.ThrowIfGreaterThan(length, capacity, nameof(length));
             _buffer = _array = ArrayPool<T>.Shared.Rent(capacity);
             _length = length;
         }
@@ -759,7 +753,11 @@ namespace NativeCollections
         ///     Equals
         /// </summary>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => throw new NotSupportedException("CannotCallEquals");
+        public override bool Equals(object? obj)
+        {
+            ThrowHelpers.ThrowCannotCallEqualsException();
+            return default;
+        }
 
         /// <summary>
         ///     Get hashCode
@@ -795,8 +793,7 @@ namespace NativeCollections
         public void Advance(int count)
         {
             var newLength = _length + count;
-            if ((uint)newLength > (uint)Capacity)
-                throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeLessOrEqual");
+            ThrowHelpers.ThrowIfGreaterThan((uint)newLength, (uint)Capacity, nameof(count));
             _length = newLength;
         }
 
@@ -987,8 +984,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int EnsureCapacity(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             if (_buffer.Length < capacity)
                 Grow(capacity - _buffer.Length);
             return _buffer.Length;
@@ -1015,8 +1011,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             if (capacity < _length || capacity >= _buffer.Length)
                 return _buffer.Length;
             SetCapacity(capacity);
@@ -1030,8 +1025,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetCapacity(int capacity)
         {
-            if (capacity < _length)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "SmallCapacity");
+            ThrowHelpers.ThrowIfLessThan(capacity, _length, nameof(capacity));
             if (capacity != _buffer.Length)
             {
                 var destination = ArrayPool<T>.Shared.Rent(capacity);

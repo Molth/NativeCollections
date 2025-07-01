@@ -105,14 +105,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeUInt32MemoryPool(int length, int maxFreeSlabs, int alignment)
         {
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            if (maxFreeSlabs < 0)
-                throw new ArgumentOutOfRangeException(nameof(maxFreeSlabs), maxFreeSlabs, "MustBeNonNegative");
-            if (alignment < 0)
-                throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "MustBeNonNegative");
-            if (!BitOperationsHelpers.IsPow2((uint)alignment))
-                throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
+            ThrowHelpers.ThrowIfNegative(length, nameof(length));
+            ThrowHelpers.ThrowIfNegative(maxFreeSlabs, nameof(maxFreeSlabs));
+            ThrowHelpers.ThrowIfNegative(alignment, nameof(alignment));
+            ThrowHelpers.ThrowIfAlignmentNotBePow2((uint)alignment, nameof(alignment));
             var alignedLength = (int)NativeMemoryAllocator.AlignUp((nuint)length, (nuint)alignment);
             var alignedNodeByteCount = (int)NativeMemoryAllocator.AlignUp((nuint)sizeof(nint), (nuint)alignment);
             var nodeByteCount = alignedNodeByteCount + alignedLength;
@@ -253,8 +249,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int EnsureCapacity(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             if (capacity > _maxFreeSlabs)
                 capacity = _maxFreeSlabs;
             var nodeByteCount = sizeof(nint) + _alignedLength;
@@ -299,8 +294,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             var node = _freeList;
             while (_freeSlabs > capacity)
             {

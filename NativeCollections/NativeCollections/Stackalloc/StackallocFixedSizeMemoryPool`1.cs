@@ -142,11 +142,11 @@ namespace NativeCollections
             var byteOffset = UnsafeHelpers.ByteOffset(_buffer, ptr);
             var (index, remainder) = MathHelpers.DivRem(byteOffset, sizeof(T));
             if ((ulong)index >= (ulong)_capacity || remainder != 0)
-                throw new InvalidOperationException("Mismatch");
+                ThrowHelpers.ThrowMismatchException();
             ref var segment = ref Unsafe.Add(ref Unsafe.AsRef<int>(_bitArray), index >> 5);
             var bitMask = 1 << (int)index;
             if ((segment & bitMask) == 0)
-                throw new InvalidOperationException("Duplicate");
+                ThrowHelpers.ThrowDuplicateException();
             segment &= ~bitMask;
             Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)_size++) = (int)index;
         }

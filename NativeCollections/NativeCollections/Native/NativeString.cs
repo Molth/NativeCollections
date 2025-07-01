@@ -101,10 +101,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeString(Span<char> buffer, int length)
         {
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            if (length > buffer.Length)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeLessOrEqual");
+            ThrowHelpers.ThrowIfNegative(length, nameof(length));
+            ThrowHelpers.ThrowIfGreaterThan(length, buffer.Length, nameof(length));
             _buffer = buffer;
             _length = length;
         }
@@ -805,7 +803,11 @@ namespace NativeCollections
         ///     Equals
         /// </summary>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => throw new NotSupportedException("CannotCallEquals");
+        public override bool Equals(object? obj)
+        {
+            ThrowHelpers.ThrowCannotCallEqualsException();
+            return default;
+        }
 
         /// <summary>
         ///     Get hashCode
@@ -841,8 +843,7 @@ namespace NativeCollections
         public void Advance(int count)
         {
             var newLength = _length + count;
-            if ((uint)newLength > (uint)Capacity)
-                throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeLessOrEqual");
+            ThrowHelpers.ThrowIfGreaterThan((uint)newLength, (uint)Capacity, nameof(count));
             _length = newLength;
         }
 

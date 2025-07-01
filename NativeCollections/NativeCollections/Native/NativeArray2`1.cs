@@ -42,10 +42,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArray2(int x, int y)
         {
-            if (x < 0)
-                throw new ArgumentOutOfRangeException(nameof(x), x, "MustBeNonNegative");
-            if (y < 0)
-                throw new ArgumentOutOfRangeException(nameof(y), y, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(x, nameof(x));
+            ThrowHelpers.ThrowIfNegative(y, nameof(y));
             _buffer = NativeMemoryAllocator.AlignedAlloc<T>((uint)(x * y));
             _x = x;
             _y = y;
@@ -60,10 +58,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArray2(int x, int y, bool zeroed)
         {
-            if (x < 0)
-                throw new ArgumentOutOfRangeException(nameof(x), x, "MustBeNonNegative");
-            if (y < 0)
-                throw new ArgumentOutOfRangeException(nameof(y), y, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(x, nameof(x));
+            ThrowHelpers.ThrowIfNegative(y, nameof(y));
             _buffer = zeroed ? NativeMemoryAllocator.AlignedAllocZeroed<T>((uint)(x * y)) : NativeMemoryAllocator.AlignedAlloc<T>((uint)(x * y));
             _x = x;
             _y = y;
@@ -78,16 +74,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArray2(int x, int y, int alignment)
         {
-            if (x < 0)
-                throw new ArgumentOutOfRangeException(nameof(x), x, "MustBeNonNegative");
-            if (y < 0)
-                throw new ArgumentOutOfRangeException(nameof(y), y, "MustBeNonNegative");
-            if (alignment < 0)
-                throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "MustBeNonNegative");
-            if (!BitOperationsHelpers.IsPow2((uint)alignment))
-                throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
-            if (typeof(T) != typeof(byte) && (uint)alignment < NativeMemoryAllocator.AlignOf<T>())
-                throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "MustBeGreaterOrEqual");
+            ThrowHelpers.ThrowIfNegative(x, nameof(x));
+            ThrowHelpers.ThrowIfNegative(y, nameof(y));
+            ThrowHelpers.ThrowIfNegative(alignment, nameof(alignment));
+            ThrowHelpers.ThrowIfAlignmentNotBePow2((uint)alignment, nameof(alignment));
+            ThrowHelpers.ThrowIfLessThan((uint)alignment, (uint)NativeMemoryAllocator.AlignOf<T>(), nameof(alignment));
             _buffer = (T*)NativeMemoryAllocator.AlignedAlloc((uint)(x * y), (uint)alignment);
             _x = x;
             _y = y;
@@ -103,16 +94,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArray2(int x, int y, int alignment, bool zeroed)
         {
-            if (x < 0)
-                throw new ArgumentOutOfRangeException(nameof(x), x, "MustBeNonNegative");
-            if (y < 0)
-                throw new ArgumentOutOfRangeException(nameof(y), y, "MustBeNonNegative");
-            if (alignment < 0)
-                throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "MustBeNonNegative");
-            if (!BitOperationsHelpers.IsPow2((uint)alignment))
-                throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
-            if (typeof(T) != typeof(byte) && (uint)alignment < NativeMemoryAllocator.AlignOf<T>())
-                throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "MustBeGreaterOrEqual");
+            ThrowHelpers.ThrowIfNegative(x, nameof(x));
+            ThrowHelpers.ThrowIfNegative(y, nameof(y));
+            ThrowHelpers.ThrowIfNegative(alignment, nameof(alignment));
+            ThrowHelpers.ThrowIfAlignmentNotBePow2((uint)alignment, nameof(alignment));
+            ThrowHelpers.ThrowIfLessThan((uint)alignment, (uint)NativeMemoryAllocator.AlignOf<T>(), nameof(alignment));
             _buffer = zeroed ? (T*)NativeMemoryAllocator.AlignedAllocZeroed((uint)(x * y * sizeof(T)), (uint)alignment) : (T*)NativeMemoryAllocator.AlignedAlloc((uint)(x * y * sizeof(T)), (uint)alignment);
             _x = x;
             _y = y;
@@ -127,10 +113,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArray2(T* buffer, int x, int y)
         {
-            if (x < 0)
-                throw new ArgumentOutOfRangeException(nameof(x), x, "MustBeNonNegative");
-            if (y < 0)
-                throw new ArgumentOutOfRangeException(nameof(y), y, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(x, nameof(x));
+            ThrowHelpers.ThrowIfNegative(y, nameof(y));
             _buffer = buffer;
             _x = x;
             _y = y;
@@ -366,11 +350,19 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
 
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
     }
 }

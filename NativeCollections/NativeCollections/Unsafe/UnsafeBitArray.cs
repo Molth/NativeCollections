@@ -89,8 +89,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeBitArray(int length)
         {
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(length, nameof(length));
             _buffer = new NativeArray<int>(GetInt32ArrayLengthFromBitLength(length), true);
             _length = length;
         }
@@ -103,8 +102,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeBitArray(int length, bool defaultValue)
         {
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(length, nameof(length));
             _buffer = new NativeArray<int>(GetInt32ArrayLengthFromBitLength(length));
             _length = length;
             if (defaultValue)
@@ -128,8 +126,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeBitArray(int* buffer, int length)
         {
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(length, nameof(length));
             _buffer = new NativeArray<int>(buffer, GetInt32ArrayLengthFromBitLength(length));
             _length = length;
         }
@@ -143,8 +140,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeBitArray(int* buffer, int length, bool defaultValue)
         {
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(length, nameof(length));
             _buffer = new NativeArray<int>(buffer, GetInt32ArrayLengthFromBitLength(length));
             _length = length;
             if (defaultValue)
@@ -168,11 +164,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeBitArray(NativeArray<int> buffer, int length)
         {
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(length, nameof(length));
             var intCount = GetInt32ArrayLengthFromBitLength(length);
-            if (buffer.Length < intCount)
-                throw new ArgumentOutOfRangeException(nameof(buffer), buffer.Length, $"Requires size is {intCount}, but buffer length is {buffer.Length}.");
+            ThrowHelpers.ThrowIfLessThan(buffer.Length, intCount, nameof(buffer));
             _buffer = buffer;
             _length = length;
         }
@@ -186,11 +180,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeBitArray(NativeArray<int> buffer, int length, bool defaultValue)
         {
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(length, nameof(length));
             var intCount = GetInt32ArrayLengthFromBitLength(length);
-            if (buffer.Length < intCount)
-                throw new ArgumentOutOfRangeException(nameof(buffer), buffer.Length, $"Requires size is {intCount}, but buffer length is {buffer.Length}.");
+            ThrowHelpers.ThrowIfLessThan(buffer.Length, intCount, nameof(buffer));
             _buffer = buffer;
             _length = length;
             if (defaultValue)
@@ -219,8 +211,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetLength(int length)
         {
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(length, nameof(length));
             var newLength = GetInt32ArrayLengthFromBitLength(length);
             if (newLength > _buffer.Length || newLength + 256 < _buffer.Length)
             {
@@ -251,8 +242,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Get(int index)
         {
-            if ((uint)index >= (uint)_length)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
+            ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_length, nameof(index));
             return (_buffer[index >> 5] & (1 << index)) != 0;
         }
 
@@ -264,8 +254,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Set(int index, bool value)
         {
-            if ((uint)index >= (uint)_length)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
+            ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_length, nameof(index));
             var bitMask = 1 << index;
             ref var segment = ref _buffer[index >> 5];
             if (value)
@@ -282,8 +271,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Get(uint index)
         {
-            if (index >= (uint)_length)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, (uint)_length, nameof(index));
             return (_buffer[index >> 5] & (1 << (int)index)) != 0;
         }
 
@@ -295,8 +283,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Set(uint index, bool value)
         {
-            if (index >= (uint)_length)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, (uint)_length, nameof(index));
             var bitMask = 1 << (int)index;
             ref var segment = ref _buffer[index >> 5];
             if (value)
@@ -337,7 +324,7 @@ namespace NativeCollections
         {
             var count = GetInt32ArrayLengthFromBitLength(_length);
             if (_length != value->_length || (uint)count > (uint)_buffer.Length || (uint)count > (uint)value->_buffer.Length)
-                throw new ArgumentException("ArrayLengthsDiffer");
+                ThrowHelpers.ThrowArrayLengthsDifferException();
             BitOperationsHelpers.And(_buffer, value->_buffer, (uint)count);
         }
 
@@ -351,7 +338,7 @@ namespace NativeCollections
         {
             var count = GetInt32ArrayLengthFromBitLength(_length);
             if (_length != value->_length || (uint)count > (uint)_buffer.Length || (uint)count > (uint)value->_buffer.Length)
-                throw new ArgumentException("ArrayLengthsDiffer");
+                ThrowHelpers.ThrowArrayLengthsDifferException();
             BitOperationsHelpers.Or(_buffer, value->_buffer, (uint)count);
         }
 
@@ -365,7 +352,7 @@ namespace NativeCollections
         {
             var count = GetInt32ArrayLengthFromBitLength(_length);
             if (_length != value->_length || (uint)count > (uint)_buffer.Length || (uint)count > (uint)value->_buffer.Length)
-                throw new ArgumentException("ArrayLengthsDiffer");
+                ThrowHelpers.ThrowArrayLengthsDifferException();
             BitOperationsHelpers.Xor(_buffer, value->_buffer, (uint)count);
         }
 
@@ -388,8 +375,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RightShift(int count)
         {
-            if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(count, nameof(count));
             if (count == 0)
                 return;
             var toIndex = 0;
@@ -439,8 +425,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void LeftShift(int count)
         {
-            if (count < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), count, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(count, nameof(count));
             if (count == 0)
                 return;
             int lengthToClear;
@@ -519,8 +504,7 @@ namespace NativeCollections
         /// <returns>Value</returns>
         public NativeBitArraySlot GetSlot(int index)
         {
-            if ((uint)index >= (uint)_length)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
+            ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_length, nameof(index));
             return new NativeBitArraySlot((int*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<int>(_buffer.Buffer), (nint)(index >> 5))), 1 << index);
         }
 
@@ -549,8 +533,7 @@ namespace NativeCollections
         /// <returns>Value</returns>
         public NativeBitArraySlot GetSlot(uint index)
         {
-            if (index >= (uint)_length)
-                throw new ArgumentOutOfRangeException(nameof(index), index, "IndexMustBeLess");
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, (uint)_length, nameof(index));
             return new NativeBitArraySlot((int*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<int>(_buffer.Buffer), (nint)index >> 5)), 1 << (int)index);
         }
 

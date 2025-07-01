@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -34,11 +33,10 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         public NativeXorshift32(ReadOnlySpan<byte> buffer)
         {
-            if (buffer.Length < sizeof(NativeXorshift32))
-                throw new ArgumentOutOfRangeException(nameof(buffer), $"Requires size is {sizeof(NativeXorshift32)}, but buffer length is {buffer.Length}.");
+            ThrowHelpers.ThrowIfLessThan(buffer.Length, sizeof(NativeXorshift32), nameof(buffer));
             var random = Unsafe.ReadUnaligned<NativeXorshift32>(ref MemoryMarshal.GetReference(buffer));
             if (!random.IsCreated)
-                throw new InvalidDataException("Cannot be entirely zero.");
+                ThrowHelpers.ThrowMustBeNonEntirelyZeroException();
             this = random;
         }
 

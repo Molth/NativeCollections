@@ -116,16 +116,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeMemoryPool(int size, int length, int maxFreeSlabs, int alignment)
         {
-            if (size <= 0)
-                throw new ArgumentOutOfRangeException(nameof(size), size, "MustBePositive");
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
-            if (maxFreeSlabs < 0)
-                throw new ArgumentOutOfRangeException(nameof(maxFreeSlabs), maxFreeSlabs, "MustBeNonNegative");
-            if (alignment < 0)
-                throw new ArgumentOutOfRangeException(nameof(alignment), alignment, "MustBeNonNegative");
-            if (!BitOperationsHelpers.IsPow2((uint)alignment))
-                throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
+            ThrowHelpers.ThrowIfNegativeOrZero(size, nameof(size));
+            ThrowHelpers.ThrowIfNegative(length, nameof(length));
+            ThrowHelpers.ThrowIfNegative(maxFreeSlabs, nameof(maxFreeSlabs));
+            ThrowHelpers.ThrowIfNegative(alignment, nameof(alignment));
+            ThrowHelpers.ThrowIfAlignmentNotBePow2((uint)alignment, nameof(alignment));
             var alignedLength = (int)NativeMemoryAllocator.AlignUp((nuint)length, (nuint)alignment);
             var alignedNodeSize = (int)NativeMemoryAllocator.AlignUp((nuint)sizeof(MemoryNode), (nuint)alignment);
             var nodeSize = alignedNodeSize + alignedLength;
@@ -283,8 +278,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int EnsureCapacity(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             if (capacity > _maxFreeSlabs)
                 capacity = _maxFreeSlabs;
             var size = _size;
@@ -337,8 +331,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             var node = _freeList;
             while (_freeSlabs > capacity)
             {

@@ -77,7 +77,8 @@ namespace NativeCollections
                 ref var value = ref FindValue(key);
                 if (!Unsafe.IsNullRef(ref Unsafe.AsRef(in value)))
                     return value;
-                throw new KeyNotFoundException(key.ToString());
+                ThrowHelpers.ThrowKeyNotFoundException(key);
+                return default;
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set => TryInsertOverwriteExisting(key, value);
@@ -115,8 +116,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeDictionary(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             if (capacity < 4)
                 capacity = 4;
             this = new UnsafeDictionary<TKey, TValue>();
@@ -195,7 +195,7 @@ namespace NativeCollections
                 i = entry.Next;
                 collisionCount++;
                 if (collisionCount > (uint)_entriesLength)
-                    throw new InvalidOperationException("ConcurrentOperationsNotSupported");
+                    ThrowHelpers.ThrowConcurrentOperationsNotSupportedException();
             }
 
             return false;
@@ -235,7 +235,7 @@ namespace NativeCollections
                 i = entry.Next;
                 collisionCount++;
                 if (collisionCount > (uint)_entriesLength)
-                    throw new InvalidOperationException("ConcurrentOperationsNotSupported");
+                    ThrowHelpers.ThrowConcurrentOperationsNotSupportedException();
             }
 
             value = default;
@@ -334,7 +334,7 @@ namespace NativeCollections
                 i = entry.Next;
                 collisionCount++;
                 if (collisionCount > (uint)_entriesLength)
-                    throw new InvalidOperationException("ConcurrentOperationsNotSupported");
+                    ThrowHelpers.ThrowConcurrentOperationsNotSupportedException();
             }
 
             int index;
@@ -394,7 +394,7 @@ namespace NativeCollections
                 i = entry.Next;
                 collisionCount++;
                 if (collisionCount > (uint)_entriesLength)
-                    throw new InvalidOperationException("ConcurrentOperationsNotSupported");
+                    ThrowHelpers.ThrowConcurrentOperationsNotSupportedException();
             }
 
             int index;
@@ -436,8 +436,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int EnsureCapacity(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             var currentCapacity = _entriesLength;
             if (currentCapacity >= capacity)
                 return currentCapacity;
@@ -462,8 +461,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             var newSize = HashHelpers.GetPrime(capacity);
             var oldBuckets = _buckets;
             var oldEntries = _entries;
@@ -518,7 +516,8 @@ namespace NativeCollections
                 collisionCount++;
             } while (collisionCount <= (uint)_entriesLength);
 
-            throw new InvalidOperationException("ConcurrentOperationsNotSupported");
+            ThrowHelpers.ThrowConcurrentOperationsNotSupportedException();
+            return ref Unsafe.NullRef<TValue>();
         }
 
         /// <summary>
@@ -604,7 +603,7 @@ namespace NativeCollections
                 i = entry.Next;
                 collisionCount++;
                 if (collisionCount > (uint)_entriesLength)
-                    throw new InvalidOperationException("ConcurrentOperationsNotSupported");
+                    ThrowHelpers.ThrowConcurrentOperationsNotSupportedException();
             }
 
             int index;
@@ -654,11 +653,11 @@ namespace NativeCollections
                     break;
                 ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)i);
                 if (entry.HashCode == hashCode && entry.Key.Equals(key))
-                    throw new ArgumentException($"AddingDuplicateWithKey, {key}");
+                    ThrowHelpers.ThrowAddingDuplicateWithKeyException(key);
                 i = entry.Next;
                 collisionCount++;
                 if (collisionCount > (uint)_entriesLength)
-                    throw new InvalidOperationException("ConcurrentOperationsNotSupported");
+                    ThrowHelpers.ThrowConcurrentOperationsNotSupportedException();
             }
 
             int index;
@@ -712,7 +711,7 @@ namespace NativeCollections
                 i = entry.Next;
                 collisionCount++;
                 if (collisionCount > (uint)_entriesLength)
-                    throw new InvalidOperationException("ConcurrentOperationsNotSupported");
+                    ThrowHelpers.ThrowConcurrentOperationsNotSupportedException();
             }
 
             int index;
@@ -787,8 +786,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void CopyTo(Span<KeyValuePair<TKey, TValue>> buffer)
         {
-            if (buffer.Length < Count)
-                throw new ArgumentOutOfRangeException(nameof(buffer), buffer.Length, $"Requires size is {Count}, but buffer length is {buffer.Length}.");
+            ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, nameof(buffer));
             ref var reference = ref MemoryMarshal.GetReference(buffer);
             var count = _count - _freeCount;
             var entries = _entries;
@@ -825,12 +823,20 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+        IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
 
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
 
         /// <summary>
         ///     Enumerator
@@ -879,8 +885,7 @@ namespace NativeCollections
             public bool MoveNext()
             {
                 var handle = _nativeDictionary;
-                if (_version != handle->_version)
-                    throw new InvalidOperationException("EnumFailedVersion");
+                ThrowHelpers.ThrowIfEnumFailedVersion(_version, handle->_version);
                 while ((uint)_index < (uint)handle->_count)
                 {
                     ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(handle->_entries), (nint)_index++);
@@ -936,8 +941,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void CopyTo(Span<TKey> buffer)
             {
-                if (buffer.Length < Count)
-                    throw new ArgumentOutOfRangeException(nameof(buffer), buffer.Length, $"Requires size is {Count}, but buffer length is {buffer.Length}.");
+                ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, nameof(buffer));
                 ref var reference = ref MemoryMarshal.GetReference(buffer);
                 var count = _nativeDictionary->_count - _nativeDictionary->_freeCount;
                 var entries = _nativeDictionary->_entries;
@@ -969,12 +973,20 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
-            IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+            IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
 
             /// <summary>
             ///     Get enumerator
             /// </summary>
-            IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
 
             /// <summary>
             ///     Enumerator
@@ -1023,8 +1035,7 @@ namespace NativeCollections
                 public bool MoveNext()
                 {
                     var handle = _nativeDictionary;
-                    if (_version != handle->_version)
-                        throw new InvalidOperationException("EnumFailedVersion");
+                    ThrowHelpers.ThrowIfEnumFailedVersion(_version, handle->_version);
                     while ((uint)_index < (uint)handle->_count)
                     {
                         ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(handle->_entries), (nint)_index++);
@@ -1081,8 +1092,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void CopyTo(Span<TValue> buffer)
             {
-                if (buffer.Length < Count)
-                    throw new ArgumentOutOfRangeException(nameof(buffer), buffer.Length, $"Requires size is {Count}, but buffer length is {buffer.Length}.");
+                ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, nameof(buffer));
                 ref var reference = ref MemoryMarshal.GetReference(buffer);
                 var count = _nativeDictionary->_count - _nativeDictionary->_freeCount;
                 var entries = _nativeDictionary->_entries;
@@ -1114,12 +1124,20 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
-            IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+            IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
 
             /// <summary>
             ///     Get enumerator
             /// </summary>
-            IEnumerator IEnumerable.GetEnumerator() => throw new NotSupportedException("CannotCallGetEnumerator");
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
 
             /// <summary>
             ///     Enumerator
@@ -1168,8 +1186,7 @@ namespace NativeCollections
                 public bool MoveNext()
                 {
                     var handle = _nativeDictionary;
-                    if (_version != handle->_version)
-                        throw new InvalidOperationException("EnumFailedVersion");
+                    ThrowHelpers.ThrowIfEnumFailedVersion(_version, handle->_version);
                     while ((uint)_index < (uint)handle->_count)
                     {
                         ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(handle->_entries), (nint)_index++);

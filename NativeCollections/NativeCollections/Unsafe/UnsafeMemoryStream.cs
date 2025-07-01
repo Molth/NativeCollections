@@ -57,8 +57,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                if (value < 0)
-                    throw new ArgumentOutOfRangeException(nameof(Position), value, "MustBeNonNegative");
+                ThrowHelpers.ThrowIfNegative(value, nameof(Position));
                 _position = value;
             }
         }
@@ -101,8 +100,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeMemoryStream(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             if (capacity < 4)
                 capacity = 4;
             _buffer = NativeMemoryAllocator.AlignedAlloc<byte>((uint)capacity);
@@ -133,35 +131,34 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Seek(int offset, SeekOrigin loc)
         {
-            if (offset > 2147483647)
-                throw new ArgumentOutOfRangeException(nameof(offset), offset, "StreamLength");
+            ThrowHelpers.ThrowIfGreaterThan(offset, 2147483647, nameof(offset));
             switch (loc)
             {
                 case SeekOrigin.Begin:
                 {
-                    if (offset < 0)
-                        throw new IOException("IO_SeekBeforeBegin");
+                    ThrowHelpers.ThrowIfSeekBeforeBegin(offset);
                     _position = offset;
                     break;
                 }
                 case SeekOrigin.Current:
                 {
                     var tempPosition = unchecked(_position + offset);
-                    if (tempPosition < 0)
-                        throw new IOException("IO_SeekBeforeBegin");
+                    ThrowHelpers.ThrowIfSeekBeforeBegin(tempPosition);
                     _position = tempPosition;
                     break;
                 }
                 case SeekOrigin.End:
                 {
                     var tempPosition = unchecked(_length + offset);
-                    if (tempPosition < 0)
-                        throw new IOException("IO_SeekBeforeBegin");
+                    ThrowHelpers.ThrowIfSeekBeforeBegin(tempPosition);
                     _position = tempPosition;
                     break;
                 }
                 default:
-                    throw new ArgumentException("InvalidSeekOrigin");
+                {
+                    ThrowHelpers.ThrowInvalidSeekOriginException();
+                    return default;
+                }
             }
 
             return _position;
@@ -174,8 +171,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetLength(int length)
         {
-            if ((uint)length > 2147483647)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "StreamLength");
+            ThrowHelpers.ThrowIfGreaterThan((uint)length, 2147483647U, nameof(length));
             var allocatedNewArray = EnsureCapacity(length);
             if (!allocatedNewArray && length > _length)
                 Unsafe.InitBlockUnaligned(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), UnsafeHelpers.ToIntPtr(_length)), 0, (uint)(length - _length));
@@ -233,8 +229,7 @@ namespace NativeCollections
         public void Write(ReadOnlySpan<byte> buffer)
         {
             var i = _position + buffer.Length;
-            if (i < 0)
-                throw new IOException("IO_StreamTooLong");
+            ThrowHelpers.ThrowIfStreamTooLong(i);
             if (i > _length)
             {
                 var mustZero = _position > _length;
@@ -285,8 +280,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetCapacity(int capacity)
         {
-            if (capacity < _length)
-                throw new ArgumentOutOfRangeException(nameof(_capacity), capacity, "SmallCapacity");
+            ThrowHelpers.ThrowIfLessThan(capacity, _length, nameof(_capacity));
             if (capacity != _capacity)
             {
                 var newBuffer = NativeMemoryAllocator.AlignedAlloc<byte>((uint)capacity);
@@ -306,8 +300,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool EnsureCapacity(int capacity)
         {
-            if (capacity < 0)
-                throw new IOException("IO_StreamTooLong");
+            ThrowHelpers.ThrowIfStreamTooLong(capacity);
             if (capacity > _capacity)
             {
                 var newCapacity = capacity > 256 ? capacity : 256;

@@ -1,6 +1,8 @@
-using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+#if !NET7_0_OR_GREATER
+using System;
+#endif
 
 // ReSharper disable ALL
 
@@ -77,8 +79,7 @@ namespace NativeCollections
             var alignedAlloc = _alignedAlloc;
             if (alignedAlloc != null)
             {
-                if (!BitOperationsHelpers.IsPow2(alignment))
-                    throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
+                ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, nameof(alignment));
                 ptr = alignedAlloc(byteCount, alignment);
                 if (ptr == null)
                 {
@@ -89,7 +90,7 @@ namespace NativeCollections
                         return null;
                     }
 
-                    throw new OutOfMemoryException();
+                    ThrowHelpers.ThrowOutOfMemoryException();
                 }
 
                 return ptr;
@@ -112,8 +113,7 @@ namespace NativeCollections
                 throw;
             }
 #else
-            if (!BitOperationsHelpers.IsPow2(alignment))
-                throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
+            ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, nameof(alignment));
             var byteOffset = (nuint)alignment - 1 + (nuint)sizeof(nint);
             try
             {
@@ -148,8 +148,7 @@ namespace NativeCollections
             var alignedAllocZeroed = _alignedAllocZeroed;
             if (alignedAllocZeroed != null)
             {
-                if (!BitOperationsHelpers.IsPow2(alignment))
-                    throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
+                ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, nameof(alignment));
                 ptr = alignedAllocZeroed(byteCount, alignment);
                 if (ptr == null)
                 {
@@ -160,7 +159,7 @@ namespace NativeCollections
                         return null;
                     }
 
-                    throw new OutOfMemoryException();
+                    ThrowHelpers.ThrowOutOfMemoryException();
                 }
 
                 return ptr;
@@ -169,8 +168,7 @@ namespace NativeCollections
             var alignedAlloc = _alignedAlloc;
             if (alignedAlloc != null)
             {
-                if (!BitOperationsHelpers.IsPow2(alignment))
-                    throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
+                ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, nameof(alignment));
                 ptr = alignedAlloc(byteCount, alignment);
                 if (ptr == null)
                 {
@@ -181,7 +179,7 @@ namespace NativeCollections
                         return null;
                     }
 
-                    throw new OutOfMemoryException();
+                    ThrowHelpers.ThrowOutOfMemoryException();
                 }
 
                 return ptr;
@@ -207,8 +205,7 @@ namespace NativeCollections
             Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(ptr), 0, byteCount);
             return ptr;
 #else
-            if (!BitOperationsHelpers.IsPow2(alignment))
-                throw new ArgumentException("AlignmentMustBePow2", nameof(alignment));
+            ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, nameof(alignment));
             var byteOffset = (nuint)alignment - 1 + (nuint)sizeof(nint);
             try
             {
@@ -321,7 +318,7 @@ namespace NativeCollections
             if (left == null && right == null)
                 return true;
             if (left == null || right == null)
-                throw new ArgumentNullException(left == null ? nameof(left) : nameof(right));
+                ThrowHelpers.ThrowArgumentNullException(left == null ? nameof(left) : nameof(right));
             return SpanHelpers.Compare(ref Unsafe.AsRef<byte>(left), ref Unsafe.AsRef<byte>(right), byteCount);
         }
 
@@ -334,7 +331,7 @@ namespace NativeCollections
             if (Unsafe.IsNullRef(ref left) && Unsafe.IsNullRef(ref right))
                 return true;
             if (Unsafe.IsNullRef(ref left) || Unsafe.IsNullRef(ref right))
-                throw new ArgumentNullException(Unsafe.IsNullRef(ref left) ? nameof(left) : nameof(right));
+                ThrowHelpers.ThrowArgumentNullException(Unsafe.IsNullRef(ref left) ? nameof(left) : nameof(right));
             return SpanHelpers.Compare(ref left, ref right, byteCount);
         }
 

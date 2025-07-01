@@ -104,10 +104,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeChunkedStream(int size, int maxFreeChunks)
         {
-            if (size <= 0)
-                throw new ArgumentOutOfRangeException(nameof(size), size, "MustBePositive");
-            if (maxFreeChunks < 0)
-                throw new ArgumentOutOfRangeException(nameof(maxFreeChunks), maxFreeChunks, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegativeOrZero(size, nameof(size));
+            ThrowHelpers.ThrowIfNegative(maxFreeChunks, nameof(maxFreeChunks));
             var chunk = (MemoryChunk*)NativeMemoryAllocator.AlignedAlloc((uint)(sizeof(MemoryChunk) + size), (uint)NativeMemoryAllocator.AlignOf<MemoryChunk>());
             _head = chunk;
             _tail = chunk;
@@ -172,8 +170,7 @@ namespace NativeCollections
         public int Read(Span<byte> buffer)
         {
             var length = buffer.Length;
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(length, nameof(length));
             ref var reference = ref MemoryMarshal.GetReference(buffer);
             if (length >= _length)
             {
@@ -312,8 +309,7 @@ namespace NativeCollections
         public void Write(ReadOnlySpan<byte> buffer)
         {
             var length = buffer.Length;
-            if (length < 0)
-                throw new ArgumentOutOfRangeException(nameof(length), length, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(length, nameof(length));
             if (length == 0)
                 return;
             ref var reference = ref MemoryMarshal.GetReference(buffer);
@@ -384,8 +380,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int EnsureCapacity(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             if (capacity > _maxFreeChunks)
                 capacity = _maxFreeChunks;
             var size = _size;
@@ -425,8 +420,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity)
         {
-            if (capacity < 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "MustBeNonNegative");
+            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             var node = _freeList;
             while (_freeChunks > capacity)
             {
