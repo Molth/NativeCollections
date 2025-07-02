@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.CompilerServices;
+#if NET7_0_OR_GREATER
+using System.Numerics;
+#endif
 
 #pragma warning disable CA2208
 #pragma warning disable CS8632
@@ -20,9 +23,18 @@ namespace NativeCollections
         /// <param name="value">The argument to validate as non-negative.</param>
         /// <param name="paramName">The name of the parameter with which <paramref name="value" /> corresponds.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfNegative<T>(T value, string? paramName) where T : unmanaged, IComparable<T>
+        public static void ThrowIfNegative<T>(T value, string? paramName) where T : unmanaged,
+#if NET7_0_OR_GREATER
+            ISignedNumber<T>
+#else
+            IComparable<T>
+#endif
         {
+#if NET7_0_OR_GREATER
+            if (T.IsNegative(value))
+#else
             if (value.CompareTo(default) < 0)
+#endif
                 throw new ArgumentOutOfRangeException(paramName, value, "MustBeNonNegative");
         }
 
@@ -30,9 +42,18 @@ namespace NativeCollections
         /// <param name="value">The argument to validate as non-zero or non-negative.</param>
         /// <param name="paramName">The name of the parameter with which <paramref name="value" /> corresponds.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfNegativeOrZero<T>(T value, string? paramName) where T : unmanaged, IComparable<T>
+        public static void ThrowIfNegativeOrZero<T>(T value, string? paramName) where T : unmanaged,
+#if NET7_0_OR_GREATER
+            ISignedNumber<T>
+#else
+            IComparable<T>
+#endif
         {
+#if NET7_0_OR_GREATER
+            if (T.IsNegative(value) || T.IsZero(value))
+#else
             if (value.CompareTo(default) <= 0)
+#endif
                 throw new ArgumentOutOfRangeException(paramName, value, "MustBeNonNegativeNonZero");
         }
 
@@ -131,9 +152,18 @@ namespace NativeCollections
         /// <param name="other">The comparison value for detailed error messaging.</param>
         /// <typeparam name="T">The type of the enum version values.</typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfEnumInvalidVersion<T>(T value, T other) where T : unmanaged, IComparable<T>, IEquatable<T>
+        public static void ThrowIfEnumInvalidVersion<T>(T value, T other) where T : unmanaged,
+#if NET7_0_OR_GREATER
+            ISignedNumber<T>
+#else
+            IComparable<T>
+#endif
         {
+#if NET7_0_OR_GREATER
+            if (T.IsNegative(value))
+#else
             if (value.CompareTo(default) < 0)
+#endif
                 throw new InvalidOperationException(value.Equals(other) ? "EnumNotStarted" : "EnumEnded");
         }
 
@@ -141,9 +171,18 @@ namespace NativeCollections
         /// <param name="value">The seek position to validate.</param>
         /// <typeparam name="T">The type of the position value.</typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfSeekBeforeBegin<T>(T value) where T : unmanaged, IComparable<T>
+        public static void ThrowIfSeekBeforeBegin<T>(T value) where T : unmanaged,
+#if NET7_0_OR_GREATER
+            ISignedNumber<T>
+#else
+            IComparable<T>
+#endif
         {
+#if NET7_0_OR_GREATER
+            if (T.IsNegative(value))
+#else
             if (value.CompareTo(default) < 0)
+#endif
                 throw new IOException("SeekBeforeBegin");
         }
 
@@ -151,9 +190,18 @@ namespace NativeCollections
         /// <param name="value">The stream length value to validate.</param>
         /// <typeparam name="T">The type of the length value.</typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfStreamTooLong<T>(T value) where T : unmanaged, IComparable<T>
+        public static void ThrowIfStreamTooLong<T>(T value) where T : unmanaged,
+#if NET7_0_OR_GREATER
+            ISignedNumber<T>
+#else
+            IComparable<T>
+#endif
         {
+#if NET7_0_OR_GREATER
+            if (T.IsNegative(value))
+#else
             if (value.CompareTo(default) < 0)
+#endif
                 throw new IOException("StreamTooLong");
         }
 
@@ -161,9 +209,18 @@ namespace NativeCollections
         /// <param name="value">The queue count to validate.</param>
         /// <typeparam name="T">The type of the count value.</typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfEmptyQueue<T>(T value) where T : unmanaged, IComparable<T>
+        public static void ThrowIfEmptyQueue<T>(T value) where T : unmanaged,
+#if NET7_0_OR_GREATER
+            INumberBase<T>
+#else
+            IComparable<T>
+#endif
         {
+#if NET7_0_OR_GREATER
+            if (T.IsZero(value))
+#else
             if (value.CompareTo(default) == 0)
+#endif
                 throw new InvalidOperationException("EmptyQueue");
         }
 
@@ -188,9 +245,18 @@ namespace NativeCollections
         /// <param name="value">The hashtable capacity to validate.</param>
         /// <typeparam name="T">The type of the capacity value.</typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfHashtableCapacityOverflow<T>(T value) where T : unmanaged, IComparable<T>
+        public static void ThrowIfHashtableCapacityOverflow<T>(T value) where T : unmanaged,
+#if NET7_0_OR_GREATER
+            ISignedNumber<T>
+#else
+            IComparable<T>
+#endif
         {
+#if NET7_0_OR_GREATER
+            if (T.IsNegative(value))
+#else
             if (value.CompareTo(default) < 0)
+#endif
                 throw new InvalidOperationException("HashtableCapacityOverflow");
         }
 

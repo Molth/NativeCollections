@@ -438,7 +438,7 @@ namespace NativeCollections
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get
                 {
-                    ThrowHelpers.ThrowIfEnumInvalidVersion(_index, -1);
+                    ThrowHelpers.ThrowIfEnumInvalidVersion(_index, -2);
                     return _currentElement;
                 }
             }
