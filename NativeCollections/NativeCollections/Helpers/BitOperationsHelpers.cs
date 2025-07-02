@@ -99,10 +99,23 @@ namespace NativeCollections
 #if NET5_0_OR_GREATER
             return BitOperations.PopCount(value);
 #else
-            value -= (value >> 1) & 6148914691236517205UL;
-            value = (ulong)(((long)value & 3689348814741910323L) + ((long)(value >> 2) & 3689348814741910323L));
-            value = (ulong)(long)((ulong)((((long)value + (long)(value >> 4)) & 1085102592571150095L) * 72340172838076673L) >> 56);
-            return (int)value;
+            if (Unsafe.SizeOf<nint>() == 8)
+            {
+                value -= (value >> 1) & 6148914691236517205UL;
+                value = (ulong)(((long)value & 3689348814741910323L) + ((long)(value >> 2) & 3689348814741910323L));
+                value = (ulong)(long)((ulong)((((long)value + (long)(value >> 4)) & 1085102592571150095L) * 72340172838076673L) >> 56);
+                return (int)value;
+            }
+
+            var value1 = (uint)value;
+            value1 -= (value1 >> 1) & 0x_55555555u;
+            value1 = (value1 & 0x_33333333u) + ((value1 >> 2) & 0x_33333333u);
+            value1 = (((value1 + (value1 >> 4)) & 0x_0F0F0F0Fu) * 0x_01010101u) >> 24;
+            var value2 = (uint)(value >> 32);
+            value2 -= (value2 >> 1) & 0x_55555555u;
+            value2 = (value2 & 0x_33333333u) + ((value2 >> 2) & 0x_33333333u);
+            value2 = (((value2 + (value2 >> 4)) & 0x_0F0F0F0Fu) * 0x_01010101u) >> 24;
+            return (int)value1 + (int)value2;
 #endif
         }
 
