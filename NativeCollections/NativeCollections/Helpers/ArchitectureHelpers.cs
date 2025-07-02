@@ -22,6 +22,10 @@ namespace NativeCollections
         /// <summary>
         ///     Not Arm64
         /// </summary>
+#if NET7_0_OR_GREATER
+        public static bool NotArm64 => RuntimeInformation.ProcessArchitecture != Architecture.Arm64;
+#else
         public static readonly bool NotArm64 = RuntimeInformation.ProcessArchitecture != Architecture.Arm64;
+#endif
     }
 }

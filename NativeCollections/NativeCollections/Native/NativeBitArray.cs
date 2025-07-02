@@ -268,6 +268,18 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     And
+        /// </summary>
+        /// <param name="value">Value</param>
+        /// <returns>NativeBitArray</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeBitArray And(UnsafeBitArray value)
+        {
+            _handle->And(value);
+            return this;
+        }
+
+        /// <summary>
         ///     Or
         /// </summary>
         /// <param name="value">Value</param>
@@ -282,6 +294,18 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Or
+        /// </summary>
+        /// <param name="value">Value</param>
+        /// <returns>NativeBitArray</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeBitArray Or(UnsafeBitArray value)
+        {
+            _handle->Or(value);
+            return this;
+        }
+
+        /// <summary>
         ///     Xor
         /// </summary>
         /// <param name="value">Value</param>
@@ -292,6 +316,18 @@ namespace NativeCollections
             if (!value.IsCreated)
                 ThrowHelpers.ThrowArgumentNullException(nameof(value));
             _handle->Xor(Unsafe.AsRef<UnsafeBitArray>(value._handle));
+            return this;
+        }
+
+        /// <summary>
+        ///     Xor
+        /// </summary>
+        /// <param name="value">Value</param>
+        /// <returns>NativeBitArray</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeBitArray Xor(UnsafeBitArray value)
+        {
+            _handle->Xor(value);
             return this;
         }
 
