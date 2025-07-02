@@ -10,9 +10,9 @@ using System;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Managed memory helpers
+    ///     Managed memory allocator
     /// </summary>
-    internal static unsafe class ManagedMemoryHelpers
+    public static unsafe class ManagedMemoryAllocator
     {
         /// <summary>Allocates an aligned block of memory of the specified size and alignment, in bytes.</summary>
         /// <param name="elementCount">The count, in elements, of the block to allocate.</param>

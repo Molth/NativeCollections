@@ -46,7 +46,7 @@ namespace NativeCollections
         public NativeTempPinnedBuffer(int length)
         {
             ThrowHelpers.ThrowIfNegative(length, nameof(length));
-            _buffer = ManagedMemoryHelpers.AlignedAlloc<T>((uint)length);
+            _buffer = ManagedMemoryAllocator.AlignedAlloc<T>((uint)length);
             _length = length;
         }
 
@@ -59,7 +59,7 @@ namespace NativeCollections
         public NativeTempPinnedBuffer(int length, bool zeroed)
         {
             ThrowHelpers.ThrowIfNegative(length, nameof(length));
-            _buffer = zeroed ? ManagedMemoryHelpers.AlignedAllocZeroed<T>((uint)length) : ManagedMemoryHelpers.AlignedAlloc<T>((uint)length);
+            _buffer = zeroed ? ManagedMemoryAllocator.AlignedAllocZeroed<T>((uint)length) : ManagedMemoryAllocator.AlignedAlloc<T>((uint)length);
             _length = length;
         }
 
@@ -75,7 +75,7 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfNegative(alignment, nameof(alignment));
             ThrowHelpers.ThrowIfAlignmentNotBePow2((uint)alignment, nameof(alignment));
             ThrowHelpers.ThrowIfLessThan((uint)alignment, (uint)NativeMemoryAllocator.AlignOf<T>(), nameof(alignment));
-            _buffer = (T*)ManagedMemoryHelpers.AlignedAlloc((uint)(length * sizeof(T)), (uint)alignment);
+            _buffer = (T*)ManagedMemoryAllocator.AlignedAlloc((uint)(length * sizeof(T)), (uint)alignment);
             _length = length;
         }
 
@@ -92,7 +92,7 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfNegative(alignment, nameof(alignment));
             ThrowHelpers.ThrowIfAlignmentNotBePow2((uint)alignment, nameof(alignment));
             ThrowHelpers.ThrowIfLessThan((uint)alignment, (uint)NativeMemoryAllocator.AlignOf<T>(), nameof(alignment));
-            _buffer = zeroed ? ManagedMemoryHelpers.AlignedAllocZeroed<T>((uint)(length * sizeof(T))) : ManagedMemoryHelpers.AlignedAlloc<T>((uint)(length * sizeof(T)));
+            _buffer = zeroed ? ManagedMemoryAllocator.AlignedAllocZeroed<T>((uint)(length * sizeof(T))) : ManagedMemoryAllocator.AlignedAlloc<T>((uint)(length * sizeof(T)));
             _length = length;
         }
 
@@ -105,7 +105,7 @@ namespace NativeCollections
             var buffer = _buffer;
             if (buffer == null)
                 return;
-            ManagedMemoryHelpers.AlignedFree(buffer);
+            ManagedMemoryAllocator.AlignedFree(buffer);
         }
 
         /// <summary>
