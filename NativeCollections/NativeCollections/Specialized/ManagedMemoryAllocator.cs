@@ -43,6 +43,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void* AlignedAlloc(uint byteCount, uint alignment)
         {
+            ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, nameof(alignment));
             var byteOffset = alignment - 1 + (uint)sizeof(GCHandle);
             var array = ArrayPool<DummyByteHelper>.Shared.Rent((int)(byteCount + byteOffset));
             var gcHandle = GCHandle.Alloc(array, GCHandleType.Pinned);
@@ -64,6 +65,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void* AlignedAllocZeroed(uint byteCount, uint alignment)
         {
+            ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, nameof(alignment));
             var byteOffset = alignment - 1 + (uint)sizeof(GCHandle);
             var array = ArrayPool<DummyByteHelper>.Shared.Rent((int)(byteCount + byteOffset));
             var gcHandle = GCHandle.Alloc(array, GCHandleType.Pinned);
