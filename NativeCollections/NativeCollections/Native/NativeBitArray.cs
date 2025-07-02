@@ -263,7 +263,7 @@ namespace NativeCollections
         {
             if (!value.IsCreated)
                 ThrowHelpers.ThrowArgumentNullException(nameof(value));
-            _handle->And(value._handle);
+            _handle->And(Unsafe.AsRef<UnsafeBitArray>(value._handle));
             return this;
         }
 
@@ -277,7 +277,7 @@ namespace NativeCollections
         {
             if (!value.IsCreated)
                 ThrowHelpers.ThrowArgumentNullException(nameof(value));
-            _handle->Or(value._handle);
+            _handle->Or(Unsafe.AsRef<UnsafeBitArray>(value._handle));
             return this;
         }
 
@@ -291,7 +291,7 @@ namespace NativeCollections
         {
             if (!value.IsCreated)
                 ThrowHelpers.ThrowArgumentNullException(nameof(value));
-            _handle->Xor(value._handle);
+            _handle->Xor(Unsafe.AsRef<UnsafeBitArray>(value._handle));
             return this;
         }
 

@@ -320,12 +320,12 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>NativeBitArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void And(UnsafeBitArray* value)
+        public void And(UnsafeBitArray value)
         {
             var count = GetInt32ArrayLengthFromBitLength(_length);
-            if (_length != value->_length || (uint)count > (uint)_buffer.Length || (uint)count > (uint)value->_buffer.Length)
+            if (_length != value._length || (uint)count > (uint)_buffer.Length || (uint)count > (uint)value._buffer.Length)
                 ThrowHelpers.ThrowArrayLengthsDifferException();
-            BitOperationsHelpers.And(_buffer, value->_buffer, (uint)count);
+            BitOperationsHelpers.And(_buffer, value._buffer, (uint)count);
         }
 
         /// <summary>
@@ -334,12 +334,12 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>NativeBitArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Or(UnsafeBitArray* value)
+        public void Or(UnsafeBitArray value)
         {
             var count = GetInt32ArrayLengthFromBitLength(_length);
-            if (_length != value->_length || (uint)count > (uint)_buffer.Length || (uint)count > (uint)value->_buffer.Length)
+            if (_length != value._length || (uint)count > (uint)_buffer.Length || (uint)count > (uint)value._buffer.Length)
                 ThrowHelpers.ThrowArrayLengthsDifferException();
-            BitOperationsHelpers.Or(_buffer, value->_buffer, (uint)count);
+            BitOperationsHelpers.Or(_buffer, value._buffer, (uint)count);
         }
 
         /// <summary>
@@ -348,12 +348,12 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>NativeBitArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Xor(UnsafeBitArray* value)
+        public void Xor(UnsafeBitArray value)
         {
             var count = GetInt32ArrayLengthFromBitLength(_length);
-            if (_length != value->_length || (uint)count > (uint)_buffer.Length || (uint)count > (uint)value->_buffer.Length)
+            if (_length != value._length || (uint)count > (uint)_buffer.Length || (uint)count > (uint)value._buffer.Length)
                 ThrowHelpers.ThrowArrayLengthsDifferException();
-            BitOperationsHelpers.Xor(_buffer, value->_buffer, (uint)count);
+            BitOperationsHelpers.Xor(_buffer, value._buffer, (uint)count);
         }
 
         /// <summary>
