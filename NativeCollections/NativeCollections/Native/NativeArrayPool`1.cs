@@ -201,7 +201,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="nativeArray">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Return(NativeArray<T> nativeArray) => Return(nativeArray.Length, nativeArray.Buffer);
+        public void Return(NativeArray<T> nativeArray) => Return(nativeArray.Buffer, nativeArray.Length);
 
         /// <summary>
         ///     Try return buffer
@@ -209,15 +209,15 @@ namespace NativeCollections
         /// <param name="nativeArray">Buffer</param>
         /// <returns>Returned</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryReturn(NativeArray<T> nativeArray) => TryReturn(nativeArray.Length, nativeArray.Buffer);
+        public bool TryReturn(NativeArray<T> nativeArray) => TryReturn(nativeArray.Buffer, nativeArray.Length);
 
         /// <summary>
         ///     Return buffer
         /// </summary>
-        /// <param name="length">Length</param>
         /// <param name="buffer">Buffer</param>
+        /// <param name="length">Length</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Return(int length, T* buffer)
+        public void Return(T* buffer, int length)
         {
             if (length < 16 || (length & (length - 1)) != 0)
                 ThrowHelpers.ThrowBufferNotFromPoolException(nameof(buffer));
@@ -230,11 +230,11 @@ namespace NativeCollections
         /// <summary>
         ///     Try return buffer
         /// </summary>
-        /// <param name="length">Length</param>
         /// <param name="buffer">Buffer</param>
+        /// <param name="length">Length</param>
         /// <returns>Returned</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryReturn(int length, T* buffer)
+        public bool TryReturn(T* buffer, int length)
         {
             if (length < 16 || (length & (length - 1)) != 0)
                 return false;
