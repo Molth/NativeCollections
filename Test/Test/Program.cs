@@ -1,24 +1,76 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Runtime.Intrinsics;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Herta;
 using NativeCollections;
 
 // ReSharper disable ALL
 
 namespace Examples
 {
+    public class TestClass1 : ISpanFormattable
+    {
+        public int Value;
+
+        public virtual string ToString(string? format, IFormatProvider? formatProvider)
+        {
+            FormattableString formattable = $"Sb{Value}";
+            return formattable.ToString(formatProvider);
+        }
+
+        public virtual bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider) => destination.TryWrite(provider, $"Sb{Value}", out charsWritten);
+        public override string ToString() => $"Sb{Value}";
+    }
+
+    public class TestClass2 : TestClass1
+    {
+        public override string ToString() => $"Nt{Value}";
+        public new bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider) => destination.TryWrite(provider, $"Nt{Value}", out charsWritten);
+
+        public override string ToString(string? format, IFormatProvider? formatProvider)
+        {
+            FormattableString formattable = $"Nt{Value}";
+            return formattable.ToString(formatProvider);
+        }
+    }
+
+    public struct TestStruct : ISpanFormattable
+    {
+        public int Value;
+        public override string ToString() => Value.ToString();
+        public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format);
+        public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider) => Value.TryFormat(destination, out charsWritten, format, provider);
+    }
+
     internal sealed unsafe class Program
     {
         private static void Main()
         {
-            NativeString str = new NativeString(stackalloc char[1024], 0);
-            str.Append<object>(100);
-            str.Append<int?>(null);
-            str.Append<string>("100");
-            Console.WriteLine(str.ToString());
+            var sb = new StringBuilder();
+            var array = new byte[4] { 1, 2, 3, 4 };
+            sb.AppendJoin(',', array);
+            sb.Append($"Sb{100}");
+            sb.AppendFormat(CultureInfo.GetCultureInfo("de-DE"), "First: {0,10:D5}, Second: {1,-10:D5}, {3} Third: {2:D4}, 4th: {4:F5}", 100, 100, 100, array, 1.250f);
+            var str1 = sb.ToString();
+            var str2 = TestString();
+            Console.WriteLine(str1 == str2);
+            Console.WriteLine(str1);
+            Console.WriteLine(str2);
+        }
+
+        private static string TestString()
+        {
+            var sb = new NativeStringBuilder<char>();
+            var array = new byte[4] { 1, 2, 3, 4 };
+            sb.AppendJoin(',', array);
+            sb.AppendFormatted($"Sb{100}");
+            sb.AppendFormat(CultureInfo.GetCultureInfo("de-DE"), "First: {0,10:D5}, Second: {1,-10:D5}, {3} Third: {2:D4}, 4th: {4:F5}", 100, 100, 100, array, 1.250f);
+            var str2 = sb.ToString();
+            sb.Dispose();
+            return str2;
         }
 
         private static void TestQueue()

@@ -7,6 +7,7 @@ using System.Text;
 
 #pragma warning disable CA2208
 #pragma warning disable CS8632
+#pragma warning disable CS8500
 #pragma warning disable CS9081
 
 // ReSharper disable ALL
@@ -355,6 +356,19 @@ namespace NativeCollections
             if (_length + 1 > Capacity)
                 return false;
             _buffer[_length++] = value;
+            return true;
+        }
+
+        /// <summary>
+        ///     Append
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Append(char value, int repeatCount)
+        {
+            if (_length + repeatCount > Capacity)
+                return false;
+            _buffer.Slice(_length, repeatCount).Fill(value);
+            _length += repeatCount;
             return true;
         }
 
@@ -1015,6 +1029,18 @@ namespace NativeCollections
         public NativeSplitAnyRange<char> SplitAnyRange(ReadOnlySpan<char> separator) => new(Text, separator);
 
         /// <summary>
+        ///     As ref
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly ref NativeString AsRef()
+        {
+            fixed (NativeString* ptr = &this)
+            {
+                return ref *ptr;
+            }
+        }
+
+        /// <summary>
         ///     As span
         /// </summary>
         /// <returns>Span</returns>
@@ -1187,6 +1213,21 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         public Span<char>.Enumerator GetEnumerator() => Text.GetEnumerator();
+
+        /// <summary>
+        ///     Append format
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AppendFormat<T>(T? obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
+        {
+            if (FormatHelpers.TryFormat(obj, Space, out var charsWritten, format, provider))
+            {
+                _length += charsWritten;
+                return true;
+            }
+
+            return false;
+        }
 
         /// <summary>
         ///     Append formattable

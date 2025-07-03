@@ -375,5 +375,21 @@ namespace NativeCollections
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ThrowCannotCallGetHashCodeException() => throw new NotSupportedException("CannotCallGetHashCode");
+
+        /// <summary>
+        ///     Throws a <see cref="FormatException" /> indicating that the string format is invalid at a specific offset.
+        /// </summary>
+        /// <param name="offset">The offset where the format is invalid.</param>
+        /// <param name="reason">The reason why the format is invalid.</param>
+        [DoesNotReturn]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ThrowFormatInvalidString(int offset, string? reason) => throw new FormatException($"InvalidStringWithOffset: {offset}, Reason: {reason}");
+
+        /// <summary>
+        ///     Throws a <see cref="FormatException" /> indicating that the index is out of range for the format.
+        /// </summary>
+        [DoesNotReturn]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ThrowFormatIndexOutOfRange() => throw new FormatException("IndexOutOfRange");
     }
 }

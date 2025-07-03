@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 #pragma warning disable CA2208
+#pragma warning disable CS8500
 #pragma warning disable CS8632
 #pragma warning disable CS9081
 
@@ -153,8 +154,6 @@ namespace NativeCollections
         /// <summary>
         ///     Append
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <returns>Appended</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Append(ReadOnlySpan<T> buffer)
         {
@@ -382,13 +381,22 @@ namespace NativeCollections
         /// <summary>
         ///     Append
         /// </summary>
-        /// <param name="value">Value</param>
-        /// <returns>Appended</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Append(in T value)
         {
             EnsureCapacity(_length + 1);
             _buffer[_length++] = value;
+        }
+
+        /// <summary>
+        ///     Append
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Append(in T value, int repeatCount)
+        {
+            EnsureCapacity(_length + repeatCount);
+            _buffer.Slice(_length, repeatCount).Fill(value);
+            _length += repeatCount;
         }
 
         /// <summary>
@@ -879,6 +887,18 @@ namespace NativeCollections
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeSplitAnyRange<T> SplitAnyRange(ReadOnlySpan<T> separator) => new(Text, separator);
+
+        /// <summary>
+        ///     As ref
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly ref NativeStringBuilder<T> AsRef()
+        {
+            fixed (NativeStringBuilder<T>* ptr = &this)
+            {
+                return ref *ptr;
+            }
+        }
 
         /// <summary>
         ///     As span
