@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.Intrinsics;
 using System.Threading;
 using System.Threading.Tasks;
+using Herta;
 using NativeCollections;
 
 // ReSharper disable ALL
@@ -12,6 +13,15 @@ namespace Examples
     internal sealed unsafe class Program
     {
         private static void Main()
+        {
+            NativeString str = new NativeString(stackalloc char[1024], 0);
+            str.Append<object>(100);
+            str.Append<int?>(null);
+            str.Append<string>("100");
+            Console.WriteLine(str.ToString());
+        }
+
+        private static void TestQueue()
         {
             const int capacity = 4;
             var queue1 = new Queue<int>(capacity);
