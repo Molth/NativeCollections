@@ -192,7 +192,8 @@ namespace NativeCollections
                 return differentBits == 0;
             }
 #else
-            var (quotient, remainder) = MathHelpers.DivRem(byteCount, 1073741824);
+            var quotient = byteCount >> 30;
+            var remainder = byteCount & 1073741823;
             for (nuint i = 0; i < quotient; ++i)
             {
                 if (!MemoryMarshal.CreateReadOnlySpan(ref left, 1073741824).SequenceEqual(MemoryMarshal.CreateReadOnlySpan(ref right, 1073741824)))
