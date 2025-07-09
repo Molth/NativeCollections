@@ -1190,7 +1190,7 @@ namespace NativeCollections
 #if NETCOREAPP3_0_OR_GREATER
             return string.GetHashCode(buffer);
 #else
-            return MarvinHelpers.ComputeHash32(MemoryMarshal.Cast<char, byte>(buffer), MarvinHelpers.DefaultSeed);
+            return MarvinHelpers.ComputeHash32(MemoryMarshal.AsBytes(buffer), MarvinHelpers.DefaultSeed);
 #endif
         }
 
@@ -1249,13 +1249,13 @@ namespace NativeCollections
         ///     Append formatted
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool AppendFormatted(ref DefaultInterpolatedStringHandler message, bool clear = true) => DefaultInterpolatedStringHandlerHelpers.AppendFormatted(ref this, ref message, clear);
+        public bool AppendFormatted(ref DefaultInterpolatedStringHandler handler, bool clear = true) => DefaultInterpolatedStringHandlerHelpers.AppendFormatted(ref this, ref handler, clear);
 
         /// <summary>
         ///     Append formatted
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool AppendFormatted(IFormatProvider? provider, [InterpolatedStringHandlerArgument("provider")] ref DefaultInterpolatedStringHandler message, bool clear = true) => DefaultInterpolatedStringHandlerHelpers.AppendFormatted(ref this, ref message, clear);
+        public bool AppendFormatted(IFormatProvider? provider, [InterpolatedStringHandlerArgument("provider")] ref DefaultInterpolatedStringHandler handler, bool clear = true) => DefaultInterpolatedStringHandlerHelpers.AppendFormatted(ref this, ref handler, clear);
 
         /// <summary>
         ///     Append formattable

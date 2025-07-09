@@ -56,27 +56,27 @@ namespace NativeCollections
         ///     Append formatted
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool AppendFormatted(ref NativeString @string, ref DefaultInterpolatedStringHandler message, bool clear)
+        public static bool AppendFormatted(ref NativeString @string, ref DefaultInterpolatedStringHandler handler, bool clear)
         {
             if (GetText != null)
             {
-                var text = GetText(ref message);
+                var text = GetText(ref handler);
                 var result = @string.Append(MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(text), text.Length));
                 if (clear)
-                    Clear!(ref message);
+                    Clear!(ref handler);
                 return result;
             }
 
-            return AppendFormattedFallback(ref @string, ref message, clear);
+            return AppendFormattedFallback(ref @string, ref handler, clear);
         }
 
         /// <summary>
         ///     Append formatted
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool AppendFormattedFallback(ref NativeString @string, ref DefaultInterpolatedStringHandler message, bool clear)
+        private static bool AppendFormattedFallback(ref NativeString @string, ref DefaultInterpolatedStringHandler handler, bool clear)
         {
-            ReadOnlySpan<char> text = clear ? message.ToStringAndClear() : message.ToString();
+            ReadOnlySpan<char> text = clear ? handler.ToStringAndClear() : handler.ToString();
             var result = @string.Append(text);
             return result;
         }
@@ -85,27 +85,27 @@ namespace NativeCollections
         ///     Append formatted
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void AppendFormatted(ref NativeStringBuilder<char> builder, ref DefaultInterpolatedStringHandler message, bool clear)
+        public static void AppendFormatted(ref NativeStringBuilder<char> builder, ref DefaultInterpolatedStringHandler handler, bool clear)
         {
             if (GetText != null)
             {
-                var text = GetText(ref message);
+                var text = GetText(ref handler);
                 builder.Append(MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(text), text.Length));
                 if (clear)
-                    Clear!(ref message);
+                    Clear!(ref handler);
                 return;
             }
 
-            AppendFormattedFallback(ref builder, ref message, clear);
+            AppendFormattedFallback(ref builder, ref handler, clear);
         }
 
         /// <summary>
         ///     Append formatted
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void AppendFormattedFallback(ref NativeStringBuilder<char> builder, ref DefaultInterpolatedStringHandler message, bool clear)
+        private static void AppendFormattedFallback(ref NativeStringBuilder<char> builder, ref DefaultInterpolatedStringHandler handler, bool clear)
         {
-            ReadOnlySpan<char> text = clear ? message.ToStringAndClear() : message.ToString();
+            ReadOnlySpan<char> text = clear ? handler.ToStringAndClear() : handler.ToString();
             builder.Append(text);
         }
 
@@ -113,39 +113,39 @@ namespace NativeCollections
         ///     Append formatted
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void AppendFormatted(ref NativeStringBuilder<byte> builder, ref DefaultInterpolatedStringHandler message, bool clear)
+        public static void AppendFormatted(ref NativeStringBuilder<byte> builder, ref DefaultInterpolatedStringHandler handler, bool clear)
         {
             if (GetText != null)
             {
-                var text = GetText(ref message);
+                var text = GetText(ref handler);
                 builder.Append(text);
                 if (clear)
-                    Clear!(ref message);
+                    Clear!(ref handler);
                 return;
             }
 
-            AppendFormattedFallback(ref builder, ref message, clear);
+            AppendFormattedFallback(ref builder, ref handler, clear);
         }
 
         /// <summary>
         ///     Append formatted
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void AppendFormattedFallback(ref NativeStringBuilder<byte> builder, ref DefaultInterpolatedStringHandler message, bool clear)
+        private static void AppendFormattedFallback(ref NativeStringBuilder<byte> builder, ref DefaultInterpolatedStringHandler handler, bool clear)
         {
-            ReadOnlySpan<char> text = clear ? message.ToStringAndClear() : message.ToString();
+            ReadOnlySpan<char> text = clear ? handler.ToStringAndClear() : handler.ToString();
             builder.Append(text);
         }
 
         /// <summary>
         ///     Get text
         /// </summary>
-        private delegate ReadOnlySpan<char> GetTextFunc(ref DefaultInterpolatedStringHandler message);
+        private delegate ReadOnlySpan<char> GetTextFunc(ref DefaultInterpolatedStringHandler handler);
 
         /// <summary>
         ///     Clear
         /// </summary>
-        private delegate void ClearAction(ref DefaultInterpolatedStringHandler message);
+        private delegate void ClearAction(ref DefaultInterpolatedStringHandler handler);
     }
 }
 #endif

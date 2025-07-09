@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 
 #pragma warning disable CA2208
 #pragma warning disable CS8500
@@ -778,7 +779,14 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => typeof(T) == typeof(char) ? Text.ToString() : $"NativeStringBuilder<{typeof(T).Name}>[{_length}]";
+        public override string ToString()
+        {
+            if (typeof(T) == typeof(char))
+                return Text.ToString();
+            if (typeof(T) == typeof(byte))
+                return Encoding.UTF8.GetString(MemoryMarshal.AsBytes(Text));
+            return $"NativeStringBuilder<{typeof(T).Name}>[{_length}]";
+        }
 
         /// <summary>
         ///     Copy to

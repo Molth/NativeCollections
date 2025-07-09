@@ -264,13 +264,13 @@ namespace NativeCollections
         ///     Append formatted
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void AppendFormatted(in this NativeStringBuilder<char> builder, ref DefaultInterpolatedStringHandler message, bool clear = true) => DefaultInterpolatedStringHandlerHelpers.AppendFormatted(ref builder.AsRef(), ref message, clear);
+        public static void AppendFormatted(in this NativeStringBuilder<char> builder, ref DefaultInterpolatedStringHandler handler, bool clear = true) => DefaultInterpolatedStringHandlerHelpers.AppendFormatted(ref builder.AsRef(), ref handler, clear);
 
         /// <summary>
         ///     Append formatted
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void AppendFormatted(in this NativeStringBuilder<char> builder, IFormatProvider? provider, [InterpolatedStringHandlerArgument("provider")] ref DefaultInterpolatedStringHandler message, bool clear = true) => DefaultInterpolatedStringHandlerHelpers.AppendFormatted(ref builder.AsRef(), ref message, clear);
+        public static void AppendFormatted(in this NativeStringBuilder<char> builder, IFormatProvider? provider, [InterpolatedStringHandlerArgument("provider")] ref DefaultInterpolatedStringHandler handler, bool clear = true) => DefaultInterpolatedStringHandlerHelpers.AppendFormatted(ref builder.AsRef(), ref handler, clear);
 
         /// <summary>
         ///     Append formattable
@@ -922,13 +922,13 @@ namespace NativeCollections
         ///     Append formatted
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void AppendFormatted(in this NativeStringBuilder<byte> builder, ref DefaultInterpolatedStringHandler message, bool clear = true) => DefaultInterpolatedStringHandlerHelpers.AppendFormatted(ref builder.AsRef(), ref message, clear);
+        public static void AppendFormatted(in this NativeStringBuilder<byte> builder, ref DefaultInterpolatedStringHandler handler, bool clear = true) => DefaultInterpolatedStringHandlerHelpers.AppendFormatted(ref builder.AsRef(), ref handler, clear);
 
         /// <summary>
         ///     Append formatted
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void AppendFormatted(in this NativeStringBuilder<byte> builder, IFormatProvider? provider, [InterpolatedStringHandlerArgument("provider")] ref DefaultInterpolatedStringHandler message, bool clear = true) => DefaultInterpolatedStringHandlerHelpers.AppendFormatted(ref builder.AsRef(), ref message, clear);
+        public static void AppendFormatted(in this NativeStringBuilder<byte> builder, IFormatProvider? provider, [InterpolatedStringHandlerArgument("provider")] ref DefaultInterpolatedStringHandler handler, bool clear = true) => DefaultInterpolatedStringHandlerHelpers.AppendFormatted(ref builder.AsRef(), ref handler, clear);
 #endif
         /// <summary>
         ///     Append format

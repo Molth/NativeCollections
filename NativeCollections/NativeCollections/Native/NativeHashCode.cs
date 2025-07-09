@@ -77,7 +77,7 @@ namespace NativeCollections
         ///     Compute hash 32
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetHashCode<T>(ReadOnlySpan<T> buffer) where T : unmanaged => GetHashCode(MemoryMarshal.Cast<T, byte>(buffer));
+        public static int GetHashCode<T>(ReadOnlySpan<T> buffer) where T : unmanaged => GetHashCode(MemoryMarshal.AsBytes(buffer));
 
         /// <summary>
         ///     Compute hash 32
