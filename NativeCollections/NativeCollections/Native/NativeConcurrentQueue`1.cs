@@ -1086,7 +1086,7 @@ namespace NativeCollections
         ///     Slots
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        [InlineArray(1024)]
+        [InlineArray(NativeConcurrentQueue.LENGTH)]
         public struct NativeConcurrentQueueSegmentSlots1024<T> where T : unmanaged
         {
             private NativeConcurrentQueueSegmentSlot<T> _element;
