@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Globalization;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -148,6 +149,12 @@ namespace NativeCollections
             Format4Delegates[typeof(nint?)] = FormatNullableIntPtr;
             Format4Delegates[typeof(nuint?)] = FormatNullableUIntPtr;
         }
+
+        /// <summary>
+        ///     Gets whether the provider provides a custom formatter.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool HasCustomFormatter(IFormatProvider provider) => provider.GetType() != typeof(CultureInfo) && provider.GetFormat(typeof(ICustomFormatter)) != null;
 
         /// <summary>
         ///     Format

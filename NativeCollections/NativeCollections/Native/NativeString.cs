@@ -1252,6 +1252,12 @@ namespace NativeCollections
         public bool AppendFormatted(ref DefaultInterpolatedStringHandler message, bool clear = true) => DefaultInterpolatedStringHandlerHelpers.AppendFormatted(ref this, ref message, clear);
 
         /// <summary>
+        ///     Append formatted
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AppendFormatted(IFormatProvider? provider, [InterpolatedStringHandlerArgument("provider")] ref DefaultInterpolatedStringHandler message, bool clear = true) => DefaultInterpolatedStringHandlerHelpers.AppendFormatted(ref this, ref message, clear);
+
+        /// <summary>
         ///     Append formattable
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
