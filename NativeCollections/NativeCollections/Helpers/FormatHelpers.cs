@@ -170,40 +170,19 @@ namespace NativeCollections
                     return true;
                 }
 
-                if (obj.AsSpan().TryCopyTo(destination))
-                {
-                    charsWritten = obj.Length;
-                    return true;
-                }
-
-                charsWritten = 0;
-                return false;
+                return TryCopyTo(obj.AsSpan(), destination, out charsWritten);
             }
 
             if (typeof(T) == typeof(ReadOnlyMemory<char>))
             {
                 var obj = Unsafe.As<T?, ReadOnlyMemory<char>>(ref value);
-                if (obj.Span.TryCopyTo(destination))
-                {
-                    charsWritten = obj.Length;
-                    return true;
-                }
-
-                charsWritten = 0;
-                return false;
+                return TryCopyTo(obj.Span, destination, out charsWritten);
             }
 
             if (typeof(T) == typeof(Memory<char>))
             {
                 var obj = Unsafe.As<T?, Memory<char>>(ref value);
-                if (obj.Span.TryCopyTo(destination))
-                {
-                    charsWritten = obj.Length;
-                    return true;
-                }
-
-                charsWritten = 0;
-                return false;
+                return TryCopyTo(obj.Span, destination, out charsWritten);
             }
 
             if (typeof(T) == typeof(bool))
@@ -283,14 +262,7 @@ namespace NativeCollections
                     return true;
                 }
 
-                if (nullable.Value.Span.TryCopyTo(destination))
-                {
-                    charsWritten = nullable.Value.Length;
-                    return true;
-                }
-
-                charsWritten = 0;
-                return false;
+                return TryCopyTo(nullable.Value.Span, destination, out charsWritten);
             }
 
             if (typeof(T) == typeof(Memory<char>?))
@@ -302,14 +274,7 @@ namespace NativeCollections
                     return true;
                 }
 
-                if (nullable.Value.Span.TryCopyTo(destination))
-                {
-                    charsWritten = nullable.Value.Length;
-                    return true;
-                }
-
-                charsWritten = 0;
-                return false;
+                return TryCopyTo(nullable.Value.Span, destination, out charsWritten);
             }
 
             if (typeof(T) == typeof(bool?))
@@ -507,14 +472,7 @@ namespace NativeCollections
             if (typeof(T).IsEnum)
             {
                 var obj = value!.ToString()!;
-                if (obj.AsSpan().TryCopyTo(destination))
-                {
-                    charsWritten = obj.Length;
-                    return true;
-                }
-
-                charsWritten = 0;
-                return false;
+                return TryCopyTo(obj.AsSpan(), destination, out charsWritten);
             }
 
             if (value == null)
@@ -526,14 +484,7 @@ namespace NativeCollections
             if (typeof(T).IsArray)
             {
                 var obj = typeof(T).ToString();
-                if (obj.AsSpan().TryCopyTo(destination))
-                {
-                    charsWritten = obj.Length;
-                    return true;
-                }
-
-                charsWritten = 0;
-                return false;
+                return TryCopyTo(obj.AsSpan(), destination, out charsWritten);
             }
 
             if (typeof(T).IsGenericType && typeof(T).GetGenericTypeDefinition() == typeof(Nullable<>))
@@ -550,14 +501,7 @@ namespace NativeCollections
                 if (typeof(T) == typeof(object) && type.IsEnum)
                 {
                     var obj = value.ToString()!;
-                    if (obj.AsSpan().TryCopyTo(destination))
-                    {
-                        charsWritten = obj.Length;
-                        return true;
-                    }
-
-                    charsWritten = 0;
-                    return false;
+                    return TryCopyTo(obj.AsSpan(), destination, out charsWritten);
                 }
 
                 if (type == typeof(object))
@@ -628,17 +572,7 @@ namespace NativeCollections
         /// <summary>
         ///     Format
         /// </summary>
-        private static bool FormatObject(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        {
-            if ("System.Object".AsSpan().TryCopyTo(destination))
-            {
-                charsWritten = 13;
-                return true;
-            }
-
-            charsWritten = 0;
-            return false;
-        }
+        private static bool FormatObject(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider) => TryCopyTo("System.Object".AsSpan(), destination, out charsWritten);
 
         /// <summary>
         ///     Format
@@ -646,14 +580,7 @@ namespace NativeCollections
         private static bool FormatString(object value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
             var obj = Unsafe.As<object, string>(ref value);
-            if (obj.AsSpan().TryCopyTo(destination))
-            {
-                charsWritten = obj.Length;
-                return true;
-            }
-
-            charsWritten = 0;
-            return false;
+            return TryCopyTo(obj.AsSpan(), destination, out charsWritten);
         }
 
         /// <summary>
@@ -662,14 +589,7 @@ namespace NativeCollections
         private static bool FormatReadOnlyMemoryChar(object value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
             var obj = Unsafe.As<object, ReadOnlyMemory<char>>(ref value);
-            if (obj.Span.TryCopyTo(destination))
-            {
-                charsWritten = obj.Length;
-                return true;
-            }
-
-            charsWritten = 0;
-            return false;
+            return TryCopyTo(obj.Span, destination, out charsWritten);
         }
 
         /// <summary>
@@ -678,14 +598,7 @@ namespace NativeCollections
         private static bool FormatMemoryChar(object value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
             var obj = Unsafe.As<object, Memory<char>>(ref value);
-            if (obj.Span.TryCopyTo(destination))
-            {
-                charsWritten = obj.Length;
-                return true;
-            }
-
-            charsWritten = 0;
-            return false;
+            return TryCopyTo(obj.Span, destination, out charsWritten);
         }
 
         /// <summary>
@@ -882,14 +795,7 @@ namespace NativeCollections
                 return true;
             }
 
-            if (obj.Value.Span.TryCopyTo(destination))
-            {
-                charsWritten = obj.Value.Length;
-                return true;
-            }
-
-            charsWritten = 0;
-            return false;
+            return TryCopyTo(obj.Value.Span, destination, out charsWritten);
         }
 
         /// <summary>
@@ -904,14 +810,7 @@ namespace NativeCollections
                 return true;
             }
 
-            if (obj.Value.Span.TryCopyTo(destination))
-            {
-                charsWritten = obj.Value.Length;
-                return true;
-            }
-
-            charsWritten = 0;
-            return false;
+            return TryCopyTo(obj.Value.Span, destination, out charsWritten);
         }
 
         /// <summary>
@@ -920,11 +819,13 @@ namespace NativeCollections
         private static bool FormatNullableBoolean(object value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
             var obj = (bool?)value;
-            if (obj != null)
-                return obj.Value.TryFormat(destination, out charsWritten);
+            if (obj == null)
+            {
+                charsWritten = 0;
+                return true;
+            }
 
-            charsWritten = 0;
-            return false;
+            return obj.Value.TryFormat(destination, out charsWritten);
         }
 
         /// <summary>
@@ -933,11 +834,13 @@ namespace NativeCollections
         private static bool FormatNullableDecimal(object value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
             var obj = (decimal?)value;
-            if (obj != null)
-                return obj.Value.TryFormat(destination, out charsWritten, format, provider);
+            if (obj == null)
+            {
+                charsWritten = 0;
+                return true;
+            }
 
-            charsWritten = 0;
-            return false;
+            return obj.Value.TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>
@@ -946,11 +849,13 @@ namespace NativeCollections
         private static bool FormatNullableDateTime(object value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
             var obj = (DateTime?)value;
-            if (obj != null)
-                return obj.Value.TryFormat(destination, out charsWritten, format, provider);
+            if (obj == null)
+            {
+                charsWritten = 0;
+                return true;
+            }
 
-            charsWritten = 0;
-            return false;
+            return obj.Value.TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>
@@ -959,11 +864,13 @@ namespace NativeCollections
         private static bool FormatNullableByte(object value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
             var obj = (byte?)value;
-            if (obj != null)
-                return obj.Value.TryFormat(destination, out charsWritten, format, provider);
+            if (obj == null)
+            {
+                charsWritten = 0;
+                return true;
+            }
 
-            charsWritten = 0;
-            return false;
+            return obj.Value.TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>
@@ -972,11 +879,13 @@ namespace NativeCollections
         private static bool FormatNullableDateTimeOffset(object value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
             var obj = (DateTimeOffset?)value;
-            if (obj != null)
-                return obj.Value.TryFormat(destination, out charsWritten, format, provider);
+            if (obj == null)
+            {
+                charsWritten = 0;
+                return true;
+            }
 
-            charsWritten = 0;
-            return false;
+            return obj.Value.TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>
@@ -985,11 +894,13 @@ namespace NativeCollections
         private static bool FormatNullableDouble(object value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
             var obj = (double?)value;
-            if (obj != null)
-                return obj.Value.TryFormat(destination, out charsWritten, format, provider);
+            if (obj == null)
+            {
+                charsWritten = 0;
+                return true;
+            }
 
-            charsWritten = 0;
-            return false;
+            return obj.Value.TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>
@@ -998,11 +909,13 @@ namespace NativeCollections
         private static bool FormatNullableGuid(object value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
             var obj = (Guid?)value;
-            if (obj != null)
-                return obj.Value.TryFormat(destination, out charsWritten, format);
+            if (obj == null)
+            {
+                charsWritten = 0;
+                return true;
+            }
 
-            charsWritten = 0;
-            return false;
+            return obj.Value.TryFormat(destination, out charsWritten, format);
         }
 
 #if NET5_0_OR_GREATER
@@ -1012,11 +925,13 @@ namespace NativeCollections
         private static bool FormatNullableHalf(object value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
             var obj = (Half?)value;
-            if (obj != null)
-                return obj.Value.TryFormat(destination, out charsWritten, format, provider);
+            if (obj == null)
+            {
+                charsWritten = 0;
+                return true;
+            }
 
-            charsWritten = 0;
-            return false;
+            return obj.Value.TryFormat(destination, out charsWritten, format, provider);
         }
 #endif
 
@@ -1026,11 +941,13 @@ namespace NativeCollections
         private static bool FormatNullableInt16(object value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
             var obj = (short?)value;
-            if (obj != null)
-                return obj.Value.TryFormat(destination, out charsWritten, format, provider);
+            if (obj == null)
+            {
+                charsWritten = 0;
+                return true;
+            }
 
-            charsWritten = 0;
-            return false;
+            return obj.Value.TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>
@@ -1039,11 +956,13 @@ namespace NativeCollections
         private static bool FormatNullableInt32(object value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
             var obj = (int?)value;
-            if (obj != null)
-                return obj.Value.TryFormat(destination, out charsWritten, format, provider);
+            if (obj == null)
+            {
+                charsWritten = 0;
+                return true;
+            }
 
-            charsWritten = 0;
-            return false;
+            return obj.Value.TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>
@@ -1052,11 +971,13 @@ namespace NativeCollections
         private static bool FormatNullableInt64(object value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
             var obj = (long?)value;
-            if (obj != null)
-                return obj.Value.TryFormat(destination, out charsWritten, format, provider);
+            if (obj == null)
+            {
+                charsWritten = 0;
+                return true;
+            }
 
-            charsWritten = 0;
-            return false;
+            return obj.Value.TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>
@@ -1065,11 +986,13 @@ namespace NativeCollections
         private static bool FormatNullableSByte(object value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
             var obj = (sbyte?)value;
-            if (obj != null)
-                return obj.Value.TryFormat(destination, out charsWritten, format, provider);
+            if (obj == null)
+            {
+                charsWritten = 0;
+                return true;
+            }
 
-            charsWritten = 0;
-            return false;
+            return obj.Value.TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>
@@ -1078,11 +1001,13 @@ namespace NativeCollections
         private static bool FormatNullableSingle(object value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
             var obj = (float?)value;
-            if (obj != null)
-                return obj.Value.TryFormat(destination, out charsWritten, format, provider);
+            if (obj == null)
+            {
+                charsWritten = 0;
+                return true;
+            }
 
-            charsWritten = 0;
-            return false;
+            return obj.Value.TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>
@@ -1091,11 +1016,13 @@ namespace NativeCollections
         private static bool FormatNullableTimeSpan(object value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
             var obj = (TimeSpan?)value;
-            if (obj != null)
-                return obj.Value.TryFormat(destination, out charsWritten, format, provider);
+            if (obj == null)
+            {
+                charsWritten = 0;
+                return true;
+            }
 
-            charsWritten = 0;
-            return false;
+            return obj.Value.TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>
@@ -1104,11 +1031,13 @@ namespace NativeCollections
         private static bool FormatNullableUInt16(object value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
             var obj = (ushort?)value;
-            if (obj != null)
-                return obj.Value.TryFormat(destination, out charsWritten, format, provider);
+            if (obj == null)
+            {
+                charsWritten = 0;
+                return true;
+            }
 
-            charsWritten = 0;
-            return false;
+            return obj.Value.TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>
@@ -1117,11 +1046,13 @@ namespace NativeCollections
         private static bool FormatNullableUInt32(object value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
             var obj = (uint?)value;
-            if (obj != null)
-                return obj.Value.TryFormat(destination, out charsWritten, format, provider);
+            if (obj == null)
+            {
+                charsWritten = 0;
+                return true;
+            }
 
-            charsWritten = 0;
-            return false;
+            return obj.Value.TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>
@@ -1130,11 +1061,13 @@ namespace NativeCollections
         private static bool FormatNullableUInt64(object value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
             var obj = (ulong?)value;
-            if (obj != null)
-                return obj.Value.TryFormat(destination, out charsWritten, format, provider);
+            if (obj == null)
+            {
+                charsWritten = 0;
+                return true;
+            }
 
-            charsWritten = 0;
-            return false;
+            return obj.Value.TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>
@@ -1143,11 +1076,13 @@ namespace NativeCollections
         private static bool FormatNullableIntPtr(object value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
             var obj = (nint?)value;
-            if (obj != null)
-                return sizeof(nint) == 8 ? ((long)obj.Value).TryFormat(destination, out charsWritten, format, provider) : ((int)obj.Value).TryFormat(destination, out charsWritten, format, provider);
+            if (obj == null)
+            {
+                charsWritten = 0;
+                return true;
+            }
 
-            charsWritten = 0;
-            return false;
+            return sizeof(nint) == 8 ? ((long)obj.Value).TryFormat(destination, out charsWritten, format, provider) : ((int)obj.Value).TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>
@@ -1156,8 +1091,26 @@ namespace NativeCollections
         private static bool FormatNullableUIntPtr(object value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
             var obj = (nuint?)value;
-            if (obj != null)
-                return sizeof(nint) == 8 ? ((ulong)obj.Value).TryFormat(destination, out charsWritten, format, provider) : ((uint)obj.Value).TryFormat(destination, out charsWritten, format, provider);
+            if (obj == null)
+            {
+                charsWritten = 0;
+                return true;
+            }
+
+            return sizeof(nint) == 8 ? ((ulong)obj.Value).TryFormat(destination, out charsWritten, format, provider) : ((uint)obj.Value).TryFormat(destination, out charsWritten, format, provider);
+        }
+
+        /// <summary>
+        ///     Try copy to
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool TryCopyTo(ReadOnlySpan<char> source, Span<char> destination, out int charsWritten)
+        {
+            if (source.TryCopyTo(destination))
+            {
+                charsWritten = source.Length;
+                return true;
+            }
 
             charsWritten = 0;
             return false;

@@ -1246,6 +1246,30 @@ namespace NativeCollections
 
 #if NET6_0_OR_GREATER
         /// <summary>
+        ///     Append
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Append([InterpolatedStringHandlerArgument("")] ref NativeStringInterpolatedStringHandler handler)
+        {
+            var result = handler.Result;
+            if (result)
+                this = handler.StringBuilder;
+            return result;
+        }
+
+        /// <summary>
+        ///     Append
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Append(IFormatProvider? provider, [InterpolatedStringHandlerArgument("", "provider")] ref NativeStringInterpolatedStringHandler handler)
+        {
+            var result = handler.Result;
+            if (result)
+                this = handler.StringBuilder;
+            return result;
+        }
+
+        /// <summary>
         ///     Append formatted
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

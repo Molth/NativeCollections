@@ -264,6 +264,22 @@ namespace NativeCollections
         ///     Append formatted
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Append(in this NativeStringBuilder<char> builder, [InterpolatedStringHandlerArgument("builder")] ref NativeStringBuilderUtf16InterpolatedStringHandler handler)
+        {
+        }
+
+        /// <summary>
+        ///     Append formatted
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Append(in this NativeStringBuilder<char> builder, IFormatProvider? provider, [InterpolatedStringHandlerArgument("builder", "provider")] ref NativeStringBuilderUtf16InterpolatedStringHandler handler)
+        {
+        }
+
+        /// <summary>
+        ///     Append formatted
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormatted(in this NativeStringBuilder<char> builder, ref DefaultInterpolatedStringHandler handler, bool clear = true) => DefaultInterpolatedStringHandlerHelpers.AppendFormatted(ref builder.AsRef(), ref handler, clear);
 
         /// <summary>
@@ -772,6 +788,36 @@ namespace NativeCollections
         ///     Append
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Append(in this NativeStringBuilder<byte> builder, char value, int repeatCount)
+        {
+            ref var builderRef = ref builder.AsRef();
+            ReadOnlySpan<char> buffer = stackalloc char[1] { value };
+            var byteCount = Encoding.UTF8.GetByteCount(buffer);
+            builderRef.EnsureCapacity(builderRef.Length + byteCount * repeatCount);
+            Span<byte> bytes = stackalloc byte[byteCount];
+            Encoding.UTF8.GetBytes(buffer, bytes);
+            if (byteCount == 1)
+            {
+                builderRef.GetSpan(repeatCount).Fill(MemoryMarshal.GetReference(bytes));
+                builderRef.Advance(repeatCount);
+                return;
+            }
+
+            ref var destination = ref MemoryMarshal.GetReference(builderRef.Space);
+            ref var source = ref MemoryMarshal.GetReference(bytes);
+            for (var i = 0; i < repeatCount; ++i)
+            {
+                Unsafe.CopyBlockUnaligned(ref destination, ref source, (uint)byteCount);
+                destination = ref Unsafe.AddByteOffset(ref destination, UnsafeHelpers.ToIntPtr(byteCount));
+            }
+
+            builderRef.Advance(byteCount * repeatCount);
+        }
+
+        /// <summary>
+        ///     Append
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Append(in this NativeStringBuilder<byte> builder, ReadOnlySpan<char> buffer)
         {
             ref var builderRef = ref builder.AsRef();
@@ -922,6 +968,22 @@ namespace NativeCollections
         ///     Append formatted
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Append(in this NativeStringBuilder<byte> builder, [InterpolatedStringHandlerArgument("builder")] ref NativeStringBuilderUtf8InterpolatedStringHandler handler)
+        {
+        }
+
+        /// <summary>
+        ///     Append formatted
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Append(in this NativeStringBuilder<byte> builder, IFormatProvider? provider, [InterpolatedStringHandlerArgument("builder", "provider")] ref NativeStringBuilderUtf8InterpolatedStringHandler handler)
+        {
+        }
+
+        /// <summary>
+        ///     Append formatted
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormatted(in this NativeStringBuilder<byte> builder, ref DefaultInterpolatedStringHandler handler, bool clear = true) => DefaultInterpolatedStringHandlerHelpers.AppendFormatted(ref builder.AsRef(), ref handler, clear);
 
         /// <summary>
@@ -937,11 +999,10 @@ namespace NativeCollections
         public static void AppendFormat<T>(in this NativeStringBuilder<byte> builder, T? obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
         {
             ref var builderRef = ref builder.AsRef();
-            using (var temp = new NativeStringBuilder<char>(stackalloc char[512], 0))
-            {
-                temp.AppendFormat(obj, format, provider);
-                builderRef.Append(temp);
-            }
+            int charsWritten;
+            while (!Utf8FormatHelpers.TryFormat(obj, builderRef.Space, out charsWritten, format, provider))
+                builderRef.EnsureCapacity(builderRef.Capacity + 1);
+            builderRef.Advance(charsWritten);
         }
 
         /// <summary>

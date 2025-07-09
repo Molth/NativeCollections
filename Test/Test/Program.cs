@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Text;
 using System.Threading;
@@ -11,49 +12,29 @@ using NativeCollections;
 
 namespace Examples
 {
-    public class TestClass1 : ISpanFormattable
-    {
-        public int Value;
-
-        public virtual string ToString(string? format, IFormatProvider? formatProvider)
-        {
-            FormattableString formattable = $"Sb{Value}";
-            return formattable.ToString(formatProvider);
-        }
-
-        public virtual bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider) => destination.TryWrite(provider, $"Sb{Value}", out charsWritten);
-        public override string ToString() => $"Sb{Value}";
-    }
-
-    public class TestClass2 : TestClass1
-    {
-        public override string ToString() => $"Nt{Value}";
-        public new bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider) => destination.TryWrite(provider, $"Nt{Value}", out charsWritten);
-
-        public override string ToString(string? format, IFormatProvider? formatProvider)
-        {
-            FormattableString formattable = $"Nt{Value}";
-            return formattable.ToString(formatProvider);
-        }
-    }
-
-    public struct TestStruct : ISpanFormattable
-    {
-        public int Value;
-        public override string ToString() => Value.ToString();
-        public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format);
-        public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider) => Value.TryFormat(destination, out charsWritten, format, provider);
-    }
-
     internal sealed unsafe class Program
     {
         private static void Main()
         {
             var sb = new StringBuilder();
-            var array = new byte[4] { 1, 2, 3, 4 };
-            sb.AppendJoin(',', array);
-            sb.Append($"Sb{100}");
-            sb.AppendFormat(CultureInfo.GetCultureInfo("de-DE"), "First: {0,10:D5}, Second: {1,-10:D5}, {3} Third: {2:D4}, 4th: {4:F5}", 100, 100, 100, array, 1.250f);
+            sb.Append((char)(0x7F + 1), 4);
+
+
+            var sb2 = new NativeStringBuilder<byte>();
+            sb2.Append((char)(0x7F + 1), 4);
+
+            Console.WriteLine(sb.ToString() == sb2.ToString());
+
+            TestString2();
+        }
+
+        private static void TestString2()
+        {
+            var sb = new StringBuilder();
+            sb.Append((char)(0x7F + 1), 4);
+            sb.Append(CultureInfo.GetCultureInfo("de-DE"), $"Sb{1.250f:F5}");
+            var a = CompositeFormat.Parse("First: {0,10:D5}, Second: {1,-10:D5}, {3} Third: {2:D4}, 4th: {4:F5}");
+            sb.AppendFormat(CultureInfo.GetCultureInfo("de-DE"), a, 100, 100, 100, 1, 1.250f);
             var str1 = sb.ToString();
             var str2 = TestString();
             Console.WriteLine(str1 == str2);
@@ -63,13 +44,30 @@ namespace Examples
 
         private static string TestString()
         {
-            var sb = new NativeStringBuilder<char>();
-            var array = new byte[4] { 1, 2, 3, 4 };
-            sb.AppendJoin(',', array);
-            sb.AppendFormatted($"Sb{100}");
-            sb.AppendFormat(CultureInfo.GetCultureInfo("de-DE"), "First: {0,10:D5}, Second: {1,-10:D5}, {3} Third: {2:D4}, 4th: {4:F5}", 100, 100, 100, array, 1.250f);
+            var sb = new NativeStringBuilder<byte>();
+            sb.Append((char)(0x7F + 1), 4);
+            sb.Append(CultureInfo.GetCultureInfo("de-DE"), $"Sb{1.250f:F5}");
+            var a = NativeCompositeFormat.Parse("First: {0,10:D5}, Second: {1,-10:D5}, {3} Third: {2:D4}, 4th: {4:F5}");
+            sb.AppendFormat(CultureInfo.GetCultureInfo("de-DE"), a, 100, 100, 100, 1, 1.250f);
             var str2 = sb.ToString();
             sb.Dispose();
+            return str2;
+        }
+
+        private static string TestString3()
+        {
+            Span<char> buffer = stackalloc char[1024];
+            var sb = new NativeString(MemoryMarshal.CreateSpan(ref MemoryMarshal.GetReference(buffer), buffer.Length), 0).AsRef();
+            sb.AppendFormatted(CultureInfo.GetCultureInfo("de-DE"), $"Sb{1.250f:F5}");
+            var str2 = sb.ToString();
+            return str2;
+        }
+
+        private static string TestString4()
+        {
+            var sb = new NativeStringBuilder<char>();
+            sb.AppendFormatted(CultureInfo.GetCultureInfo("de-DE"), $"Sb{1.250f:F5}");
+            var str2 = sb.ToString();
             return str2;
         }
 

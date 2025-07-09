@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if NET6_0_OR_GREATER
+using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 #pragma warning disable CA2208
@@ -15,12 +17,43 @@ namespace NativeCollections
     ///     <see cref="NativeStringBuilder{Char}" /> instances.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal readonly ref struct NativeStringBuilderInterpolatedStringHandler
+    [InterpolatedStringHandler]
+    public readonly unsafe ref struct NativeStringBuilderUtf16InterpolatedStringHandler
     {
+        /// <summary>
+        ///     Handle
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
+        private readonly struct NativeStringBuilderHandle
+        {
+            /// <summary>
+            ///     Handle
+            /// </summary>
+            private readonly NativeStringBuilder<char>* _handle;
+
+            /// <summary>
+            ///     Structure
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public NativeStringBuilderHandle(in NativeStringBuilder<char> builder)
+            {
+                fixed (NativeStringBuilder<char>* ptr = &builder)
+                {
+                    _handle = ptr;
+                }
+            }
+
+            /// <summary>
+            ///     As ref
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public ref NativeStringBuilder<char> AsRef() => ref *_handle;
+        }
+
         /// <summary>
         ///     The associated NativeStringBuilder to which to append.
         /// </summary>
-        public readonly NativeStringBuilder<char> StringBuilder;
+        private readonly NativeStringBuilderHandle _stringBuilder;
 
         /// <summary>
         ///     Optional provider to pass to IFormattable.ToString or ISpanFormattable.TryFormat calls.
@@ -48,9 +81,9 @@ namespace NativeCollections
         ///     This is intended to be called only by compiler-generated code. Arguments are not validated as they'd otherwise
         ///     be for members intended to be used directly.
         /// </remarks>
-        public NativeStringBuilderInterpolatedStringHandler(int literalLength, int formattedCount, in NativeStringBuilder<char> stringBuilder)
+        public NativeStringBuilderUtf16InterpolatedStringHandler(int literalLength, int formattedCount, in NativeStringBuilder<char> stringBuilder)
         {
-            StringBuilder = stringBuilder;
+            _stringBuilder = new NativeStringBuilderHandle(stringBuilder);
             _provider = null;
             _hasCustomFormatter = false;
         }
@@ -67,9 +100,9 @@ namespace NativeCollections
         ///     This is intended to be called only by compiler-generated code. Arguments are not validated as they'd otherwise
         ///     be for members intended to be used directly.
         /// </remarks>
-        public NativeStringBuilderInterpolatedStringHandler(int literalLength, int formattedCount, in NativeStringBuilder<char> stringBuilder, IFormatProvider? provider)
+        public NativeStringBuilderUtf16InterpolatedStringHandler(int literalLength, int formattedCount, in NativeStringBuilder<char> stringBuilder, IFormatProvider? provider)
         {
-            StringBuilder = stringBuilder;
+            _stringBuilder = new NativeStringBuilderHandle(stringBuilder);
             _provider = provider;
             _hasCustomFormatter = provider != null && FormatHelpers.HasCustomFormatter(provider);
         }
@@ -78,7 +111,7 @@ namespace NativeCollections
         /// <param name="value">The string to write.</param>
         public void AppendLiteral(string value)
         {
-            ref var sbRef = ref StringBuilder.AsRef();
+            ref var sbRef = ref _stringBuilder.AsRef();
             sbRef.Append(value);
         }
 
@@ -87,7 +120,7 @@ namespace NativeCollections
         /// <typeparam name="T">The type of the value to write.</typeparam>
         public void AppendFormatted<T>(T value)
         {
-            ref var sbRef = ref StringBuilder.AsRef();
+            ref var sbRef = ref _stringBuilder.AsRef();
             if (_hasCustomFormatter)
             {
                 var formatter = (ICustomFormatter?)_provider!.GetFormat(typeof(ICustomFormatter));
@@ -105,7 +138,7 @@ namespace NativeCollections
         /// <typeparam name="T">The type of the value to write.</typeparam>
         public void AppendFormatted<T>(T value, string? format)
         {
-            ref var sbRef = ref StringBuilder.AsRef();
+            ref var sbRef = ref _stringBuilder.AsRef();
             if (_hasCustomFormatter)
             {
                 var formatter = (ICustomFormatter?)_provider!.GetFormat(typeof(ICustomFormatter));
@@ -142,7 +175,7 @@ namespace NativeCollections
             }
             else if (alignment < 0)
             {
-                ref var sbRef = ref StringBuilder.AsRef();
+                ref var sbRef = ref _stringBuilder.AsRef();
                 var start = sbRef.Length;
                 AppendFormatted(value, format);
                 var paddingRequired = -alignment - (sbRef.Length - start);
@@ -170,7 +203,7 @@ namespace NativeCollections
         /// <param name="value">The span to write.</param>
         public void AppendFormatted(ReadOnlySpan<char> value)
         {
-            ref var sbRef = ref StringBuilder.AsRef();
+            ref var sbRef = ref _stringBuilder.AsRef();
             sbRef.Append(value);
         }
 
@@ -183,7 +216,7 @@ namespace NativeCollections
         /// <param name="format">The format string.</param>
         public void AppendFormatted(ReadOnlySpan<char> value, int alignment, string? format = null)
         {
-            ref var sbRef = ref StringBuilder.AsRef();
+            ref var sbRef = ref _stringBuilder.AsRef();
             if (alignment == 0)
             {
                 sbRef.Append(value);
@@ -221,7 +254,7 @@ namespace NativeCollections
         {
             if (!_hasCustomFormatter)
             {
-                ref var sbRef = ref StringBuilder.AsRef();
+                ref var sbRef = ref _stringBuilder.AsRef();
                 sbRef.Append(value);
             }
             else
@@ -249,3 +282,4 @@ namespace NativeCollections
         public void AppendFormatted(object? value, int alignment = 0, string? format = null) => AppendFormatted<object?>(value, alignment, format);
     }
 }
+#endif
