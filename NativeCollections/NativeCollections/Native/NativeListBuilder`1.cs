@@ -19,7 +19,7 @@ namespace NativeCollections
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Standard)]
     [IsAssignableTo(typeof(IDisposable), typeof(IReadOnlyCollection<>))]
-    public unsafe ref struct NativeValueListBuilder<T> where T : unmanaged
+    public unsafe ref struct NativeListBuilder<T>
     {
         /// <summary>
         ///     Buffer
@@ -77,7 +77,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeValueListBuilder(Span<T> buffer)
+        public NativeListBuilder(Span<T> buffer)
         {
             _buffer = buffer;
             _array = null;
@@ -90,7 +90,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="length">Length</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeValueListBuilder(Span<T> buffer, int length)
+        public NativeListBuilder(Span<T> buffer, int length)
         {
             ThrowHelpers.ThrowIfNegative(length, nameof(length));
             ThrowHelpers.ThrowIfGreaterThan(length, buffer.Length, nameof(length));
@@ -104,7 +104,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeValueListBuilder(int capacity)
+        public NativeListBuilder(int capacity)
         {
             ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             _buffer = _array = ArrayPool<T>.Shared.Rent(capacity);
@@ -117,7 +117,7 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         /// <param name="length">Length</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeValueListBuilder(int capacity, int length)
+        public NativeListBuilder(int capacity, int length)
         {
             ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
             ThrowHelpers.ThrowIfNegative(length, nameof(length));
@@ -143,9 +143,9 @@ namespace NativeCollections
         ///     As ref
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ref NativeValueListBuilder<T> AsRef()
+        public readonly ref NativeListBuilder<T> AsRef()
         {
-            fixed (NativeValueListBuilder<T>* ptr = &this)
+            fixed (NativeListBuilder<T>* ptr = &this)
             {
                 return ref *ptr;
             }
@@ -183,13 +183,17 @@ namespace NativeCollections
         /// </summary>
         /// <returns>HashCode</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override int GetHashCode() => NativeHashCode.GetHashCode(AsReadOnlySpan());
+        public override int GetHashCode()
+        {
+            ThrowHelpers.ThrowCannotCallGetHashCodeException();
+            return default;
+        }
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => $"NativeValueListBuilder<{typeof(T).Name}>[{_length}]";
+        public override string ToString() => $"NativeListBuilder<{typeof(T).Name}>[{_length}]";
 
         /// <summary>
         ///     Append
@@ -229,7 +233,7 @@ namespace NativeCollections
             {
                 if ((uint)(_length + source.Length) > (uint)_buffer.Length)
                     Grow(_buffer.Length - _length + source.Length);
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref MemoryMarshal.GetReference(_buffer), (nint)_length)), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(source)), (uint)(source.Length * sizeof(T)));
+                source.CopyTo(_buffer.Slice(_length));
                 _length += source.Length;
             }
         }
@@ -261,12 +265,6 @@ namespace NativeCollections
         /// <returns>ReadOnlyMemory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlyMemory<T> AsReadOnlyMemory() => new(_array, 0, _length);
-
-        /// <summary>
-        ///     Cast
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<TTo> Cast<TTo>() where TTo : unmanaged => MemoryMarshal.Cast<T, TTo>(AsSpan());
 
         /// <summary>
         ///     Ensure capacity
@@ -322,7 +320,7 @@ namespace NativeCollections
             {
                 var destination = ArrayPool<T>.Shared.Rent(capacity);
                 if (_length > 0)
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference((Span<T>)destination)), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(_buffer)), (uint)(_length * sizeof(T)));
+                    _buffer.Slice(0, _length).CopyTo(destination);
                 var array = _array;
                 _buffer = (Span<T>)(_array = destination);
                 if (array == null)
@@ -346,7 +344,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeValueListBuilder<T> Empty => new();
+        public static NativeListBuilder<T> Empty => new();
 
         /// <summary>
         ///     Get enumerator
