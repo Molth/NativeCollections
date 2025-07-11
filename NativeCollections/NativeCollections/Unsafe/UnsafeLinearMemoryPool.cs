@@ -49,22 +49,22 @@ namespace NativeCollections
         /// <summary>
         ///     Slabs
         /// </summary>
-        public int Slabs => _slabs;
+        public readonly int Slabs => _slabs;
 
         /// <summary>
         ///     Free slabs
         /// </summary>
-        public int FreeSlabs => _freeSlabs;
+        public readonly int FreeSlabs => _freeSlabs;
 
         /// <summary>
         ///     Max free slabs
         /// </summary>
-        public int MaxFreeSlabs => _maxFreeSlabs;
+        public readonly int MaxFreeSlabs => _maxFreeSlabs;
 
         /// <summary>
         ///     Max length
         /// </summary>
-        public int MaxLength => _size - sizeof(MemoryNode);
+        public readonly int MaxLength => _size - sizeof(MemoryNode);
 
         /// <summary>
         ///     Structure

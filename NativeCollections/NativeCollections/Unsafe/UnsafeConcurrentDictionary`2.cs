@@ -348,7 +348,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Contains key</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool ContainsKey(in TKey key)
+        public readonly bool ContainsKey(in TKey key)
         {
             var tables = _tables;
             var hashCode = key.GetHashCode();
@@ -368,7 +368,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValue(in TKey key, out TValue value)
+        public readonly bool TryGetValue(in TKey key, out TValue value)
         {
             var tables = _tables;
             var hashCode = key.GetHashCode();
@@ -392,7 +392,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueReference(in TKey key, out NativeReference<TValue> value)
+        public readonly bool TryGetValueReference(in TKey key, out NativeReference<TValue> value)
         {
             var tables = _tables;
             var hashCode = key.GetHashCode();
@@ -415,7 +415,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Value ref</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref TValue GetValueRefOrNullRef(in TKey key)
+        public readonly ref TValue GetValueRefOrNullRef(in TKey key)
         {
             var tables = _tables;
             var hashCode = key.GetHashCode();
@@ -435,7 +435,7 @@ namespace NativeCollections
         /// <param name="exists">Exists</param>
         /// <returns>Value ref</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref TValue GetValueRefOrNullRef(in TKey key, out bool exists)
+        public readonly ref TValue GetValueRefOrNullRef(in TKey key, out bool exists)
         {
             var tables = _tables;
             var hashCode = key.GetHashCode();
@@ -1267,7 +1267,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
+        readonly IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -1276,7 +1276,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator IEnumerable.GetEnumerator()
+        readonly IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -1395,7 +1395,7 @@ namespace NativeCollections
             /// <summary>
             ///     Current
             /// </summary>
-            public KeyValuePair<TKey, TValue> Current
+            public readonly KeyValuePair<TKey, TValue> Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => _current;
@@ -1562,7 +1562,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     Current
                 /// </summary>
-                public TKey Current
+                public readonly TKey Current
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
                     get => _current;
@@ -1730,7 +1730,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     Current
                 /// </summary>
-                public TValue Current
+                public readonly TValue Current
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
                     get => _current;

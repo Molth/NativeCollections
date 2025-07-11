@@ -137,7 +137,7 @@ namespace NativeCollections
             /// <summary>
             ///     Current
             /// </summary>
-            public Range Current
+            public readonly Range Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => _current;

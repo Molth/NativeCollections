@@ -82,7 +82,7 @@ namespace NativeCollections
         /// <summary>
         ///     Count
         /// </summary>
-        public int Count
+        public readonly int Count
         {
             get
             {
@@ -97,7 +97,7 @@ namespace NativeCollections
         /// <summary>
         ///     Next spin will yield
         /// </summary>
-        public bool NextSpinWillYield
+        public readonly bool NextSpinWillYield
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
@@ -192,14 +192,14 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeSpinWait other) => other == this;
+        public readonly bool Equals(NativeSpinWait other) => other == this;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeSpinWait nativeSpinWait && nativeSpinWait == this;
+        public readonly override bool Equals(object? obj) => obj is NativeSpinWait nativeSpinWait && nativeSpinWait == this;
 
         /// <summary>
         ///     Get hashCode
@@ -211,7 +211,7 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => "NativeSpinWait";
+        public readonly override string ToString() => "NativeSpinWait";
 
         /// <summary>
         ///     Equals

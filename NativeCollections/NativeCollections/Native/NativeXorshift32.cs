@@ -25,7 +25,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => !(_state == 0U);
+        public readonly bool IsCreated => !(_state == 0U);
 
         /// <summary>
         ///     Structure
@@ -45,26 +45,26 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeXorshift32 other) => _state == other._state;
+        public readonly bool Equals(NativeXorshift32 other) => _state == other._state;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeXorshift32 nativeXorshift32 && nativeXorshift32 == this;
+        public readonly override bool Equals(object? obj) => obj is NativeXorshift32 nativeXorshift32 && nativeXorshift32 == this;
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => (int)_state;
+        public readonly override int GetHashCode() => (int)_state;
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => "NativeXorshift32";
+        public readonly override string ToString() => "NativeXorshift32";
 
         /// <summary>
         ///     Equals

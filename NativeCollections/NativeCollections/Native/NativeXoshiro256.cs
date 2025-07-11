@@ -43,7 +43,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => !(((long)_s0 | (long)_s1 | (long)_s2 | (long)_s3) == 0L);
+        public readonly bool IsCreated => !(((long)_s0 | (long)_s1 | (long)_s2 | (long)_s3) == 0L);
 
         /// <summary>
         ///     Structure
@@ -79,19 +79,19 @@ namespace NativeCollections
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeXoshiro256 nativeXoshiro256 && nativeXoshiro256 == this;
+        public readonly override bool Equals(object? obj) => obj is NativeXoshiro256 nativeXoshiro256 && nativeXoshiro256 == this;
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
+        public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => "NativeXoshiro256";
+        public readonly override string ToString() => "NativeXoshiro256";
 
         /// <summary>
         ///     Equals

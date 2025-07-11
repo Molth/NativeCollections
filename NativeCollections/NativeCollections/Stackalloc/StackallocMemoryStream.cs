@@ -35,12 +35,12 @@ namespace NativeCollections
         /// <summary>
         ///     Is empty
         /// </summary>
-        public bool IsEmpty => _length == 0;
+        public readonly bool IsEmpty => _length == 0;
 
         /// <summary>
         ///     Length
         /// </summary>
-        public int Length => _length;
+        public readonly int Length => _length;
 
         /// <summary>
         ///     Position
@@ -48,7 +48,7 @@ namespace NativeCollections
         public int Position
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _position;
+            readonly get => _position;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
@@ -60,13 +60,13 @@ namespace NativeCollections
         /// <summary>
         ///     Capacity
         /// </summary>
-        public int Capacity => _buffer.Length;
+        public readonly int Capacity => _buffer.Length;
 
         /// <summary>
         ///     Get reference
         /// </summary>
         /// <param name="index">Index</param>
-        public ref byte this[int index]
+        public readonly ref byte this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => ref _buffer[index];
@@ -89,7 +89,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Buffer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<byte> GetBuffer() => _buffer;
+        public readonly Span<byte> GetBuffer() => _buffer;
 
         /// <summary>
         ///     Seek
@@ -292,14 +292,14 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<byte>(in StackallocMemoryStream stackallocMemoryStream) => stackallocMemoryStream.AsSpan();
+        public static implicit operator Span<byte>(StackallocMemoryStream stackallocMemoryStream) => stackallocMemoryStream.AsSpan();
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<byte>(in StackallocMemoryStream stackallocMemoryStream) => stackallocMemoryStream.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<byte>(StackallocMemoryStream stackallocMemoryStream) => stackallocMemoryStream.AsReadOnlySpan();
 
         /// <summary>
         ///     Empty

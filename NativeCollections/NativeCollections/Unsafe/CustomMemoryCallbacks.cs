@@ -41,7 +41,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(CustomMemoryCallbacks other)
+        public readonly bool Equals(CustomMemoryCallbacks other)
         {
             ref var left = ref Unsafe.As<CustomMemoryCallbacks, nint>(ref Unsafe.AsRef(in this));
             ref var right = ref Unsafe.As<CustomMemoryCallbacks, nint>(ref other);
@@ -59,13 +59,13 @@ namespace NativeCollections
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
+        public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => "CustomMemoryCallbacks";
+        public readonly override string ToString() => "CustomMemoryCallbacks";
 
         /// <summary>
         ///     Equals

@@ -42,17 +42,17 @@ namespace NativeCollections
         /// <summary>
         ///     Is empty
         /// </summary>
-        public bool IsEmpty => _size == 0;
+        public readonly bool IsEmpty => _size == 0;
 
         /// <summary>
         ///     Count
         /// </summary>
-        public int Count => _size;
+        public readonly int Count => _size;
 
         /// <summary>
         ///     Capacity
         /// </summary>
-        public int Capacity => _capacity;
+        public readonly int Capacity => _capacity;
 
         /// <summary>
         ///     Structure
@@ -74,7 +74,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => NativeMemoryAllocator.AlignedFree(_items);
+        public readonly void Dispose() => NativeMemoryAllocator.AlignedFree(_items);
 
         /// <summary>
         ///     Clear
@@ -92,7 +92,7 @@ namespace NativeCollections
         /// <param name="item">Item</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int IndexOf(in T item)
+        public readonly int IndexOf(in T item)
         {
             var num = BinarySearchHelpers.IndexOf(_items, _size, item);
             return num >= 0 ? num : -1;
@@ -241,7 +241,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="index">Index</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T GetAt(int index)
+        public readonly T GetAt(int index)
         {
             ThrowHelpers.ThrowIfNegative(index, nameof(index));
             ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, nameof(index));
@@ -263,7 +263,7 @@ namespace NativeCollections
         /// <param name="item">Item</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetAt(int index, out T item)
+        public readonly bool TryGetAt(int index, out T item)
         {
             if ((uint)index >= (uint)_size)
             {
@@ -371,7 +371,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<T>(in UnsafeSortedList<T> unsafeSortedList) => unsafeSortedList.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<T>(UnsafeSortedList<T> unsafeSortedList) => unsafeSortedList.AsReadOnlySpan();
 
         /// <summary>
         ///     Insert
@@ -404,7 +404,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        readonly IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -413,7 +413,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator IEnumerable.GetEnumerator()
+        readonly IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -481,7 +481,7 @@ namespace NativeCollections
             /// <summary>
             ///     Current
             /// </summary>
-            public T Current
+            public readonly T Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => _current;

@@ -187,14 +187,14 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<T>(in NativeUnalignedArray<T> nativeUnalignedArray) => nativeUnalignedArray.AsSpan();
+        public static implicit operator Span<T>(NativeUnalignedArray<T> nativeUnalignedArray) => nativeUnalignedArray.AsSpan();
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<T>(in NativeUnalignedArray<T> nativeUnalignedArray) => nativeUnalignedArray.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<T>(NativeUnalignedArray<T> nativeUnalignedArray) => nativeUnalignedArray.AsReadOnlySpan();
 
         /// <summary>
         ///     As native array
@@ -390,7 +390,7 @@ namespace NativeCollections
             /// <summary>
             ///     Current
             /// </summary>
-            public T Current
+            public readonly T Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => _nativeArray[_index];

@@ -89,17 +89,17 @@ namespace NativeCollections
         /// <summary>
         ///     Is empty
         /// </summary>
-        public bool IsEmpty => _size == 0;
+        public readonly bool IsEmpty => _size == 0;
 
         /// <summary>
         ///     Count
         /// </summary>
-        public int Count => _size;
+        public readonly int Count => _size;
 
         /// <summary>
         ///     Capacity
         /// </summary>
-        public int Capacity => _capacity;
+        public readonly int Capacity => _capacity;
 
         /// <summary>
         ///     Structure
@@ -124,7 +124,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => NativeMemoryAllocator.AlignedFree(_keys);
+        public readonly void Dispose() => NativeMemoryAllocator.AlignedFree(_keys);
 
         /// <summary>
         ///     Clear
@@ -142,7 +142,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int IndexOf(in TKey key)
+        public readonly int IndexOf(in TKey key)
         {
             var num = BinarySearchHelpers.IndexOf(_keys, _size, key);
             return num >= 0 ? num : -1;
@@ -347,7 +347,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>Key</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TKey GetKeyAt(int index)
+        public readonly TKey GetKeyAt(int index)
         {
             ThrowHelpers.ThrowIfNegative(index, nameof(index));
             ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, nameof(index));
@@ -360,7 +360,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>Value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref TValue GetValueAt(int index)
+        public readonly ref TValue GetValueAt(int index)
         {
             ThrowHelpers.ThrowIfNegative(index, nameof(index));
             ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, nameof(index));
@@ -436,7 +436,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Key</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetKeyAt(int index, out TKey key)
+        public readonly bool TryGetKeyAt(int index, out TKey key)
         {
             if ((uint)index >= (uint)_size)
             {
@@ -455,7 +455,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueAt(int index, out TValue value)
+        public readonly bool TryGetValueAt(int index, out TValue value)
         {
             if ((uint)index >= (uint)_size)
             {
@@ -474,7 +474,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueReferenceAt(int index, out NativeReference<TValue> value)
+        public readonly bool TryGetValueReferenceAt(int index, out NativeReference<TValue> value)
         {
             if ((uint)index >= (uint)_size)
             {
@@ -492,7 +492,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>KeyValuePair</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public KeyValuePair<TKey, TValue> GetAt(int index)
+        public readonly KeyValuePair<TKey, TValue> GetAt(int index)
         {
             ThrowHelpers.ThrowIfNegative(index, nameof(index));
             ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, nameof(index));
@@ -505,7 +505,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>KeyValuePair</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public KeyValuePair<TKey, NativeReference<TValue>> GetReferenceAt(int index)
+        public readonly KeyValuePair<TKey, NativeReference<TValue>> GetReferenceAt(int index)
         {
             ThrowHelpers.ThrowIfNegative(index, nameof(index));
             ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, nameof(index));
@@ -519,7 +519,7 @@ namespace NativeCollections
         /// <param name="keyValuePair">KeyValuePair</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetAt(int index, out KeyValuePair<TKey, TValue> keyValuePair)
+        public readonly bool TryGetAt(int index, out KeyValuePair<TKey, TValue> keyValuePair)
         {
             if ((uint)index >= (uint)_size)
             {
@@ -538,7 +538,7 @@ namespace NativeCollections
         /// <param name="keyValuePair">KeyValuePair</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetReferenceAt(int index, out KeyValuePair<TKey, NativeReference<TValue>> keyValuePair)
+        public readonly bool TryGetReferenceAt(int index, out KeyValuePair<TKey, NativeReference<TValue>> keyValuePair)
         {
             if ((uint)index >= (uint)_size)
             {
@@ -665,7 +665,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
+        readonly IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -674,7 +674,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator IEnumerable.GetEnumerator()
+        readonly IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -742,7 +742,7 @@ namespace NativeCollections
             /// <summary>
             ///     Current
             /// </summary>
-            public KeyValuePair<TKey, TValue> Current
+            public readonly KeyValuePair<TKey, TValue> Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => _current;
@@ -810,7 +810,7 @@ namespace NativeCollections
             /// </summary>
             /// <returns>ReadOnlySpan</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static implicit operator ReadOnlySpan<TKey>(in KeyCollection keyCollection) => keyCollection.AsReadOnlySpan();
+            public static implicit operator ReadOnlySpan<TKey>(KeyCollection keyCollection) => keyCollection.AsReadOnlySpan();
 
             /// <summary>
             ///     Get enumerator
@@ -898,7 +898,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     Current
                 /// </summary>
-                public TKey Current
+                public readonly TKey Current
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
                     get => _current;
@@ -1000,14 +1000,14 @@ namespace NativeCollections
             /// </summary>
             /// <returns>Span</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static implicit operator Span<TValue>(in ValueCollection valueCollection) => valueCollection.AsSpan();
+            public static implicit operator Span<TValue>(ValueCollection valueCollection) => valueCollection.AsSpan();
 
             /// <summary>
             ///     As readOnlySpan
             /// </summary>
             /// <returns>ReadOnlySpan</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static implicit operator ReadOnlySpan<TValue>(in ValueCollection valueCollection) => valueCollection.AsReadOnlySpan();
+            public static implicit operator ReadOnlySpan<TValue>(ValueCollection valueCollection) => valueCollection.AsReadOnlySpan();
 
             /// <summary>
             ///     Get enumerator
@@ -1095,7 +1095,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     Current
                 /// </summary>
-                public TValue Current
+                public readonly TValue Current
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
                     get => _current;

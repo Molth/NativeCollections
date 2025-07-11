@@ -41,7 +41,7 @@ namespace NativeCollections
         /// </summary>
         public int Length
         {
-            get => _length;
+            readonly get => _length;
             set => _length = value;
         }
 
@@ -51,7 +51,7 @@ namespace NativeCollections
         public int Capacity
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _buffer.Length;
+            readonly get => _buffer.Length;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set => SetCapacity(value);
         }
@@ -65,12 +65,12 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => !Unsafe.IsNullRef(ref MemoryMarshal.GetReference(_buffer));
+        public readonly bool IsCreated => !Unsafe.IsNullRef(ref MemoryMarshal.GetReference(_buffer));
 
         /// <summary>
         ///     Is empty
         /// </summary>
-        public bool IsEmpty => _length == 0;
+        public readonly bool IsEmpty => _length == 0;
 
         /// <summary>
         ///     Structure
@@ -172,7 +172,7 @@ namespace NativeCollections
         ///     Equals
         /// </summary>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj)
+        public readonly override bool Equals(object? obj)
         {
             ThrowHelpers.ThrowCannotCallEqualsException();
             return default;
@@ -183,7 +183,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>HashCode</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override int GetHashCode()
+        public readonly override int GetHashCode()
         {
             ThrowHelpers.ThrowCannotCallGetHashCodeException();
             return default;
@@ -193,7 +193,7 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => $"NativeListBuilder<{typeof(T).Name}>[{_length}]";
+        public readonly override string ToString() => $"NativeListBuilder<{typeof(T).Name}>[{_length}]";
 
         /// <summary>
         ///     Append
@@ -243,14 +243,14 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<T> AsSpan() => _buffer.Slice(0, _length);
+        public readonly Span<T> AsSpan() => _buffer.Slice(0, _length);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<T> AsReadOnlySpan() => _buffer.Slice(0, _length);
+        public readonly ReadOnlySpan<T> AsReadOnlySpan() => _buffer.Slice(0, _length);
 
         /// <summary>
         ///     As memory
@@ -349,6 +349,6 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        public Span<T>.Enumerator GetEnumerator() => _buffer.GetEnumerator();
+        public readonly Span<T>.Enumerator GetEnumerator() => _buffer.GetEnumerator();
     }
 }

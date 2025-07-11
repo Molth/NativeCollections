@@ -43,7 +43,7 @@ namespace NativeCollections
         ///     Get or set value
         /// </summary>
         /// <param name="index">Index</param>
-        public ref T this[int index]
+        public readonly ref T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index);
@@ -53,7 +53,7 @@ namespace NativeCollections
         ///     Get or set value
         /// </summary>
         /// <param name="index">Index</param>
-        public ref T this[uint index]
+        public readonly ref T this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index);
@@ -62,12 +62,12 @@ namespace NativeCollections
         /// <summary>
         ///     Is empty
         /// </summary>
-        public bool IsEmpty => _size == 0;
+        public readonly bool IsEmpty => _size == 0;
 
         /// <summary>
         ///     Count
         /// </summary>
-        public int Count => _size;
+        public readonly int Count => _size;
 
         /// <summary>
         ///     Capacity
@@ -75,7 +75,7 @@ namespace NativeCollections
         public int Capacity
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _length;
+            readonly get => _length;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set => SetCapacity(value);
         }
@@ -100,7 +100,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => NativeMemoryAllocator.AlignedFree(_buffer);
+        public readonly void Dispose() => NativeMemoryAllocator.AlignedFree(_buffer);
 
         /// <summary>
         ///     Clear
@@ -412,7 +412,7 @@ namespace NativeCollections
         /// <param name="item">Item</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int IndexOf(in T item) => _size == 0 ? -1 : MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<T>(_buffer), _size).IndexOf(item);
+        public readonly int IndexOf(in T item) => _size == 0 ? -1 : MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<T>(_buffer), _size).IndexOf(item);
 
         /// <summary>
         ///     Index of
@@ -421,7 +421,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int IndexOf(in T item, int index)
+        public readonly int IndexOf(in T item, int index)
         {
             if (_size == 0)
                 return -1;
@@ -438,7 +438,7 @@ namespace NativeCollections
         /// <param name="count">Count</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int IndexOf(in T item, int index, int count)
+        public readonly int IndexOf(in T item, int index, int count)
         {
             if (_size == 0)
                 return -1;
@@ -455,7 +455,7 @@ namespace NativeCollections
         /// <param name="item">Item</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int LastIndexOf(in T item) => _size == 0 ? -1 : MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(_size - 1)), _size).LastIndexOf(item);
+        public readonly int LastIndexOf(in T item) => _size == 0 ? -1 : MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(_size - 1)), _size).LastIndexOf(item);
 
         /// <summary>
         ///     Last index of
@@ -464,7 +464,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int LastIndexOf(in T item, int index)
+        public readonly int LastIndexOf(in T item, int index)
         {
             if (_size == 0)
                 return -1;
@@ -481,7 +481,7 @@ namespace NativeCollections
         /// <param name="count">Count</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int LastIndexOf(in T item, int index, int count)
+        public readonly int LastIndexOf(in T item, int index, int count)
         {
             if (_size == 0)
                 return -1;
@@ -564,14 +564,14 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<T>(in UnsafeList<T> unsafeList) => unsafeList.AsSpan();
+        public static implicit operator Span<T>(UnsafeList<T> unsafeList) => unsafeList.AsSpan();
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<T>(in UnsafeList<T> unsafeList) => unsafeList.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<T>(UnsafeList<T> unsafeList) => unsafeList.AsReadOnlySpan();
 
         /// <summary>
         ///     Empty
@@ -587,7 +587,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        readonly IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -596,7 +596,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator IEnumerable.GetEnumerator()
+        readonly IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -665,7 +665,7 @@ namespace NativeCollections
             /// <summary>
             ///     Current
             /// </summary>
-            public T Current
+            public readonly T Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => _current;

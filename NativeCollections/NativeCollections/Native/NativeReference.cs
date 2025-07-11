@@ -160,13 +160,13 @@ namespace NativeCollections
         ///     As span
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<byte>(in NativeReference nativeReference) => nativeReference._buffer;
+        public static implicit operator Span<byte>(NativeReference nativeReference) => nativeReference._buffer;
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<byte>(in NativeReference nativeReference) => nativeReference._buffer;
+        public static implicit operator ReadOnlySpan<byte>(NativeReference nativeReference) => nativeReference._buffer;
 
         /// <summary>
         ///     Create

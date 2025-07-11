@@ -50,17 +50,17 @@ namespace NativeCollections
         /// <summary>
         ///     Is empty
         /// </summary>
-        public bool IsEmpty => _size == 0;
+        public readonly bool IsEmpty => _size == 0;
 
         /// <summary>
         ///     Count
         /// </summary>
-        public int Count => _size;
+        public readonly int Count => _size;
 
         /// <summary>
         ///     Capacity
         /// </summary>
-        public int Capacity => _capacity;
+        public readonly int Capacity => _capacity;
 
         /// <summary>
         ///     Get byte count
@@ -144,7 +144,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="index">Index</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void MoveNext(ref int index)
+        private readonly void MoveNext(ref int index)
         {
             var tmp = index + 1;
             if (tmp == _capacity)

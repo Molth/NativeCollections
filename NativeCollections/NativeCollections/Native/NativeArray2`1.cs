@@ -306,14 +306,14 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<T>(in NativeArray2<T> nativeArray2) => nativeArray2.AsSpan();
+        public static implicit operator Span<T>(NativeArray2<T> nativeArray2) => nativeArray2.AsSpan();
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<T>(in NativeArray2<T> nativeArray2) => nativeArray2.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<T>(NativeArray2<T> nativeArray2) => nativeArray2.AsReadOnlySpan();
 
         /// <summary>
         ///     As native array

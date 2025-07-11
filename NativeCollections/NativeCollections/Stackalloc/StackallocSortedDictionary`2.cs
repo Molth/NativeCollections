@@ -53,17 +53,17 @@ namespace NativeCollections
         /// <summary>
         ///     Is empty
         /// </summary>
-        public bool IsEmpty => _count == 0;
+        public readonly bool IsEmpty => _count == 0;
 
         /// <summary>
         ///     Count
         /// </summary>
-        public int Count => _count;
+        public readonly int Count => _count;
 
         /// <summary>
         ///     Min
         /// </summary>
-        public KeyValuePair<TKey, TValue>? Min
+        public readonly KeyValuePair<TKey, TValue>? Min
         {
             get
             {
@@ -79,7 +79,7 @@ namespace NativeCollections
         /// <summary>
         ///     Max
         /// </summary>
-        public KeyValuePair<TKey, TValue>? Max
+        public readonly KeyValuePair<TKey, TValue>? Max
         {
             get
             {
@@ -716,7 +716,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Node</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Node* FindNode(in TKey key)
+        private readonly Node* FindNode(in TKey key)
         {
             var current = _root;
             while (current != null)
@@ -780,7 +780,7 @@ namespace NativeCollections
             /// <summary>
             ///     Is black
             /// </summary>
-            private bool IsBlack
+            private readonly bool IsBlack
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => Color == NodeColor.Black;
@@ -789,7 +789,7 @@ namespace NativeCollections
             /// <summary>
             ///     Is red
             /// </summary>
-            public bool IsRed
+            public readonly bool IsRed
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => Color == NodeColor.Red;
@@ -807,7 +807,7 @@ namespace NativeCollections
             /// <summary>
             ///     Is 4 node
             /// </summary>
-            public bool Is4Node
+            public readonly bool Is4Node
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => IsNonNullRed(Left) && IsNonNullRed(Right);
@@ -832,7 +832,7 @@ namespace NativeCollections
             /// <param name="sibling">Sibling</param>
             /// <returns>Rotation</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public TreeRotation GetRotation(Node* current, Node* sibling)
+            public readonly TreeRotation GetRotation(Node* current, Node* sibling)
             {
                 var currentIsLeftChild = Left == current;
                 return IsNonNullRed(sibling->Left) ? currentIsLeftChild ? TreeRotation.RightLeft : TreeRotation.Right : currentIsLeftChild ? TreeRotation.Left : TreeRotation.LeftRight;
@@ -844,7 +844,7 @@ namespace NativeCollections
             /// <param name="node">Node</param>
             /// <returns>Sibling</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public Node* GetSibling(Node* node) => node == Left ? Right : Left;
+            public readonly Node* GetSibling(Node* node) => node == Left ? Right : Left;
 
             /// <summary>
             ///     Split 4 node
@@ -975,7 +975,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="count">Count</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int CopyTo(Span<KeyValuePair<TKey, TValue>> buffer, int count)
+        public readonly int CopyTo(Span<KeyValuePair<TKey, TValue>> buffer, int count)
         {
             ThrowHelpers.ThrowIfNegative(count, nameof(count));
             ref var reference = ref MemoryMarshal.GetReference(buffer);
@@ -1056,7 +1056,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
+        readonly IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -1065,7 +1065,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator IEnumerable.GetEnumerator()
+        readonly IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -1154,7 +1154,7 @@ namespace NativeCollections
             /// <summary>
             ///     Current
             /// </summary>
-            public KeyValuePair<TKey, TValue> Current
+            public readonly KeyValuePair<TKey, TValue> Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => _current;
@@ -1164,7 +1164,7 @@ namespace NativeCollections
             ///     Dispose
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void Dispose() => _nodeStack.Dispose();
+            public readonly void Dispose() => _nodeStack.Dispose();
         }
 
         /// <summary>
@@ -1370,7 +1370,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     Current
                 /// </summary>
-                public TKey Current
+                public readonly TKey Current
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
                     get => _current;
@@ -1380,7 +1380,7 @@ namespace NativeCollections
                 ///     Dispose
                 /// </summary>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public void Dispose() => _nodeStack.Dispose();
+                public readonly void Dispose() => _nodeStack.Dispose();
             }
         }
 
@@ -1587,7 +1587,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     Current
                 /// </summary>
-                public TValue Current
+                public readonly TValue Current
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
                     get => _current;
@@ -1597,7 +1597,7 @@ namespace NativeCollections
                 ///     Dispose
                 /// </summary>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public void Dispose() => _nodeStack.Dispose();
+                public readonly void Dispose() => _nodeStack.Dispose();
             }
         }
 

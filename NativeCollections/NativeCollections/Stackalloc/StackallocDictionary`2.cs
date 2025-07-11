@@ -68,17 +68,17 @@ namespace NativeCollections
         /// <summary>
         ///     Is empty
         /// </summary>
-        public bool IsEmpty => _count - _freeCount == 0;
+        public readonly bool IsEmpty => _count - _freeCount == 0;
 
         /// <summary>
         ///     Count
         /// </summary>
-        public int Count => _count - _freeCount;
+        public readonly int Count => _count - _freeCount;
 
         /// <summary>
         ///     Capacity
         /// </summary>
-        public int Capacity => _entriesLength;
+        public readonly int Capacity => _entriesLength;
 
         /// <summary>
         ///     Keys
@@ -572,7 +572,7 @@ namespace NativeCollections
         /// <param name="hashCode">HashCode</param>
         /// <returns>Bucket ref</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ref int GetBucket(uint hashCode) => ref sizeof(nint) == 8 ? ref Unsafe.Add(ref Unsafe.AsRef<int>(_buckets), (nint)HashHelpers.FastMod(hashCode, (uint)_bucketsLength, _fastModMultiplier)) : ref Unsafe.Add(ref Unsafe.AsRef<int>(_buckets), (nint)(hashCode % _bucketsLength));
+        private readonly ref int GetBucket(uint hashCode) => ref sizeof(nint) == 8 ? ref Unsafe.Add(ref Unsafe.AsRef<int>(_buckets), (nint)HashHelpers.FastMod(hashCode, (uint)_bucketsLength, _fastModMultiplier)) : ref Unsafe.Add(ref Unsafe.AsRef<int>(_buckets), (nint)(hashCode % _bucketsLength));
 
         /// <summary>
         ///     Entry
@@ -645,7 +645,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
+        readonly IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -654,7 +654,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator IEnumerable.GetEnumerator()
+        readonly IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -726,7 +726,7 @@ namespace NativeCollections
             /// <summary>
             ///     Current
             /// </summary>
-            public KeyValuePair<TKey, TValue> Current
+            public readonly KeyValuePair<TKey, TValue> Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => _current;
@@ -876,7 +876,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     Current
                 /// </summary>
-                public TKey Current
+                public readonly TKey Current
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
                     get => _currentKey;
@@ -1027,7 +1027,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     Current
                 /// </summary>
-                public TValue Current
+                public readonly TValue Current
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
                     get => _currentValue;

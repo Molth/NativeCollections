@@ -37,7 +37,7 @@ namespace NativeCollections
         /// <summary>
         ///     Count
         /// </summary>
-        public int Count
+        public readonly int Count
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get

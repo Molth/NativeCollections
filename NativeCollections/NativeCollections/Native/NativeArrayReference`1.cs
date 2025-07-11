@@ -89,7 +89,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is empty
         /// </summary>
-        public bool IsEmpty => _length == 0;
+        public readonly bool IsEmpty => _length == 0;
 
         /// <summary>
         ///     Get reference
@@ -123,38 +123,38 @@ namespace NativeCollections
         /// <summary>
         ///     Length
         /// </summary>
-        public int Length => _length;
+        public readonly int Length => _length;
 
         /// <summary>
         ///     Count
         /// </summary>
-        public int Count => _length;
+        public readonly int Count => _length;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeArrayReference<T> other) => other == this;
+        public readonly bool Equals(NativeArrayReference<T> other) => other == this;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeArrayReference<T> nativeArrayReference && nativeArrayReference == this;
+        public readonly override bool Equals(object? obj) => obj is NativeArrayReference<T> nativeArrayReference && nativeArrayReference == this;
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => ((nint)_handle).GetHashCode();
+        public readonly override int GetHashCode() => ((nint)_handle).GetHashCode();
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => $"NativeArrayReference<{typeof(T).Name}>";
+        public readonly override string ToString() => $"NativeArrayReference<{typeof(T).Name}>";
 
         /// <summary>
         ///     Equals
@@ -176,7 +176,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
+        public readonly void Dispose()
         {
             var handle = _handle;
             if (!handle.IsAllocated)
@@ -198,7 +198,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        readonly IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -207,7 +207,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator IEnumerable.GetEnumerator()
+        readonly IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -259,7 +259,7 @@ namespace NativeCollections
             /// <summary>
             ///     Current
             /// </summary>
-            public ref T Current
+            public readonly ref T Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => ref _buffer[_index];

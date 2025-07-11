@@ -76,22 +76,22 @@ namespace NativeCollections
         /// <summary>
         ///     Is empty
         /// </summary>
-        public bool IsEmpty => _count == 0;
+        public readonly bool IsEmpty => _count == 0;
 
         /// <summary>
         ///     Length
         /// </summary>
-        public int Length => _length;
+        public readonly int Length => _length;
 
         /// <summary>
         ///     Count
         /// </summary>
-        public int Count => _count;
+        public readonly int Count => _count;
 
         /// <summary>
         ///     Min
         /// </summary>
-        public KeyValuePair<int, T>? Min
+        public readonly KeyValuePair<int, T>? Min
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
@@ -121,7 +121,7 @@ namespace NativeCollections
         /// <summary>
         ///     Max
         /// </summary>
-        public KeyValuePair<int, T>? Max
+        public readonly KeyValuePair<int, T>? Max
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
@@ -172,7 +172,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => NativeMemoryAllocator.AlignedFree(_dense);
+        public readonly void Dispose() => NativeMemoryAllocator.AlignedFree(_dense);
 
         /// <summary>
         ///     Clear
@@ -332,7 +332,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Contains key</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool ContainsKey(int key) => key >= 0 && key < _length && Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key) != -1;
+        public readonly bool ContainsKey(int key) => key >= 0 && key < _length && Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key) != -1;
 
         /// <summary>
         ///     Try to get the value
@@ -341,7 +341,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValue(int key, out T value)
+        public readonly bool TryGetValue(int key, out T value)
         {
             if ((uint)key >= (uint)_length)
             {
@@ -367,7 +367,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueReference(int key, out NativeReference<T> value)
+        public readonly bool TryGetValueReference(int key, out NativeReference<T> value)
         {
             if ((uint)key >= (uint)_length)
             {
@@ -393,7 +393,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int IndexOf(int key) => (uint)key >= (uint)_length ? -1 : Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key);
+        public readonly int IndexOf(int key) => (uint)key >= (uint)_length ? -1 : Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key);
 
         /// <summary>
         ///     Get at
@@ -401,7 +401,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>Key</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int GetKeyAt(int index)
+        public readonly int GetKeyAt(int index)
         {
             ThrowHelpers.ThrowIfNegative(index, nameof(index));
             ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _count, nameof(index));
@@ -414,7 +414,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>Value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref T GetValueAt(int index)
+        public readonly ref T GetValueAt(int index)
         {
             ThrowHelpers.ThrowIfNegative(index, nameof(index));
             ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _count, nameof(index));
@@ -429,7 +429,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Key</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetKeyAt(int index, out int key)
+        public readonly bool TryGetKeyAt(int index, out int key)
         {
             if ((uint)index >= (uint)_count)
             {
@@ -448,7 +448,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueAt(int index, out T value)
+        public readonly bool TryGetValueAt(int index, out T value)
         {
             if ((uint)index >= (uint)_count)
             {
@@ -468,7 +468,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueReferenceAt(int index, out NativeReference<T> value)
+        public readonly bool TryGetValueReferenceAt(int index, out NativeReference<T> value)
         {
             if ((uint)index >= (uint)_count)
             {
@@ -487,7 +487,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>KeyValuePair</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public KeyValuePair<int, T> GetAt(int index)
+        public readonly KeyValuePair<int, T> GetAt(int index)
         {
             ThrowHelpers.ThrowIfNegative(index, nameof(index));
             ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _count, nameof(index));
@@ -500,7 +500,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>KeyValuePair</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public KeyValuePair<int, NativeReference<T>> GetReferenceAt(int index)
+        public readonly KeyValuePair<int, NativeReference<T>> GetReferenceAt(int index)
         {
             ThrowHelpers.ThrowIfNegative(index, nameof(index));
             ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _count, nameof(index));
@@ -515,7 +515,7 @@ namespace NativeCollections
         /// <param name="keyValuePair">KeyValuePair</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetAt(int index, out KeyValuePair<int, T> keyValuePair)
+        public readonly bool TryGetAt(int index, out KeyValuePair<int, T> keyValuePair)
         {
             if ((uint)index >= (uint)_count)
             {
@@ -534,7 +534,7 @@ namespace NativeCollections
         /// <param name="keyValuePair">KeyValuePair</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetReferenceAt(int index, out KeyValuePair<int, NativeReference<T>> keyValuePair)
+        public readonly bool TryGetReferenceAt(int index, out KeyValuePair<int, NativeReference<T>> keyValuePair)
         {
             if ((uint)index >= (uint)_count)
             {
@@ -725,7 +725,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator<KeyValuePair<int, T>> IEnumerable<KeyValuePair<int, T>>.GetEnumerator()
+        readonly IEnumerator<KeyValuePair<int, T>> IEnumerable<KeyValuePair<int, T>>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -734,7 +734,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator IEnumerable.GetEnumerator()
+        readonly IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -792,7 +792,7 @@ namespace NativeCollections
             /// <summary>
             ///     Current
             /// </summary>
-            public KeyValuePair<int, T> Current
+            public readonly KeyValuePair<int, T> Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => Unsafe.Add(ref Unsafe.AsRef<KeyValuePair<int, T>>(_nativeSparseSet->_dense), (nint)_index);
@@ -914,7 +914,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     Current
                 /// </summary>
-                public int Current
+                public readonly int Current
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
                     get => Unsafe.Add(ref Unsafe.AsRef<Entry>(_nativeSparseSet->_dense), (nint)_index).Key;
@@ -1037,7 +1037,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     Current
                 /// </summary>
-                public T Current
+                public readonly T Current
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
                     get => Unsafe.Add(ref Unsafe.AsRef<Entry>(_nativeSparseSet->_dense), (nint)_index).Value;

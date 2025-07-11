@@ -44,12 +44,12 @@ namespace NativeCollections
         /// <summary>
         ///     Capacity
         /// </summary>
-        public int Capacity => _capacity;
+        public readonly int Capacity => _capacity;
 
         /// <summary>
         ///     Length
         /// </summary>
-        public int Length => _length;
+        public readonly int Length => _length;
 
         /// <summary>
         ///     Structure
@@ -81,7 +81,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
+        public readonly void Dispose()
         {
             for (var i = _capacity - 1; i >= 0; --i)
             {

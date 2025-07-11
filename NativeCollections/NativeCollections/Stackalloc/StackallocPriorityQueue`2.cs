@@ -43,23 +43,23 @@ namespace NativeCollections
         /// <summary>
         ///     Is empty
         /// </summary>
-        public bool IsEmpty => _size == 0;
+        public readonly bool IsEmpty => _size == 0;
 
         /// <summary>
         ///     Count
         /// </summary>
-        public int Count => _size;
+        public readonly int Count => _size;
 
         /// <summary>
         ///     Capacity
         /// </summary>
-        public int Capacity => _length;
+        public readonly int Capacity => _length;
 
         /// <summary>
         ///     Get reference
         /// </summary>
         /// <param name="index">Index</param>
-        public (TElement Element, TPriority Priority) this[int index]
+        public readonly (TElement Element, TPriority Priority) this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes), (nint)index);
@@ -69,7 +69,7 @@ namespace NativeCollections
         ///     Get reference
         /// </summary>
         /// <param name="index">Index</param>
-        public (TElement Element, TPriority Priority) this[uint index]
+        public readonly (TElement Element, TPriority Priority) this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes), (nint)index);
@@ -286,7 +286,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Item</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TElement Peek()
+        public readonly TElement Peek()
         {
             ThrowHelpers.ThrowIfEmptyQueue(_size);
             return Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes), (nint)0).Element;
@@ -299,7 +299,7 @@ namespace NativeCollections
         /// <param name="priority">Priority</param>
         /// <returns>Peeked</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryPeek(out TElement element, out TPriority priority)
+        public readonly bool TryPeek(out TElement element, out TPriority priority)
         {
             if (_size != 0)
             {
@@ -356,7 +356,7 @@ namespace NativeCollections
         /// <param name="node">Node</param>
         /// <param name="nodeIndex">Node index</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void MoveUp(in (TElement Element, TPriority Priority) node, int nodeIndex)
+        private readonly void MoveUp(in (TElement Element, TPriority Priority) node, int nodeIndex)
         {
             var nodes = _nodes;
             int parentIndex;
@@ -379,7 +379,7 @@ namespace NativeCollections
         /// <param name="node">Node</param>
         /// <param name="nodeIndex">Node index</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void MoveDown(in (TElement Element, TPriority Priority) node, int nodeIndex)
+        private readonly void MoveDown(in (TElement Element, TPriority Priority) node, int nodeIndex)
         {
             var nodes = _nodes;
             int firstChildIndex;
@@ -545,7 +545,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     Current
                 /// </summary>
-                public (TElement Element, TPriority Priority) Current
+                public readonly (TElement Element, TPriority Priority) Current
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
                     get => _current;

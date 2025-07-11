@@ -40,12 +40,12 @@ namespace NativeCollections
         /// <summary>
         ///     Is empty
         /// </summary>
-        public bool IsEmpty => _length == 0;
+        public readonly bool IsEmpty => _length == 0;
 
         /// <summary>
         ///     Length
         /// </summary>
-        public int Length => _length;
+        public readonly int Length => _length;
 
         /// <summary>
         ///     Position
@@ -53,7 +53,7 @@ namespace NativeCollections
         public int Position
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _position;
+            readonly get => _position;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
@@ -68,7 +68,7 @@ namespace NativeCollections
         public int Capacity
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _capacity;
+            readonly get => _capacity;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set => SetCapacity(value);
         }
@@ -77,7 +77,7 @@ namespace NativeCollections
         ///     Get reference
         /// </summary>
         /// <param name="index">Index</param>
-        public ref byte this[int index]
+        public readonly ref byte this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), UnsafeHelpers.ToIntPtr(index));
@@ -87,7 +87,7 @@ namespace NativeCollections
         ///     Get reference
         /// </summary>
         /// <param name="index">Index</param>
-        public ref byte this[uint index]
+        public readonly ref byte this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), (nint)index);
@@ -113,14 +113,14 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => NativeMemoryAllocator.AlignedFree(_buffer);
+        public readonly void Dispose() => NativeMemoryAllocator.AlignedFree(_buffer);
 
         /// <summary>
         ///     Get buffer
         /// </summary>
         /// <returns>Buffer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public byte* GetBuffer() => _buffer;
+        public readonly byte* GetBuffer() => _buffer;
 
         /// <summary>
         ///     Seek
@@ -368,14 +368,14 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<byte>(in UnsafeMemoryStream unsafeMemoryStream) => unsafeMemoryStream.AsSpan();
+        public static implicit operator Span<byte>(UnsafeMemoryStream unsafeMemoryStream) => unsafeMemoryStream.AsSpan();
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<byte>(in UnsafeMemoryStream unsafeMemoryStream) => unsafeMemoryStream.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<byte>(UnsafeMemoryStream unsafeMemoryStream) => unsafeMemoryStream.AsReadOnlySpan();
 
         /// <summary>
         ///     Empty

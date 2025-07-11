@@ -307,7 +307,7 @@ namespace NativeCollections
         /// <param name="item">Item</param>
         /// <returns>Contains item</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Contains(in T item)
+        public readonly bool Contains(in T item)
         {
             var tables = _tables;
             var hashCode = item.GetHashCode();
@@ -327,7 +327,7 @@ namespace NativeCollections
         /// <param name="actualValue">Actual value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValue(in T equalValue, out T actualValue)
+        public readonly bool TryGetValue(in T equalValue, out T actualValue)
         {
             var tables = _tables;
             var hashCode = equalValue.GetHashCode();
@@ -351,7 +351,7 @@ namespace NativeCollections
         /// <param name="actualValue">Actual value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueReference(in T equalValue, out NativeReference<T> actualValue)
+        public readonly bool TryGetValueReference(in T equalValue, out NativeReference<T> actualValue)
         {
             var tables = _tables;
             var hashCode = equalValue.GetHashCode();
@@ -666,7 +666,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        readonly IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -675,7 +675,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator IEnumerable.GetEnumerator()
+        readonly IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -794,7 +794,7 @@ namespace NativeCollections
             /// <summary>
             ///     Current
             /// </summary>
-            public T Current
+            public readonly T Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => _current;

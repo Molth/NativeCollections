@@ -57,17 +57,17 @@ namespace NativeCollections
         /// <summary>
         ///     Is empty
         /// </summary>
-        public bool IsEmpty => _count == 0;
+        public readonly bool IsEmpty => _count == 0;
 
         /// <summary>
         ///     Count
         /// </summary>
-        public int Count => _count;
+        public readonly int Count => _count;
 
         /// <summary>
         ///     Capacity
         /// </summary>
-        public int Capacity => _entriesLength;
+        public readonly int Capacity => _entriesLength;
 
         /// <summary>
         ///     Structure
@@ -87,7 +87,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => NativeMemoryAllocator.AlignedFree(_buckets);
+        public readonly void Dispose() => NativeMemoryAllocator.AlignedFree(_buckets);
 
         /// <summary>
         ///     Clear
@@ -322,7 +322,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>Item</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T GetAt(int index)
+        public readonly T GetAt(int index)
         {
             ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_count, nameof(index));
             ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
@@ -336,7 +336,7 @@ namespace NativeCollections
         /// <param name="item">Item</param>
         /// <returns>Item</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetAt(int index, out T item)
+        public readonly bool TryGetAt(int index, out T item)
         {
             if ((uint)index >= (uint)_count)
             {
@@ -414,7 +414,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="index">Index</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetAt(int index)
+        public readonly void SetAt(int index)
         {
             ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_count, nameof(index));
         }
@@ -690,7 +690,7 @@ namespace NativeCollections
         /// <param name="hashCode">HashCode</param>
         /// <returns>Bucket ref</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ref int GetBucket(uint hashCode)
+        private readonly ref int GetBucket(uint hashCode)
         {
             var buckets = _buckets;
             return ref sizeof(nint) == 8 ? ref Unsafe.Add(ref Unsafe.AsRef<int>(buckets), (nint)HashHelpers.FastMod(hashCode, (uint)_bucketsLength, _fastModMultiplier)) : ref Unsafe.Add(ref Unsafe.AsRef<int>(buckets), (nint)(hashCode % _bucketsLength));
@@ -724,7 +724,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="count">Count</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int CopyTo(Span<T> buffer, int count)
+        public readonly int CopyTo(Span<T> buffer, int count)
         {
             ThrowHelpers.ThrowIfNegative(count, nameof(count));
             ref var reference = ref MemoryMarshal.GetReference(buffer);
@@ -778,7 +778,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        readonly IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -787,7 +787,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator IEnumerable.GetEnumerator()
+        readonly IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -856,7 +856,7 @@ namespace NativeCollections
             /// <summary>
             ///     Current
             /// </summary>
-            public T Current
+            public readonly T Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => _current;

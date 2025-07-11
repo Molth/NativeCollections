@@ -139,14 +139,14 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<byte>(in NativeMemoryStream nativeMemoryStream) => nativeMemoryStream.AsSpan();
+        public static implicit operator Span<byte>(NativeMemoryStream nativeMemoryStream) => nativeMemoryStream.AsSpan();
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<byte>(in NativeMemoryStream nativeMemoryStream) => nativeMemoryStream.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<byte>(NativeMemoryStream nativeMemoryStream) => nativeMemoryStream.AsReadOnlySpan();
 
         /// <summary>
         ///     Equals

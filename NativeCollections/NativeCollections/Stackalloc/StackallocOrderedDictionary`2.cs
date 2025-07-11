@@ -58,17 +58,17 @@ namespace NativeCollections
         /// <summary>
         ///     Is empty
         /// </summary>
-        public bool IsEmpty => _count == 0;
+        public readonly bool IsEmpty => _count == 0;
 
         /// <summary>
         ///     Count
         /// </summary>
-        public int Count => _count;
+        public readonly int Count => _count;
 
         /// <summary>
         ///     Capacity
         /// </summary>
-        public int Capacity => _entriesLength;
+        public readonly int Capacity => _entriesLength;
 
         /// <summary>
         ///     Keys
@@ -478,7 +478,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>Key</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TKey GetKeyAt(int index)
+        public readonly TKey GetKeyAt(int index)
         {
             ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_count, nameof(index));
             ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
@@ -491,7 +491,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>Value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref TValue GetValueAt(int index)
+        public readonly ref TValue GetValueAt(int index)
         {
             ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_count, nameof(index));
             ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
@@ -505,7 +505,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Key</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetKeyAt(int index, out TKey key)
+        public readonly bool TryGetKeyAt(int index, out TKey key)
         {
             if ((uint)index >= (uint)_count)
             {
@@ -525,7 +525,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueAt(int index, out TValue value)
+        public readonly bool TryGetValueAt(int index, out TValue value)
         {
             if ((uint)index >= (uint)_count)
             {
@@ -545,7 +545,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueReferenceAt(int index, out NativeReference<TValue> value)
+        public readonly bool TryGetValueReferenceAt(int index, out NativeReference<TValue> value)
         {
             if ((uint)index >= (uint)_count)
             {
@@ -564,7 +564,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>KeyValuePair</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public KeyValuePair<TKey, TValue> GetAt(int index)
+        public readonly KeyValuePair<TKey, TValue> GetAt(int index)
         {
             ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_count, nameof(index));
             ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
@@ -577,7 +577,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>KeyValuePair</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public KeyValuePair<TKey, NativeReference<TValue>> GetReferenceAt(int index)
+        public readonly KeyValuePair<TKey, NativeReference<TValue>> GetReferenceAt(int index)
         {
             ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_count, nameof(index));
             ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
@@ -591,7 +591,7 @@ namespace NativeCollections
         /// <param name="keyValuePair">KeyValuePair</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetAt(int index, out KeyValuePair<TKey, TValue> keyValuePair)
+        public readonly bool TryGetAt(int index, out KeyValuePair<TKey, TValue> keyValuePair)
         {
             if ((uint)index >= (uint)_count)
             {
@@ -611,7 +611,7 @@ namespace NativeCollections
         /// <param name="keyValuePair">KeyValuePair</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetReferenceAt(int index, out KeyValuePair<TKey, NativeReference<TValue>> keyValuePair)
+        public readonly bool TryGetReferenceAt(int index, out KeyValuePair<TKey, NativeReference<TValue>> keyValuePair)
         {
             if ((uint)index >= (uint)_count)
             {
@@ -704,7 +704,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetAt(int index, in TValue value)
+        public readonly void SetAt(int index, in TValue value)
         {
             ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_count, nameof(index));
             Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index).Value = value;
@@ -906,7 +906,7 @@ namespace NativeCollections
         /// <param name="hashCode">HashCode</param>
         /// <returns>Bucket ref</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ref int GetBucket(uint hashCode)
+        private readonly ref int GetBucket(uint hashCode)
         {
             var buckets = _buckets;
             return ref sizeof(nint) == 8 ? ref Unsafe.Add(ref Unsafe.AsRef<int>(buckets), (nint)HashHelpers.FastMod(hashCode, (uint)_bucketsLength, _fastModMultiplier)) : ref Unsafe.Add(ref Unsafe.AsRef<int>(buckets), (nint)(hashCode % _bucketsLength));
@@ -945,7 +945,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="count">Count</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int CopyTo(Span<KeyValuePair<TKey, TValue>> buffer, int count)
+        public readonly int CopyTo(Span<KeyValuePair<TKey, TValue>> buffer, int count)
         {
             ThrowHelpers.ThrowIfNegative(count, nameof(count));
             ref var reference = ref MemoryMarshal.GetReference(buffer);
@@ -999,7 +999,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
+        readonly IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -1008,7 +1008,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator IEnumerable.GetEnumerator()
+        readonly IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -1077,7 +1077,7 @@ namespace NativeCollections
             /// <summary>
             ///     Current
             /// </summary>
-            public KeyValuePair<TKey, TValue> Current
+            public readonly KeyValuePair<TKey, TValue> Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => _current;
@@ -1240,7 +1240,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     Current
                 /// </summary>
-                public TKey Current
+                public readonly TKey Current
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
                     get => _currentKey;
@@ -1404,7 +1404,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     Current
                 /// </summary>
-                public TValue Current
+                public readonly TValue Current
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
                     get => _currentValue;

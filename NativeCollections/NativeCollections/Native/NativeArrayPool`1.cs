@@ -88,43 +88,43 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => _buckets != null;
+        public readonly bool IsCreated => _buckets != null;
 
         /// <summary>
         ///     Capacity
         /// </summary>
-        public int Capacity => _capacity;
+        public readonly int Capacity => _capacity;
 
         /// <summary>
         ///     Max length
         /// </summary>
-        public int MaxLength => 16 << (_length - 1);
+        public readonly int MaxLength => 16 << (_length - 1);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeArrayPool<T> other) => other == this;
+        public readonly bool Equals(NativeArrayPool<T> other) => other == this;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeArrayPool<T> nativeArrayPool && nativeArrayPool == this;
+        public readonly override bool Equals(object? obj) => obj is NativeArrayPool<T> nativeArrayPool && nativeArrayPool == this;
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => ((nint)_buckets).GetHashCode();
+        public readonly override int GetHashCode() => ((nint)_buckets).GetHashCode();
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => $"NativeArrayPool<{typeof(T).Name}>";
+        public readonly override string ToString() => $"NativeArrayPool<{typeof(T).Name}>";
 
         /// <summary>
         ///     Equals
@@ -288,7 +288,7 @@ namespace NativeCollections
             ///     Dispose
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void Dispose(int capacity, CustomMemoryAllocator* allocator)
+            public readonly void Dispose(int capacity, CustomMemoryAllocator* allocator)
             {
                 for (var i = capacity - 1; i >= 0; --i)
                 {

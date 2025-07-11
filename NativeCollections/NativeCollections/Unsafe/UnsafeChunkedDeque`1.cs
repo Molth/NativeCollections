@@ -71,32 +71,32 @@ namespace NativeCollections
         /// <summary>
         ///     Is empty
         /// </summary>
-        public bool IsEmpty => _count == 0;
+        public readonly bool IsEmpty => _count == 0;
 
         /// <summary>
         ///     Chunks
         /// </summary>
-        public int Chunks => _chunks;
+        public readonly int Chunks => _chunks;
 
         /// <summary>
         ///     Free chunks
         /// </summary>
-        public int FreeChunks => _freeChunks;
+        public readonly int FreeChunks => _freeChunks;
 
         /// <summary>
         ///     Max free chunks
         /// </summary>
-        public int MaxFreeChunks => _maxFreeChunks;
+        public readonly int MaxFreeChunks => _maxFreeChunks;
 
         /// <summary>
         ///     Size
         /// </summary>
-        public int Size => _size;
+        public readonly int Size => _size;
 
         /// <summary>
         ///     Count
         /// </summary>
-        public int Count => _count;
+        public readonly int Count => _count;
 
         /// <summary>
         ///     Structure

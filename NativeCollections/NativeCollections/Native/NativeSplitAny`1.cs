@@ -130,7 +130,7 @@ namespace NativeCollections
             /// <summary>
             ///     Current
             /// </summary>
-            public ReadOnlySpan<T> Current
+            public readonly ReadOnlySpan<T> Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => _current;

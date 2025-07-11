@@ -181,7 +181,7 @@ namespace NativeCollections
             /// <summary>
             ///     IsEmpty
             /// </summary>
-            public bool IsEmpty
+            public readonly bool IsEmpty
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get
@@ -636,7 +636,7 @@ namespace NativeCollections
             /// <summary>
             ///     IsEmpty
             /// </summary>
-            public bool IsEmpty
+            public readonly bool IsEmpty
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get
@@ -1086,7 +1086,7 @@ namespace NativeCollections
         ///     Slots
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        [InlineArray(NativeConcurrentQueue.LENGTH)]
+        [InlineArray(LENGTH)]
         public struct NativeConcurrentQueueSegmentSlots1024<T> where T : unmanaged
         {
             private NativeConcurrentQueueSegmentSlot<T> _element;

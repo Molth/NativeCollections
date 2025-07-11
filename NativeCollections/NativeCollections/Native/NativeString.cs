@@ -41,22 +41,22 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => !Unsafe.IsNullRef(ref MemoryMarshal.GetReference(_buffer));
+        public readonly bool IsCreated => !Unsafe.IsNullRef(ref MemoryMarshal.GetReference(_buffer));
 
         /// <summary>
         ///     Is empty
         /// </summary>
-        public bool IsEmpty => _length == 0;
+        public readonly bool IsEmpty => _length == 0;
 
         /// <summary>
         ///     Length
         /// </summary>
-        public int Length => _length;
+        public readonly int Length => _length;
 
         /// <summary>
         ///     Capacity
         /// </summary>
-        public int Capacity => _buffer.Length;
+        public readonly int Capacity => _buffer.Length;
 
         /// <summary>
         ///     Buffer
@@ -77,7 +77,7 @@ namespace NativeCollections
         ///     Get reference
         /// </summary>
         /// <param name="index">Index</param>
-        public ref char this[int index]
+        public readonly ref char this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => ref _buffer[index];
@@ -164,7 +164,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int IndexOf(ReadOnlySpan<char> buffer) => Text.IndexOf(buffer);
+        public readonly int IndexOf(ReadOnlySpan<char> buffer) => Text.IndexOf(buffer);
 
         /// <summary>
         ///     Last index of
@@ -172,7 +172,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int LastIndexOf(ReadOnlySpan<char> buffer) => Text.LastIndexOf(buffer);
+        public readonly int LastIndexOf(ReadOnlySpan<char> buffer) => Text.LastIndexOf(buffer);
 
         /// <summary>
         ///     Index of any
@@ -180,7 +180,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int IndexOfAny(ReadOnlySpan<char> buffer) => Text.IndexOfAny(buffer);
+        public readonly int IndexOfAny(ReadOnlySpan<char> buffer) => Text.IndexOfAny(buffer);
 
         /// <summary>
         ///     Last index of any
@@ -188,7 +188,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int LastIndexOfAny(ReadOnlySpan<char> buffer) => Text.LastIndexOfAny(buffer);
+        public readonly int LastIndexOfAny(ReadOnlySpan<char> buffer) => Text.LastIndexOfAny(buffer);
 
         /// <summary>
         ///     Contains
@@ -196,7 +196,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <returns>Contains</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Contains(ReadOnlySpan<char> buffer) => Text.IndexOf(buffer) >= 0;
+        public readonly bool Contains(ReadOnlySpan<char> buffer) => Text.IndexOf(buffer) >= 0;
 
         /// <summary>
         ///     Remove
@@ -329,21 +329,21 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool StartsWith(ReadOnlySpan<char> buffer) => Text.StartsWith(buffer);
+        public readonly bool StartsWith(ReadOnlySpan<char> buffer) => Text.StartsWith(buffer);
 
         /// <summary>
         ///     Ends with
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool EndsWith(ReadOnlySpan<char> buffer) => Text.EndsWith(buffer);
+        public readonly bool EndsWith(ReadOnlySpan<char> buffer) => Text.EndsWith(buffer);
 
         /// <summary>
         ///     Compare
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int Compare(ReadOnlySpan<char> buffer) => Text.SequenceCompareTo(buffer);
+        public readonly int Compare(ReadOnlySpan<char> buffer) => Text.SequenceCompareTo(buffer);
 
         /// <summary>
         ///     Append
@@ -396,7 +396,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int IndexOf(char value) => Text.IndexOf(value);
+        public readonly int IndexOf(char value) => Text.IndexOf(value);
 
         /// <summary>
         ///     Last index of
@@ -404,7 +404,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int LastIndexOf(char value) => Text.LastIndexOf(value);
+        public readonly int LastIndexOf(char value) => Text.LastIndexOf(value);
 
         /// <summary>
         ///     Contains
@@ -412,7 +412,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Contains</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Contains(char value) => SpanHelpers.Contains(Text, value);
+        public readonly bool Contains(char value) => SpanHelpers.Contains(Text, value);
 
         /// <summary>
         ///     Remove
@@ -461,7 +461,7 @@ namespace NativeCollections
         /// <param name="newValue">New value</param>
         /// <returns>Replaced</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Replace(char oldValue, char newValue)
+        public readonly void Replace(char oldValue, char newValue)
         {
 #if NET8_0_OR_GREATER
             Text.Replace(oldValue, newValue);
@@ -481,14 +481,14 @@ namespace NativeCollections
         /// </summary>
         /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool StartsWith(char value) => _length > 1 && _buffer[0] == value;
+        public readonly bool StartsWith(char value) => _length > 1 && _buffer[0] == value;
 
         /// <summary>
         ///     Ends with
         /// </summary>
         /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool EndsWith(char value) => _length > 1 && _buffer[_length - 1] == value;
+        public readonly bool EndsWith(char value) => _length > 1 && _buffer[_length - 1] == value;
 
         /// <summary>
         ///     Remove
@@ -515,14 +515,14 @@ namespace NativeCollections
         ///     Reverse
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Reverse() => Text.Reverse();
+        public readonly void Reverse() => Text.Reverse();
 
         /// <summary>
         ///     Fill
         /// </summary>
         /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Fill(char value) => Text.Fill(value);
+        public readonly void Fill(char value) => Text.Fill(value);
 
         /// <summary>
         ///     Trim start
@@ -727,7 +727,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="start">Start</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeString Substring(int start) => new(Text.Slice(start));
+        public readonly NativeString Substring(int start) => new(Text.Slice(start));
 
         /// <summary>
         ///     Slice
@@ -735,7 +735,7 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <param name="length">Length</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeString Substring(int start, int length) => new(Text.Slice(start, length));
+        public readonly NativeString Substring(int start, int length) => new(Text.Slice(start, length));
 
         /// <summary>
         ///     Clear
@@ -787,37 +787,37 @@ namespace NativeCollections
         ///     Cast
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<TTo> Cast<TTo>() where TTo : unmanaged => MemoryMarshal.Cast<char, TTo>(AsSpan());
+        public readonly Span<TTo> Cast<TTo>() where TTo : unmanaged => MemoryMarshal.Cast<char, TTo>(AsSpan());
 
         /// <summary>
         ///     Cast
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<TTo> Cast<TTo>(int start) where TTo : unmanaged => MemoryMarshal.Cast<char, TTo>(AsSpan(start));
+        public readonly Span<TTo> Cast<TTo>(int start) where TTo : unmanaged => MemoryMarshal.Cast<char, TTo>(AsSpan(start));
 
         /// <summary>
         ///     Cast
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<TTo> Cast<TTo>(int start, int length) where TTo : unmanaged => MemoryMarshal.Cast<char, TTo>(AsSpan(start, length));
+        public readonly Span<TTo> Cast<TTo>(int start, int length) where TTo : unmanaged => MemoryMarshal.Cast<char, TTo>(AsSpan(start, length));
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <returns>Equals</returns>
-        public bool Equals(NativeString other) => Text.SequenceEqual(other.Text);
+        public readonly bool Equals(NativeString other) => Text.SequenceEqual(other.Text);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <returns>Equals</returns>
-        public bool Equals(ReadOnlySpan<char> buffer) => Text.SequenceEqual(buffer);
+        public readonly bool Equals(ReadOnlySpan<char> buffer) => Text.SequenceEqual(buffer);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj)
+        public readonly override bool Equals(object? obj)
         {
             ThrowHelpers.ThrowCannotCallEqualsException();
             return default;
@@ -828,27 +828,27 @@ namespace NativeCollections
         /// </summary>
         /// <returns>HashCode</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override int GetHashCode() => GetHashCode(Text);
+        public readonly override int GetHashCode() => GetHashCode(Text);
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => Text.ToString();
+        public readonly override string ToString() => Text.ToString();
 
         /// <summary>
         ///     Copy to
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(Span<char> buffer) => Text.CopyTo(buffer);
+        public readonly void CopyTo(Span<char> buffer) => Text.CopyTo(buffer);
 
         /// <summary>
         ///     Try copy to
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryCopyTo(Span<char> buffer) => Text.TryCopyTo(buffer);
+        public readonly bool TryCopyTo(Span<char> buffer) => Text.TryCopyTo(buffer);
 
         /// <summary>
         ///     Advance
@@ -871,7 +871,7 @@ namespace NativeCollections
         ///     To upper
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void ToUpper()
+        public readonly void ToUpper()
         {
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
             for (var index = 0; index < _length; ++index)
@@ -885,7 +885,7 @@ namespace NativeCollections
         ///     To lower
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void ToLower()
+        public readonly void ToLower()
         {
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
             for (var index = 0; index < _length; ++index)
@@ -899,7 +899,7 @@ namespace NativeCollections
         ///     To upper
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void ToUpperInvariant()
+        public readonly void ToUpperInvariant()
         {
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
             for (var index = 0; index < _length; ++index)
@@ -913,7 +913,7 @@ namespace NativeCollections
         ///     To lower
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void ToLowerInvariant()
+        public readonly void ToLowerInvariant()
         {
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
             for (var index = 0; index < _length; ++index)
@@ -972,7 +972,7 @@ namespace NativeCollections
         ///     Is null or white space
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsNullOrWhiteSpace()
+        public readonly bool IsNullOrWhiteSpace()
         {
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
             if (Unsafe.IsNullRef(ref reference))
@@ -990,43 +990,43 @@ namespace NativeCollections
         ///     Is null or empty
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsNullOrEmpty() => Unsafe.IsNullRef(ref MemoryMarshal.GetReference(_buffer)) || _length == 0;
+        public readonly bool IsNullOrEmpty() => Unsafe.IsNullRef(ref MemoryMarshal.GetReference(_buffer)) || _length == 0;
 
         /// <summary>
         ///     Split
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeSplit<char> Split(in char separator) => new(Text, separator);
+        public readonly NativeSplit<char> Split(in char separator) => new(Text, separator);
 
         /// <summary>
         ///     Split
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeSplit<char> Split(ReadOnlySpan<char> separator) => new(Text, separator);
+        public readonly NativeSplit<char> Split(ReadOnlySpan<char> separator) => new(Text, separator);
 
         /// <summary>
         ///     Split
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeSplitAny<char> SplitAny(ReadOnlySpan<char> separator) => new(Text, separator);
+        public readonly NativeSplitAny<char> SplitAny(ReadOnlySpan<char> separator) => new(Text, separator);
 
         /// <summary>
         ///     Split
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeSplitRange<char> SplitRange(in char separator) => new(Text, separator);
+        public readonly NativeSplitRange<char> SplitRange(in char separator) => new(Text, separator);
 
         /// <summary>
         ///     Split
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeSplitRange<char> SplitRange(ReadOnlySpan<char> separator) => new(Text, separator);
+        public readonly NativeSplitRange<char> SplitRange(ReadOnlySpan<char> separator) => new(Text, separator);
 
         /// <summary>
         ///     Split
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeSplitAnyRange<char> SplitAnyRange(ReadOnlySpan<char> separator) => new(Text, separator);
+        public readonly NativeSplitAnyRange<char> SplitAnyRange(ReadOnlySpan<char> separator) => new(Text, separator);
 
         /// <summary>
         ///     As ref
@@ -1093,14 +1093,14 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<char>(in NativeString nativeString) => nativeString.AsSpan();
+        public static implicit operator Span<char>(NativeString nativeString) => nativeString.AsSpan();
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<char>(in NativeString nativeString) => nativeString.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<char>(NativeString nativeString) => nativeString.AsReadOnlySpan();
 
         /// <summary>
         ///     As native string
@@ -1212,7 +1212,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        public Span<char>.Enumerator GetEnumerator() => Text.GetEnumerator();
+        public readonly Span<char>.Enumerator GetEnumerator() => Text.GetEnumerator();
 
         /// <summary>
         ///     Append format

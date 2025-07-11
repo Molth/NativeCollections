@@ -40,26 +40,26 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeMonitorLock other) => other == this;
+        public readonly bool Equals(NativeMonitorLock other) => other == this;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeMonitorLock nativeMonitorLock && nativeMonitorLock == this;
+        public readonly override bool Equals(object? obj) => obj is NativeMonitorLock nativeMonitorLock && nativeMonitorLock == this;
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => ((nint)_handle).GetHashCode();
+        public readonly override int GetHashCode() => ((nint)_handle).GetHashCode();
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => "NativeMonitorLock";
+        public readonly override string ToString() => "NativeMonitorLock";
 
         /// <summary>
         ///     Equals
@@ -81,7 +81,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
+        public readonly void Dispose()
         {
             var handle = _handle;
             if (!handle.IsAllocated)

@@ -69,32 +69,32 @@ namespace NativeCollections
         /// <summary>
         ///     Slabs
         /// </summary>
-        public int Slabs => _slabs;
+        public readonly int Slabs => _slabs;
 
         /// <summary>
         ///     Free slabs
         /// </summary>
-        public int FreeSlabs => _freeSlabs;
+        public readonly int FreeSlabs => _freeSlabs;
 
         /// <summary>
         ///     Max free slabs
         /// </summary>
-        public int MaxFreeSlabs => _maxFreeSlabs;
+        public readonly int MaxFreeSlabs => _maxFreeSlabs;
 
         /// <summary>
         ///     Length
         /// </summary>
-        public int Length => _length;
+        public readonly int Length => _length;
 
         /// <summary>
         ///     Alignment
         /// </summary>
-        public int Alignment => _alignment;
+        public readonly int Alignment => _alignment;
 
         /// <summary>
         ///     Aligned length
         /// </summary>
-        public int AlignedLength => _alignedLength;
+        public readonly int AlignedLength => _alignedLength;
 
         /// <summary>
         ///     Structure

@@ -49,7 +49,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
+        public readonly void Dispose()
         {
             var buffer = Buffer;
             if (buffer == null)
@@ -60,23 +60,23 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => Buffer != null;
+        public readonly bool IsCreated => Buffer != null;
 
         /// <summary>
         ///     Position
         /// </summary>
-        public int Position => _position;
+        public readonly int Position => _position;
 
         /// <summary>
         ///     Remaining
         /// </summary>
-        public int Remaining => Length - _position;
+        public readonly int Remaining => Length - _position;
 
         /// <summary>
         ///     Get reference
         /// </summary>
         /// <param name="index">Index</param>
-        public byte* this[int index]
+        public readonly byte* this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => UnsafeHelpers.AddByteOffset<byte>(Buffer, index);
@@ -86,7 +86,7 @@ namespace NativeCollections
         ///     Get reference
         /// </summary>
         /// <param name="index">Index</param>
-        public byte* this[uint index]
+        public readonly byte* this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => UnsafeHelpers.AddByteOffset<byte>(Buffer, (nint)index);
@@ -97,26 +97,26 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeMemoryReader other) => other == this;
+        public readonly bool Equals(NativeMemoryReader other) => other == this;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeMemoryReader nativeMemoryReader && nativeMemoryReader == this;
+        public readonly override bool Equals(object? obj) => obj is NativeMemoryReader nativeMemoryReader && nativeMemoryReader == this;
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
+        public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => "NativeMemoryReader";
+        public readonly override string ToString() => "NativeMemoryReader";
 
         /// <summary>
         ///     Equals
@@ -419,7 +419,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<byte>(in NativeMemoryReader nativeMemoryReader) => nativeMemoryReader.AsSpan();
+        public static implicit operator Span<byte>(NativeMemoryReader nativeMemoryReader) => nativeMemoryReader.AsSpan();
 
         /// <summary>
         ///     As native memory reader
@@ -433,7 +433,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<byte>(in NativeMemoryReader nativeMemoryReader) => nativeMemoryReader.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<byte>(NativeMemoryReader nativeMemoryReader) => nativeMemoryReader.AsReadOnlySpan();
 
         /// <summary>
         ///     As native memory reader

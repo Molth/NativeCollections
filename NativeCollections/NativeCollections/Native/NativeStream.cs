@@ -56,7 +56,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
+        public readonly void Dispose()
         {
             var buffer = _buffer;
             if (buffer == null)
@@ -67,18 +67,18 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => _buffer != null;
+        public readonly bool IsCreated => _buffer != null;
 
         /// <summary>
         ///     Is empty
         /// </summary>
-        public bool IsEmpty => _length == 0;
+        public readonly bool IsEmpty => _length == 0;
 
         /// <summary>
         ///     Get reference
         /// </summary>
         /// <param name="index">Index</param>
-        public ref byte this[int index]
+        public readonly ref byte this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), UnsafeHelpers.ToIntPtr(index));
@@ -88,7 +88,7 @@ namespace NativeCollections
         ///     Get reference
         /// </summary>
         /// <param name="index">Index</param>
-        public ref byte this[uint index]
+        public readonly ref byte this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), (nint)index);
@@ -112,7 +112,7 @@ namespace NativeCollections
         /// <summary>
         ///     Length
         /// </summary>
-        public int Length
+        public readonly int Length
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => _length;
@@ -124,7 +124,7 @@ namespace NativeCollections
         public int Position
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _position;
+            readonly get => _position;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
@@ -136,7 +136,7 @@ namespace NativeCollections
         /// <summary>
         ///     Capacity
         /// </summary>
-        public int Capacity
+        public readonly int Capacity
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => _capacity;
@@ -147,40 +147,40 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeStream other) => other == this;
+        public readonly bool Equals(NativeStream other) => other == this;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeStream nativeStream && nativeStream == this;
+        public readonly override bool Equals(object? obj) => obj is NativeStream nativeStream && nativeStream == this;
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
+        public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => "NativeStream";
+        public readonly override string ToString() => "NativeStream";
 
         /// <summary>
         ///     As span
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<byte>(in NativeStream nativeList) => nativeList.AsSpan();
+        public static implicit operator Span<byte>(NativeStream nativeList) => nativeList.AsSpan();
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<byte>(in NativeStream nativeList) => nativeList.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<byte>(NativeStream nativeList) => nativeList.AsReadOnlySpan();
 
         /// <summary>
         ///     Equals
@@ -251,7 +251,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Buffer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public byte* GetBuffer() => _buffer;
+        public readonly byte* GetBuffer() => _buffer;
 
         /// <summary>
         ///     Seek

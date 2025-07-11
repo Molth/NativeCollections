@@ -183,14 +183,14 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<T>(in NativeMemoryArray<T> nativeMemoryArray) => nativeMemoryArray.AsSpan();
+        public static implicit operator Span<T>(NativeMemoryArray<T> nativeMemoryArray) => nativeMemoryArray.AsSpan();
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<T>(in NativeMemoryArray<T> nativeMemoryArray) => nativeMemoryArray.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<T>(NativeMemoryArray<T> nativeMemoryArray) => nativeMemoryArray.AsReadOnlySpan();
 
         /// <summary>
         ///     As native array
@@ -383,7 +383,7 @@ namespace NativeCollections
             /// <summary>
             ///     Current
             /// </summary>
-            public T* Current
+            public readonly T* Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => _nativeMemoryArray[_index];

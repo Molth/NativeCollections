@@ -43,7 +43,7 @@ namespace NativeCollections
         ///     Get reference
         /// </summary>
         /// <param name="index">Index</param>
-        public ref T this[int index]
+        public readonly ref T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index);
@@ -53,7 +53,7 @@ namespace NativeCollections
         ///     Get reference
         /// </summary>
         /// <param name="index">Index</param>
-        public ref T this[uint index]
+        public readonly ref T this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index);
@@ -62,17 +62,17 @@ namespace NativeCollections
         /// <summary>
         ///     Is empty
         /// </summary>
-        public bool IsEmpty => _size == 0;
+        public readonly bool IsEmpty => _size == 0;
 
         /// <summary>
         ///     Count
         /// </summary>
-        public int Count => _size;
+        public readonly int Count => _size;
 
         /// <summary>
         ///     Capacity
         /// </summary>
-        public int Capacity => _length;
+        public readonly int Capacity => _length;
 
         /// <summary>
         ///     Structure
@@ -94,7 +94,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => NativeMemoryAllocator.AlignedFree(_buffer);
+        public readonly void Dispose() => NativeMemoryAllocator.AlignedFree(_buffer);
 
         /// <summary>
         ///     Clear
@@ -190,7 +190,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Item</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T Peek()
+        public readonly T Peek()
         {
             var size = _size - 1;
             ThrowHelpers.ThrowIfEmptyStack((uint)size, (uint)_length);
@@ -203,7 +203,7 @@ namespace NativeCollections
         /// <param name="result">Item</param>
         /// <returns>Peeked</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryPeek(out T result)
+        public readonly bool TryPeek(out T result)
         {
             var size = _size - 1;
             if ((uint)size >= (uint)_length)
@@ -296,7 +296,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="count">Count</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int CopyTo(Span<T> buffer, int count)
+        public readonly int CopyTo(Span<T> buffer, int count)
         {
             ThrowHelpers.ThrowIfNegative(count, nameof(count));
             ref var reference = ref MemoryMarshal.GetReference(buffer);
@@ -350,7 +350,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        readonly IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -359,7 +359,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator IEnumerable.GetEnumerator()
+        readonly IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -433,7 +433,7 @@ namespace NativeCollections
             /// <summary>
             ///     Current
             /// </summary>
-            public T Current
+            public readonly T Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get

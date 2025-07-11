@@ -30,12 +30,12 @@ namespace NativeCollections
         /// <summary>
         ///     Sequence number
         /// </summary>
-        public int SequenceNumber => _sequenceNumber;
+        public readonly int SequenceNumber => _sequenceNumber;
 
         /// <summary>
         ///     Next sequence number
         /// </summary>
-        public int NextSequenceNumber => _nextSequenceNumber;
+        public readonly int NextSequenceNumber => _nextSequenceNumber;
 
         /// <summary>
         ///     Reset
@@ -59,7 +59,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="sequenceNumber">Sequence number</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Wait(int sequenceNumber)
+        public readonly void Wait(int sequenceNumber)
         {
             var spinWait = new NativeSpinWait();
             while (sequenceNumber != _nextSequenceNumber)
@@ -72,7 +72,7 @@ namespace NativeCollections
         /// <param name="sequenceNumber">Sequence number</param>
         /// <param name="sleepThreshold">Sleep threshold</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Wait(int sequenceNumber, int sleepThreshold)
+        public readonly void Wait(int sequenceNumber, int sleepThreshold)
         {
             var spinWait = new NativeSpinWait();
             while (sequenceNumber != _nextSequenceNumber)
@@ -115,26 +115,26 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(UnsafeConcurrentSpinLock other) => other == this;
+        public readonly bool Equals(UnsafeConcurrentSpinLock other) => other == this;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is UnsafeConcurrentSpinLock unsafeConcurrentSpinLock && unsafeConcurrentSpinLock == this;
+        public readonly override bool Equals(object? obj) => obj is UnsafeConcurrentSpinLock unsafeConcurrentSpinLock && unsafeConcurrentSpinLock == this;
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
+        public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => "UnsafeConcurrentSpinLock";
+        public readonly override string ToString() => "UnsafeConcurrentSpinLock";
 
         /// <summary>
         ///     Equals

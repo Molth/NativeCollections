@@ -29,7 +29,7 @@ namespace NativeCollections
         /// <summary>
         ///     Buffer
         /// </summary>
-        public NativeArray<int> Buffer => _buffer;
+        public readonly NativeArray<int> Buffer => _buffer;
 
         /// <summary>
         ///     Length
@@ -37,7 +37,7 @@ namespace NativeCollections
         public int Length
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _length;
+            readonly get => _length;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set => SetLength(value);
         }
@@ -49,7 +49,7 @@ namespace NativeCollections
         public bool this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (_buffer[index >> 5] & (1 << index)) != 0;
+            readonly get => (_buffer[index >> 5] & (1 << index)) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
@@ -69,7 +69,7 @@ namespace NativeCollections
         public bool this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (_buffer[index >> 5] & (1 << (int)index)) != 0;
+            readonly get => (_buffer[index >> 5] & (1 << (int)index)) != 0;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
@@ -202,7 +202,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => _buffer.Dispose();
+        public readonly void Dispose() => _buffer.Dispose();
 
         /// <summary>
         ///     Set length
@@ -240,7 +240,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>Value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Get(int index)
+        public readonly bool Get(int index)
         {
             ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_length, nameof(index));
             return (_buffer[index >> 5] & (1 << index)) != 0;
@@ -269,7 +269,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>Value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Get(uint index)
+        public readonly bool Get(uint index)
         {
             ThrowHelpers.ThrowIfGreaterThanOrEqual(index, (uint)_length, nameof(index));
             return (_buffer[index >> 5] & (1 << (int)index)) != 0;
@@ -297,7 +297,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetAll(bool value)
+        public readonly void SetAll(bool value)
         {
             var length = GetInt32ArrayLengthFromBitLength(_length);
             var span = _buffer.AsSpan(0, length);
@@ -320,7 +320,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>NativeBitArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void And(UnsafeBitArray value)
+        public readonly void And(UnsafeBitArray value)
         {
             var count = GetInt32ArrayLengthFromBitLength(_length);
             if (_length != value._length || (uint)count > (uint)_buffer.Length || (uint)count > (uint)value._buffer.Length)
@@ -334,7 +334,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>NativeBitArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Or(UnsafeBitArray value)
+        public readonly void Or(UnsafeBitArray value)
         {
             var count = GetInt32ArrayLengthFromBitLength(_length);
             if (_length != value._length || (uint)count > (uint)_buffer.Length || (uint)count > (uint)value._buffer.Length)
@@ -348,7 +348,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>NativeBitArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Xor(UnsafeBitArray value)
+        public readonly void Xor(UnsafeBitArray value)
         {
             var count = GetInt32ArrayLengthFromBitLength(_length);
             if (_length != value._length || (uint)count > (uint)_buffer.Length || (uint)count > (uint)value._buffer.Length)
@@ -361,7 +361,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>NativeBitArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Not()
+        public readonly void Not()
         {
             var count = GetInt32ArrayLengthFromBitLength(_length);
             BitOperationsHelpers.Not(_buffer, (uint)count);
@@ -467,7 +467,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>All set</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool HasAllSet()
+        public readonly bool HasAllSet()
         {
             Div32Rem(_length, out var extraBits);
             var intCount = GetInt32ArrayLengthFromBitLength(_length);
@@ -486,7 +486,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Any set</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool HasAnySet()
+        public readonly bool HasAnySet()
         {
             Div32Rem(_length, out var extraBits);
             var intCount = GetInt32ArrayLengthFromBitLength(_length);
@@ -502,7 +502,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="index">Index</param>
         /// <returns>Value</returns>
-        public NativeBitArraySlot GetSlot(int index)
+        public readonly NativeBitArraySlot GetSlot(int index)
         {
             ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_length, nameof(index));
             return new NativeBitArraySlot((int*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<int>(_buffer.Buffer), (nint)(index >> 5))), 1 << index);
@@ -514,7 +514,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <param name="slot">Slot</param>
         /// <returns>Got</returns>
-        public bool TryGetSlot(int index, out NativeBitArraySlot slot)
+        public readonly bool TryGetSlot(int index, out NativeBitArraySlot slot)
         {
             if ((uint)index >= (uint)_length)
             {
@@ -531,7 +531,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="index">Index</param>
         /// <returns>Value</returns>
-        public NativeBitArraySlot GetSlot(uint index)
+        public readonly NativeBitArraySlot GetSlot(uint index)
         {
             ThrowHelpers.ThrowIfGreaterThanOrEqual(index, (uint)_length, nameof(index));
             return new NativeBitArraySlot((int*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<int>(_buffer.Buffer), (nint)index >> 5)), 1 << (int)index);
@@ -543,7 +543,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <param name="slot">Slot</param>
         /// <returns>Got</returns>
-        public bool TryGetSlot(uint index, out NativeBitArraySlot slot)
+        public readonly bool TryGetSlot(uint index, out NativeBitArraySlot slot)
         {
             if (index >= (uint)_length)
             {

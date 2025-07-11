@@ -48,7 +48,7 @@ namespace NativeCollections
         ///     <see langword="true" /> if the <see cref="T:System.Diagnostics.Stopwatch" /> instance is currently running and
         ///     measuring elapsed time for an interval; otherwise, false.
         /// </returns>
-        public bool IsRunning => _isRunning;
+        public readonly bool IsRunning => _isRunning;
 
         /// <summary>Gets the total elapsed time measured by the current instance.</summary>
         /// <returns>
@@ -154,7 +154,7 @@ namespace NativeCollections
         ///     Get raw elapsed ticks
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private long GetRawElapsedTicks()
+        private readonly long GetRawElapsedTicks()
         {
             var elapsed = _elapsed;
             if (_isRunning)

@@ -268,7 +268,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<T>(in NativeSortedList<T> nativeSortedList) => nativeSortedList.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<T>(NativeSortedList<T> nativeSortedList) => nativeSortedList.AsReadOnlySpan();
 
         /// <summary>
         ///     Empty
