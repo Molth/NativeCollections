@@ -377,13 +377,31 @@ namespace NativeCollections
         public static void ThrowCannotCallGetHashCodeException() => throw new NotSupportedException("CannotCallGetHashCode");
 
         /// <summary>
+        ///     Throws a <see cref="NotSupportedException" />.
+        /// </summary>
+        [DoesNotReturn]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ThrowNotSupportedException() => throw new NotSupportedException();
+
+        /// <summary>
         ///     Throws a <see cref="FormatException" /> indicating that the string format is invalid at a specific offset.
         /// </summary>
         /// <param name="offset">The offset where the format is invalid.</param>
         /// <param name="reason">The reason why the format is invalid.</param>
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowFormatInvalidString(int offset, string? reason) => throw new FormatException($"InvalidStringWithOffset: {offset}, Reason: {reason}");
+        public static void ThrowFormatInvalidString(int offset, InvalidFormatReason reason)
+        {
+            var message = reason switch
+            {
+                InvalidFormatReason.UnexpectedClosingBrace => $"InvalidStringWithOffset: {offset}, Reason: UnexpectedClosingBrace",
+                InvalidFormatReason.ExpectedAsciiDigit => $"InvalidStringWithOffset: {offset}, Reason: ExpectedAsciiDigit",
+                InvalidFormatReason.UnclosedFormatItem => $"InvalidStringWithOffset: {offset}, Reason: UnclosedFormatItem",
+                _ => $"InvalidStringWithOffset: {offset}"
+            };
+
+            throw new FormatException(message);
+        }
 
         /// <summary>
         ///     Throws a <see cref="FormatException" /> indicating that the index is out of range for the format.

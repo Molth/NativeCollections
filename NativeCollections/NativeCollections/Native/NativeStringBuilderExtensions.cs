@@ -803,6 +803,20 @@ namespace NativeCollections
                 return;
             }
 
+            if (byteCount == 2)
+            {
+                SpanHelpers.Fill(ref Unsafe.As<byte, char>(ref MemoryMarshal.GetReference(builderRef.Space)), (nuint)repeatCount, Unsafe.ReadUnaligned<char>(ref MemoryMarshal.GetReference(bytes)));
+                builderRef.Advance(2 * repeatCount);
+                return;
+            }
+
+            if (byteCount == 4)
+            {
+                SpanHelpers.Fill(ref Unsafe.As<byte, uint>(ref MemoryMarshal.GetReference(builderRef.Space)), (nuint)repeatCount, Unsafe.ReadUnaligned<uint>(ref MemoryMarshal.GetReference(bytes)));
+                builderRef.Advance(4 * repeatCount);
+                return;
+            }
+
             ref var destination = ref MemoryMarshal.GetReference(builderRef.Space);
             ref var source = ref MemoryMarshal.GetReference(bytes);
             for (var i = 0; i < repeatCount; ++i)

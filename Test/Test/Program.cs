@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Text;
@@ -12,20 +13,38 @@ using NativeCollections;
 
 namespace Examples
 {
+    public struct TestStruct
+    {
+        public Guid Guid1;
+        public Guid Guid2;
+    }
+
     internal sealed unsafe class Program
     {
         private static void Main()
         {
-            var sb = new StringBuilder();
-            sb.Append((char)(0x7F + 1), 4);
+            TestString2();
+        }
 
+        private static void TestFill2()
+        {
+            var sb = new StringBuilder();
+            sb.Append((char)(0x7F + 1), 16);
 
             var sb2 = new NativeStringBuilder<byte>();
-            sb2.Append((char)(0x7F + 1), 4);
+            sb2.Append((char)(0x7F + 1), 16);
 
             Console.WriteLine(sb.ToString() == sb2.ToString());
+        }
 
-            TestString2();
+        private static void TestFill()
+        {
+            Span<TestStruct> guids = stackalloc TestStruct[4];
+            Span<TestStruct> guids2 = stackalloc TestStruct[4];
+            var value = new TestStruct { Guid1 = Guid.NewGuid(), Guid2 = Guid.NewGuid() };
+            NativeMemoryAllocator.Fill(ref Unsafe.As<TestStruct, byte>(ref MemoryMarshal.GetReference(guids)), (uint)guids.Length, value);
+            guids2.Fill(value);
+            Console.WriteLine(MemoryMarshal.AsBytes(guids).SequenceEqual(MemoryMarshal.AsBytes(guids2)));
         }
 
         private static void TestString2()
