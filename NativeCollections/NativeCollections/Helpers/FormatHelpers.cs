@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Globalization;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -22,132 +21,70 @@ namespace NativeCollections
         /// <summary>
         ///     Format
         /// </summary>
-        public delegate bool Format4Delegate(object value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider);
-
-        /// <summary>
-        ///     Format
-        /// </summary>
-        public delegate bool ReadOnlySpanByteFormat4Delegate(ReadOnlySpan<byte> buffer, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider);
-
-        /// <summary>
-        ///     Parameter types
-        /// </summary>
-        public static readonly Type[] ParameterTypes4 = new Type[4]
-        {
-            typeof(Span<char>),
-            typeof(int).MakeByRefType(),
-            typeof(ReadOnlySpan<char>),
-            typeof(IFormatProvider)
-        };
-
-        /// <summary>
-        ///     Parameter types
-        /// </summary>
-        public static readonly Type[] ParameterTypes3 = new Type[3]
-        {
-            typeof(Span<char>),
-            typeof(int).MakeByRefType(),
-            typeof(ReadOnlySpan<char>)
-        };
-
-        /// <summary>
-        ///     Parameter types
-        /// </summary>
-        public static readonly Type[] ParameterTypes2 = new Type[2]
-        {
-            typeof(Span<char>),
-            typeof(int).MakeByRefType()
-        };
-
-        /// <summary>
-        ///     Parameter types
-        /// </summary>
-        public static readonly Type[] ParameterTypes0 = new Type[2]
-        {
-            typeof(string),
-            typeof(IFormatProvider)
-        };
-
-        /// <summary>
-        ///     Register
-        /// </summary>
-        private static readonly MethodInfo RegisterFormatReadOnlySpanByteFallbackMethodInfo = typeof(FormatHelpers).GetMethod(nameof(RegisterFormatReadOnlySpanByteFallback), BindingFlags.Static | BindingFlags.NonPublic)!;
-
-        /// <summary>
-        ///     Unbox
-        /// </summary>
-        public static readonly MethodInfo UnboxMethodInfo = typeof(FormatHelpers).GetMethod(nameof(Unbox), BindingFlags.Static | BindingFlags.NonPublic)!;
-
-        /// <summary>
-        ///     Format
-        /// </summary>
-        public static readonly ConcurrentDictionary<Type, Format4Delegate> Format4Delegates = new();
-
-        /// <summary>
-        ///     Format
-        /// </summary>
-        public static readonly ConcurrentDictionary<Type, ReadOnlySpanByteFormat4Delegate> ReadOnlySpanByteFormat4Delegates = new();
+        public static readonly ConcurrentDictionary<Type, Handler> Format4Delegates = new();
 
         /// <summary>
         ///     Structure
         /// </summary>
         static FormatHelpers()
         {
-            Format4Delegates[typeof(string)] = FormatString;
-            Format4Delegates[typeof(ReadOnlyMemory<char>)] = FormatReadOnlyMemoryChar;
-            Format4Delegates[typeof(Memory<char>)] = FormatMemoryChar;
+            Format4Delegates[typeof(string)] = new Handler(&FormatString);
+            Format4Delegates[typeof(ArraySegment<char>)] = new Handler(&FormatArraySegmentChar);
+            Format4Delegates[typeof(ReadOnlyMemory<char>)] = new Handler(&FormatReadOnlyMemoryChar);
+            Format4Delegates[typeof(Memory<char>)] = new Handler(&FormatMemoryChar);
 
-            Format4Delegates[typeof(bool)] = FormatBoolean;
-            Format4Delegates[typeof(decimal)] = FormatDecimal;
-            Format4Delegates[typeof(DateTime)] = FormatDateTime;
-            Format4Delegates[typeof(byte)] = FormatByte;
-            Format4Delegates[typeof(DateTimeOffset)] = FormatDateTimeOffset;
-            Format4Delegates[typeof(double)] = FormatDouble;
-            Format4Delegates[typeof(Guid)] = FormatGuid;
-
-#if NET5_0_OR_GREATER
-            Format4Delegates[typeof(Half)] = FormatHalf;
-#endif
-
-            Format4Delegates[typeof(short)] = FormatInt16;
-            Format4Delegates[typeof(int)] = FormatInt32;
-            Format4Delegates[typeof(long)] = FormatInt64;
-            Format4Delegates[typeof(sbyte)] = FormatSByte;
-            Format4Delegates[typeof(float)] = FormatSingle;
-            Format4Delegates[typeof(TimeSpan)] = FormatTimeSpan;
-            Format4Delegates[typeof(ushort)] = FormatUInt16;
-            Format4Delegates[typeof(uint)] = FormatUInt32;
-            Format4Delegates[typeof(ulong)] = FormatUInt64;
-            Format4Delegates[typeof(nint)] = FormatIntPtr;
-            Format4Delegates[typeof(nuint)] = FormatUIntPtr;
-            Format4Delegates[typeof(Version)] = FormatVersion;
-
-            Format4Delegates[typeof(ReadOnlyMemory<char>)] = FormatNullableReadOnlyMemoryChar;
-            Format4Delegates[typeof(Memory<char>)] = FormatNullableMemoryChar;
-
-            Format4Delegates[typeof(bool?)] = FormatNullableBoolean;
-            Format4Delegates[typeof(decimal?)] = FormatNullableDecimal;
-            Format4Delegates[typeof(DateTime?)] = FormatNullableDateTime;
-            Format4Delegates[typeof(byte?)] = FormatNullableByte;
-            Format4Delegates[typeof(DateTimeOffset?)] = FormatNullableDateTimeOffset;
-            Format4Delegates[typeof(double?)] = FormatNullableDouble;
-            Format4Delegates[typeof(Guid?)] = FormatNullableGuid;
+            Format4Delegates[typeof(bool)] = new Handler(&FormatBoolean);
+            Format4Delegates[typeof(decimal)] = new Handler(&FormatDecimal);
+            Format4Delegates[typeof(DateTime)] = new Handler(&FormatDateTime);
+            Format4Delegates[typeof(byte)] = new Handler(&FormatByte);
+            Format4Delegates[typeof(DateTimeOffset)] = new Handler(&FormatDateTimeOffset);
+            Format4Delegates[typeof(double)] = new Handler(&FormatDouble);
+            Format4Delegates[typeof(Guid)] = new Handler(&FormatGuid);
 
 #if NET5_0_OR_GREATER
-            Format4Delegates[typeof(Half?)] = FormatNullableHalf;
+            Format4Delegates[typeof(Half)] = new Handler(&FormatHalf);
 #endif
 
-            Format4Delegates[typeof(short?)] = FormatNullableInt16;
-            Format4Delegates[typeof(int?)] = FormatNullableInt32;
-            Format4Delegates[typeof(long?)] = FormatNullableInt64;
-            Format4Delegates[typeof(sbyte?)] = FormatNullableSByte;
-            Format4Delegates[typeof(float?)] = FormatNullableSingle;
-            Format4Delegates[typeof(TimeSpan?)] = FormatNullableTimeSpan;
-            Format4Delegates[typeof(ushort?)] = FormatNullableUInt16;
-            Format4Delegates[typeof(uint?)] = FormatNullableUInt32;
-            Format4Delegates[typeof(ulong?)] = FormatNullableUInt64;
-            Format4Delegates[typeof(nint?)] = FormatNullableIntPtr;
-            Format4Delegates[typeof(nuint?)] = FormatNullableUIntPtr;
+            Format4Delegates[typeof(short)] = new Handler(&FormatInt16);
+            Format4Delegates[typeof(int)] = new Handler(&FormatInt32);
+            Format4Delegates[typeof(long)] = new Handler(&FormatInt64);
+            Format4Delegates[typeof(sbyte)] = new Handler(&FormatSByte);
+            Format4Delegates[typeof(float)] = new Handler(&FormatSingle);
+            Format4Delegates[typeof(TimeSpan)] = new Handler(&FormatTimeSpan);
+            Format4Delegates[typeof(ushort)] = new Handler(&FormatUInt16);
+            Format4Delegates[typeof(uint)] = new Handler(&FormatUInt32);
+            Format4Delegates[typeof(ulong)] = new Handler(&FormatUInt64);
+            Format4Delegates[typeof(nint)] = new Handler(&FormatIntPtr);
+            Format4Delegates[typeof(nuint)] = new Handler(&FormatUIntPtr);
+            Format4Delegates[typeof(Version)] = new Handler(&FormatVersion);
+
+            Format4Delegates[typeof(ArraySegment<char>?)] = new Handler(&FormatNullableArraySegmentChar);
+            Format4Delegates[typeof(ReadOnlyMemory<char>?)] = new Handler(&FormatNullableReadOnlyMemoryChar);
+            Format4Delegates[typeof(Memory<char>?)] = new Handler(&FormatNullableMemoryChar);
+
+            Format4Delegates[typeof(bool?)] = new Handler(&FormatNullableBoolean);
+            Format4Delegates[typeof(decimal?)] = new Handler(&FormatNullableDecimal);
+            Format4Delegates[typeof(DateTime?)] = new Handler(&FormatNullableDateTime);
+            Format4Delegates[typeof(byte?)] = new Handler(&FormatNullableByte);
+            Format4Delegates[typeof(DateTimeOffset?)] = new Handler(&FormatNullableDateTimeOffset);
+            Format4Delegates[typeof(double?)] = new Handler(&FormatNullableDouble);
+            Format4Delegates[typeof(Guid?)] = new Handler(&FormatNullableGuid);
+
+#if NET5_0_OR_GREATER
+            Format4Delegates[typeof(Half?)] = new Handler(&FormatNullableHalf);
+#endif
+
+            Format4Delegates[typeof(short?)] = new Handler(&FormatNullableInt16);
+            Format4Delegates[typeof(int?)] = new Handler(&FormatNullableInt32);
+            Format4Delegates[typeof(long?)] = new Handler(&FormatNullableInt64);
+            Format4Delegates[typeof(sbyte?)] = new Handler(&FormatNullableSByte);
+            Format4Delegates[typeof(float?)] = new Handler(&FormatNullableSingle);
+            Format4Delegates[typeof(TimeSpan?)] = new Handler(&FormatNullableTimeSpan);
+            Format4Delegates[typeof(ushort?)] = new Handler(&FormatNullableUInt16);
+            Format4Delegates[typeof(uint?)] = new Handler(&FormatNullableUInt32);
+            Format4Delegates[typeof(ulong?)] = new Handler(&FormatNullableUInt64);
+            Format4Delegates[typeof(nint?)] = new Handler(&FormatNullableIntPtr);
+            Format4Delegates[typeof(nuint?)] = new Handler(&FormatNullableUIntPtr);
         }
 
         /// <summary>
@@ -173,15 +110,21 @@ namespace NativeCollections
                 return TryCopyTo(obj.AsSpan(), destination, out charsWritten);
             }
 
+            if (typeof(T) == typeof(ArraySegment<char>))
+            {
+                var obj = Unsafe.As<T, ArraySegment<char>>(ref value!);
+                return TryCopyTo(obj.AsSpan(), destination, out charsWritten);
+            }
+
             if (typeof(T) == typeof(ReadOnlyMemory<char>))
             {
-                var obj = Unsafe.As<T?, ReadOnlyMemory<char>>(ref value);
+                var obj = Unsafe.As<T, ReadOnlyMemory<char>>(ref value!);
                 return TryCopyTo(obj.Span, destination, out charsWritten);
             }
 
             if (typeof(T) == typeof(Memory<char>))
             {
-                var obj = Unsafe.As<T?, Memory<char>>(ref value);
+                var obj = Unsafe.As<T, Memory<char>>(ref value!);
                 return TryCopyTo(obj.Span, destination, out charsWritten);
             }
 
@@ -251,6 +194,18 @@ namespace NativeCollections
                     return obj.TryFormat(destination, out charsWritten);
                 charsWritten = 0;
                 return true;
+            }
+
+            if (typeof(T) == typeof(ArraySegment<char>?))
+            {
+                var nullable = Unsafe.As<T?, ArraySegment<char>?>(ref value);
+                if (nullable == null)
+                {
+                    charsWritten = 0;
+                    return true;
+                }
+
+                return TryCopyTo(nullable.Value.AsSpan(), destination, out charsWritten);
             }
 
             if (typeof(T) == typeof(ReadOnlyMemory<char>?))
@@ -487,11 +442,13 @@ namespace NativeCollections
                 return TryCopyTo(obj.AsSpan(), destination, out charsWritten);
             }
 
-            if (typeof(T).IsGenericType && typeof(T).GetGenericTypeDefinition() == typeof(Nullable<>))
+            if (typeof(T).IsValueType && default(T) == null)
             {
-                var underlyingType = Nullable.GetUnderlyingType(typeof(T))!;
-                var buffer = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<T, byte>(ref value!), Unsafe.SizeOf<T>());
-                return TryFormatReadOnlySpanByteFallback(underlyingType, buffer, destination, out charsWritten, format, provider);
+                var underlyingType = Nullable.GetUnderlyingType(typeof(T));
+                if (underlyingType != null && Format4Delegates.TryGetValue(underlyingType, out var format4))
+                    return format4.TryFormat(value, destination, out charsWritten, format, provider);
+
+                return TryFormatFallback(value, destination, out charsWritten, format, provider);
             }
 
             if (!typeof(T).IsValueType)
@@ -508,7 +465,12 @@ namespace NativeCollections
                     return FormatObject(destination, out charsWritten, format, provider);
 
                 if (type != typeof(T))
-                    return TryFormatFallback(type, value, destination, out charsWritten, format, provider);
+                {
+                    if (Format4Delegates.TryGetValue(type, out var format4))
+                        return format4.TryFormat(value, destination, out charsWritten, format, provider);
+
+                    return TryFormatFallback(value, destination, out charsWritten, format, provider);
+                }
             }
 
             return FormatHelpers<T>.TryFormat(value, destination, out charsWritten, format, provider);
@@ -517,57 +479,16 @@ namespace NativeCollections
         /// <summary>
         ///     Format
         /// </summary>
-        private static void RegisterFormatReadOnlySpanByteFallback<T>() where T : struct
+        private static bool TryFormatFallback(object value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
-            ReadOnlySpanByteFormat4Delegates[typeof(T)] = ReadOnlySpanByteFormat4Delegate;
-
-            static bool ReadOnlySpanByteFormat4Delegate(ReadOnlySpan<byte> buffer, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider) => TryFormatReadOnlySpanByteFallback<T>(buffer, destination, out charsWritten, format, provider);
+#if NET6_0_OR_GREATER
+            if (value is ISpanFormattable spanFormattable)
+                return spanFormattable.TryFormat(destination, out charsWritten, format, provider);
+#endif
+            var result = value is IFormattable formattable ? formattable.ToString(format.ToString(), provider) : value.ToString();
+            var obj = (result != null ? result : "").AsSpan();
+            return TryCopyTo(obj, destination, out charsWritten);
         }
-
-        /// <summary>
-        ///     Format
-        /// </summary>
-        private static bool TryFormatReadOnlySpanByteFallback<T>(ReadOnlySpan<byte> buffer, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider) where T : struct
-        {
-            var obj = Unsafe.ReadUnaligned<T?>(ref MemoryMarshal.GetReference(buffer));
-            if (obj == null)
-            {
-                charsWritten = 0;
-                return true;
-            }
-
-            return TryFormat(obj.Value, destination, out charsWritten, format, provider);
-        }
-
-        /// <summary>
-        ///     Format
-        /// </summary>
-        private static bool TryFormatReadOnlySpanByteFallback(Type type, ReadOnlySpan<byte> buffer, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        {
-            if (ReadOnlySpanByteFormat4Delegates.TryGetValue(type, out var format4))
-                return format4(buffer, destination, out charsWritten, format, provider);
-
-            RegisterFormatReadOnlySpanByteFallbackMethodInfo.MakeGenericMethod(type).Invoke(null, null);
-            return ReadOnlySpanByteFormat4Delegates[type](buffer, destination, out charsWritten, format, provider);
-        }
-
-        /// <summary>
-        ///     Format
-        /// </summary>
-        private static bool TryFormatFallback<T>(Type type, T value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-        {
-            if (Format4Delegates.TryGetValue(type, out var format4))
-                return format4(value!, destination, out charsWritten, format, provider);
-
-            var method = typeof(FormatHelpers<>).MakeGenericType(type).GetMethod(nameof(FormatHelpers<T>.Initialize), BindingFlags.Public | BindingFlags.Static);
-            method!.Invoke(null, null);
-            return Format4Delegates[type](value!, destination, out charsWritten, format, provider);
-        }
-
-        /// <summary>
-        ///     Unbox
-        /// </summary>
-        private static T Unbox<T>(object obj) where T : struct => Unsafe.Unbox<T>(obj);
 
         /// <summary>
         ///     Format
@@ -586,9 +507,18 @@ namespace NativeCollections
         /// <summary>
         ///     Format
         /// </summary>
+        private static bool FormatArraySegmentChar(object value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+        {
+            var obj = Unsafe.Unbox<ArraySegment<char>>(value);
+            return TryCopyTo(obj.AsSpan(), destination, out charsWritten);
+        }
+
+        /// <summary>
+        ///     Format
+        /// </summary>
         private static bool FormatReadOnlyMemoryChar(object value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
-            var obj = Unsafe.As<object, ReadOnlyMemory<char>>(ref value);
+            var obj = Unsafe.Unbox<ReadOnlyMemory<char>>(value);
             return TryCopyTo(obj.Span, destination, out charsWritten);
         }
 
@@ -597,7 +527,7 @@ namespace NativeCollections
         /// </summary>
         private static bool FormatMemoryChar(object value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
-            var obj = Unsafe.As<object, Memory<char>>(ref value);
+            var obj = Unsafe.Unbox<Memory<char>>(value);
             return TryCopyTo(obj.Span, destination, out charsWritten);
         }
 
@@ -781,6 +711,21 @@ namespace NativeCollections
         {
             var obj = (Version)value;
             return obj.TryFormat(destination, out charsWritten);
+        }
+
+        /// <summary>
+        ///     Format
+        /// </summary>
+        private static bool FormatNullableArraySegmentChar(object value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+        {
+            var obj = (ArraySegment<char>?)value;
+            if (obj == null)
+            {
+                charsWritten = 0;
+                return true;
+            }
+
+            return TryCopyTo(obj.Value.AsSpan(), destination, out charsWritten);
         }
 
         /// <summary>
@@ -1104,7 +1049,7 @@ namespace NativeCollections
         ///     Try copy to
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool TryCopyTo(ReadOnlySpan<char> source, Span<char> destination, out int charsWritten)
+        public static bool TryCopyTo(ReadOnlySpan<char> source, Span<char> destination, out int charsWritten)
         {
             if (source.TryCopyTo(destination))
             {
@@ -1114,6 +1059,23 @@ namespace NativeCollections
 
             charsWritten = 0;
             return false;
+        }
+
+        /// <summary>
+        ///     Handler
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
+        public readonly struct Handler
+        {
+            /// <summary>
+            ///     Try format
+            /// </summary>
+            public readonly delegate* managed<object, Span<char>, out int, ReadOnlySpan<char>, IFormatProvider?, bool> TryFormat;
+
+            /// <summary>
+            ///     Structure
+            /// </summary>
+            public Handler(delegate* managed<object, Span<char>, out int, ReadOnlySpan<char>, IFormatProvider?, bool> tryFormat) => TryFormat = tryFormat;
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Text;
@@ -12,28 +13,61 @@ using NativeCollections;
 
 namespace Examples
 {
+    public struct TestStruct
+    {
+        public Guid Guid1;
+        public Guid Guid2;
+    }
+
+    public struct Sb : ISpanFormattable
+    {
+        public float Value;
+        public string ToString(string? format, IFormatProvider? formatProvider) => Value.ToString(format, formatProvider);
+        public override string ToString() => Value.ToString("F5", CultureInfo.GetCultureInfo("de-DE"));
+        public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider) => Value.TryFormat(destination, out charsWritten, format, provider);
+    }
+
     internal sealed unsafe class Program
     {
         private static void Main()
         {
-            var sb = new StringBuilder();
-            sb.Append((char)(0x7F + 1), 4);
+            TestString2();
+        }
 
+        private static void TestFill2()
+        {
+            var sb = new StringBuilder();
+            sb.Append((char)(0x7F + 1), 16);
 
             var sb2 = new NativeStringBuilder<byte>();
-            sb2.Append((char)(0x7F + 1), 4);
+            sb2.Append((char)(0x7F + 1), 16);
 
             Console.WriteLine(sb.ToString() == sb2.ToString());
+        }
 
-            TestString2();
+        private static void TestFill()
+        {
+            Span<TestStruct> guids = stackalloc TestStruct[4];
+            Span<TestStruct> guids2 = stackalloc TestStruct[4];
+            var value = new TestStruct { Guid1 = Guid.NewGuid(), Guid2 = Guid.NewGuid() };
+            NativeMemoryAllocator.Fill(ref Unsafe.As<TestStruct, byte>(ref MemoryMarshal.GetReference(guids)), (uint)guids.Length, value);
+            guids2.Fill(value);
+            Console.WriteLine(MemoryMarshal.AsBytes(guids).SequenceEqual(MemoryMarshal.AsBytes(guids2)));
         }
 
         private static void TestString2()
         {
             var sb = new StringBuilder();
             sb.Append((char)(0x7F + 1), 4);
+            sb.Append(new Sb { Value = 100.12345f });
+            sb.Append(' ');
+            sb.Append("sb".AsMemory());
+            sb.Append(' ');
+            sb.Append(100.12345f.ToString("F5", CultureInfo.GetCultureInfo("de-DE")));
+            sb.Append(' ');
             sb.Append(CultureInfo.GetCultureInfo("de-DE"), $"Sb{1.250f:F5}");
             var a = CompositeFormat.Parse("First: {0,10:D5}, Second: {1,-10:D5}, {3} Third: {2:D4}, 4th: {4:F5}");
+            sb.Append(' ');
             sb.AppendFormat(CultureInfo.GetCultureInfo("de-DE"), a, 100, 100, 100, 1, 1.250f);
             var str1 = sb.ToString();
             var str2 = TestString();
@@ -46,8 +80,15 @@ namespace Examples
         {
             var sb = new NativeStringBuilder<byte>();
             sb.Append((char)(0x7F + 1), 4);
+            sb.AppendFormat<Sb?>(new Sb { Value = 100.12345f }, "F5", CultureInfo.GetCultureInfo("de-DE"));
+            sb.Append(' ');
+            sb.AppendFormat<object>("sb".AsMemory());
+            sb.Append(' ');
+            sb.AppendFormat<float?>(100.12345f, "F5", CultureInfo.GetCultureInfo("de-DE"));
+            sb.Append(' ');
             sb.Append(CultureInfo.GetCultureInfo("de-DE"), $"Sb{1.250f:F5}");
             var a = NativeCompositeFormat.Parse("First: {0,10:D5}, Second: {1,-10:D5}, {3} Third: {2:D4}, 4th: {4:F5}");
+            sb.Append(' ');
             sb.AppendFormat(CultureInfo.GetCultureInfo("de-DE"), a, 100, 100, 100, 1, 1.250f);
             var str2 = sb.ToString();
             sb.Dispose();

@@ -644,7 +644,7 @@ namespace NativeCollections
             ///     Dispose
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void Dispose()
+            public readonly void Dispose()
             {
                 Buckets.Dispose();
                 Locks.Dispose();

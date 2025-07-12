@@ -97,17 +97,17 @@ namespace NativeCollections
         /// <summary>
         ///     Can read
         /// </summary>
-        public bool CanRead => IsCreated;
+        public readonly bool CanRead => IsCreated;
 
         /// <summary>
         ///     Can seek
         /// </summary>
-        public bool CanSeek => IsCreated;
+        public readonly bool CanSeek => IsCreated;
 
         /// <summary>
         ///     Can write
         /// </summary>
-        public bool CanWrite => IsCreated;
+        public readonly bool CanWrite => IsCreated;
 
         /// <summary>
         ///     Length

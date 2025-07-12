@@ -62,7 +62,7 @@ namespace NativeCollections
         public TValue this[TKey key]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
+            readonly get
             {
                 var index = IndexOf(key);
                 if (index >= 0)
@@ -387,7 +387,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Contains key</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool ContainsKey(in TKey key) => IndexOf(key) >= 0;
+        public readonly bool ContainsKey(in TKey key) => IndexOf(key) >= 0;
 
         /// <summary>
         ///     Try to get the value
@@ -396,7 +396,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValue(in TKey key, out TValue value)
+        public readonly bool TryGetValue(in TKey key, out TValue value)
         {
             var index = IndexOf(key);
             if (index >= 0)
@@ -416,7 +416,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueReference(in TKey key, out NativeReference<TValue> value)
+        public readonly bool TryGetValueReference(in TKey key, out NativeReference<TValue> value)
         {
             var index = IndexOf(key);
             if (index >= 0)

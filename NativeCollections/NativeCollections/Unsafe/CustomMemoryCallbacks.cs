@@ -53,7 +53,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is CustomMemoryCallbacks customMemoryCallbacks && Equals(customMemoryCallbacks);
+        public readonly override bool Equals(object? obj) => obj is CustomMemoryCallbacks customMemoryCallbacks && Equals(customMemoryCallbacks);
 
         /// <summary>
         ///     Get hashCode

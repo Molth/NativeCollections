@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 
 // ReSharper disable ALL
 
@@ -9,6 +10,21 @@ namespace NativeCollections
     /// </summary>
     internal static unsafe class UnsafeHelpers
     {
+        /// <summary>
+        ///     Reinterprets the given value of type <typeparamref name="TFrom" /> as a value of type <typeparamref name="TTo" />.
+        /// </summary>
+        /// <exception cref="NotSupportedException">
+        ///     The sizes of <typeparamref name="TFrom" /> and <typeparamref name="TTo" /> are not the same
+        ///     or the type parameters are not <see langword="struct" />s.
+        /// </exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static TTo BitCast<TFrom, TTo>(in TFrom source) where TFrom : unmanaged where TTo : unmanaged
+        {
+            if (sizeof(TFrom) != sizeof(TTo))
+                ThrowHelpers.ThrowNotSupportedException();
+            return Unsafe.ReadUnaligned<TTo>(ref Unsafe.As<TFrom, byte>(ref Unsafe.AsRef(in source)));
+        }
+
         /// <summary>Converts the value of a 32-bit signed integer to an <see cref="T:System.IntPtr" />.</summary>
         /// <param name="value">A 32-bit signed integer.</param>
         /// <returns>A new instance of <see cref="T:System.IntPtr" /> initialized to <paramref name="value" />.</returns>

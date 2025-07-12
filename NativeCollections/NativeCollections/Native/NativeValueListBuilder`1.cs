@@ -183,7 +183,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>HashCode</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override int GetHashCode() => NativeHashCode.GetHashCode(AsReadOnlySpan());
+        public readonly override int GetHashCode() => NativeHashCode.GetHashCode(AsReadOnlySpan());
 
         /// <summary>
         ///     To string
@@ -266,7 +266,7 @@ namespace NativeCollections
         ///     Cast
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<TTo> Cast<TTo>() where TTo : unmanaged => MemoryMarshal.Cast<T, TTo>(AsSpan());
+        public readonly Span<TTo> Cast<TTo>() where TTo : unmanaged => MemoryMarshal.Cast<T, TTo>(AsSpan());
 
         /// <summary>
         ///     Ensure capacity

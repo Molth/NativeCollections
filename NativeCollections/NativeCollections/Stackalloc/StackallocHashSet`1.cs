@@ -261,7 +261,7 @@ namespace NativeCollections
         /// <param name="item">Item</param>
         /// <returns>Contains</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Contains(in T item) => FindItemIndex(item) >= 0;
+        public readonly bool Contains(in T item) => FindItemIndex(item) >= 0;
 
         /// <summary>
         ///     Try to get the actual value
@@ -270,7 +270,7 @@ namespace NativeCollections
         /// <param name="actualValue">Actual value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValue(in T equalValue, out T actualValue)
+        public readonly bool TryGetValue(in T equalValue, out T actualValue)
         {
             var index = FindItemIndex(equalValue);
             if (index >= 0)
@@ -290,7 +290,7 @@ namespace NativeCollections
         /// <param name="actualValue">Actual value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueReference(in T equalValue, out NativeReference<T> actualValue)
+        public readonly bool TryGetValueReference(in T equalValue, out NativeReference<T> actualValue)
         {
             var index = FindItemIndex(equalValue);
             if (index >= 0)
@@ -309,7 +309,7 @@ namespace NativeCollections
         /// <param name="item">Item</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private int FindItemIndex(in T item)
+        private readonly int FindItemIndex(in T item)
         {
             uint collisionCount = 0;
             var hashCode = (uint)item.GetHashCode();
@@ -363,7 +363,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(Span<T> buffer)
+        public readonly void CopyTo(Span<T> buffer)
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, nameof(buffer));
             ref var reference = ref MemoryMarshal.GetReference(buffer);
@@ -386,7 +386,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, T>(buffer));
+        public readonly void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, T>(buffer));
 
         /// <summary>
         ///     Empty

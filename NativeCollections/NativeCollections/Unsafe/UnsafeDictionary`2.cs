@@ -72,7 +72,7 @@ namespace NativeCollections
         public TValue this[in TKey key]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
+            readonly get
             {
                 ref var value = ref FindValue(key);
                 if (!Unsafe.IsNullRef(ref Unsafe.AsRef(in value)))
@@ -248,7 +248,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Contains key</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool ContainsKey(in TKey key) => !Unsafe.IsNullRef(ref Unsafe.AsRef(in FindValue(key)));
+        public readonly bool ContainsKey(in TKey key) => !Unsafe.IsNullRef(ref Unsafe.AsRef(in FindValue(key)));
 
         /// <summary>
         ///     Try to get the value
@@ -257,7 +257,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValue(in TKey key, out TValue value)
+        public readonly bool TryGetValue(in TKey key, out TValue value)
         {
             ref var valRef = ref FindValue(key);
             if (!Unsafe.IsNullRef(ref Unsafe.AsRef(in valRef)))
@@ -277,7 +277,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueReference(in TKey key, out NativeReference<TValue> value)
+        public readonly bool TryGetValueReference(in TKey key, out NativeReference<TValue> value)
         {
             ref var valRef = ref FindValue(key);
             if (!Unsafe.IsNullRef(ref Unsafe.AsRef(in valRef)))
@@ -296,7 +296,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Value ref</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref TValue GetValueRefOrNullRef(in TKey key) => ref FindValue(key);
+        public readonly ref TValue GetValueRefOrNullRef(in TKey key) => ref FindValue(key);
 
         /// <summary>
         ///     Get value ref
@@ -305,7 +305,7 @@ namespace NativeCollections
         /// <param name="exists">Exists</param>
         /// <returns>Value ref</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref TValue GetValueRefOrNullRef(in TKey key, out bool exists)
+        public readonly ref TValue GetValueRefOrNullRef(in TKey key, out bool exists)
         {
             ref var valRef = ref FindValue(key);
             exists = !Unsafe.IsNullRef(ref Unsafe.AsRef(in valRef));
@@ -499,7 +499,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ref TValue FindValue(in TKey key)
+        private readonly ref TValue FindValue(in TKey key)
         {
             var hashCode = (uint)key.GetHashCode();
             var i = GetBucket(hashCode);
@@ -784,7 +784,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(Span<KeyValuePair<TKey, TValue>> buffer)
+        public readonly void CopyTo(Span<KeyValuePair<TKey, TValue>> buffer)
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, nameof(buffer));
             ref var reference = ref MemoryMarshal.GetReference(buffer);
@@ -807,7 +807,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, KeyValuePair<TKey, TValue>>(buffer));
+        public readonly void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, KeyValuePair<TKey, TValue>>(buffer));
 
         /// <summary>
         ///     Empty

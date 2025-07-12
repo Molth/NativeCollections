@@ -62,7 +62,7 @@ namespace NativeCollections
         public TValue this[in TKey key]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
+            readonly get
             {
                 if (!TryGetValue(key, out var obj))
                     ThrowHelpers.ThrowKeyNotFoundException(key);
@@ -311,7 +311,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Contains key</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool ContainsKey(in TKey key) => IndexOf(key) >= 0;
+        public readonly bool ContainsKey(in TKey key) => IndexOf(key) >= 0;
 
         /// <summary>
         ///     Try to get the value
@@ -320,7 +320,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValue(in TKey key, out TValue value)
+        public readonly bool TryGetValue(in TKey key, out TValue value)
         {
             var index = IndexOf(key);
             if (index >= 0)
@@ -340,7 +340,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueReference(in TKey key, out NativeReference<TValue> value)
+        public readonly bool TryGetValueReference(in TKey key, out NativeReference<TValue> value)
         {
             var index = IndexOf(key);
             if (index >= 0)
@@ -359,7 +359,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Value ref</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref TValue GetValueRefOrNullRef(in TKey key)
+        public readonly ref TValue GetValueRefOrNullRef(in TKey key)
         {
             var index = IndexOf(key);
             return ref index >= 0 ? ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index).Value : ref Unsafe.NullRef<TValue>();
@@ -372,7 +372,7 @@ namespace NativeCollections
         /// <param name="exists">Exists</param>
         /// <returns>Value ref</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref TValue GetValueRefOrNullRef(in TKey key, out bool exists)
+        public readonly ref TValue GetValueRefOrNullRef(in TKey key, out bool exists)
         {
             var index = IndexOf(key);
             if (index >= 0)
@@ -623,7 +623,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int IndexOf(in TKey key)
+        public readonly int IndexOf(in TKey key)
         {
             uint num = 0;
             return IndexOf(key, ref num, ref num);
@@ -637,7 +637,7 @@ namespace NativeCollections
         /// <param name="outCollisionCount">Out collision count</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private int IndexOf(in TKey key, ref uint outHashCode, ref uint outCollisionCount)
+        private readonly int IndexOf(in TKey key, ref uint outHashCode, ref uint outCollisionCount)
         {
             uint num = 0;
             var entries = _entries;
@@ -768,7 +768,7 @@ namespace NativeCollections
         /// <param name="entry">Entry</param>
         /// <param name="entryIndex">Entry index</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void PushEntryIntoBucket(ref Entry entry, int entryIndex)
+        private readonly void PushEntryIntoBucket(ref Entry entry, int entryIndex)
         {
             ref var local = ref GetBucket(entry.HashCode);
             entry.Next = local - 1;
@@ -780,7 +780,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="entryIndex">Entry index</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void RemoveEntryFromBucket(int entryIndex)
+        private readonly void RemoveEntryFromBucket(int entryIndex)
         {
             var entries = _entries;
             var entry = Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)entryIndex);
@@ -818,7 +818,7 @@ namespace NativeCollections
         /// <param name="entryIndex">Entry index</param>
         /// <param name="shiftAmount">Shift amount</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void UpdateBucketIndex(int entryIndex, int shiftAmount)
+        private readonly void UpdateBucketIndex(int entryIndex, int shiftAmount)
         {
             var entries = _entries;
             ref var local1 = ref GetBucket(Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)entryIndex).HashCode);
@@ -1070,14 +1070,14 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="count">Count</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int CopyTo(Span<byte> buffer, int count) => CopyTo(MemoryMarshal.Cast<byte, KeyValuePair<TKey, TValue>>(buffer), count);
+        public readonly int CopyTo(Span<byte> buffer, int count) => CopyTo(MemoryMarshal.Cast<byte, KeyValuePair<TKey, TValue>>(buffer), count);
 
         /// <summary>
         ///     Copy to
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(Span<KeyValuePair<TKey, TValue>> buffer)
+        public readonly void CopyTo(Span<KeyValuePair<TKey, TValue>> buffer)
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, nameof(buffer));
             ref var reference = ref MemoryMarshal.GetReference(buffer);
@@ -1091,7 +1091,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, KeyValuePair<TKey, TValue>>(buffer));
+        public readonly void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, KeyValuePair<TKey, TValue>>(buffer));
 
         /// <summary>
         ///     Empty

@@ -55,15 +55,15 @@ namespace NativeCollections
         ///     A read-only <see cref="T:System.TimeSpan" /> representing the total elapsed time measured by the current
         ///     instance.
         /// </returns>
-        public TimeSpan Elapsed => new(GetElapsedDateTimeTicks());
+        public readonly TimeSpan Elapsed => new(GetElapsedDateTimeTicks());
 
         /// <summary>Gets the total elapsed time measured by the current instance, in milliseconds.</summary>
         /// <returns>A read-only long integer representing the total number of milliseconds measured by the current instance.</returns>
-        public long ElapsedMilliseconds => GetElapsedDateTimeTicks() / 10000L;
+        public readonly long ElapsedMilliseconds => GetElapsedDateTimeTicks() / 10000L;
 
         /// <summary>Gets the total elapsed time measured by the current instance, in timer ticks.</summary>
         /// <returns>A read-only long integer representing the total number of timer ticks measured by the current instance.</returns>
-        public long ElapsedTicks => GetRawElapsedTicks();
+        public readonly long ElapsedTicks => GetRawElapsedTicks();
 
         /// <summary>Starts, or resumes, measuring elapsed time for an interval.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -108,7 +108,7 @@ namespace NativeCollections
 
         /// <summary>Returns the <see cref="P:System.Diagnostics.Stopwatch.Elapsed" /> time as a string.</summary>
         /// <returns>The elapsed time string in the same format used by <see cref="M:System.TimeSpan.ToString" />.</returns>
-        public override string ToString() => Elapsed.ToString();
+        public readonly override string ToString() => Elapsed.ToString();
 
         /// <summary>Gets the current number of ticks in the timer mechanism.</summary>
         /// <returns>A long integer representing the tick counter value of the underlying timer mechanism.</returns>
@@ -170,7 +170,7 @@ namespace NativeCollections
         ///     Get elapsed dateTime ticks
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private long GetElapsedDateTimeTicks() => (long)(GetRawElapsedTicks() * _tickFrequency);
+        private readonly long GetElapsedDateTimeTicks() => (long)(GetRawElapsedTicks() * _tickFrequency);
 
         /// <summary>
         ///     Initializes a new <see cref="T:System.Diagnostics.Stopwatch" /> instance, sets the elapsed time property to

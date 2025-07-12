@@ -1,5 +1,4 @@
-﻿#if NET6_0_OR_GREATER
-using System;
+﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -17,7 +16,9 @@ namespace NativeCollections
     ///     <see cref="NativeStringBuilder{Char}" /> instances.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
+#if NET6_0_OR_GREATER
     [InterpolatedStringHandler]
+#endif
     public readonly unsafe ref struct NativeStringBuilderUtf16InterpolatedStringHandler
     {
         /// <summary>
@@ -282,4 +283,3 @@ namespace NativeCollections
         public void AppendFormatted(object? value, int alignment = 0, string? format = null) => AppendFormatted<object?>(value, alignment, format);
     }
 }
-#endif

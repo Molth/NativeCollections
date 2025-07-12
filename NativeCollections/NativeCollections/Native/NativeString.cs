@@ -1273,19 +1273,42 @@ namespace NativeCollections
         ///     Append formatted
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool AppendFormatted(ref DefaultInterpolatedStringHandler handler, bool clear = true) => DefaultInterpolatedStringHandlerHelpers.AppendFormatted(ref this, ref handler, clear);
+        public bool AppendFormatted(ref DefaultInterpolatedStringHandler handler, bool clear = true)
+        {
+            ReadOnlySpan<char> buffer = clear ? handler.ToStringAndClear() : handler.ToString();
+            return Append(buffer);
+        }
 
         /// <summary>
         ///     Append formatted
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool AppendFormatted(IFormatProvider? provider, [InterpolatedStringHandlerArgument("provider")] ref DefaultInterpolatedStringHandler handler, bool clear = true) => DefaultInterpolatedStringHandlerHelpers.AppendFormatted(ref this, ref handler, clear);
+        public bool AppendFormatted(IFormatProvider? provider, [InterpolatedStringHandlerArgument("provider")] ref DefaultInterpolatedStringHandler handler, bool clear = true)
+        {
+            ReadOnlySpan<char> buffer = clear ? handler.ToStringAndClear() : handler.ToString();
+            return Append(buffer);
+        }
 
         /// <summary>
         ///     Append formattable
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormattable<T>(in T obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) where T : ISpanFormattable
+        {
+            if (obj.TryFormat(Space, out var charsWritten, format, provider))
+            {
+                _length += charsWritten;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///     Append formattable
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AppendFormattable(ISpanFormattable obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
         {
             if (obj.TryFormat(Space, out var charsWritten, format, provider))
             {

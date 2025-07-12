@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -21,44 +20,12 @@ namespace NativeCollections
         /// <summary>
         ///     Default seed
         /// </summary>
-        private static readonly uint DefaultSeed;
+        private static readonly uint DefaultSeed = NativeRandom.NextUInt32();
 
         /// <summary>
         ///     GetHashCode
         /// </summary>
         private static delegate* managed<ReadOnlySpan<byte>, int> _getHashCode;
-
-        /// <summary>
-        ///     Structure
-        /// </summary>
-        static NativeHashCode()
-        {
-            try
-            {
-                var type = typeof(HashCode).Assembly.GetType("System.HashCode");
-                if (type != null)
-                {
-                    var field = type.GetField("s_seed", BindingFlags.Static | BindingFlags.NonPublic);
-                    if (field != null && field.FieldType == typeof(uint))
-                    {
-                        var value = field.GetValue(null);
-                        if (value != null)
-                        {
-                            DefaultSeed = Unsafe.Unbox<uint>(value);
-                            return;
-                        }
-                    }
-                }
-            }
-            catch
-            {
-                //
-            }
-
-            Span<byte> buffer = stackalloc byte[4];
-            NativeRandom.NextBytes(buffer);
-            DefaultSeed = Unsafe.ReadUnaligned<uint>(ref MemoryMarshal.GetReference(buffer));
-        }
 
         /// <summary>
         ///     Custom GetHashCode

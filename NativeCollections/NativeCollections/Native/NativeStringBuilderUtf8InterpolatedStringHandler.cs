@@ -1,7 +1,7 @@
-﻿#if NET6_0_OR_GREATER
-using System;
+﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 
 #pragma warning disable CA2208
 #pragma warning disable CS8632
@@ -17,7 +17,9 @@ namespace NativeCollections
     ///     <see cref="NativeStringBuilder{Byte}" /> instances.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
+#if NET6_0_OR_GREATER
     [InterpolatedStringHandler]
+#endif
     public readonly unsafe ref struct NativeStringBuilderUtf8InterpolatedStringHandler
     {
         /// <summary>
@@ -178,7 +180,9 @@ namespace NativeCollections
                 ref var sbRef = ref _stringBuilder.AsRef();
                 var start = sbRef.Length;
                 AppendFormatted(value, format);
-                var paddingRequired = -alignment - (sbRef.Length - start);
+                var bytesWritten = sbRef.Length - start;
+                var charsWritten = Encoding.UTF8.GetCharCount(sbRef.Text.Slice(sbRef.Text.Length - bytesWritten, bytesWritten));
+                var paddingRequired = -alignment - charsWritten;
                 if (paddingRequired > 0)
                     sbRef.Append(' ', paddingRequired);
             }
@@ -282,4 +286,3 @@ namespace NativeCollections
         public void AppendFormatted(object? value, int alignment = 0, string? format = null) => AppendFormatted<object?>(value, alignment, format);
     }
 }
-#endif

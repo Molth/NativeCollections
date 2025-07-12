@@ -54,7 +54,7 @@ namespace NativeCollections
         public TValue this[in TKey key]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
+            readonly get
             {
                 if (!TryGetValue(key, out var value))
                     ThrowHelpers.ThrowKeyNotFoundException(key);
@@ -1245,7 +1245,7 @@ namespace NativeCollections
             ///     Dispose
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void Dispose()
+            public readonly void Dispose()
             {
                 Buckets.Dispose();
                 Locks.Dispose();

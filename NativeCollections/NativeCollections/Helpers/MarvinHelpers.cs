@@ -1,6 +1,5 @@
 ﻿#if !NETCOREAPP3_0_OR_GREATER
 using System;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -20,39 +19,7 @@ namespace NativeCollections
         /// <summary>
         ///     Default seed
         /// </summary>
-        public static readonly ulong DefaultSeed;
-
-        /// <summary>
-        ///     Structure
-        /// </summary>
-        static MarvinHelpers()
-        {
-            try
-            {
-                var type = typeof(string).Assembly.GetType("System.Marvin");
-                if (type != null)
-                {
-                    var property = type.GetProperty("DefaultSeed", BindingFlags.Static | BindingFlags.Public);
-                    if (property != null && property.PropertyType == typeof(ulong))
-                    {
-                        var value = property.GetValue(null);
-                        if (value != null)
-                        {
-                            DefaultSeed = Unsafe.Unbox<ulong>(value);
-                            return;
-                        }
-                    }
-                }
-            }
-            catch
-            {
-                //
-            }
-
-            Span<byte> buffer = stackalloc byte[8];
-            NativeRandom.NextBytes(buffer);
-            DefaultSeed = Unsafe.ReadUnaligned<ulong>(ref MemoryMarshal.GetReference(buffer));
-        }
+        public static readonly ulong DefaultSeed = NativeRandom.NextUInt64();
 
         /// <summary>
         ///     Compute hash 32

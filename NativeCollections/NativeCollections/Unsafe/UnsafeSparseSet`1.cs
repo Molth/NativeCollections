@@ -62,7 +62,7 @@ namespace NativeCollections
         public T this[int key]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
+            readonly get
             {
                 if (TryGetValue(key, out var obj))
                     return obj;

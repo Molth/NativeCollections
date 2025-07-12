@@ -20,9 +20,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static uint Next32()
         {
-            Span<byte> buffer = stackalloc byte[4];
-            RandomNumberGenerator.Fill(buffer);
-            return Unsafe.ReadUnaligned<uint>(ref MemoryMarshal.GetReference(buffer));
+            Unsafe.SkipInit(out uint value);
+            RandomNumberGenerator.Fill(MemoryMarshal.CreateSpan(ref Unsafe.As<uint, byte>(ref value), 4));
+            return value;
         }
 
         /// <summary>Returns a non-negative random integer.</summary>
@@ -30,9 +30,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ulong Next64()
         {
-            Span<byte> buffer = stackalloc byte[8];
-            RandomNumberGenerator.Fill(buffer);
-            return Unsafe.ReadUnaligned<ulong>(ref MemoryMarshal.GetReference(buffer));
+            Unsafe.SkipInit(out ulong value);
+            RandomNumberGenerator.Fill(MemoryMarshal.CreateSpan(ref Unsafe.As<ulong, byte>(ref value), 8));
+            return value;
         }
 
         /// <summary>

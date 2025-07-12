@@ -147,26 +147,6 @@ namespace NativeCollections
                 throw new InvalidOperationException("EnumFailedVersion");
         }
 
-        /// <summary>Throws an <see cref="InvalidOperationException" /> if <paramref name="value" /> is less than zero.</summary>
-        /// <param name="value">The enum version value to validate.</param>
-        /// <param name="other">The comparison value for detailed error messaging.</param>
-        /// <typeparam name="T">The type of the enum version values.</typeparam>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfEnumInvalidVersion<T>(T value, T other) where T : unmanaged,
-#if NET7_0_OR_GREATER
-            ISignedNumber<T>
-#else
-            IComparable<T>
-#endif
-        {
-#if NET7_0_OR_GREATER
-            if (T.IsNegative(value))
-#else
-            if (value.CompareTo(default) < 0)
-#endif
-                throw new InvalidOperationException(value.Equals(other) ? "EnumNotStarted" : "EnumEnded");
-        }
-
         /// <summary>Throws an <see cref="IOException" /> if <paramref name="value" /> is negative (seek before begin).</summary>
         /// <param name="value">The seek position to validate.</param>
         /// <typeparam name="T">The type of the position value.</typeparam>
@@ -377,13 +357,31 @@ namespace NativeCollections
         public static void ThrowCannotCallGetHashCodeException() => throw new NotSupportedException("CannotCallGetHashCode");
 
         /// <summary>
+        ///     Throws a <see cref="NotSupportedException" />.
+        /// </summary>
+        [DoesNotReturn]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ThrowNotSupportedException() => throw new NotSupportedException();
+
+        /// <summary>
         ///     Throws a <see cref="FormatException" /> indicating that the string format is invalid at a specific offset.
         /// </summary>
         /// <param name="offset">The offset where the format is invalid.</param>
         /// <param name="reason">The reason why the format is invalid.</param>
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowFormatInvalidString(int offset, string? reason) => throw new FormatException($"InvalidStringWithOffset: {offset}, Reason: {reason}");
+        public static void ThrowFormatInvalidString(int offset, InvalidFormatReason reason)
+        {
+            var message = reason switch
+            {
+                InvalidFormatReason.UnexpectedClosingBrace => $"InvalidStringWithOffset: {offset}, Reason: UnexpectedClosingBrace",
+                InvalidFormatReason.ExpectedAsciiDigit => $"InvalidStringWithOffset: {offset}, Reason: ExpectedAsciiDigit",
+                InvalidFormatReason.UnclosedFormatItem => $"InvalidStringWithOffset: {offset}, Reason: UnclosedFormatItem",
+                _ => $"InvalidStringWithOffset: {offset}"
+            };
+
+            throw new FormatException(message);
+        }
 
         /// <summary>
         ///     Throws a <see cref="FormatException" /> indicating that the index is out of range for the format.

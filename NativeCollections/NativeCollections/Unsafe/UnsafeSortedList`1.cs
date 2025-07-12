@@ -254,7 +254,7 @@ namespace NativeCollections
         /// <param name="item">Item</param>
         /// <returns>Contains item</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Contains(in T item) => IndexOf(item) >= 0;
+        public readonly bool Contains(in T item) => IndexOf(item) >= 0;
 
         /// <summary>
         ///     Get at

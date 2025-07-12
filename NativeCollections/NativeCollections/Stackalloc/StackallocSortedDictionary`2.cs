@@ -399,7 +399,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Contains key</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool ContainsKey(in TKey key) => FindNode(key) != null;
+        public readonly bool ContainsKey(in TKey key) => FindNode(key) != null;
 
         /// <summary>
         ///     Try to get the actual value
@@ -408,7 +408,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValue(in TKey key, out TValue value)
+        public readonly bool TryGetValue(in TKey key, out TValue value)
         {
             var node = FindNode(key);
             if (node != null)
@@ -428,7 +428,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueReference(in TKey key, out NativeReference<TValue> value)
+        public readonly bool TryGetValueReference(in TKey key, out NativeReference<TValue> value)
         {
             var node = FindNode(key);
             if (node != null)
@@ -447,7 +447,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <returns>Value ref</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref TValue GetValueRefOrNullRef(in TKey key)
+        public readonly ref TValue GetValueRefOrNullRef(in TKey key)
         {
             var node = FindNode(key);
             return ref node != null ? ref node->Value : ref Unsafe.NullRef<TValue>();
@@ -460,7 +460,7 @@ namespace NativeCollections
         /// <param name="exists">Exists</param>
         /// <returns>Value ref</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref TValue GetValueRefOrNullRef(in TKey key, out bool exists)
+        public readonly ref TValue GetValueRefOrNullRef(in TKey key, out bool exists)
         {
             var node = FindNode(key);
             if (node != null)
@@ -798,7 +798,7 @@ namespace NativeCollections
             /// <summary>
             ///     Is 2 node
             /// </summary>
-            public bool Is2Node
+            public readonly bool Is2Node
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => IsBlack && IsNullOrBlack(Left) && IsNullOrBlack(Right);
@@ -1007,14 +1007,14 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="count">Count</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int CopyTo(Span<byte> buffer, int count) => CopyTo(MemoryMarshal.Cast<byte, KeyValuePair<TKey, TValue>>(buffer), count);
+        public readonly int CopyTo(Span<byte> buffer, int count) => CopyTo(MemoryMarshal.Cast<byte, KeyValuePair<TKey, TValue>>(buffer), count);
 
         /// <summary>
         ///     Copy to
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(Span<KeyValuePair<TKey, TValue>> buffer)
+        public readonly void CopyTo(Span<KeyValuePair<TKey, TValue>> buffer)
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, nameof(buffer));
             ref var reference = ref MemoryMarshal.GetReference(buffer);
@@ -1040,7 +1040,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, KeyValuePair<TKey, TValue>>(buffer));
+        public readonly void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, KeyValuePair<TKey, TValue>>(buffer));
 
         /// <summary>
         ///     Empty

@@ -92,8 +92,8 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfNull(format, nameof(format));
             using var segments = new NativeListBuilder<(string? Literal, int ArgIndex, int Alignment, string? Format)>(4);
             ref var segmentsRef = ref segments.AsRef();
-            int failureOffset = default;
-            string? failureReason = default;
+            var failureOffset = 0;
+            var failureReason = (InvalidFormatReason)(-1);
             if (!TryParseLiterals(format, ref segmentsRef, ref failureOffset, ref failureReason))
                 ThrowHelpers.ThrowFormatInvalidString(failureOffset, failureReason);
             return new NativeCompositeFormat(format, segmentsRef.AsSpan().ToArray());
@@ -114,7 +114,7 @@ namespace NativeCollections
         /// <param name="failureOffset">The offset at which a parsing error occured if <see langword="false" /> is returned.</param>
         /// <param name="failureReason">The reason for a parsing failure if <see langword="false" /> is returned.</param>
         /// <returns>true if the format string can be parsed successfully; otherwise, false.</returns>
-        private static bool TryParseLiterals(ReadOnlySpan<char> format, ref NativeListBuilder<(string? Literal, int ArgIndex, int Alignment, string? Format)> segments, ref int failureOffset, ref string? failureReason)
+        private static bool TryParseLiterals(ReadOnlySpan<char> format, ref NativeListBuilder<(string? Literal, int ArgIndex, int Alignment, string? Format)> segments, ref int failureOffset, ref InvalidFormatReason failureReason)
         {
             using var temp = new NativeStringBuilder<char>(stackalloc char[512], 0);
             var position = 0;
@@ -234,17 +234,17 @@ namespace NativeCollections
             }
 
             FailureUnexpectedClosingBrace:
-            failureReason = "UnexpectedClosingBrace";
+            failureReason = InvalidFormatReason.UnexpectedClosingBrace;
             failureOffset = position;
             return false;
 
             FailureUnclosedFormatItem:
-            failureReason = "UnclosedFormatItem";
+            failureReason = InvalidFormatReason.UnclosedFormatItem;
             failureOffset = position;
             return false;
 
             FailureExpectedAsciiDigit:
-            failureReason = "ExpectedAsciiDigit";
+            failureReason = InvalidFormatReason.ExpectedAsciiDigit;
             failureOffset = position;
             return false;
 
