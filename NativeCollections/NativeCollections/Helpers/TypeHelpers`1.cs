@@ -17,7 +17,11 @@ namespace NativeCollections
         /// <summary>
         ///     Is write atomic
         /// </summary>
-        public static readonly bool IsWriteAtomic = IsWriteAtomicPrivate();
+        public static bool IsWriteAtomic
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => IsWriteAtomicPrivate();
+        }
 
         /// <summary>
         ///     Is write atomic
@@ -26,27 +30,16 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool IsWriteAtomicPrivate()
         {
+            if (typeof(T).IsEnum)
+                return true;
+
             if (typeof(T) == typeof(nint) || typeof(T) == typeof(nuint))
                 return true;
-            switch (Type.GetTypeCode(typeof(T)))
-            {
-                case TypeCode.Boolean:
-                case TypeCode.Byte:
-                case TypeCode.Char:
-                case TypeCode.Int16:
-                case TypeCode.Int32:
-                case TypeCode.SByte:
-                case TypeCode.Single:
-                case TypeCode.UInt16:
-                case TypeCode.UInt32:
-                    return true;
-                case TypeCode.Double:
-                case TypeCode.Int64:
-                case TypeCode.UInt64:
-                    return sizeof(nint) == 8;
-                default:
-                    return false;
-            }
+
+            if (typeof(T) == typeof(bool) || typeof(T) == typeof(byte) || typeof(T) == typeof(char) || typeof(T) == typeof(short) || typeof(T) == typeof(int) || typeof(T) == typeof(sbyte) || typeof(T) == typeof(float) || typeof(T) == typeof(ushort) || typeof(T) == typeof(uint))
+                return true;
+
+            return (typeof(T) == typeof(double) || typeof(T) == typeof(long) || typeof(T) == typeof(ulong)) && sizeof(nint) == 8;
         }
     }
 }
