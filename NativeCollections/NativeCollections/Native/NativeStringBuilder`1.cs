@@ -396,7 +396,7 @@ namespace NativeCollections
         public void Append(in T value, int repeatCount)
         {
             EnsureCapacity(_length + repeatCount);
-            _buffer.Slice(_length, repeatCount).Fill(value);
+            SpanHelpers.Fill(_buffer.Slice(_length, repeatCount), value);
             _length += repeatCount;
         }
 
@@ -533,7 +533,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly void Fill(in T value) => Text.Fill(value);
+        public readonly void Fill(in T value) => SpanHelpers.Fill(Text, value);
 
         /// <summary>
         ///     Trim start
@@ -836,7 +836,7 @@ namespace NativeCollections
             if (num <= 0)
                 return;
             Text.CopyTo(_buffer.Slice(num));
-            _buffer.Slice(0, num).Fill(paddingT);
+            SpanHelpers.Fill(_buffer.Slice(0, num), paddingT);
             _length = totalWidth;
         }
 
@@ -850,7 +850,7 @@ namespace NativeCollections
             var num = totalWidth - _length;
             if (num <= 0)
                 return;
-            _buffer.Slice(_length, num).Fill(paddingT);
+            SpanHelpers.Fill(_buffer.Slice(_length, num), paddingT);
             _length = totalWidth;
         }
 

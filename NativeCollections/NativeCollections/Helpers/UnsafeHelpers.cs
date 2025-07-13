@@ -18,11 +18,11 @@ namespace NativeCollections
         ///     or the type parameters are not <see langword="struct" />s.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TTo BitCast<TFrom, TTo>(in TFrom source) where TFrom : unmanaged where TTo : unmanaged
+        public static TTo BitCast<TFrom, TTo>(TFrom source) where TFrom : unmanaged where TTo : unmanaged
         {
             if (sizeof(TFrom) != sizeof(TTo))
                 ThrowHelpers.ThrowNotSupportedException();
-            return Unsafe.ReadUnaligned<TTo>(ref Unsafe.As<TFrom, byte>(ref Unsafe.AsRef(in source)));
+            return Unsafe.ReadUnaligned<TTo>(ref Unsafe.As<TFrom, byte>(ref source));
         }
 
         /// <summary>Converts the value of a 32-bit signed integer to an <see cref="T:System.IntPtr" />.</summary>

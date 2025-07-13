@@ -339,13 +339,13 @@ namespace NativeCollections
         ///     Fills the contents of this buffer with the given value.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Fill<T>(void* ptr, uint elementCount, in T value) where T : unmanaged => SpanHelpers.Fill(ref Unsafe.AsRef<T>(ptr), elementCount, value);
+        public static void Fill<T>(void* ptr, uint elementCount, T value) where T : unmanaged => SpanHelpers.Fill(ref Unsafe.AsRef<T>(ptr), elementCount, value);
 
         /// <summary>
         ///     Fills the contents of this buffer with the given value.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Fill<T>(ref byte startAddress, uint elementCount, in T value) where T : unmanaged => SpanHelpers.Fill(ref Unsafe.As<byte, T>(ref startAddress), elementCount, value);
+        public static void Fill<T>(ref byte startAddress, uint elementCount, T value) where T : unmanaged => SpanHelpers.Fill(ref Unsafe.As<byte, T>(ref startAddress), elementCount, value);
 
         /// <summary>Rounds a size up to the specified alignment boundary.</summary>
         /// <param name="size">The size, in bytes, to align.</param>

@@ -1,11 +1,10 @@
-﻿#if NET7_0_OR_GREATER
+﻿using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+#if NET7_0_OR_GREATER
 using System.Numerics;
 using System.Runtime.Intrinsics;
-#else
-using System.Runtime.InteropServices;
 #endif
-using System;
-using System.Runtime.CompilerServices;
 
 // ReSharper disable ALL
 
@@ -20,7 +19,13 @@ namespace NativeCollections
         ///     Fills the contents of this buffer with the given value.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Fill<T>(ref T refData, nuint numElements, in T value) where T : unmanaged
+        public static void Fill<T>(Span<T> buffer, T value) where T : unmanaged => Fill(ref MemoryMarshal.GetReference(buffer), (nuint)buffer.Length, value);
+
+        /// <summary>
+        ///     Fills the contents of this buffer with the given value.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Fill<T>(ref T refData, nuint numElements, T value) where T : unmanaged
         {
 #if NET7_0_OR_GREATER
             if (!Vector.IsHardwareAccelerated || Unsafe.SizeOf<T>() > Vector<byte>.Count || !BitOperationsHelpers.IsPow2((uint)Unsafe.SizeOf<T>()))
