@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
 
 #pragma warning disable CA2208
 #pragma warning disable CS8618
@@ -29,60 +28,17 @@ namespace NativeCollections
 #if NET8_0_OR_GREATER
             if (typeof(IUtf8SpanFormattable).IsAssignableFrom(typeof(T)))
             {
-                TryFormat = &FormatNotValueTypeByISpanFormattable;
-                if (typeof(T).IsValueType)
-                    RegisterValueType();
-                else
-                    RegisterNotValueType();
-
+                TryFormat = &FormatTypeByIUtf8SpanFormattable;
+                Utf8FormatHelpers.Format4Delegates[typeof(T)] = new Utf8FormatHelpers.Handler(&FormatTypeByIUtf8SpanFormattableObject);
                 return;
 
-                static bool FormatNotValueTypeByISpanFormattable(T value, Span<byte> destination, out int bytesWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+                static bool FormatTypeByIUtf8SpanFormattable(T value, Span<byte> destination, out int bytesWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
                 {
                     var utf8SpanFormattable = (IUtf8SpanFormattable)value!;
                     return utf8SpanFormattable.TryFormat(destination, out bytesWritten, format, provider);
                 }
-            }
-#endif
 
-            if (typeof(T).IsValueType)
-            {
-                TryFormat = &FormatValueTypeFallback;
-                RegisterValueType();
-
-                static bool FormatValueTypeFallback(T value, Span<byte> destination, out int bytesWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-                {
-                    using var temp = new NativeStringBuilder<char>(stackalloc char[512], 0);
-                    temp.AppendFormat(value, format, provider);
-                    return Utf8FormatHelpers.TryGetBytes(temp.Text, destination, out bytesWritten);
-                }
-            }
-            else
-            {
-                TryFormat = &FormatNotValueTypeFallback;
-                RegisterNotValueType();
-
-                static bool FormatNotValueTypeFallback(T value, Span<byte> destination, out int bytesWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
-                {
-                    using var temp = new NativeStringBuilder<char>(stackalloc char[512], 0);
-                    temp.AppendFormat(value, format, provider);
-                    return Utf8FormatHelpers.TryGetBytes(temp.Text, destination, out bytesWritten);
-                }
-            }
-        }
-
-        /// <summary>
-        ///     Register
-        /// </summary>
-        private static void RegisterValueType()
-        {
-#if NET8_0_OR_GREATER
-            if (typeof(IUtf8SpanFormattable).IsAssignableFrom(typeof(T)))
-            {
-                Utf8FormatHelpers.Format4Delegates[typeof(T)] = new Utf8FormatHelpers.Handler(&FormatNotValueTypeByISpanFormattable);
-                return;
-
-                static bool FormatNotValueTypeByISpanFormattable(object value, Span<byte> destination, out int bytesWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+                static bool FormatTypeByIUtf8SpanFormattableObject(object value, Span<byte> destination, out int bytesWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
                 {
                     var utf8SpanFormattable = (IUtf8SpanFormattable)value;
                     return utf8SpanFormattable.TryFormat(destination, out bytesWritten, format, provider);
@@ -90,28 +46,68 @@ namespace NativeCollections
             }
 #endif
 
-            Utf8FormatHelpers.Format4Delegates[typeof(T)] = new Utf8FormatHelpers.Handler(&Format4ValueType);
-            return;
-
-            static bool Format4ValueType(object value, Span<byte> destination, out int bytesWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+#if NET6_0_OR_GREATER
+            if (typeof(ISpanFormattable).IsAssignableFrom(typeof(T)))
             {
-                var obj = (T)value;
-                return TryFormat(obj, destination, out bytesWritten, format, provider);
+                TryFormat = &FormatByISpanFormattable;
+                Utf8FormatHelpers.Format4Delegates[typeof(T)] = new Utf8FormatHelpers.Handler(&FormatByISpanFormattableObject);
+                return;
+
+                static bool FormatByISpanFormattable(T value, Span<byte> destination, out int bytesWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+                {
+                    var spanFormattable = (ISpanFormattable)value!;
+                    using var temp = new NativeStringBuilder<char>(stackalloc char[512], 0);
+                    temp.AppendFormattable(spanFormattable);
+                    return Utf8FormatHelpers.TryGetBytes(temp.Text, destination, out bytesWritten);
+                }
+
+                static bool FormatByISpanFormattableObject(object value, Span<byte> destination, out int bytesWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+                {
+                    var spanFormattable = (ISpanFormattable)value;
+                    using var temp = new NativeStringBuilder<char>(stackalloc char[512], 0);
+                    temp.AppendFormattable(spanFormattable);
+                    return Utf8FormatHelpers.TryGetBytes(temp.Text, destination, out bytesWritten);
+                }
             }
-        }
+#endif
 
-        /// <summary>
-        ///     Register
-        /// </summary>
-        private static void RegisterNotValueType()
-        {
-            Utf8FormatHelpers.Format4Delegates[typeof(T)] = new Utf8FormatHelpers.Handler(&Format4NotValueType);
+            if (typeof(IFormattable).IsAssignableFrom(typeof(T)))
+            {
+                TryFormat = &FormatByIFormattable;
+                Utf8FormatHelpers.Format4Delegates[typeof(T)] = new Utf8FormatHelpers.Handler(&FormatByIFormattableObject);
+                return;
+
+                static bool FormatByIFormattable(T value, Span<byte> destination, out int bytesWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+                {
+                    var formattable = (IFormattable)value!;
+                    var result = formattable.ToString(format.ToString(), provider);
+                    var obj = (result != null ? result : "").AsSpan();
+                    return Utf8FormatHelpers.TryGetBytes(obj, destination, out bytesWritten);
+                }
+
+                static bool FormatByIFormattableObject(object value, Span<byte> destination, out int bytesWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+                {
+                    var formattable = (IFormattable)value;
+                    var result = formattable.ToString(format.ToString(), provider);
+                    var obj = (result != null ? result : "").AsSpan();
+                    return Utf8FormatHelpers.TryGetBytes(obj, destination, out bytesWritten);
+                }
+            }
+
+            TryFormat = &FormatFallback;
+            Utf8FormatHelpers.Format4Delegates[typeof(T)] = new Utf8FormatHelpers.Handler(&FormatFallbackObject);
             return;
 
-            static bool Format4NotValueType(object value, Span<byte> destination, out int bytesWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+            static bool FormatFallback(T value, Span<byte> destination, out int bytesWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
             {
-                var obj = Unsafe.As<object, T>(ref value);
-                return TryFormat(obj, destination, out bytesWritten, format, provider);
+                var result = value!.ToString() ?? "";
+                return Utf8FormatHelpers.TryGetBytes(result.AsSpan(), destination, out bytesWritten);
+            }
+
+            static bool FormatFallbackObject(object value, Span<byte> destination, out int bytesWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+            {
+                var result = value.ToString() ?? "";
+                return Utf8FormatHelpers.TryGetBytes(result.AsSpan(), destination, out bytesWritten);
             }
         }
     }
