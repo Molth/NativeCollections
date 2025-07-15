@@ -206,7 +206,7 @@ namespace NativeCollections
                     return true;
                 }
 
-                return TryCopyTo(nullable.Value.AsSpan(), destination, out charsWritten);
+                return TryCopyTo(nullable.GetValueOrDefault().AsSpan(), destination, out charsWritten);
             }
 
             if (typeof(T) == typeof(ReadOnlyMemory<char>?))
@@ -218,7 +218,7 @@ namespace NativeCollections
                     return true;
                 }
 
-                return TryCopyTo(nullable.Value.Span, destination, out charsWritten);
+                return TryCopyTo(nullable.GetValueOrDefault().Span, destination, out charsWritten);
             }
 
             if (typeof(T) == typeof(Memory<char>?))
@@ -230,14 +230,14 @@ namespace NativeCollections
                     return true;
                 }
 
-                return TryCopyTo(nullable.Value.Span, destination, out charsWritten);
+                return TryCopyTo(nullable.GetValueOrDefault().Span, destination, out charsWritten);
             }
 
             if (typeof(T) == typeof(bool?))
             {
                 var nullable = Unsafe.As<T?, bool?>(ref value);
                 if (nullable != null)
-                    return nullable.Value.TryFormat(destination, out charsWritten);
+                    return nullable.GetValueOrDefault().TryFormat(destination, out charsWritten);
 
                 charsWritten = 0;
                 return true;
@@ -247,7 +247,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, decimal?>(ref value);
                 if (nullable != null)
-                    return nullable.Value.TryFormat(destination, out charsWritten, format, provider);
+                    return nullable.GetValueOrDefault().TryFormat(destination, out charsWritten, format, provider);
 
                 charsWritten = 0;
                 return true;
@@ -257,7 +257,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, DateTime?>(ref value);
                 if (nullable != null)
-                    return nullable.Value.TryFormat(destination, out charsWritten, format, provider);
+                    return nullable.GetValueOrDefault().TryFormat(destination, out charsWritten, format, provider);
 
                 charsWritten = 0;
                 return true;
@@ -267,7 +267,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, byte?>(ref value);
                 if (nullable != null)
-                    return nullable.Value.TryFormat(destination, out charsWritten, format, provider);
+                    return nullable.GetValueOrDefault().TryFormat(destination, out charsWritten, format, provider);
 
                 charsWritten = 0;
                 return true;
@@ -277,7 +277,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, DateTimeOffset?>(ref value);
                 if (nullable != null)
-                    return nullable.Value.TryFormat(destination, out charsWritten, format, provider);
+                    return nullable.GetValueOrDefault().TryFormat(destination, out charsWritten, format, provider);
 
                 charsWritten = 0;
                 return true;
@@ -287,7 +287,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, double?>(ref value);
                 if (nullable != null)
-                    return nullable.Value.TryFormat(destination, out charsWritten, format, provider);
+                    return nullable.GetValueOrDefault().TryFormat(destination, out charsWritten, format, provider);
 
                 charsWritten = 0;
                 return true;
@@ -297,7 +297,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, Guid?>(ref value);
                 if (nullable != null)
-                    return nullable.Value.TryFormat(destination, out charsWritten, format);
+                    return nullable.GetValueOrDefault().TryFormat(destination, out charsWritten, format);
 
                 charsWritten = 0;
                 return true;
@@ -308,7 +308,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, Half?>(ref value);
                 if (nullable != null)
-                    return nullable.Value.TryFormat(destination, out charsWritten, format, provider);
+                    return nullable.GetValueOrDefault().TryFormat(destination, out charsWritten, format, provider);
 
                 charsWritten = 0;
                 return true;
@@ -319,7 +319,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, short?>(ref value);
                 if (nullable != null)
-                    return nullable.Value.TryFormat(destination, out charsWritten, format, provider);
+                    return nullable.GetValueOrDefault().TryFormat(destination, out charsWritten, format, provider);
 
                 charsWritten = 0;
                 return true;
@@ -329,7 +329,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, int?>(ref value);
                 if (nullable != null)
-                    return nullable.Value.TryFormat(destination, out charsWritten, format, provider);
+                    return nullable.GetValueOrDefault().TryFormat(destination, out charsWritten, format, provider);
 
                 charsWritten = 0;
                 return true;
@@ -339,7 +339,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, long?>(ref value);
                 if (nullable != null)
-                    return nullable.Value.TryFormat(destination, out charsWritten, format, provider);
+                    return nullable.GetValueOrDefault().TryFormat(destination, out charsWritten, format, provider);
 
                 charsWritten = 0;
                 return true;
@@ -349,7 +349,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, sbyte?>(ref value);
                 if (nullable != null)
-                    return nullable.Value.TryFormat(destination, out charsWritten, format, provider);
+                    return nullable.GetValueOrDefault().TryFormat(destination, out charsWritten, format, provider);
 
                 charsWritten = 0;
                 return true;
@@ -359,7 +359,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, float?>(ref value);
                 if (nullable != null)
-                    return nullable.Value.TryFormat(destination, out charsWritten, format, provider);
+                    return nullable.GetValueOrDefault().TryFormat(destination, out charsWritten, format, provider);
 
                 charsWritten = 0;
                 return true;
@@ -369,7 +369,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, TimeSpan?>(ref value);
                 if (nullable != null)
-                    return nullable.Value.TryFormat(destination, out charsWritten, format, provider);
+                    return nullable.GetValueOrDefault().TryFormat(destination, out charsWritten, format, provider);
 
                 charsWritten = 0;
                 return true;
@@ -379,7 +379,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, ushort?>(ref value);
                 if (nullable != null)
-                    return nullable.Value.TryFormat(destination, out charsWritten, format, provider);
+                    return nullable.GetValueOrDefault().TryFormat(destination, out charsWritten, format, provider);
 
                 charsWritten = 0;
                 return true;
@@ -389,7 +389,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, uint?>(ref value);
                 if (nullable != null)
-                    return nullable.Value.TryFormat(destination, out charsWritten, format, provider);
+                    return nullable.GetValueOrDefault().TryFormat(destination, out charsWritten, format, provider);
 
                 charsWritten = 0;
                 return true;
@@ -399,7 +399,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, ulong?>(ref value);
                 if (nullable != null)
-                    return nullable.Value.TryFormat(destination, out charsWritten, format, provider);
+                    return nullable.GetValueOrDefault().TryFormat(destination, out charsWritten, format, provider);
 
                 charsWritten = 0;
                 return true;
@@ -409,7 +409,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, nint?>(ref value);
                 if (nullable != null)
-                    return sizeof(nint) == 8 ? ((long)nullable.Value).TryFormat(destination, out charsWritten, format, provider) : ((int)nullable.Value).TryFormat(destination, out charsWritten, format, provider);
+                    return sizeof(nint) == 8 ? ((long)nullable.GetValueOrDefault()).TryFormat(destination, out charsWritten, format, provider) : ((int)nullable.GetValueOrDefault()).TryFormat(destination, out charsWritten, format, provider);
 
                 charsWritten = 0;
                 return true;
@@ -419,7 +419,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, nuint?>(ref value);
                 if (nullable != null)
-                    return sizeof(nint) == 8 ? ((ulong)nullable.Value).TryFormat(destination, out charsWritten, format, provider) : ((uint)nullable.Value).TryFormat(destination, out charsWritten, format, provider);
+                    return sizeof(nint) == 8 ? ((ulong)nullable.GetValueOrDefault()).TryFormat(destination, out charsWritten, format, provider) : ((uint)nullable.GetValueOrDefault()).TryFormat(destination, out charsWritten, format, provider);
 
                 charsWritten = 0;
                 return true;
@@ -726,7 +726,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return TryCopyTo(obj.Value.AsSpan(), destination, out charsWritten);
+            return TryCopyTo(obj.GetValueOrDefault().AsSpan(), destination, out charsWritten);
         }
 
         /// <summary>
@@ -741,7 +741,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return TryCopyTo(obj.Value.Span, destination, out charsWritten);
+            return TryCopyTo(obj.GetValueOrDefault().Span, destination, out charsWritten);
         }
 
         /// <summary>
@@ -756,7 +756,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return TryCopyTo(obj.Value.Span, destination, out charsWritten);
+            return TryCopyTo(obj.GetValueOrDefault().Span, destination, out charsWritten);
         }
 
         /// <summary>
@@ -771,7 +771,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return obj.Value.TryFormat(destination, out charsWritten);
+            return obj.GetValueOrDefault().TryFormat(destination, out charsWritten);
         }
 
         /// <summary>
@@ -786,7 +786,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return obj.Value.TryFormat(destination, out charsWritten, format, provider);
+            return obj.GetValueOrDefault().TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>
@@ -801,7 +801,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return obj.Value.TryFormat(destination, out charsWritten, format, provider);
+            return obj.GetValueOrDefault().TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>
@@ -816,7 +816,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return obj.Value.TryFormat(destination, out charsWritten, format, provider);
+            return obj.GetValueOrDefault().TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>
@@ -831,7 +831,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return obj.Value.TryFormat(destination, out charsWritten, format, provider);
+            return obj.GetValueOrDefault().TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>
@@ -846,7 +846,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return obj.Value.TryFormat(destination, out charsWritten, format, provider);
+            return obj.GetValueOrDefault().TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>
@@ -861,7 +861,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return obj.Value.TryFormat(destination, out charsWritten, format);
+            return obj.GetValueOrDefault().TryFormat(destination, out charsWritten, format);
         }
 
 #if NET5_0_OR_GREATER
@@ -877,7 +877,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return obj.Value.TryFormat(destination, out charsWritten, format, provider);
+            return obj.GetValueOrDefault().TryFormat(destination, out charsWritten, format, provider);
         }
 #endif
 
@@ -893,7 +893,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return obj.Value.TryFormat(destination, out charsWritten, format, provider);
+            return obj.GetValueOrDefault().TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>
@@ -908,7 +908,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return obj.Value.TryFormat(destination, out charsWritten, format, provider);
+            return obj.GetValueOrDefault().TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>
@@ -923,7 +923,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return obj.Value.TryFormat(destination, out charsWritten, format, provider);
+            return obj.GetValueOrDefault().TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>
@@ -938,7 +938,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return obj.Value.TryFormat(destination, out charsWritten, format, provider);
+            return obj.GetValueOrDefault().TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>
@@ -953,7 +953,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return obj.Value.TryFormat(destination, out charsWritten, format, provider);
+            return obj.GetValueOrDefault().TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>
@@ -968,7 +968,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return obj.Value.TryFormat(destination, out charsWritten, format, provider);
+            return obj.GetValueOrDefault().TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>
@@ -983,7 +983,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return obj.Value.TryFormat(destination, out charsWritten, format, provider);
+            return obj.GetValueOrDefault().TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>
@@ -998,7 +998,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return obj.Value.TryFormat(destination, out charsWritten, format, provider);
+            return obj.GetValueOrDefault().TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>
@@ -1013,7 +1013,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return obj.Value.TryFormat(destination, out charsWritten, format, provider);
+            return obj.GetValueOrDefault().TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>
@@ -1028,7 +1028,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return sizeof(nint) == 8 ? ((long)obj.Value).TryFormat(destination, out charsWritten, format, provider) : ((int)obj.Value).TryFormat(destination, out charsWritten, format, provider);
+            return sizeof(nint) == 8 ? ((long)obj.GetValueOrDefault()).TryFormat(destination, out charsWritten, format, provider) : ((int)obj.GetValueOrDefault()).TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>
@@ -1043,7 +1043,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return sizeof(nint) == 8 ? ((ulong)obj.Value).TryFormat(destination, out charsWritten, format, provider) : ((uint)obj.Value).TryFormat(destination, out charsWritten, format, provider);
+            return sizeof(nint) == 8 ? ((ulong)obj.GetValueOrDefault()).TryFormat(destination, out charsWritten, format, provider) : ((uint)obj.GetValueOrDefault()).TryFormat(destination, out charsWritten, format, provider);
         }
 
         /// <summary>

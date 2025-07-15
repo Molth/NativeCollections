@@ -209,7 +209,7 @@ namespace NativeCollections
                     return true;
                 }
 
-                return TryGetBytes(nullable.Value.AsSpan(), destination, out bytesWritten);
+                return TryGetBytes(nullable.GetValueOrDefault().AsSpan(), destination, out bytesWritten);
             }
 
             if (typeof(T) == typeof(ReadOnlyMemory<char>?))
@@ -221,7 +221,7 @@ namespace NativeCollections
                     return true;
                 }
 
-                return TryGetBytes(nullable.Value.Span, destination, out bytesWritten);
+                return TryGetBytes(nullable.GetValueOrDefault().Span, destination, out bytesWritten);
             }
 
             if (typeof(T) == typeof(Memory<char>?))
@@ -233,14 +233,14 @@ namespace NativeCollections
                     return true;
                 }
 
-                return TryGetBytes(nullable.Value.Span, destination, out bytesWritten);
+                return TryGetBytes(nullable.GetValueOrDefault().Span, destination, out bytesWritten);
             }
 
             if (typeof(T) == typeof(bool?))
             {
                 var nullable = Unsafe.As<T?, bool?>(ref value);
                 if (nullable != null)
-                    return TryGetBytes(nullable.Value.ToString().AsSpan(), destination, out bytesWritten);
+                    return TryGetBytes(nullable.GetValueOrDefault().ToString().AsSpan(), destination, out bytesWritten);
 
                 bytesWritten = 0;
                 return true;
@@ -250,7 +250,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, decimal?>(ref value);
                 if (nullable != null)
-                    return TryUtf8SpanFormat(nullable.Value, destination, out bytesWritten, format, provider);
+                    return TryUtf8SpanFormat(nullable.GetValueOrDefault(), destination, out bytesWritten, format, provider);
 
                 bytesWritten = 0;
                 return true;
@@ -260,7 +260,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, DateTime?>(ref value);
                 if (nullable != null)
-                    return TryUtf8SpanFormat(nullable.Value, destination, out bytesWritten, format, provider);
+                    return TryUtf8SpanFormat(nullable.GetValueOrDefault(), destination, out bytesWritten, format, provider);
 
                 bytesWritten = 0;
                 return true;
@@ -270,7 +270,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, byte?>(ref value);
                 if (nullable != null)
-                    return TryUtf8SpanFormat(nullable.Value, destination, out bytesWritten, format, provider);
+                    return TryUtf8SpanFormat(nullable.GetValueOrDefault(), destination, out bytesWritten, format, provider);
 
                 bytesWritten = 0;
                 return true;
@@ -280,7 +280,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, DateTimeOffset?>(ref value);
                 if (nullable != null)
-                    return TryUtf8SpanFormat(nullable.Value, destination, out bytesWritten, format, provider);
+                    return TryUtf8SpanFormat(nullable.GetValueOrDefault(), destination, out bytesWritten, format, provider);
 
                 bytesWritten = 0;
                 return true;
@@ -290,7 +290,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, double?>(ref value);
                 if (nullable != null)
-                    return TryUtf8SpanFormat(nullable.Value, destination, out bytesWritten, format, provider);
+                    return TryUtf8SpanFormat(nullable.GetValueOrDefault(), destination, out bytesWritten, format, provider);
 
                 bytesWritten = 0;
                 return true;
@@ -300,7 +300,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, Guid?>(ref value);
                 if (nullable != null)
-                    return TryUtf8SpanFormat(nullable.Value, destination, out bytesWritten, format, provider);
+                    return TryUtf8SpanFormat(nullable.GetValueOrDefault(), destination, out bytesWritten, format, provider);
 
                 bytesWritten = 0;
                 return true;
@@ -311,7 +311,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, Half?>(ref value);
                 if (nullable != null)
-                    return TryUtf8SpanFormat(nullable.Value, destination, out bytesWritten, format, provider);
+                    return TryUtf8SpanFormat(nullable.GetValueOrDefault(), destination, out bytesWritten, format, provider);
 
                 bytesWritten = 0;
                 return true;
@@ -322,7 +322,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, short?>(ref value);
                 if (nullable != null)
-                    return TryUtf8SpanFormat(nullable.Value, destination, out bytesWritten, format, provider);
+                    return TryUtf8SpanFormat(nullable.GetValueOrDefault(), destination, out bytesWritten, format, provider);
 
                 bytesWritten = 0;
                 return true;
@@ -332,7 +332,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, int?>(ref value);
                 if (nullable != null)
-                    return TryUtf8SpanFormat(nullable.Value, destination, out bytesWritten, format, provider);
+                    return TryUtf8SpanFormat(nullable.GetValueOrDefault(), destination, out bytesWritten, format, provider);
 
                 bytesWritten = 0;
                 return true;
@@ -342,7 +342,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, long?>(ref value);
                 if (nullable != null)
-                    return TryUtf8SpanFormat(nullable.Value, destination, out bytesWritten, format, provider);
+                    return TryUtf8SpanFormat(nullable.GetValueOrDefault(), destination, out bytesWritten, format, provider);
 
                 bytesWritten = 0;
                 return true;
@@ -352,7 +352,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, sbyte?>(ref value);
                 if (nullable != null)
-                    return TryUtf8SpanFormat(nullable.Value, destination, out bytesWritten, format, provider);
+                    return TryUtf8SpanFormat(nullable.GetValueOrDefault(), destination, out bytesWritten, format, provider);
 
                 bytesWritten = 0;
                 return true;
@@ -362,7 +362,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, float?>(ref value);
                 if (nullable != null)
-                    return TryUtf8SpanFormat(nullable.Value, destination, out bytesWritten, format, provider);
+                    return TryUtf8SpanFormat(nullable.GetValueOrDefault(), destination, out bytesWritten, format, provider);
 
                 bytesWritten = 0;
                 return true;
@@ -372,7 +372,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, TimeSpan?>(ref value);
                 if (nullable != null)
-                    return TryUtf8SpanFormat(nullable.Value, destination, out bytesWritten, format, provider);
+                    return TryUtf8SpanFormat(nullable.GetValueOrDefault(), destination, out bytesWritten, format, provider);
 
                 bytesWritten = 0;
                 return true;
@@ -382,7 +382,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, ushort?>(ref value);
                 if (nullable != null)
-                    return TryUtf8SpanFormat(nullable.Value, destination, out bytesWritten, format, provider);
+                    return TryUtf8SpanFormat(nullable.GetValueOrDefault(), destination, out bytesWritten, format, provider);
 
                 bytesWritten = 0;
                 return true;
@@ -392,7 +392,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, uint?>(ref value);
                 if (nullable != null)
-                    return TryUtf8SpanFormat(nullable.Value, destination, out bytesWritten, format, provider);
+                    return TryUtf8SpanFormat(nullable.GetValueOrDefault(), destination, out bytesWritten, format, provider);
 
                 bytesWritten = 0;
                 return true;
@@ -402,7 +402,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, ulong?>(ref value);
                 if (nullable != null)
-                    return TryUtf8SpanFormat(nullable.Value, destination, out bytesWritten, format, provider);
+                    return TryUtf8SpanFormat(nullable.GetValueOrDefault(), destination, out bytesWritten, format, provider);
 
                 bytesWritten = 0;
                 return true;
@@ -412,7 +412,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, nint?>(ref value);
                 if (nullable != null)
-                    return sizeof(nint) == 8 ? TryUtf8SpanFormat((long)nullable.Value, destination, out bytesWritten, format, provider) : TryUtf8SpanFormat((int)nullable.Value, destination, out bytesWritten, format, provider);
+                    return sizeof(nint) == 8 ? TryUtf8SpanFormat((long)nullable.GetValueOrDefault(), destination, out bytesWritten, format, provider) : TryUtf8SpanFormat((int)nullable.GetValueOrDefault(), destination, out bytesWritten, format, provider);
 
                 bytesWritten = 0;
                 return true;
@@ -422,7 +422,7 @@ namespace NativeCollections
             {
                 var nullable = Unsafe.As<T?, nuint?>(ref value);
                 if (nullable != null)
-                    return sizeof(nint) == 8 ? TryUtf8SpanFormat((ulong)nullable.Value, destination, out bytesWritten, format, provider) : TryUtf8SpanFormat((uint)nullable.Value, destination, out bytesWritten, format, provider);
+                    return sizeof(nint) == 8 ? TryUtf8SpanFormat((ulong)nullable.GetValueOrDefault(), destination, out bytesWritten, format, provider) : TryUtf8SpanFormat((uint)nullable.GetValueOrDefault(), destination, out bytesWritten, format, provider);
 
                 bytesWritten = 0;
                 return true;
@@ -739,7 +739,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return TryGetBytes(obj.Value.AsSpan(), destination, out bytesWritten);
+            return TryGetBytes(obj.GetValueOrDefault().AsSpan(), destination, out bytesWritten);
         }
 
         /// <summary>
@@ -754,7 +754,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return TryGetBytes(obj.Value.Span, destination, out bytesWritten);
+            return TryGetBytes(obj.GetValueOrDefault().Span, destination, out bytesWritten);
         }
 
         /// <summary>
@@ -769,7 +769,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return TryGetBytes(obj.Value.Span, destination, out bytesWritten);
+            return TryGetBytes(obj.GetValueOrDefault().Span, destination, out bytesWritten);
         }
 
         /// <summary>
@@ -784,7 +784,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return TryGetBytes(obj.Value.ToString().AsSpan(), destination, out bytesWritten);
+            return TryGetBytes(obj.GetValueOrDefault().ToString().AsSpan(), destination, out bytesWritten);
         }
 
         /// <summary>
@@ -799,7 +799,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return TryUtf8SpanFormat(obj.Value, destination, out bytesWritten, format, provider);
+            return TryUtf8SpanFormat(obj.GetValueOrDefault(), destination, out bytesWritten, format, provider);
         }
 
         /// <summary>
@@ -814,7 +814,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return TryUtf8SpanFormat(obj.Value, destination, out bytesWritten, format, provider);
+            return TryUtf8SpanFormat(obj.GetValueOrDefault(), destination, out bytesWritten, format, provider);
         }
 
         /// <summary>
@@ -829,7 +829,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return TryUtf8SpanFormat(obj.Value, destination, out bytesWritten, format, provider);
+            return TryUtf8SpanFormat(obj.GetValueOrDefault(), destination, out bytesWritten, format, provider);
         }
 
         /// <summary>
@@ -844,7 +844,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return TryUtf8SpanFormat(obj.Value, destination, out bytesWritten, format, provider);
+            return TryUtf8SpanFormat(obj.GetValueOrDefault(), destination, out bytesWritten, format, provider);
         }
 
         /// <summary>
@@ -859,7 +859,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return TryUtf8SpanFormat(obj.Value, destination, out bytesWritten, format, provider);
+            return TryUtf8SpanFormat(obj.GetValueOrDefault(), destination, out bytesWritten, format, provider);
         }
 
         /// <summary>
@@ -874,7 +874,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return TryUtf8SpanFormat(obj.Value, destination, out bytesWritten, format, provider);
+            return TryUtf8SpanFormat(obj.GetValueOrDefault(), destination, out bytesWritten, format, provider);
         }
 
 #if NET5_0_OR_GREATER
@@ -890,7 +890,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return TryUtf8SpanFormat(obj.Value, destination, out bytesWritten, format, provider);
+            return TryUtf8SpanFormat(obj.GetValueOrDefault(), destination, out bytesWritten, format, provider);
         }
 #endif
 
@@ -906,7 +906,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return TryUtf8SpanFormat(obj.Value, destination, out bytesWritten, format, provider);
+            return TryUtf8SpanFormat(obj.GetValueOrDefault(), destination, out bytesWritten, format, provider);
         }
 
         /// <summary>
@@ -921,7 +921,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return TryUtf8SpanFormat(obj.Value, destination, out bytesWritten, format, provider);
+            return TryUtf8SpanFormat(obj.GetValueOrDefault(), destination, out bytesWritten, format, provider);
         }
 
         /// <summary>
@@ -936,7 +936,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return TryUtf8SpanFormat(obj.Value, destination, out bytesWritten, format, provider);
+            return TryUtf8SpanFormat(obj.GetValueOrDefault(), destination, out bytesWritten, format, provider);
         }
 
         /// <summary>
@@ -951,7 +951,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return TryUtf8SpanFormat(obj.Value, destination, out bytesWritten, format, provider);
+            return TryUtf8SpanFormat(obj.GetValueOrDefault(), destination, out bytesWritten, format, provider);
         }
 
         /// <summary>
@@ -966,7 +966,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return TryUtf8SpanFormat(obj.Value, destination, out bytesWritten, format, provider);
+            return TryUtf8SpanFormat(obj.GetValueOrDefault(), destination, out bytesWritten, format, provider);
         }
 
         /// <summary>
@@ -981,7 +981,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return TryUtf8SpanFormat(obj.Value, destination, out bytesWritten, format, provider);
+            return TryUtf8SpanFormat(obj.GetValueOrDefault(), destination, out bytesWritten, format, provider);
         }
 
         /// <summary>
@@ -996,7 +996,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return TryUtf8SpanFormat(obj.Value, destination, out bytesWritten, format, provider);
+            return TryUtf8SpanFormat(obj.GetValueOrDefault(), destination, out bytesWritten, format, provider);
         }
 
         /// <summary>
@@ -1011,7 +1011,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return TryUtf8SpanFormat(obj.Value, destination, out bytesWritten, format, provider);
+            return TryUtf8SpanFormat(obj.GetValueOrDefault(), destination, out bytesWritten, format, provider);
         }
 
         /// <summary>
@@ -1026,7 +1026,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return TryUtf8SpanFormat(obj.Value, destination, out bytesWritten, format, provider);
+            return TryUtf8SpanFormat(obj.GetValueOrDefault(), destination, out bytesWritten, format, provider);
         }
 
         /// <summary>
@@ -1041,7 +1041,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return sizeof(nint) == 8 ? TryUtf8SpanFormat((long)obj.Value, destination, out bytesWritten, format, provider) : TryUtf8SpanFormat((int)obj.Value, destination, out bytesWritten, format, provider);
+            return sizeof(nint) == 8 ? TryUtf8SpanFormat((long)obj.GetValueOrDefault(), destination, out bytesWritten, format, provider) : TryUtf8SpanFormat((int)obj.GetValueOrDefault(), destination, out bytesWritten, format, provider);
         }
 
         /// <summary>
@@ -1056,7 +1056,7 @@ namespace NativeCollections
                 return true;
             }
 
-            return sizeof(nint) == 8 ? TryUtf8SpanFormat((ulong)obj.Value, destination, out bytesWritten, format, provider) : TryUtf8SpanFormat((uint)obj.Value, destination, out bytesWritten, format, provider);
+            return sizeof(nint) == 8 ? TryUtf8SpanFormat((ulong)obj.GetValueOrDefault(), destination, out bytesWritten, format, provider) : TryUtf8SpanFormat((uint)obj.GetValueOrDefault(), destination, out bytesWritten, format, provider);
         }
 
         /// <summary>

@@ -123,7 +123,7 @@ namespace NativeCollections
         {
             if (value == null)
                 return;
-            AppendFormatted(value.Value);
+            AppendFormatted(value.GetValueOrDefault());
         }
 
         /// <summary>Writes the specified value to the handler.</summary>
@@ -151,7 +151,7 @@ namespace NativeCollections
         {
             if (value == null)
                 return;
-            AppendFormatted(value.Value, format);
+            AppendFormatted(value.GetValueOrDefault(), format);
         }
 
         /// <summary>Writes the specified value to the handler.</summary>
@@ -183,7 +183,7 @@ namespace NativeCollections
         {
             if (value == null)
                 return;
-            AppendFormatted(value.Value, alignment);
+            AppendFormatted(value.GetValueOrDefault(), alignment);
         }
 
         /// <summary>Writes the specified value to the handler.</summary>
@@ -207,7 +207,7 @@ namespace NativeCollections
         {
             if (value == null)
                 return;
-            AppendFormatted(value.Value, alignment, format);
+            AppendFormatted(value.GetValueOrDefault(), alignment, format);
         }
 
         /// <summary>Writes the specified value to the handler.</summary>

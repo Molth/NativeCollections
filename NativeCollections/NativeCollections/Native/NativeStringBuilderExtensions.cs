@@ -242,7 +242,7 @@ namespace NativeCollections
         {
             if (obj == null)
                 return;
-            builder.AppendFormat(obj.Value, format, provider);
+            builder.AppendFormat(obj.GetValueOrDefault(), format, provider);
         }
 
         /// <summary>
@@ -1058,7 +1058,7 @@ namespace NativeCollections
         {
             if (obj == null)
                 return;
-            builder.AppendFormat(obj.Value, format, provider);
+            builder.AppendFormat(obj.GetValueOrDefault(), format, provider);
         }
 
         /// <summary>
