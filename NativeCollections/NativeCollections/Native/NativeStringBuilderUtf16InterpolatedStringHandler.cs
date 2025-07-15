@@ -119,6 +119,16 @@ namespace NativeCollections
         /// <summary>Writes the specified value to the handler.</summary>
         /// <param name="value">The value to write.</param>
         /// <typeparam name="T">The type of the value to write.</typeparam>
+        public void AppendFormatted<T>(T? value) where T : struct
+        {
+            if (value == null)
+                return;
+            AppendFormatted(value.Value);
+        }
+
+        /// <summary>Writes the specified value to the handler.</summary>
+        /// <param name="value">The value to write.</param>
+        /// <typeparam name="T">The type of the value to write.</typeparam>
         public void AppendFormatted<T>(T value)
         {
             ref var sbRef = ref _stringBuilder.AsRef();
@@ -131,6 +141,17 @@ namespace NativeCollections
             }
 
             sbRef.AppendFormat(value, default, _provider);
+        }
+
+        /// <summary>Writes the specified value to the handler.</summary>
+        /// <param name="value">The value to write.</param>
+        /// <param name="format">The format string.</param>
+        /// <typeparam name="T">The type of the value to write.</typeparam>
+        public void AppendFormatted<T>(T? value, string? format) where T : struct
+        {
+            if (value == null)
+                return;
+            AppendFormatted(value.Value, format);
         }
 
         /// <summary>Writes the specified value to the handler.</summary>
@@ -158,7 +179,36 @@ namespace NativeCollections
         ///     it indicates left-aligned and the required minimum is the absolute value.
         /// </param>
         /// <typeparam name="T">The type of the value to write.</typeparam>
+        public void AppendFormatted<T>(T? value, int alignment) where T : struct
+        {
+            if (value == null)
+                return;
+            AppendFormatted(value.Value, alignment);
+        }
+
+        /// <summary>Writes the specified value to the handler.</summary>
+        /// <param name="value">The value to write.</param>
+        /// <param name="alignment">
+        ///     Minimum number of characters that should be written for this value.  If the value is negative,
+        ///     it indicates left-aligned and the required minimum is the absolute value.
+        /// </param>
+        /// <typeparam name="T">The type of the value to write.</typeparam>
         public void AppendFormatted<T>(T value, int alignment) => AppendFormatted(value, alignment, null);
+
+        /// <summary>Writes the specified value to the handler.</summary>
+        /// <param name="value">The value to write.</param>
+        /// <param name="format">The format string.</param>
+        /// <param name="alignment">
+        ///     Minimum number of characters that should be written for this value.  If the value is negative,
+        ///     it indicates left-aligned and the required minimum is the absolute value.
+        /// </param>
+        /// <typeparam name="T">The type of the value to write.</typeparam>
+        public void AppendFormatted<T>(T? value, int alignment, string? format) where T : struct
+        {
+            if (value == null)
+                return;
+            AppendFormatted(value.Value, alignment, format);
+        }
 
         /// <summary>Writes the specified value to the handler.</summary>
         /// <param name="value">The value to write.</param>
