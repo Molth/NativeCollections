@@ -57,7 +57,7 @@ namespace NativeCollections
                 {
                     var spanFormattable = (ISpanFormattable)value!;
                     using var temp = new NativeStringBuilder<char>(stackalloc char[512], 0);
-                    temp.AppendFormattable(spanFormattable);
+                    temp.AppendFormattable(spanFormattable, format, provider);
                     return Utf8FormatHelpers.TryGetBytes(temp.Text, destination, out bytesWritten);
                 }
 
@@ -65,7 +65,7 @@ namespace NativeCollections
                 {
                     var spanFormattable = (ISpanFormattable)value;
                     using var temp = new NativeStringBuilder<char>(stackalloc char[512], 0);
-                    temp.AppendFormattable(spanFormattable);
+                    temp.AppendFormattable(spanFormattable, format, provider);
                     return Utf8FormatHelpers.TryGetBytes(temp.Text, destination, out bytesWritten);
                 }
             }

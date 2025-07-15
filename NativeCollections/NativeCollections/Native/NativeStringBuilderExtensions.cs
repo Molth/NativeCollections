@@ -238,6 +238,17 @@ namespace NativeCollections
         ///     Append format
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AppendFormat<T>(in this NativeStringBuilder<char> builder, T? obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) where T : struct
+        {
+            if (obj == null)
+                return;
+            builder.AppendFormat(obj.Value, format, provider);
+        }
+
+        /// <summary>
+        ///     Append format
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T>(in this NativeStringBuilder<char> builder, T? obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
         {
             ref var builderRef = ref builder.AsRef();
@@ -1039,6 +1050,17 @@ namespace NativeCollections
             builderRef.Append(buffer);
         }
 #endif
+        /// <summary>
+        ///     Append format
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AppendFormat<T>(in this NativeStringBuilder<byte> builder, T? obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) where T : struct
+        {
+            if (obj == null)
+                return;
+            builder.AppendFormat(obj.Value, format, provider);
+        }
+
         /// <summary>
         ///     Append format
         /// </summary>

@@ -1218,6 +1218,12 @@ namespace NativeCollections
         ///     Append format
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool AppendFormat<T>(T? obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) where T : struct => obj == null || AppendFormat(obj.Value, format, provider);
+
+        /// <summary>
+        ///     Append format
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormat<T>(T? obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
         {
             if (FormatHelpers.TryFormat(obj, Space, out var charsWritten, format, provider))

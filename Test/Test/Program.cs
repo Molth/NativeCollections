@@ -63,6 +63,10 @@ namespace Examples
             sb.Append(' ');
             sb.Append("sb".AsMemory());
             sb.Append(' ');
+            sb.Append(new Sb { Value = 100.12345f });
+            sb.Append(' ');
+            sb.Append("sb".AsMemory());
+            sb.Append(' ');
             sb.Append(100.12345f.ToString("F5", CultureInfo.GetCultureInfo("de-DE")));
             sb.Append(' ');
             sb.Append(CultureInfo.GetCultureInfo("de-DE"), $"Sb{1.250f:F5}");
@@ -81,6 +85,11 @@ namespace Examples
             var sb = new NativeStringBuilder<byte>();
             sb.Append((char)(0x7F + 1), 4);
             sb.AppendFormat<Sb?>(new Sb { Value = 100.12345f }, "F5", CultureInfo.GetCultureInfo("de-DE"));
+            sb.Append(' ');
+            sb.AppendFormat<object>("sb".AsMemory());
+            sb.Append(' ');
+            Sb? b = new Sb { Value = 100.12345f };
+            sb.AppendFormat(b, "F5", CultureInfo.GetCultureInfo("de-DE"));
             sb.Append(' ');
             sb.AppendFormat<object>("sb".AsMemory());
             sb.Append(' ');
