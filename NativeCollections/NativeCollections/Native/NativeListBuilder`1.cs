@@ -152,6 +152,18 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     As pointer
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly NativeListBuilder<T>* AsPointer()
+        {
+            fixed (NativeListBuilder<T>* ptr = &this)
+            {
+                return ptr;
+            }
+        }
+
+        /// <summary>
         ///     Clear
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

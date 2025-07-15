@@ -21,8 +21,13 @@ namespace NativeCollections
 #if NET6_0_OR_GREATER
     [InterpolatedStringHandler]
 #endif
-    public ref struct NativeStringInterpolatedStringHandler
+    public unsafe ref struct NativeStringInterpolatedStringHandler
     {
+        /// <summary>
+        ///     Handle
+        /// </summary>
+        internal readonly NativeString* Handle;
+
         /// <summary>
         ///     The associated NativeStringBuilder to which to append.
         /// </summary>
@@ -61,6 +66,7 @@ namespace NativeCollections
         /// </remarks>
         public NativeStringInterpolatedStringHandler(int literalLength, int formattedCount, in NativeString stringBuilder)
         {
+            Handle = stringBuilder.AsPointer();
             StringBuilder = stringBuilder;
             _provider = null;
             _hasCustomFormatter = false;
@@ -81,6 +87,7 @@ namespace NativeCollections
         /// </remarks>
         public NativeStringInterpolatedStringHandler(int literalLength, int formattedCount, in NativeString stringBuilder, IFormatProvider? provider)
         {
+            Handle = stringBuilder.AsPointer();
             StringBuilder = stringBuilder;
             _provider = provider;
             _hasCustomFormatter = provider != null && FormatHelpers.HasCustomFormatter(provider);

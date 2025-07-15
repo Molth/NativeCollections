@@ -909,6 +909,18 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     As pointer
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly NativeStringBuilder<T>* AsPointer()
+        {
+            fixed (NativeStringBuilder<T>* ptr = &this)
+            {
+                return ptr;
+            }
+        }
+
+        /// <summary>
         ///     As span
         /// </summary>
         /// <returns>Span</returns>

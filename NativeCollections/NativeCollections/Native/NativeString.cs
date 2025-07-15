@@ -1041,6 +1041,18 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     As pointer
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly NativeString* AsPointer()
+        {
+            fixed (NativeString* ptr = &this)
+            {
+                return ptr;
+            }
+        }
+
+        /// <summary>
         ///     As span
         /// </summary>
         /// <returns>Span</returns>
@@ -1257,6 +1269,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Append([InterpolatedStringHandlerArgument("")] ref NativeStringInterpolatedStringHandler handler)
         {
+            if (handler.Handle != AsPointer())
+                ThrowHelpers.ThrowNotSupportedException();
             var result = handler.Result;
             if (result)
                 this = handler.StringBuilder;
@@ -1269,6 +1283,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Append(IFormatProvider? provider, [InterpolatedStringHandlerArgument("", "provider")] ref NativeStringInterpolatedStringHandler handler)
         {
+            if (handler.Handle != AsPointer())
+                ThrowHelpers.ThrowNotSupportedException();
             var result = handler.Result;
             if (result)
                 this = handler.StringBuilder;

@@ -36,13 +36,7 @@ namespace NativeCollections
             ///     Structure
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public NativeStringBuilderHandle(in NativeStringBuilder<char> builder)
-            {
-                fixed (NativeStringBuilder<char>* ptr = &builder)
-                {
-                    _handle = ptr;
-                }
-            }
+            public NativeStringBuilderHandle(in NativeStringBuilder<char> builder) => _handle = builder.AsPointer();
 
             /// <summary>
             ///     As ref
