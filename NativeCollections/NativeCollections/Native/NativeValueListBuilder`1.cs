@@ -356,6 +356,329 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Create
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeValueListBuilder<T> Create(ReadOnlySpan<T> buffer)
+        {
+            var temp = new NativeValueListBuilder<T>(buffer.Length);
+            buffer.CopyTo(temp.AsSpan());
+            return temp;
+        }
+
+        /// <summary>
+        ///     Create
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeValueListBuilder<T> Create(in T arg0)
+        {
+            var temp = new NativeValueListBuilder<T>(1);
+            var buffer = temp.AsSpan();
+            buffer[0] = arg0;
+            return temp;
+        }
+
+        /// <summary>
+        ///     Create
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeValueListBuilder<T> Create(in T arg0, in T arg1)
+        {
+            var temp = new NativeValueListBuilder<T>(2);
+            var buffer = temp.AsSpan();
+            buffer[0] = arg0;
+            buffer[1] = arg1;
+            return temp;
+        }
+
+        /// <summary>
+        ///     Create
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeValueListBuilder<T> Create(in T arg0, in T arg1, in T arg2)
+        {
+            var temp = new NativeValueListBuilder<T>(3);
+            var buffer = temp.AsSpan();
+            buffer[0] = arg0;
+            buffer[1] = arg1;
+            buffer[2] = arg2;
+            return temp;
+        }
+
+        /// <summary>
+        ///     Create
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeValueListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3)
+        {
+            var temp = new NativeValueListBuilder<T>(4);
+            var buffer = temp.AsSpan();
+            buffer[0] = arg0;
+            buffer[1] = arg1;
+            buffer[2] = arg2;
+            buffer[3] = arg3;
+            return temp;
+        }
+
+        /// <summary>
+        ///     Create
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeValueListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4)
+        {
+            var temp = new NativeValueListBuilder<T>(5);
+            var buffer = temp.AsSpan();
+            buffer[0] = arg0;
+            buffer[1] = arg1;
+            buffer[2] = arg2;
+            buffer[3] = arg3;
+            buffer[4] = arg4;
+            return temp;
+        }
+
+        /// <summary>
+        ///     Create
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeValueListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5)
+        {
+            var temp = new NativeValueListBuilder<T>(6);
+            var buffer = temp.AsSpan();
+            buffer[0] = arg0;
+            buffer[1] = arg1;
+            buffer[2] = arg2;
+            buffer[3] = arg3;
+            buffer[4] = arg4;
+            buffer[5] = arg5;
+            return temp;
+        }
+
+        /// <summary>
+        ///     Create
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeValueListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6)
+        {
+            var temp = new NativeValueListBuilder<T>(7);
+            var buffer = temp.AsSpan();
+            buffer[0] = arg0;
+            buffer[1] = arg1;
+            buffer[2] = arg2;
+            buffer[3] = arg3;
+            buffer[4] = arg4;
+            buffer[5] = arg5;
+            buffer[6] = arg6;
+            return temp;
+        }
+
+        /// <summary>
+        ///     Create
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeValueListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7)
+        {
+            var temp = new NativeValueListBuilder<T>(8);
+            var buffer = temp.AsSpan();
+            buffer[0] = arg0;
+            buffer[1] = arg1;
+            buffer[2] = arg2;
+            buffer[3] = arg3;
+            buffer[4] = arg4;
+            buffer[5] = arg5;
+            buffer[6] = arg6;
+            buffer[7] = arg7;
+            return temp;
+        }
+
+        /// <summary>
+        ///     Create
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeValueListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8)
+        {
+            var temp = new NativeValueListBuilder<T>(9);
+            var buffer = temp.AsSpan();
+            buffer[0] = arg0;
+            buffer[1] = arg1;
+            buffer[2] = arg2;
+            buffer[3] = arg3;
+            buffer[4] = arg4;
+            buffer[5] = arg5;
+            buffer[6] = arg6;
+            buffer[7] = arg7;
+            buffer[8] = arg8;
+            return temp;
+        }
+
+        /// <summary>
+        ///     Create
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeValueListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8, in T arg9)
+        {
+            var temp = new NativeValueListBuilder<T>(10);
+            var buffer = temp.AsSpan();
+            buffer[0] = arg0;
+            buffer[1] = arg1;
+            buffer[2] = arg2;
+            buffer[3] = arg3;
+            buffer[4] = arg4;
+            buffer[5] = arg5;
+            buffer[6] = arg6;
+            buffer[7] = arg7;
+            buffer[8] = arg8;
+            buffer[9] = arg9;
+            return temp;
+        }
+
+        /// <summary>
+        ///     Create
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeValueListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8, in T arg9, in T arg10)
+        {
+            var temp = new NativeValueListBuilder<T>(11);
+            var buffer = temp.AsSpan();
+            buffer[0] = arg0;
+            buffer[1] = arg1;
+            buffer[2] = arg2;
+            buffer[3] = arg3;
+            buffer[4] = arg4;
+            buffer[5] = arg5;
+            buffer[6] = arg6;
+            buffer[7] = arg7;
+            buffer[8] = arg8;
+            buffer[9] = arg9;
+            buffer[10] = arg10;
+            return temp;
+        }
+
+        /// <summary>
+        ///     Create
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeValueListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8, in T arg9, in T arg10, in T arg11)
+        {
+            var temp = new NativeValueListBuilder<T>(12);
+            var buffer = temp.AsSpan();
+            buffer[0] = arg0;
+            buffer[1] = arg1;
+            buffer[2] = arg2;
+            buffer[3] = arg3;
+            buffer[4] = arg4;
+            buffer[5] = arg5;
+            buffer[6] = arg6;
+            buffer[7] = arg7;
+            buffer[8] = arg8;
+            buffer[9] = arg9;
+            buffer[10] = arg10;
+            buffer[11] = arg11;
+            return temp;
+        }
+
+        /// <summary>
+        ///     Create
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeValueListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8, in T arg9, in T arg10, in T arg11, in T arg12)
+        {
+            var temp = new NativeValueListBuilder<T>(13);
+            var buffer = temp.AsSpan();
+            buffer[0] = arg0;
+            buffer[1] = arg1;
+            buffer[2] = arg2;
+            buffer[3] = arg3;
+            buffer[4] = arg4;
+            buffer[5] = arg5;
+            buffer[6] = arg6;
+            buffer[7] = arg7;
+            buffer[8] = arg8;
+            buffer[9] = arg9;
+            buffer[10] = arg10;
+            buffer[11] = arg11;
+            buffer[12] = arg12;
+            return temp;
+        }
+
+        /// <summary>
+        ///     Create
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeValueListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8, in T arg9, in T arg10, in T arg11, in T arg12, in T arg13)
+        {
+            var temp = new NativeValueListBuilder<T>(14);
+            var buffer = temp.AsSpan();
+            buffer[0] = arg0;
+            buffer[1] = arg1;
+            buffer[2] = arg2;
+            buffer[3] = arg3;
+            buffer[4] = arg4;
+            buffer[5] = arg5;
+            buffer[6] = arg6;
+            buffer[7] = arg7;
+            buffer[8] = arg8;
+            buffer[9] = arg9;
+            buffer[10] = arg10;
+            buffer[11] = arg11;
+            buffer[12] = arg12;
+            buffer[13] = arg13;
+            return temp;
+        }
+
+        /// <summary>
+        ///     Create
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeValueListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8, in T arg9, in T arg10, in T arg11, in T arg12, in T arg13, in T arg14)
+        {
+            var temp = new NativeValueListBuilder<T>(15);
+            var buffer = temp.AsSpan();
+            buffer[0] = arg0;
+            buffer[1] = arg1;
+            buffer[2] = arg2;
+            buffer[3] = arg3;
+            buffer[4] = arg4;
+            buffer[5] = arg5;
+            buffer[6] = arg6;
+            buffer[7] = arg7;
+            buffer[8] = arg8;
+            buffer[9] = arg9;
+            buffer[10] = arg10;
+            buffer[11] = arg11;
+            buffer[12] = arg12;
+            buffer[13] = arg13;
+            buffer[14] = arg14;
+            return temp;
+        }
+
+        /// <summary>
+        ///     Create
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeValueListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8, in T arg9, in T arg10, in T arg11, in T arg12, in T arg13, in T arg14, in T arg15)
+        {
+            var temp = new NativeValueListBuilder<T>(16);
+            var buffer = temp.AsSpan();
+            buffer[0] = arg0;
+            buffer[1] = arg1;
+            buffer[2] = arg2;
+            buffer[3] = arg3;
+            buffer[4] = arg4;
+            buffer[5] = arg5;
+            buffer[6] = arg6;
+            buffer[7] = arg7;
+            buffer[8] = arg8;
+            buffer[9] = arg9;
+            buffer[10] = arg10;
+            buffer[11] = arg11;
+            buffer[12] = arg12;
+            buffer[13] = arg13;
+            buffer[14] = arg14;
+            buffer[15] = arg15;
+            return temp;
+        }
+
+        /// <summary>
         ///     Empty
         /// </summary>
         public static NativeValueListBuilder<T> Empty => new();
