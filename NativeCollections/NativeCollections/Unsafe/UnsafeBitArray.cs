@@ -320,6 +320,19 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>NativeBitArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly void And(NativeBitArray value)
+        {
+            if (!value.IsCreated)
+                ThrowHelpers.ThrowArgumentNullException(nameof(value));
+            And(new UnsafeBitArray(value.Buffer, value.Length));
+        }
+
+        /// <summary>
+        ///     And
+        /// </summary>
+        /// <param name="value">Value</param>
+        /// <returns>NativeBitArray</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void And(UnsafeBitArray value)
         {
             var count = GetInt32ArrayLengthFromBitLength(_length);
@@ -334,12 +347,38 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>NativeBitArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly void Or(NativeBitArray value)
+        {
+            if (!value.IsCreated)
+                ThrowHelpers.ThrowArgumentNullException(nameof(value));
+            Or(new UnsafeBitArray(value.Buffer, value.Length));
+        }
+
+        /// <summary>
+        ///     Or
+        /// </summary>
+        /// <param name="value">Value</param>
+        /// <returns>NativeBitArray</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void Or(UnsafeBitArray value)
         {
             var count = GetInt32ArrayLengthFromBitLength(_length);
             if (_length != value._length || (uint)count > (uint)_buffer.Length || (uint)count > (uint)value._buffer.Length)
                 ThrowHelpers.ThrowArrayLengthsDifferException();
             BitOperationsHelpers.Or(_buffer, value._buffer, (uint)count);
+        }
+
+        /// <summary>
+        ///     Xor
+        /// </summary>
+        /// <param name="value">Value</param>
+        /// <returns>NativeBitArray</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly void Xor(NativeBitArray value)
+        {
+            if (!value.IsCreated)
+                ThrowHelpers.ThrowArgumentNullException(nameof(value));
+            Xor(new UnsafeBitArray(value.Buffer, value.Length));
         }
 
         /// <summary>

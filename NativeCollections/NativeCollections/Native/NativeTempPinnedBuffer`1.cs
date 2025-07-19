@@ -153,7 +153,7 @@ namespace NativeCollections
         public static NativeTempPinnedBuffer<T> Create(ReadOnlySpan<T> buffer)
         {
             var temp = new NativeTempPinnedBuffer<T>(buffer.Length);
-            buffer.CopyTo(temp.AsSpan());
+            Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(temp.AsSpan())), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(buffer.Length * Unsafe.SizeOf<T>()));
             return temp;
         }
 

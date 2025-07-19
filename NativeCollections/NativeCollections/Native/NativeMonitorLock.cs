@@ -16,12 +16,12 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    public struct NativeMonitorLock : IDisposable, IEquatable<NativeMonitorLock>
+    public readonly struct NativeMonitorLock : IDisposable, IEquatable<NativeMonitorLock>
     {
         /// <summary>
         ///     Handle
         /// </summary>
-        private GCHandle _handle;
+        private readonly GCHandle _handle;
 
         /// <summary>
         ///     Structure
@@ -40,26 +40,26 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public readonly bool Equals(NativeMonitorLock other) => other == this;
+        public bool Equals(NativeMonitorLock other) => other == this;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public readonly override bool Equals(object? obj) => obj is NativeMonitorLock nativeMonitorLock && nativeMonitorLock == this;
+        public override bool Equals(object? obj) => obj is NativeMonitorLock nativeMonitorLock && nativeMonitorLock == this;
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public readonly override int GetHashCode() => ((nint)_handle).GetHashCode();
+        public override int GetHashCode() => ((nint)_handle).GetHashCode();
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public readonly override string ToString() => "NativeMonitorLock";
+        public override string ToString() => "NativeMonitorLock";
 
         /// <summary>
         ///     Equals
@@ -81,7 +81,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly void Dispose()
+        public void Dispose()
         {
             var handle = _handle;
             if (!handle.IsAllocated)

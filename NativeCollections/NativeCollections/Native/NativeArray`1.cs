@@ -330,6 +330,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="alignment">Alignment</param>
         /// <returns>NativeArray</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeArray<T> Create(Span<byte> buffer, uint alignment)
         {
             ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, nameof(alignment));
@@ -347,6 +348,7 @@ namespace NativeCollections
         /// <param name="alignment">Alignment</param>
         /// <param name="byteOffset">Byte offset</param>
         /// <returns>NativeArray</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeArray<T> Create(Span<byte> buffer, uint alignment, out nint byteOffset)
         {
             ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, nameof(alignment));

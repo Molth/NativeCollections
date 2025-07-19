@@ -359,7 +359,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeListBuilder<T> Create(ReadOnlySpan<T> buffer)
         {
-            var temp = new NativeListBuilder<T>(buffer.Length);
+            var temp = new NativeListBuilder<T>(buffer.Length, buffer.Length);
             buffer.CopyTo(temp.AsSpan());
             return temp;
         }
@@ -370,7 +370,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeListBuilder<T> Create(in T arg0)
         {
-            var temp = new NativeListBuilder<T>(1);
+            var temp = new NativeListBuilder<T>(1, 1);
             var buffer = temp.AsSpan();
             buffer[0] = arg0;
             return temp;
@@ -382,7 +382,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeListBuilder<T> Create(in T arg0, in T arg1)
         {
-            var temp = new NativeListBuilder<T>(2);
+            var temp = new NativeListBuilder<T>(2, 2);
             var buffer = temp.AsSpan();
             buffer[0] = arg0;
             buffer[1] = arg1;
@@ -395,7 +395,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeListBuilder<T> Create(in T arg0, in T arg1, in T arg2)
         {
-            var temp = new NativeListBuilder<T>(3);
+            var temp = new NativeListBuilder<T>(3, 3);
             var buffer = temp.AsSpan();
             buffer[0] = arg0;
             buffer[1] = arg1;
@@ -409,7 +409,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3)
         {
-            var temp = new NativeListBuilder<T>(4);
+            var temp = new NativeListBuilder<T>(4, 4);
             var buffer = temp.AsSpan();
             buffer[0] = arg0;
             buffer[1] = arg1;
@@ -424,7 +424,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4)
         {
-            var temp = new NativeListBuilder<T>(5);
+            var temp = new NativeListBuilder<T>(5, 5);
             var buffer = temp.AsSpan();
             buffer[0] = arg0;
             buffer[1] = arg1;
@@ -440,7 +440,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5)
         {
-            var temp = new NativeListBuilder<T>(6);
+            var temp = new NativeListBuilder<T>(6, 6);
             var buffer = temp.AsSpan();
             buffer[0] = arg0;
             buffer[1] = arg1;
@@ -457,7 +457,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6)
         {
-            var temp = new NativeListBuilder<T>(7);
+            var temp = new NativeListBuilder<T>(7, 7);
             var buffer = temp.AsSpan();
             buffer[0] = arg0;
             buffer[1] = arg1;
@@ -475,7 +475,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7)
         {
-            var temp = new NativeListBuilder<T>(8);
+            var temp = new NativeListBuilder<T>(8, 8);
             var buffer = temp.AsSpan();
             buffer[0] = arg0;
             buffer[1] = arg1;
@@ -494,7 +494,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8)
         {
-            var temp = new NativeListBuilder<T>(9);
+            var temp = new NativeListBuilder<T>(9, 9);
             var buffer = temp.AsSpan();
             buffer[0] = arg0;
             buffer[1] = arg1;
@@ -514,7 +514,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8, in T arg9)
         {
-            var temp = new NativeListBuilder<T>(10);
+            var temp = new NativeListBuilder<T>(10, 10);
             var buffer = temp.AsSpan();
             buffer[0] = arg0;
             buffer[1] = arg1;
@@ -535,7 +535,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8, in T arg9, in T arg10)
         {
-            var temp = new NativeListBuilder<T>(11);
+            var temp = new NativeListBuilder<T>(11, 11);
             var buffer = temp.AsSpan();
             buffer[0] = arg0;
             buffer[1] = arg1;
@@ -557,7 +557,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8, in T arg9, in T arg10, in T arg11)
         {
-            var temp = new NativeListBuilder<T>(12);
+            var temp = new NativeListBuilder<T>(12, 12);
             var buffer = temp.AsSpan();
             buffer[0] = arg0;
             buffer[1] = arg1;
@@ -580,7 +580,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8, in T arg9, in T arg10, in T arg11, in T arg12)
         {
-            var temp = new NativeListBuilder<T>(13);
+            var temp = new NativeListBuilder<T>(13, 13);
             var buffer = temp.AsSpan();
             buffer[0] = arg0;
             buffer[1] = arg1;
@@ -604,7 +604,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8, in T arg9, in T arg10, in T arg11, in T arg12, in T arg13)
         {
-            var temp = new NativeListBuilder<T>(14);
+            var temp = new NativeListBuilder<T>(14, 14);
             var buffer = temp.AsSpan();
             buffer[0] = arg0;
             buffer[1] = arg1;
@@ -629,7 +629,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8, in T arg9, in T arg10, in T arg11, in T arg12, in T arg13, in T arg14)
         {
-            var temp = new NativeListBuilder<T>(15);
+            var temp = new NativeListBuilder<T>(15, 15);
             var buffer = temp.AsSpan();
             buffer[0] = arg0;
             buffer[1] = arg1;
@@ -655,7 +655,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8, in T arg9, in T arg10, in T arg11, in T arg12, in T arg13, in T arg14, in T arg15)
         {
-            var temp = new NativeListBuilder<T>(16);
+            var temp = new NativeListBuilder<T>(16, 16);
             var buffer = temp.AsSpan();
             buffer[0] = arg0;
             buffer[1] = arg1;

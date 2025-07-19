@@ -16,12 +16,12 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    public struct NativeObject<T> : IDisposable, IEquatable<NativeObject<T>>
+    public readonly struct NativeObject<T> : IDisposable, IEquatable<NativeObject<T>>
     {
         /// <summary>
         ///     Handle
         /// </summary>
-        private GCHandle _handle;
+        private readonly GCHandle _handle;
 
         /// <summary>
         ///     Structure
@@ -49,26 +49,26 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public readonly bool Equals(NativeObject<T> other) => other == this;
+        public bool Equals(NativeObject<T> other) => other == this;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public readonly override bool Equals(object? obj) => obj is NativeObject<T> nativeObject && nativeObject == this;
+        public override bool Equals(object? obj) => obj is NativeObject<T> nativeObject && nativeObject == this;
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public readonly override int GetHashCode() => ((nint)_handle).GetHashCode();
+        public override int GetHashCode() => ((nint)_handle).GetHashCode();
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public readonly override string ToString() => $"NativeObject<{typeof(T).Name}>";
+        public override string ToString() => $"NativeObject<{typeof(T).Name}>";
 
         /// <summary>
         ///     Equals
@@ -97,7 +97,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly void Dispose()
+        public void Dispose()
         {
             var handle = _handle;
             if (!handle.IsAllocated)

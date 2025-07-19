@@ -19,12 +19,12 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    public struct NativeArrayReference<T> : IDisposable, IEquatable<NativeArrayReference<T>>, IReadOnlyCollection<T>
+    public readonly struct NativeArrayReference<T> : IDisposable, IEquatable<NativeArrayReference<T>>, IReadOnlyCollection<T>
     {
         /// <summary>
         ///     Handle
         /// </summary>
-        private GCHandle _handle;
+        private readonly GCHandle _handle;
 
         /// <summary>
         ///     Length
@@ -89,7 +89,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is empty
         /// </summary>
-        public readonly bool IsEmpty => _length == 0;
+        public bool IsEmpty => _length == 0;
 
         /// <summary>
         ///     Get reference
@@ -123,38 +123,38 @@ namespace NativeCollections
         /// <summary>
         ///     Length
         /// </summary>
-        public readonly int Length => _length;
+        public int Length => _length;
 
         /// <summary>
         ///     Count
         /// </summary>
-        public readonly int Count => _length;
+        public int Count => _length;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public readonly bool Equals(NativeArrayReference<T> other) => other == this;
+        public bool Equals(NativeArrayReference<T> other) => other == this;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public readonly override bool Equals(object? obj) => obj is NativeArrayReference<T> nativeArrayReference && nativeArrayReference == this;
+        public override bool Equals(object? obj) => obj is NativeArrayReference<T> nativeArrayReference && nativeArrayReference == this;
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public readonly override int GetHashCode() => ((nint)_handle).GetHashCode();
+        public override int GetHashCode() => ((nint)_handle).GetHashCode();
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public readonly override string ToString() => $"NativeArrayReference<{typeof(T).Name}>";
+        public override string ToString() => $"NativeArrayReference<{typeof(T).Name}>";
 
         /// <summary>
         ///     Equals
@@ -176,7 +176,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly void Dispose()
+        public void Dispose()
         {
             var handle = _handle;
             if (!handle.IsAllocated)
@@ -198,7 +198,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        readonly IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -207,7 +207,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        readonly IEnumerator IEnumerable.GetEnumerator()
+        IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
