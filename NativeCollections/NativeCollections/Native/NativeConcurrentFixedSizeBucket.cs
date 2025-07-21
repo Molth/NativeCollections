@@ -167,7 +167,7 @@ namespace NativeCollections
             while (id >= 0 && Interlocked.CompareExchange(ref location, id, id + 1) != id + 1)
             {
                 id = location - 1;
-                spinWait.SpinOnce();
+                spinWait.SpinOnce(-1);
             }
 
             if (id >= 0)
@@ -178,7 +178,7 @@ namespace NativeCollections
                 do
                 {
                     value = Interlocked.Exchange(ref location, 0);
-                    spinWait.SpinOnce();
+                    spinWait.SpinOnce(-1);
                 } while (value == 0);
 
                 index = value - 1;
@@ -211,7 +211,7 @@ namespace NativeCollections
             ref var location = ref Unsafe.Add(ref Unsafe.AsRef<int>(buffer), (nint)(id + 2));
             var value = index + 1;
             while (Interlocked.CompareExchange(ref location, value, 0) != 0)
-                spinWait.SpinOnce();
+                spinWait.SpinOnce(-1);
         }
 
         /// <summary>

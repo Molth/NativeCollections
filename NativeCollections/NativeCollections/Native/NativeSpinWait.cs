@@ -43,7 +43,7 @@ namespace NativeCollections
         public void SpinOnce()
         {
 #if NET5_0_OR_GREATER
-            _spinWait.SpinOnce(-1);
+            _spinWait.SpinOnce();
 #else
             _spinWait.SpinOnce();
 #endif

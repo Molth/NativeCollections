@@ -63,7 +63,7 @@ namespace NativeCollections
         {
             var spinWait = new NativeSpinWait();
             while (sequenceNumber != _nextSequenceNumber)
-                spinWait.SpinOnce();
+                spinWait.SpinOnce(-1);
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace NativeCollections
             var spinWait = new NativeSpinWait();
             var sequenceNumber = Interlocked.Add(ref _sequenceNumber, 1);
             while (sequenceNumber != _nextSequenceNumber)
-                spinWait.SpinOnce();
+                spinWait.SpinOnce(-1);
         }
 
         /// <summary>

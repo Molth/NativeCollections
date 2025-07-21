@@ -248,7 +248,7 @@ namespace NativeCollections
                             }
                         }
 
-                        spinWait.SpinOnce();
+                        spinWait.SpinOnce(-1);
                     }
                 }
             }
@@ -481,7 +481,7 @@ namespace NativeCollections
                             return false;
                         }
 
-                        spinWait.SpinOnce();
+                        spinWait.SpinOnce(-1);
                     }
                 }
             }
@@ -509,7 +509,7 @@ namespace NativeCollections
                         var currentTail = Volatile.Read(ref HeadAndTail.Tail);
                         if (currentTail - currentHead <= 0 || (frozen && currentTail - FREEZE_OFFSET - currentHead <= 0))
                             return false;
-                        spinWait.SpinOnce();
+                        spinWait.SpinOnce(-1);
                     }
                 }
             }
@@ -672,7 +672,7 @@ namespace NativeCollections
                             }
                         }
 
-                        spinWait.SpinOnce();
+                        spinWait.SpinOnce(-1);
                     }
                 }
             }
@@ -905,7 +905,7 @@ namespace NativeCollections
                             return false;
                         }
 
-                        spinWait.SpinOnce();
+                        spinWait.SpinOnce(-1);
                     }
                 }
             }
@@ -933,7 +933,7 @@ namespace NativeCollections
                         var currentTail = Volatile.Read(ref HeadAndTail.Tail);
                         if (currentTail - currentHead <= 0 || (frozen && currentTail - FREEZE_OFFSET - currentHead <= 0))
                             return false;
-                        spinWait.SpinOnce();
+                        spinWait.SpinOnce(-1);
                     }
                 }
             }

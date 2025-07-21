@@ -118,7 +118,7 @@ namespace NativeCollections
             var spinWait = new NativeSpinWait();
             do
             {
-                spinWait.SpinOnce();
+                spinWait.SpinOnce(-1);
                 newNode->Next = (Node*)Head;
             } while (Interlocked.CompareExchange(ref Head, (nint)newNode, (nint)newNode->Next) != (nint)newNode->Next);
         }
@@ -186,7 +186,7 @@ namespace NativeCollections
                 }
 
                 for (var i = 0; i < backoff; ++i)
-                    spinWait.SpinOnce();
+                    spinWait.SpinOnce(-1);
                 if (spinWait.NextSpinWillYield)
                 {
 #if NET6_0_OR_GREATER
