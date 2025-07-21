@@ -220,14 +220,14 @@ namespace NativeCollections
                         if (head == tail)
                         {
                             if (head == _head && tail == _tail && headHead == Volatile.Read(ref head->HeadAndTail.Head) && headTail == Volatile.Read(ref head->HeadAndTail.Tail))
-                                return GetCount(head, headHead, headTail);
+                                return GetCount(headHead, headTail);
                         }
                         else if ((NativeConcurrentQueueSegmentNotArm64<T>*)head->NextSegment == tail)
                         {
                             var tailHead = Volatile.Read(ref tail->HeadAndTail.Head);
                             var tailTail = Volatile.Read(ref tail->HeadAndTail.Tail);
                             if (head == _head && tail == _tail && headHead == Volatile.Read(ref head->HeadAndTail.Head) && headTail == Volatile.Read(ref head->HeadAndTail.Tail) && tailHead == Volatile.Read(ref tail->HeadAndTail.Head) && tailTail == Volatile.Read(ref tail->HeadAndTail.Tail))
-                                return GetCount(head, headHead, headTail) + GetCount(tail, tailHead, tailTail);
+                                return GetCount(headHead, headTail) + GetCount(tailHead, tailTail);
                         }
                         else
                         {
@@ -239,7 +239,7 @@ namespace NativeCollections
                                     var tailTail = Volatile.Read(ref tail->HeadAndTail.Tail);
                                     if (headHead == Volatile.Read(ref head->HeadAndTail.Head) && headTail == Volatile.Read(ref head->HeadAndTail.Tail) && tailHead == Volatile.Read(ref tail->HeadAndTail.Head) && tailTail == Volatile.Read(ref tail->HeadAndTail.Tail))
                                     {
-                                        var count = GetCount(head, headHead, headTail) + GetCount(tail, tailHead, tailTail);
+                                        var count = GetCount(headHead, headTail) + GetCount(tailHead, tailTail);
                                         for (var s = (NativeConcurrentQueueSegmentNotArm64<T>*)head->NextSegment; s != tail; s = (NativeConcurrentQueueSegmentNotArm64<T>*)s->NextSegment)
                                             count += s->HeadAndTail.Tail - FREEZE_OFFSET;
                                         return count;
@@ -375,12 +375,11 @@ namespace NativeCollections
             /// <summary>
             ///     Get count
             /// </summary>
-            /// <param name="segment">Segment</param>
             /// <param name="head">Head</param>
             /// <param name="tail">Tail</param>
             /// <returns>Count</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private static int GetCount(NativeConcurrentQueueSegmentNotArm64<T>* segment, int head, int tail)
+            private static int GetCount(int head, int tail)
             {
                 if (head != tail && head != tail - FREEZE_OFFSET)
                 {
@@ -390,36 +389,6 @@ namespace NativeCollections
                 }
 
                 return 0;
-            }
-
-            /// <summary>
-            ///     Get count
-            /// </summary>
-            /// <param name="head">Head</param>
-            /// <param name="headHead">Head head</param>
-            /// <param name="tail">Tail</param>
-            /// <param name="tailTail">Tail tail</param>
-            /// <returns>Count</returns>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private static long GetCount(NativeConcurrentQueueSegmentNotArm64<T>* head, int headHead, NativeConcurrentQueueSegmentNotArm64<T>* tail, int tailTail)
-            {
-                long count = 0;
-                var headTail = (head == tail ? tailTail : Volatile.Read(ref head->HeadAndTail.Tail)) - FREEZE_OFFSET;
-                if (headHead < headTail)
-                {
-                    headHead &= SLOTS_MASK;
-                    headTail &= SLOTS_MASK;
-                    count += headHead < headTail ? headTail - headHead : LENGTH - headHead + headTail;
-                }
-
-                if (head != tail)
-                {
-                    for (var s = (NativeConcurrentQueueSegmentNotArm64<T>*)head->NextSegment; s != tail; s = (NativeConcurrentQueueSegmentNotArm64<T>*)s->NextSegment)
-                        count += s->HeadAndTail.Tail - FREEZE_OFFSET;
-                    count += tailTail - FREEZE_OFFSET;
-                }
-
-                return count;
             }
         }
 
@@ -675,14 +644,14 @@ namespace NativeCollections
                         if (head == tail)
                         {
                             if (head == _head && tail == _tail && headHead == Volatile.Read(ref head->HeadAndTail.Head) && headTail == Volatile.Read(ref head->HeadAndTail.Tail))
-                                return GetCount(head, headHead, headTail);
+                                return GetCount(headHead, headTail);
                         }
                         else if ((NativeConcurrentQueueSegmentArm64<T>*)head->NextSegment == tail)
                         {
                             var tailHead = Volatile.Read(ref tail->HeadAndTail.Head);
                             var tailTail = Volatile.Read(ref tail->HeadAndTail.Tail);
                             if (head == _head && tail == _tail && headHead == Volatile.Read(ref head->HeadAndTail.Head) && headTail == Volatile.Read(ref head->HeadAndTail.Tail) && tailHead == Volatile.Read(ref tail->HeadAndTail.Head) && tailTail == Volatile.Read(ref tail->HeadAndTail.Tail))
-                                return GetCount(head, headHead, headTail) + GetCount(tail, tailHead, tailTail);
+                                return GetCount(headHead, headTail) + GetCount(tailHead, tailTail);
                         }
                         else
                         {
@@ -694,7 +663,7 @@ namespace NativeCollections
                                     var tailTail = Volatile.Read(ref tail->HeadAndTail.Tail);
                                     if (headHead == Volatile.Read(ref head->HeadAndTail.Head) && headTail == Volatile.Read(ref head->HeadAndTail.Tail) && tailHead == Volatile.Read(ref tail->HeadAndTail.Head) && tailTail == Volatile.Read(ref tail->HeadAndTail.Tail))
                                     {
-                                        var count = GetCount(head, headHead, headTail) + GetCount(tail, tailHead, tailTail);
+                                        var count = GetCount(headHead, headTail) + GetCount(tailHead, tailTail);
                                         for (var s = (NativeConcurrentQueueSegmentArm64<T>*)head->NextSegment; s != tail; s = (NativeConcurrentQueueSegmentArm64<T>*)s->NextSegment)
                                             count += s->HeadAndTail.Tail - FREEZE_OFFSET;
                                         return count;
@@ -830,12 +799,11 @@ namespace NativeCollections
             /// <summary>
             ///     Get count
             /// </summary>
-            /// <param name="segment">Segment</param>
             /// <param name="head">Head</param>
             /// <param name="tail">Tail</param>
             /// <returns>Count</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private static int GetCount(NativeConcurrentQueueSegmentArm64<T>* segment, int head, int tail)
+            private static int GetCount(int head, int tail)
             {
                 if (head != tail && head != tail - FREEZE_OFFSET)
                 {
@@ -845,36 +813,6 @@ namespace NativeCollections
                 }
 
                 return 0;
-            }
-
-            /// <summary>
-            ///     Get count
-            /// </summary>
-            /// <param name="head">Head</param>
-            /// <param name="headHead">Head head</param>
-            /// <param name="tail">Tail</param>
-            /// <param name="tailTail">Tail tail</param>
-            /// <returns>Count</returns>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private static long GetCount(NativeConcurrentQueueSegmentArm64<T>* head, int headHead, NativeConcurrentQueueSegmentArm64<T>* tail, int tailTail)
-            {
-                long count = 0;
-                var headTail = (head == tail ? tailTail : Volatile.Read(ref head->HeadAndTail.Tail)) - FREEZE_OFFSET;
-                if (headHead < headTail)
-                {
-                    headHead &= SLOTS_MASK;
-                    headTail &= SLOTS_MASK;
-                    count += headHead < headTail ? headTail - headHead : LENGTH - headHead + headTail;
-                }
-
-                if (head != tail)
-                {
-                    for (var s = (NativeConcurrentQueueSegmentArm64<T>*)head->NextSegment; s != tail; s = (NativeConcurrentQueueSegmentArm64<T>*)s->NextSegment)
-                        count += s->HeadAndTail.Tail - FREEZE_OFFSET;
-                    count += tailTail - FREEZE_OFFSET;
-                }
-
-                return count;
             }
         }
 

@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 #pragma warning disable CA2208
+#pragma warning disable CS0169
 #pragma warning disable CS8602
 #pragma warning disable CS8632
 
@@ -135,7 +136,7 @@ namespace NativeCollections
         ///     Unsafe concurrentQueue
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        internal struct UnsafeConcurrentQueueHandle
+        public struct UnsafeConcurrentQueueHandle
         {
             /// <summary>
             ///     Cross segment lock
