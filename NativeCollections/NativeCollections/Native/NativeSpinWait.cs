@@ -40,14 +40,7 @@ namespace NativeCollections
         ///     Spin once
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SpinOnce()
-        {
-#if NET5_0_OR_GREATER
-            _spinWait.SpinOnce();
-#else
-            _spinWait.SpinOnce();
-#endif
-        }
+        public void SpinOnce() => _spinWait.SpinOnce();
 
         /// <summary>
         ///     Spin once
