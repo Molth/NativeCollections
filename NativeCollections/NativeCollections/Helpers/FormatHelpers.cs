@@ -444,13 +444,7 @@ namespace NativeCollections
             }
 
             if (typeof(T).IsValueType && default(T) == null)
-            {
-                var underlyingType = Nullable.GetUnderlyingType(typeof(T));
-                if (underlyingType != null && Format4Delegates.TryGetValue(underlyingType, out var format4))
-                    return format4.TryFormat(value, destination, out charsWritten, format, provider);
-
                 return TryFormatFallback(value, destination, out charsWritten, format, provider);
-            }
 
             if (!typeof(T).IsValueType)
             {
@@ -480,13 +474,13 @@ namespace NativeCollections
         /// <summary>
         ///     Format
         /// </summary>
-        private static bool TryFormatFallback(object value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+        private static bool TryFormatFallback<T>(T value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
 #if NET6_0_OR_GREATER
             if (value is ISpanFormattable spanFormattable)
                 return spanFormattable.TryFormat(destination, out charsWritten, format, provider);
 #endif
-            var result = value is IFormattable formattable ? formattable.ToString(format.ToString(), provider) : value.ToString();
+            var result = value is IFormattable formattable ? formattable.ToString(format.ToString(), provider) : value!.ToString();
             var obj = (result != null ? result : "").AsSpan();
             return TryCopyTo(obj, destination, out charsWritten);
         }
@@ -494,7 +488,7 @@ namespace NativeCollections
         /// <summary>
         ///     Format
         /// </summary>
-        private static bool FormatObject(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider) => TryCopyTo("System.Object".AsSpan(), destination, out charsWritten);
+        private static bool FormatObject(Span<char> destination, out int charsWritten, ReadOnlySpan<char> _, IFormatProvider? __) => TryCopyTo("System.Object".AsSpan(), destination, out charsWritten);
 
         /// <summary>
         ///     Format

@@ -447,13 +447,7 @@ namespace NativeCollections
             }
 
             if (typeof(T).IsValueType && default(T) == null)
-            {
-                var underlyingType = Nullable.GetUnderlyingType(typeof(T));
-                if (underlyingType != null && Format4Delegates.TryGetValue(underlyingType, out var format4))
-                    return format4.TryFormat(value, destination, out bytesWritten, format, provider);
-
                 return TryFormatFallback(value, destination, out bytesWritten, format, provider);
-            }
 
             if (!typeof(T).IsValueType)
             {
@@ -483,7 +477,7 @@ namespace NativeCollections
         /// <summary>
         ///     Format
         /// </summary>
-        private static bool TryFormatFallback(object value, Span<byte> destination, out int bytesWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+        private static bool TryFormatFallback<T>(T value, Span<byte> destination, out int bytesWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
 #if NET8_0_OR_GREATER
             if (value is IUtf8SpanFormattable utf8SpanFormattable)
@@ -499,7 +493,7 @@ namespace NativeCollections
             }
 #endif
 
-            var result = value is IFormattable formattable ? formattable.ToString(format.ToString(), provider) : value.ToString();
+            var result = value is IFormattable formattable ? formattable.ToString(format.ToString(), provider) : value!.ToString();
             var obj = (result != null ? result : "").AsSpan();
             return TryGetBytes(obj, destination, out bytesWritten);
         }
@@ -507,7 +501,7 @@ namespace NativeCollections
         /// <summary>
         ///     Format
         /// </summary>
-        private static bool FormatObject(Span<byte> destination, out int bytesWritten, ReadOnlySpan<char> format, IFormatProvider? provider) => TryGetBytes("System.Object".AsSpan(), destination, out bytesWritten);
+        private static bool FormatObject(Span<byte> destination, out int bytesWritten, ReadOnlySpan<char> _, IFormatProvider? __) => TryGetBytes("System.Object".AsSpan(), destination, out bytesWritten);
 
         /// <summary>
         ///     Format
