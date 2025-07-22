@@ -107,7 +107,7 @@ namespace NativeCollections
         /// <typeparam name="T">The type of the value to write.</typeparam>
         public void AppendFormatted<T>(T? value) where T : struct
         {
-            if (value == null)
+            if (!value.HasValue)
                 return;
             AppendFormatted(value.GetValueOrDefault());
         }
@@ -135,7 +135,7 @@ namespace NativeCollections
         /// <typeparam name="T">The type of the value to write.</typeparam>
         public void AppendFormatted<T>(T? value, string? format) where T : struct
         {
-            if (value == null)
+            if (!value.HasValue)
                 return;
             AppendFormatted(value.GetValueOrDefault(), format);
         }
@@ -167,7 +167,7 @@ namespace NativeCollections
         /// <typeparam name="T">The type of the value to write.</typeparam>
         public void AppendFormatted<T>(T? value, int alignment) where T : struct
         {
-            if (value == null)
+            if (!value.HasValue)
                 return;
             AppendFormatted(value.GetValueOrDefault(), alignment);
         }
@@ -191,7 +191,7 @@ namespace NativeCollections
         /// <typeparam name="T">The type of the value to write.</typeparam>
         public void AppendFormatted<T>(T? value, int alignment, string? format) where T : struct
         {
-            if (value == null)
+            if (!value.HasValue)
                 return;
             AppendFormatted(value.GetValueOrDefault(), alignment, format);
         }

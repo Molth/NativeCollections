@@ -240,7 +240,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T>(in this NativeStringBuilder<char> builder, T? obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) where T : struct
         {
-            if (obj == null)
+            if (!obj.HasValue)
                 return;
             builder.AppendFormat(obj.GetValueOrDefault(), format, provider);
         }
@@ -1056,7 +1056,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T>(in this NativeStringBuilder<byte> builder, T? obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) where T : struct
         {
-            if (obj == null)
+            if (!obj.HasValue)
                 return;
             builder.AppendFormat(obj.GetValueOrDefault(), format, provider);
         }
