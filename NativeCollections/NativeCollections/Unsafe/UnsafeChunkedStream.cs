@@ -170,7 +170,7 @@ namespace NativeCollections
         public int Read(Span<byte> buffer)
         {
             var length = buffer.Length;
-            ThrowHelpers.ThrowIfNegative(length, nameof(length));
+            ThrowHelpers.ThrowIfNegative(length, nameof(buffer));
             ref var reference = ref MemoryMarshal.GetReference(buffer);
             if (length >= _length)
             {
@@ -309,7 +309,7 @@ namespace NativeCollections
         public void Write(ReadOnlySpan<byte> buffer)
         {
             var length = buffer.Length;
-            ThrowHelpers.ThrowIfNegative(length, nameof(length));
+            ThrowHelpers.ThrowIfNegative(length, nameof(buffer));
             if (length == 0)
                 return;
             ref var reference = ref MemoryMarshal.GetReference(buffer);

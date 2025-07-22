@@ -194,7 +194,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write<T>(T* obj) where T : unmanaged
         {
-            ThrowHelpers.ThrowIfGreaterThan(_position + sizeof(T), Length, nameof(T));
+            ThrowHelpers.ThrowIfGreaterThan(_position + sizeof(T), Length, typeof(T).Name);
             Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(Buffer), UnsafeHelpers.ToIntPtr(_position)), ref Unsafe.AsRef<byte>(obj), (uint)sizeof(T));
             _position += sizeof(T);
         }
@@ -241,7 +241,7 @@ namespace NativeCollections
         public void WriteSpan<T>(ReadOnlySpan<T> buffer) where T : unmanaged
         {
             var count = buffer.Length * sizeof(T);
-            ThrowHelpers.ThrowIfGreaterThan(_position + count, Length, nameof(T));
+            ThrowHelpers.ThrowIfGreaterThan(_position + count, Length, typeof(T).Name);
             Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(Buffer), UnsafeHelpers.ToIntPtr(_position)), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)count);
             _position += count;
         }
@@ -268,7 +268,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write<T>(in T obj) where T : unmanaged
         {
-            ThrowHelpers.ThrowIfGreaterThan(_position + sizeof(T), Length, nameof(T));
+            ThrowHelpers.ThrowIfGreaterThan(_position + sizeof(T), Length, typeof(T).Name);
             Unsafe.WriteUnaligned(UnsafeHelpers.AddByteOffset(Buffer, UnsafeHelpers.ToIntPtr(_position)), obj);
             _position += sizeof(T);
         }

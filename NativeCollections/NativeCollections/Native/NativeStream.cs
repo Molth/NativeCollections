@@ -128,7 +128,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                ThrowHelpers.ThrowIfNegative(value, nameof(Position));
+                ThrowHelpers.ThrowIfNegative(value, nameof(value));
                 _position = value;
             }
         }

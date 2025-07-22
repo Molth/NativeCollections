@@ -57,7 +57,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                ThrowHelpers.ThrowIfNegative(value, nameof(Position));
+                ThrowHelpers.ThrowIfNegative(value, nameof(value));
                 _position = value;
             }
         }
@@ -280,7 +280,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetCapacity(int capacity)
         {
-            ThrowHelpers.ThrowIfLessThan(capacity, _length, nameof(_capacity));
+            ThrowHelpers.ThrowIfLessThan(capacity, _length, nameof(capacity));
             if (capacity != _capacity)
             {
                 var newBuffer = NativeMemoryAllocator.AlignedAlloc<byte>((uint)capacity);
