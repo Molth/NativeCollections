@@ -402,7 +402,7 @@ namespace NativeCollections
         /// <summary>
         ///     Format
         /// </summary>
-        private static bool TryFormatFallback<T>(T value, Span<byte> destination, out int bytesWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+        private static bool TryFormatFallback<T>(T? value, Span<byte> destination, out int bytesWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
 #if NET8_0_OR_GREATER
             if (value is IUtf8SpanFormattable utf8SpanFormattable)

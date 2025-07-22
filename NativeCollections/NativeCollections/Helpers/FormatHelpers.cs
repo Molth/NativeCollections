@@ -399,7 +399,7 @@ namespace NativeCollections
         /// <summary>
         ///     Format
         /// </summary>
-        private static bool TryFormatFallback<T>(T value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
+        private static bool TryFormatFallback<T>(T? value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
 #if NET6_0_OR_GREATER
             if (value is ISpanFormattable spanFormattable)
