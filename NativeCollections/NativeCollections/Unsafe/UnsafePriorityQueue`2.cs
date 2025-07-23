@@ -122,10 +122,10 @@ namespace NativeCollections
                 return false;
             var nodes = _nodes;
             var priority = Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(nodes), (nint)index).Priority;
-            var removed = --_size;
-            if (index < removed)
+            var num = --_size;
+            if (index < num)
             {
-                var node = Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(nodes), (nint)removed);
+                var node = Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(nodes), (nint)num);
                 if (node.Priority.CompareTo(priority) < 0)
                     MoveUp(node, index);
                 else
@@ -151,10 +151,10 @@ namespace NativeCollections
 
             var nodes = _nodes;
             (element, priority) = Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(nodes), (nint)index);
-            var removed = --_size;
-            if (index < removed)
+            var num = --_size;
+            if (index < num)
             {
-                var node = Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(nodes), (nint)removed);
+                var node = Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(nodes), (nint)num);
                 if (node.Priority.CompareTo(priority) < 0)
                     MoveUp(node, index);
                 else
