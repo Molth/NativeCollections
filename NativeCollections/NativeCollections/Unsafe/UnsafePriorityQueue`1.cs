@@ -112,6 +112,58 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Remove at
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool RemoveAt(int index)
+        {
+            if ((uint)index >= (uint)_size)
+                return false;
+            var nodes = _nodes;
+            var priority = Unsafe.Add(ref Unsafe.AsRef<TPriority>(nodes), (nint)index);
+            var removed = --_size;
+            if (index < removed)
+            {
+                var node = Unsafe.Add(ref Unsafe.AsRef<TPriority>(nodes), (nint)removed);
+                if (node.CompareTo(priority) < 0)
+                    MoveUp(node, index);
+                else
+                    MoveDown(node, index);
+            }
+
+            ++_version;
+            return true;
+        }
+
+        /// <summary>
+        ///     Remove at
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool RemoveAt(int index, out TPriority priority)
+        {
+            if ((uint)index >= (uint)_size)
+            {
+                priority = default;
+                return false;
+            }
+
+            var nodes = _nodes;
+            priority = Unsafe.Add(ref Unsafe.AsRef<TPriority>(nodes), (nint)index);
+            var removed = --_size;
+            if (index < removed)
+            {
+                var node = Unsafe.Add(ref Unsafe.AsRef<TPriority>(nodes), (nint)removed);
+                if (node.CompareTo(priority) < 0)
+                    MoveUp(node, index);
+                else
+                    MoveDown(node, index);
+            }
+
+            ++_version;
+            return true;
+        }
+
+        /// <summary>
         ///     Enqueue
         /// </summary>
         /// <param name="priority">Priority</param>

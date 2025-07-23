@@ -143,6 +143,18 @@ namespace NativeCollections
         public void Clear() => _handle->Clear();
 
         /// <summary>
+        ///     Remove at
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool RemoveAt(int index) => _handle->RemoveAt(index);
+
+        /// <summary>
+        ///     Remove at
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool RemoveAt(int index, out TPriority priority) => _handle->RemoveAt(index, out priority);
+
+        /// <summary>
         ///     Enqueue
         /// </summary>
         /// <param name="priority">Priority</param>
