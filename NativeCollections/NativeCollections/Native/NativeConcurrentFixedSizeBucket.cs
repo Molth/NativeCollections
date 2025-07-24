@@ -65,7 +65,7 @@ namespace NativeCollections
             get
             {
                 var buffer = _buffer;
-                return Unsafe.Add(ref Unsafe.AsRef<int>(buffer), (nint)0) - Unsafe.Add(ref Unsafe.AsRef<int>(buffer), (nint)1) == _length;
+                return Unsafe.AsRef<int>(buffer) - Unsafe.Add(ref Unsafe.AsRef<int>(buffer), (nint)1) == _length;
             }
         }
 
@@ -82,7 +82,7 @@ namespace NativeCollections
             get
             {
                 var buffer = _buffer;
-                return Unsafe.Add(ref Unsafe.AsRef<int>(buffer), (nint)0) - Unsafe.Add(ref Unsafe.AsRef<int>(buffer), (nint)1);
+                return Unsafe.AsRef<int>(buffer) - Unsafe.Add(ref Unsafe.AsRef<int>(buffer), (nint)1);
             }
         }
 
@@ -94,7 +94,7 @@ namespace NativeCollections
             get
             {
                 var buffer = _buffer;
-                return _length - (Unsafe.Add(ref Unsafe.AsRef<int>(buffer), (nint)0) - Unsafe.Add(ref Unsafe.AsRef<int>(buffer), (nint)1));
+                return _length - (Unsafe.AsRef<int>(buffer) - Unsafe.Add(ref Unsafe.AsRef<int>(buffer), (nint)1));
             }
         }
 
@@ -185,7 +185,7 @@ namespace NativeCollections
                 return true;
             }
 
-            location = ref Unsafe.Add(ref Unsafe.AsRef<int>(buffer), (nint)0);
+            location = ref Unsafe.AsRef<int>(buffer);
             id = Interlocked.Increment(ref location) - 1;
             if (id >= _length)
             {

@@ -122,7 +122,7 @@ namespace NativeCollections
                 if (_count > 0)
                 {
                     var index = 0;
-                    var min = Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)0).Key;
+                    var min = Unsafe.AsRef<Entry>(_dense).Key;
                     for (var i = 1; i < _count; ++i)
                     {
                         var key = Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)i).Key;
@@ -151,7 +151,7 @@ namespace NativeCollections
                 if (_count > 0)
                 {
                     var index = 0;
-                    var max = Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)0).Key;
+                    var max = Unsafe.AsRef<Entry>(_dense).Key;
                     for (var i = 1; i < _count; ++i)
                     {
                         var key = Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)i).Key;

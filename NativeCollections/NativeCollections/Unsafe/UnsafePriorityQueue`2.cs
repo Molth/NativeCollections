@@ -213,7 +213,7 @@ namespace NativeCollections
         {
             if (_size != 0)
             {
-                var node = Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes), (nint)0);
+                var node = Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes);
                 if (priority.CompareTo(node.Priority) > 0)
                 {
                     MoveDown((element, priority), 0);
@@ -237,7 +237,7 @@ namespace NativeCollections
         {
             if (_size != 0)
             {
-                var node = Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes), (nint)0);
+                var node = Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes);
                 if (priority.CompareTo(node.Priority) > 0)
                 {
                     MoveDown((element, priority), 0);
@@ -259,7 +259,7 @@ namespace NativeCollections
         public TElement Dequeue()
         {
             ThrowHelpers.ThrowIfEmptyQueue(_size);
-            var element = Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes), (nint)0).Element;
+            var element = Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes).Element;
             RemoveRootNode();
             return element;
         }
@@ -274,7 +274,7 @@ namespace NativeCollections
         {
             if (_size != 0)
             {
-                element = Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes), (nint)0).Element;
+                element = Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes).Element;
                 RemoveRootNode();
                 return true;
             }
@@ -294,7 +294,7 @@ namespace NativeCollections
         {
             if (_size != 0)
             {
-                (element, priority) = Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes), (nint)0);
+                (element, priority) = Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes);
                 RemoveRootNode();
                 return true;
             }
@@ -313,11 +313,11 @@ namespace NativeCollections
         public TElement DequeueEnqueue(in TElement element, in TPriority priority)
         {
             ThrowHelpers.ThrowIfEmptyQueue(_size);
-            var node = Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes), (nint)0);
+            var node = Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes);
             if (priority.CompareTo(node.Priority) > 0)
                 MoveDown((element, priority), 0);
             else
-                Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes), (nint)0) = (element, priority);
+                Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes) = (element, priority);
             ++_version;
             return node.Element;
         }
@@ -337,11 +337,11 @@ namespace NativeCollections
                 return false;
             }
 
-            var node = Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes), (nint)0);
+            var node = Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes);
             if (priority.CompareTo(node.Priority) > 0)
                 MoveDown((element, priority), 0);
             else
-                Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes), (nint)0) = (element, priority);
+                Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes) = (element, priority);
             ++_version;
             result = node.Element;
             return true;
@@ -355,7 +355,7 @@ namespace NativeCollections
         public readonly TElement Peek()
         {
             ThrowHelpers.ThrowIfEmptyQueue(_size);
-            return Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes), (nint)0).Element;
+            return Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes).Element;
         }
 
         /// <summary>
@@ -369,7 +369,7 @@ namespace NativeCollections
         {
             if (_size != 0)
             {
-                (element, priority) = Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes), (nint)0);
+                (element, priority) = Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes);
                 return true;
             }
 
