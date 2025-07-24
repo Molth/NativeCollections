@@ -274,8 +274,7 @@ namespace NativeCollections
         {
             if (_size != 0)
             {
-                var tuple = Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes), (nint)0);
-                element = tuple.Element;
+                element = Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes), (nint)0).Element;
                 RemoveRootNode();
                 return true;
             }
@@ -295,9 +294,7 @@ namespace NativeCollections
         {
             if (_size != 0)
             {
-                var tuple = Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes), (nint)0);
-                element = tuple.Element;
-                priority = tuple.Priority;
+                (element, priority) = Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes), (nint)0);
                 RemoveRootNode();
                 return true;
             }
@@ -372,9 +369,7 @@ namespace NativeCollections
         {
             if (_size != 0)
             {
-                var tuple = Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes), (nint)0);
-                element = tuple.Element;
-                priority = tuple.Priority;
+                (element, priority) = Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes), (nint)0);
                 return true;
             }
 
