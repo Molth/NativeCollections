@@ -75,7 +75,7 @@ namespace NativeCollections
             ref var reference = ref MemoryMarshal.GetReference(values);
             for (var i = 0; i < values.Length; ++i)
             {
-                var value = Unsafe.Add(ref reference, i);
+                var value = Unsafe.Add(ref reference, (nint)i);
                 if (i != 0)
                     builderRef.Append(separator);
                 builderRef.AppendFormat(value);
@@ -110,7 +110,7 @@ namespace NativeCollections
             ref var reference = ref MemoryMarshal.GetReference(values);
             for (var i = 0; i < values.Length; ++i)
             {
-                var value = Unsafe.Add(ref reference, i);
+                var value = Unsafe.Add(ref reference, (nint)i);
                 if (i != 0)
                     builderRef.Append(separator);
                 builderRef.AppendFormat(value);

@@ -624,7 +624,7 @@ namespace NativeCollections
             count = Math.Min(buffer.Length, Math.Min(count, _count));
             var entries = _entries;
             for (var index = 0; index < count; ++index)
-                Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, index)), Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index).Value);
+                Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)(index))), Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index).Value);
             return count;
         }
 

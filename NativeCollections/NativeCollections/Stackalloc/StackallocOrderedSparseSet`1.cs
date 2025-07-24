@@ -1156,7 +1156,7 @@ namespace NativeCollections
                 for (var index = 0; index < count; ++index)
                 {
                     ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(dense), (nint)current);
-                    Unsafe.WriteUnaligned(ref Unsafe.As<int, byte>(ref Unsafe.Add(ref reference, index)), entry.Key);
+                    Unsafe.WriteUnaligned(ref Unsafe.As<int, byte>(ref Unsafe.Add(ref reference, (nint)(index))), entry.Key);
                     current = entry.Next;
                 }
 
@@ -1310,7 +1310,7 @@ namespace NativeCollections
                 for (var index = 0; index < count; ++index)
                 {
                     ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(dense), (nint)current);
-                    Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, index)), entry.Value);
+                    Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)(index))), entry.Value);
                     current = entry.Next;
                 }
 
@@ -1464,7 +1464,7 @@ namespace NativeCollections
                 for (var index = 0; index < count; ++index)
                 {
                     ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(dense), (nint)current);
-                    Unsafe.WriteUnaligned(ref Unsafe.As<KeyValuePair<int, T>, byte>(ref Unsafe.Add(ref reference, index)), new KeyValuePair<int, T>(entry.Key, entry.Value));
+                    Unsafe.WriteUnaligned(ref Unsafe.As<KeyValuePair<int, T>, byte>(ref Unsafe.Add(ref reference, (nint)(index))), new KeyValuePair<int, T>(entry.Key, entry.Value));
                     current = entry.Next;
                 }
 
