@@ -190,7 +190,7 @@ namespace NativeCollections
                 }
 
                 var size = _size;
-                var byteCount = UnsafeHelpers.ToIntPtr(size - _readOffset);
+                var byteCount = (nint)(size - _readOffset);
                 if (byteCount > length)
                 {
                     Unsafe.CopyBlockUnaligned(ref reference, ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_head->Buffer), new IntPtr(_readOffset)), (uint)length);
@@ -257,7 +257,7 @@ namespace NativeCollections
                 }
 
                 var size = _size;
-                var byteCount = UnsafeHelpers.ToIntPtr(size - _readOffset);
+                var byteCount = (nint)(size - _readOffset);
                 if (byteCount > length)
                 {
                     Unsafe.CopyBlockUnaligned(ref reference, ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_head->Buffer), new IntPtr(_readOffset)), (uint)length);
@@ -332,7 +332,7 @@ namespace NativeCollections
             ref var reference = ref MemoryMarshal.GetReference(buffer);
             var size = _size;
             _spinLock.Enter();
-            var byteCount = UnsafeHelpers.ToIntPtr(size - _writeOffset);
+            var byteCount = (nint)(size - _writeOffset);
             if (byteCount >= length)
             {
                 Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_tail->Buffer), new IntPtr(_writeOffset)), ref reference, (uint)length);

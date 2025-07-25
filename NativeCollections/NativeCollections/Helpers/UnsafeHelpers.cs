@@ -25,12 +25,6 @@ namespace NativeCollections
             return Unsafe.ReadUnaligned<TTo>(ref Unsafe.As<TFrom, byte>(ref source));
         }
 
-        /// <summary>Converts the value of a 32-bit signed integer to an <see cref="T:System.IntPtr" />.</summary>
-        /// <param name="value">A 32-bit signed integer.</param>
-        /// <returns>A new instance of <see cref="T:System.IntPtr" /> initialized to <paramref name="value" />.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static nint ToIntPtr(int value) => value;
-
         /// <summary>
         ///     Adds an element offset to the given pointer.
         /// </summary>
