@@ -983,7 +983,7 @@ namespace NativeCollections
                     if (index >= count)
                         break;
                     var node1 = (Node*)nodeStack.Pop();
-                    Unsafe.WriteUnaligned(ref Unsafe.As<KeyValuePair<TKey, TValue>, byte>(ref Unsafe.Add(ref reference, (nint)(index++))), new KeyValuePair<TKey, TValue>(node1->Key, node1->Value));
+                    Unsafe.WriteUnaligned(ref Unsafe.As<KeyValuePair<TKey, TValue>, byte>(ref Unsafe.Add(ref reference, (nint)index++)), new KeyValuePair<TKey, TValue>(node1->Key, node1->Value));
                     for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
                         nodeStack.Push((nint)node2);
                 }
@@ -1204,7 +1204,7 @@ namespace NativeCollections
                         if (index >= count)
                             break;
                         var node1 = (Node*)nodeStack.Pop();
-                        Unsafe.WriteUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref reference, (nint)(index++))), node1->Key);
+                        Unsafe.WriteUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref reference, (nint)index++)), node1->Key);
                         for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
                             nodeStack.Push((nint)node2);
                     }
@@ -1421,7 +1421,7 @@ namespace NativeCollections
                         if (index >= count)
                             break;
                         var node1 = (Node*)nodeStack.Pop();
-                        Unsafe.WriteUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref reference, (nint)(index++))), node1->Value);
+                        Unsafe.WriteUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref reference, (nint)index++)), node1->Value);
                         for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
                             nodeStack.Push((nint)node2);
                     }

@@ -2555,7 +2555,7 @@ namespace NativeCollections
                         break;
                 }
             }
-        } 
+        }
 
         /// <summary>
         ///     Append format

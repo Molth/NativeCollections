@@ -236,7 +236,7 @@ namespace NativeCollections
             Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_head)), (uint)(length2 * sizeof(T)));
             var length3 = size - length2;
             if (length3 > 0)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)(length1))), ref Unsafe.AsRef<byte>(_buffer), (uint)(length2 * sizeof(T)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)length1)), ref Unsafe.AsRef<byte>(_buffer), (uint)(length2 * sizeof(T)));
             return size;
         }
 
@@ -266,7 +266,7 @@ namespace NativeCollections
             var length3 = size - length2;
             if (length3 <= 0)
                 return;
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)(length1))), ref Unsafe.AsRef<byte>(_buffer), (uint)(length2 * sizeof(T)));
+            Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)length1)), ref Unsafe.AsRef<byte>(_buffer), (uint)(length2 * sizeof(T)));
         }
 
         /// <summary>

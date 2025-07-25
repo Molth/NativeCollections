@@ -16,6 +16,26 @@ namespace NativeCollections
     internal static class NativeConcurrentQueue
     {
         /// <summary>
+        ///     Slots length
+        /// </summary>
+        public const int SLOTS_LENGTH = 1024;
+
+        /// <summary>
+        ///     Slots mask
+        /// </summary>
+        public const int SLOTS_MASK = SLOTS_LENGTH - 1;
+
+        /// <summary>
+        ///     Segment freeze offset
+        /// </summary>
+        public const int SEGMENT_FREEZE_OFFSET = SLOTS_LENGTH * 2;
+
+        /// <summary>
+        ///     Catch line size
+        /// </summary>
+        public const int CACHE_LINE_SIZE = 128;
+
+        /// <summary>
         ///     Segment
         /// </summary>
         /// <typeparam name="T">Type</typeparam>
@@ -185,26 +205,6 @@ namespace NativeCollections
             /// </summary>
             [FieldOffset(2 * CACHE_LINE_SIZE)] public int Tail;
         }
-
-        /// <summary>
-        ///     Slots length
-        /// </summary>
-        public const int SLOTS_LENGTH = 1024;
-
-        /// <summary>
-        ///     Slots mask
-        /// </summary>
-        public const int SLOTS_MASK = SLOTS_LENGTH - 1;
-
-        /// <summary>
-        ///     Segment freeze offset
-        /// </summary>
-        public const int SEGMENT_FREEZE_OFFSET = SLOTS_LENGTH * 2;
-
-        /// <summary>
-        ///     Catch line size
-        /// </summary>
-        public const int CACHE_LINE_SIZE = 128;
 
         /// <summary>
         ///     Slots

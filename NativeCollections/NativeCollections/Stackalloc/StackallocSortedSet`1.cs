@@ -775,7 +775,7 @@ namespace NativeCollections
                     if (index >= count)
                         break;
                     var node1 = (Node*)nodeStack.Pop();
-                    Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)(index++))), node1->Item);
+                    Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)index++)), node1->Item);
                     for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
                         nodeStack.Push((nint)node2);
                 }

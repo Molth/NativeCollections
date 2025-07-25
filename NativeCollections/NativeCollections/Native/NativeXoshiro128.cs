@@ -60,7 +60,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeXoshiro128 other)
+        public readonly bool Equals(NativeXoshiro128 other)
         {
             ref var local1 = ref Unsafe.As<NativeXoshiro128, byte>(ref Unsafe.AsRef(in this));
             ref var local2 = ref Unsafe.As<NativeXoshiro128, byte>(ref other);

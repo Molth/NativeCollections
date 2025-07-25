@@ -1060,7 +1060,7 @@ namespace NativeCollections
             count = Math.Min(buffer.Length, Math.Min(count, _count));
             var entries = _entries;
             for (var index = 0; index < count; ++index)
-                Unsafe.WriteUnaligned(ref Unsafe.As<KeyValuePair<TKey, TValue>, byte>(ref Unsafe.Add(ref reference, (nint)(index))), new KeyValuePair<TKey, TValue>(Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index).Key, Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index).Value));
+                Unsafe.WriteUnaligned(ref Unsafe.As<KeyValuePair<TKey, TValue>, byte>(ref Unsafe.Add(ref reference, (nint)index)), new KeyValuePair<TKey, TValue>(Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index).Key, Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index).Value));
             return count;
         }
 
@@ -1228,7 +1228,7 @@ namespace NativeCollections
                 count = Math.Min(buffer.Length, Math.Min(count, _nativeOrderedDictionary->_count));
                 var entries = _nativeOrderedDictionary->_entries;
                 for (var index = 0; index < count; ++index)
-                    Unsafe.WriteUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref reference, (nint)(index))), Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index).Key);
+                    Unsafe.WriteUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref reference, (nint)index)), Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index).Key);
                 return count;
             }
 
@@ -1392,7 +1392,7 @@ namespace NativeCollections
                 count = Math.Min(buffer.Length, Math.Min(count, _nativeOrderedDictionary->_count));
                 var entries = _nativeOrderedDictionary->_entries;
                 for (var index = 0; index < count; ++index)
-                    Unsafe.WriteUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref reference, (nint)(index))), Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index).Value);
+                    Unsafe.WriteUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref reference, (nint)index)), Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index).Value);
                 return count;
             }
 
