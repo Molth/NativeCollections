@@ -80,28 +80,30 @@ namespace NativeCollections
             uint num7 = 0;
             uint num8 = 0;
             ref var local1 = ref MemoryMarshal.GetReference(buffer);
-            ref var local2 = ref Unsafe.AddByteOffset(ref local1, UnsafeHelpers.ToIntPtr(buffer.Length));
+            ref var local2 = ref Unsafe.AddByteOffset(ref local1, new IntPtr(buffer.Length));
             if (buffer.Length >= 16)
             {
                 num1 = (uint)((int)seed - 1640531535 - 2048144777);
                 num2 = seed + 2246822519U;
                 num3 = seed;
                 num4 = seed - 2654435761U;
-                for (ref var local3 = ref Unsafe.SubtractByteOffset(ref local2, Unsafe.ByteOffset(ref local1, ref local2) % UnsafeHelpers.ToIntPtr(16)); Unsafe.IsAddressLessThan(ref local1, ref local3); local1 = ref Unsafe.AddByteOffset(ref local1, UnsafeHelpers.ToIntPtr(16)))
+                const nint byteOffset1 = 16;
+                for (ref var local3 = ref Unsafe.SubtractByteOffset(ref local2, Unsafe.ByteOffset(ref local1, ref local2) % byteOffset1); Unsafe.IsAddressLessThan(ref local1, ref local3); local1 = ref Unsafe.AddByteOffset(ref local1, new IntPtr(16)))
                 {
                     var num9 = num1 + Unsafe.ReadUnaligned<uint>(ref local1) * 2246822519U;
                     num1 = (uint)((((int)num9 << 13) | (int)(num9 >> 19)) * -1640531535);
-                    var num10 = num2 + Unsafe.ReadUnaligned<uint>(ref Unsafe.AddByteOffset(ref local1, UnsafeHelpers.ToIntPtr(4))) * 2246822519U;
+                    var num10 = num2 + Unsafe.ReadUnaligned<uint>(ref Unsafe.AddByteOffset(ref local1, new IntPtr(4))) * 2246822519U;
                     num2 = (uint)((((int)num10 << 13) | (int)(num10 >> 19)) * -1640531535);
-                    var num11 = num3 + Unsafe.ReadUnaligned<uint>(ref Unsafe.AddByteOffset(ref local1, UnsafeHelpers.ToIntPtr(8))) * 2246822519U;
+                    var num11 = num3 + Unsafe.ReadUnaligned<uint>(ref Unsafe.AddByteOffset(ref local1, new IntPtr(8))) * 2246822519U;
                     num3 = (uint)((((int)num11 << 13) | (int)(num11 >> 19)) * -1640531535);
-                    var num12 = num4 + Unsafe.ReadUnaligned<uint>(ref Unsafe.AddByteOffset(ref local1, UnsafeHelpers.ToIntPtr(12))) * 2246822519U;
+                    var num12 = num4 + Unsafe.ReadUnaligned<uint>(ref Unsafe.AddByteOffset(ref local1, new IntPtr(12))) * 2246822519U;
                     num4 = (uint)((((int)num12 << 13) | (int)(num12 >> 19)) * -1640531535);
                     num8 += 4U;
                 }
             }
 
-            for (; Unsafe.ByteOffset(ref local1, ref local2) >= UnsafeHelpers.ToIntPtr(4); local1 = ref Unsafe.AddByteOffset(ref local1, UnsafeHelpers.ToIntPtr(4)))
+            const nint byteOffset2 = 4;
+            for (; Unsafe.ByteOffset(ref local1, ref local2) >= byteOffset2; local1 = ref Unsafe.AddByteOffset(ref local1, new IntPtr(4)))
             {
                 var num13 = (uint)Unsafe.ReadUnaligned<int>(ref local1);
                 var num14 = num8++;
@@ -137,7 +139,7 @@ namespace NativeCollections
                 }
             }
 
-            for (; Unsafe.IsAddressLessThan(ref local1, ref local2); local1 = ref Unsafe.AddByteOffset(ref local1, UnsafeHelpers.ToIntPtr(1)))
+            for (; Unsafe.IsAddressLessThan(ref local1, ref local2); local1 = ref Unsafe.AddByteOffset(ref local1, new IntPtr(1)))
             {
                 uint num19 = local1;
                 var num20 = num8++;

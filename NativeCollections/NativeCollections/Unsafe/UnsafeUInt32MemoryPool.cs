@@ -120,7 +120,7 @@ namespace NativeCollections
             slab->Bitmap = 0U;
             buffer = UnsafeHelpers.AddByteOffset<byte>(buffer, alignedSlabByteCount);
             for (var i = 0; i < 32; ++i)
-                Unsafe.As<byte, nint>(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(buffer), UnsafeHelpers.ToIntPtr(i * nodeByteCount))) = i;
+                Unsafe.As<byte, nint>(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(buffer), new IntPtr(i * nodeByteCount))) = i;
             _sentinel = slab;
             _freeList = null;
             _slabs = 1;
@@ -181,7 +181,7 @@ namespace NativeCollections
                         slab = (MemorySlab*)buffer;
                         buffer = UnsafeHelpers.AddByteOffset<byte>(buffer, alignedSlabByteCount);
                         for (var i = 0; i < 32; ++i)
-                            Unsafe.As<byte, nint>(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(buffer), UnsafeHelpers.ToIntPtr(i * nodeByteCount))) = i;
+                            Unsafe.As<byte, nint>(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(buffer), new IntPtr(i * nodeByteCount))) = i;
                     }
                     else
                     {
@@ -261,7 +261,7 @@ namespace NativeCollections
                 var slab = (MemorySlab*)buffer;
                 buffer = UnsafeHelpers.AddByteOffset<byte>(buffer, alignedSlabByteCount);
                 for (var i = 0; i < 32; ++i)
-                    Unsafe.As<byte, nint>(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(buffer), UnsafeHelpers.ToIntPtr(i * nodeByteCount))) = i;
+                    Unsafe.As<byte, nint>(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(buffer), new IntPtr(i * nodeByteCount))) = i;
                 slab->Next = _freeList;
                 _freeList = slab;
             }

@@ -478,13 +478,14 @@ namespace NativeCollections
             {
                 if ((uint)i >= (uint)_entriesLength)
                     break;
-                if (Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)i).HashCode == hashCode && Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)i).Key.Equals(key))
+                ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)i);
+                if (entry.HashCode == hashCode && entry.Key.Equals(key))
                 {
-                    Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)i).Value = value;
+                    entry.Value = value;
                     return InsertResult.Overwritten;
                 }
 
-                i = Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)i).Next;
+                i = entry.Next;
                 collisionCount++;
                 if (collisionCount > (uint)_entriesLength)
                     ThrowHelpers.ThrowConcurrentOperationsNotSupportedException();
@@ -506,11 +507,11 @@ namespace NativeCollections
                 _count = count + 1;
             }
 
-            ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
-            entry.HashCode = hashCode;
-            entry.Next = bucket - 1;
-            entry.Key = key;
-            entry.Value = value;
+            ref var newEntry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
+            newEntry.HashCode = hashCode;
+            newEntry.Next = bucket - 1;
+            newEntry.Key = key;
+            newEntry.Value = value;
             bucket = index + 1;
             _version++;
             return InsertResult.Success;
@@ -532,9 +533,10 @@ namespace NativeCollections
             {
                 if ((uint)i >= (uint)_entriesLength)
                     break;
-                if (Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)i).HashCode == hashCode && Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)i).Key.Equals(key))
+                ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)i);
+                if (entry.HashCode == hashCode && entry.Key.Equals(key))
                     return InsertResult.AlreadyExists;
-                i = Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)i).Next;
+                i = entry.Next;
                 collisionCount++;
                 if (collisionCount > (uint)_entriesLength)
                     ThrowHelpers.ThrowConcurrentOperationsNotSupportedException();
@@ -556,11 +558,11 @@ namespace NativeCollections
                 _count = count + 1;
             }
 
-            ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
-            entry.HashCode = hashCode;
-            entry.Next = bucket - 1;
-            entry.Key = key;
-            entry.Value = value;
+            ref var newEntry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
+            newEntry.HashCode = hashCode;
+            newEntry.Next = bucket - 1;
+            newEntry.Key = key;
+            newEntry.Value = value;
             bucket = index + 1;
             _version++;
             return InsertResult.Success;

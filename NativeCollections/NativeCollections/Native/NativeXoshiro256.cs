@@ -2,9 +2,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-#if NET7_0_OR_GREATER
-using System.Runtime.Intrinsics;
-#endif
 
 #pragma warning disable CA2208
 #pragma warning disable CS8632
@@ -65,13 +62,9 @@ namespace NativeCollections
         /// <returns>Equals</returns>
         public bool Equals(NativeXoshiro256 other)
         {
-#if NET7_0_OR_GREATER
-            if (Vector256.IsHardwareAccelerated)
-                return Vector256.LoadUnsafe(ref Unsafe.As<NativeXoshiro256, byte>(ref this)) == Vector256.LoadUnsafe(ref Unsafe.As<NativeXoshiro256, byte>(ref other));
-#endif
-            ref var left = ref Unsafe.As<NativeXoshiro256, long>(ref this);
-            ref var right = ref Unsafe.As<NativeXoshiro256, long>(ref other);
-            return left == right && Unsafe.Add(ref left, (nint)1) == Unsafe.Add(ref right, (nint)1) && Unsafe.Add(ref left, (nint)2) == Unsafe.Add(ref right, (nint)2) && Unsafe.Add(ref left, (nint)3) == Unsafe.Add(ref right, (nint)3);
+            ref var local1 = ref Unsafe.As<NativeXoshiro256, byte>(ref Unsafe.AsRef(in this));
+            ref var local2 = ref Unsafe.As<NativeXoshiro256, byte>(ref other);
+            return SpanHelpers.Compare(ref local1, ref local2, (nuint)sizeof(NativeXoshiro256));
         }
 
         /// <summary>

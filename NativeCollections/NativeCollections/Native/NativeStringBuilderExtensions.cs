@@ -856,7 +856,7 @@ namespace NativeCollections
             for (var i = 0; i < repeatCount; ++i)
             {
                 Unsafe.CopyBlockUnaligned(ref destination, ref source, (uint)byteCount);
-                destination = ref Unsafe.AddByteOffset(ref destination, UnsafeHelpers.ToIntPtr(byteCount));
+                destination = ref Unsafe.AddByteOffset(ref destination, new IntPtr(byteCount));
             }
 
             builderRef.Advance(byteCount * repeatCount);
@@ -910,7 +910,7 @@ namespace NativeCollections
             var bytes = builderRef.GetSpan(byteCount);
             Encoding.UTF8.GetBytes(buffer, bytes);
             builderRef.Advance(bytes.Length);
-            Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(builderRef.Buffer), UnsafeHelpers.ToIntPtr(builderRef.Length)), ref MemoryMarshal.GetReference(newLine), (uint)newLine.Length);
+            Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(builderRef.Buffer), new IntPtr(builderRef.Length)), ref MemoryMarshal.GetReference(newLine), (uint)newLine.Length);
             builderRef.Advance(newLine.Length);
         }
 
@@ -934,9 +934,9 @@ namespace NativeCollections
             var newLine = NativeString.NewLineUtf8;
             builderRef.EnsureCapacity(builderRef.Length + buffer.Length + newLine.Length);
             ref var reference = ref MemoryMarshal.GetReference(builderRef.Buffer);
-            Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, UnsafeHelpers.ToIntPtr(builderRef.Length)), ref MemoryMarshal.GetReference(buffer), (uint)buffer.Length);
+            Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, new IntPtr(builderRef.Length)), ref MemoryMarshal.GetReference(buffer), (uint)buffer.Length);
             builderRef.Advance(buffer.Length);
-            Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, UnsafeHelpers.ToIntPtr(builderRef.Length)), ref MemoryMarshal.GetReference(newLine), (uint)newLine.Length);
+            Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, new IntPtr(builderRef.Length)), ref MemoryMarshal.GetReference(newLine), (uint)newLine.Length);
             builderRef.Advance(newLine.Length);
         }
 
@@ -952,7 +952,7 @@ namespace NativeCollections
             builderRef.Buffer[builderRef.Length] = value;
             builderRef.Advance(1);
             ref var reference = ref MemoryMarshal.GetReference(builderRef.Buffer);
-            Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, UnsafeHelpers.ToIntPtr(builderRef.Length)), ref MemoryMarshal.GetReference(newLine), (uint)newLine.Length);
+            Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, new IntPtr(builderRef.Length)), ref MemoryMarshal.GetReference(newLine), (uint)newLine.Length);
             builderRef.Advance(newLine.Length);
         }
 

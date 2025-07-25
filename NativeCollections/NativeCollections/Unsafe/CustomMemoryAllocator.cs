@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-#if NET7_0_OR_GREATER
-using System.Runtime.Intrinsics;
-#endif
 
 #pragma warning disable CA2208
 #pragma warning disable CS8632
@@ -76,15 +73,9 @@ namespace NativeCollections
         /// <returns>Equals</returns>
         public bool Equals(CustomMemoryAllocator other)
         {
-#if NET7_0_OR_GREATER
-            if (sizeof(nint) == 8 && Vector256.IsHardwareAccelerated)
-                return Vector256.LoadUnsafe(ref Unsafe.As<CustomMemoryAllocator, byte>(ref Unsafe.AsRef(in this))) == Vector256.LoadUnsafe(ref Unsafe.As<CustomMemoryAllocator, byte>(ref other));
-            if (sizeof(nint) == 4 && Vector128.IsHardwareAccelerated)
-                return Vector128.LoadUnsafe(ref Unsafe.As<CustomMemoryAllocator, byte>(ref Unsafe.AsRef(in this))) == Vector128.LoadUnsafe(ref Unsafe.As<CustomMemoryAllocator, byte>(ref other));
-#endif
-            ref var left = ref Unsafe.As<CustomMemoryAllocator, nint>(ref Unsafe.AsRef(in this));
-            ref var right = ref Unsafe.As<CustomMemoryAllocator, nint>(ref other);
-            return left == right && Unsafe.Add(ref left, (nint)1) == Unsafe.Add(ref right, (nint)1) && Unsafe.Add(ref left, (nint)2) == Unsafe.Add(ref right, (nint)2) && Unsafe.Add(ref left, (nint)3) == Unsafe.Add(ref right, (nint)3);
+            ref var local1 = ref Unsafe.As<CustomMemoryAllocator, byte>(ref Unsafe.AsRef(in this));
+            ref var local2 = ref Unsafe.As<CustomMemoryAllocator, byte>(ref other);
+            return SpanHelpers.Compare(ref local1, ref local2, (nuint)sizeof(CustomMemoryAllocator));
         }
 
         /// <summary>

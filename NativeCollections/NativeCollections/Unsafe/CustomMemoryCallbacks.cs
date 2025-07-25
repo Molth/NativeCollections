@@ -43,9 +43,9 @@ namespace NativeCollections
         /// <returns>Equals</returns>
         public readonly bool Equals(CustomMemoryCallbacks other)
         {
-            ref var left = ref Unsafe.As<CustomMemoryCallbacks, nint>(ref Unsafe.AsRef(in this));
-            ref var right = ref Unsafe.As<CustomMemoryCallbacks, nint>(ref other);
-            return left == right && Unsafe.Add(ref left, (nint)1) == Unsafe.Add(ref right, (nint)1) && Unsafe.Add(ref left, (nint)2) == Unsafe.Add(ref right, (nint)2);
+            ref var local1 = ref Unsafe.As<CustomMemoryCallbacks, byte>(ref Unsafe.AsRef(in this));
+            ref var local2 = ref Unsafe.As<CustomMemoryCallbacks, byte>(ref other);
+            return SpanHelpers.Compare(ref local1, ref local2, (nuint)sizeof(CustomMemoryCallbacks));
         }
 
         /// <summary>

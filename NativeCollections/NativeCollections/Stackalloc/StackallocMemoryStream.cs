@@ -145,7 +145,7 @@ namespace NativeCollections
             if (length > Capacity)
                 return false;
             if (length > _length)
-                Unsafe.InitBlockUnaligned(ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(_buffer), UnsafeHelpers.ToIntPtr(_length)), 0, (uint)(length - _length));
+                Unsafe.InitBlockUnaligned(ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(_buffer), new IntPtr(_length)), 0, (uint)(length - _length));
             _length = length;
             if (_position > length)
                 _position = length;
@@ -173,7 +173,7 @@ namespace NativeCollections
             var n = size < buffer.Length ? size : buffer.Length;
             if (n <= 0)
                 return 0;
-            Unsafe.CopyBlockUnaligned(ref MemoryMarshal.GetReference(buffer), ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(_buffer), UnsafeHelpers.ToIntPtr(_position)), (uint)n);
+            Unsafe.CopyBlockUnaligned(ref MemoryMarshal.GetReference(buffer), ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(_buffer), new IntPtr(_position)), (uint)n);
             _position += n;
             return n;
         }
@@ -208,11 +208,11 @@ namespace NativeCollections
                     return false;
                 var mustZero = _position > _length;
                 if (mustZero)
-                    Unsafe.InitBlockUnaligned(ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(_buffer), UnsafeHelpers.ToIntPtr(_length)), 0, (uint)(i - _length));
+                    Unsafe.InitBlockUnaligned(ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(_buffer), new IntPtr(_length)), 0, (uint)(i - _length));
                 _length = i;
             }
 
-            Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(_buffer), UnsafeHelpers.ToIntPtr(_position)), ref MemoryMarshal.GetReference(buffer), (uint)buffer.Length);
+            Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(_buffer), new IntPtr(_position)), ref MemoryMarshal.GetReference(buffer), (uint)buffer.Length);
             _position = i;
             return true;
         }
@@ -231,7 +231,7 @@ namespace NativeCollections
                     return false;
                 var mustZero = _position > _length;
                 if (mustZero)
-                    Unsafe.InitBlockUnaligned(ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(_buffer), UnsafeHelpers.ToIntPtr(_length)), 0, (uint)(_position - _length));
+                    Unsafe.InitBlockUnaligned(ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(_buffer), new IntPtr(_length)), 0, (uint)(_position - _length));
                 _length = newLength;
             }
 

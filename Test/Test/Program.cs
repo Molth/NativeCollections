@@ -31,7 +31,7 @@ namespace Examples
     {
         private static void Main()
         {
-            TestString2();
+            TestConcurrent();
         }
 
         private static void TestFill2()

@@ -44,7 +44,7 @@ namespace NativeCollections
         public ref byte this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(_buffer), UnsafeHelpers.ToIntPtr(index));
+            get => ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(_buffer), new IntPtr(index));
         }
 
         /// <summary>

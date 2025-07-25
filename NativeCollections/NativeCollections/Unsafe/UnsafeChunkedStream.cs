@@ -181,11 +181,11 @@ namespace NativeCollections
                 var byteCount = UnsafeHelpers.ToIntPtr(size - _readOffset);
                 if (byteCount > length)
                 {
-                    Unsafe.CopyBlockUnaligned(ref reference, ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_head->Buffer), UnsafeHelpers.ToIntPtr(_readOffset)), (uint)length);
+                    Unsafe.CopyBlockUnaligned(ref reference, ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_head->Buffer), new IntPtr(_readOffset)), (uint)length);
                 }
                 else
                 {
-                    Unsafe.CopyBlockUnaligned(ref reference, ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_head->Buffer), UnsafeHelpers.ToIntPtr(_readOffset)), (uint)byteCount);
+                    Unsafe.CopyBlockUnaligned(ref reference, ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_head->Buffer), new IntPtr(_readOffset)), (uint)byteCount);
                     if (byteCount != length)
                     {
                         MemoryChunk* chunk;
@@ -244,12 +244,12 @@ namespace NativeCollections
                 var byteCount = UnsafeHelpers.ToIntPtr(size - _readOffset);
                 if (byteCount > length)
                 {
-                    Unsafe.CopyBlockUnaligned(ref reference, ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_head->Buffer), UnsafeHelpers.ToIntPtr(_readOffset)), (uint)length);
+                    Unsafe.CopyBlockUnaligned(ref reference, ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_head->Buffer), new IntPtr(_readOffset)), (uint)length);
                     _readOffset += length;
                 }
                 else
                 {
-                    Unsafe.CopyBlockUnaligned(ref reference, ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_head->Buffer), UnsafeHelpers.ToIntPtr(_readOffset)), (uint)byteCount);
+                    Unsafe.CopyBlockUnaligned(ref reference, ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_head->Buffer), new IntPtr(_readOffset)), (uint)byteCount);
                     MemoryChunk* chunk;
                     var count = length - byteCount;
                     var (chunks, remaining) = MathHelpers.DivRem(count, size);
@@ -317,13 +317,13 @@ namespace NativeCollections
             var byteCount = UnsafeHelpers.ToIntPtr(size - _writeOffset);
             if (byteCount >= length)
             {
-                Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_tail->Buffer), UnsafeHelpers.ToIntPtr(_writeOffset)), ref reference, (uint)length);
+                Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_tail->Buffer), new IntPtr(_writeOffset)), ref reference, (uint)length);
                 _writeOffset += length;
             }
             else
             {
                 if (byteCount != 0)
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_tail->Buffer), UnsafeHelpers.ToIntPtr(_writeOffset)), ref reference, (uint)byteCount);
+                    Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_tail->Buffer), new IntPtr(_writeOffset)), ref reference, (uint)byteCount);
                 MemoryChunk* chunk;
                 var count = length - byteCount;
                 var (chunks, remaining) = MathHelpers.DivRem(count, size);

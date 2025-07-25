@@ -165,8 +165,9 @@ namespace NativeCollections
             slab->Nodes++;
             var ptr = UnsafeHelpers.AddByteOffset(node, nodeSize);
             var result = (byte*)(nint)NativeMemoryAllocator.AlignUp((nuint)(nint)ptr, (nuint)alignment);
-            Unsafe.Subtract(ref Unsafe.AsRef<nint>(result), 1) = UnsafeHelpers.ByteOffset(node, result);
-            slab->Length += nodeSize + (int)UnsafeHelpers.ByteOffset(ptr, result) + length;
+            var byteOffset = UnsafeHelpers.ByteOffset(node, result);
+            Unsafe.Subtract(ref Unsafe.AsRef<nint>(result), 1) = byteOffset;
+            slab->Length += (int)byteOffset + length;
             return result;
         }
 
