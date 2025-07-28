@@ -107,7 +107,7 @@ namespace NativeCollections
             _length = length;
             if (defaultValue)
             {
-                SpanHelpers.Fill(_buffer.AsSpan(), -1);
+                _buffer.AsSpan().Fill(-1);
                 Div32Rem(length, out var extraBits);
                 if (extraBits > 0)
                     _buffer[^1] = (1 << extraBits) - 1;
@@ -145,7 +145,7 @@ namespace NativeCollections
             _length = length;
             if (defaultValue)
             {
-                SpanHelpers.Fill(_buffer.AsSpan(), -1);
+                _buffer.AsSpan().Fill(-1);
                 Div32Rem(length, out var extraBits);
                 if (extraBits > 0)
                     _buffer[^1] = (1 << extraBits) - 1;
@@ -187,7 +187,7 @@ namespace NativeCollections
             _length = length;
             if (defaultValue)
             {
-                SpanHelpers.Fill(_buffer.AsSpan(), -1);
+                _buffer.AsSpan().Fill(-1);
                 Div32Rem(length, out var extraBits);
                 if (extraBits > 0)
                     _buffer[^1] = (1 << extraBits) - 1;
@@ -303,7 +303,7 @@ namespace NativeCollections
             var span = _buffer.AsSpan(0, length);
             if (value)
             {
-                SpanHelpers.Fill(span, -1);
+                span.Fill(-1);
                 Div32Rem(_length, out var extraBits);
                 if (extraBits > 0)
                     span[^1] &= (1 << extraBits) - 1;

@@ -832,7 +832,7 @@ namespace NativeCollections
             Encoding.UTF8.GetBytes(buffer, bytes);
             if (byteCount == 1)
             {
-                SpanHelpers.Fill(builderRef.GetSpan(repeatCount), MemoryMarshal.GetReference(bytes));
+                builderRef.GetSpan(repeatCount).Fill(MemoryMarshal.GetReference(bytes));
                 builderRef.Advance(repeatCount);
                 return;
             }

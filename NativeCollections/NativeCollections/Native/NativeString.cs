@@ -367,7 +367,7 @@ namespace NativeCollections
         {
             if (_length + repeatCount > Capacity)
                 return false;
-            SpanHelpers.Fill(_buffer.Slice(_length, repeatCount), value);
+            _buffer.Slice(_length, repeatCount).Fill(value);
             _length += repeatCount;
             return true;
         }
@@ -522,7 +522,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly void Fill(char value) => SpanHelpers.Fill(Text, value);
+        public readonly void Fill(char value) => Text.Fill(value);
 
         /// <summary>
         ///     Trim start
@@ -941,7 +941,7 @@ namespace NativeCollections
             if (num <= 0)
                 return true;
             Text.CopyTo(_buffer.Slice(num));
-            SpanHelpers.Fill(_buffer.Slice(0, num), paddingChar);
+            _buffer.Slice(0, num).Fill(paddingChar);
             _length = totalWidth;
             return true;
         }
@@ -963,7 +963,7 @@ namespace NativeCollections
             var num = totalWidth - _length;
             if (num <= 0)
                 return true;
-            SpanHelpers.Fill(_buffer.Slice(_length, num), paddingChar);
+            _buffer.Slice(_length, num).Fill(paddingChar);
             _length = totalWidth;
             return true;
         }

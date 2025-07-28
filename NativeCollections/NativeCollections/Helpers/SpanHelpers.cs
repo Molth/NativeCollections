@@ -19,12 +19,6 @@ namespace NativeCollections
         ///     Fills the contents of this buffer with the given value.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Fill<T>(Span<T> buffer, T value) where T : unmanaged => Fill(ref MemoryMarshal.GetReference(buffer), (nuint)buffer.Length, value);
-
-        /// <summary>
-        ///     Fills the contents of this buffer with the given value.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Fill<T>(ref T refData, nuint numElements, T value) where T : unmanaged
         {
 #if NET7_0_OR_GREATER

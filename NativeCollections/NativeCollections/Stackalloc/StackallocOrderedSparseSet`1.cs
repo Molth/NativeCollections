@@ -195,7 +195,7 @@ namespace NativeCollections
             var denseByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * sizeof(Entry)), alignment);
             _dense = (Entry*)NativeArray<byte>.Create(buffer, alignment).Buffer;
             _sparse = UnsafeHelpers.AddByteOffset<int>(_dense, (nint)denseByteCount);
-            SpanHelpers.Fill(MemoryMarshal.CreateSpan(ref Unsafe.AsRef<int>(_sparse), capacity), -1);
+            MemoryMarshal.CreateSpan(ref Unsafe.AsRef<int>(_sparse), capacity).Fill(-1);
             _length = capacity;
             _head = -1;
             _tail = -1;
@@ -209,7 +209,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
-            SpanHelpers.Fill(MemoryMarshal.CreateSpan(ref Unsafe.AsRef<int>(_sparse), _length), -1);
+            MemoryMarshal.CreateSpan(ref Unsafe.AsRef<int>(_sparse), _length).Fill(-1);
             _head = -1;
             _tail = -1;
             _count = 0;

@@ -396,7 +396,7 @@ namespace NativeCollections
         public void Append(in T value, int repeatCount)
         {
             EnsureCapacity(_length + repeatCount);
-            SpanHelpers.Fill(_buffer.Slice(_length, repeatCount), value);
+            _buffer.Slice(_length, repeatCount).Fill(value);
             _length += repeatCount;
         }
 
@@ -533,7 +533,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly void Fill(in T value) => SpanHelpers.Fill(Text, value);
+        public readonly void Fill(in T value) => Text.Fill(value);
 
         /// <summary>
         ///     Trim start
@@ -829,14 +829,14 @@ namespace NativeCollections
         ///     Pad left
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void PadLeft(int totalWidth, in T paddingT)
+        public void PadLeft(int totalWidth, in T padding)
         {
             EnsureCapacity(totalWidth);
             var num = totalWidth - _length;
             if (num <= 0)
                 return;
             Text.CopyTo(_buffer.Slice(num));
-            SpanHelpers.Fill(_buffer.Slice(0, num), paddingT);
+            _buffer.Slice(0, num).Fill(padding);
             _length = totalWidth;
         }
 
@@ -844,13 +844,13 @@ namespace NativeCollections
         ///     Pad right
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void PadRight(int totalWidth, in T paddingT)
+        public void PadRight(int totalWidth, in T padding)
         {
             EnsureCapacity(totalWidth);
             var num = totalWidth - _length;
             if (num <= 0)
                 return;
-            SpanHelpers.Fill(_buffer.Slice(_length, num), paddingT);
+            _buffer.Slice(_length, num).Fill(padding);
             _length = totalWidth;
         }
 
