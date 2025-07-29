@@ -20,9 +20,13 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TTo BitCast<TFrom, TTo>(TFrom source) where TFrom : unmanaged where TTo : unmanaged
         {
+#if NET8_0_OR_GREATER
+            return Unsafe.BitCast<TFrom, TTo>(source);
+#else
             if (sizeof(TFrom) != sizeof(TTo))
                 ThrowHelpers.ThrowNotSupportedException();
             return Unsafe.ReadUnaligned<TTo>(ref Unsafe.As<TFrom, byte>(ref source));
+#endif
         }
 
         /// <summary>
