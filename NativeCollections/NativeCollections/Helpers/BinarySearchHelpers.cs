@@ -18,7 +18,7 @@ namespace NativeCollections
         /// <param name="comparable">Comparable</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int IndexOf<TKey>(TKey* start, int length, in TKey comparable) where TKey : unmanaged, IComparable<TKey>
+        public static int IndexOf<TKey>(TKey* start, int length, TKey comparable) where TKey : unmanaged, IComparable<TKey>
         {
             var low = 0;
             var high = length - 1;

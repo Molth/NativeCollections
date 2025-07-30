@@ -155,7 +155,7 @@ namespace NativeCollections
         ///     If all of the values are <paramref name="value" />, returns <see langword="false" />.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool ContainsAnyExcept<T>(ReadOnlySpan<T> buffer, in T value) where T : unmanaged, IEquatable<T>
+        public static bool ContainsAnyExcept<T>(ReadOnlySpan<T> buffer, T value) where T : unmanaged, IEquatable<T>
         {
 #if NET8_0_OR_GREATER
             return buffer.ContainsAnyExcept(value);
@@ -181,7 +181,7 @@ namespace NativeCollections
         /// <param name="buffer">The span to search.</param>
         /// <param name="value">The value to search for.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool Contains<T>(ReadOnlySpan<T> buffer, in T value) where T : unmanaged, IEquatable<T>
+        public static bool Contains<T>(ReadOnlySpan<T> buffer, T value) where T : unmanaged, IEquatable<T>
         {
 #if NET6_0_OR_GREATER
             return buffer.Contains(value);
