@@ -142,7 +142,12 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(UnsafeConcurrentSpinLock left, UnsafeConcurrentSpinLock right) => Unsafe.As<UnsafeConcurrentSpinLock, long>(ref left) == Unsafe.As<UnsafeConcurrentSpinLock, long>(ref right);
+        public static bool operator ==(UnsafeConcurrentSpinLock left, UnsafeConcurrentSpinLock right)
+        {
+            ref var local1 = ref Unsafe.As<UnsafeConcurrentSpinLock, int>(ref left);
+            ref var local2 = ref Unsafe.As<UnsafeConcurrentSpinLock, int>(ref right);
+            return local1 == local2 && Unsafe.Add(ref local1, 1) == Unsafe.Add(ref local2, 1);
+        }
 
         /// <summary>
         ///     Not equals
@@ -150,7 +155,12 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(UnsafeConcurrentSpinLock left, UnsafeConcurrentSpinLock right) => Unsafe.As<UnsafeConcurrentSpinLock, long>(ref left) != Unsafe.As<UnsafeConcurrentSpinLock, long>(ref right);
+        public static bool operator !=(UnsafeConcurrentSpinLock left, UnsafeConcurrentSpinLock right)
+        {
+            ref var local1 = ref Unsafe.As<UnsafeConcurrentSpinLock, int>(ref left);
+            ref var local2 = ref Unsafe.As<UnsafeConcurrentSpinLock, int>(ref right);
+            return local1 != local2 || Unsafe.Add(ref local1, 1) != Unsafe.Add(ref local2, 1);
+        }
 
         /// <summary>
         ///     Empty
