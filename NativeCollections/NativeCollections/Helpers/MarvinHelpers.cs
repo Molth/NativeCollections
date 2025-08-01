@@ -1,5 +1,4 @@
-﻿#if !NETCOREAPP3_0_OR_GREATER
-using System;
+﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -38,26 +37,30 @@ namespace NativeCollections
             {
                 if (count < 4U)
                 {
-                    num1 = 128U;
+                    num1 = BitConverter.IsLittleEndian ? 128U : 2147483648U;
                     if (((int)count & 1) != 0)
-                        num1 = Unsafe.AddByteOffset(ref data, (nint)count & new IntPtr(2)) | 32768U;
+                    {
+                        uint num2 = Unsafe.AddByteOffset(ref data, (nint)((nuint)count & 2));
+                        num1 = BitConverter.IsLittleEndian ? num2 | 32768U : (uint)(((int)num2 << 24) | 8388608);
+                    }
+
                     if (((int)count & 2) != 0)
-                        num1 = (num1 << 16) | Unsafe.ReadUnaligned<ushort>(ref data);
+                        num1 = !BitConverter.IsLittleEndian ? BitOperationsHelpers.RotateLeft(num1 | Unsafe.ReadUnaligned<ushort>(ref data), 16) : (num1 << 16) | Unsafe.ReadUnaligned<ushort>(ref data);
                     goto label_2;
                 }
             }
             else
             {
-                var num2 = count / 8U;
+                var num3 = count / 8U;
                 do
                 {
                     p0 += Unsafe.ReadUnaligned<uint>(ref data);
-                    var num3 = Unsafe.ReadUnaligned<uint>(ref Unsafe.AddByteOffset(ref data, new IntPtr(4)));
+                    var num4 = Unsafe.ReadUnaligned<uint>(ref Unsafe.AddByteOffset(ref data, new IntPtr(4)));
                     Block(ref p0, ref p1);
-                    p0 += num3;
+                    p0 += num4;
                     Block(ref p0, ref p1);
                     data = ref Unsafe.AddByteOffset(ref data, new IntPtr(8));
-                } while (--num2 > 0U);
+                } while (--num3 > 0U);
 
                 if (((int)count & 4) == 0)
                     goto label_1;
@@ -66,9 +69,9 @@ namespace NativeCollections
             p0 += Unsafe.ReadUnaligned<uint>(ref data);
             Block(ref p0, ref p1);
             label_1:
-            var num4 = (int)Unsafe.ReadUnaligned<uint>(ref Unsafe.Subtract(ref Unsafe.AddByteOffset(ref data, (nint)((nuint)count & new UIntPtr(7U))), 4));
+            var num5 = Unsafe.ReadUnaligned<uint>(ref Unsafe.Subtract(ref Unsafe.AddByteOffset(ref data, (nint)((nuint)count & 7)), 4));
             count = (uint)(~(int)count << 3);
-            num1 = (uint)(((uint)num4 >> 8) | 18446744071562067968UL) >> (int)count;
+            num1 = BitConverter.IsLittleEndian ? ((num5 >> 8) | 2147483648U) >> (int)count : (uint)(((int)num5 << 8) | 128) << (int)count;
             label_2:
             p0 += num1;
             Block(ref p0, ref p1);
@@ -93,4 +96,3 @@ namespace NativeCollections
         }
     }
 }
-#endif

@@ -24,20 +24,6 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsPow2(uint value) => (value & (value - 1)) == 0 && value != 0;
 
-        /// <summary>
-        ///     Evaluate whether a given integral value is a power of 2.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsPow2(ulong value) => (value & (value - 1)) == 0 && value != 0;
-
-        /// <summary>
-        ///     Evaluate whether a given integral value is a power of 2.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsPow2(nuint value) => (value & (value - 1)) == 0 && value != 0;
-
         /// <summary>Rotates the specified value left by the specified number of bits.</summary>
         /// <param name="value">The value to rotate.</param>
         /// <param name="offset">
@@ -46,33 +32,6 @@ namespace NativeCollections
         /// <returns>The rotated value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint RotateLeft(uint value, int offset) => (value << offset) | (value >> (32 - offset));
-
-        /// <summary>Rotates the specified value left by the specified number of bits.</summary>
-        /// <param name="value">The value to rotate.</param>
-        /// <param name="offset">
-        ///     The number of bits to rotate by. Any value outside the range [0..63] is treated as congruent mod 64.
-        /// </param>
-        /// <returns>The rotated value.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ulong RotateLeft(ulong value, int offset) => (value << offset) | (value >> (64 - offset));
-
-        /// <summary>Rotates the specified value right by the specified number of bits.</summary>
-        /// <param name="value">The value to rotate.</param>
-        /// <param name="offset">
-        ///     The number of bits to rotate by. Any value outside the range [0..31] is treated as congruent mod 32.
-        /// </param>
-        /// <returns>The rotated value.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static uint RotateRight(uint value, int offset) => (value >> offset) | (value << (32 - offset));
-
-        /// <summary>Rotates the specified value right by the specified number of bits.</summary>
-        /// <param name="value">The value to rotate.</param>
-        /// <param name="offset">
-        ///     The number of bits to rotate by. Any value outside the range [0..63] is treated as congruent mod 64.
-        /// </param>
-        /// <returns>The rotated value.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ulong RotateRight(ulong value, int offset) => (value >> offset) | (value << (64 - offset));
 
         /// <summary>
         ///     Log2 ceiling
