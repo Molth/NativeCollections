@@ -95,21 +95,6 @@ namespace NativeCollections
         public T Add(T value)
         {
             CheckFloatType();
-            if (typeof(T) == typeof(float))
-            {
-                int currentInt32, newInt32;
-                float currentFloat32, newFloat32;
-                do
-                {
-                    currentInt32 = Interlocked.CompareExchange(ref _value, 0, 0);
-                    currentFloat32 = UnsafeHelpers.BitCast<int, float>(currentInt32);
-                    newFloat32 = currentFloat32 + Unsafe.As<T, float>(ref value);
-                    newInt32 = UnsafeHelpers.BitCast<float, int>(newFloat32);
-                } while (Interlocked.CompareExchange(ref _value, newInt32, currentInt32) != currentInt32);
-
-                return Unsafe.As<float, T>(ref newFloat32);
-            }
-
             if (Unsafe.SizeOf<T>() == 1)
                 return UnsafeHelpers.BitCast<byte, T>((byte)Interlocked.Add(ref _value, UnsafeHelpers.BitCast<T, byte>(value)));
             if (Unsafe.SizeOf<T>() == 2)
@@ -124,21 +109,6 @@ namespace NativeCollections
         public T Subtract(T value)
         {
             CheckFloatType();
-            if (typeof(T) == typeof(float))
-            {
-                int currentInt32, newInt32;
-                float currentFloat32, newFloat32;
-                do
-                {
-                    currentInt32 = Interlocked.CompareExchange(ref _value, 0, 0);
-                    currentFloat32 = UnsafeHelpers.BitCast<int, float>(currentInt32);
-                    newFloat32 = currentFloat32 - Unsafe.As<T, float>(ref value);
-                    newInt32 = UnsafeHelpers.BitCast<float, int>(newFloat32);
-                } while (Interlocked.CompareExchange(ref _value, newInt32, currentInt32) != currentInt32);
-
-                return Unsafe.As<float, T>(ref newFloat32);
-            }
-
             if (Unsafe.SizeOf<T>() == 1)
                 return UnsafeHelpers.BitCast<byte, T>((byte)Interlocked.Add(ref _value, -UnsafeHelpers.BitCast<T, byte>(value)));
             if (Unsafe.SizeOf<T>() == 2)
@@ -153,21 +123,6 @@ namespace NativeCollections
         public T Increment()
         {
             CheckFloatType();
-            if (typeof(T) == typeof(float))
-            {
-                int currentInt32, newInt32;
-                float currentFloat32, newFloat32;
-                do
-                {
-                    currentInt32 = Interlocked.CompareExchange(ref _value, 0, 0);
-                    currentFloat32 = UnsafeHelpers.BitCast<int, float>(currentInt32);
-                    newFloat32 = currentFloat32 + 1.0f;
-                    newInt32 = UnsafeHelpers.BitCast<float, int>(newFloat32);
-                } while (Interlocked.CompareExchange(ref _value, newInt32, currentInt32) != currentInt32);
-
-                return Unsafe.As<float, T>(ref newFloat32);
-            }
-
             if (Unsafe.SizeOf<T>() == 1)
                 return UnsafeHelpers.BitCast<byte, T>((byte)Interlocked.Increment(ref _value));
             if (Unsafe.SizeOf<T>() == 2)
@@ -182,21 +137,6 @@ namespace NativeCollections
         public T Decrement()
         {
             CheckFloatType();
-            if (typeof(T) == typeof(float))
-            {
-                int currentInt32, newInt32;
-                float currentFloat32, newFloat32;
-                do
-                {
-                    currentInt32 = Interlocked.CompareExchange(ref _value, 0, 0);
-                    currentFloat32 = UnsafeHelpers.BitCast<int, float>(currentInt32);
-                    newFloat32 = currentFloat32 - 1.0f;
-                    newInt32 = UnsafeHelpers.BitCast<float, int>(newFloat32);
-                } while (Interlocked.CompareExchange(ref _value, newInt32, currentInt32) != currentInt32);
-
-                return Unsafe.As<float, T>(ref newFloat32);
-            }
-
             if (Unsafe.SizeOf<T>() == 1)
                 return UnsafeHelpers.BitCast<byte, T>((byte)Interlocked.Decrement(ref _value));
             if (Unsafe.SizeOf<T>() == 2)
