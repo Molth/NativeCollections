@@ -94,7 +94,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Add(T value)
         {
-            CheckType();
+            CheckFloatType();
             if (typeof(T) == typeof(float))
             {
                 int currentInt32, newInt32;
@@ -123,7 +123,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Subtract(T value)
         {
-            CheckType();
+            CheckFloatType();
             if (typeof(T) == typeof(float))
             {
                 int currentInt32, newInt32;
@@ -152,7 +152,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Increment()
         {
-            CheckType();
+            CheckFloatType();
             if (typeof(T) == typeof(float))
             {
                 int currentInt32, newInt32;
@@ -181,7 +181,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Decrement()
         {
-            CheckType();
+            CheckFloatType();
             if (typeof(T) == typeof(float))
             {
                 int currentInt32, newInt32;
@@ -211,6 +211,16 @@ namespace NativeCollections
         private static void CheckType()
         {
             if ((!typeof(T).IsPrimitive && !typeof(T).IsEnum) || (Unsafe.SizeOf<T>() != 1 && Unsafe.SizeOf<T>() != 2 && Unsafe.SizeOf<T>() != 4))
+                ThrowHelpers.ThrowNotSupportedException();
+        }
+
+        /// <summary>
+        ///     Check type
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void CheckFloatType()
+        {
+            if ((!typeof(T).IsPrimitive && !typeof(T).IsEnum) || (Unsafe.SizeOf<T>() != 1 && Unsafe.SizeOf<T>() != 2 && Unsafe.SizeOf<T>() != 4) || typeof(T) == typeof(float))
                 ThrowHelpers.ThrowNotSupportedException();
         }
 
