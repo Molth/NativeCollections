@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 #if NET7_0_OR_GREATER
@@ -15,12 +16,12 @@ using System.Numerics;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native atomic 64
+    ///     Native atomic
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    public struct NativeAtomic64<T> where T : unmanaged
+    public struct NativeAtomicIntPtr<T> where T : unmanaged
 #if NET7_0_OR_GREATER
         , IBinaryInteger<T>
 #endif
@@ -28,34 +29,34 @@ namespace NativeCollections
         /// <summary>
         ///     Value
         /// </summary>
-        private long _value;
+        private nint _value;
 
         /// <summary>
         ///     Structure
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeAtomic64(T value)
+        public NativeAtomicIntPtr(T value)
         {
             CheckType();
             if (Unsafe.SizeOf<T>() == 1)
             {
-                _value = UnsafeHelpers.BitCast<T, byte>(value);
+                _value = new IntPtr(UnsafeHelpers.BitCast<T, byte>(value));
                 return;
             }
 
             if (Unsafe.SizeOf<T>() == 2)
             {
-                _value = UnsafeHelpers.BitCast<T, short>(value);
+                _value = new IntPtr(UnsafeHelpers.BitCast<T, short>(value));
                 return;
             }
 
             if (Unsafe.SizeOf<T>() == 4)
             {
-                _value = UnsafeHelpers.BitCast<T, int>(value);
+                _value = new IntPtr(UnsafeHelpers.BitCast<T, int>(value));
                 return;
             }
 
-            _value = UnsafeHelpers.BitCast<T, long>(value);
+            _value = UnsafeHelpers.BitCast<T, nint>(value);
         }
 
         /// <summary>
@@ -76,14 +77,14 @@ namespace NativeCollections
         public T Read()
         {
             CheckType();
-            var obj = Interlocked.CompareExchange(ref _value, 0, 0);
+            var obj = Interlocked.CompareExchange(ref _value, new IntPtr(0), new IntPtr(0));
             if (Unsafe.SizeOf<T>() == 1)
                 return UnsafeHelpers.BitCast<byte, T>((byte)obj);
             if (Unsafe.SizeOf<T>() == 2)
                 return UnsafeHelpers.BitCast<short, T>((short)obj);
             if (Unsafe.SizeOf<T>() == 4)
                 return UnsafeHelpers.BitCast<int, T>((int)obj);
-            return UnsafeHelpers.BitCast<long, T>(obj);
+            return UnsafeHelpers.BitCast<nint, T>(obj);
         }
 
         /// <summary>
@@ -94,12 +95,12 @@ namespace NativeCollections
         {
             CheckType();
             if (Unsafe.SizeOf<T>() == 1)
-                return UnsafeHelpers.BitCast<byte, T>((byte)Interlocked.Exchange(ref _value, UnsafeHelpers.BitCast<T, byte>(value)));
+                return UnsafeHelpers.BitCast<byte, T>((byte)Interlocked.Exchange(ref _value, new IntPtr(UnsafeHelpers.BitCast<T, byte>(value))));
             if (Unsafe.SizeOf<T>() == 2)
-                return UnsafeHelpers.BitCast<short, T>((short)Interlocked.Exchange(ref _value, UnsafeHelpers.BitCast<T, short>(value)));
+                return UnsafeHelpers.BitCast<short, T>((short)Interlocked.Exchange(ref _value, new IntPtr(UnsafeHelpers.BitCast<T, short>(value))));
             if (Unsafe.SizeOf<T>() == 4)
-                return UnsafeHelpers.BitCast<int, T>((int)Interlocked.Exchange(ref _value, UnsafeHelpers.BitCast<T, int>(value)));
-            return UnsafeHelpers.BitCast<long, T>(Interlocked.Exchange(ref _value, UnsafeHelpers.BitCast<T, long>(value)));
+                return UnsafeHelpers.BitCast<int, T>((int)Interlocked.Exchange(ref _value, new IntPtr(UnsafeHelpers.BitCast<T, int>(value))));
+            return UnsafeHelpers.BitCast<nint, T>(Interlocked.Exchange(ref _value, UnsafeHelpers.BitCast<T, nint>(value)));
         }
 
         /// <summary>
@@ -110,12 +111,12 @@ namespace NativeCollections
         {
             CheckType();
             if (Unsafe.SizeOf<T>() == 1)
-                return UnsafeHelpers.BitCast<byte, T>((byte)Interlocked.CompareExchange(ref _value, UnsafeHelpers.BitCast<T, byte>(value), UnsafeHelpers.BitCast<T, byte>(comparand)));
+                return UnsafeHelpers.BitCast<byte, T>((byte)Interlocked.CompareExchange(ref _value, new IntPtr(UnsafeHelpers.BitCast<T, byte>(value)), new IntPtr(UnsafeHelpers.BitCast<T, byte>(comparand))));
             if (Unsafe.SizeOf<T>() == 2)
-                return UnsafeHelpers.BitCast<short, T>((short)Interlocked.CompareExchange(ref _value, UnsafeHelpers.BitCast<T, short>(value), UnsafeHelpers.BitCast<T, short>(comparand)));
+                return UnsafeHelpers.BitCast<short, T>((short)Interlocked.CompareExchange(ref _value, new IntPtr(UnsafeHelpers.BitCast<T, short>(value)), new IntPtr(UnsafeHelpers.BitCast<T, short>(comparand))));
             if (Unsafe.SizeOf<T>() == 4)
-                return UnsafeHelpers.BitCast<int, T>((int)Interlocked.CompareExchange(ref _value, UnsafeHelpers.BitCast<T, int>(value), UnsafeHelpers.BitCast<T, int>(comparand)));
-            return UnsafeHelpers.BitCast<long, T>(Interlocked.CompareExchange(ref _value, UnsafeHelpers.BitCast<T, long>(value), UnsafeHelpers.BitCast<T, long>(comparand)));
+                return UnsafeHelpers.BitCast<int, T>((int)Interlocked.CompareExchange(ref _value, new IntPtr(UnsafeHelpers.BitCast<T, int>(value)), new IntPtr(UnsafeHelpers.BitCast<T, int>(comparand))));
+            return UnsafeHelpers.BitCast<nint, T>(Interlocked.CompareExchange(ref _value, UnsafeHelpers.BitCast<T, nint>(value), UnsafeHelpers.BitCast<T, nint>(comparand)));
         }
 
         /// <summary>
@@ -126,12 +127,12 @@ namespace NativeCollections
         {
             CheckType();
             if (Unsafe.SizeOf<T>() == 1)
-                return UnsafeHelpers.BitCast<byte, T>((byte)Interlocked.Add(ref _value, UnsafeHelpers.BitCast<T, byte>(value)));
+                return UnsafeHelpers.BitCast<byte, T>((byte)InterlockedHelpers.Add(ref _value, UnsafeHelpers.BitCast<T, byte>(value)));
             if (Unsafe.SizeOf<T>() == 2)
-                return UnsafeHelpers.BitCast<short, T>((short)Interlocked.Add(ref _value, UnsafeHelpers.BitCast<T, short>(value)));
+                return UnsafeHelpers.BitCast<short, T>((short)InterlockedHelpers.Add(ref _value, UnsafeHelpers.BitCast<T, short>(value)));
             if (Unsafe.SizeOf<T>() == 4)
-                return UnsafeHelpers.BitCast<int, T>((int)Interlocked.Add(ref _value, UnsafeHelpers.BitCast<T, int>(value)));
-            return UnsafeHelpers.BitCast<long, T>(Interlocked.Add(ref _value, UnsafeHelpers.BitCast<T, long>(value)));
+                return UnsafeHelpers.BitCast<int, T>((int)InterlockedHelpers.Add(ref _value, UnsafeHelpers.BitCast<T, int>(value)));
+            return UnsafeHelpers.BitCast<nint, T>(InterlockedHelpers.Add(ref _value, UnsafeHelpers.BitCast<T, nint>(value)));
         }
 
         /// <summary>
@@ -142,12 +143,12 @@ namespace NativeCollections
         {
             CheckType();
             if (Unsafe.SizeOf<T>() == 1)
-                return UnsafeHelpers.BitCast<byte, T>((byte)Interlocked.Add(ref _value, -(long)UnsafeHelpers.BitCast<T, byte>(value)));
+                return UnsafeHelpers.BitCast<byte, T>((byte)InterlockedHelpers.Add(ref _value, -(nint)UnsafeHelpers.BitCast<T, byte>(value)));
             if (Unsafe.SizeOf<T>() == 2)
-                return UnsafeHelpers.BitCast<short, T>((short)Interlocked.Add(ref _value, -(long)UnsafeHelpers.BitCast<T, short>(value)));
+                return UnsafeHelpers.BitCast<short, T>((short)InterlockedHelpers.Add(ref _value, -(nint)UnsafeHelpers.BitCast<T, short>(value)));
             if (Unsafe.SizeOf<T>() == 4)
-                return UnsafeHelpers.BitCast<int, T>((int)Interlocked.Add(ref _value, -(long)UnsafeHelpers.BitCast<T, int>(value)));
-            return UnsafeHelpers.BitCast<long, T>(Interlocked.Add(ref _value, -UnsafeHelpers.BitCast<T, long>(value)));
+                return UnsafeHelpers.BitCast<int, T>((int)InterlockedHelpers.Add(ref _value, -(nint)UnsafeHelpers.BitCast<T, int>(value)));
+            return UnsafeHelpers.BitCast<nint, T>(InterlockedHelpers.Add(ref _value, -UnsafeHelpers.BitCast<T, nint>(value)));
         }
 
         /// <summary>
@@ -158,12 +159,12 @@ namespace NativeCollections
         {
             CheckType();
             if (Unsafe.SizeOf<T>() == 1)
-                return UnsafeHelpers.BitCast<byte, T>((byte)Interlocked.Increment(ref _value));
+                return UnsafeHelpers.BitCast<byte, T>((byte)InterlockedHelpers.Increment(ref _value));
             if (Unsafe.SizeOf<T>() == 2)
-                return UnsafeHelpers.BitCast<short, T>((short)Interlocked.Increment(ref _value));
+                return UnsafeHelpers.BitCast<short, T>((short)InterlockedHelpers.Increment(ref _value));
             if (Unsafe.SizeOf<T>() == 4)
-                return UnsafeHelpers.BitCast<int, T>((int)Interlocked.Increment(ref _value));
-            return UnsafeHelpers.BitCast<long, T>(Interlocked.Increment(ref _value));
+                return UnsafeHelpers.BitCast<int, T>((int)InterlockedHelpers.Increment(ref _value));
+            return UnsafeHelpers.BitCast<nint, T>(InterlockedHelpers.Increment(ref _value));
         }
 
         /// <summary>
@@ -174,12 +175,12 @@ namespace NativeCollections
         {
             CheckType();
             if (Unsafe.SizeOf<T>() == 1)
-                return UnsafeHelpers.BitCast<byte, T>((byte)Interlocked.Decrement(ref _value));
+                return UnsafeHelpers.BitCast<byte, T>((byte)InterlockedHelpers.Decrement(ref _value));
             if (Unsafe.SizeOf<T>() == 2)
-                return UnsafeHelpers.BitCast<short, T>((short)Interlocked.Decrement(ref _value));
+                return UnsafeHelpers.BitCast<short, T>((short)InterlockedHelpers.Decrement(ref _value));
             if (Unsafe.SizeOf<T>() == 4)
-                return UnsafeHelpers.BitCast<int, T>((int)Interlocked.Decrement(ref _value));
-            return UnsafeHelpers.BitCast<long, T>(Interlocked.Decrement(ref _value));
+                return UnsafeHelpers.BitCast<int, T>((int)InterlockedHelpers.Decrement(ref _value));
+            return UnsafeHelpers.BitCast<nint, T>(InterlockedHelpers.Decrement(ref _value));
         }
 
         /// <summary>
@@ -188,7 +189,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void CheckType()
         {
-            if ((typeof(T).IsPrimitive || typeof(T).IsEnum) && (Unsafe.SizeOf<T>() == 1 || Unsafe.SizeOf<T>() == 2 || Unsafe.SizeOf<T>() == 4 || Unsafe.SizeOf<T>() == 8) && typeof(T) != typeof(float) && typeof(T) != typeof(double))
+            if ((typeof(T).IsPrimitive || typeof(T).IsEnum) && (Unsafe.SizeOf<T>() == 1 || Unsafe.SizeOf<T>() == 2 || Unsafe.SizeOf<T>() == 4 || (Unsafe.SizeOf<nint>() == 8 && Unsafe.SizeOf<T>() == 8)) && typeof(T) != typeof(float) && typeof(T) != typeof(double))
                 return;
             ThrowHelpers.ThrowNotSupportedException();
         }
@@ -214,11 +215,11 @@ namespace NativeCollections
         /// <summary>
         ///     To string
         /// </summary>
-        public readonly override string ToString() => $"NativeAtomic64{typeof(T).Name}";
+        public readonly override string ToString() => $"NativeAtomicIntPtr{typeof(T).Name}";
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeAtomic64<T> Empty => new();
+        public static NativeAtomicIntPtr<T> Empty => new();
     }
 }

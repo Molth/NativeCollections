@@ -1215,11 +1215,13 @@ namespace NativeCollections
         /// <summary>
         ///     Create
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeString Create(ReadOnlySpan<char> buffer) => new(MemoryMarshal.CreateSpan(ref MemoryMarshal.GetReference(buffer), buffer.Length));
 
         /// <summary>
         ///     Create
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeString Create(ReadOnlySpan<char> buffer, int length) => new(MemoryMarshal.CreateSpan(ref MemoryMarshal.GetReference(buffer), buffer.Length), length);
 
         /// <summary>
