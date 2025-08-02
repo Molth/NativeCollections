@@ -106,7 +106,24 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Add(T value)
         {
-            CheckFloatType();
+            CheckType();
+            if (typeof(T) == typeof(float))
+            {
+                var spinWait = new NativeSpinWait();
+                float newFloat32;
+                while (true)
+                {
+                    var currentInt32 = Interlocked.CompareExchange(ref _value, 0, 0);
+                    newFloat32 = UnsafeHelpers.BitCast<int, float>(currentInt32) + Unsafe.As<T, float>(ref value);
+                    if (Interlocked.CompareExchange(ref _value, UnsafeHelpers.BitCast<float, int>(newFloat32), currentInt32) != currentInt32)
+                        spinWait.SpinOnce(-1);
+                    else
+                        break;
+                }
+
+                return Unsafe.As<float, T>(ref newFloat32);
+            }
+
             if (Unsafe.SizeOf<T>() == 1)
                 return UnsafeHelpers.BitCast<byte, T>((byte)Interlocked.Add(ref _value, UnsafeHelpers.BitCast<T, byte>(value)));
             if (Unsafe.SizeOf<T>() == 2)
@@ -120,7 +137,24 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Subtract(T value)
         {
-            CheckFloatType();
+            CheckType();
+            if (typeof(T) == typeof(float))
+            {
+                var spinWait = new NativeSpinWait();
+                float newFloat32;
+                while (true)
+                {
+                    var currentInt32 = Interlocked.CompareExchange(ref _value, 0, 0);
+                    newFloat32 = UnsafeHelpers.BitCast<int, float>(currentInt32) - Unsafe.As<T, float>(ref value);
+                    if (Interlocked.CompareExchange(ref _value, UnsafeHelpers.BitCast<float, int>(newFloat32), currentInt32) != currentInt32)
+                        spinWait.SpinOnce(-1);
+                    else
+                        break;
+                }
+
+                return Unsafe.As<float, T>(ref newFloat32);
+            }
+
             if (Unsafe.SizeOf<T>() == 1)
                 return UnsafeHelpers.BitCast<byte, T>((byte)Interlocked.Add(ref _value, -UnsafeHelpers.BitCast<T, byte>(value)));
             if (Unsafe.SizeOf<T>() == 2)
@@ -134,7 +168,24 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Increment()
         {
-            CheckFloatType();
+            CheckType();
+            if (typeof(T) == typeof(float))
+            {
+                var spinWait = new NativeSpinWait();
+                float newFloat32;
+                while (true)
+                {
+                    var currentInt32 = Interlocked.CompareExchange(ref _value, 0, 0);
+                    newFloat32 = UnsafeHelpers.BitCast<int, float>(currentInt32) + 1f;
+                    if (Interlocked.CompareExchange(ref _value, UnsafeHelpers.BitCast<float, int>(newFloat32), currentInt32) != currentInt32)
+                        spinWait.SpinOnce(-1);
+                    else
+                        break;
+                }
+
+                return Unsafe.As<float, T>(ref newFloat32);
+            }
+
             if (Unsafe.SizeOf<T>() == 1)
                 return UnsafeHelpers.BitCast<byte, T>((byte)Interlocked.Increment(ref _value));
             if (Unsafe.SizeOf<T>() == 2)
@@ -148,7 +199,24 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Decrement()
         {
-            CheckFloatType();
+            CheckType();
+            if (typeof(T) == typeof(float))
+            {
+                var spinWait = new NativeSpinWait();
+                float newFloat32;
+                while (true)
+                {
+                    var currentInt32 = Interlocked.CompareExchange(ref _value, 0, 0);
+                    newFloat32 = UnsafeHelpers.BitCast<int, float>(currentInt32) - 1f;
+                    if (Interlocked.CompareExchange(ref _value, UnsafeHelpers.BitCast<float, int>(newFloat32), currentInt32) != currentInt32)
+                        spinWait.SpinOnce(-1);
+                    else
+                        break;
+                }
+
+                return Unsafe.As<float, T>(ref newFloat32);
+            }
+
             if (Unsafe.SizeOf<T>() == 1)
                 return UnsafeHelpers.BitCast<byte, T>((byte)Interlocked.Decrement(ref _value));
             if (Unsafe.SizeOf<T>() == 2)
@@ -163,17 +231,6 @@ namespace NativeCollections
         private static void CheckType()
         {
             if ((typeof(T).IsPrimitive || typeof(T).IsEnum) && (Unsafe.SizeOf<T>() == 1 || Unsafe.SizeOf<T>() == 2 || Unsafe.SizeOf<T>() == 4))
-                return;
-            ThrowHelpers.ThrowNotSupportedException();
-        }
-
-        /// <summary>
-        ///     Check type
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void CheckFloatType()
-        {
-            if ((typeof(T).IsPrimitive || typeof(T).IsEnum) && (Unsafe.SizeOf<T>() == 1 || Unsafe.SizeOf<T>() == 2 || Unsafe.SizeOf<T>() == 4) && typeof(T) != typeof(float))
                 return;
             ThrowHelpers.ThrowNotSupportedException();
         }
