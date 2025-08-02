@@ -13,34 +13,27 @@ using System.Threading;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native atomic reference
+    ///     Native atomic IntPtr
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    public unsafe struct NativeAtomicReference<T> where T : unmanaged
+    public struct NativeAtomicIntPtr
     {
         /// <summary>
-        ///     Handle
+        ///     Value
         /// </summary>
-        private nint _handle;
+        private nint _value;
 
         /// <summary>
         ///     Structure
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeAtomicReference(T* handle) => _handle = (nint)handle;
+        public NativeAtomicIntPtr(nint value) => _value = value;
 
         /// <summary>
-        ///     Structure
+        ///     Value
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeAtomicReference(nint handle) => _handle = handle;
-
-        /// <summary>
-        ///     Handle
-        /// </summary>
-        public T* Handle
+        public nint Value
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => Read();
@@ -49,31 +42,46 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Value
-        /// </summary>
-        public ref T Value
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Unsafe.AsRef<T>(Handle);
-        }
-
-        /// <summary>
         ///     Returns a value, loaded as an atomic operation.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T* Read() => (T*)Interlocked.CompareExchange(ref _handle, new IntPtr(0), new IntPtr(0));
+        public nint Read() => Interlocked.CompareExchange(ref _value, new IntPtr(0), new IntPtr(0));
 
         /// <summary>
         ///     Sets a value to a specified value and returns the original value, as an atomic operation.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T* Exchange(T* value) => (T*)Interlocked.Exchange(ref _handle, (nint)value);
+        public nint Exchange(nint value) => Interlocked.Exchange(ref _value, value);
 
         /// <summary>
         ///     Compares two values for equality and, if they are equal, replaces the first value.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T* CompareExchange(T* value, T* comparand) => (T*)Interlocked.CompareExchange(ref _handle, (nint)value, (nint)comparand);
+        public nint CompareExchange(nint value, nint comparand) => Interlocked.CompareExchange(ref _value, value, comparand);
+
+        /// <summary>
+        ///     Adds two values and replaces the first integer with the sum, as an atomic operation.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public nint Add(nint value) => InterlockedHelpers.Add(ref _value, value);
+
+        /// <summary>
+        ///     Subtracts two values and replaces the first integer with the difference, as an atomic operation.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public nint Subtract(nint value) => InterlockedHelpers.Add(ref _value, -value);
+
+        /// <summary>
+        ///     Increments a specified variable and stores the result, as an atomic operation.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public nint Increment() => InterlockedHelpers.Increment(ref _value);
+
+        /// <summary>
+        ///     Decrements a specified variable and stores the result, as an atomic operation.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public nint Decrement() => InterlockedHelpers.Decrement(ref _value);
 
         /// <summary>
         ///     Equals
@@ -96,25 +104,11 @@ namespace NativeCollections
         /// <summary>
         ///     To string
         /// </summary>
-        public readonly override string ToString() => $"NativeAtomicReference{typeof(T).Name}";
-
-        /// <summary>
-        ///     Create
-        /// </summary>
-        /// <param name="reference">Reference</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeAtomicReference<T> Create(ref T reference) => new((T*)Unsafe.AsPointer(ref reference));
-
-        /// <summary>
-        ///     Create
-        /// </summary>
-        /// <param name="buffer">Buffer</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeAtomicReference<T> Create(Span<T> buffer) => new((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)));
+        public readonly override string ToString() => "NativeAtomicIntPtr";
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeAtomicReference<T> Empty => new();
+        public static NativeAtomicIntPtr Empty => new();
     }
 }

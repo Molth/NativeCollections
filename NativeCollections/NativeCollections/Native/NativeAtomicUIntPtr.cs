@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Threading;
 
 #pragma warning disable CS1591
 #pragma warning disable CA2208
@@ -13,34 +12,27 @@ using System.Threading;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native atomic reference
+    ///     Native atomic UIntPtr
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    public unsafe struct NativeAtomicReference<T> where T : unmanaged
+    public struct NativeAtomicUIntPtr
     {
         /// <summary>
-        ///     Handle
+        ///     Value
         /// </summary>
-        private nint _handle;
+        private nuint _value;
 
         /// <summary>
         ///     Structure
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeAtomicReference(T* handle) => _handle = (nint)handle;
+        public NativeAtomicUIntPtr(nuint value) => _value = value;
 
         /// <summary>
-        ///     Structure
+        ///     Value
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeAtomicReference(nint handle) => _handle = handle;
-
-        /// <summary>
-        ///     Handle
-        /// </summary>
-        public T* Handle
+        public nuint Value
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => Read();
@@ -49,31 +41,46 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Value
-        /// </summary>
-        public ref T Value
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Unsafe.AsRef<T>(Handle);
-        }
-
-        /// <summary>
         ///     Returns a value, loaded as an atomic operation.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T* Read() => (T*)Interlocked.CompareExchange(ref _handle, new IntPtr(0), new IntPtr(0));
+        public nuint Read() => InterlockedHelpers.CompareExchange(ref _value, new UIntPtr(0), new UIntPtr(0));
 
         /// <summary>
         ///     Sets a value to a specified value and returns the original value, as an atomic operation.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T* Exchange(T* value) => (T*)Interlocked.Exchange(ref _handle, (nint)value);
+        public nuint Exchange(nuint value) => InterlockedHelpers.Exchange(ref _value, value);
 
         /// <summary>
         ///     Compares two values for equality and, if they are equal, replaces the first value.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T* CompareExchange(T* value, T* comparand) => (T*)Interlocked.CompareExchange(ref _handle, (nint)value, (nint)comparand);
+        public nuint CompareExchange(nuint value, nuint comparand) => InterlockedHelpers.CompareExchange(ref _value, value, comparand);
+
+        /// <summary>
+        ///     Adds two values and replaces the first integer with the sum, as an atomic operation.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public nuint Add(nuint value) => InterlockedHelpers.Add(ref _value, value);
+
+        /// <summary>
+        ///     Subtracts two values and replaces the first integer with the difference, as an atomic operation.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public nuint Subtract(nuint value) => InterlockedHelpers.Add(ref _value, (nuint)(-(nint)value));
+
+        /// <summary>
+        ///     Increments a specified variable and stores the result, as an atomic operation.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public nuint Increment() => InterlockedHelpers.Increment(ref _value);
+
+        /// <summary>
+        ///     Decrements a specified variable and stores the result, as an atomic operation.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public nuint Decrement() => InterlockedHelpers.Decrement(ref _value);
 
         /// <summary>
         ///     Equals
@@ -96,25 +103,11 @@ namespace NativeCollections
         /// <summary>
         ///     To string
         /// </summary>
-        public readonly override string ToString() => $"NativeAtomicReference{typeof(T).Name}";
-
-        /// <summary>
-        ///     Create
-        /// </summary>
-        /// <param name="reference">Reference</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeAtomicReference<T> Create(ref T reference) => new((T*)Unsafe.AsPointer(ref reference));
-
-        /// <summary>
-        ///     Create
-        /// </summary>
-        /// <param name="buffer">Buffer</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeAtomicReference<T> Create(Span<T> buffer) => new((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)));
+        public readonly override string ToString() => "NativeAtomicUIntPtr";
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeAtomicReference<T> Empty => new();
+        public static NativeAtomicUIntPtr Empty => new();
     }
 }

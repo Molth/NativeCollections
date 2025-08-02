@@ -1,9 +1,6 @@
 ﻿using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-#if !NET5_0_OR_GREATER
-using System;
-#endif
 
 // ReSharper disable ALL
 
@@ -47,11 +44,7 @@ namespace NativeCollections
             var byteOffset = alignment - 1 + (uint)sizeof(GCHandle);
             var array = ArrayPool<DummyByteHelper>.Shared.Rent((int)(byteCount + byteOffset));
             var gcHandle = GCHandle.Alloc(array, GCHandleType.Pinned);
-#if NET5_0_OR_GREATER
-            ref var reference = ref MemoryMarshal.GetArrayDataReference(array);
-#else
-            ref var reference = ref MemoryMarshal.GetReference(array.AsSpan());
-#endif
+            ref var reference = ref ArrayHelpers.GetArrayDataReference(array);
             var ptr = Unsafe.AsPointer(ref reference);
             var result = (void*)(((nint)ptr + (nint)byteOffset) & ~((nint)alignment - 1));
             Unsafe.WriteUnaligned(UnsafeHelpers.SubtractByteOffset(result, sizeof(GCHandle)), gcHandle);
@@ -69,11 +62,7 @@ namespace NativeCollections
             var byteOffset = alignment - 1 + (uint)sizeof(GCHandle);
             var array = ArrayPool<DummyByteHelper>.Shared.Rent((int)(byteCount + byteOffset));
             var gcHandle = GCHandle.Alloc(array, GCHandleType.Pinned);
-#if NET5_0_OR_GREATER
-            ref var reference = ref MemoryMarshal.GetArrayDataReference(array);
-#else
-            ref var reference = ref MemoryMarshal.GetReference(array.AsSpan());
-#endif
+            ref var reference = ref ArrayHelpers.GetArrayDataReference(array);
             var ptr = Unsafe.AsPointer(ref reference);
             var result = (void*)(((nint)ptr + (nint)byteOffset) & ~((nint)alignment - 1));
             Unsafe.WriteUnaligned(UnsafeHelpers.SubtractByteOffset(result, sizeof(GCHandle)), gcHandle);
