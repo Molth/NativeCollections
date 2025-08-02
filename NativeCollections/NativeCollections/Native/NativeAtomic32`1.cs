@@ -1,9 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
-#if NET7_0_OR_GREATER
-using System.Numerics;
-#endif
 
 #pragma warning disable CS1591
 #pragma warning disable CA2208
@@ -21,9 +18,6 @@ namespace NativeCollections
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
     public struct NativeAtomic32<T> where T : unmanaged
-#if NET7_0_OR_GREATER
-        , IBinaryInteger<T>
-#endif
     {
         /// <summary>
         ///     Value
@@ -112,7 +106,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Add(T value)
         {
-            CheckType();
+            CheckFloatType();
             if (Unsafe.SizeOf<T>() == 1)
                 return UnsafeHelpers.BitCast<byte, T>((byte)Interlocked.Add(ref _value, UnsafeHelpers.BitCast<T, byte>(value)));
             if (Unsafe.SizeOf<T>() == 2)
@@ -126,7 +120,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Subtract(T value)
         {
-            CheckType();
+            CheckFloatType();
             if (Unsafe.SizeOf<T>() == 1)
                 return UnsafeHelpers.BitCast<byte, T>((byte)Interlocked.Add(ref _value, -UnsafeHelpers.BitCast<T, byte>(value)));
             if (Unsafe.SizeOf<T>() == 2)
@@ -140,7 +134,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Increment()
         {
-            CheckType();
+            CheckFloatType();
             if (Unsafe.SizeOf<T>() == 1)
                 return UnsafeHelpers.BitCast<byte, T>((byte)Interlocked.Increment(ref _value));
             if (Unsafe.SizeOf<T>() == 2)
@@ -154,7 +148,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Decrement()
         {
-            CheckType();
+            CheckFloatType();
             if (Unsafe.SizeOf<T>() == 1)
                 return UnsafeHelpers.BitCast<byte, T>((byte)Interlocked.Decrement(ref _value));
             if (Unsafe.SizeOf<T>() == 2)
@@ -167,6 +161,17 @@ namespace NativeCollections
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void CheckType()
+        {
+            if ((typeof(T).IsPrimitive || typeof(T).IsEnum) && (Unsafe.SizeOf<T>() == 1 || Unsafe.SizeOf<T>() == 2 || Unsafe.SizeOf<T>() == 4))
+                return;
+            ThrowHelpers.ThrowNotSupportedException();
+        }
+
+        /// <summary>
+        ///     Check type
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void CheckFloatType()
         {
             if ((typeof(T).IsPrimitive || typeof(T).IsEnum) && (Unsafe.SizeOf<T>() == 1 || Unsafe.SizeOf<T>() == 2 || Unsafe.SizeOf<T>() == 4) && typeof(T) != typeof(float))
                 return;
