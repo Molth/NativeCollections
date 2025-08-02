@@ -53,17 +53,6 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Value
-        /// </summary>
-        public T Value
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => Read();
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Exchange(value);
-        }
-
-        /// <summary>
         ///     Returns a value, loaded as an atomic operation.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

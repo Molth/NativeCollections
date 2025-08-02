@@ -31,17 +31,6 @@ namespace NativeCollections
         public NativeAtomicIntPtr(nint value) => _value = value;
 
         /// <summary>
-        ///     Value
-        /// </summary>
-        public nint Value
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => Read();
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Exchange(value);
-        }
-
-        /// <summary>
         ///     Returns a value, loaded as an atomic operation.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

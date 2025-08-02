@@ -38,26 +38,6 @@ namespace NativeCollections
         public NativeAtomicReference(nint handle) => _handle = handle;
 
         /// <summary>
-        ///     Handle
-        /// </summary>
-        public T* Handle
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => Read();
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Exchange(value);
-        }
-
-        /// <summary>
-        ///     Value
-        /// </summary>
-        public ref T Value
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Unsafe.AsRef<T>(Handle);
-        }
-
-        /// <summary>
         ///     Returns a value, loaded as an atomic operation.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
