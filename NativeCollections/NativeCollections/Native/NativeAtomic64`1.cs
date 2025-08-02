@@ -350,5 +350,11 @@ namespace NativeCollections
         ///     Empty
         /// </summary>
         public static NativeAtomic64<T> Empty => new();
+
+        /// <summary>
+        ///     As value
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator T(NativeAtomic64<T> nativeAtomic64) => nativeAtomic64.Value;
     }
 }

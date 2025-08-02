@@ -262,5 +262,11 @@ namespace NativeCollections
         ///     Empty
         /// </summary>
         public static NativeAtomic32<T> Empty => new();
+
+        /// <summary>
+        ///     As value
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator T(NativeAtomic32<T> nativeAtomic32) => nativeAtomic32.Value;
     }
 }
