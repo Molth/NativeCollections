@@ -599,7 +599,7 @@ namespace NativeCollections
                 public block_header_t_ptr* this[int i]
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                    get => (block_header_t_ptr*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.As<blocks_t, block_header_t_ptr>(ref this), (nint)(i * SL_INDEX_COUNT)));
+                    get => UnsafeHelpers.Add(ref Unsafe.As<blocks_t, block_header_t_ptr>(ref this), i * SL_INDEX_COUNT);
                 }
             }
 
@@ -1207,7 +1207,7 @@ namespace NativeCollections
                 public block_header_t_ptr* this[int i]
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                    get => (block_header_t_ptr*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.As<blocks_t, block_header_t_ptr>(ref this), (nint)(i * SL_INDEX_COUNT)));
+                    get => UnsafeHelpers.Add(ref Unsafe.As<blocks_t, block_header_t_ptr>(ref this), i * SL_INDEX_COUNT);
                 }
             }
 

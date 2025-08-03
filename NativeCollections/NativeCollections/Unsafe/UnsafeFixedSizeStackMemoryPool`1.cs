@@ -104,7 +104,7 @@ namespace NativeCollections
 
             _size = size;
             var index = Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)size);
-            ptr = (T*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index));
+            ptr = UnsafeHelpers.Add<T>(_buffer, index);
             return true;
         }
 

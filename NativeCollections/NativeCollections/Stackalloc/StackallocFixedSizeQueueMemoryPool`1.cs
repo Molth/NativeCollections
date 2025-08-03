@@ -121,7 +121,7 @@ namespace NativeCollections
             var index = Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)_head);
             MoveNext(ref _head);
             _size--;
-            ptr = (T*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index));
+            ptr = UnsafeHelpers.Add<T>(_buffer, index);
             return true;
         }
 

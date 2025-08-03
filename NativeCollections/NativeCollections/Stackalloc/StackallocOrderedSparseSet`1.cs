@@ -1239,7 +1239,7 @@ namespace NativeCollections
                     _nativeSparseSet = handle;
                     _version = handle->_version;
                     _index = -1;
-                    _current = handle->_head != -1 ? (Entry*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(handle->_dense), (nint)handle->_head)) : null;
+                    _current = handle->_head != -1 ? UnsafeHelpers.Add<Entry>(handle->_dense, handle->_head) : null;
                 }
 
                 /// <summary>
@@ -1256,7 +1256,7 @@ namespace NativeCollections
                         return false;
                     _index = num;
                     if (num != 0)
-                        _current = (Entry*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(handle->_dense), (nint)_current->Next));
+                        _current = UnsafeHelpers.Add<Entry>(handle->_dense, _current->Next);
                     return true;
                 }
 
@@ -1393,7 +1393,7 @@ namespace NativeCollections
                     _nativeSparseSet = handle;
                     _version = handle->_version;
                     _index = -1;
-                    _current = handle->_head != -1 ? (Entry*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(handle->_dense), (nint)handle->_head)) : null;
+                    _current = handle->_head != -1 ? UnsafeHelpers.Add<Entry>(handle->_dense, handle->_head) : null;
                 }
 
                 /// <summary>
@@ -1410,7 +1410,7 @@ namespace NativeCollections
                         return false;
                     _index = num;
                     if (num != 0)
-                        _current = (Entry*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(handle->_dense), (nint)_current->Next));
+                        _current = UnsafeHelpers.Add<Entry>(handle->_dense, _current->Next);
                     return true;
                 }
 
@@ -1547,7 +1547,7 @@ namespace NativeCollections
                     _nativeSparseSet = handle;
                     _version = handle->_version;
                     _index = -1;
-                    _current = handle->_head != -1 ? (Entry*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(handle->_dense), (nint)handle->_head)) : null;
+                    _current = handle->_head != -1 ? UnsafeHelpers.Add<Entry>(handle->_dense, handle->_head) : null;
                 }
 
                 /// <summary>
@@ -1564,7 +1564,7 @@ namespace NativeCollections
                         return false;
                     _index = num;
                     if (num != 0)
-                        _current = (Entry*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(handle->_dense), (nint)_current->Next));
+                        _current = UnsafeHelpers.Add<Entry>(handle->_dense, _current->Next);
                     return true;
                 }
 

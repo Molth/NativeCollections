@@ -128,7 +128,7 @@ namespace NativeCollections
             ref var segment = ref Unsafe.Add(ref Unsafe.AsRef<int>(_bitArray), (nint)(index >> 5));
             var bitMask = 1 << index;
             segment |= bitMask;
-            ptr = (T*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index));
+            ptr = UnsafeHelpers.Add<T>(_buffer, index);
             return true;
         }
 

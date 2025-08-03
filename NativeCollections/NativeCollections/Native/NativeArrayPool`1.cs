@@ -152,7 +152,7 @@ namespace NativeCollections
             if (buckets == null)
                 return;
             for (var i = 0; i < _length; ++i)
-                Unsafe.Add(ref Unsafe.AsRef<NativeArrayPoolBucket>(buckets), (nint)i).Dispose(_capacity, (CustomMemoryAllocator*)Unsafe.AsPointer(ref _allocator));
+                Unsafe.Add(ref Unsafe.AsRef<NativeArrayPoolBucket>(buckets), (nint)i).Dispose(_capacity, ref _allocator);
             NativeMemoryAllocator.AlignedFree(buckets);
         }
 
@@ -167,7 +167,7 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfNegative(minimumLength, nameof(minimumLength));
             var index = SelectBucketIndex(minimumLength);
             ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _length, nameof(minimumLength));
-            return Unsafe.Add(ref Unsafe.AsRef<NativeArrayPoolBucket>(_buckets), (nint)index).Rent(_capacity, (CustomMemoryAllocator*)Unsafe.AsPointer(ref _allocator));
+            return Unsafe.Add(ref Unsafe.AsRef<NativeArrayPoolBucket>(_buckets), (nint)index).Rent(_capacity, ref _allocator);
         }
 
         /// <summary>
@@ -188,7 +188,7 @@ namespace NativeCollections
             var index = SelectBucketIndex(minimumLength);
             if (index < _length)
             {
-                nativeArray = Unsafe.Add(ref Unsafe.AsRef<NativeArrayPoolBucket>(_buckets), (nint)index).Rent(_capacity, (CustomMemoryAllocator*)Unsafe.AsPointer(ref _allocator));
+                nativeArray = Unsafe.Add(ref Unsafe.AsRef<NativeArrayPoolBucket>(_buckets), (nint)index).Rent(_capacity, ref _allocator);
                 return true;
             }
 
@@ -224,7 +224,7 @@ namespace NativeCollections
             var bucket = SelectBucketIndex(length);
             if (bucket >= _length)
                 ThrowHelpers.ThrowBufferNotFromPoolException(nameof(buffer));
-            Unsafe.Add(ref Unsafe.AsRef<NativeArrayPoolBucket>(_buckets), (nint)bucket).Return(buffer, (CustomMemoryAllocator*)Unsafe.AsPointer(ref _allocator));
+            Unsafe.Add(ref Unsafe.AsRef<NativeArrayPoolBucket>(_buckets), (nint)bucket).Return(buffer, ref _allocator);
         }
 
         /// <summary>
@@ -241,7 +241,7 @@ namespace NativeCollections
             var bucket = SelectBucketIndex(length);
             if (bucket >= _length)
                 return false;
-            Unsafe.Add(ref Unsafe.AsRef<NativeArrayPoolBucket>(_buckets), (nint)bucket).Return(buffer, (CustomMemoryAllocator*)Unsafe.AsPointer(ref _allocator));
+            Unsafe.Add(ref Unsafe.AsRef<NativeArrayPoolBucket>(_buckets), (nint)bucket).Return(buffer, ref _allocator);
             return true;
         }
 
@@ -288,14 +288,14 @@ namespace NativeCollections
             ///     Dispose
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public readonly void Dispose(int capacity, CustomMemoryAllocator* allocator)
+            public readonly void Dispose(int capacity, ref CustomMemoryAllocator allocator)
             {
                 for (var i = capacity - 1; i >= 0; --i)
                 {
                     var buffer = (void*)Unsafe.Add(ref Unsafe.AsRef<nint>(Buffer), (nint)i);
                     if (buffer == null)
                         break;
-                    allocator->AlignedFree(buffer);
+                    allocator.AlignedFree(buffer);
                 }
             }
 
@@ -304,7 +304,7 @@ namespace NativeCollections
             /// </summary>
             /// <returns>Buffer</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public NativeArray<T> Rent(int capacity, CustomMemoryAllocator* allocator)
+            public NativeArray<T> Rent(int capacity, ref CustomMemoryAllocator allocator)
             {
                 var buffer = Buffer;
                 T* ptr = null;
@@ -321,7 +321,7 @@ namespace NativeCollections
                     }
 
                     if (ptr == null)
-                        ptr = (T*)allocator->AlignedAlloc((uint)Length, (uint)NativeMemoryAllocator.AlignOf<T>());
+                        ptr = (T*)allocator.AlignedAlloc((uint)Length, (uint)NativeMemoryAllocator.AlignOf<T>());
                 }
                 finally
                 {
@@ -336,7 +336,7 @@ namespace NativeCollections
             ///     Return buffer
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void Return(T* ptr, CustomMemoryAllocator* allocator)
+            public void Return(T* ptr, ref CustomMemoryAllocator allocator)
             {
                 ref var spinLock = ref SpinLock;
                 ref var index = ref Index;
@@ -347,7 +347,7 @@ namespace NativeCollections
                     if (index != 0)
                         Unsafe.Add(ref Unsafe.AsRef<nint>(Buffer), (nint)(--index)) = (nint)ptr;
                     else
-                        allocator->AlignedFree(ptr);
+                        allocator.AlignedFree(ptr);
                 }
                 finally
                 {

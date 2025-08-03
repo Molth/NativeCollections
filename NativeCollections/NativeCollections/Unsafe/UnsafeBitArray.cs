@@ -544,7 +544,7 @@ namespace NativeCollections
         public readonly NativeBitArraySlot GetSlot(int index)
         {
             ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_length, nameof(index));
-            return new NativeBitArraySlot((int*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<int>(_buffer.Buffer), (nint)(index >> 5))), 1 << index);
+            return new NativeBitArraySlot(UnsafeHelpers.Add<int>(_buffer.Buffer, index >> 5), 1 << index);
         }
 
         /// <summary>
@@ -561,7 +561,7 @@ namespace NativeCollections
                 return false;
             }
 
-            slot = new NativeBitArraySlot((int*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<int>(_buffer.Buffer), (nint)(index >> 5))), 1 << index);
+            slot = new NativeBitArraySlot(UnsafeHelpers.Add<int>(_buffer.Buffer, index >> 5), 1 << index);
             return true;
         }
 
@@ -573,7 +573,7 @@ namespace NativeCollections
         public readonly NativeBitArraySlot GetSlot(uint index)
         {
             ThrowHelpers.ThrowIfGreaterThanOrEqual(index, (uint)_length, nameof(index));
-            return new NativeBitArraySlot((int*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<int>(_buffer.Buffer), (nint)index >> 5)), 1 << (int)index);
+            return new NativeBitArraySlot(UnsafeHelpers.Add<int>(_buffer.Buffer, (nint)index >> 5), 1 << (int)index);
         }
 
         /// <summary>
@@ -590,7 +590,7 @@ namespace NativeCollections
                 return false;
             }
 
-            slot = new NativeBitArraySlot((int*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<int>(_buffer.Buffer), (nint)(index >> 5))), 1 << (int)index);
+            slot = new NativeBitArraySlot(UnsafeHelpers.Add<int>(_buffer.Buffer, (nint)(index >> 5)), 1 << (int)index);
             return true;
         }
 

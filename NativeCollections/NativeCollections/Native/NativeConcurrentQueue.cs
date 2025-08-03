@@ -68,9 +68,9 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Initialize()
             {
-                var slots = (NativeConcurrentQueueSegmentSlot<T>*)Unsafe.AsPointer(ref Slots);
+                ref var slot = ref Unsafe.As<NativeConcurrentQueueSegmentSlots1024<T>, NativeConcurrentQueueSegmentSlot<T>>(ref Slots);
                 for (var i = 0; i < SLOTS_LENGTH; ++i)
-                    Unsafe.Add(ref Unsafe.AsRef<NativeConcurrentQueueSegmentSlot<T>>(slots), (nint)i).SequenceNumber = i;
+                    Unsafe.Add(ref slot, (nint)i).SequenceNumber = i;
                 HeadAndTail = new NativeConcurrentQueuePaddedHeadAndTail();
                 FrozenForEnqueues = false;
                 NextSegment = 0;
@@ -97,20 +97,20 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool TryDequeue(out T result)
             {
-                var slots = (NativeConcurrentQueueSegmentSlot<T>*)Unsafe.AsPointer(ref Slots);
+                ref var slot = ref Unsafe.As<NativeConcurrentQueueSegmentSlots1024<T>, NativeConcurrentQueueSegmentSlot<T>>(ref Slots);
                 var spinWait = new NativeSpinWait();
                 while (true)
                 {
                     var currentHead = Volatile.Read(ref HeadAndTail.Head);
                     var slotsIndex = currentHead & SLOTS_MASK;
-                    var sequenceNumber = Volatile.Read(ref Unsafe.Add(ref Unsafe.AsRef<NativeConcurrentQueueSegmentSlot<T>>(slots), (nint)slotsIndex).SequenceNumber);
+                    var sequenceNumber = Volatile.Read(ref Unsafe.Add(ref slot, (nint)slotsIndex).SequenceNumber);
                     var diff = sequenceNumber - (currentHead + 1);
                     if (diff == 0)
                     {
                         if (Interlocked.CompareExchange(ref HeadAndTail.Head, currentHead + 1, currentHead) == currentHead)
                         {
-                            result = Unsafe.Add(ref Unsafe.AsRef<NativeConcurrentQueueSegmentSlot<T>>(slots), (nint)slotsIndex).Item;
-                            Volatile.Write(ref Unsafe.Add(ref Unsafe.AsRef<NativeConcurrentQueueSegmentSlot<T>>(slots), (nint)slotsIndex).SequenceNumber, currentHead + SLOTS_LENGTH);
+                            result = Unsafe.Add(ref slot, (nint)slotsIndex).Item;
+                            Volatile.Write(ref Unsafe.Add(ref slot, (nint)slotsIndex).SequenceNumber, currentHead + SLOTS_LENGTH);
                             return true;
                         }
                     }
@@ -136,13 +136,13 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool TryPeek()
             {
-                var slots = (NativeConcurrentQueueSegmentSlot<T>*)Unsafe.AsPointer(ref Slots);
+                ref var slot = ref Unsafe.As<NativeConcurrentQueueSegmentSlots1024<T>, NativeConcurrentQueueSegmentSlot<T>>(ref Slots);
                 var spinWait = new NativeSpinWait();
                 while (true)
                 {
                     var currentHead = Volatile.Read(ref HeadAndTail.Head);
                     var slotsIndex = currentHead & SLOTS_MASK;
-                    var sequenceNumber = Volatile.Read(ref Unsafe.Add(ref Unsafe.AsRef<NativeConcurrentQueueSegmentSlot<T>>(slots), (nint)slotsIndex).SequenceNumber);
+                    var sequenceNumber = Volatile.Read(ref Unsafe.Add(ref slot, (nint)slotsIndex).SequenceNumber);
                     var diff = sequenceNumber - (currentHead + 1);
                     if (diff == 0)
                         return true;
@@ -165,19 +165,19 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool TryEnqueue(in T item)
             {
-                var slots = (NativeConcurrentQueueSegmentSlot<T>*)Unsafe.AsPointer(ref Slots);
+                ref var slot = ref Unsafe.As<NativeConcurrentQueueSegmentSlots1024<T>, NativeConcurrentQueueSegmentSlot<T>>(ref Slots);
                 while (true)
                 {
                     var currentTail = Volatile.Read(ref HeadAndTail.Tail);
                     var slotsIndex = currentTail & SLOTS_MASK;
-                    var sequenceNumber = Volatile.Read(ref Unsafe.Add(ref Unsafe.AsRef<NativeConcurrentQueueSegmentSlot<T>>(slots), (nint)slotsIndex).SequenceNumber);
+                    var sequenceNumber = Volatile.Read(ref Unsafe.Add(ref slot, (nint)slotsIndex).SequenceNumber);
                     var diff = sequenceNumber - currentTail;
                     if (diff == 0)
                     {
                         if (Interlocked.CompareExchange(ref HeadAndTail.Tail, currentTail + 1, currentTail) == currentTail)
                         {
-                            Unsafe.Add(ref Unsafe.AsRef<NativeConcurrentQueueSegmentSlot<T>>(slots), (nint)slotsIndex).Item = item;
-                            Volatile.Write(ref Unsafe.Add(ref Unsafe.AsRef<NativeConcurrentQueueSegmentSlot<T>>(slots), (nint)slotsIndex).SequenceNumber, currentTail + 1);
+                            Unsafe.Add(ref slot, (nint)slotsIndex).Item = item;
+                            Volatile.Write(ref Unsafe.Add(ref slot, (nint)slotsIndex).SequenceNumber, currentTail + 1);
                             return true;
                         }
                     }
