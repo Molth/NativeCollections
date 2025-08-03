@@ -98,9 +98,9 @@ namespace NativeCollections
                 var n = count - ((uint)Vector256<int>.Count - 1);
                 for (; i < n; i += (uint)Vector256<int>.Count)
                 {
-                    var local1 = Avx.LoadVector256((int*)Unsafe.AsPointer(ref Unsafe.Add(ref left, (nint)i)));
-                    var local2 = Avx.LoadVector256((int*)Unsafe.AsPointer(ref Unsafe.Add(ref right, (nint)i)));
-                    Avx.Store((int*)Unsafe.AsPointer(ref Unsafe.Add(ref left, (nint)i)), Avx2.And(local1, local2));
+                    var local1 = Avx.LoadVector256(UnsafeHelpers.Add(ref left, (nint)i));
+                    var local2 = Avx.LoadVector256(UnsafeHelpers.Add(ref right, (nint)i));
+                    Avx.Store(UnsafeHelpers.Add(ref left, (nint)i), Avx2.And(local1, local2));
                 }
             }
             else if (Sse2.IsSupported && count >= (uint)Vector128<int>.Count)
@@ -108,9 +108,9 @@ namespace NativeCollections
                 var n = count - ((uint)Vector128<int>.Count - 1);
                 for (; i < n; i += (uint)Vector128<int>.Count)
                 {
-                    var local1 = Sse2.LoadVector128((int*)Unsafe.AsPointer(ref Unsafe.Add(ref left, (nint)i)));
-                    var local2 = Sse2.LoadVector128((int*)Unsafe.AsPointer(ref Unsafe.Add(ref right, (nint)i)));
-                    Sse2.Store((int*)Unsafe.AsPointer(ref Unsafe.Add(ref left, (nint)i)), Sse2.And(local1, local2));
+                    var local1 = Sse2.LoadVector128(UnsafeHelpers.Add(ref left, (nint)i));
+                    var local2 = Sse2.LoadVector128(UnsafeHelpers.Add(ref right, (nint)i));
+                    Sse2.Store(UnsafeHelpers.Add(ref left, (nint)i), Sse2.And(local1, local2));
                 }
             }
             else if (AdvSimd.IsSupported && count >= (uint)Vector128<int>.Count)
@@ -118,9 +118,9 @@ namespace NativeCollections
                 var n = count - ((uint)Vector128<int>.Count - 1);
                 for (; i < n; i += (uint)Vector128<int>.Count)
                 {
-                    var local1 = AdvSimd.LoadVector128((int*)Unsafe.AsPointer(ref Unsafe.Add(ref left, (nint)i)));
-                    var local2 = AdvSimd.LoadVector128((int*)Unsafe.AsPointer(ref Unsafe.Add(ref right, (nint)i)));
-                    AdvSimd.Store((int*)Unsafe.AsPointer(ref Unsafe.Add(ref left, (nint)i)), AdvSimd.And(local1, local2));
+                    var local1 = AdvSimd.LoadVector128(UnsafeHelpers.Add(ref left, (nint)i));
+                    var local2 = AdvSimd.LoadVector128(UnsafeHelpers.Add(ref right, (nint)i));
+                    AdvSimd.Store(UnsafeHelpers.Add(ref left, (nint)i), AdvSimd.And(local1, local2));
                 }
             }
 #endif
@@ -204,9 +204,9 @@ namespace NativeCollections
                 var n = count - ((uint)Vector256<int>.Count - 1);
                 for (; i < n; i += (uint)Vector256<int>.Count)
                 {
-                    var local1 = Avx.LoadVector256((int*)Unsafe.AsPointer(ref Unsafe.Add(ref left, (nint)i)));
-                    var local2 = Avx.LoadVector256((int*)Unsafe.AsPointer(ref Unsafe.Add(ref right, (nint)i)));
-                    Avx.Store((int*)Unsafe.AsPointer(ref Unsafe.Add(ref left, (nint)i)), Avx2.Or(local1, local2));
+                    var local1 = Avx.LoadVector256(UnsafeHelpers.Add(ref left, (nint)i));
+                    var local2 = Avx.LoadVector256(UnsafeHelpers.Add(ref right, (nint)i));
+                    Avx.Store(UnsafeHelpers.Add(ref left, (nint)i), Avx2.Or(local1, local2));
                 }
             }
             else if (Sse2.IsSupported && count >= (uint)Vector128<int>.Count)
@@ -214,9 +214,9 @@ namespace NativeCollections
                 var n = count - ((uint)Vector128<int>.Count - 1);
                 for (; i < n; i += (uint)Vector128<int>.Count)
                 {
-                    var local1 = Sse2.LoadVector128((int*)Unsafe.AsPointer(ref Unsafe.Add(ref left, (nint)i)));
-                    var local2 = Sse2.LoadVector128((int*)Unsafe.AsPointer(ref Unsafe.Add(ref right, (nint)i)));
-                    Sse2.Store((int*)Unsafe.AsPointer(ref Unsafe.Add(ref left, (nint)i)), Sse2.Or(local1, local2));
+                    var local1 = Sse2.LoadVector128(UnsafeHelpers.Add(ref left, (nint)i));
+                    var local2 = Sse2.LoadVector128(UnsafeHelpers.Add(ref right, (nint)i));
+                    Sse2.Store(UnsafeHelpers.Add(ref left, (nint)i), Sse2.Or(local1, local2));
                 }
             }
             else if (AdvSimd.IsSupported && count >= (uint)Vector128<int>.Count)
@@ -224,9 +224,9 @@ namespace NativeCollections
                 var n = count - ((uint)Vector128<int>.Count - 1);
                 for (; i < n; i += (uint)Vector128<int>.Count)
                 {
-                    var local1 = AdvSimd.LoadVector128((int*)Unsafe.AsPointer(ref Unsafe.Add(ref left, (nint)i)));
-                    var local2 = AdvSimd.LoadVector128((int*)Unsafe.AsPointer(ref Unsafe.Add(ref right, (nint)i)));
-                    AdvSimd.Store((int*)Unsafe.AsPointer(ref Unsafe.Add(ref left, (nint)i)), AdvSimd.Or(local1, local2));
+                    var local1 = AdvSimd.LoadVector128(UnsafeHelpers.Add(ref left, (nint)i));
+                    var local2 = AdvSimd.LoadVector128(UnsafeHelpers.Add(ref right, (nint)i));
+                    AdvSimd.Store(UnsafeHelpers.Add(ref left, (nint)i), AdvSimd.Or(local1, local2));
                 }
             }
 #endif
@@ -310,9 +310,9 @@ namespace NativeCollections
                 var n = count - ((uint)Vector256<int>.Count - 1);
                 for (; i < n; i += (uint)Vector256<int>.Count)
                 {
-                    var local1 = Avx.LoadVector256((int*)Unsafe.AsPointer(ref Unsafe.Add(ref left, (nint)i)));
-                    var local2 = Avx.LoadVector256((int*)Unsafe.AsPointer(ref Unsafe.Add(ref right, (nint)i)));
-                    Avx.Store((int*)Unsafe.AsPointer(ref Unsafe.Add(ref left, (nint)i)), Avx2.Xor(local1, local2));
+                    var local1 = Avx.LoadVector256(UnsafeHelpers.Add(ref left, (nint)i));
+                    var local2 = Avx.LoadVector256(UnsafeHelpers.Add(ref right, (nint)i));
+                    Avx.Store(UnsafeHelpers.Add(ref left, (nint)i), Avx2.Xor(local1, local2));
                 }
             }
             else if (Sse2.IsSupported && count >= (uint)Vector128<int>.Count)
@@ -320,9 +320,9 @@ namespace NativeCollections
                 var n = count - ((uint)Vector128<int>.Count - 1);
                 for (; i < n; i += (uint)Vector128<int>.Count)
                 {
-                    var local1 = Sse2.LoadVector128((int*)Unsafe.AsPointer(ref Unsafe.Add(ref left, (nint)i)));
-                    var local2 = Sse2.LoadVector128((int*)Unsafe.AsPointer(ref Unsafe.Add(ref right, (nint)i)));
-                    Sse2.Store((int*)Unsafe.AsPointer(ref Unsafe.Add(ref left, (nint)i)), Sse2.Xor(local1, local2));
+                    var local1 = Sse2.LoadVector128(UnsafeHelpers.Add(ref left, (nint)i));
+                    var local2 = Sse2.LoadVector128(UnsafeHelpers.Add(ref right, (nint)i));
+                    Sse2.Store(UnsafeHelpers.Add(ref left, (nint)i), Sse2.Xor(local1, local2));
                 }
             }
             else if (AdvSimd.IsSupported && count >= (uint)Vector128<int>.Count)
@@ -330,9 +330,9 @@ namespace NativeCollections
                 var n = count - ((uint)Vector128<int>.Count - 1);
                 for (; i < n; i += (uint)Vector128<int>.Count)
                 {
-                    var local1 = AdvSimd.LoadVector128((int*)Unsafe.AsPointer(ref Unsafe.Add(ref left, (nint)i)));
-                    var local2 = AdvSimd.LoadVector128((int*)Unsafe.AsPointer(ref Unsafe.Add(ref right, (nint)i)));
-                    AdvSimd.Store((int*)Unsafe.AsPointer(ref Unsafe.Add(ref left, (nint)i)), AdvSimd.Xor(local1, local2));
+                    var local1 = AdvSimd.LoadVector128(UnsafeHelpers.Add(ref left, (nint)i));
+                    var local2 = AdvSimd.LoadVector128(UnsafeHelpers.Add(ref right, (nint)i));
+                    AdvSimd.Store(UnsafeHelpers.Add(ref left, (nint)i), AdvSimd.Xor(local1, local2));
                 }
             }
 #endif
@@ -415,8 +415,8 @@ namespace NativeCollections
                 var n = count - ((uint)Vector256<int>.Count - 1);
                 for (; i < n; i += (uint)Vector256<int>.Count)
                 {
-                    var local1 = Avx.LoadVector256((int*)Unsafe.AsPointer(ref Unsafe.Add(ref value, (nint)i)));
-                    Avx.Store((int*)Unsafe.AsPointer(ref Unsafe.Add(ref value, (nint)i)), Avx2.Xor(local1, local2));
+                    var local1 = Avx.LoadVector256(UnsafeHelpers.Add(ref value, (nint)i));
+                    Avx.Store(UnsafeHelpers.Add(ref value, (nint)i), Avx2.Xor(local1, local2));
                 }
             }
             else if (Sse2.IsSupported && count >= (uint)Vector128<int>.Count)
@@ -425,8 +425,8 @@ namespace NativeCollections
                 var n = count - ((uint)Vector128<int>.Count - 1);
                 for (; i < n; i += (uint)Vector128<int>.Count)
                 {
-                    var local1 = Sse2.LoadVector128((int*)Unsafe.AsPointer(ref Unsafe.Add(ref value, (nint)i)));
-                    Sse2.Store((int*)Unsafe.AsPointer(ref Unsafe.Add(ref value, (nint)i)), Sse2.Xor(local1, local2));
+                    var local1 = Sse2.LoadVector128(UnsafeHelpers.Add(ref value, (nint)i));
+                    Sse2.Store(UnsafeHelpers.Add(ref value, (nint)i), Sse2.Xor(local1, local2));
                 }
             }
             else if (AdvSimd.IsSupported && count >= (uint)Vector128<int>.Count)
@@ -434,8 +434,8 @@ namespace NativeCollections
                 var n = count - ((uint)Vector128<int>.Count - 1);
                 for (; i < n; i += (uint)Vector128<int>.Count)
                 {
-                    var local = AdvSimd.LoadVector128((int*)Unsafe.AsPointer(ref Unsafe.Add(ref value, (nint)i)));
-                    AdvSimd.Store((int*)Unsafe.AsPointer(ref Unsafe.Add(ref value, (nint)i)), AdvSimd.Not(local));
+                    var local = AdvSimd.LoadVector128(UnsafeHelpers.Add(ref value, (nint)i));
+                    AdvSimd.Store(UnsafeHelpers.Add(ref value, (nint)i), AdvSimd.Not(local));
                 }
             }
 #endif

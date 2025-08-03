@@ -33,6 +33,12 @@ namespace NativeCollections
         ///     Adds an element offset to the given pointer.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T* Add<T>(ref T source, nint elementOffset) where T : unmanaged => (T*)Unsafe.AsPointer(ref Unsafe.Add(ref source, elementOffset));
+
+        /// <summary>
+        ///     Adds an element offset to the given pointer.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T* Add<T>(void* source, nint elementOffset) where T : unmanaged => (T*)Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<T>(source), elementOffset));
 
         /// <summary>
