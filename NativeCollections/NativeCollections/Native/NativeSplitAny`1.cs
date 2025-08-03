@@ -35,10 +35,6 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeSplitAny(ReadOnlySpan<T> buffer, in T separator)
         {
-            if (Unsafe.IsNullRef(ref MemoryMarshal.GetReference(buffer)) || buffer.Length == 0)
-                ThrowHelpers.ThrowArgumentNullException(nameof(buffer));
-            if (!typeof(T).IsValueType && separator == null)
-                ThrowHelpers.ThrowArgumentNullException(nameof(separator));
             _buffer = buffer;
             _separator = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in separator), 1);
         }
@@ -51,10 +47,6 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeSplitAny(ReadOnlySpan<T> buffer, ReadOnlySpan<T> separator)
         {
-            if (Unsafe.IsNullRef(ref MemoryMarshal.GetReference(buffer)) || buffer.Length == 0)
-                ThrowHelpers.ThrowArgumentNullException(nameof(buffer));
-            if (Unsafe.IsNullRef(ref MemoryMarshal.GetReference(separator)) || separator.Length == 0)
-                ThrowHelpers.ThrowArgumentNullException(nameof(separator));
             _buffer = buffer;
             _separator = separator;
         }
