@@ -77,7 +77,7 @@ namespace NativeCollections
         {
             if (ptr == null)
                 return;
-            var gcHandle = Unsafe.ReadUnaligned<GCHandle>(UnsafeHelpers.SubtractByteOffset<byte>(ptr, sizeof(GCHandle)));
+            var gcHandle = Unsafe.ReadUnaligned<GCHandle>(UnsafeHelpers.SubtractByteOffset(ptr, sizeof(GCHandle)));
             var array = (DummyByteHelper[])gcHandle.Target!;
             gcHandle.Free();
             ArrayPool<DummyByteHelper>.Shared.Return(array);

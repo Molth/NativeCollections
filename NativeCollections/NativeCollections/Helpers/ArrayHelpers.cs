@@ -27,7 +27,7 @@ namespace NativeCollections
 #if NET5_0_OR_GREATER
             return ref MemoryMarshal.GetArrayDataReference(array);
 #else
-            ThrowHelpers.ThrowIfNull(array, nameof(array));
+            ThrowHelpers.ThrowNullReferenceException();
             return ref MemoryMarshal.GetReference(array.AsSpan());
 #endif
         }

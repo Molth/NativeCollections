@@ -364,6 +364,13 @@ namespace NativeCollections
         public static void ThrowNotSupportedException() => throw new NotSupportedException();
 
         /// <summary>
+        ///     Throws a <see cref="NullReferenceException" />.
+        /// </summary>
+        [DoesNotReturn]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ThrowNullReferenceException() => throw new NullReferenceException();
+
+        /// <summary>
         ///     Throws a <see cref="FormatException" /> indicating that the string format is invalid at a specific offset.
         /// </summary>
         /// <param name="offset">The offset where the format is invalid.</param>

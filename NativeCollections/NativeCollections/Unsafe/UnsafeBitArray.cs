@@ -338,7 +338,7 @@ namespace NativeCollections
             var count = GetInt32ArrayLengthFromBitLength(_length);
             if (_length != value._length || (uint)count > (uint)_buffer.Length || (uint)count > (uint)value._buffer.Length)
                 ThrowHelpers.ThrowArrayLengthsDifferException();
-            BitOperationsHelpers.And(_buffer, value._buffer, (uint)count);
+            BitArrayHelpers.And(_buffer, value._buffer, (uint)count);
         }
 
         /// <summary>
@@ -365,7 +365,7 @@ namespace NativeCollections
             var count = GetInt32ArrayLengthFromBitLength(_length);
             if (_length != value._length || (uint)count > (uint)_buffer.Length || (uint)count > (uint)value._buffer.Length)
                 ThrowHelpers.ThrowArrayLengthsDifferException();
-            BitOperationsHelpers.Or(_buffer, value._buffer, (uint)count);
+            BitArrayHelpers.Or(_buffer, value._buffer, (uint)count);
         }
 
         /// <summary>
@@ -392,7 +392,7 @@ namespace NativeCollections
             var count = GetInt32ArrayLengthFromBitLength(_length);
             if (_length != value._length || (uint)count > (uint)_buffer.Length || (uint)count > (uint)value._buffer.Length)
                 ThrowHelpers.ThrowArrayLengthsDifferException();
-            BitOperationsHelpers.Xor(_buffer, value._buffer, (uint)count);
+            BitArrayHelpers.Xor(_buffer, value._buffer, (uint)count);
         }
 
         /// <summary>
@@ -403,7 +403,7 @@ namespace NativeCollections
         public readonly void Not()
         {
             var count = GetInt32ArrayLengthFromBitLength(_length);
-            BitOperationsHelpers.Not(_buffer, (uint)count);
+            BitArrayHelpers.Not(_buffer, (uint)count);
         }
 
         /// <summary>
