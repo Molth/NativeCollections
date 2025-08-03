@@ -13,7 +13,7 @@ namespace NativeCollections
     /// <summary>
     ///     Span helpers
     /// </summary>
-    internal static class SpanHelpers
+    internal static unsafe class SpanHelpers
     {
         /// <summary>
         ///     Fills the contents of this buffer with the given value.
@@ -110,6 +110,49 @@ namespace NativeCollections
             CannotVectorize:
 #endif
             nuint i = 0;
+            fixed (T* ptr = &refData)
+            {
+                if ((nint)ptr % (nint)NativeMemoryAllocator.AlignOf<T>() == 0)
+                {
+                    refData = ref Unsafe.AsRef<T>(ptr);
+                    if (numElements >= 8)
+                    {
+                        var stopLoopAtOffset = numElements & ~(nuint)7;
+                        do
+                        {
+                            Unsafe.Add(ref refData, (nint)i + 0) = value;
+                            Unsafe.Add(ref refData, (nint)i + 1) = value;
+                            Unsafe.Add(ref refData, (nint)i + 2) = value;
+                            Unsafe.Add(ref refData, (nint)i + 3) = value;
+                            Unsafe.Add(ref refData, (nint)i + 4) = value;
+                            Unsafe.Add(ref refData, (nint)i + 5) = value;
+                            Unsafe.Add(ref refData, (nint)i + 6) = value;
+                            Unsafe.Add(ref refData, (nint)i + 7) = value;
+                        } while ((i += 8) < stopLoopAtOffset);
+                    }
+
+                    if ((numElements & 4) != 0)
+                    {
+                        Unsafe.Add(ref refData, (nint)i + 0) = value;
+                        Unsafe.Add(ref refData, (nint)i + 1) = value;
+                        Unsafe.Add(ref refData, (nint)i + 2) = value;
+                        Unsafe.Add(ref refData, (nint)i + 3) = value;
+                        i += 4;
+                    }
+
+                    if ((numElements & 2) != 0)
+                    {
+                        Unsafe.Add(ref refData, (nint)i + 0) = value;
+                        Unsafe.Add(ref refData, (nint)i + 1) = value;
+                        i += 2;
+                    }
+
+                    if ((numElements & 1) != 0)
+                        Unsafe.Add(ref refData, (nint)i) = value;
+                    return;
+                }
+            }
+
             if (numElements >= 8)
             {
                 var stopLoopAtOffset = numElements & ~(nuint)7;
