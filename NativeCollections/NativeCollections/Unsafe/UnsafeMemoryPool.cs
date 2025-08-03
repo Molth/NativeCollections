@@ -125,11 +125,11 @@ namespace NativeCollections
             var alignedNodeSize = (int)NativeMemoryAllocator.AlignUp((nuint)sizeof(MemoryNode), (nuint)alignment);
             var nodeSize = alignedNodeSize + alignedLength;
             var alignedSlabSize = (int)NativeMemoryAllocator.AlignUp((nuint)sizeof(MemorySlab), (nuint)alignment);
-            var buffer = (byte*)NativeMemoryAllocator.AlignedAlloc((uint)(alignedSlabSize + size * nodeSize), (uint)alignment);
+            var buffer = NativeMemoryAllocator.AlignedAlloc((uint)(alignedSlabSize + size * nodeSize), (uint)alignment);
             var slab = (MemorySlab*)buffer;
             slab->Next = slab;
             slab->Previous = slab;
-            buffer = UnsafeHelpers.AddByteOffset<byte>(buffer, alignedSlabSize);
+            buffer = UnsafeHelpers.AddByteOffset(buffer, alignedSlabSize);
             MemoryNode* next = null;
             for (var i = size - 1; i >= 0; --i)
             {
@@ -198,9 +198,9 @@ namespace NativeCollections
                     {
                         var nodeSize = _alignedNodeSize + _alignedLength;
                         var alignedSlabSize = _alignedSlabSize;
-                        var buffer = (byte*)NativeMemoryAllocator.AlignedAlloc((uint)(alignedSlabSize + size * nodeSize), (uint)_alignment);
+                        var buffer = NativeMemoryAllocator.AlignedAlloc((uint)(alignedSlabSize + size * nodeSize), (uint)_alignment);
                         slab = (MemorySlab*)buffer;
-                        buffer = UnsafeHelpers.AddByteOffset<byte>(buffer, alignedSlabSize);
+                        buffer = UnsafeHelpers.AddByteOffset(buffer, alignedSlabSize);
                         MemoryNode* next = null;
                         for (var i = size - 1; i >= 0; --i)
                         {
@@ -287,9 +287,9 @@ namespace NativeCollections
             while (_freeSlabs < capacity)
             {
                 _freeSlabs++;
-                var buffer = (byte*)NativeMemoryAllocator.AlignedAlloc((uint)(alignedSlabSize + size * nodeSize), (uint)_alignment);
+                var buffer = NativeMemoryAllocator.AlignedAlloc((uint)(alignedSlabSize + size * nodeSize), (uint)_alignment);
                 var slab = (MemorySlab*)buffer;
-                buffer = UnsafeHelpers.AddByteOffset<byte>(buffer, alignedSlabSize);
+                buffer = UnsafeHelpers.AddByteOffset(buffer, alignedSlabSize);
                 MemoryNode* next = null;
                 for (var i = size - 1; i >= 0; --i)
                 {

@@ -66,9 +66,9 @@ namespace NativeCollections
             var alignment = Math.Max((uint)NativeMemoryAllocator.AlignOf<NativeArrayPoolBucket>(), (uint)NativeMemoryAllocator.AlignOf<nint>());
             var bucketsLength = (uint)NativeMemoryAllocator.AlignUp((nuint)(length * sizeof(NativeArrayPoolBucket)), alignment);
             var extremeLength = capacity * sizeof(nint);
-            var buffer = (byte*)NativeMemoryAllocator.AlignedAlloc((uint)(bucketsLength + length * extremeLength), alignment);
+            var buffer = NativeMemoryAllocator.AlignedAlloc((uint)(bucketsLength + length * extremeLength), alignment);
             var buckets = (NativeArrayPoolBucket*)buffer;
-            buffer = UnsafeHelpers.AddByteOffset<byte>(buffer, (nint)bucketsLength);
+            buffer = UnsafeHelpers.AddByteOffset(buffer, (nint)bucketsLength);
             Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(buffer), 0, (uint)(length * extremeLength));
             for (var i = 0; i < length; ++i)
             {

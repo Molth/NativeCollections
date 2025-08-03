@@ -113,12 +113,12 @@ namespace NativeCollections
             var alignedNodeByteCount = (int)NativeMemoryAllocator.AlignUp((nuint)sizeof(nint), (nuint)alignment);
             var nodeByteCount = alignedNodeByteCount + alignedLength;
             var alignedSlabByteCount = (int)NativeMemoryAllocator.AlignUp((nuint)sizeof(MemorySlab), (nuint)alignment);
-            var buffer = (byte*)NativeMemoryAllocator.AlignedAlloc((uint)(alignedSlabByteCount + 32 * nodeByteCount), (uint)alignment);
+            var buffer = NativeMemoryAllocator.AlignedAlloc((uint)(alignedSlabByteCount + 32 * nodeByteCount), (uint)alignment);
             var slab = (MemorySlab*)buffer;
             slab->Next = slab;
             slab->Previous = slab;
             slab->Bitmap = 0U;
-            buffer = UnsafeHelpers.AddByteOffset<byte>(buffer, alignedSlabByteCount);
+            buffer = UnsafeHelpers.AddByteOffset(buffer, alignedSlabByteCount);
             for (var i = 0; i < 32; ++i)
                 Unsafe.As<byte, nint>(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(buffer), new IntPtr(i * nodeByteCount))) = i;
             _sentinel = slab;
@@ -177,9 +177,9 @@ namespace NativeCollections
                 {
                     if (_freeSlabs == 0)
                     {
-                        var buffer = (byte*)NativeMemoryAllocator.AlignedAlloc((uint)(alignedSlabByteCount + 32 * nodeByteCount), (uint)_alignment);
+                        var buffer = NativeMemoryAllocator.AlignedAlloc((uint)(alignedSlabByteCount + 32 * nodeByteCount), (uint)_alignment);
                         slab = (MemorySlab*)buffer;
-                        buffer = UnsafeHelpers.AddByteOffset<byte>(buffer, alignedSlabByteCount);
+                        buffer = UnsafeHelpers.AddByteOffset(buffer, alignedSlabByteCount);
                         for (var i = 0; i < 32; ++i)
                             Unsafe.As<byte, nint>(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(buffer), new IntPtr(i * nodeByteCount))) = i;
                     }
@@ -257,9 +257,9 @@ namespace NativeCollections
             while (_freeSlabs < capacity)
             {
                 _freeSlabs++;
-                var buffer = (byte*)NativeMemoryAllocator.AlignedAlloc((uint)(alignedSlabByteCount + 32 * nodeByteCount), (uint)_alignment);
+                var buffer = NativeMemoryAllocator.AlignedAlloc((uint)(alignedSlabByteCount + 32 * nodeByteCount), (uint)_alignment);
                 var slab = (MemorySlab*)buffer;
-                buffer = UnsafeHelpers.AddByteOffset<byte>(buffer, alignedSlabByteCount);
+                buffer = UnsafeHelpers.AddByteOffset(buffer, alignedSlabByteCount);
                 for (var i = 0; i < 32; ++i)
                     Unsafe.As<byte, nint>(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(buffer), new IntPtr(i * nodeByteCount))) = i;
                 slab->Next = _freeList;
