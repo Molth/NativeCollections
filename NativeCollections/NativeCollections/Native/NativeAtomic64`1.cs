@@ -61,7 +61,7 @@ namespace NativeCollections
             CheckType();
             var obj = Interlocked.CompareExchange(ref _value, 0L, 0L);
             if (Unsafe.SizeOf<T>() == 1)
-                return UnsafeHelpers.BitCast<byte, T>((byte)obj);
+                return typeof(T) == typeof(bool) ? UnsafeHelpers.BitCast<bool, T>((obj & 1) != 0) : UnsafeHelpers.BitCast<byte, T>((byte)obj);
             if (Unsafe.SizeOf<T>() == 2)
                 return UnsafeHelpers.BitCast<short, T>((short)obj);
             if (Unsafe.SizeOf<T>() == 4)
@@ -77,7 +77,11 @@ namespace NativeCollections
         {
             CheckType();
             if (Unsafe.SizeOf<T>() == 1)
-                return UnsafeHelpers.BitCast<byte, T>((byte)Interlocked.Exchange(ref _value, UnsafeHelpers.BitCast<T, byte>(value)));
+            {
+                var newInt64 = Interlocked.Exchange(ref _value, UnsafeHelpers.BitCast<T, byte>(value));
+                return typeof(T) == typeof(bool) ? UnsafeHelpers.BitCast<bool, T>((newInt64 & 1) != 0) : UnsafeHelpers.BitCast<byte, T>((byte)newInt64);
+            }
+
             if (Unsafe.SizeOf<T>() == 2)
                 return UnsafeHelpers.BitCast<short, T>((short)Interlocked.Exchange(ref _value, UnsafeHelpers.BitCast<T, short>(value)));
             if (Unsafe.SizeOf<T>() == 4)
@@ -93,7 +97,11 @@ namespace NativeCollections
         {
             CheckType();
             if (Unsafe.SizeOf<T>() == 1)
-                return UnsafeHelpers.BitCast<byte, T>((byte)Interlocked.CompareExchange(ref _value, UnsafeHelpers.BitCast<T, byte>(value), UnsafeHelpers.BitCast<T, byte>(comparand)));
+            {
+                var newInt64 = Interlocked.CompareExchange(ref _value, UnsafeHelpers.BitCast<T, byte>(value), UnsafeHelpers.BitCast<T, byte>(comparand));
+                return typeof(T) == typeof(bool) ? UnsafeHelpers.BitCast<bool, T>((newInt64 & 1) != 0) : UnsafeHelpers.BitCast<byte, T>((byte)newInt64);
+            }
+
             if (Unsafe.SizeOf<T>() == 2)
                 return UnsafeHelpers.BitCast<short, T>((short)Interlocked.CompareExchange(ref _value, UnsafeHelpers.BitCast<T, short>(value), UnsafeHelpers.BitCast<T, short>(comparand)));
             if (Unsafe.SizeOf<T>() == 4)
@@ -143,7 +151,11 @@ namespace NativeCollections
             }
 
             if (Unsafe.SizeOf<T>() == 1)
-                return UnsafeHelpers.BitCast<byte, T>((byte)Interlocked.Add(ref _value, UnsafeHelpers.BitCast<T, byte>(value)));
+            {
+                var newInt64 = Interlocked.Add(ref _value, UnsafeHelpers.BitCast<T, byte>(value));
+                return typeof(T) == typeof(bool) ? UnsafeHelpers.BitCast<bool, T>((newInt64 & 1) != 0) : UnsafeHelpers.BitCast<byte, T>((byte)newInt64);
+            }
+
             if (Unsafe.SizeOf<T>() == 2)
                 return UnsafeHelpers.BitCast<short, T>((short)Interlocked.Add(ref _value, UnsafeHelpers.BitCast<T, short>(value)));
             if (Unsafe.SizeOf<T>() == 4)
@@ -193,7 +205,11 @@ namespace NativeCollections
             }
 
             if (Unsafe.SizeOf<T>() == 1)
-                return UnsafeHelpers.BitCast<byte, T>((byte)Interlocked.Add(ref _value, -(long)UnsafeHelpers.BitCast<T, byte>(value)));
+            {
+                var newInt64 = Interlocked.Add(ref _value, -(long)UnsafeHelpers.BitCast<T, byte>(value));
+                return typeof(T) == typeof(bool) ? UnsafeHelpers.BitCast<bool, T>((newInt64 & 1) != 0) : UnsafeHelpers.BitCast<byte, T>((byte)newInt64);
+            }
+
             if (Unsafe.SizeOf<T>() == 2)
                 return UnsafeHelpers.BitCast<short, T>((short)Interlocked.Add(ref _value, -(long)UnsafeHelpers.BitCast<T, short>(value)));
             if (Unsafe.SizeOf<T>() == 4)
@@ -243,7 +259,11 @@ namespace NativeCollections
             }
 
             if (Unsafe.SizeOf<T>() == 1)
-                return UnsafeHelpers.BitCast<byte, T>((byte)Interlocked.Increment(ref _value));
+            {
+                var newInt64 = Interlocked.Increment(ref _value);
+                return typeof(T) == typeof(bool) ? UnsafeHelpers.BitCast<bool, T>((newInt64 & 1) != 0) : UnsafeHelpers.BitCast<byte, T>((byte)newInt64);
+            }
+
             if (Unsafe.SizeOf<T>() == 2)
                 return UnsafeHelpers.BitCast<short, T>((short)Interlocked.Increment(ref _value));
             if (Unsafe.SizeOf<T>() == 4)
@@ -293,7 +313,11 @@ namespace NativeCollections
             }
 
             if (Unsafe.SizeOf<T>() == 1)
-                return UnsafeHelpers.BitCast<byte, T>((byte)Interlocked.Decrement(ref _value));
+            {
+                var newInt64 = Interlocked.Decrement(ref _value);
+                return typeof(T) == typeof(bool) ? UnsafeHelpers.BitCast<bool, T>((newInt64 & 1) != 0) : UnsafeHelpers.BitCast<byte, T>((byte)newInt64);
+            }
+
             if (Unsafe.SizeOf<T>() == 2)
                 return UnsafeHelpers.BitCast<short, T>((short)Interlocked.Decrement(ref _value));
             if (Unsafe.SizeOf<T>() == 4)
