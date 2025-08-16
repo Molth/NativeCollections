@@ -176,20 +176,21 @@ namespace NativeCollections
         ///     Rent buffer
         /// </summary>
         /// <param name="size">Size</param>
+        /// <param name="alignment">Alignment</param>
         /// <param name="bytes">Actual size</param>
         /// <returns>Buffer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void* Rent(ulong size, out ulong bytes)
+        public void* Rent(ulong size, uint alignment, out ulong bytes)
         {
             if (sizeof(nint) == 8)
             {
-                var ptr = TLSF64.tlsf_malloc(_handle, size);
+                var ptr = TLSF64.tlsf_memalign(_handle, size, alignment);
                 bytes = ptr != null ? TLSF64.tlsf_block_size(ptr) : 0;
                 return ptr;
             }
             else
             {
-                var ptr = TLSF32.tlsf_malloc(_handle, (uint)size);
+                var ptr = TLSF32.tlsf_memalign(_handle, (uint)size, alignment);
                 bytes = ptr != null ? TLSF32.tlsf_block_size(ptr) : 0;
                 return ptr;
             }
