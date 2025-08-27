@@ -26,12 +26,12 @@ namespace NativeCollections
         /// <summary>
         ///     Size
         /// </summary>
-        private readonly ulong _size;
+        private readonly nuint _size;
 
         /// <summary>
         ///     Blocks
         /// </summary>
-        private readonly ulong _blocks;
+        private readonly nuint _blocks;
 
         /// <summary>
         ///     Structure
@@ -39,14 +39,14 @@ namespace NativeCollections
         /// <param name="size">Size</param>
         /// <param name="blocks">Blocks</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeDynamicMemoryPool(ulong size, ulong blocks)
+        public NativeDynamicMemoryPool(nuint size, nuint blocks)
         {
-            ulong bytes;
+            nuint bytes;
             void* buffer;
             void* handle;
             if (sizeof(nint) == 8)
             {
-                bytes = TLSF64.align_up(TLSF64.tlsf_size() + TLSF64.tlsf_pool_overhead() + blocks * TLSF64.tlsf_alloc_overhead() + size, 8);
+                bytes = (nuint)TLSF64.align_up(TLSF64.tlsf_size() + TLSF64.tlsf_pool_overhead() + blocks * TLSF64.tlsf_alloc_overhead() + size, 8);
                 buffer = NativeMemoryAllocator.AlignedAlloc((uint)bytes, (uint)NativeMemoryAllocator.AlignOf<TLSF32.control_t>());
                 handle = TLSF64.tlsf_create_with_pool(buffer, bytes);
                 if (handle == null)
@@ -80,12 +80,12 @@ namespace NativeCollections
         /// <summary>
         ///     Size
         /// </summary>
-        public ulong Size => _size;
+        public nuint Size => _size;
 
         /// <summary>
         ///     Blocks
         /// </summary>
-        public ulong Blocks => _blocks;
+        public nuint Blocks => _blocks;
 
         /// <summary>
         ///     Equals
@@ -149,11 +149,11 @@ namespace NativeCollections
         {
             var size = _size;
             var blocks = _blocks;
-            ulong bytes;
+            nuint bytes;
             var buffer = _handle;
             if (sizeof(nint) == 8)
             {
-                bytes = TLSF64.align_up(TLSF64.tlsf_size() + TLSF64.tlsf_pool_overhead() + blocks * TLSF64.tlsf_alloc_overhead() + size, 8);
+                bytes = (nuint)TLSF64.align_up(TLSF64.tlsf_size() + TLSF64.tlsf_pool_overhead() + blocks * TLSF64.tlsf_alloc_overhead() + size, 8);
                 TLSF64.tlsf_create_with_pool(buffer, bytes);
             }
             else
@@ -164,35 +164,48 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Rent buffer
+        ///     Try rent
         /// </summary>
-        /// <param name="size">Size</param>
-        /// <param name="alignment">Alignment</param>
-        /// <returns>Buffer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void* Rent(ulong size, uint alignment) => sizeof(nint) == 8 ? TLSF64.tlsf_memalign(_handle, size, alignment) : TLSF32.tlsf_memalign(_handle, (uint)size, alignment);
+        public bool TryRent(nuint size, nuint alignment, out void* ptr)
+        {
+            ptr = sizeof(nint) == 8 ? TLSF64.tlsf_memalign(_handle, alignment, size) : TLSF32.tlsf_memalign(_handle, (uint)alignment, (uint)size);
+            return ptr != null;
+        }
 
         /// <summary>
-        ///     Rent buffer
+        ///     Try rent
         /// </summary>
-        /// <param name="size">Size</param>
-        /// <param name="alignment">Alignment</param>
-        /// <param name="bytes">Actual size</param>
-        /// <returns>Buffer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void* Rent(ulong size, uint alignment, out ulong bytes)
+        public bool TryRent(nuint size, nuint alignment, out void* ptr, out nuint bytes)
         {
             if (sizeof(nint) == 8)
             {
-                var ptr = TLSF64.tlsf_memalign(_handle, size, alignment);
-                bytes = ptr != null ? TLSF64.tlsf_block_size(ptr) : 0;
-                return ptr;
+                ptr = TLSF64.tlsf_memalign(_handle, alignment, size);
+                if (ptr != null)
+                {
+                    bytes = (nuint)TLSF64.tlsf_block_size(ptr);
+                    return true;
+                }
+                else
+                {
+                    bytes = 0;
+                    return false;
+                }
             }
             else
             {
-                var ptr = TLSF32.tlsf_memalign(_handle, (uint)size, alignment);
-                bytes = ptr != null ? TLSF32.tlsf_block_size(ptr) : 0;
-                return ptr;
+                ptr = TLSF32.tlsf_memalign(_handle, (uint)alignment, (uint)size);
+                if (ptr != null)
+                {
+                    bytes = TLSF32.tlsf_block_size(ptr);
+                    return true;
+                }
+                else
+                {
+                    bytes = 0;
+                    return false;
+                }
             }
         }
 

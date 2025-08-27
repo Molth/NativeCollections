@@ -123,7 +123,6 @@ namespace NativeCollections
             _writeOffset = 0;
             _length = 0;
             _spinLock = new UnsafeConcurrentSpinLock();
-            _spinLock.Reset();
         }
 
         /// <summary>

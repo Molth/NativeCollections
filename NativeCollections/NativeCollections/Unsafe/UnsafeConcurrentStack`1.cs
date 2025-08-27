@@ -61,7 +61,6 @@ namespace NativeCollections
             Head = 0;
             NodePool = nodePool;
             NodeLock = new UnsafeConcurrentSpinLock();
-            NodeLock.Reset();
         }
 
         /// <summary>

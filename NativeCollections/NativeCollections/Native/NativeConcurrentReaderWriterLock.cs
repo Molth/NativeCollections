@@ -10,24 +10,24 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native concurrent spinLock
+    ///     Native concurrent reader writer lock
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    [BindingType(typeof(UnsafeConcurrentSpinLock))]
-    public readonly unsafe struct NativeConcurrentSpinLock : IDisposable, IEquatable<NativeConcurrentSpinLock>
+    [BindingType(typeof(UnsafeConcurrentReaderWriterLock))]
+    public readonly unsafe struct NativeConcurrentReaderWriterLock : IDisposable, IEquatable<NativeConcurrentReaderWriterLock>
     {
         /// <summary>
         ///     Handle
         /// </summary>
-        private readonly UnsafeConcurrentSpinLock* _handle;
+        private readonly UnsafeConcurrentReaderWriterLock* _handle;
 
         /// <summary>
         ///     Structure
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeConcurrentSpinLock(void* buffer) => _handle = (UnsafeConcurrentSpinLock*)buffer;
+        public NativeConcurrentReaderWriterLock(void* buffer) => _handle = (UnsafeConcurrentReaderWriterLock*)buffer;
 
         /// <summary>
         ///     Dispose
@@ -47,28 +47,18 @@ namespace NativeCollections
         public bool IsCreated => _handle != null;
 
         /// <summary>
-        ///     Sequence number
-        /// </summary>
-        public int SequenceNumber => _handle->SequenceNumber;
-
-        /// <summary>
-        ///     Next sequence number
-        /// </summary>
-        public int NextSequenceNumber => _handle->NextSequenceNumber;
-
-        /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeConcurrentSpinLock other) => other == this;
+        public bool Equals(NativeConcurrentReaderWriterLock other) => other == this;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeConcurrentSpinLock nativeConcurrentSpinLock && nativeConcurrentSpinLock == this;
+        public override bool Equals(object? obj) => obj is NativeConcurrentReaderWriterLock nativeConcurrentReaderWriterLock && nativeConcurrentReaderWriterLock == this;
 
         /// <summary>
         ///     Get hashCode
@@ -80,7 +70,7 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => "NativeConcurrentSpinLock";
+        public override string ToString() => "NativeConcurrentReaderWriterLock";
 
         /// <summary>
         ///     Equals
@@ -88,7 +78,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeConcurrentSpinLock left, NativeConcurrentSpinLock right) => left._handle == right._handle;
+        public static bool operator ==(NativeConcurrentReaderWriterLock left, NativeConcurrentReaderWriterLock right) => left._handle == right._handle;
 
         /// <summary>
         ///     Not equals
@@ -96,7 +86,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeConcurrentSpinLock left, NativeConcurrentSpinLock right) => left._handle != right._handle;
+        public static bool operator !=(NativeConcurrentReaderWriterLock left, NativeConcurrentReaderWriterLock right) => left._handle != right._handle;
 
         /// <summary>
         ///     Reset
@@ -105,39 +95,28 @@ namespace NativeCollections
         public void Reset() => _handle->Reset();
 
         /// <summary>
-        ///     Acquire
+        ///     Read
         /// </summary>
-        /// <returns>Sequence number</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int Acquire() => _handle->Acquire();
+        public void Read() => _handle->Read();
 
         /// <summary>
-        ///     Wait
+        ///     Read
         /// </summary>
-        /// <param name="sequenceNumber">Sequence number</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Wait(int sequenceNumber) => _handle->Wait(sequenceNumber);
+        public void Read(int sleepThreshold) => _handle->Read(sleepThreshold);
 
         /// <summary>
-        ///     Wait
+        ///     Write
         /// </summary>
-        /// <param name="sequenceNumber">Sequence number</param>
-        /// <param name="sleepThreshold">Sleep threshold</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Wait(int sequenceNumber, int sleepThreshold) => _handle->Wait(sequenceNumber, sleepThreshold);
+        public void Write() => _handle->Write();
 
         /// <summary>
-        ///     Enter
+        ///     Write
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Enter() => _handle->Enter();
-
-        /// <summary>
-        ///     Enter
-        /// </summary>
-        /// <param name="sleepThreshold">Sleep threshold</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Enter(int sleepThreshold) => _handle->Enter(sleepThreshold);
+        public void Write(int sleepThreshold) => _handle->Write(sleepThreshold);
 
         /// <summary>
         ///     Exit
@@ -148,33 +127,30 @@ namespace NativeCollections
         /// <summary>
         ///     As native concurrent spinLock
         /// </summary>
-        /// <returns>NativeConcurrentSpinLock</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeConcurrentSpinLock(void* buffer) => new(buffer);
+        public static implicit operator NativeConcurrentReaderWriterLock(void* buffer) => new(buffer);
 
         /// <summary>
         ///     As native concurrent spinLock
         /// </summary>
-        /// <returns>NativeConcurrentSpinLock</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeConcurrentSpinLock(Span<byte> span) => new(Unsafe.AsPointer(ref MemoryMarshal.GetReference(span)));
+        public static implicit operator NativeConcurrentReaderWriterLock(Span<byte> span) => new(Unsafe.AsPointer(ref MemoryMarshal.GetReference(span)));
 
         /// <summary>
         ///     As native concurrent spinLock
         /// </summary>
-        /// <returns>NativeConcurrentSpinLock</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeConcurrentSpinLock(ReadOnlySpan<byte> readOnlySpan) => new(Unsafe.AsPointer(ref MemoryMarshal.GetReference(readOnlySpan)));
+        public static implicit operator NativeConcurrentReaderWriterLock(ReadOnlySpan<byte> readOnlySpan) => new(Unsafe.AsPointer(ref MemoryMarshal.GetReference(readOnlySpan)));
 
         /// <summary>
         ///     Create
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeConcurrentSpinLock Create() => new(NativeMemoryAllocator.AlignedAllocZeroed<UnsafeConcurrentSpinLock>(1));
+        public static NativeConcurrentReaderWriterLock Create() => new(NativeMemoryAllocator.AlignedAllocZeroed<UnsafeConcurrentReaderWriterLock>(1));
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeConcurrentSpinLock Empty => new();
+        public static NativeConcurrentReaderWriterLock Empty => new();
     }
 }

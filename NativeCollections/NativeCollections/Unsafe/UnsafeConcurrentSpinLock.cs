@@ -44,7 +44,7 @@ namespace NativeCollections
         public void Reset()
         {
             _sequenceNumber = 0;
-            _nextSequenceNumber = 1;
+            _nextSequenceNumber = 0;
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Sequence number</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int Acquire() => Interlocked.Add(ref _sequenceNumber, 1);
+        public int Acquire() => Interlocked.Increment(ref _sequenceNumber) - 1;
 
         /// <summary>
         ///     Wait
@@ -86,7 +86,7 @@ namespace NativeCollections
         public void Enter()
         {
             var spinWait = new NativeSpinWait();
-            var sequenceNumber = Interlocked.Add(ref _sequenceNumber, 1);
+            var sequenceNumber = Interlocked.Increment(ref _sequenceNumber) - 1;
             while (sequenceNumber != _nextSequenceNumber)
                 spinWait.SpinOnce(-1);
         }
@@ -99,7 +99,7 @@ namespace NativeCollections
         public void Enter(int sleepThreshold)
         {
             var spinWait = new NativeSpinWait();
-            var sequenceNumber = Interlocked.Add(ref _sequenceNumber, 1);
+            var sequenceNumber = Interlocked.Increment(ref _sequenceNumber) - 1;
             while (sequenceNumber != _nextSequenceNumber)
                 spinWait.SpinOnce(sleepThreshold);
         }
@@ -108,7 +108,7 @@ namespace NativeCollections
         ///     Exit
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Exit() => Interlocked.Add(ref _nextSequenceNumber, 1);
+        public void Exit() => Interlocked.Increment(ref _nextSequenceNumber);
 
         /// <summary>
         ///     Equals

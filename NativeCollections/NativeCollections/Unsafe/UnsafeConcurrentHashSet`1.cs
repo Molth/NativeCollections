@@ -118,7 +118,6 @@ namespace NativeCollections
             _budget = buckets.Length / locks.Length;
             _nodePool = nodePool;
             _nodeLock = new UnsafeConcurrentSpinLock();
-            _nodeLock.Reset();
         }
 
         /// <summary>
