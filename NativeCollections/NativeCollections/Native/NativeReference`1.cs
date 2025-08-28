@@ -216,14 +216,14 @@ namespace NativeCollections
         /// </summary>
         /// <param name="reference">Reference</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeReference<T> Create(ref T reference) => new(Unsafe.AsPointer(ref reference));
+        public static NativeReference<T> Create<TFrom>(ref TFrom reference) => new(Unsafe.AsPointer(ref reference));
 
         /// <summary>
         ///     Create
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeReference<T> Create(Span<T> buffer) => new(Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)));
+        public static NativeReference<T> Create<TFrom>(Span<TFrom> buffer) => new(Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)));
 
         /// <summary>
         ///     Empty
