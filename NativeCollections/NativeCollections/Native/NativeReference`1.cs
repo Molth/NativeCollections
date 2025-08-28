@@ -106,6 +106,12 @@ namespace NativeCollections
         public override string ToString() => $"NativeReference<{typeof(T).Name}>";
 
         /// <summary>
+        ///     Reinterprets the given location as a reference to a value of type <typeparamref name="T" />.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref T AsRef() => ref Unsafe.AsRef<T>(_handle);
+
+        /// <summary>
         ///     Cast
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
