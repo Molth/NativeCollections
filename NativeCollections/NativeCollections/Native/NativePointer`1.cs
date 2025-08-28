@@ -169,13 +169,13 @@ namespace NativeCollections
         ///     As span
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<T>(NativePointer<T> nativeReference) => nativeReference.AsSpan();
+        public static implicit operator Span<T>(NativePointer<T> nativePointer) => nativePointer.AsSpan();
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<T>(NativePointer<T> nativeReference) => nativeReference.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<T>(NativePointer<T> nativePointer) => nativePointer.AsReadOnlySpan();
 
         /// <summary>
         ///     Create

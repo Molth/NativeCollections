@@ -223,7 +223,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeReference<T> Create<TFrom>(Span<TFrom> buffer) => new(Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)));
+        public static NativeReference<T> Create<TFrom>(ReadOnlySpan<TFrom> buffer) => new(Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)));
 
         /// <summary>
         ///     Empty
