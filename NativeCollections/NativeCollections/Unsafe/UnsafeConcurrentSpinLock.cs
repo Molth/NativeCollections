@@ -172,7 +172,7 @@ namespace NativeCollections
         {
             ref var local1 = ref Unsafe.As<UnsafeConcurrentSpinLock, int>(ref left);
             ref var local2 = ref Unsafe.As<UnsafeConcurrentSpinLock, int>(ref right);
-            return local1 == local2 && Unsafe.Add(ref local1, 1) == Unsafe.Add(ref local2, 1);
+            return local1 == local2 && Unsafe.Add(ref local1, (nint)1) == Unsafe.Add(ref local2, (nint)1);
         }
 
         /// <summary>
@@ -185,7 +185,7 @@ namespace NativeCollections
         {
             ref var local1 = ref Unsafe.As<UnsafeConcurrentSpinLock, int>(ref left);
             ref var local2 = ref Unsafe.As<UnsafeConcurrentSpinLock, int>(ref right);
-            return local1 != local2 || Unsafe.Add(ref local1, 1) != Unsafe.Add(ref local2, 1);
+            return local1 != local2 || Unsafe.Add(ref local1, (nint)1) != Unsafe.Add(ref local2, (nint)1);
         }
 
         /// <summary>
