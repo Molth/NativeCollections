@@ -105,6 +105,28 @@ namespace NativeCollections
         public void Reset() => _handle->Reset();
 
         /// <summary>
+        ///     Enter
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeDisposable<UnsafeConcurrentSpinLock> EnterLock()
+        {
+            var handle = _handle;
+            handle->Enter();
+            return new NativeDisposable<UnsafeConcurrentSpinLock>(handle);
+        }
+
+        /// <summary>
+        ///     Enter
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeDisposable<UnsafeConcurrentSpinLock> EnterLock(int sequenceNumber)
+        {
+            var handle = _handle;
+            handle->Enter(sequenceNumber);
+            return new NativeDisposable<UnsafeConcurrentSpinLock>(handle);
+        }
+
+        /// <summary>
         ///     Acquire
         /// </summary>
         /// <returns>Sequence number</returns>

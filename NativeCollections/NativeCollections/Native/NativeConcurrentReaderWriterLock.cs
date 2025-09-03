@@ -98,6 +98,50 @@ namespace NativeCollections
         ///     Read
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeDisposable<UnsafeConcurrentReaderWriterLock> ReadLock()
+        {
+            var handle = _handle;
+            handle->Read();
+            return new NativeDisposable<UnsafeConcurrentReaderWriterLock>(handle);
+        }
+
+        /// <summary>
+        ///     Read
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeDisposable<UnsafeConcurrentReaderWriterLock> ReadLock(int sleepThreshold)
+        {
+            var handle = _handle;
+            handle->Read(sleepThreshold);
+            return new NativeDisposable<UnsafeConcurrentReaderWriterLock>(handle);
+        }
+
+        /// <summary>
+        ///     Write
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeDisposable<UnsafeConcurrentReaderWriterLock> WriteLock()
+        {
+            var handle = _handle;
+            handle->Write();
+            return new NativeDisposable<UnsafeConcurrentReaderWriterLock>(handle);
+        }
+
+        /// <summary>
+        ///     Write
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeDisposable<UnsafeConcurrentReaderWriterLock> WriteLock(int sleepThreshold)
+        {
+            var handle = _handle;
+            handle->Write(sleepThreshold);
+            return new NativeDisposable<UnsafeConcurrentReaderWriterLock>(handle);
+        }
+
+        /// <summary>
+        ///     Read
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Read() => _handle->Read();
 
         /// <summary>

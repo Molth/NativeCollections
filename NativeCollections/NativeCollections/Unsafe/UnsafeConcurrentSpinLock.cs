@@ -15,7 +15,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.None)]
-    public struct UnsafeConcurrentSpinLock : IEquatable<UnsafeConcurrentSpinLock>
+    public unsafe struct UnsafeConcurrentSpinLock : IDisposable, IEquatable<UnsafeConcurrentSpinLock>
     {
         /// <summary>
         ///     Sequence number
@@ -38,6 +38,12 @@ namespace NativeCollections
         public readonly int NextSequenceNumber => _nextSequenceNumber;
 
         /// <summary>
+        ///     Dispose
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Dispose() => Exit();
+
+        /// <summary>
         ///     Reset
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -45,6 +51,26 @@ namespace NativeCollections
         {
             _sequenceNumber = 0;
             _nextSequenceNumber = 0;
+        }
+
+        /// <summary>
+        ///     Enter
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeDisposable<UnsafeConcurrentSpinLock> EnterLock()
+        {
+            Enter();
+            return new NativeDisposable<UnsafeConcurrentSpinLock>((UnsafeConcurrentSpinLock*)Unsafe.AsPointer(ref this));
+        }
+
+        /// <summary>
+        ///     Enter
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeDisposable<UnsafeConcurrentSpinLock> EnterLock(int sequenceNumber)
+        {
+            Enter(sequenceNumber);
+            return new NativeDisposable<UnsafeConcurrentSpinLock>((UnsafeConcurrentSpinLock*)Unsafe.AsPointer(ref this));
         }
 
         /// <summary>
