@@ -30,7 +30,7 @@ namespace NativeCollections
         /// <summary>
         ///     Handle
         /// </summary>
-        public T* Handle
+        public readonly T* Handle
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => _handle;
