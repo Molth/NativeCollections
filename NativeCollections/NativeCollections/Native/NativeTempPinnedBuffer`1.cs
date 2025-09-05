@@ -73,7 +73,6 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfNegative(length, nameof(length));
             ThrowHelpers.ThrowIfNegative(alignment, nameof(alignment));
-            ThrowHelpers.ThrowIfAlignmentNotBePow2((uint)alignment, nameof(alignment));
             ThrowHelpers.ThrowIfLessThan((uint)alignment, (uint)NativeMemoryAllocator.AlignOf<T>(), nameof(alignment));
             _buffer = (T*)ManagedMemoryAllocator.AlignedAlloc((uint)(length * sizeof(T)), (uint)alignment);
             _length = length;
@@ -90,7 +89,6 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfNegative(length, nameof(length));
             ThrowHelpers.ThrowIfNegative(alignment, nameof(alignment));
-            ThrowHelpers.ThrowIfAlignmentNotBePow2((uint)alignment, nameof(alignment));
             ThrowHelpers.ThrowIfLessThan((uint)alignment, (uint)NativeMemoryAllocator.AlignOf<T>(), nameof(alignment));
             _buffer = zeroed ? ManagedMemoryAllocator.AlignedAllocZeroed<T>((uint)(length * sizeof(T))) : ManagedMemoryAllocator.AlignedAlloc<T>((uint)(length * sizeof(T)));
             _length = length;
