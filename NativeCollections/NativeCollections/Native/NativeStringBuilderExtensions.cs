@@ -551,7 +551,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this NativeStringBuilder<char> builder, nint obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
         {
-            if (sizeof(nint) == 8)
+            if (Environment.Is64BitProcess)
                 AppendFormattable(builder, (long)obj, format, provider);
             else
                 AppendFormattable(builder, (int)obj, format, provider);
@@ -563,7 +563,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this NativeStringBuilder<char> builder, nuint obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
         {
-            if (sizeof(nint) == 8)
+            if (Environment.Is64BitProcess)
                 AppendFormattable(builder, (ulong)obj, format, provider);
             else
                 AppendFormattable(builder, (uint)obj, format, provider);
@@ -1372,7 +1372,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this NativeStringBuilder<byte> builder, nint obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
         {
-            if (sizeof(nint) == 8)
+            if (Environment.Is64BitProcess)
                 AppendFormattable(builder, (long)obj, format, provider);
             else
                 AppendFormattable(builder, (int)obj, format, provider);
@@ -1384,7 +1384,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this NativeStringBuilder<byte> builder, nuint obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
         {
-            if (sizeof(nint) == 8)
+            if (Environment.Is64BitProcess)
                 AppendFormattable(builder, (ulong)obj, format, provider);
             else
                 AppendFormattable(builder, (uint)obj, format, provider);

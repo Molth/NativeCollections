@@ -113,10 +113,10 @@ namespace NativeCollections
                 return TryFormatUtf8(Unsafe.As<T, ulong>(ref value!), destination, out bytesWritten, format, provider);
 
             if (typeof(T) == typeof(nint))
-                return sizeof(nint) == 8 ? TryFormatUtf8(Unsafe.As<T, long>(ref value!), destination, out bytesWritten, format, provider) : TryFormatUtf8(Unsafe.As<T, int>(ref value!), destination, out bytesWritten, format, provider);
+                return Environment.Is64BitProcess ? TryFormatUtf8(Unsafe.As<T, long>(ref value!), destination, out bytesWritten, format, provider) : TryFormatUtf8(Unsafe.As<T, int>(ref value!), destination, out bytesWritten, format, provider);
 
             if (typeof(T) == typeof(nuint))
-                return sizeof(nint) == 8 ? TryFormatUtf8(Unsafe.As<T, ulong>(ref value!), destination, out bytesWritten, format, provider) : TryFormatUtf8(Unsafe.As<T, uint>(ref value!), destination, out bytesWritten, format, provider);
+                return Environment.Is64BitProcess ? TryFormatUtf8(Unsafe.As<T, ulong>(ref value!), destination, out bytesWritten, format, provider) : TryFormatUtf8(Unsafe.As<T, uint>(ref value!), destination, out bytesWritten, format, provider);
 
             if (typeof(T) == typeof(Version))
             {
@@ -381,7 +381,7 @@ namespace NativeCollections
                     return true;
                 }
 
-                return sizeof(nint) == 8 ? TryFormatUtf8((long)nullable.GetValueOrDefault(), destination, out bytesWritten, format, provider) : TryFormatUtf8((int)nullable.GetValueOrDefault(), destination, out bytesWritten, format, provider);
+                return Environment.Is64BitProcess ? TryFormatUtf8((long)nullable.GetValueOrDefault(), destination, out bytesWritten, format, provider) : TryFormatUtf8((int)nullable.GetValueOrDefault(), destination, out bytesWritten, format, provider);
             }
 
             if (typeof(T) == typeof(nuint?))
@@ -393,7 +393,7 @@ namespace NativeCollections
                     return true;
                 }
 
-                return sizeof(nint) == 8 ? TryFormatUtf8((ulong)nullable.GetValueOrDefault(), destination, out bytesWritten, format, provider) : TryFormatUtf8((uint)nullable.GetValueOrDefault(), destination, out bytesWritten, format, provider);
+                return Environment.Is64BitProcess ? TryFormatUtf8((ulong)nullable.GetValueOrDefault(), destination, out bytesWritten, format, provider) : TryFormatUtf8((uint)nullable.GetValueOrDefault(), destination, out bytesWritten, format, provider);
             }
 
             return TryFormatFallback(value, destination, out bytesWritten, format, provider);

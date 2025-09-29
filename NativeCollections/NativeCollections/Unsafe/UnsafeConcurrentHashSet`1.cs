@@ -534,7 +534,7 @@ namespace NativeCollections
         private static nint GetBucket(Tables* tables, int hashCode)
         {
             var buckets = tables->Buckets;
-            return sizeof(nint) == 8 ? buckets[HashHelpers.FastMod((uint)hashCode, (uint)buckets.Length, tables->FastModBucketsMultiplier)].Node : buckets[(uint)hashCode % (uint)buckets.Length].Node;
+            return Environment.Is64BitProcess ? buckets[HashHelpers.FastMod((uint)hashCode, (uint)buckets.Length, tables->FastModBucketsMultiplier)].Node : buckets[(uint)hashCode % (uint)buckets.Length].Node;
         }
 
         /// <summary>
@@ -548,7 +548,7 @@ namespace NativeCollections
         private static ref nint GetBucketAndLock(Tables* tables, int hashCode, out uint lockNo)
         {
             var buckets = tables->Buckets;
-            var bucketNo = sizeof(nint) == 8 ? HashHelpers.FastMod((uint)hashCode, (uint)buckets.Length, tables->FastModBucketsMultiplier) : (uint)hashCode % (uint)buckets.Length;
+            var bucketNo = Environment.Is64BitProcess ? HashHelpers.FastMod((uint)hashCode, (uint)buckets.Length, tables->FastModBucketsMultiplier) : (uint)hashCode % (uint)buckets.Length;
             lockNo = bucketNo % (uint)tables->Locks.Length;
             return ref buckets[bucketNo].Node;
         }
@@ -636,7 +636,7 @@ namespace NativeCollections
                 Buckets = buckets;
                 Locks = locks;
                 CountPerLock = countPerLock;
-                FastModBucketsMultiplier = sizeof(nint) == 8 ? HashHelpers.GetFastModMultiplier((uint)buckets.Length) : 0;
+                FastModBucketsMultiplier = Environment.Is64BitProcess ? HashHelpers.GetFastModMultiplier((uint)buckets.Length) : 0;
             }
 
             /// <summary>

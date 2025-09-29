@@ -20,7 +20,14 @@ namespace NativeCollections
         /// </summary>
         /// <param name="value">The value.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsPow2(uint value) => (value & (value - 1)) == 0 && value != 0;
+        public static bool IsPow2(uint value)
+        {
+#if NET6_0_OR_GREATER
+            return BitOperations.IsPow2(value);
+#else
+            return (value & (value - 1)) == 0 && value != 0;
+#endif
+        }
 
         /// <summary>Rotates the specified value left by the specified number of bits.</summary>
         /// <param name="value">The value to rotate.</param>
@@ -29,7 +36,14 @@ namespace NativeCollections
         /// </param>
         /// <returns>The rotated value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static uint RotateLeft(uint value, int offset) => (value << offset) | (value >> (32 - offset));
+        public static uint RotateLeft(uint value, int offset)
+        {
+#if NET5_0_OR_GREATER
+            return BitOperations.RotateLeft(value, offset);
+#else
+            return (value << offset) | (value >> (32 - offset));
+#endif
+        }
 
         /// <summary>
         ///     Log2 ceiling
@@ -56,7 +70,7 @@ namespace NativeCollections
 #if NET5_0_OR_GREATER
             return BitOperations.PopCount(value);
 #else
-            if (Unsafe.SizeOf<nint>() == 8)
+            if (Environment.Is64BitProcess)
             {
                 value -= (value >> 1) & 6148914691236517205UL;
                 value = (ulong)(((long)value & 3689348814741910323L) + ((long)(value >> 2) & 3689348814741910323L));

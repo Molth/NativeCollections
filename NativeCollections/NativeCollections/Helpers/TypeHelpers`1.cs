@@ -43,7 +43,7 @@ namespace NativeCollections
                 case TypeCode.Double:
                 case TypeCode.Int64:
                 case TypeCode.UInt64:
-                    return sizeof(nint) == 8;
+                    return Environment.Is64BitProcess;
                 default:
                     return false;
             }

@@ -42,8 +42,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static (nint Quotient, nint Remainder) DivRem(nint left, nint right)
         {
+#if NET6_0_OR_GREATER
+            return Math.DivRem(left, right);
+#else
             var quotient = left / right;
             return (quotient, left - quotient * right);
+#endif
         }
     }
 }

@@ -44,7 +44,7 @@ namespace NativeCollections
             nuint bytes;
             void* buffer;
             void* handle;
-            if (sizeof(nint) == 8)
+            if (Environment.Is64BitProcess)
             {
                 bytes = (nuint)TLSF64.align_up(TLSF64.tlsf_size() + TLSF64.tlsf_pool_overhead() + blocks * TLSF64.tlsf_alloc_overhead() + size, 8);
                 buffer = NativeMemoryAllocator.AlignedAlloc((uint)bytes, (uint)NativeMemoryAllocator.AlignOf<TLSF32.control_t>());
@@ -151,7 +151,7 @@ namespace NativeCollections
             var blocks = _blocks;
             nuint bytes;
             var buffer = _handle;
-            if (sizeof(nint) == 8)
+            if (Environment.Is64BitProcess)
             {
                 bytes = (nuint)TLSF64.align_up(TLSF64.tlsf_size() + TLSF64.tlsf_pool_overhead() + blocks * TLSF64.tlsf_alloc_overhead() + size, 8);
                 TLSF64.tlsf_create_with_pool(buffer, bytes);
@@ -169,7 +169,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryRent(nuint size, nuint alignment, out void* ptr)
         {
-            ptr = sizeof(nint) == 8 ? TLSF64.tlsf_memalign(_handle, alignment, size) : TLSF32.tlsf_memalign(_handle, (uint)alignment, (uint)size);
+            ptr = Environment.Is64BitProcess ? TLSF64.tlsf_memalign(_handle, alignment, size) : TLSF32.tlsf_memalign(_handle, (uint)alignment, (uint)size);
             return ptr != null;
         }
 
@@ -179,7 +179,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryRent(nuint size, nuint alignment, out void* ptr, out nuint bytes)
         {
-            if (sizeof(nint) == 8)
+            if (Environment.Is64BitProcess)
             {
                 ptr = TLSF64.tlsf_memalign(_handle, alignment, size);
                 if (ptr != null)
@@ -216,7 +216,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Return(void* ptr)
         {
-            if (sizeof(nint) == 8)
+            if (Environment.Is64BitProcess)
                 TLSF64.tlsf_free(_handle, ptr);
             else
                 TLSF32.tlsf_free(_handle, ptr);

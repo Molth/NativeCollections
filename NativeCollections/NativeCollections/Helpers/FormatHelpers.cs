@@ -113,10 +113,10 @@ namespace NativeCollections
                 return Unsafe.As<T, ulong>(ref value!).TryFormat(destination, out charsWritten, format, provider);
 
             if (typeof(T) == typeof(nint))
-                return sizeof(nint) == 8 ? Unsafe.As<T, long>(ref value!).TryFormat(destination, out charsWritten, format, provider) : Unsafe.As<T, int>(ref value!).TryFormat(destination, out charsWritten, format, provider);
+                return Environment.Is64BitProcess ? Unsafe.As<T, long>(ref value!).TryFormat(destination, out charsWritten, format, provider) : Unsafe.As<T, int>(ref value!).TryFormat(destination, out charsWritten, format, provider);
 
             if (typeof(T) == typeof(nuint))
-                return sizeof(nint) == 8 ? Unsafe.As<T, ulong>(ref value!).TryFormat(destination, out charsWritten, format, provider) : Unsafe.As<T, uint>(ref value!).TryFormat(destination, out charsWritten, format, provider);
+                return Environment.Is64BitProcess ? Unsafe.As<T, ulong>(ref value!).TryFormat(destination, out charsWritten, format, provider) : Unsafe.As<T, uint>(ref value!).TryFormat(destination, out charsWritten, format, provider);
 
             if (typeof(T) == typeof(Version))
             {
@@ -378,7 +378,7 @@ namespace NativeCollections
                     return true;
                 }
 
-                return sizeof(nint) == 8 ? ((long)nullable.GetValueOrDefault()).TryFormat(destination, out charsWritten, format, provider) : ((int)nullable.GetValueOrDefault()).TryFormat(destination, out charsWritten, format, provider);
+                return Environment.Is64BitProcess ? ((long)nullable.GetValueOrDefault()).TryFormat(destination, out charsWritten, format, provider) : ((int)nullable.GetValueOrDefault()).TryFormat(destination, out charsWritten, format, provider);
             }
 
             if (typeof(T) == typeof(nuint?))
@@ -390,7 +390,7 @@ namespace NativeCollections
                     return true;
                 }
 
-                return sizeof(nint) == 8 ? ((ulong)nullable.GetValueOrDefault()).TryFormat(destination, out charsWritten, format, provider) : ((uint)nullable.GetValueOrDefault()).TryFormat(destination, out charsWritten, format, provider);
+                return Environment.Is64BitProcess ? ((ulong)nullable.GetValueOrDefault()).TryFormat(destination, out charsWritten, format, provider) : ((uint)nullable.GetValueOrDefault()).TryFormat(destination, out charsWritten, format, provider);
             }
 
             return TryFormatFallback(value, destination, out charsWritten, format, provider);

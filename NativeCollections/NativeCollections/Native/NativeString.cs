@@ -1595,13 +1595,13 @@ namespace NativeCollections
         ///     Append formattable
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool AppendFormattable(nint obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) => sizeof(nint) == 8 ? AppendFormattable((long)obj, format, provider) : AppendFormattable((int)obj, format, provider);
+        public bool AppendFormattable(nint obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) => Environment.Is64BitProcess ? AppendFormattable((long)obj, format, provider) : AppendFormattable((int)obj, format, provider);
 
         /// <summary>
         ///     Append formattable
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool AppendFormattable(nuint obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) => sizeof(nint) == 8 ? AppendFormattable((ulong)obj, format, provider) : AppendFormattable((uint)obj, format, provider);
+        public bool AppendFormattable(nuint obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) => Environment.Is64BitProcess ? AppendFormattable((ulong)obj, format, provider) : AppendFormattable((uint)obj, format, provider);
 
         /// <summary>
         ///     Append formattable
