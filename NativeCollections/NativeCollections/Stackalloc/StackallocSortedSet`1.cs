@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using static NativeCollections.NativeSortedSet;
 
 #pragma warning disable CA2208
 #pragma warning disable CS8632
@@ -22,7 +23,7 @@ namespace NativeCollections
         /// <summary>
         ///     Root
         /// </summary>
-        private Node* _root;
+        private Node<T>* _root;
 
         /// <summary>
         ///     Count
@@ -37,7 +38,7 @@ namespace NativeCollections
         /// <summary>
         ///     Node pool
         /// </summary>
-        private StackallocFixedSizeStackMemoryPool<Node> _nodePool;
+        private StackallocFixedSizeStackMemoryPool<Node<T>> _nodePool;
 
         /// <summary>
         ///     Is empty
@@ -87,7 +88,7 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         /// <returns>Byte count</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetByteCount(int capacity) => StackallocFixedSizeStackMemoryPool<Node>.GetByteCount(capacity);
+        public static int GetByteCount(int capacity) => StackallocFixedSizeStackMemoryPool<Node<T>>.GetByteCount(capacity);
 
         /// <summary>
         ///     Structure
@@ -96,7 +97,7 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         public StackallocSortedSet(Span<byte> buffer, int capacity)
         {
-            var nodePool = new StackallocFixedSizeStackMemoryPool<Node>(buffer, capacity);
+            var nodePool = new StackallocFixedSizeStackMemoryPool<Node<T>>(buffer, capacity);
             _root = null;
             _count = 0;
             _version = 0;
@@ -137,9 +138,9 @@ namespace NativeCollections
             }
 
             var current = _root;
-            Node* parent = null;
-            Node* grandParent = null;
-            Node* greatGrandParent = null;
+            Node<T>* parent = null;
+            Node<T>* grandParent = null;
+            Node<T>* greatGrandParent = null;
             _version++;
             var order = 0;
             while (current != null)
@@ -154,7 +155,7 @@ namespace NativeCollections
                 if (current->Is4Node)
                 {
                     current->Split4Node();
-                    if (Node.IsNonNullRed(parent))
+                    if (Node<T>.IsNonNullRed(parent))
                         InsertionBalance(current, parent, grandParent, greatGrandParent);
                 }
 
@@ -213,10 +214,10 @@ namespace NativeCollections
                 return false;
             _version++;
             var current = _root;
-            Node* parent = null;
-            Node* grandParent = null;
-            Node* match = null;
-            Node* parentOfMatch = null;
+            Node<T>* parent = null;
+            Node<T>* grandParent = null;
+            Node<T>* match = null;
+            Node<T>* parentOfMatch = null;
             var foundMatch = false;
             while (current != null)
             {
@@ -303,10 +304,10 @@ namespace NativeCollections
 
             _version++;
             var current = _root;
-            Node* parent = null;
-            Node* grandParent = null;
-            Node* match = null;
-            Node* parentOfMatch = null;
+            Node<T>* parent = null;
+            Node<T>* grandParent = null;
+            Node<T>* match = null;
+            Node<T>* parentOfMatch = null;
             var foundMatch = false;
             while (current != null)
             {
@@ -437,11 +438,11 @@ namespace NativeCollections
         /// <param name="grandParent">Grand parent</param>
         /// <param name="greatGrandParent">GreatGrand parent</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void InsertionBalance(Node* current, Node* parent, Node* grandParent, Node* greatGrandParent)
+        private void InsertionBalance(Node<T>* current, Node<T>* parent, Node<T>* grandParent, Node<T>* greatGrandParent)
         {
             var parentIsOnRight = grandParent->Right == parent;
             var currentIsOnRight = parent->Right == current;
-            Node* newChildOfGreatGrandParent;
+            Node<T>* newChildOfGreatGrandParent;
             if (parentIsOnRight == currentIsOnRight)
                 newChildOfGreatGrandParent = currentIsOnRight ? grandParent->RotateLeft() : grandParent->RotateRight();
             else
@@ -458,7 +459,7 @@ namespace NativeCollections
         /// <param name="child">Child</param>
         /// <param name="newChild">New child</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ReplaceChildOrRoot(Node* parent, Node* child, Node* newChild)
+        private void ReplaceChildOrRoot(Node<T>* parent, Node<T>* child, Node<T>* newChild)
         {
             if (parent != null)
                 parent->ReplaceChild(child, newChild);
@@ -474,7 +475,7 @@ namespace NativeCollections
         /// <param name="successor">Successor</param>
         /// <param name="parentOfSuccessor">Parent of successor</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ReplaceNode(Node* match, Node* parentOfMatch, Node* successor, Node* parentOfSuccessor)
+        private void ReplaceNode(Node<T>* match, Node<T>* parentOfMatch, Node<T>* successor, Node<T>* parentOfSuccessor)
         {
             if (successor == match)
             {
@@ -504,7 +505,7 @@ namespace NativeCollections
         /// <param name="item">Item</param>
         /// <returns>Node</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private readonly Node* FindNode(in T item)
+        private readonly Node<T>* FindNode(in T item)
         {
             var current = _root;
             while (current != null)
@@ -516,240 +517,6 @@ namespace NativeCollections
             }
 
             return null;
-        }
-
-        /// <summary>
-        ///     Node
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential)]
-        private struct Node
-        {
-            /// <summary>
-            ///     Is non null red
-            /// </summary>
-            /// <param name="node">Node</param>
-            /// <returns>Is non null red</returns>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static bool IsNonNullRed(Node* node) => node != null && node->IsRed;
-
-            /// <summary>
-            ///     Is null or black
-            /// </summary>
-            /// <param name="node">Node</param>
-            /// <returns>Is null or black</returns>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private static bool IsNullOrBlack(Node* node) => node == null || node->IsBlack;
-
-            /// <summary>
-            ///     Item
-            /// </summary>
-            public T Item;
-
-            /// <summary>
-            ///     Left
-            /// </summary>
-            public Node* Left;
-
-            /// <summary>
-            ///     Right
-            /// </summary>
-            public Node* Right;
-
-            /// <summary>
-            ///     Color
-            /// </summary>
-            public NodeColor Color;
-
-            /// <summary>
-            ///     Is black
-            /// </summary>
-            private readonly bool IsBlack
-            {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => Color == NodeColor.Black;
-            }
-
-            /// <summary>
-            ///     Is red
-            /// </summary>
-            public readonly bool IsRed
-            {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => Color == NodeColor.Red;
-            }
-
-            /// <summary>
-            ///     Is 2 node
-            /// </summary>
-            public readonly bool Is2Node
-            {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => IsBlack && IsNullOrBlack(Left) && IsNullOrBlack(Right);
-            }
-
-            /// <summary>
-            ///     Is 4 node
-            /// </summary>
-            public readonly bool Is4Node
-            {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => IsNonNullRed(Left) && IsNonNullRed(Right);
-            }
-
-            /// <summary>
-            ///     Set color to black
-            /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void ColorBlack() => Color = NodeColor.Black;
-
-            /// <summary>
-            ///     Set color to red
-            /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void ColorRed() => Color = NodeColor.Red;
-
-            /// <summary>
-            ///     Get rotation
-            /// </summary>
-            /// <param name="current">Current</param>
-            /// <param name="sibling">Sibling</param>
-            /// <returns>Rotation</returns>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public readonly TreeRotation GetRotation(Node* current, Node* sibling)
-            {
-                var currentIsLeftChild = Left == current;
-                return IsNonNullRed(sibling->Left) ? currentIsLeftChild ? TreeRotation.RightLeft : TreeRotation.Right : currentIsLeftChild ? TreeRotation.Left : TreeRotation.LeftRight;
-            }
-
-            /// <summary>
-            ///     Get sibling
-            /// </summary>
-            /// <param name="node">Node</param>
-            /// <returns>Sibling</returns>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public readonly Node* GetSibling(Node* node) => node == Left ? Right : Left;
-
-            /// <summary>
-            ///     Split 4 node
-            /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void Split4Node()
-            {
-                ColorRed();
-                Left->ColorBlack();
-                Right->ColorBlack();
-            }
-
-            /// <summary>
-            ///     Rotate
-            /// </summary>
-            /// <param name="rotation">Rotation</param>
-            /// <returns>Node</returns>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public Node* Rotate(TreeRotation rotation)
-            {
-                Node* removeRed;
-                switch (rotation)
-                {
-                    case TreeRotation.Right:
-                        removeRed = Left->Left;
-                        removeRed->ColorBlack();
-                        return RotateRight();
-                    case TreeRotation.Left:
-                        removeRed = Right->Right;
-                        removeRed->ColorBlack();
-                        return RotateLeft();
-                    case TreeRotation.RightLeft:
-                        return RotateRightLeft();
-                    case TreeRotation.LeftRight:
-                        return RotateLeftRight();
-                    default:
-                        return null;
-                }
-            }
-
-            /// <summary>
-            ///     Rotate left
-            /// </summary>
-            /// <returns>Node</returns>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public Node* RotateLeft()
-            {
-                var child = Right;
-                Right = child->Left;
-                child->Left = (Node*)Unsafe.AsPointer(ref this);
-                return child;
-            }
-
-            /// <summary>
-            ///     Rotate left right
-            /// </summary>
-            /// <returns>Node</returns>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public Node* RotateLeftRight()
-            {
-                var child = Left;
-                var grandChild = child->Right;
-                Left = grandChild->Right;
-                grandChild->Right = (Node*)Unsafe.AsPointer(ref this);
-                child->Right = grandChild->Left;
-                grandChild->Left = child;
-                return grandChild;
-            }
-
-            /// <summary>
-            ///     Rotate right
-            /// </summary>
-            /// <returns>Node</returns>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public Node* RotateRight()
-            {
-                var child = Left;
-                Left = child->Right;
-                child->Right = (Node*)Unsafe.AsPointer(ref this);
-                return child;
-            }
-
-            /// <summary>
-            ///     Rotate right left
-            /// </summary>
-            /// <returns>Node</returns>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public Node* RotateRightLeft()
-            {
-                var child = Right;
-                var grandChild = child->Left;
-                Right = grandChild->Left;
-                grandChild->Left = (Node*)Unsafe.AsPointer(ref this);
-                child->Left = grandChild->Right;
-                grandChild->Right = child;
-                return grandChild;
-            }
-
-            /// <summary>
-            ///     Merge 2 nodes
-            /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void Merge2Nodes()
-            {
-                ColorBlack();
-                Left->ColorRed();
-                Right->ColorRed();
-            }
-
-            /// <summary>
-            ///     Replace child
-            /// </summary>
-            /// <param name="child">Child</param>
-            /// <param name="newChild">New child</param>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void ReplaceChild(Node* child, Node* newChild)
-            {
-                if (Left == child)
-                    Left = newChild;
-                else
-                    Right = newChild;
-            }
         }
 
         /// <summary>
@@ -774,7 +541,7 @@ namespace NativeCollections
                 {
                     if (index >= count)
                         break;
-                    var node1 = (Node*)nodeStack.Pop();
+                    var node1 = (Node<T>*)nodeStack.Pop();
                     Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)index++)), node1->Item);
                     for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
                         nodeStack.Push((nint)node2);
@@ -810,7 +577,7 @@ namespace NativeCollections
                     nodeStack.Push((nint)node);
                 while (nodeStack.Count != 0)
                 {
-                    var node1 = (Node*)nodeStack.Pop();
+                    var node1 = (Node<T>*)nodeStack.Pop();
                     Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)index++)), node1->Item);
                     for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
                         nodeStack.Push((nint)node2);
@@ -877,7 +644,7 @@ namespace NativeCollections
             /// <summary>
             ///     Current
             /// </summary>
-            private Node* _currentNode;
+            private Node<T>* _currentNode;
 
             /// <summary>
             ///     Current
@@ -921,7 +688,7 @@ namespace NativeCollections
                     return false;
                 }
 
-                _currentNode = (Node*)result;
+                _currentNode = (Node<T>*)result;
                 _current = _currentNode->Item;
                 var node = _currentNode->Right;
                 while (node != null)
@@ -948,26 +715,6 @@ namespace NativeCollections
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public readonly void Dispose() => _nodeStack.Dispose();
-        }
-
-        /// <summary>
-        ///     Node color
-        /// </summary>
-        private enum NodeColor : byte
-        {
-            Black,
-            Red
-        }
-
-        /// <summary>
-        ///     Tree rotation
-        /// </summary>
-        private enum TreeRotation : byte
-        {
-            Left,
-            LeftRight,
-            Right,
-            RightLeft
         }
     }
 }
