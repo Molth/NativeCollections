@@ -381,8 +381,7 @@ namespace NativeCollections
         public int EnsureCapacity(int capacity)
         {
             ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
-            if (capacity > _maxFreeChunks)
-                capacity = _maxFreeChunks;
+            capacity = Math.Min(capacity, _maxFreeChunks);
             var size = _size;
             while (_freeChunks < capacity)
             {

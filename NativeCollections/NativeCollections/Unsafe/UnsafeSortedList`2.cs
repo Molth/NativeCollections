@@ -109,8 +109,7 @@ namespace NativeCollections
         public UnsafeSortedList(int capacity)
         {
             ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
-            if (capacity < 4)
-                capacity = 4;
+            capacity = Math.Max(capacity, 4);
             var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<TKey>(), NativeMemoryAllocator.AlignOf<TValue>());
             var keysByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * sizeof(TKey)), alignment);
             _keys = (TKey*)NativeMemoryAllocator.AlignedAlloc((uint)(keysByteCount + capacity * sizeof(TValue)), alignment);
@@ -564,9 +563,8 @@ namespace NativeCollections
                 if ((uint)newCapacity > 2147483591)
                     newCapacity = 2147483591;
                 var expected = _capacity + 4;
-                newCapacity = newCapacity > expected ? newCapacity : expected;
-                if (newCapacity < capacity)
-                    newCapacity = capacity;
+                newCapacity = Math.Max(newCapacity, expected);
+                newCapacity = Math.Max(newCapacity, capacity);
                 SetCapacity(newCapacity);
             }
 

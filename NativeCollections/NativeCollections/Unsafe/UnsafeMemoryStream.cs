@@ -101,8 +101,7 @@ namespace NativeCollections
         public UnsafeMemoryStream(int capacity)
         {
             ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
-            if (capacity < 4)
-                capacity = 4;
+            capacity = Math.Max(capacity, 4);
             _buffer = NativeMemoryAllocator.AlignedAlloc<byte>((uint)capacity);
             _position = 0;
             _length = 0;
@@ -176,8 +175,7 @@ namespace NativeCollections
             if (!allocatedNewArray && length > _length)
                 Unsafe.InitBlockUnaligned(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), new IntPtr(_length)), 0, (uint)(length - _length));
             _length = length;
-            if (_position > length)
-                _position = length;
+            _position = Math.Min(_position, length);
         }
 
         /// <summary>
@@ -303,11 +301,11 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfStreamTooLong(capacity);
             if (capacity > _capacity)
             {
-                var newCapacity = capacity > 256 ? capacity : 256;
-                if (newCapacity < _capacity * 2)
-                    newCapacity = _capacity * 2;
-                if ((uint)(_capacity * 2) > 2147483591)
-                    newCapacity = capacity > 2147483591 ? capacity : 2147483591;
+                var newCapacity = Math.Max(capacity, 256);
+                var expected = _capacity * 2;
+                newCapacity = Math.Max(newCapacity, expected);
+                if ((uint)expected > 2147483591)
+                    newCapacity = Math.Max(capacity, 2147483591);
                 SetCapacity(newCapacity);
                 return true;
             }

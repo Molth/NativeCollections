@@ -437,7 +437,7 @@ namespace NativeCollections
                 var valueTuple = Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(nodes), (nint)firstChildIndex);
                 first = firstChildIndex;
                 var minSize = firstChildIndex + 4;
-                var second = minSize <= size ? minSize : size;
+                var second = Math.Min(minSize, size);
                 while (++firstChildIndex < second)
                 {
                     var tuple = Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(nodes), (nint)firstChildIndex);

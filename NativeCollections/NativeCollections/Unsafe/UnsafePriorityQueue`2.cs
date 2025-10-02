@@ -88,8 +88,7 @@ namespace NativeCollections
         public UnsafePriorityQueue(int capacity)
         {
             ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
-            if (capacity < 4)
-                capacity = 4;
+            capacity = Math.Max(capacity, 4);
             _nodes = NativeMemoryAllocator.AlignedAlloc<(TElement Element, TPriority Priority)>((uint)capacity);
             _length = capacity;
             _size = 0;
@@ -465,9 +464,8 @@ namespace NativeCollections
             if ((uint)newCapacity > 2147483591)
                 newCapacity = 2147483591;
             var expected = _length + 4;
-            newCapacity = newCapacity > expected ? newCapacity : expected;
-            if (newCapacity < capacity)
-                newCapacity = capacity;
+            newCapacity = Math.Max(newCapacity, expected);
+            newCapacity = Math.Max(newCapacity, capacity);
             var nodes = NativeMemoryAllocator.AlignedAlloc<(TElement Element, TPriority Priority)>((uint)newCapacity);
             Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(nodes), ref Unsafe.AsRef<byte>(_nodes), (uint)(_size * sizeof((TElement Element, TPriority Priority))));
             NativeMemoryAllocator.AlignedFree(_nodes);
@@ -529,7 +527,7 @@ namespace NativeCollections
                 var valueTuple = Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(nodes), (nint)firstChildIndex);
                 first = firstChildIndex;
                 var minSize = firstChildIndex + 4;
-                var second = minSize <= size ? minSize : size;
+                var second = Math.Min(minSize, size);
                 while (++firstChildIndex < second)
                 {
                     var tuple = Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(nodes), (nint)firstChildIndex);

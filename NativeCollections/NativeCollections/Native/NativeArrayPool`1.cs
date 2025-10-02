@@ -58,10 +58,7 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfNegativeOrZero(capacity, nameof(capacity));
             ThrowHelpers.ThrowIfNegative(maxLength, nameof(maxLength));
-            if (maxLength > 1073741824)
-                maxLength = 1073741824;
-            else if (maxLength < 16)
-                maxLength = 16;
+            maxLength = Math.Clamp(maxLength, 16, 1073741824);
             var length = SelectBucketIndex(maxLength) + 1;
             var alignment = Math.Max((uint)NativeMemoryAllocator.AlignOf<NativeArrayPoolBucket>(), (uint)NativeMemoryAllocator.AlignOf<nint>());
             var bucketsLength = (uint)NativeMemoryAllocator.AlignUp((nuint)(length * sizeof(NativeArrayPoolBucket)), alignment);

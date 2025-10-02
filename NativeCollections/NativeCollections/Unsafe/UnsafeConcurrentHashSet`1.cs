@@ -104,8 +104,7 @@ namespace NativeCollections
             var nodePool = new UnsafeMemoryPool(size, sizeof(Node), maxFreeSlabs, (int)NativeMemoryAllocator.AlignOf<Node>());
             if (concurrencyLevel <= 0)
                 concurrencyLevel = Environment.ProcessorCount;
-            if (capacity < concurrencyLevel)
-                capacity = concurrencyLevel;
+            capacity = Math.Max(capacity, concurrencyLevel);
             capacity = HashHelpers.GetPrime(capacity);
             var locks = new NativeArrayReference<object>(concurrencyLevel);
             for (var i = 0; i < locks.Length; ++i)
@@ -167,7 +166,7 @@ namespace NativeCollections
 
                 _tables->CountPerLock.Clear();
                 var budget = _tables->Buckets.Length / _tables->Locks.Length;
-                _budget = budget >= 1 ? budget : 1;
+                _budget = Math.Max(budget, 1);
             }
             finally
             {
@@ -441,7 +440,7 @@ namespace NativeCollections
                 }
 
                 var budget = newBuckets.Length / newLocks.Length;
-                _budget = budget >= 1 ? budget : 1;
+                _budget = Math.Max(budget, 1);
                 _tables->Buckets.Dispose();
                 if (_tables->Locks != newLocks)
                     _tables->Locks.Dispose();

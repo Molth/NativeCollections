@@ -117,8 +117,7 @@ namespace NativeCollections
         public UnsafeDictionary(int capacity)
         {
             ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
-            if (capacity < 4)
-                capacity = 4;
+            capacity = Math.Max(capacity, 4);
             this = new UnsafeDictionary<TKey, TValue>();
             Initialize(capacity);
         }

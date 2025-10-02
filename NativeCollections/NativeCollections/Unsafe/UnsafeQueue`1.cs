@@ -92,8 +92,7 @@ namespace NativeCollections
         public UnsafeQueue(int capacity)
         {
             ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
-            if (capacity < 4)
-                capacity = 4;
+            capacity = Math.Max(capacity, 4);
             _buffer = NativeMemoryAllocator.AlignedAlloc<T>((uint)capacity);
             _length = capacity;
             _head = 0;
@@ -302,9 +301,8 @@ namespace NativeCollections
             if ((uint)newCapacity > 2147483591)
                 newCapacity = 2147483591;
             var expected = _length + 4;
-            newCapacity = newCapacity > expected ? newCapacity : expected;
-            if (newCapacity < capacity)
-                newCapacity = capacity;
+            newCapacity = Math.Max(newCapacity, expected);
+            newCapacity = Math.Max(newCapacity, capacity);
             SetCapacity(newCapacity);
         }
 
@@ -335,7 +333,7 @@ namespace NativeCollections
             if (size == 0)
                 return 0;
             var length1 = _length - _head;
-            var length2 = length1 > size ? size : length1;
+            var length2 = Math.Min(length1, size);
             Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_head)), (uint)(length2 * sizeof(T)));
             var length3 = size - length2;
             if (length3 > 0)
@@ -364,7 +362,7 @@ namespace NativeCollections
             if (size == 0)
                 return;
             var length1 = _length - _head;
-            var length2 = length1 > size ? size : length1;
+            var length2 = Math.Min(length1, size);
             Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_head)), (uint)(length2 * sizeof(T)));
             var length3 = size - length2;
             if (length3 <= 0)

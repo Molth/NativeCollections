@@ -87,8 +87,7 @@ namespace NativeCollections
         public UnsafeHashSet(int capacity)
         {
             ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
-            if (capacity < 4)
-                capacity = 4;
+            capacity = Math.Max(capacity, 4);
             this = new UnsafeHashSet<T>();
             Initialize(capacity);
         }

@@ -147,8 +147,7 @@ namespace NativeCollections
             if (length > _length)
                 Unsafe.InitBlockUnaligned(ref Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(_buffer), new IntPtr(_length)), 0, (uint)(length - _length));
             _length = length;
-            if (_position > length)
-                _position = length;
+            _position = Math.Min(_position, length);
             return true;
         }
 

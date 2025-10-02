@@ -70,8 +70,7 @@ namespace NativeCollections
         public UnsafeFixedSizeQueueMemoryPool(int capacity)
         {
             ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
-            if (capacity < 4)
-                capacity = 4;
+            capacity = Math.Max(capacity, 4);
             var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<T>(), NativeMemoryAllocator.AlignOf<int>());
             var bufferByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * sizeof(T)), alignment);
             _buffer = (T*)NativeMemoryAllocator.AlignedAlloc((uint)(bufferByteCount + capacity * sizeof(int)), alignment);

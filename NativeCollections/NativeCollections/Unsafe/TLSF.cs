@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 #pragma warning disable CA2208
@@ -54,10 +55,10 @@ namespace NativeCollections
             public static int tlsf_fls_sizet(uint size) => tlsf_fls(size);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static uint tlsf_min(uint a, uint b) => a < b ? a : b;
+            public static uint tlsf_min(uint a, uint b) => Math.Min(a, b);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static uint tlsf_max(uint a, uint b) => a > b ? a : b;
+            public static uint tlsf_max(uint a, uint b) => Math.Max(a, b);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static uint block_size(block_header_t* block) => block->size & ~(block_header_free_bit | block_header_prev_free_bit);
@@ -662,10 +663,10 @@ namespace NativeCollections
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static ulong tlsf_min(ulong a, ulong b) => a < b ? a : b;
+            public static ulong tlsf_min(ulong a, ulong b) => Math.Min(a, b);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static ulong tlsf_max(ulong a, ulong b) => a > b ? a : b;
+            public static ulong tlsf_max(ulong a, ulong b) => Math.Max(a, b);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static ulong block_size(block_header_t* block) => block->size & ~(block_header_free_bit | block_header_prev_free_bit);

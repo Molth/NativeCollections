@@ -407,7 +407,7 @@ namespace NativeCollections
                 var priority1 = Unsafe.Add(ref Unsafe.AsRef<TPriority>(nodes), (nint)firstChildIndex);
                 first = firstChildIndex;
                 var minSize = firstChildIndex + 4;
-                var second = minSize <= size ? minSize : size;
+                var second = Math.Min(minSize, size);
                 while (++firstChildIndex < second)
                 {
                     var priority2 = Unsafe.Add(ref Unsafe.AsRef<TPriority>(nodes), (nint)firstChildIndex);

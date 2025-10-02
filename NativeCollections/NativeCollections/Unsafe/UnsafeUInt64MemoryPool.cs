@@ -250,8 +250,7 @@ namespace NativeCollections
         public int EnsureCapacity(int capacity)
         {
             ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
-            if (capacity > _maxFreeSlabs)
-                capacity = _maxFreeSlabs;
+            capacity = Math.Min(capacity, _maxFreeSlabs);
             var nodeByteCount = sizeof(nint) + _alignedLength;
             var alignedSlabByteCount = _alignedSlabByteCount;
             while (_freeSlabs < capacity)
