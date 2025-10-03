@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -18,12 +17,6 @@ namespace NativeCollections
     /// </summary>
     internal static unsafe class Utf8FormatHelpers
     {
-        /// <summary>
-        ///     Gets whether the provider provides a custom formatter.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool HasCustomFormatter(IFormatProvider provider) => provider.GetType() != typeof(CultureInfo) && provider.GetFormat(typeof(ICustomFormatter)) != null;
-
         /// <summary>
         ///     Try format
         /// </summary>
