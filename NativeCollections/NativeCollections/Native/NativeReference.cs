@@ -178,6 +178,12 @@ namespace NativeCollections
         ///     Create
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeReference Create<T>(Span<T> buffer) where T : unmanaged => new(MemoryMarshal.AsBytes(buffer));
+
+        /// <summary>
+        ///     Create
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeReference Create<T>(ReadOnlySpan<T> buffer) where T : unmanaged
         {
             var bytes = MemoryMarshal.AsBytes(buffer);

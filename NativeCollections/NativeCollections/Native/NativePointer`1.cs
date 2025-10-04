@@ -187,6 +187,12 @@ namespace NativeCollections
         ///     Create
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativePointer<T> Create<TFrom>(Span<TFrom> buffer) => new(Unsafe.ByteOffset(ref Unsafe.NullRef<TFrom>(), ref MemoryMarshal.GetReference(buffer)));
+
+        /// <summary>
+        ///     Create
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativePointer<T> Create<TFrom>(ReadOnlySpan<TFrom> buffer) => new(Unsafe.ByteOffset(ref Unsafe.NullRef<TFrom>(), ref MemoryMarshal.GetReference(buffer)));
 
         /// <summary>
