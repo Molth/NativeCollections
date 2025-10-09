@@ -58,20 +58,20 @@ namespace NativeCollections
         ///     Get reference
         /// </summary>
         /// <param name="index">Index</param>
-        public readonly TPriority this[int index]
+        public readonly ref readonly TPriority this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => Unsafe.Add(ref Unsafe.AsRef<TPriority>(_nodes), (nint)index);
+            get => ref Unsafe.Add(ref Unsafe.AsRef<TPriority>(_nodes), (nint)index);
         }
 
         /// <summary>
         ///     Get reference
         /// </summary>
         /// <param name="index">Index</param>
-        public readonly TPriority this[uint index]
+        public readonly ref readonly TPriority this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => Unsafe.Add(ref Unsafe.AsRef<TPriority>(_nodes), (nint)index);
+            get => ref Unsafe.Add(ref Unsafe.AsRef<TPriority>(_nodes), (nint)index);
         }
 
         /// <summary>

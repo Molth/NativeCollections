@@ -52,6 +52,7 @@ namespace NativeCollections
 #if NET5_0_OR_GREATER
             _spinWait.SpinOnce(sleepThreshold);
 #else
+            ThrowHelpers.ThrowIfLessThan(sleepThreshold, -1, nameof(sleepThreshold));
             _spinWait.SpinOnce();
 #endif
         }
