@@ -29,9 +29,67 @@ namespace Examples
 
     internal sealed unsafe class Program
     {
+        private static RwLock<int> _lock;
+
         private static void Main()
         {
-            TestConcurrent();
+            var writerCount = Environment.ProcessorCount;
+            var readerCount = Environment.ProcessorCount;
+            var iterations = Random.Shared.Next(1000, 10000);
+            var errors = 0;
+            var writers = Task.Run(() =>
+            {
+                Parallel.For(0, writerCount, _ =>
+                {
+                    for (var j = 0; j < iterations; ++j)
+                    {
+                        using var write = _lock.BorrowMutable();
+                        ref var value = ref write.Unwrap();
+                        value++;
+                    }
+                });
+            });
+
+            var readers = Task.Run(() =>
+            {
+                Parallel.For(0, readerCount, _ =>
+                {
+                    var last = 0;
+                    for (var j = 0; j < iterations; ++j)
+                    {
+                        using var read = _lock.Borrow();
+                        ref readonly var value = ref read.Unwrap();
+                        var current = value;
+                        if (current < last)
+                            Interlocked.Increment(ref errors);
+                        last = current;
+                    }
+                });
+            });
+
+            Task.WaitAll(writers, readers);
+
+            using (var read = _lock.Borrow())
+            {
+                ref readonly var final = ref read.Unwrap();
+                var expected = writerCount * iterations;
+                if (final != expected || errors != 0)
+                    throw new Exception($"RwLock test failed: final={final}, expected={expected}, read-errors={errors}.");
+                else
+                    Console.WriteLine($"Success. {expected}");
+            }
+        }
+
+        private static void TestStateMachine()
+        {
+            var stateMachine = new StateMachine(3);
+            stateMachine.Change<TestStateA>();
+            stateMachine.Update();
+            stateMachine.Change<TestStateB>();
+            stateMachine.Update();
+            stateMachine.Change<TestStateA>();
+            stateMachine.Update();
+            stateMachine.Update();
         }
 
         private static void TestFill2()
