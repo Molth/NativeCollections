@@ -124,7 +124,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeConcurrentQueue(int size, int maxFreeSlabs)
         {
-            var segmentPool = new UnsafeMemoryPool(size, sizeof(NativeConcurrentQueue.NativeConcurrentQueueSegment<T>), maxFreeSlabs, (int)Math.Max(NativeMemoryAllocator.AlignOf<T>(), 128));
+            var segmentPool = new UnsafeMemoryPool(size, sizeof(NativeConcurrentQueue.NativeConcurrentQueueSegment<T>), maxFreeSlabs, (int)Math.Max(NativeMemoryAllocator.AlignOf<T>(), ArchitectureHelpers.CACHE_LINE_SIZE));
             _crossSegmentLock = GCHandle.Alloc(new object(), GCHandleType.Normal);
             _segmentPool = segmentPool;
             var segment = (NativeConcurrentQueue.NativeConcurrentQueueSegment<T>*)_segmentPool.Rent();

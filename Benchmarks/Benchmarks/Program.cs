@@ -6,7 +6,7 @@ namespace Benchmarks
     {
         private static void Main()
         {
-            BenchmarkRunner.Run<BenchmarkDistinct>();
+            BenchmarkRunner.Run<FrozenDictionaryBenchmark>();
         }
     }
 }

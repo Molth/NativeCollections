@@ -240,11 +240,11 @@ namespace NativeCollections
         /// </summary>
         /// <param name="index">Index</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly T GetAt(int index)
+        public readonly ref readonly T GetAt(int index)
         {
             ThrowHelpers.ThrowIfNegative(index, nameof(index));
             ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, nameof(index));
-            return Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index);
+            return ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index);
         }
 
         /// <summary>

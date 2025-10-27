@@ -193,7 +193,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="index">Index</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T GetAt(int index) => _handle->GetAt(index);
+        public ref readonly T GetAt(int index) => ref _handle->GetAt(index);
 
         /// <summary>
         ///     Contains item

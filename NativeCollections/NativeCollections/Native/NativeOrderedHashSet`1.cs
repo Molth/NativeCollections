@@ -206,7 +206,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>Item</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T GetAt(int index) => _handle->GetAt(index);
+        public ref readonly T GetAt(int index) => ref _handle->GetAt(index);
 
         /// <summary>
         ///     Get at
@@ -232,13 +232,6 @@ namespace NativeCollections
         /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Insert(int index, in T item) => _handle->Insert(index, item);
-
-        /// <summary>
-        ///     Set at
-        /// </summary>
-        /// <param name="index">Index</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetAt(int index) => _handle->SetAt(index);
 
         /// <summary>
         ///     Set at

@@ -31,11 +31,6 @@ namespace NativeCollections
         public const int SEGMENT_FREEZE_OFFSET = SLOTS_LENGTH * 2;
 
         /// <summary>
-        ///     Catch line size
-        /// </summary>
-        public const int CACHE_LINE_SIZE = 128;
-
-        /// <summary>
         ///     Segment
         /// </summary>
         /// <typeparam name="T">Type</typeparam>
@@ -192,18 +187,20 @@ namespace NativeCollections
         /// <summary>
         ///     Padded head and tail
         /// </summary>
-        [StructLayout(LayoutKind.Explicit, Size = 3 * CACHE_LINE_SIZE)]
+        [StructLayout(LayoutKind.Explicit, Size = 3 * ArchitectureHelpers.CACHE_LINE_SIZE)]
         public struct NativeConcurrentQueuePaddedHeadAndTail
         {
             /// <summary>
             ///     Head
             /// </summary>
-            [FieldOffset(1 * CACHE_LINE_SIZE)] public int Head;
+            [FieldOffset(1 * ArchitectureHelpers.CACHE_LINE_SIZE)]
+            public int Head;
 
             /// <summary>
             ///     Tail
             /// </summary>
-            [FieldOffset(2 * CACHE_LINE_SIZE)] public int Tail;
+            [FieldOffset(2 * ArchitectureHelpers.CACHE_LINE_SIZE)]
+            public int Tail;
         }
 
         /// <summary>

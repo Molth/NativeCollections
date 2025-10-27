@@ -337,11 +337,11 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>Item</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly T GetAt(int index)
+        public readonly ref readonly T GetAt(int index)
         {
             ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_count, nameof(index));
             ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
-            return local.Value;
+            return ref local.Value;
         }
 
         /// <summary>
@@ -422,16 +422,6 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfGreaterThan((uint)index, (uint)_count, nameof(index));
             return TryInsertIgnoreInsertion(index, item);
-        }
-
-        /// <summary>
-        ///     Set at
-        /// </summary>
-        /// <param name="index">Index</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly void SetAt(int index)
-        {
-            ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_count, nameof(index));
         }
 
         /// <summary>

@@ -11,7 +11,7 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Two-Level Segregated Fit memory allocator 32
+    ///     Two-Level Segregated Fit memory allocator
     ///     https://github.com/mattconte/tlsf
     /// </summary>
     internal static class TLSF

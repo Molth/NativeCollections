@@ -14,7 +14,7 @@ namespace NativeCollections
         /// <summary>
         ///     Primes
         /// </summary>
-        private static ReadOnlySpan<int> Primes => new int[96]
+        public static ReadOnlySpan<int> Primes => new int[96]
         {
             0, 0, 1, 2, 3, 6, 9, 12, 16, 19, 23, 27, 31, 34, 38, 42, 46, 50, 53, 57, 61, 65, 69, 0,
             3, 7, 11, 17, 23, 29, 37, 47, 59, 71, 89, 107, 131, 163, 197, 239, 293, 353, 431, 521, 631, 761, 919,

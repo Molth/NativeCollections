@@ -396,5 +396,7 @@ namespace NativeCollections
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ThrowFormatIndexOutOfRange() => throw new FormatException("IndexOutOfRange");
+
+        public static void ThrowInvalidOperationException() => throw new InvalidOperationException();
     }
 }
