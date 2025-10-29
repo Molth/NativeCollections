@@ -33,6 +33,19 @@ namespace Examples
 
         private static void Main()
         {
+            var a = new UnsafeParallelHashMap<int, char>(4);
+            var sb = new StringBuilder();
+            for (int i = 0; i < 26; ++i)
+                a.Add(i, (char)('a' + i));
+
+            foreach (var kvp in a)
+                sb.Append((kvp.Key + 1) + ":" + kvp.Value + " ");
+
+            Console.WriteLine(sb);
+        }
+
+        private static void TestRwLock()
+        {
             var writerCount = Environment.ProcessorCount;
             var readerCount = Environment.ProcessorCount;
             var iterations = Random.Shared.Next(1000, 10000);

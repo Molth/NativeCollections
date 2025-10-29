@@ -64,7 +64,7 @@ namespace Benchmarks
             }
 
             _frozenDict = data.ToFrozenDictionary();
-            _frozenDict2 = new NativeFrozenDictionary<Guid, Guid>(data);
+            _frozenDict2 = NativeFrozenDictionary<Guid, Guid>.Create(data);
             _dict = new Dictionary<Guid, Guid>(data);
             _concurrentDict = new ConcurrentDictionary<Guid, Guid>(data);
 

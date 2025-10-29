@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -112,6 +113,19 @@ namespace NativeCollections
         }
     }
 
+    public static unsafe class UnsafeUtility
+    {
+        public static T Read<T>(void* source, int index)
+        {
+            return Unsafe.Add(ref Unsafe.AsRef<T>(source), index);
+        }
+
+        public static void Write<T>(void* source, int index, T value)
+        {
+            Unsafe.Add(ref Unsafe.AsRef<T>(source), index) = value;
+        }
+    }
+
     [StructLayout(LayoutKind.Explicit)]
     public unsafe struct UnsafeParallelHashMapData
     {
@@ -160,7 +174,7 @@ namespace NativeCollections
             int maxThreadCount = JobsUtility.ThreadIndexCount;
             int hashMapDataSize = kFirstFreeTLSOffset + (sizeof(int) * IntsPerCacheLine * maxThreadCount);
             UnsafeParallelHashMapData* data = (UnsafeParallelHashMapData*)NativeMemoryAllocator.AlignedAlloc((uint)hashMapDataSize, JobsUtility.CacheLineSize);
-            bucketLength = (int)BitOperationsHelpers.RoundUpToPowerOf2((uint)bucketLength);
+            bucketLength = (int)BitOperations.RoundUpToPowerOf2((uint)bucketLength);
             data->keyCapacity = length;
             data->bucketCapacityMask = bucketLength - 1;
             int keyOffset, nextOffset, bucketOffset;
@@ -175,7 +189,7 @@ namespace NativeCollections
 
         internal static void ReallocateHashMap<TKey, TValue>(UnsafeParallelHashMapData* data, int newCapacity, int newBucketCapacity) where TKey : unmanaged where TValue : unmanaged
         {
-            newBucketCapacity = (int)BitOperationsHelpers.RoundUpToPowerOf2((uint)newBucketCapacity);
+            newBucketCapacity = (int)BitOperations.RoundUpToPowerOf2((uint)newBucketCapacity);
 
             if (data->keyCapacity == newCapacity && (data->bucketCapacityMask + 1) == newBucketCapacity)
             {
@@ -216,7 +230,7 @@ namespace NativeCollections
                 {
                     int curEntry = buckets[bucket];
                     buckets[bucket] = nextPtrs[curEntry];
-                    int newBucket = Unsafe.Read<TKey>(data->keys + curEntry).GetHashCode() & (newBucketCapacity - 1);
+                    int newBucket = UnsafeUtility.Read<TKey>(data->keys, curEntry).GetHashCode() & (newBucketCapacity - 1);
                     nextPtrs[curEntry] = ((int*)newBuckets)[newBucket];
                     ((int*)newBuckets)[newBucket] = curEntry;
                 }
@@ -362,7 +376,7 @@ namespace NativeCollections
 
                 while (bucket != -1)
                 {
-                    result[count++] = Unsafe.Read<TKey>(data->keys + bucket);
+                    result[count++] = UnsafeUtility.Read<TKey>(data->keys, bucket);
                     bucket = bucketNext[bucket];
                 }
             }
@@ -379,7 +393,7 @@ namespace NativeCollections
 
                 while (bucket != -1)
                 {
-                    result[count++] = Unsafe.Read<TValue>(data->values + bucket);
+                    result[count++] = UnsafeUtility.Read<TValue>(data->values, bucket);
                     bucket = bucketNext[bucket];
                 }
             }
@@ -401,8 +415,8 @@ namespace NativeCollections
 
                 while (bucket != -1)
                 {
-                    result.Keys[count] = Unsafe.Read<TKey>(data->keys + bucket);
-                    result.Values[count] = Unsafe.Read<TValue>(data->values + bucket);
+                    result.Keys[count] = UnsafeUtility.Read<TKey>(data->keys, bucket);
+                    result.Values[count] = UnsafeUtility.Read<TValue>(data->values, bucket);
                     count++;
                     bucket = bucketNext[bucket];
                 }
@@ -603,8 +617,8 @@ namespace NativeCollections
             int idx = AllocEntry(data, threadIndex);
 
             // Write the new value to the entry
-            Unsafe.Write(data->keys + idx, key);
-            Unsafe.Write(data->values + idx, item);
+            UnsafeUtility.Write(data->keys, idx, key);
+            UnsafeUtility.Write(data->values, idx, item);
 
             int bucket = key.GetHashCode() & data->bucketCapacityMask;
             // Add the index to the hash-map
@@ -645,8 +659,8 @@ namespace NativeCollections
             int idx = AllocEntry(data, threadIndex);
 
             // Write the new value to the entry
-            Unsafe.Write(data->keys + idx, key);
-            Unsafe.Write(data->values + idx, item);
+            UnsafeUtility.Write(data->keys, idx, key);
+            UnsafeUtility.Write(data->values, idx, item);
 
             int bucket = key.GetHashCode() & data->bucketCapacityMask;
             // Add the index to the hash-map
@@ -708,8 +722,8 @@ namespace NativeCollections
                 CheckIndexOutOfBounds(data, idx);
 
                 // Write the new value to the entry
-                Unsafe.Write(data->keys + idx, key);
-                Unsafe.Write(data->values + idx, item);
+                UnsafeUtility.Write(data->keys, idx, key);
+                UnsafeUtility.Write(data->values, idx, item);
 
                 int bucket = key.GetHashCode() & data->bucketCapacityMask;
                 // Add the index to the hash-map
@@ -742,7 +756,7 @@ namespace NativeCollections
 
             while (entryIdx >= 0 && entryIdx < data->keyCapacity)
             {
-                if (Unsafe.Read<TKey>(data->keys + entryIdx).Equals(key))
+                if (UnsafeUtility.Read<TKey>(data->keys, entryIdx).Equals(key))
                 {
                     ++removed;
 
@@ -836,8 +850,8 @@ namespace NativeCollections
 
             do
             {
-                if (Unsafe.Read<TKey>(keys + entryIdx).Equals(key)
-                    && Unsafe.Read<TValueEQ>(values + entryIdx).Equals(value))
+                if (UnsafeUtility.Read<TKey>(keys, entryIdx).Equals(key)
+                    && UnsafeUtility.Read<TValueEQ>(values, entryIdx).Equals(value))
                 {
                     int nextIdx = nextPtrs[entryIdx];
                     nextPtrs[entryIdx] = firstFreeTLS[0];
@@ -882,7 +896,7 @@ namespace NativeCollections
             }
 
             int* nextPtrs = (int*)data->next;
-            while (!Unsafe.Read<TKey>(data->keys + entryIdx).Equals(it.key))
+            while (!UnsafeUtility.Read<TKey>(data->keys, entryIdx).Equals(it.key))
             {
                 entryIdx = nextPtrs[entryIdx];
                 if (entryIdx < 0 || entryIdx >= data->keyCapacity)
@@ -895,7 +909,7 @@ namespace NativeCollections
             it.EntryIndex = entryIdx;
 
             // Read the value
-            item = Unsafe.Read<TValue>(data->values + entryIdx);
+            item = UnsafeUtility.Read<TValue>(data->values, entryIdx);
 
             return true;
         }
@@ -908,7 +922,7 @@ namespace NativeCollections
                 return false;
             }
 
-            Unsafe.Write(data->values + entryIdx, item);
+            UnsafeUtility.Write(data->values, entryIdx, item);
             return true;
         }
 
@@ -974,7 +988,7 @@ namespace NativeCollections
             {
                 if (m_Index != -1)
                 {
-                    return Unsafe.Read<TKey>(m_Buffer->keys + m_Index);
+                    return UnsafeUtility.Read<TKey>(m_Buffer->keys, m_Index);
                 }
 
                 return default;
@@ -1007,8 +1021,8 @@ namespace NativeCollections
         {
             if (m_Index != -1)
             {
-                key = Unsafe.Read<TKey>(m_Buffer->keys + m_Index);
-                value = Unsafe.Read<TValue>(m_Buffer->values + m_Index);
+                key = UnsafeUtility.Read<TKey>(m_Buffer->keys, m_Index);
+                value = UnsafeUtility.Read<TValue>(m_Buffer->values, m_Index);
                 return true;
             }
 
@@ -1060,7 +1074,7 @@ namespace NativeCollections
         {
             if (m_Index != -1)
             {
-                return Unsafe.Read<TKey>(m_Buffer->keys + m_Index);
+                return UnsafeUtility.Read<TKey>(m_Buffer->keys, m_Index);
             }
 
             return default;
@@ -1167,7 +1181,9 @@ namespace NativeCollections
         /// <exception cref="ArgumentException">Thrown if the key was already present.</exception>
         public void Add(TKey key, TValue item)
         {
-            UnsafeParallelHashMapBase<TKey, TValue>.TryAdd(m_Buffer, key, item, false);
+            bool added = UnsafeParallelHashMapBase<TKey, TValue>.TryAdd(m_Buffer, key, item, false);
+            if (!added)
+                throw new Exception();
         }
 
         /// <summary>

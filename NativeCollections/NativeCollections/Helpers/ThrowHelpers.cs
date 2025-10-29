@@ -127,9 +127,9 @@ namespace NativeCollections
         /// <param name="argument">The reference type argument to validate as non-null.</param>
         /// <param name="paramName">The name of the parameter with which <paramref name="argument" /> corresponds.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfNull<T>(T? argument, string? paramName) where T : class
+        public static void ThrowIfNull<T>(T? argument, string? paramName)
         {
-            if (argument == null)
+            if (!typeof(T).IsValueType && argument == null)
                 throw new ArgumentNullException(paramName, "MustBeNotNull");
         }
 
@@ -397,6 +397,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ThrowFormatIndexOutOfRange() => throw new FormatException("IndexOutOfRange");
 
+        /// <summary>
+        ///     Throws a <see cref="InvalidOperationException" />.
+        /// </summary>
+        [DoesNotReturn]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ThrowInvalidOperationException() => throw new InvalidOperationException();
     }
 }
