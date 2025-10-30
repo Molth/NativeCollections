@@ -169,6 +169,30 @@ namespace NativeCollections
         [StructLayout(LayoutKind.Explicit, Size = 128)]
         public struct UnsafeFrozenSetValue
         {
+            /// <summary>
+            ///     Element
+            /// </summary>
+            [FieldOffset(0)] private EmptyFrozenSet<int> _element0;
+
+            /// <summary>
+            ///     Element
+            /// </summary>
+            [FieldOffset(0)] private SmallFrozenSet<int> _element1;
+
+            /// <summary>
+            ///     Element
+            /// </summary>
+            [FieldOffset(0)] private SmallComparableFrozenSet<int> _element2;
+
+            /// <summary>
+            ///     Element
+            /// </summary>
+            [FieldOffset(0)] private Int32FrozenSet _element3;
+
+            /// <summary>
+            ///     Element
+            /// </summary>
+            [FieldOffset(0)] private DefaultFrozenSet<int> _element4;
         }
 
         /// <summary>
