@@ -48,7 +48,43 @@ namespace NativeCollections
         ///     Get handle
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeFrozenSetHandle<TItem> GetHandle<T, TItem>() where T : unmanaged, IFrozenSet<TItem> where TItem : unmanaged, IEquatable<TItem> => new(&FindItemIndex<T, TItem>, &Items<T, TItem>, &Count<T, TItem>, &GetEnumerator<T, TItem>, &Dispose<T, TItem>);
+        public static NativeFrozenSetHandle<TItem> GetNativeHandle<T, TItem>() where T : unmanaged, IFrozenSet<TItem> where TItem : unmanaged, IEquatable<TItem> => new(&FindItemIndex<T, TItem>, &Items<T, TItem>, &Count<T, TItem>, &GetEnumerator<T, TItem>, &Dispose<T, TItem>);
+
+        /// <summary>
+        ///     Find item index
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int FindItemIndex<T, TItem>(ref UnsafeFrozenSetValue ptr, in TItem item) where T : unmanaged, IFrozenSet<TItem> where TItem : unmanaged, IEquatable<TItem> => Unsafe.As<UnsafeFrozenSetValue, T>(ref ptr).FindItemIndex(item);
+
+        /// <summary>
+        ///     Items
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static NativeArray<TItem> Items<T, TItem>(ref UnsafeFrozenSetValue ptr) where T : unmanaged, IFrozenSet<TItem> where TItem : unmanaged, IEquatable<TItem> => Unsafe.As<UnsafeFrozenSetValue, T>(ref ptr).Items();
+
+        /// <summary>
+        ///     Count
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int Count<T, TItem>(ref UnsafeFrozenSetValue ptr) where T : unmanaged, IFrozenSet<TItem> where TItem : unmanaged, IEquatable<TItem> => Unsafe.As<UnsafeFrozenSetValue, T>(ref ptr).Count();
+
+        /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static NativeFrozenSet<TItem>.Enumerator GetEnumerator<T, TItem>(ref UnsafeFrozenSetValue ptr) where T : unmanaged, IFrozenSet<TItem> where TItem : unmanaged, IEquatable<TItem> => Unsafe.As<UnsafeFrozenSetValue, T>(ref ptr).GetEnumerator();
+
+        /// <summary>
+        ///     Dispose
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void Dispose<T, TItem>(ref UnsafeFrozenSetValue ptr) where T : unmanaged, IFrozenSet<TItem> where TItem : unmanaged, IEquatable<TItem> => Unsafe.As<UnsafeFrozenSetValue, T>(ref ptr).Dispose();
+
+        /// <summary>
+        ///     Get handle
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UnsafeFrozenSetHandle<TItem> GetUnsafeHandle<T, TItem>() where T : unmanaged, IFrozenSet<TItem> where TItem : unmanaged, IEquatable<TItem> => new(&FindItemIndex<T, TItem>, &Items<T, TItem>, &Count<T, TItem>, &GetEnumerator<T, TItem>, &Dispose<T, TItem>);
 
         /// <summary>
         ///     Frozen set
@@ -74,6 +110,89 @@ namespace NativeCollections
             ///     Count
             /// </summary>
             int Count();
+        }
+
+        /// <summary>
+        ///     Unsafe frozen set handle
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
+        public struct UnsafeFrozenSetHandle<T> where T : unmanaged, IEquatable<T>
+        {
+            /// <summary>
+            ///     Find item index
+            /// </summary>
+            public readonly delegate* managed<ref UnsafeFrozenSetValue, in T, int> FindItemIndex;
+
+            /// <summary>
+            ///     Items
+            /// </summary>
+            public readonly delegate* managed<ref UnsafeFrozenSetValue, NativeArray<T>> Items;
+
+            /// <summary>
+            ///     Count
+            /// </summary>
+            public readonly delegate* managed<ref UnsafeFrozenSetValue, int> Count;
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            public readonly delegate* managed<ref UnsafeFrozenSetValue, NativeFrozenSet<T>.Enumerator> GetEnumerator;
+
+            /// <summary>
+            ///     Dispose
+            /// </summary>
+            public readonly delegate* managed<ref UnsafeFrozenSetValue, void> Dispose;
+
+            /// <summary>
+            ///     Value
+            /// </summary>
+            public UnsafeFrozenSetValue Value;
+
+            /// <summary>
+            ///     Structure
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public UnsafeFrozenSetHandle(delegate* managed<ref UnsafeFrozenSetValue, in T, int> findItemIndex, delegate* managed<ref UnsafeFrozenSetValue, NativeArray<T>> items, delegate* managed<ref UnsafeFrozenSetValue, int> count, delegate* managed<ref UnsafeFrozenSetValue, NativeFrozenSet<T>.Enumerator> getEnumerator, delegate* managed<ref UnsafeFrozenSetValue, void> dispose)
+            {
+                FindItemIndex = findItemIndex;
+                Items = items;
+                Count = count;
+                GetEnumerator = getEnumerator;
+                Dispose = dispose;
+                Value = new UnsafeFrozenSetValue();
+            }
+        }
+
+        /// <summary>
+        ///     Value
+        /// </summary>
+        [StructLayout(LayoutKind.Explicit, Size = 128)]
+        public struct UnsafeFrozenSetValue
+        {
+            /// <summary>
+            ///     Element
+            /// </summary>
+            [FieldOffset(0)] private EmptyFrozenSet<int> _element0;
+
+            /// <summary>
+            ///     Element
+            /// </summary>
+            [FieldOffset(0)] private SmallFrozenSet<int> _element1;
+
+            /// <summary>
+            ///     Element
+            /// </summary>
+            [FieldOffset(0)] private SmallComparableFrozenSet<int> _element2;
+
+            /// <summary>
+            ///     Element
+            /// </summary>
+            [FieldOffset(0)] private Int32FrozenSet _element3;
+
+            /// <summary>
+            ///     Element
+            /// </summary>
+            [FieldOffset(0)] private DefaultFrozenSet<int> _element4;
         }
 
         /// <summary>
@@ -111,7 +230,7 @@ namespace NativeCollections
             ///     Structure
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public NativeFrozenSetHandle(delegate*<void*, in T, int> findItemIndex, delegate*<void*, NativeArray<T>> items, delegate*<void*, int> count, delegate*<void*, NativeFrozenSet<T>.Enumerator> getEnumerator, delegate*<void*, void> dispose)
+            public NativeFrozenSetHandle(delegate* managed<void*, in T, int> findItemIndex, delegate* managed<void*, NativeArray<T>> items, delegate* managed<void*, int> count, delegate* managed<void*, NativeFrozenSet<T>.Enumerator> getEnumerator, delegate* managed<void*, void> dispose)
             {
                 FindItemIndex = findItemIndex;
                 Items = items;

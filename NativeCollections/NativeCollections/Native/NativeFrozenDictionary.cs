@@ -55,7 +55,49 @@ namespace NativeCollections
         ///     Get handle
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeFrozenDictionaryHandle<TKey, TValue> GetHandle<T, TKey, TValue>() where T : unmanaged, IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged => new(&GetValueRefOrNullRef<T, TKey, TValue>, &Keys<T, TKey, TValue>, &Values<T, TKey, TValue>, &Count<T, TKey, TValue>, &GetEnumerator<T, TKey, TValue>, &Dispose<T, TKey, TValue>);
+        public static NativeFrozenDictionaryHandle<TKey, TValue> GetNativeHandle<T, TKey, TValue>() where T : unmanaged, IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged => new(&GetValueRefOrNullRef<T, TKey, TValue>, &Keys<T, TKey, TValue>, &Values<T, TKey, TValue>, &Count<T, TKey, TValue>, &GetEnumerator<T, TKey, TValue>, &Dispose<T, TKey, TValue>);
+
+        /// <summary>
+        ///     Get value ref or null ref
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ref readonly TValue GetValueRefOrNullRef<T, TKey, TValue>(ref UnsafeFrozenDictionaryValue ptr, in TKey key) where T : unmanaged, IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged => ref Unsafe.As<UnsafeFrozenDictionaryValue, T>(ref ptr).GetValueRefOrNullRef(key);
+
+        /// <summary>
+        ///     Keys
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static NativeArray<TKey> Keys<T, TKey, TValue>(ref UnsafeFrozenDictionaryValue ptr) where T : unmanaged, IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged => Unsafe.As<UnsafeFrozenDictionaryValue, T>(ref ptr).Keys();
+
+        /// <summary>
+        ///     Values
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static NativeArray<TValue> Values<T, TKey, TValue>(ref UnsafeFrozenDictionaryValue ptr) where T : unmanaged, IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged => Unsafe.As<UnsafeFrozenDictionaryValue, T>(ref ptr).Values();
+
+        /// <summary>
+        ///     Count
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int Count<T, TKey, TValue>(ref UnsafeFrozenDictionaryValue ptr) where T : unmanaged, IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged => Unsafe.As<UnsafeFrozenDictionaryValue, T>(ref ptr).Count();
+
+        /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static NativeFrozenDictionary<TKey, TValue>.Enumerator GetEnumerator<T, TKey, TValue>(ref UnsafeFrozenDictionaryValue ptr) where T : unmanaged, IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged => Unsafe.As<UnsafeFrozenDictionaryValue, T>(ref ptr).GetEnumerator();
+
+        /// <summary>
+        ///     Dispose
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void Dispose<T, TKey, TValue>(ref UnsafeFrozenDictionaryValue ptr) where T : unmanaged, IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged => Unsafe.As<UnsafeFrozenDictionaryValue, T>(ref ptr).Dispose();
+
+        /// <summary>
+        ///     Get handle
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UnsafeFrozenDictionaryHandle<TKey, TValue> GetUnsafeHandle<T, TKey, TValue>() where T : unmanaged, IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged => new(&GetValueRefOrNullRef<T, TKey, TValue>, &Keys<T, TKey, TValue>, &Values<T, TKey, TValue>, &Count<T, TKey, TValue>, &GetEnumerator<T, TKey, TValue>, &Dispose<T, TKey, TValue>);
 
         /// <summary>
         ///     Frozen dictionary
@@ -128,7 +170,7 @@ namespace NativeCollections
             ///     Structure
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public NativeFrozenDictionaryHandle(delegate*<void*, in TKey, ref readonly TValue> getValueRefOrNullRef, delegate*<void*, NativeArray<TKey>> keys, delegate*<void*, NativeArray<TValue>> values, delegate*<void*, int> count, delegate*<void*, NativeFrozenDictionary<TKey, TValue>.Enumerator> getEnumerator, delegate*<void*, void> dispose)
+            public NativeFrozenDictionaryHandle(delegate* managed<void*, in TKey, ref readonly TValue> getValueRefOrNullRef, delegate* managed<void*, NativeArray<TKey>> keys, delegate* managed<void*, NativeArray<TValue>> values, delegate* managed<void*, int> count, delegate* managed<void*, NativeFrozenDictionary<TKey, TValue>.Enumerator> getEnumerator, delegate* managed<void*, void> dispose)
             {
                 GetValueRefOrNullRef = getValueRefOrNullRef;
                 Keys = keys;
@@ -137,6 +179,95 @@ namespace NativeCollections
                 GetEnumerator = getEnumerator;
                 Dispose = dispose;
             }
+        }
+
+        /// <summary>
+        ///     Unsafe frozen dictionary handle
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential, Size = CACHE_LINE_SIZE)]
+        public struct UnsafeFrozenDictionaryHandle<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
+        {
+            /// <summary>
+            ///     Get value ref or null ref
+            /// </summary>
+            public readonly delegate* managed<ref UnsafeFrozenDictionaryValue, in TKey, ref readonly TValue> GetValueRefOrNullRef;
+
+            /// <summary>
+            ///     Keys
+            /// </summary>
+            public readonly delegate* managed<ref UnsafeFrozenDictionaryValue, NativeArray<TKey>> Keys;
+
+            /// <summary>
+            ///     Values
+            /// </summary>
+            public readonly delegate* managed<ref UnsafeFrozenDictionaryValue, NativeArray<TValue>> Values;
+
+            /// <summary>
+            ///     Count
+            /// </summary>
+            public readonly delegate* managed<ref UnsafeFrozenDictionaryValue, int> Count;
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            public readonly delegate* managed<ref UnsafeFrozenDictionaryValue, NativeFrozenDictionary<TKey, TValue>.Enumerator> GetEnumerator;
+
+            /// <summary>
+            ///     Dispose
+            /// </summary>
+            public readonly delegate* managed<ref UnsafeFrozenDictionaryValue, void> Dispose;
+
+            /// <summary>
+            ///     Value
+            /// </summary>
+            public UnsafeFrozenDictionaryValue Value;
+
+            /// <summary>
+            ///     Structure
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public UnsafeFrozenDictionaryHandle(delegate* managed<ref UnsafeFrozenDictionaryValue, in TKey, ref readonly TValue> getValueRefOrNullRef, delegate* managed<ref UnsafeFrozenDictionaryValue, NativeArray<TKey>> keys, delegate* managed<ref UnsafeFrozenDictionaryValue, NativeArray<TValue>> values, delegate* managed<ref UnsafeFrozenDictionaryValue, int> count, delegate* managed<ref UnsafeFrozenDictionaryValue, NativeFrozenDictionary<TKey, TValue>.Enumerator> getEnumerator, delegate* managed<ref UnsafeFrozenDictionaryValue, void> dispose)
+            {
+                GetValueRefOrNullRef = getValueRefOrNullRef;
+                Keys = keys;
+                Values = values;
+                Count = count;
+                GetEnumerator = getEnumerator;
+                Dispose = dispose;
+                Value = new UnsafeFrozenDictionaryValue();
+            }
+        }
+
+        /// <summary>
+        ///     Value
+        /// </summary>
+        [StructLayout(LayoutKind.Explicit, Size = 128)]
+        public struct UnsafeFrozenDictionaryValue
+        {
+            /// <summary>
+            ///     Element
+            /// </summary>
+            [FieldOffset(0)] private EmptyFrozenDictionary<int, int> _element0;
+
+            /// <summary>
+            ///     Element
+            /// </summary>
+            [FieldOffset(0)] private SmallFrozenDictionary<int, int> _element1;
+
+            /// <summary>
+            ///     Element
+            /// </summary>
+            [FieldOffset(0)] private SmallComparableFrozenDictionary<int, int> _element2;
+
+            /// <summary>
+            ///     Element
+            /// </summary>
+            [FieldOffset(0)] private Int32FrozenDictionary<int> _element3;
+
+            /// <summary>
+            ///     Element
+            /// </summary>
+            [FieldOffset(0)] private DefaultFrozenDictionary<int, int> _element4;
         }
 
         /// <summary>
