@@ -3,9 +3,6 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -182,7 +179,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Buffer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public byte* GetBuffer() => _handle->GetBuffer();
+        public Span<byte> GetBuffer() => _handle->GetBuffer();
 
         /// <summary>
         ///     Seek

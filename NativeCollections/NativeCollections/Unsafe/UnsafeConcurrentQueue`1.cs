@@ -3,11 +3,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-#pragma warning disable CA2208
-#pragma warning disable CS0169
-#pragma warning disable CS8602
-#pragma warning disable CS8632
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -94,7 +89,7 @@ namespace NativeCollections
                     }
                     else
                     {
-                        lock (_crossSegmentLock.Target)
+                        lock (_crossSegmentLock.Target!)
                         {
                             if (head == _head && tail == _tail)
                             {
@@ -124,7 +119,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeConcurrentQueue(int size, int maxFreeSlabs)
         {
-            var segmentPool = new UnsafeMemoryPool(size, sizeof(NativeConcurrentQueue.NativeConcurrentQueueSegment<T>), maxFreeSlabs, (int)Math.Max(NativeMemoryAllocator.AlignOf<T>(), ArchitectureHelpers.CACHE_LINE_SIZE));
+            var segmentPool = new UnsafeMemoryPool(size, Unsafe.SizeOf<NativeConcurrentQueue.NativeConcurrentQueueSegment<T>>(), maxFreeSlabs, (int)Math.Max(NativeMemoryAllocator.AlignOf<T>(), ArchitectureHelpers.CACHE_LINE_SIZE));
             _crossSegmentLock = GCHandle.Alloc(new object(), GCHandleType.Normal);
             _segmentPool = segmentPool;
             var segment = (NativeConcurrentQueue.NativeConcurrentQueueSegment<T>*)_segmentPool.Rent();
@@ -148,7 +143,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
-            lock (_crossSegmentLock.Target)
+            lock (_crossSegmentLock.Target!)
             {
                 _tail->EnsureFrozenForEnqueues();
                 var node = _head;
@@ -179,7 +174,7 @@ namespace NativeCollections
                     var tail = _tail;
                     if (tail->TryEnqueue(item))
                         return;
-                    lock (_crossSegmentLock.Target)
+                    lock (_crossSegmentLock.Target!)
                     {
                         if (tail == _tail)
                         {
@@ -224,7 +219,7 @@ namespace NativeCollections
 
                 if (head->TryDequeue(out result))
                     return true;
-                lock (_crossSegmentLock.Target)
+                lock (_crossSegmentLock.Target!)
                 {
                     if (head == _head)
                     {

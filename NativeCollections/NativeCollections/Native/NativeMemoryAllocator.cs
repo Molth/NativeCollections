@@ -1,8 +1,6 @@
+﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-#if !NET7_0_OR_GREATER
-using System;
-#endif
 
 // ReSharper disable ALL
 
@@ -52,7 +50,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T* AlignedAlloc<T>(uint elementCount) where T : unmanaged
         {
-            var byteCount = elementCount * (uint)sizeof(T);
+            var byteCount = elementCount * (uint)Unsafe.SizeOf<T>();
             var alignment = (uint)AlignOf<T>();
             return (T*)AlignedAlloc(byteCount, alignment);
         }
@@ -63,7 +61,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T* AlignedAllocZeroed<T>(uint elementCount) where T : unmanaged
         {
-            var byteCount = elementCount * (uint)sizeof(T);
+            var byteCount = elementCount * (uint)Unsafe.SizeOf<T>();
             var alignment = (uint)AlignOf<T>();
             return (T*)AlignedAllocZeroed(byteCount, alignment);
         }
@@ -79,7 +77,7 @@ namespace NativeCollections
             var alignedAlloc = _alignedAlloc;
             if (alignedAlloc != null)
             {
-                ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, nameof(alignment));
+                ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, ExceptionArgument.alignment);
                 ptr = alignedAlloc(byteCount, alignment);
                 if (ptr == null)
                 {
@@ -113,8 +111,8 @@ namespace NativeCollections
                 throw;
             }
 #else
-            ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, nameof(alignment));
-            var byteOffset = (nuint)alignment - 1 + (nuint)sizeof(nint);
+            ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, ExceptionArgument.alignment);
+            var byteOffset = (nuint)alignment - 1 + (nuint)Unsafe.SizeOf<nint>();
             try
             {
                 ptr = (void*)Marshal.AllocHGlobal((nint)(byteCount + (uint)byteOffset));
@@ -148,7 +146,7 @@ namespace NativeCollections
             var alignedAllocZeroed = _alignedAllocZeroed;
             if (alignedAllocZeroed != null)
             {
-                ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, nameof(alignment));
+                ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, ExceptionArgument.alignment);
                 ptr = alignedAllocZeroed(byteCount, alignment);
                 if (ptr == null)
                 {
@@ -168,7 +166,7 @@ namespace NativeCollections
             var alignedAlloc = _alignedAlloc;
             if (alignedAlloc != null)
             {
-                ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, nameof(alignment));
+                ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, ExceptionArgument.alignment);
                 ptr = alignedAlloc(byteCount, alignment);
                 if (ptr == null)
                 {
@@ -205,8 +203,8 @@ namespace NativeCollections
             Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(ptr), 0, byteCount);
             return ptr;
 #else
-            ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, nameof(alignment));
-            var byteOffset = (nuint)alignment - 1 + (nuint)sizeof(nint);
+            ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, ExceptionArgument.alignment);
+            var byteOffset = (nuint)alignment - 1 + (nuint)Unsafe.SizeOf<nint>();
             try
             {
                 ptr = (void*)Marshal.AllocHGlobal((nint)(byteCount + (uint)byteOffset));
@@ -313,25 +311,51 @@ namespace NativeCollections
         ///     Determines whether two sequences are equal.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool Compare(void* left, void* right, uint byteCount)
+        public static bool Equals(void* left, void* right, uint byteCount)
         {
             if (left == null && right == null)
                 return true;
             if (left == null || right == null)
-                ThrowHelpers.ThrowArgumentNullException(left == null ? nameof(left) : nameof(right));
-            return SpanHelpers.Compare(ref Unsafe.AsRef<byte>(left), ref Unsafe.AsRef<byte>(right), byteCount);
+                ThrowHelpers.ThrowArgumentNullException(left == null ? ExceptionArgument.left : ExceptionArgument.right);
+            return SpanHelpers.Equals(ref Unsafe.AsRef<byte>(left), ref Unsafe.AsRef<byte>(right), byteCount);
         }
 
         /// <summary>
         ///     Determines whether two sequences are equal.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool Compare(ref byte left, ref byte right, uint byteCount)
+        public static bool Equals(ref byte left, ref byte right, uint byteCount)
         {
             if (Unsafe.IsNullRef(ref left) && Unsafe.IsNullRef(ref right))
                 return true;
             if (Unsafe.IsNullRef(ref left) || Unsafe.IsNullRef(ref right))
-                ThrowHelpers.ThrowArgumentNullException(Unsafe.IsNullRef(ref left) ? nameof(left) : nameof(right));
+                ThrowHelpers.ThrowArgumentNullException(Unsafe.IsNullRef(ref left) ? ExceptionArgument.left : ExceptionArgument.right);
+            return SpanHelpers.Equals(ref left, ref right, byteCount);
+        }
+
+        /// <summary>
+        ///     Determines the relative order of the sequences.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Compare(void* left, void* right, uint byteCount)
+        {
+            if (left == null && right == null)
+                return 0;
+            if (left == null || right == null)
+                ThrowHelpers.ThrowArgumentNullException(left == null ? ExceptionArgument.left : ExceptionArgument.right);
+            return SpanHelpers.Compare(ref Unsafe.AsRef<byte>(left), ref Unsafe.AsRef<byte>(right), byteCount);
+        }
+
+        /// <summary>
+        ///     Determines the relative order of the sequences.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Compare(ref byte left, ref byte right, uint byteCount)
+        {
+            if (Unsafe.IsNullRef(ref left) && Unsafe.IsNullRef(ref right))
+                return 0;
+            if (Unsafe.IsNullRef(ref left) || Unsafe.IsNullRef(ref right))
+                ThrowHelpers.ThrowArgumentNullException(Unsafe.IsNullRef(ref left) ? ExceptionArgument.left : ExceptionArgument.right);
             return SpanHelpers.Compare(ref left, ref right, byteCount);
         }
 
@@ -339,7 +363,7 @@ namespace NativeCollections
         ///     Fills the contents of this buffer with the given value.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Fill<T>(void* ptr, uint elementCount, T value) where T : unmanaged => SpanHelpers.Fill(ref Unsafe.AsRef<T>(ptr), elementCount, value);
+        public static void Fill<T>(void* startAddress, uint elementCount, T value) where T : unmanaged => SpanHelpers.Fill(ref Unsafe.AsRef<T>(startAddress), elementCount, value);
 
         /// <summary>
         ///     Fills the contents of this buffer with the given value.
@@ -367,7 +391,7 @@ namespace NativeCollections
         /// <typeparam name="T">The unmanaged type whose alignment is to be determined.</typeparam>
         /// <returns>The alignment, in bytes, of type <typeparamref name="T" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static nuint AlignOf<T>() where T : unmanaged => (nuint)sizeof(AlignOfHelper<T>) - (nuint)sizeof(T);
+        public static nuint AlignOf<T>() where T : unmanaged => (nuint)Unsafe.SizeOf<AlignOfHelper<T>>() - (nuint)Unsafe.SizeOf<T>();
 
         /// <summary>
         ///     Determines whether the specified unmanaged type <typeparamref name="T" /> is naturally aligned,
@@ -376,45 +400,51 @@ namespace NativeCollections
         /// <typeparam name="T">The unmanaged type to check for alignment.</typeparam>
         /// <returns><c>true</c> if the size of <typeparamref name="T" /> is a multiple of its alignment; otherwise, <c>false</c>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsAligned<T>() where T : unmanaged => (nuint)sizeof(T) % AlignOf<T>() == 0;
+        public static bool IsAligned<T>() where T : unmanaged => ((nuint)Unsafe.SizeOf<T>() & (AlignOf<T>() - 1)) == 0;
 
         /// <summary>
-        ///     Determines whether a pointer is correctly aligned for the specified unmanaged type <typeparamref name="T" />,
-        ///     optionally taking into account the number of elements to be accessed.
+        ///     Determines whether the specified memory pointer is aligned to the given alignment boundary.
         /// </summary>
-        /// <typeparam name="T">
-        ///     The unmanaged type whose alignment requirements are being enforced.
-        /// </typeparam>
-        /// <param name="ptr">
-        ///     A pointer to the memory location to check for alignment.
-        /// </param>
-        /// <param name="elementCount">
-        ///     The number of contiguous <typeparamref name="T" /> elements that will be accessed.
-        ///     If greater than 1, this method also verifies that <typeparamref name="T" /> itself is naturally aligned
-        ///     (its size is a multiple of its alignment). If 1 or 0, only the pointer’s alignment is checked.
-        /// </param>
+        /// <param name="ptr">The pointer to the memory address to check for alignment.</param>
+        /// <param name="alignment">The alignment boundary, which must be a power of two.</param>
         /// <returns>
-        ///     <c>true</c> if the pointer address is a multiple of <typeparamref name="T" />'s alignment boundary,
-        ///     and—when <paramref name="elementCount" /> &gt; 1—if <typeparamref name="T" /> is naturally aligned; otherwise,
-        ///     <c>false</c>.
+        ///     <c>true</c> if the address of <paramref name="ptr" /> is a multiple of <paramref name="alignment" />;
+        ///     otherwise, <c>false</c>.
         /// </returns>
+        /// <exception cref="ArgumentException">
+        ///     Throws an <see cref="ArgumentException" /> if <paramref name="alignment" /> is not
+        ///     a power of two.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsAligned<T>(void* ptr, nuint elementCount) where T : unmanaged => elementCount > 1 ? IsAligned<T>() && (nint)ptr % (nint)AlignOf<T>() == 0 : (nint)ptr % (nint)AlignOf<T>() == 0;
+        public static bool IsAligned(void* ptr, nuint alignment)
+        {
+            ThrowHelpers.ThrowIfAlignmentNotBePow2((uint)alignment, ExceptionArgument.alignment);
+            return ((nuint)ptr & (alignment - 1)) == 0;
+        }
+
+        /// <summary>
+        ///     Returns an address of the given by-ref parameter.
+        /// </summary>
+        /// <typeparam name="T">The type of object.</typeparam>
+        /// <param name="value">The object whose address is obtained.</param>
+        /// <returns>An address of the given object.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static nint AddressOf<T>(ref T value) where T : unmanaged => (nint)Unsafe.AsPointer(ref value);
 
         /// <summary>Helper structure for calculating type alignment.</summary>
         /// <typeparam name="T">The unmanaged type being measured.</typeparam>
         [StructLayout(LayoutKind.Sequential)]
-        private struct AlignOfHelper<T> where T : unmanaged
+        private readonly struct AlignOfHelper<T> where T : unmanaged
         {
             /// <summary>
             ///     Padding byte used for alignment calculation.
             /// </summary>
-            private byte _dummy;
+            private readonly byte _dummy;
 
             /// <summary>
             ///     The typed data used for alignment measurement.
             /// </summary>
-            private T _data;
+            private readonly T _data;
         }
     }
 }

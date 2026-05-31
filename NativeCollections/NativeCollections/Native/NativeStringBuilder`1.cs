@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8500
-#pragma warning disable CS8632
-#pragma warning disable CS9081
+#pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
+#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
+#pragma warning disable CS9081 // A result of a stackalloc expression of this type in this context may be exposed outside of the containing method
 
 // ReSharper disable ALL
 
@@ -103,8 +103,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeStringBuilder(Span<T> buffer, int length)
         {
-            ThrowHelpers.ThrowIfNegative(length, nameof(length));
-            ThrowHelpers.ThrowIfGreaterThan(length, buffer.Length, nameof(length));
+            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
+            ThrowHelpers.ThrowIfGreaterThan(length, buffer.Length, ExceptionArgument.length);
             _buffer = buffer;
             _array = null;
             _length = length;
@@ -117,7 +117,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeStringBuilder(int capacity)
         {
-            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             _buffer = _array = ArrayPool<T>.Shared.Rent(capacity);
             _length = 0;
         }
@@ -130,9 +130,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeStringBuilder(int capacity, int length)
         {
-            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
-            ThrowHelpers.ThrowIfNegative(length, nameof(length));
-            ThrowHelpers.ThrowIfGreaterThan(length, capacity, nameof(length));
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
+            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
+            ThrowHelpers.ThrowIfGreaterThan(length, capacity, ExceptionArgument.length);
             _buffer = _array = ArrayPool<T>.Shared.Rent(capacity);
             _length = length;
         }
@@ -159,7 +159,7 @@ namespace NativeCollections
         public void Append(ReadOnlySpan<T> buffer)
         {
             EnsureCapacity(_length + buffer.Length);
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref MemoryMarshal.GetReference(_buffer), (nint)_length)), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(buffer.Length * sizeof(T)));
+            Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref MemoryMarshal.GetReference(_buffer), (nint)_length)), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(buffer.Length * Unsafe.SizeOf<T>()));
             _length += buffer.Length;
         }
 
@@ -226,8 +226,8 @@ namespace NativeCollections
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
             var count = _length - startIndex;
             if (count > 0)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)(startIndex + buffer.Length))), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)startIndex)), (uint)(count * sizeof(T)));
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)startIndex)), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(buffer.Length * sizeof(T)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)(startIndex + buffer.Length))), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)startIndex)), (uint)(count * Unsafe.SizeOf<T>()));
+            Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)startIndex)), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(buffer.Length * Unsafe.SizeOf<T>()));
             _length += buffer.Length;
             return true;
         }
@@ -241,7 +241,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Replace(ReadOnlySpan<T> oldValue, ReadOnlySpan<T> newValue)
         {
-            if (Unsafe.IsNullRef(ref MemoryMarshal.GetReference(oldValue)) || oldValue.Length == 0)
+            if (Unsafe.IsNullRef(ref MemoryMarshal.GetReference(oldValue)) || oldValue.IsEmpty)
                 return false;
             if (Unsafe.IsNullRef(ref MemoryMarshal.GetReference(newValue)))
             {
@@ -257,7 +257,7 @@ namespace NativeCollections
             {
                 if (newValue.Length == 1)
                 {
-                    Replace(in oldValue[0], in newValue[0]);
+                    Replace(oldValue[0], newValue[0]);
                     return true;
                 }
 
@@ -291,7 +291,7 @@ namespace NativeCollections
                 }
             }
 
-            if (valueListBuilder.Length == 0)
+            if (valueListBuilder.IsEmpty)
                 return true;
             var readOnlySpan = valueListBuilder.AsReadOnlySpan();
             var num1 = _length + (newValue.Length - oldValue.Length) * (long)readOnlySpan.Length;
@@ -323,7 +323,7 @@ namespace NativeCollections
             }
             else
             {
-                span = num2 <= 512 / sizeof(T) ? stackalloc T[num2] : (Span<T>)(array = ArrayPool<T>.Shared.Rent(num2));
+                span = num2 <= 512 / Unsafe.SizeOf<T>() ? stackalloc T[num2] : (Span<T>)(array = ArrayPool<T>.Shared.Rent(num2));
             }
 
             ref var local4 = ref MemoryMarshal.GetReference(span);
@@ -333,23 +333,23 @@ namespace NativeCollections
                 var num4 = num3 - elementOffset2;
                 if (num4 != 0)
                 {
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local4, (nint)elementOffset3)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local3, (nint)elementOffset2)), (uint)(num4 * sizeof(T)));
+                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local4, (nint)elementOffset3)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local3, (nint)elementOffset2)), (uint)(num4 * Unsafe.SizeOf<T>()));
                     elementOffset3 += num4;
                 }
 
                 elementOffset2 = num3 + oldValue.Length;
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local4, (nint)elementOffset3)), ref Unsafe.As<T, byte>(ref local2), (uint)(newValue.Length * sizeof(T)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local4, (nint)elementOffset3)), ref Unsafe.As<T, byte>(ref local2), (uint)(newValue.Length * Unsafe.SizeOf<T>()));
                 elementOffset3 += newValue.Length;
             }
 
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local4, (nint)elementOffset3)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local3, (nint)elementOffset2)), (uint)((_length - elementOffset2) * sizeof(T)));
+            Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local4, (nint)elementOffset3)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local3, (nint)elementOffset2)), (uint)((_length - elementOffset2) * Unsafe.SizeOf<T>()));
             if (objArray != null)
             {
                 array = _array;
                 _buffer = (Span<T>)(_array = objArray);
             }
             else
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref local3), ref Unsafe.As<T, byte>(ref local4), (uint)(num2 * sizeof(T)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref local3), ref Unsafe.As<T, byte>(ref local4), (uint)(num2 * Unsafe.SizeOf<T>()));
 
             _length = num2;
             valueListBuilder.Dispose();
@@ -459,7 +459,7 @@ namespace NativeCollections
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
             var count = _length - startIndex;
             if (count > 0)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)(startIndex + 1))), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)startIndex)), (uint)(count * sizeof(T)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)(startIndex + 1))), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)startIndex)), (uint)(count * Unsafe.SizeOf<T>()));
             _buffer[startIndex] = value;
             ++_length;
             return true;
@@ -515,7 +515,7 @@ namespace NativeCollections
             if (length > 0)
             {
                 ref var reference = ref MemoryMarshal.GetReference(_buffer);
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)startIndex)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)(startIndex + length))), (uint)((_length - startIndex - length) * sizeof(T)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)startIndex)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)(startIndex + length))), (uint)((_length - startIndex - length) * Unsafe.SizeOf<T>()));
                 _length -= length;
             }
 
@@ -550,7 +550,7 @@ namespace NativeCollections
             if (start > 0 && start < _length)
             {
                 var count = _length - start;
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(count * sizeof(T)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(count * Unsafe.SizeOf<T>()));
                 _length = count;
             }
             else if (start >= _length)
@@ -597,7 +597,7 @@ namespace NativeCollections
             }
 
             if (start > 0)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(newLength * sizeof(T)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(newLength * Unsafe.SizeOf<T>()));
             _length = newLength;
         }
 
@@ -607,7 +607,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void TrimStart(ReadOnlySpan<T> buffer)
         {
-            if (_length == 0 || Unsafe.IsNullRef(ref MemoryMarshal.GetReference(buffer)) || buffer.Length == 0)
+            if (_length == 0 || Unsafe.IsNullRef(ref MemoryMarshal.GetReference(buffer)) || buffer.IsEmpty)
                 return;
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
             var start = 0;
@@ -616,7 +616,7 @@ namespace NativeCollections
             if (start > 0 && start < _length)
             {
                 var count = _length - start;
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(count * sizeof(T)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(count * Unsafe.SizeOf<T>()));
                 _length = count;
             }
             else if (start >= _length)
@@ -631,7 +631,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void TrimEnd(ReadOnlySpan<T> buffer)
         {
-            if (_length == 0 || Unsafe.IsNullRef(ref MemoryMarshal.GetReference(buffer)) || buffer.Length == 0)
+            if (_length == 0 || Unsafe.IsNullRef(ref MemoryMarshal.GetReference(buffer)) || buffer.IsEmpty)
                 return;
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
             var end = _length - 1;
@@ -646,7 +646,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Trim(ReadOnlySpan<T> buffer)
         {
-            if (_length == 0 || Unsafe.IsNullRef(ref MemoryMarshal.GetReference(buffer)) || buffer.Length == 0)
+            if (_length == 0 || Unsafe.IsNullRef(ref MemoryMarshal.GetReference(buffer)) || buffer.IsEmpty)
                 return;
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
             var start = 0;
@@ -663,7 +663,7 @@ namespace NativeCollections
             }
 
             if (start > 0)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(newLength * sizeof(T)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(newLength * Unsafe.SizeOf<T>()));
             _length = newLength;
         }
 
@@ -762,6 +762,8 @@ namespace NativeCollections
         ///     Equals
         /// </summary>
         /// <returns>Equals</returns>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public readonly override bool Equals(object? obj)
         {
             ThrowHelpers.ThrowCannotCallEqualsException();
@@ -773,7 +775,17 @@ namespace NativeCollections
         /// </summary>
         /// <returns>HashCode</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly override int GetHashCode() => typeof(T) == typeof(char) ? NativeString.GetHashCode(MemoryMarshal.Cast<T, char>(Text)) : NativeHashCode.GetHashCode<T>(Text);
+        public readonly override int GetHashCode()
+        {
+            if (typeof(T) == typeof(char))
+                return NativeString.GetHashCode(MemoryMarshal.Cast<T, char>(Text));
+
+#if NET10_0_OR_GREATER
+            return NativeHashCode.GetHashCode(Text);
+#else
+            return NativeHashCode.GetHashCode((ReadOnlySpan<T>)Text);
+#endif
+        }
 
         /// <summary>
         ///     To string
@@ -809,7 +821,7 @@ namespace NativeCollections
         public void Advance(int count)
         {
             var newLength = _length + count;
-            ThrowHelpers.ThrowIfGreaterThan((uint)newLength, (uint)Capacity, nameof(count));
+            ThrowHelpers.ThrowIfGreaterThan((uint)newLength, (uint)Capacity, ExceptionArgument.count);
             _length = newLength;
         }
 
@@ -1024,7 +1036,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int EnsureCapacity(int capacity)
         {
-            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             if (_buffer.Length < capacity)
                 Grow(capacity - _buffer.Length);
             return _buffer.Length;
@@ -1051,7 +1063,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity)
         {
-            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             if (capacity < _length || capacity >= _buffer.Length)
                 return _buffer.Length;
             SetCapacity(capacity);
@@ -1065,12 +1077,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetCapacity(int capacity)
         {
-            ThrowHelpers.ThrowIfLessThan(capacity, _length, nameof(capacity));
+            ThrowHelpers.ThrowIfLessThan(capacity, _length, ExceptionArgument.capacity);
             if (capacity != _buffer.Length)
             {
                 var destination = ArrayPool<T>.Shared.Rent(capacity);
                 if (_length > 0)
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference((Span<T>)destination)), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(_buffer)), (uint)(_length * sizeof(T)));
+                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference((Span<T>)destination)), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(_buffer)), (uint)(_length * Unsafe.SizeOf<T>()));
                 var array = _array;
                 _buffer = (Span<T>)(_array = destination);
                 if (array == null)

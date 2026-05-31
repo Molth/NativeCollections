@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using static NativeCollections.NativeFrozenDictionary;
@@ -8,10 +9,8 @@ using static NativeCollections.NativeFrozenDictionary;
 using System.Buffers;
 #endif
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
-#pragma warning disable CS9082
-#pragma warning disable CS9092
+#pragma warning disable CS9082 // Local is returned by reference but was initialized to a value that cannot be returned by reference
+#pragma warning disable CS9083 // A member is returned by reference but was initialized to a value that cannot be returned by reference
 
 // ReSharper disable ALL
 
@@ -166,7 +165,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeFrozenDictionary(ReadOnlySpan<KeyValuePair<TKey, TValue>> source)
         {
-            if (source.Length == 0)
+            if (source.IsEmpty)
             {
                 var handle = GetUnsafeHandle<EmptyFrozenDictionary<TKey, TValue>, TKey, TValue>();
                 Unsafe.As<UnsafeFrozenDictionaryValue, EmptyFrozenDictionary<TKey, TValue>>(ref handle.Value) = new EmptyFrozenDictionary<TKey, TValue>();
@@ -205,8 +204,8 @@ namespace NativeCollections
                 else
                 {
                     var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<TKey>(), NativeMemoryAllocator.AlignOf<TValue>());
-                    var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(source.Length * sizeof(TKey)), alignment);
-                    var buckets = (TKey*)NativeMemoryAllocator.AlignedAlloc((uint)(bucketsByteCount + source.Length * sizeof(TValue)), alignment);
+                    var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(source.Length * Unsafe.SizeOf<TKey>()), alignment);
+                    var buckets = (TKey*)NativeMemoryAllocator.AlignedAlloc((uint)(bucketsByteCount + source.Length * Unsafe.SizeOf<TValue>()), alignment);
                     var entries = UnsafeHelpers.AddByteOffset<TValue>(buckets, (nint)bucketsByteCount);
                     var keys = new NativeArray<TKey>(buckets, source.Length);
                     var values = new NativeArray<TValue>(entries, source.Length);
@@ -333,6 +332,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -342,6 +343,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();

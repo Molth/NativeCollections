@@ -2,9 +2,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -72,8 +69,8 @@ namespace NativeCollections
         {
             var extremeLength = UnsafeBitArray.GetInt32ArrayLengthFromBitLength(capacity);
             var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<T>(), NativeMemoryAllocator.AlignOf<int>());
-            var bufferByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * sizeof(T)), alignment);
-            return (int)(bufferByteCount + (capacity + extremeLength) * sizeof(int) + alignment - 1);
+            var bufferByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * Unsafe.SizeOf<T>()), alignment);
+            return (int)(bufferByteCount + (capacity + extremeLength) * Unsafe.SizeOf<int>() + alignment - 1);
         }
 
         /// <summary>
@@ -86,11 +83,11 @@ namespace NativeCollections
         {
             var extremeLength = UnsafeBitArray.GetInt32ArrayLengthFromBitLength(capacity);
             var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<T>(), NativeMemoryAllocator.AlignOf<int>());
-            var bufferByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * sizeof(T)), alignment);
+            var bufferByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * Unsafe.SizeOf<T>()), alignment);
             _buffer = (T*)NativeArray<byte>.Create(buffer, alignment).Buffer;
             _index = UnsafeHelpers.AddByteOffset<int>(_buffer, (nint)bufferByteCount);
-            _bitArray = UnsafeHelpers.AddByteOffset<int>(_index, capacity * sizeof(int));
-            Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(_bitArray), 0, (uint)(extremeLength * sizeof(int)));
+            _bitArray = UnsafeHelpers.AddByteOffset<int>(_index, capacity * Unsafe.SizeOf<int>());
+            Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(_bitArray), 0, (uint)(extremeLength * Unsafe.SizeOf<int>()));
             _capacity = capacity;
             _bitArrayLength = extremeLength;
             _size = capacity;
@@ -104,7 +101,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reset()
         {
-            Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(_bitArray), 0, (uint)(_bitArrayLength * sizeof(int)));
+            Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(_bitArray), 0, (uint)(_bitArrayLength * Unsafe.SizeOf<int>()));
             _size = _capacity;
             for (var i = 0; i < _capacity; ++i)
                 Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)i) = i;
@@ -140,7 +137,7 @@ namespace NativeCollections
         public void Return(T* ptr)
         {
             var byteOffset = UnsafeHelpers.ByteOffset(_buffer, ptr);
-            var (index, remainder) = MathHelpers.DivRem(byteOffset, sizeof(T));
+            var (index, remainder) = MathHelpers.DivRem(byteOffset, Unsafe.SizeOf<T>());
             if ((ulong)index >= (ulong)_capacity || remainder != 0)
                 ThrowHelpers.ThrowMismatchException();
             ref var segment = ref Unsafe.Add(ref Unsafe.AsRef<int>(_bitArray), index >> 5);

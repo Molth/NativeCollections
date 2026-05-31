@@ -2,11 +2,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8600
-#pragma warning disable CS8603
-#pragma warning disable CS8632
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -41,7 +36,7 @@ namespace NativeCollections
         public T Value
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (T)_handle.Target;
+            get => (T)_handle.Target!;
         }
 
         /// <summary>

@@ -1,11 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8500
-#pragma warning disable CS8632
-#pragma warning disable CS9080
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -21,7 +16,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0>(in this NativeStringBuilder<char> builder, NativeCompositeFormat format, T0 arg0)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(1);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -50,7 +45,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1>(in this NativeStringBuilder<char> builder, NativeCompositeFormat format, T0 arg0, T1 arg1)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(2);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -82,7 +77,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2>(in this NativeStringBuilder<char> builder, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(3);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -117,7 +112,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3>(in this NativeStringBuilder<char> builder, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(4);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -155,7 +150,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4>(in this NativeStringBuilder<char> builder, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(5);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -196,7 +191,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5>(in this NativeStringBuilder<char> builder, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(6);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -240,7 +235,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6>(in this NativeStringBuilder<char> builder, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(7);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -287,7 +282,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7>(in this NativeStringBuilder<char> builder, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(8);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -337,7 +332,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8>(in this NativeStringBuilder<char> builder, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(9);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -390,7 +385,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(in this NativeStringBuilder<char> builder, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(10);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -446,7 +441,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(in this NativeStringBuilder<char> builder, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(11);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -505,7 +500,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(in this NativeStringBuilder<char> builder, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(12);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -567,7 +562,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(in this NativeStringBuilder<char> builder, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(13);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -632,7 +627,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(in this NativeStringBuilder<char> builder, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(14);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -700,7 +695,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(in this NativeStringBuilder<char> builder, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(15);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -771,7 +766,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(in this NativeStringBuilder<char> builder, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14, T15 arg15)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(16);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -845,7 +840,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0>(in this NativeStringBuilder<char> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(1);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -874,7 +869,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1>(in this NativeStringBuilder<char> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0, T1 arg1)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(2);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -906,7 +901,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2>(in this NativeStringBuilder<char> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(3);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -941,7 +936,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3>(in this NativeStringBuilder<char> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(4);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -979,7 +974,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4>(in this NativeStringBuilder<char> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(5);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -1020,7 +1015,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5>(in this NativeStringBuilder<char> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(6);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -1064,7 +1059,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6>(in this NativeStringBuilder<char> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(7);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -1111,7 +1106,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7>(in this NativeStringBuilder<char> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(8);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -1161,7 +1156,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8>(in this NativeStringBuilder<char> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(9);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -1214,7 +1209,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(in this NativeStringBuilder<char> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(10);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -1270,7 +1265,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(in this NativeStringBuilder<char> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(11);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -1329,7 +1324,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(in this NativeStringBuilder<char> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(12);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -1391,7 +1386,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(in this NativeStringBuilder<char> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(13);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -1456,7 +1451,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(in this NativeStringBuilder<char> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(14);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -1524,7 +1519,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(in this NativeStringBuilder<char> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(15);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -1595,7 +1590,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(in this NativeStringBuilder<char> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14, T15 arg15)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(16);
             var handler = new NativeStringBuilderUtf16InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -1669,7 +1664,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0>(in this NativeStringBuilder<byte> builder, NativeCompositeFormat format, T0 arg0)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(1);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -1698,7 +1693,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1>(in this NativeStringBuilder<byte> builder, NativeCompositeFormat format, T0 arg0, T1 arg1)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(2);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -1730,7 +1725,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2>(in this NativeStringBuilder<byte> builder, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(3);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -1765,7 +1760,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3>(in this NativeStringBuilder<byte> builder, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(4);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -1803,7 +1798,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4>(in this NativeStringBuilder<byte> builder, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(5);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -1844,7 +1839,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5>(in this NativeStringBuilder<byte> builder, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(6);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -1888,7 +1883,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6>(in this NativeStringBuilder<byte> builder, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(7);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -1935,7 +1930,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7>(in this NativeStringBuilder<byte> builder, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(8);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -1985,7 +1980,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8>(in this NativeStringBuilder<byte> builder, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(9);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -2038,7 +2033,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(in this NativeStringBuilder<byte> builder, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(10);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -2094,7 +2089,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(in this NativeStringBuilder<byte> builder, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(11);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -2153,7 +2148,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(in this NativeStringBuilder<byte> builder, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(12);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -2215,7 +2210,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(in this NativeStringBuilder<byte> builder, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(13);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -2280,7 +2275,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(in this NativeStringBuilder<byte> builder, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(14);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -2348,7 +2343,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(in this NativeStringBuilder<byte> builder, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(15);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -2419,7 +2414,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(in this NativeStringBuilder<byte> builder, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14, T15 arg15)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(16);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder);
             foreach (var segment in format.Segments)
@@ -2493,7 +2488,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0>(in this NativeStringBuilder<byte> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(1);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -2522,7 +2517,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1>(in this NativeStringBuilder<byte> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0, T1 arg1)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(2);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -2554,7 +2549,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2>(in this NativeStringBuilder<byte> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(3);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -2589,7 +2584,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3>(in this NativeStringBuilder<byte> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(4);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -2627,7 +2622,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4>(in this NativeStringBuilder<byte> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(5);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -2668,7 +2663,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5>(in this NativeStringBuilder<byte> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(6);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -2712,7 +2707,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6>(in this NativeStringBuilder<byte> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(7);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -2759,7 +2754,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7>(in this NativeStringBuilder<byte> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(8);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -2809,7 +2804,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8>(in this NativeStringBuilder<byte> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(9);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -2862,7 +2857,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(in this NativeStringBuilder<byte> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(10);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -2918,7 +2913,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(in this NativeStringBuilder<byte> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(11);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -2977,7 +2972,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(in this NativeStringBuilder<byte> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(12);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -3039,7 +3034,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(in this NativeStringBuilder<byte> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(13);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -3104,7 +3099,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(in this NativeStringBuilder<byte> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(14);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -3172,7 +3167,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(in this NativeStringBuilder<byte> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(15);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)
@@ -3243,7 +3238,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(in this NativeStringBuilder<byte> builder, IFormatProvider? provider, NativeCompositeFormat format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14, T15 arg15)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             format.ValidateNumberOfArgs(16);
             var handler = new NativeStringBuilderUtf8InterpolatedStringHandler(format.LiteralLength, format.FormattedCount, builder, provider);
             foreach (var segment in format.Segments)

@@ -3,9 +3,6 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -57,7 +54,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                ThrowHelpers.ThrowIfNegative(value, nameof(value));
+                ThrowHelpers.ThrowIfNegative(value, ExceptionArgument.value);
                 _position = value;
             }
         }
@@ -100,7 +97,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeMemoryStream(int capacity)
         {
-            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             capacity = Math.Max(capacity, 4);
             _buffer = NativeMemoryAllocator.AlignedAlloc<byte>((uint)capacity);
             _position = 0;
@@ -119,7 +116,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Buffer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly byte* GetBuffer() => _buffer;
+        public readonly Span<byte> GetBuffer() => MemoryMarshal.CreateSpan(ref Unsafe.AsRef<byte>(_buffer), _capacity);
 
         /// <summary>
         ///     Seek
@@ -130,7 +127,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Seek(int offset, SeekOrigin loc)
         {
-            ThrowHelpers.ThrowIfGreaterThan(offset, 2147483647, nameof(offset));
+            ThrowHelpers.ThrowIfGreaterThan(offset, int.MaxValue, ExceptionArgument.offset);
             switch (loc)
             {
                 case SeekOrigin.Begin:
@@ -170,7 +167,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetLength(int length)
         {
-            ThrowHelpers.ThrowIfGreaterThan((uint)length, 2147483647U, nameof(length));
+            ThrowHelpers.ThrowIfGreaterThan((uint)length, (uint)int.MaxValue, ExceptionArgument.length);
             var allocatedNewArray = EnsureCapacity(length);
             if (!allocatedNewArray && length > _length)
                 Unsafe.InitBlockUnaligned(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), new IntPtr(_length)), 0, (uint)(length - _length));
@@ -278,7 +275,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetCapacity(int capacity)
         {
-            ThrowHelpers.ThrowIfLessThan(capacity, _length, nameof(capacity));
+            ThrowHelpers.ThrowIfLessThan(capacity, _length, ExceptionArgument.capacity);
             if (capacity != _capacity)
             {
                 var newBuffer = NativeMemoryAllocator.AlignedAlloc<byte>((uint)capacity);

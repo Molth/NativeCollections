@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-
-#pragma warning disable CA2208
-#pragma warning disable CS8632
 
 // ReSharper disable ALL
 
@@ -68,7 +66,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is empty
         /// </summary>
-        public readonly bool IsEmpty => _count - _freeCount == 0;
+        public readonly bool IsEmpty => Count == 0;
 
         /// <summary>
         ///     Count
@@ -100,8 +98,8 @@ namespace NativeCollections
         {
             var size = HashHelpers.GetPrime(capacity);
             var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<int>(), NativeMemoryAllocator.AlignOf<Entry>());
-            var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(size * sizeof(int)), alignment);
-            return (int)(bucketsByteCount + size * sizeof(Entry) + alignment - 1);
+            var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(size * Unsafe.SizeOf<int>()), alignment);
+            return (int)(bucketsByteCount + size * Unsafe.SizeOf<Entry>() + alignment - 1);
         }
 
         /// <summary>
@@ -116,7 +114,7 @@ namespace NativeCollections
             var size = HashHelpers.GetPrime(capacity);
             _freeList = -1;
             var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<int>(), NativeMemoryAllocator.AlignOf<Entry>());
-            var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(size * sizeof(int)), alignment);
+            var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(size * Unsafe.SizeOf<int>()), alignment);
             _buckets = (int*)NativeArray<byte>.Create(buffer, alignment).Buffer;
             _entries = UnsafeHelpers.AddByteOffset<Entry>(_buckets, (nint)bucketsByteCount);
             _bucketsLength = size;
@@ -136,8 +134,8 @@ namespace NativeCollections
             var count = _count;
             if (count > 0)
             {
-                Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(_buckets), 0, (uint)(count * sizeof(int)));
-                Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(_entries), 0, (uint)(count * sizeof(Entry)));
+                Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(_buckets), 0, (uint)(count * Unsafe.SizeOf<int>()));
+                Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(_entries), 0, (uint)(count * Unsafe.SizeOf<Entry>()));
                 _count = 0;
                 _freeList = -1;
                 _freeCount = 0;
@@ -607,12 +605,13 @@ namespace NativeCollections
         ///     Copy to
         /// </summary>
         /// <param name="buffer">Buffer</param>
+        /// <param name="count">Count</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly void CopyTo(Span<KeyValuePair<TKey, TValue>> buffer)
+        public readonly int CopyTo(Span<KeyValuePair<TKey, TValue>> buffer, int count)
         {
-            ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, nameof(buffer));
+            ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
             ref var reference = ref MemoryMarshal.GetReference(buffer);
-            var count = _count - _freeCount;
+            var result = count = Math.Min(buffer.Length, Math.Min(count, Count));
             var entries = _entries;
             var offset = 0;
             for (var index = 0; index < _count && count != 0; ++index)
@@ -620,7 +619,40 @@ namespace NativeCollections
                 ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index);
                 if (local.Next >= -1)
                 {
-                    Unsafe.WriteUnaligned(ref Unsafe.As<KeyValuePair<TKey, TValue>, byte>(ref Unsafe.Add(ref reference, (nint)offset++)), new KeyValuePair<TKey, TValue>(local.Key, local.Value));
+                    UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)offset++), new KeyValuePair<TKey, TValue>(local.Key, local.Value));
+                    --count;
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <param name="count">Count</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly int CopyTo(Span<byte> buffer, int count) => CopyTo(MemoryMarshal.Cast<byte, KeyValuePair<TKey, TValue>>(buffer), count);
+
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly void CopyTo(Span<KeyValuePair<TKey, TValue>> buffer)
+        {
+            ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, ExceptionArgument.buffer);
+            ref var reference = ref MemoryMarshal.GetReference(buffer);
+            var count = Count;
+            var entries = _entries;
+            var offset = 0;
+            for (var index = 0; index < _count && count != 0; ++index)
+            {
+                ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index);
+                if (local.Next >= -1)
+                {
+                    UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)offset++), new KeyValuePair<TKey, TValue>(local.Key, local.Value));
                     --count;
                 }
             }
@@ -647,6 +679,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -656,6 +690,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -665,7 +701,8 @@ namespace NativeCollections
         /// <summary>
         ///     Enumerator
         /// </summary>
-        public struct Enumerator
+        [StructLayout(LayoutKind.Sequential)]
+        public struct Enumerator : IIterator<KeyValuePair<TKey, TValue>>
         {
             /// <summary>
             ///     NativeDictionary
@@ -726,6 +763,16 @@ namespace NativeCollections
             }
 
             /// <summary>
+            ///     Reset
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Reset()
+            {
+                _index = 0;
+                _current = default;
+            }
+
+            /// <summary>
             ///     Current
             /// </summary>
             public readonly KeyValuePair<TKey, TValue> Current
@@ -762,12 +809,13 @@ namespace NativeCollections
             ///     Copy to
             /// </summary>
             /// <param name="buffer">Buffer</param>
+            /// <param name="count">Count</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void CopyTo(Span<TKey> buffer)
+            public int CopyTo(Span<TKey> buffer, int count)
             {
-                ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, nameof(buffer));
+                ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
                 ref var reference = ref MemoryMarshal.GetReference(buffer);
-                var count = _nativeDictionary->_count - _nativeDictionary->_freeCount;
+                var result = count = Math.Min(buffer.Length, Math.Min(count, _nativeDictionary->Count));
                 var entries = _nativeDictionary->_entries;
                 var offset = 0;
                 for (var index = 0; index < _nativeDictionary->_count && count != 0; ++index)
@@ -775,7 +823,40 @@ namespace NativeCollections
                     ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index);
                     if (local.Next >= -1)
                     {
-                        Unsafe.WriteUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref reference, (nint)offset++)), local.Key);
+                        UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)offset++), local.Key);
+                        --count;
+                    }
+                }
+
+                return result;
+            }
+
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            /// <param name="count">Count</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int CopyTo(Span<byte> buffer, int count) => CopyTo(MemoryMarshal.Cast<byte, TKey>(buffer), count);
+
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void CopyTo(Span<TKey> buffer)
+            {
+                ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, ExceptionArgument.buffer);
+                ref var reference = ref MemoryMarshal.GetReference(buffer);
+                var count = _nativeDictionary->Count;
+                var entries = _nativeDictionary->_entries;
+                var offset = 0;
+                for (var index = 0; index < _nativeDictionary->_count && count != 0; ++index)
+                {
+                    ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index);
+                    if (local.Next >= -1)
+                    {
+                        UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)offset++), local.Key);
                         --count;
                     }
                 }
@@ -797,6 +878,8 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
+            [Obsolete("Call this method will always throw an exception.")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator()
             {
                 ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -806,6 +889,8 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
+            [Obsolete("Call this method will always throw an exception.")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator IEnumerable.GetEnumerator()
             {
                 ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -815,7 +900,8 @@ namespace NativeCollections
             /// <summary>
             ///     Enumerator
             /// </summary>
-            public struct Enumerator
+            [StructLayout(LayoutKind.Sequential)]
+            public struct Enumerator : IIterator<TKey>
             {
                 /// <summary>
                 ///     NativeDictionary
@@ -876,6 +962,16 @@ namespace NativeCollections
                 }
 
                 /// <summary>
+                ///     Reset
+                /// </summary>
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public void Reset()
+                {
+                    _index = 0;
+                    _currentKey = default;
+                }
+
+                /// <summary>
                 ///     Current
                 /// </summary>
                 public readonly TKey Current
@@ -913,12 +1009,13 @@ namespace NativeCollections
             ///     Copy to
             /// </summary>
             /// <param name="buffer">Buffer</param>
+            /// <param name="count">Count</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void CopyTo(Span<TValue> buffer)
+            public int CopyTo(Span<TValue> buffer, int count)
             {
-                ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, nameof(buffer));
+                ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
                 ref var reference = ref MemoryMarshal.GetReference(buffer);
-                var count = _nativeDictionary->_count - _nativeDictionary->_freeCount;
+                var result = count = Math.Min(buffer.Length, Math.Min(count, _nativeDictionary->Count));
                 var entries = _nativeDictionary->_entries;
                 var offset = 0;
                 for (var index = 0; index < _nativeDictionary->_count && count != 0; ++index)
@@ -926,7 +1023,40 @@ namespace NativeCollections
                     ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index);
                     if (local.Next >= -1)
                     {
-                        Unsafe.WriteUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref reference, (nint)offset++)), local.Value);
+                        UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)offset++), local.Value);
+                        --count;
+                    }
+                }
+
+                return result;
+            }
+
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            /// <param name="count">Count</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int CopyTo(Span<byte> buffer, int count) => CopyTo(MemoryMarshal.Cast<byte, TValue>(buffer), count);
+
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void CopyTo(Span<TValue> buffer)
+            {
+                ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, ExceptionArgument.buffer);
+                ref var reference = ref MemoryMarshal.GetReference(buffer);
+                var count = _nativeDictionary->Count;
+                var entries = _nativeDictionary->_entries;
+                var offset = 0;
+                for (var index = 0; index < _nativeDictionary->_count && count != 0; ++index)
+                {
+                    ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index);
+                    if (local.Next >= -1)
+                    {
+                        UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)offset++), local.Value);
                         --count;
                     }
                 }
@@ -948,6 +1078,8 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
+            [Obsolete("Call this method will always throw an exception.")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator()
             {
                 ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -957,6 +1089,8 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
+            [Obsolete("Call this method will always throw an exception.")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator IEnumerable.GetEnumerator()
             {
                 ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -966,7 +1100,8 @@ namespace NativeCollections
             /// <summary>
             ///     Enumerator
             /// </summary>
-            public struct Enumerator
+            [StructLayout(LayoutKind.Sequential)]
+            public struct Enumerator : IIterator<TValue>
             {
                 /// <summary>
                 ///     NativeDictionary
@@ -1024,6 +1159,16 @@ namespace NativeCollections
                     _index = handle->_count + 1;
                     _currentValue = default;
                     return false;
+                }
+
+                /// <summary>
+                ///     Reset
+                /// </summary>
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public void Reset()
+                {
+                    _index = 0;
+                    _currentValue = default;
                 }
 
                 /// <summary>

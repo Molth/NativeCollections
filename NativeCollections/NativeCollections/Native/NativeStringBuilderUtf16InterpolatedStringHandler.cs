@@ -2,10 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
-#pragma warning disable CS8500
-#pragma warning disable CS9081
+#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
 
 // ReSharper disable ALL
 

@@ -3,9 +3,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
-
 // ReSharper disable ALL
 
 namespace NativeCollections

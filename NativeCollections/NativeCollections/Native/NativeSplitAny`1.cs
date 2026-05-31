@@ -2,9 +2,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -65,17 +62,23 @@ namespace NativeCollections
         ///     Enumerator
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
+        [IsAssignableTo(typeof(IIterator<>))]
         public ref struct Enumerator
         {
             /// <summary>
             ///     Current
             /// </summary>
-            private ReadOnlySpan<T> _current;
+            private Range _current;
+
+            /// <summary>
+            ///     Next
+            /// </summary>
+            private int _next;
 
             /// <summary>
             ///     Buffer
             /// </summary>
-            private ReadOnlySpan<T> _buffer;
+            private readonly ReadOnlySpan<T> _buffer;
 
             /// <summary>
             ///     Separator
@@ -91,6 +94,7 @@ namespace NativeCollections
             internal Enumerator(ReadOnlySpan<T> buffer, ReadOnlySpan<T> separator)
             {
                 _current = default;
+                _next = 0;
                 _buffer = buffer;
                 _separator = separator;
             }
@@ -101,22 +105,33 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext()
             {
-                var index = _separator.Length == 1 ? _buffer.IndexOf(_separator[0]) : _buffer.IndexOfAny(_separator);
+                var buffer = _buffer.Slice(_next);
+                var index = _separator.Length == 1 ? buffer.IndexOf(_separator[0]) : buffer.IndexOfAny(_separator);
                 if (index < 0)
                 {
-                    if (_buffer.Length > 0)
+                    if (buffer.Length > 0)
                     {
-                        _current = _buffer;
-                        _buffer = default;
+                        _current = new Range(_next, _next + buffer.Length);
+                        _next = _buffer.Length;
                         return true;
                     }
 
                     return false;
                 }
 
-                _current = _buffer.Slice(0, index);
-                _buffer = _buffer.Slice(index + 1);
+                _current = new Range(_next, _next + index);
+                _next += index + 1;
                 return true;
+            }
+
+            /// <summary>
+            ///     Reset
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Reset()
+            {
+                _current = default;
+                _next = 0;
             }
 
             /// <summary>
@@ -125,7 +140,7 @@ namespace NativeCollections
             public readonly ReadOnlySpan<T> Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => _current;
+                get => _buffer[_current];
             }
         }
     }

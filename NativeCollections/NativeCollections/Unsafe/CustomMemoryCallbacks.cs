@@ -2,9 +2,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -45,7 +42,7 @@ namespace NativeCollections
         {
             ref var local1 = ref Unsafe.As<CustomMemoryCallbacks, byte>(ref Unsafe.AsRef(in this));
             ref var local2 = ref Unsafe.As<CustomMemoryCallbacks, byte>(ref other);
-            return SpanHelpers.Compare(ref local1, ref local2, (nuint)sizeof(CustomMemoryCallbacks));
+            return SpanHelpers.Equals(ref local1, ref local2, (nuint)Unsafe.SizeOf<CustomMemoryCallbacks>());
         }
 
         /// <summary>

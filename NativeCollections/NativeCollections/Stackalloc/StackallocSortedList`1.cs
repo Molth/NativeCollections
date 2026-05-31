@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-
-#pragma warning disable CA2208
-#pragma warning disable CS8632
 
 // ReSharper disable ALL
 
@@ -60,7 +58,7 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         /// <returns>Byte count</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetByteCount(int capacity) => capacity * sizeof(T) + (int)NativeMemoryAllocator.AlignOf<T>() - 1;
+        public static int GetByteCount(int capacity) => capacity * Unsafe.SizeOf<T>() + (int)NativeMemoryAllocator.AlignOf<T>() - 1;
 
         /// <summary>
         ///     Structure
@@ -122,7 +120,7 @@ namespace NativeCollections
             {
                 --_size;
                 if (index < _size)
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * sizeof(T)));
+                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<T>()));
                 ++_version;
                 return true;
             }
@@ -137,11 +135,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveAt(int index)
         {
-            ThrowHelpers.ThrowIfNegative(index, nameof(index));
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, nameof(index));
+            ThrowHelpers.ThrowIfNegative(index, ExceptionArgument.index);
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, ExceptionArgument.index);
             --_size;
             if (index < _size)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * sizeof(T)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<T>()));
             ++_version;
         }
 
@@ -153,12 +151,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveAt(int index, out T item)
         {
-            ThrowHelpers.ThrowIfNegative(index, nameof(index));
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, nameof(index));
+            ThrowHelpers.ThrowIfNegative(index, ExceptionArgument.index);
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, ExceptionArgument.index);
             item = Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index);
             --_size;
             if (index < _size)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * sizeof(T)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<T>()));
             ++_version;
         }
 
@@ -173,7 +171,7 @@ namespace NativeCollections
                 return false;
             --_size;
             if (index < _size)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * sizeof(T)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<T>()));
             ++_version;
             return true;
         }
@@ -195,7 +193,7 @@ namespace NativeCollections
             item = Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index);
             --_size;
             if (index < _size)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * sizeof(T)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<T>()));
             ++_version;
             return true;
         }
@@ -208,14 +206,14 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveRange(int index, int count)
         {
-            ThrowHelpers.ThrowIfNegative(index, nameof(index));
-            ThrowHelpers.ThrowIfNegative(count, nameof(count));
+            ThrowHelpers.ThrowIfNegative(index, ExceptionArgument.index);
+            ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
             if (count == 0)
                 return;
-            ThrowHelpers.ThrowIfGreaterThan(index + count, _size, nameof(count));
+            ThrowHelpers.ThrowIfGreaterThan(index + count, _size, ExceptionArgument.count);
             _size -= count;
             if (index < _size)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + count))), (uint)((_size - index) * sizeof(T)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + count))), (uint)((_size - index) * Unsafe.SizeOf<T>()));
             ++_version;
         }
 
@@ -226,8 +224,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ref readonly T GetAt(int index)
         {
-            ThrowHelpers.ThrowIfNegative(index, nameof(index));
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, nameof(index));
+            ThrowHelpers.ThrowIfNegative(index, ExceptionArgument.index);
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, ExceptionArgument.index);
             return ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index);
         }
 
@@ -297,7 +295,7 @@ namespace NativeCollections
             if (_size == _capacity)
                 return InsertResult.InsufficientCapacity;
             if (index < _size)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), (uint)((_size - index) * sizeof(T)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), (uint)((_size - index) * Unsafe.SizeOf<T>()));
             Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index) = item;
             ++_size;
             ++_version;
@@ -318,6 +316,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -327,6 +327,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -336,7 +338,8 @@ namespace NativeCollections
         /// <summary>
         ///     Enumerator
         /// </summary>
-        public struct Enumerator
+        [StructLayout(LayoutKind.Sequential)]
+        public struct Enumerator : IIterator<T>
         {
             /// <summary>
             ///     NativeSortedList
@@ -367,9 +370,9 @@ namespace NativeCollections
             {
                 var handle = (StackallocSortedList<T>*)nativeSortedList;
                 _nativeSortedList = handle;
+                _version = handle->_version;
                 _current = default;
                 _index = 0;
-                _version = handle->_version;
             }
 
             /// <summary>
@@ -390,6 +393,16 @@ namespace NativeCollections
 
                 _index = handle->_size + 1;
                 return false;
+            }
+
+            /// <summary>
+            ///     Reset
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Reset()
+            {
+                _current = default;
+                _index = 0;
             }
 
             /// <summary>

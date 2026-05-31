@@ -7,9 +7,6 @@ using System.Runtime.CompilerServices;
 using System.Numerics;
 #endif
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -23,7 +20,7 @@ namespace NativeCollections
         /// <param name="value">The argument to validate as non-negative.</param>
         /// <param name="paramName">The name of the parameter with which <paramref name="value" /> corresponds.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfNegative<T>(T value, string? paramName) where T : unmanaged,
+        public static void ThrowIfNegative<T>(T value, ExceptionArgument paramName) where T : unmanaged,
 #if NET7_0_OR_GREATER
             ISignedNumber<T>
 #else
@@ -35,14 +32,14 @@ namespace NativeCollections
 #else
             if (value.CompareTo(default) < 0)
 #endif
-                throw new ArgumentOutOfRangeException(paramName, value, "MustBeNonNegative");
+                throw new ArgumentOutOfRangeException(GetArgumentName(paramName), value, SR.Argument_MustBeNonNegative);
         }
 
         /// <summary>Throws an <see cref="ArgumentOutOfRangeException" /> if <paramref name="value" /> is negative or zero.</summary>
         /// <param name="value">The argument to validate as non-zero or non-negative.</param>
         /// <param name="paramName">The name of the parameter with which <paramref name="value" /> corresponds.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfNegativeOrZero<T>(T value, string? paramName) where T : unmanaged,
+        public static void ThrowIfNegativeOrZero<T>(T value, ExceptionArgument paramName) where T : unmanaged,
 #if NET7_0_OR_GREATER
             ISignedNumber<T>
 #else
@@ -54,7 +51,7 @@ namespace NativeCollections
 #else
             if (value.CompareTo(default) <= 0)
 #endif
-                throw new ArgumentOutOfRangeException(paramName, value, "MustBeNonNegativeNonZero");
+                throw new ArgumentOutOfRangeException(GetArgumentName(paramName), value, SR.Argument_MustBeNonNegativeNonZero);
         }
 
         /// <summary>
@@ -65,10 +62,10 @@ namespace NativeCollections
         /// <param name="other">The value to compare with <paramref name="value" />.</param>
         /// <param name="paramName">The name of the parameter with which <paramref name="value" /> corresponds.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfGreaterThanOrEqual<T>(T value, T other, string? paramName) where T : unmanaged, IComparable<T>
+        public static void ThrowIfGreaterThanOrEqual<T>(T value, T other, ExceptionArgument paramName) where T : unmanaged, IComparable<T>
         {
             if (value.CompareTo(other) >= 0)
-                throw new ArgumentOutOfRangeException(paramName, value, "MustBeLess");
+                throw new ArgumentOutOfRangeException(GetArgumentName(paramName), value, SR.Argument_MustBeLess);
         }
 
         /// <summary>
@@ -79,58 +76,78 @@ namespace NativeCollections
         /// <param name="other">The value to compare with <paramref name="value" />.</param>
         /// <param name="paramName">The name of the parameter with which <paramref name="value" /> corresponds.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfGreaterThan<T>(T value, T other, string? paramName) where T : unmanaged, IComparable<T>
+        public static void ThrowIfGreaterThan<T>(T value, T other, ExceptionArgument paramName) where T : unmanaged, IComparable<T>
         {
             if (value.CompareTo(other) > 0)
-                throw new ArgumentOutOfRangeException(paramName, value, "MustBeLessOrEqual");
-        }
-
-        /// <summary>
-        ///     Throws an <see cref="ArgumentOutOfRangeException" /> if <paramref name="value" /> is less than or equal
-        ///     <paramref name="other" />.
-        /// </summary>
-        /// <param name="value">The argument to validate as greatar than than <paramref name="other" />.</param>
-        /// <param name="other">The value to compare with <paramref name="value" />.</param>
-        /// <param name="paramName">The name of the parameter with which <paramref name="value" /> corresponds.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfLessThanOrEqual<T>(T value, T other, string? paramName) where T : unmanaged, IComparable<T>
-        {
-            if (value.CompareTo(other) <= 0)
-                throw new ArgumentOutOfRangeException(paramName, value, "MustBeGreater");
+                throw new ArgumentOutOfRangeException(GetArgumentName(paramName), value, SR.Argument_MustBeLessOrEqual);
         }
 
         /// <summary>
         ///     Throws an <see cref="ArgumentOutOfRangeException" /> if <paramref name="value" /> is less than
         ///     <paramref name="other" />.
         /// </summary>
-        /// <param name="value">The argument to validate as greatar than or equal than <paramref name="other" />.</param>
+        /// <param name="value">The argument to validate as greater than or equal than <paramref name="other" />.</param>
         /// <param name="other">The value to compare with <paramref name="value" />.</param>
         /// <param name="paramName">The name of the parameter with which <paramref name="value" /> corresponds.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfLessThan<T>(T value, T other, string? paramName) where T : unmanaged, IComparable<T>
+        public static void ThrowIfLessThan<T>(T value, T other, ExceptionArgument paramName) where T : unmanaged, IComparable<T>
         {
             if (value.CompareTo(other) < 0)
-                throw new ArgumentOutOfRangeException(paramName, value, "MustBeGreaterOrEqual");
+                throw new ArgumentOutOfRangeException(GetArgumentName(paramName), value, SR.Argument_MustBeGreaterOrEqual);
         }
 
         /// <summary>Throws an <see cref="ArgumentException" /> if <paramref name="value" /> is not a power of two.</summary>
         /// <param name="value">The alignment value to validate.</param>
         /// <param name="paramName">The name of the parameter with which <paramref name="value" /> corresponds.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfAlignmentNotBePow2(uint value, string? paramName)
+        public static void ThrowIfAlignmentNotBePow2(uint value, ExceptionArgument paramName)
         {
             if (!BitOperationsHelpers.IsPow2(value))
-                throw new ArgumentException("AlignmentMustBePow2", paramName);
+                throw new ArgumentException(SR.Argument_AlignmentMustBePow2, GetArgumentName(paramName));
+        }
+
+        /// <summary>
+        ///     Throws an <see cref="ArgumentOutOfRangeException" /> if <paramref name="value" /> is not between 0.0 and 1.0.
+        /// </summary>
+        /// <param name="value">The argument to validate as a probability between 0.0 and 1.0 inclusive.</param>
+        /// <param name="paramName">The name of the parameter with which <paramref name="value" /> corresponds.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ThrowIfProbabilityOutOfRange(double value, ExceptionArgument paramName)
+        {
+            if (value < 0.0 || value > 1.0)
+                throw new ArgumentOutOfRangeException(GetArgumentName(paramName), value, SR.Argument_MustBeBetweenZeroAndOne);
         }
 
         /// <summary>Throws an <see cref="ArgumentNullException" /> if <paramref name="argument" /> is null.</summary>
         /// <param name="argument">The reference type argument to validate as non-null.</param>
         /// <param name="paramName">The name of the parameter with which <paramref name="argument" /> corresponds.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfNull<T>(T? argument, string? paramName)
+        public static void ThrowIfNull<T>(T? argument, ExceptionArgument paramName) where T : class
         {
-            if (!typeof(T).IsValueType && argument == null)
-                throw new ArgumentNullException(paramName, "MustBeNotNull");
+            if (argument == null)
+                throw new ArgumentNullException(GetArgumentName(paramName), SR.Argument_MustBeNotNull);
+        }
+
+        /// <summary>Throws an <see cref="ArgumentException" /> if <paramref name="argument" /> is empty.</summary>
+        /// <param name="argument">The buffer to validate.</param>
+        /// <param name="paramName">The name of the parameter with which <paramref name="argument" /> corresponds.</param>
+        /// <typeparam name="T">The type of the count value.</typeparam>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ThrowIfSpanEmpty<T>(Span<T> argument, ExceptionArgument paramName)
+        {
+            if (argument.IsEmpty)
+                throw new ArgumentException(SR.Argument_Empty, GetArgumentName(paramName));
+        }
+
+        /// <summary>Throws an <see cref="ArgumentException" /> if <paramref name="argument" /> is empty.</summary>
+        /// <param name="argument">The buffer to validate.</param>
+        /// <param name="paramName">The name of the parameter with which <paramref name="argument" /> corresponds.</param>
+        /// <typeparam name="T">The type of the count value.</typeparam>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ThrowIfReadOnlySpanEmpty<T>(ReadOnlySpan<T> argument, ExceptionArgument paramName)
+        {
+            if (argument.IsEmpty)
+                throw new ArgumentException(SR.Argument_Empty, GetArgumentName(paramName));
         }
 
         /// <summary>
@@ -144,7 +161,7 @@ namespace NativeCollections
         public static void ThrowIfEnumFailedVersion<T>(T value, T other) where T : unmanaged, IEquatable<T>
         {
             if (!value.Equals(other))
-                throw new InvalidOperationException("EnumFailedVersion");
+                throw new InvalidOperationException(SR.InvalidOperation_EnumFailedVersion);
         }
 
         /// <summary>Throws an <see cref="IOException" /> if <paramref name="value" /> is negative (seek before begin).</summary>
@@ -163,7 +180,7 @@ namespace NativeCollections
 #else
             if (value.CompareTo(default) < 0)
 #endif
-                throw new IOException("SeekBeforeBegin");
+                throw new IOException(SR.IO_SeekBeforeBegin);
         }
 
         /// <summary>Throws an <see cref="IOException" /> if <paramref name="value" /> is negative (stream too long).</summary>
@@ -182,7 +199,7 @@ namespace NativeCollections
 #else
             if (value.CompareTo(default) < 0)
 #endif
-                throw new IOException("StreamTooLong");
+                throw new IOException(SR.IO_StreamTooLong);
         }
 
         /// <summary>Throws an <see cref="InvalidOperationException" /> if <paramref name="value" /> is zero (empty queue).</summary>
@@ -201,7 +218,7 @@ namespace NativeCollections
 #else
             if (value.CompareTo(default) == 0)
 #endif
-                throw new InvalidOperationException("EmptyQueue");
+                throw new InvalidOperationException(SR.InvalidOperation_EmptyQueue);
         }
 
         /// <summary>
@@ -215,7 +232,7 @@ namespace NativeCollections
         public static void ThrowIfEmptyStack<T>(T value, T other) where T : unmanaged, IComparable<T>
         {
             if (value.CompareTo(other) >= 0)
-                throw new InvalidOperationException("EmptyStack");
+                throw new InvalidOperationException(SR.InvalidOperation_EmptyStack);
         }
 
         /// <summary>
@@ -237,7 +254,7 @@ namespace NativeCollections
 #else
             if (value.CompareTo(default) < 0)
 #endif
-                throw new InvalidOperationException("HashtableCapacityOverflow");
+                throw new InvalidOperationException(SR.InvalidOperation_HashtableCapacityOverflow);
         }
 
         /// <summary>Throws a <see cref="KeyNotFoundException" /> with the specified key value.</summary>
@@ -252,21 +269,21 @@ namespace NativeCollections
         /// <typeparam name="T">The type of the key value.</typeparam>
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowAddingDuplicateWithKeyException<T>(T value) where T : unmanaged => throw new ArgumentException($"AddingDuplicateWithKey: {value}");
+        public static void ThrowAddingDuplicateWithKeyException<T>(T value) where T : unmanaged => throw new ArgumentException(SR.Format(SR.Argument_AddingDuplicateWithKey, value));
 
         /// <summary>
         ///     Throws an <see cref="ArgumentException" /> for invalid seek origin.
         /// </summary>
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowInvalidSeekOriginException() => throw new ArgumentException("InvalidSeekOrigin");
+        public static void ThrowInvalidSeekOriginException() => throw new ArgumentException(SR.Argument_InvalidSeekOrigin);
 
         /// <summary>
         ///     Throws an <see cref="ArgumentException" /> for differing array lengths.
         /// </summary>
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowArrayLengthsDifferException() => throw new ArgumentException("ArrayLengthsDiffer");
+        public static void ThrowArrayLengthsDifferException() => throw new ArgumentException(SR.Argument_ArrayLengthsDiffer);
 
         /// <summary>Throws an <see cref="ArgumentOutOfRangeException" /> for values exceeding allowed range.</summary>
         /// <param name="value">The argument value that is out of range.</param>
@@ -274,7 +291,7 @@ namespace NativeCollections
         /// <typeparam name="T">The type of the argument value.</typeparam>
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowMustBeLessOrEqualException<T>(T value, string? paramName) where T : unmanaged, IComparable<T> => throw new ArgumentOutOfRangeException(paramName, value, "MustBeLessOrEqual");
+        public static void ThrowMustBeLessOrEqualException<T>(T value, ExceptionArgument paramName) where T : unmanaged, IComparable<T> => throw new ArgumentOutOfRangeException(GetArgumentName(paramName), value, SR.Argument_MustBeLessOrEqual);
 
         /// <summary>
         ///     Throws an <see cref="OutOfMemoryException" />.
@@ -287,35 +304,35 @@ namespace NativeCollections
         /// <param name="paramName">The name of the parameter that is null.</param>
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowArgumentNullException(string? paramName) => throw new ArgumentNullException(paramName);
+        public static void ThrowArgumentNullException(ExceptionArgument paramName) => throw new ArgumentNullException(GetArgumentName(paramName));
 
         /// <summary>
         ///     Throws an <see cref="InvalidOperationException" /> for concurrent operations not supported.
         /// </summary>
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowConcurrentOperationsNotSupportedException() => throw new InvalidOperationException("ConcurrentOperationsNotSupported");
+        public static void ThrowConcurrentOperationsNotSupportedException() => throw new InvalidOperationException(SR.InvalidOperation_ConcurrentOperationsNotSupported);
 
         /// <summary>
         ///     Throws an <see cref="InvalidOperationException" /> for mismatch errors.
         /// </summary>
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowMismatchException() => throw new InvalidOperationException("Mismatch");
+        public static void ThrowMismatchException() => throw new InvalidOperationException(SR.InvalidOperation_Mismatch);
 
         /// <summary>
         ///     Throws an <see cref="InvalidOperationException" /> for duplicate items.
         /// </summary>
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowDuplicateException() => throw new InvalidOperationException("Duplicate");
+        public static void ThrowDuplicateException() => throw new InvalidOperationException(SR.InvalidOperation_Duplicate);
 
         /// <summary>
         ///     Throws an <see cref="InvalidDataException" /> for entirely zero values.
         /// </summary>
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowMustBeNonEntirelyZeroException() => throw new InvalidDataException("MustBeNonEntirelyZero");
+        public static void ThrowMustBeNonEntirelyZeroException() => throw new InvalidDataException(SR.InvalidData_MustBeNonEntirelyZero);
 
         /// <summary>Throws an <see cref="ArgumentOutOfRangeException" /> for unaligned memory.</summary>
         /// <param name="value">The required alignment value in bytes.</param>
@@ -323,7 +340,7 @@ namespace NativeCollections
         /// <typeparam name="T">The type of the alignment value.</typeparam>
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowMustBeAlignedToException<T>(T value, string? paramName) where T : unmanaged => throw new ArgumentOutOfRangeException(paramName, $"MustBeAlignedTo{value}");
+        public static void ThrowMustBeAlignedToException<T>(T value, ExceptionArgument paramName) where T : unmanaged => throw new ArgumentOutOfRangeException(GetArgumentName(paramName), SR.Format(SR.Argument_MustBeAlignedTo, value));
 
         /// <summary>
         ///     Throws an <see cref="ArgumentException" /> for buffers not from a memory pool.
@@ -331,7 +348,7 @@ namespace NativeCollections
         /// <param name="paramName">The name of the parameter with the invalid buffer.</param>
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowBufferNotFromPoolException(string? paramName) => throw new ArgumentException("BufferNotFromPool", paramName);
+        public static void ThrowBufferNotFromPoolException(ExceptionArgument paramName) => throw new ArgumentException(SR.Argument_BufferNotFromPool, GetArgumentName(paramName));
 
         /// <summary>
         ///     Throws a <see cref="NotSupportedException" /> indicating that the GetEnumerator method cannot be called in this
@@ -339,14 +356,14 @@ namespace NativeCollections
         /// </summary>
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowCannotCallGetEnumeratorException() => throw new NotSupportedException("CannotCallGetEnumerator");
+        public static void ThrowCannotCallGetEnumeratorException() => throw new NotSupportedException(SR.NotSupported_CannotCallGetEnumerator);
 
         /// <summary>
         ///     Throws a <see cref="NotSupportedException" /> indicating that the Equals method cannot be called in this context.
         /// </summary>
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowCannotCallEqualsException() => throw new NotSupportedException("CannotCallEquals");
+        public static void ThrowCannotCallEqualsException() => throw new NotSupportedException(SR.NotSupported_CannotCallEquals);
 
         /// <summary>
         ///     Throws a <see cref="NotSupportedException" /> indicating that the GetHashCode method cannot be called in this
@@ -354,7 +371,7 @@ namespace NativeCollections
         /// </summary>
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowCannotCallGetHashCodeException() => throw new NotSupportedException("CannotCallGetHashCode");
+        public static void ThrowCannotCallGetHashCodeException() => throw new NotSupportedException(SR.NotSupported_CannotCallGetHashCode);
 
         /// <summary>
         ///     Throws a <see cref="NotSupportedException" />.
@@ -377,25 +394,14 @@ namespace NativeCollections
         /// <param name="reason">The reason why the format is invalid.</param>
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowFormatInvalidString(int offset, InvalidFormatReason reason)
-        {
-            var message = reason switch
-            {
-                InvalidFormatReason.UnexpectedClosingBrace => $"InvalidStringWithOffset: {offset}, Reason: UnexpectedClosingBrace",
-                InvalidFormatReason.ExpectedAsciiDigit => $"InvalidStringWithOffset: {offset}, Reason: ExpectedAsciiDigit",
-                InvalidFormatReason.UnclosedFormatItem => $"InvalidStringWithOffset: {offset}, Reason: UnclosedFormatItem",
-                _ => $"InvalidStringWithOffset: {offset}"
-            };
-
-            throw new FormatException(message);
-        }
+        public static void ThrowFormatInvalidString(int offset, ExceptionResource reason) => throw new FormatException(SR.Format(SR.Format_InvalidStringWithOffsetAndReason, offset, GetResourceString(reason)));
 
         /// <summary>
         ///     Throws a <see cref="FormatException" /> indicating that the index is out of range for the format.
         /// </summary>
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowFormatIndexOutOfRange() => throw new FormatException("IndexOutOfRange");
+        public static void ThrowFormatIndexOutOfRange() => throw new FormatException(SR.Format_IndexOutOfRange);
 
         /// <summary>
         ///     Throws a <see cref="InvalidOperationException" />.
@@ -403,5 +409,62 @@ namespace NativeCollections
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ThrowInvalidOperationException() => throw new InvalidOperationException();
+
+        /// <summary>
+        ///     Returns the argument name string associated with the specified <see cref="ExceptionArgument" /> value.
+        /// </summary>
+        /// <param name="argument">The <see cref="ExceptionArgument" /> value to convert.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static string? GetArgumentName(ExceptionArgument argument)
+        {
+            return argument switch
+            {
+                ExceptionArgument.addValueFactory => "addValueFactory",
+                ExceptionArgument.alignment => "alignment",
+                ExceptionArgument.buffer => "buffer",
+                ExceptionArgument.capacity => "capacity",
+                ExceptionArgument.count => "count",
+                ExceptionArgument.format => "format",
+                ExceptionArgument.index => "index",
+                ExceptionArgument.key => "key",
+                ExceptionArgument.left => "left",
+                ExceptionArgument.length => "length",
+                ExceptionArgument.maxFreeChunks => "maxFreeChunks",
+                ExceptionArgument.maxFreeSlabs => "maxFreeSlabs",
+                ExceptionArgument.maxLength => "maxLength",
+                ExceptionArgument.minimumLength => "minimumLength",
+                ExceptionArgument.obj => "obj",
+                ExceptionArgument.offset => "offset",
+                ExceptionArgument.position => "position",
+                ExceptionArgument.right => "right",
+                ExceptionArgument.size => "size",
+                ExceptionArgument.sleepThreshold => "sleepThreshold",
+                ExceptionArgument.source => "source",
+                ExceptionArgument.trueProbability => "trueProbability",
+                ExceptionArgument.updateValueFactory => "updateValueFactory",
+                ExceptionArgument.value => "value",
+                ExceptionArgument.valueFactory => "valueFactory",
+                ExceptionArgument.x => "x",
+                ExceptionArgument.y => "y",
+                ExceptionArgument.z => "z",
+                _ => null
+            };
+        }
+
+        /// <summary>
+        ///     Returns the resource string associated with the specified <see cref="ExceptionResource" /> value.
+        /// </summary>
+        /// <param name="resource">The <see cref="ExceptionResource" /> value to convert.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static string? GetResourceString(ExceptionResource resource)
+        {
+            return resource switch
+            {
+                ExceptionResource.Format_ExpectedAsciiDigit => SR.Format_ExpectedAsciiDigit,
+                ExceptionResource.Format_UnclosedFormatItem => SR.Format_UnclosedFormatItem,
+                ExceptionResource.Format_UnexpectedClosingBrace => SR.Format_UnexpectedClosingBrace,
+                _ => null
+            };
+        }
     }
 }

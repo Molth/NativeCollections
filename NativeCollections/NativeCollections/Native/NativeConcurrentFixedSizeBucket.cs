@@ -3,9 +3,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -34,7 +31,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeConcurrentFixedSizeBucket(int capacity)
         {
-            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             _buffer = NativeMemoryAllocator.AlignedAllocZeroed<int>((uint)(2 + capacity));
             _length = capacity;
         }
@@ -47,7 +44,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeConcurrentFixedSizeBucket(int* buffer, int capacity)
         {
-            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             _buffer = buffer;
             _length = capacity;
         }

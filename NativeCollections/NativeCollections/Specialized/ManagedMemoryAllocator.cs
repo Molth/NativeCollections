@@ -17,7 +17,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T* AlignedAlloc<T>(uint elementCount) where T : unmanaged
         {
-            var byteCount = elementCount * (uint)sizeof(T);
+            var byteCount = elementCount * (uint)Unsafe.SizeOf<T>();
             var alignment = (uint)NativeMemoryAllocator.AlignOf<T>();
             return (T*)AlignedAlloc(byteCount, alignment);
         }
@@ -28,7 +28,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T* AlignedAllocZeroed<T>(uint elementCount) where T : unmanaged
         {
-            var byteCount = elementCount * (uint)sizeof(T);
+            var byteCount = elementCount * (uint)Unsafe.SizeOf<T>();
             var alignment = (uint)NativeMemoryAllocator.AlignOf<T>();
             return (T*)AlignedAllocZeroed(byteCount, alignment);
         }
@@ -40,14 +40,14 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void* AlignedAlloc(uint byteCount, uint alignment)
         {
-            ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, nameof(alignment));
-            var byteOffset = alignment - 1 + (uint)sizeof(GCHandle);
+            ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, ExceptionArgument.alignment);
+            var byteOffset = alignment - 1 + (uint)Unsafe.SizeOf<GCHandle>();
             var array = ArrayPool<DummyByteHelper>.Shared.Rent((int)(byteCount + byteOffset));
             var gcHandle = GCHandle.Alloc(array, GCHandleType.Pinned);
-            ref var reference = ref ArrayHelpers.GetArrayDataReference(array);
+            ref var reference = ref MemoryMarshalHelpers.GetArrayDataReference(array);
             var ptr = Unsafe.AsPointer(ref reference);
             var result = (void*)(((nint)ptr + (nint)byteOffset) & ~((nint)alignment - 1));
-            Unsafe.WriteUnaligned(UnsafeHelpers.SubtractByteOffset(result, sizeof(GCHandle)), gcHandle);
+            Unsafe.WriteUnaligned(UnsafeHelpers.SubtractByteOffset(result, Unsafe.SizeOf<GCHandle>()), gcHandle);
             return result;
         }
 
@@ -58,14 +58,14 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void* AlignedAllocZeroed(uint byteCount, uint alignment)
         {
-            ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, nameof(alignment));
-            var byteOffset = alignment - 1 + (uint)sizeof(GCHandle);
+            ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, ExceptionArgument.alignment);
+            var byteOffset = alignment - 1 + (uint)Unsafe.SizeOf<GCHandle>();
             var array = ArrayPool<DummyByteHelper>.Shared.Rent((int)(byteCount + byteOffset));
             var gcHandle = GCHandle.Alloc(array, GCHandleType.Pinned);
-            ref var reference = ref ArrayHelpers.GetArrayDataReference(array);
+            ref var reference = ref MemoryMarshalHelpers.GetArrayDataReference(array);
             var ptr = Unsafe.AsPointer(ref reference);
             var result = (void*)(((nint)ptr + (nint)byteOffset) & ~((nint)alignment - 1));
-            Unsafe.WriteUnaligned(UnsafeHelpers.SubtractByteOffset(result, sizeof(GCHandle)), gcHandle);
+            Unsafe.WriteUnaligned(UnsafeHelpers.SubtractByteOffset(result, Unsafe.SizeOf<GCHandle>()), gcHandle);
             Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(result), 0, byteCount);
             return result;
         }
@@ -77,7 +77,7 @@ namespace NativeCollections
         {
             if (ptr == null)
                 return;
-            var gcHandle = Unsafe.ReadUnaligned<GCHandle>(UnsafeHelpers.SubtractByteOffset(ptr, sizeof(GCHandle)));
+            var gcHandle = Unsafe.ReadUnaligned<GCHandle>(UnsafeHelpers.SubtractByteOffset(ptr, Unsafe.SizeOf<GCHandle>()));
             var array = (DummyByteHelper[])gcHandle.Target!;
             gcHandle.Free();
             ArrayPool<DummyByteHelper>.Shared.Return(array);

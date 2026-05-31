@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-
-#pragma warning disable CA2208
-#pragma warning disable CS8632
 
 // ReSharper disable ALL
 
@@ -42,7 +40,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeSlice(T* buffer, int count)
         {
-            ThrowHelpers.ThrowIfNegative(count, nameof(count));
+            ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
             _buffer = buffer;
             _offset = 0;
             _count = count;
@@ -57,8 +55,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeSlice(T* buffer, int offset, int count)
         {
-            ThrowHelpers.ThrowIfNegative(offset, nameof(offset));
-            ThrowHelpers.ThrowIfNegative(count, nameof(count));
+            ThrowHelpers.ThrowIfNegative(offset, ExceptionArgument.offset);
+            ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
             _buffer = buffer;
             _offset = offset;
             _count = count;
@@ -358,6 +356,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -367,6 +367,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -376,7 +378,8 @@ namespace NativeCollections
         /// <summary>
         ///     Enumerator
         /// </summary>
-        public struct Enumerator
+        [StructLayout(LayoutKind.Sequential)]
+        public struct Enumerator : IRefIterator<T>
         {
             /// <summary>
             ///     NativeSlice
@@ -415,6 +418,12 @@ namespace NativeCollections
 
                 return false;
             }
+
+            /// <summary>
+            ///     Reset
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Reset() => _index = -1;
 
             /// <summary>
             ///     Current

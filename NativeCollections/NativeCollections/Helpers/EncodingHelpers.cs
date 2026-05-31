@@ -2,11 +2,6 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8618
-#pragma warning disable CS8632
-#pragma warning disable CS8500
-
 // ReSharper disable ALL
 
 namespace NativeCollections

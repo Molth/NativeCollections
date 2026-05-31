@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
-
-#pragma warning disable CA2208
-#pragma warning disable CS8632
 
 // ReSharper disable ALL
 
@@ -101,7 +99,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeConcurrentHashSet(int size, int maxFreeSlabs, int concurrencyLevel, int capacity, bool growLockArray)
         {
-            var nodePool = new UnsafeMemoryPool(size, sizeof(Node), maxFreeSlabs, (int)NativeMemoryAllocator.AlignOf<Node>());
+            var nodePool = new UnsafeMemoryPool(size, Unsafe.SizeOf<Node>(), maxFreeSlabs, (int)NativeMemoryAllocator.AlignOf<Node>());
             if (concurrencyLevel <= 0)
                 concurrencyLevel = Environment.ProcessorCount;
             capacity = Math.Max(capacity, concurrencyLevel);
@@ -555,6 +553,7 @@ namespace NativeCollections
         /// <summary>
         ///     Volatile node
         /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
         private struct VolatileNode
         {
             /// <summary>
@@ -566,6 +565,7 @@ namespace NativeCollections
         /// <summary>
         ///     Node
         /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
         private struct Node
         {
             /// <summary>
@@ -601,6 +601,7 @@ namespace NativeCollections
         /// <summary>
         ///     Tables
         /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
         private struct Tables
         {
             /// <summary>
@@ -664,6 +665,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -673,6 +676,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -682,7 +687,8 @@ namespace NativeCollections
         /// <summary>
         ///     Enumerator
         /// </summary>
-        public struct Enumerator
+        [StructLayout(LayoutKind.Sequential)]
+        public struct Enumerator : IIterator<T>
         {
             /// <summary>
             ///     NativeConcurrentHashSet
@@ -787,6 +793,19 @@ namespace NativeCollections
                         _state = STATE_DONE;
                         return false;
                 }
+            }
+
+            /// <summary>
+            ///     Reset
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Reset()
+            {
+                _index = -1;
+                _buckets = default;
+                _node = null;
+                _state = 0;
+                _current = default;
             }
 
             /// <summary>

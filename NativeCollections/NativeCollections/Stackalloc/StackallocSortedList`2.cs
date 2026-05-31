@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-
-#pragma warning disable CA2208
-#pragma warning disable CS8632
 
 // ReSharper disable ALL
 
@@ -79,8 +77,8 @@ namespace NativeCollections
         public static int GetByteCount(int capacity)
         {
             var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<TKey>(), NativeMemoryAllocator.AlignOf<TValue>());
-            var keysByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * sizeof(TKey)), alignment);
-            return (int)(keysByteCount + capacity * sizeof(TValue) + alignment - 1);
+            var keysByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * Unsafe.SizeOf<TKey>()), alignment);
+            return (int)(keysByteCount + capacity * Unsafe.SizeOf<TValue>() + alignment - 1);
         }
 
         /// <summary>
@@ -92,7 +90,7 @@ namespace NativeCollections
         public StackallocSortedList(Span<byte> buffer, int capacity)
         {
             var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<TKey>(), NativeMemoryAllocator.AlignOf<TValue>());
-            var keysByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * sizeof(TKey)), alignment);
+            var keysByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * Unsafe.SizeOf<TKey>()), alignment);
             _keys = (TKey*)NativeArray<byte>.Create(buffer, alignment).Buffer;
             _values = UnsafeHelpers.AddByteOffset<TValue>(_keys, (nint)keysByteCount);
             _size = 0;
@@ -169,8 +167,8 @@ namespace NativeCollections
                 --_size;
                 if (index < _size)
                 {
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + 1))), (uint)((_size - index) * sizeof(TKey)));
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + 1))), (uint)((_size - index) * sizeof(TValue)));
+                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TKey>()));
+                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TValue>()));
                 }
 
                 ++_version;
@@ -196,8 +194,8 @@ namespace NativeCollections
                 --_size;
                 if (index < _size)
                 {
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + 1))), (uint)((_size - index) * sizeof(TKey)));
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + 1))), (uint)((_size - index) * sizeof(TValue)));
+                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TKey>()));
+                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TValue>()));
                 }
 
                 ++_version;
@@ -215,13 +213,13 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveAt(int index)
         {
-            ThrowHelpers.ThrowIfNegative(index, nameof(index));
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, nameof(index));
+            ThrowHelpers.ThrowIfNegative(index, ExceptionArgument.index);
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, ExceptionArgument.index);
             --_size;
             if (index < _size)
             {
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + 1))), (uint)((_size - index) * sizeof(TKey)));
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + 1))), (uint)((_size - index) * sizeof(TValue)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TKey>()));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TValue>()));
             }
 
             ++_version;
@@ -235,14 +233,14 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveAt(int index, out KeyValuePair<TKey, TValue> keyValuePair)
         {
-            ThrowHelpers.ThrowIfNegative(index, nameof(index));
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, nameof(index));
+            ThrowHelpers.ThrowIfNegative(index, ExceptionArgument.index);
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, ExceptionArgument.index);
             keyValuePair = new KeyValuePair<TKey, TValue>(Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index), Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index));
             --_size;
             if (index < _size)
             {
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + 1))), (uint)((_size - index) * sizeof(TKey)));
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + 1))), (uint)((_size - index) * sizeof(TValue)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TKey>()));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TValue>()));
             }
 
             ++_version;
@@ -261,8 +259,8 @@ namespace NativeCollections
             --_size;
             if (index < _size)
             {
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + 1))), (uint)((_size - index) * sizeof(TKey)));
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + 1))), (uint)((_size - index) * sizeof(TValue)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TKey>()));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TValue>()));
             }
 
             ++_version;
@@ -287,8 +285,8 @@ namespace NativeCollections
             --_size;
             if (index < _size)
             {
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + 1))), (uint)((_size - index) * sizeof(TKey)));
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + 1))), (uint)((_size - index) * sizeof(TValue)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TKey>()));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TValue>()));
             }
 
             ++_version;
@@ -303,16 +301,16 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveRange(int index, int count)
         {
-            ThrowHelpers.ThrowIfNegative(index, nameof(index));
-            ThrowHelpers.ThrowIfNegative(count, nameof(count));
+            ThrowHelpers.ThrowIfNegative(index, ExceptionArgument.index);
+            ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
             if (count == 0)
                 return;
-            ThrowHelpers.ThrowIfGreaterThan(index + count, _size, nameof(count));
+            ThrowHelpers.ThrowIfGreaterThan(index + count, _size, ExceptionArgument.count);
             _size -= count;
             if (index < _size)
             {
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + count))), (uint)((_size - index) * sizeof(TKey)));
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + count))), (uint)((_size - index) * sizeof(TValue)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + count))), (uint)((_size - index) * Unsafe.SizeOf<TKey>()));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + count))), (uint)((_size - index) * Unsafe.SizeOf<TValue>()));
             }
 
             ++_version;
@@ -326,8 +324,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly TKey GetKeyAt(int index)
         {
-            ThrowHelpers.ThrowIfNegative(index, nameof(index));
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, nameof(index));
+            ThrowHelpers.ThrowIfNegative(index, ExceptionArgument.index);
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, ExceptionArgument.index);
             return Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index);
         }
 
@@ -339,8 +337,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ref TValue GetValueAt(int index)
         {
-            ThrowHelpers.ThrowIfNegative(index, nameof(index));
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, nameof(index));
+            ThrowHelpers.ThrowIfNegative(index, ExceptionArgument.index);
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, ExceptionArgument.index);
             return ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index);
         }
 
@@ -352,8 +350,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetValueAt(int index, in TValue value)
         {
-            ThrowHelpers.ThrowIfNegative(index, nameof(index));
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, nameof(index));
+            ThrowHelpers.ThrowIfNegative(index, ExceptionArgument.index);
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, ExceptionArgument.index);
             Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index) = value;
             ++_version;
         }
@@ -471,8 +469,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly KeyValuePair<TKey, TValue> GetAt(int index)
         {
-            ThrowHelpers.ThrowIfNegative(index, nameof(index));
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, nameof(index));
+            ThrowHelpers.ThrowIfNegative(index, ExceptionArgument.index);
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, ExceptionArgument.index);
             return new KeyValuePair<TKey, TValue>(Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index), Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index));
         }
 
@@ -484,8 +482,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly KeyValuePair<TKey, NativeReference<TValue>> GetReferenceAt(int index)
         {
-            ThrowHelpers.ThrowIfNegative(index, nameof(index));
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, nameof(index));
+            ThrowHelpers.ThrowIfNegative(index, ExceptionArgument.index);
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, ExceptionArgument.index);
             return new KeyValuePair<TKey, NativeReference<TValue>>(Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index), new NativeReference<TValue>(Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index))));
         }
 
@@ -540,8 +538,8 @@ namespace NativeCollections
                 return InsertResult.InsufficientCapacity;
             if (index < _size)
             {
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + 1))), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), (uint)((_size - index) * sizeof(TKey)));
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + 1))), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), (uint)((_size - index) * sizeof(TValue)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + 1))), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), (uint)((_size - index) * Unsafe.SizeOf<TKey>()));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + 1))), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), (uint)((_size - index) * Unsafe.SizeOf<TValue>()));
             }
 
             Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index) = key;
@@ -565,6 +563,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -574,6 +574,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -583,7 +585,8 @@ namespace NativeCollections
         /// <summary>
         ///     Enumerator
         /// </summary>
-        public struct Enumerator
+        [StructLayout(LayoutKind.Sequential)]
+        public struct Enumerator : IIterator<KeyValuePair<TKey, TValue>>
         {
             /// <summary>
             ///     NativeSortedList
@@ -614,9 +617,9 @@ namespace NativeCollections
             {
                 var handle = (StackallocSortedList<TKey, TValue>*)nativeSortedList;
                 _nativeSortedList = handle;
+                _version = handle->_version;
                 _current = default;
                 _index = 0;
-                _version = handle->_version;
             }
 
             /// <summary>
@@ -637,6 +640,16 @@ namespace NativeCollections
 
                 _index = handle->_size + 1;
                 return false;
+            }
+
+            /// <summary>
+            ///     Reset
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Reset()
+            {
+                _current = default;
+                _index = 0;
             }
 
             /// <summary>
@@ -721,6 +734,8 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
+            [Obsolete("Call this method will always throw an exception.")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator()
             {
                 ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -730,6 +745,8 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
+            [Obsolete("Call this method will always throw an exception.")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator IEnumerable.GetEnumerator()
             {
                 ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -739,7 +756,8 @@ namespace NativeCollections
             /// <summary>
             ///     Enumerator
             /// </summary>
-            public struct Enumerator
+            [StructLayout(LayoutKind.Sequential)]
+            public struct Enumerator : IIterator<TKey>
             {
                 /// <summary>
                 ///     NativeSortedList
@@ -770,9 +788,9 @@ namespace NativeCollections
                 {
                     var handle = (StackallocSortedList<TKey, TValue>*)nativeSortedList;
                     _nativeSortedList = handle;
+                    _version = handle->_version;
                     _current = default;
                     _index = 0;
-                    _version = handle->_version;
                 }
 
                 /// <summary>
@@ -793,6 +811,16 @@ namespace NativeCollections
 
                     _index = handle->_size + 1;
                     return false;
+                }
+
+                /// <summary>
+                ///     Reset
+                /// </summary>
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public void Reset()
+                {
+                    _current = default;
+                    _index = 0;
                 }
 
                 /// <summary>
@@ -878,6 +906,8 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
+            [Obsolete("Call this method will always throw an exception.")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator()
             {
                 ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -887,6 +917,8 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
+            [Obsolete("Call this method will always throw an exception.")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator IEnumerable.GetEnumerator()
             {
                 ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -896,7 +928,8 @@ namespace NativeCollections
             /// <summary>
             ///     Enumerator
             /// </summary>
-            public struct Enumerator
+            [StructLayout(LayoutKind.Sequential)]
+            public struct Enumerator : IIterator<TValue>
             {
                 /// <summary>
                 ///     NativeSortedList
@@ -927,9 +960,9 @@ namespace NativeCollections
                 {
                     var handle = (StackallocSortedList<TKey, TValue>*)nativeSortedList;
                     _nativeSortedList = handle;
+                    _version = handle->_version;
                     _current = default;
                     _index = 0;
-                    _version = handle->_version;
                 }
 
                 /// <summary>
@@ -950,6 +983,16 @@ namespace NativeCollections
 
                     _index = handle->_size + 1;
                     return false;
+                }
+
+                /// <summary>
+                ///     Reset
+                /// </summary>
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public void Reset()
+                {
+                    _current = default;
+                    _index = 0;
                 }
 
                 /// <summary>

@@ -1,9 +1,9 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-
-#pragma warning disable CA2208
-#pragma warning disable CS8632
 
 // ReSharper disable ALL
 
@@ -15,7 +15,7 @@ namespace NativeCollections
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
     [BindingType(typeof(UnsafeChunkedStream))]
-    public readonly unsafe struct NativeChunkedStream : IDisposable, IEquatable<NativeChunkedStream>
+    public readonly unsafe struct NativeChunkedStream : IDisposable, IEquatable<NativeChunkedStream>, IEnumerable<NativeArray<byte>>
     {
         /// <summary>
         ///     Handle
@@ -159,6 +159,27 @@ namespace NativeCollections
         public void Write(ReadOnlySpan<byte> buffer) => _handle->Write(buffer);
 
         /// <summary>
+        ///     Read
+        /// </summary>
+        /// <param name="length">Length</param>
+        /// <returns>Bytes</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int Read(int length) => _handle->Read(length);
+
+        /// <summary>
+        ///     Write
+        /// </summary>
+        /// <param name="length">Length</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write(int length) => _handle->Write(length);
+
+        /// <summary>
+        ///     Get first read buffer
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Span<byte> GetBuffer() => _handle->GetBuffer();
+
+        /// <summary>
         ///     Ensure capacity
         /// </summary>
         /// <param name="capacity">Capacity</param>
@@ -183,5 +204,33 @@ namespace NativeCollections
         ///     Empty
         /// </summary>
         public static NativeChunkedStream Empty => new();
+
+        /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        /// <returns>Enumerator</returns>
+        public UnsafeChunkedStream.Enumerator GetEnumerator() => new(_handle);
+
+        /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        IEnumerator<NativeArray<byte>> IEnumerable<NativeArray<byte>>.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
+
+        /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
     }
 }

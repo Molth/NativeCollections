@@ -2,9 +2,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -208,6 +205,12 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     As bytes
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Span<byte> AsBytes() => _handle->AsBytes();
+
+        /// <summary>
         ///     Set length
         /// </summary>
         /// <param name="length">Length</param>
@@ -262,7 +265,7 @@ namespace NativeCollections
         public NativeBitArray And(NativeBitArray value)
         {
             if (!value.IsCreated)
-                ThrowHelpers.ThrowArgumentNullException(nameof(value));
+                ThrowHelpers.ThrowArgumentNullException(ExceptionArgument.value);
             _handle->And(Unsafe.AsRef<UnsafeBitArray>(value._handle));
             return this;
         }
@@ -288,7 +291,7 @@ namespace NativeCollections
         public NativeBitArray Or(NativeBitArray value)
         {
             if (!value.IsCreated)
-                ThrowHelpers.ThrowArgumentNullException(nameof(value));
+                ThrowHelpers.ThrowArgumentNullException(ExceptionArgument.value);
             _handle->Or(Unsafe.AsRef<UnsafeBitArray>(value._handle));
             return this;
         }
@@ -314,7 +317,7 @@ namespace NativeCollections
         public NativeBitArray Xor(NativeBitArray value)
         {
             if (!value.IsCreated)
-                ThrowHelpers.ThrowArgumentNullException(nameof(value));
+                ThrowHelpers.ThrowArgumentNullException(ExceptionArgument.value);
             _handle->Xor(Unsafe.AsRef<UnsafeBitArray>(value._handle));
             return this;
         }

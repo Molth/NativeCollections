@@ -2,9 +2,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -64,7 +61,7 @@ namespace NativeCollections
         /// <summary>
         ///     Max length
         /// </summary>
-        public readonly int MaxLength => _size - sizeof(MemoryNode);
+        public readonly int MaxLength => _size - Unsafe.SizeOf<MemoryNode>();
 
         /// <summary>
         ///     Structure
@@ -74,10 +71,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeLinearMemoryPool(int maxLength, int maxFreeSlabs)
         {
-            ThrowHelpers.ThrowIfNegativeOrZero(maxLength, nameof(maxLength));
-            ThrowHelpers.ThrowIfNegative(maxFreeSlabs, nameof(maxFreeSlabs));
-            var size = sizeof(MemoryNode) + maxLength;
-            var buffer = (byte*)NativeMemoryAllocator.AlignedAlloc((uint)(sizeof(MemorySlab) + size), (uint)NativeMemoryAllocator.AlignOf<nint>());
+            ThrowHelpers.ThrowIfNegativeOrZero(maxLength, ExceptionArgument.maxLength);
+            ThrowHelpers.ThrowIfNegative(maxFreeSlabs, ExceptionArgument.maxFreeSlabs);
+            var size = Unsafe.SizeOf<MemoryNode>() + maxLength;
+            var buffer = (byte*)NativeMemoryAllocator.AlignedAlloc((uint)(Unsafe.SizeOf<MemorySlab>() + size), (uint)NativeMemoryAllocator.AlignOf<nint>());
             var slab = (MemorySlab*)buffer;
             slab->Next = slab;
             slab->Previous = slab;
@@ -122,17 +119,17 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void* Rent(int length, int alignment)
         {
-            ThrowHelpers.ThrowIfNegative(length, nameof(length));
-            ThrowHelpers.ThrowIfNegative(alignment, nameof(alignment));
-            ThrowHelpers.ThrowIfAlignmentNotBePow2((uint)alignment, nameof(alignment));
+            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
+            ThrowHelpers.ThrowIfNegative(alignment, ExceptionArgument.alignment);
+            ThrowHelpers.ThrowIfAlignmentNotBePow2((uint)alignment, ExceptionArgument.alignment);
             alignment = Math.Max(alignment, (int)NativeMemoryAllocator.AlignOf<MemoryNode>());
-            var nodeSize = sizeof(MemoryNode);
+            var nodeSize = Unsafe.SizeOf<MemoryNode>();
             var maxPadding = alignment - 1;
             var byteCount = nodeSize + maxPadding + length;
             if (byteCount > _size)
             {
-                ThrowHelpers.ThrowIfGreaterThan(nodeSize + maxPadding, _size, nameof(alignment));
-                ThrowHelpers.ThrowMustBeLessOrEqualException(length, nameof(length));
+                ThrowHelpers.ThrowIfGreaterThan(nodeSize + maxPadding, _size, ExceptionArgument.alignment);
+                ThrowHelpers.ThrowMustBeLessOrEqualException(length, ExceptionArgument.length);
             }
 
             var slab = _sentinel;
@@ -140,7 +137,7 @@ namespace NativeCollections
             {
                 if (_freeSlabs == 0)
                 {
-                    var buffer = (byte*)NativeMemoryAllocator.AlignedAlloc((uint)(sizeof(MemorySlab) + _size), (uint)NativeMemoryAllocator.AlignOf<nint>());
+                    var buffer = (byte*)NativeMemoryAllocator.AlignedAlloc((uint)(Unsafe.SizeOf<MemorySlab>() + _size), (uint)NativeMemoryAllocator.AlignOf<nint>());
                     slab = (MemorySlab*)buffer;
                 }
                 else
@@ -160,7 +157,7 @@ namespace NativeCollections
                 _slabs++;
             }
 
-            var node = UnsafeHelpers.AddByteOffset<MemoryNode>(slab, sizeof(MemorySlab) + slab->Length);
+            var node = UnsafeHelpers.AddByteOffset<MemoryNode>(slab, Unsafe.SizeOf<MemorySlab>() + slab->Length);
             node->Slab = slab;
             slab->Nodes++;
             var ptr = UnsafeHelpers.AddByteOffset(node, nodeSize);
@@ -209,13 +206,13 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int EnsureCapacity(int capacity)
         {
-            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             capacity = Math.Min(capacity, _maxFreeSlabs);
             var size = _size;
             while (_freeSlabs < capacity)
             {
                 _freeSlabs++;
-                var buffer = (byte*)NativeMemoryAllocator.AlignedAlloc((uint)(sizeof(MemorySlab) + size), (uint)NativeMemoryAllocator.AlignOf<nint>());
+                var buffer = (byte*)NativeMemoryAllocator.AlignedAlloc((uint)(Unsafe.SizeOf<MemorySlab>() + size), (uint)NativeMemoryAllocator.AlignOf<nint>());
                 var slab = (MemorySlab*)buffer;
                 slab->Next = _freeList;
                 _freeList = slab;
@@ -249,7 +246,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity)
         {
-            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             var node = _freeList;
             while (_freeSlabs > capacity)
             {

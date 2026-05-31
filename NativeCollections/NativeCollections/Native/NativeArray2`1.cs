@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-
-#pragma warning disable CA2208
-#pragma warning disable CS8632
 
 // ReSharper disable ALL
 
@@ -42,8 +40,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArray2(int x, int y)
         {
-            ThrowHelpers.ThrowIfNegative(x, nameof(x));
-            ThrowHelpers.ThrowIfNegative(y, nameof(y));
+            ThrowHelpers.ThrowIfNegative(x, ExceptionArgument.x);
+            ThrowHelpers.ThrowIfNegative(y, ExceptionArgument.y);
             _buffer = NativeMemoryAllocator.AlignedAlloc<T>((uint)(x * y));
             _x = x;
             _y = y;
@@ -58,8 +56,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArray2(int x, int y, bool zeroed)
         {
-            ThrowHelpers.ThrowIfNegative(x, nameof(x));
-            ThrowHelpers.ThrowIfNegative(y, nameof(y));
+            ThrowHelpers.ThrowIfNegative(x, ExceptionArgument.x);
+            ThrowHelpers.ThrowIfNegative(y, ExceptionArgument.y);
             _buffer = zeroed ? NativeMemoryAllocator.AlignedAllocZeroed<T>((uint)(x * y)) : NativeMemoryAllocator.AlignedAlloc<T>((uint)(x * y));
             _x = x;
             _y = y;
@@ -74,10 +72,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArray2(int x, int y, int alignment)
         {
-            ThrowHelpers.ThrowIfNegative(x, nameof(x));
-            ThrowHelpers.ThrowIfNegative(y, nameof(y));
-            ThrowHelpers.ThrowIfNegative(alignment, nameof(alignment));
-            ThrowHelpers.ThrowIfLessThan((uint)alignment, (uint)NativeMemoryAllocator.AlignOf<T>(), nameof(alignment));
+            ThrowHelpers.ThrowIfNegative(x, ExceptionArgument.x);
+            ThrowHelpers.ThrowIfNegative(y, ExceptionArgument.y);
+            ThrowHelpers.ThrowIfNegative(alignment, ExceptionArgument.alignment);
+            ThrowHelpers.ThrowIfLessThan((uint)alignment, (uint)NativeMemoryAllocator.AlignOf<T>(), ExceptionArgument.alignment);
             _buffer = (T*)NativeMemoryAllocator.AlignedAlloc((uint)(x * y), (uint)alignment);
             _x = x;
             _y = y;
@@ -93,11 +91,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArray2(int x, int y, int alignment, bool zeroed)
         {
-            ThrowHelpers.ThrowIfNegative(x, nameof(x));
-            ThrowHelpers.ThrowIfNegative(y, nameof(y));
-            ThrowHelpers.ThrowIfNegative(alignment, nameof(alignment));
-            ThrowHelpers.ThrowIfLessThan((uint)alignment, (uint)NativeMemoryAllocator.AlignOf<T>(), nameof(alignment));
-            _buffer = zeroed ? (T*)NativeMemoryAllocator.AlignedAllocZeroed((uint)(x * y * sizeof(T)), (uint)alignment) : (T*)NativeMemoryAllocator.AlignedAlloc((uint)(x * y * sizeof(T)), (uint)alignment);
+            ThrowHelpers.ThrowIfNegative(x, ExceptionArgument.x);
+            ThrowHelpers.ThrowIfNegative(y, ExceptionArgument.y);
+            ThrowHelpers.ThrowIfNegative(alignment, ExceptionArgument.alignment);
+            ThrowHelpers.ThrowIfLessThan((uint)alignment, (uint)NativeMemoryAllocator.AlignOf<T>(), ExceptionArgument.alignment);
+            _buffer = zeroed ? (T*)NativeMemoryAllocator.AlignedAllocZeroed((uint)(x * y * Unsafe.SizeOf<T>()), (uint)alignment) : (T*)NativeMemoryAllocator.AlignedAlloc((uint)(x * y * Unsafe.SizeOf<T>()), (uint)alignment);
             _x = x;
             _y = y;
         }
@@ -111,8 +109,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArray2(T* buffer, int x, int y)
         {
-            ThrowHelpers.ThrowIfNegative(x, nameof(x));
-            ThrowHelpers.ThrowIfNegative(y, nameof(y));
+            ThrowHelpers.ThrowIfNegative(x, ExceptionArgument.x);
+            ThrowHelpers.ThrowIfNegative(y, ExceptionArgument.y);
             _buffer = buffer;
             _x = x;
             _y = y;
@@ -348,6 +346,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -357,6 +357,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();

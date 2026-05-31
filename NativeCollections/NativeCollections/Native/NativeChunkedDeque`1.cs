@@ -1,9 +1,9 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-
-#pragma warning disable CA2208
-#pragma warning disable CS8632
 
 // ReSharper disable ALL
 
@@ -11,13 +11,13 @@ namespace NativeCollections
 {
     /// <summary>
     ///     Native chunked deque
-    ///     (Slower than Deque, disable Enumerator)
+    ///     (Slower than Deque)
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
     [BindingType(typeof(UnsafeChunkedDeque<>))]
-    public readonly unsafe struct NativeChunkedDeque<T> : IDisposable, IEquatable<NativeChunkedDeque<T>> where T : unmanaged
+    public readonly unsafe struct NativeChunkedDeque<T> : IDisposable, IEquatable<NativeChunkedDeque<T>>, IReadOnlyCollection<T> where T : unmanaged
     {
         /// <summary>
         ///     Handle
@@ -205,5 +205,33 @@ namespace NativeCollections
         ///     Empty
         /// </summary>
         public static NativeChunkedDeque<T> Empty => new();
+
+        /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        /// <returns>Enumerator</returns>
+        public UnsafeChunkedDeque<T>.Enumerator GetEnumerator() => new(_handle);
+
+        /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
+
+        /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
     }
 }

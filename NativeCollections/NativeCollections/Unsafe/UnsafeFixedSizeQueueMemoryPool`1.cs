@@ -2,9 +2,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -69,11 +66,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeFixedSizeQueueMemoryPool(int capacity)
         {
-            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             capacity = Math.Max(capacity, 4);
             var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<T>(), NativeMemoryAllocator.AlignOf<int>());
-            var bufferByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * sizeof(T)), alignment);
-            _buffer = (T*)NativeMemoryAllocator.AlignedAlloc((uint)(bufferByteCount + capacity * sizeof(int)), alignment);
+            var bufferByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * Unsafe.SizeOf<T>()), alignment);
+            _buffer = (T*)NativeMemoryAllocator.AlignedAlloc((uint)(bufferByteCount + capacity * Unsafe.SizeOf<int>()), alignment);
             _index = UnsafeHelpers.AddByteOffset<int>(_buffer, (nint)bufferByteCount);
             _capacity = capacity;
             _head = 0;
@@ -127,7 +124,7 @@ namespace NativeCollections
         public void Return(T* ptr)
         {
             var byteOffset = UnsafeHelpers.ByteOffset(_buffer, ptr);
-            var index = byteOffset / sizeof(T);
+            var index = byteOffset / Unsafe.SizeOf<T>();
             Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)_tail) = (int)index;
             MoveNext(ref _tail);
             _size++;

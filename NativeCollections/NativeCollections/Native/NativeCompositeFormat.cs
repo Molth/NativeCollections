@@ -4,11 +4,6 @@ using System.Runtime.CompilerServices;
 using System.Diagnostics.CodeAnalysis;
 #endif
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
-#pragma warning disable CS8500
-#pragma warning disable CS9081
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -89,11 +84,11 @@ namespace NativeCollections
 #endif
             string format)
         {
-            ThrowHelpers.ThrowIfNull(format, nameof(format));
+            ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
             using var segments = new NativeListBuilder<(string? Literal, int ArgIndex, int Alignment, string? Format)>(4);
             ref var segmentsRef = ref segments.AsRef();
             var failureOffset = 0;
-            var failureReason = (InvalidFormatReason)(-1);
+            var failureReason = (ExceptionResource)(-1);
             if (!TryParseLiterals(format, ref segmentsRef, ref failureOffset, ref failureReason))
                 ThrowHelpers.ThrowFormatInvalidString(failureOffset, failureReason);
             return new NativeCompositeFormat(format, segmentsRef.AsSpan().ToArray());
@@ -114,7 +109,7 @@ namespace NativeCollections
         /// <param name="failureOffset">The offset at which a parsing error occured if <see langword="false" /> is returned.</param>
         /// <param name="failureReason">The reason for a parsing failure if <see langword="false" /> is returned.</param>
         /// <returns>true if the format string can be parsed successfully; otherwise, false.</returns>
-        private static bool TryParseLiterals(ReadOnlySpan<char> format, ref NativeListBuilder<(string? Literal, int ArgIndex, int Alignment, string? Format)> segments, ref int failureOffset, ref InvalidFormatReason failureReason)
+        private static bool TryParseLiterals(ReadOnlySpan<char> format, ref NativeListBuilder<(string? Literal, int ArgIndex, int Alignment, string? Format)> segments, ref int failureOffset, ref ExceptionResource failureReason)
         {
             using var temp = new NativeStringBuilder<char>(stackalloc char[512], 0);
             var position = 0;
@@ -234,17 +229,17 @@ namespace NativeCollections
             }
 
             FailureUnexpectedClosingBrace:
-            failureReason = InvalidFormatReason.UnexpectedClosingBrace;
+            failureReason = ExceptionResource.Format_UnexpectedClosingBrace;
             failureOffset = position;
             return false;
 
             FailureUnclosedFormatItem:
-            failureReason = InvalidFormatReason.UnclosedFormatItem;
+            failureReason = ExceptionResource.Format_UnclosedFormatItem;
             failureOffset = position;
             return false;
 
             FailureExpectedAsciiDigit:
-            failureReason = InvalidFormatReason.ExpectedAsciiDigit;
+            failureReason = ExceptionResource.Format_ExpectedAsciiDigit;
             failureOffset = position;
             return false;
 

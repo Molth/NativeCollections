@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using static NativeCollections.NativeSortedSet;
-
-#pragma warning disable CA2208
-#pragma warning disable CS8632
 
 // ReSharper disable ALL
 
@@ -527,7 +525,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int CopyTo(Span<T> buffer, int count)
         {
-            ThrowHelpers.ThrowIfNegative(count, nameof(count));
+            ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
             ref var reference = ref MemoryMarshal.GetReference(buffer);
             if (_root == null)
                 return 0;
@@ -542,7 +540,7 @@ namespace NativeCollections
                     if (index >= count)
                         break;
                     var node1 = (Node<T>*)nodeStack.Pop();
-                    Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)index++)), node1->Item);
+                    UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)index++), node1->Item);
                     for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
                         nodeStack.Push((nint)node2);
                 }
@@ -566,7 +564,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void CopyTo(Span<T> buffer)
         {
-            ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, nameof(buffer));
+            ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, ExceptionArgument.buffer);
             ref var reference = ref MemoryMarshal.GetReference(buffer);
             if (_root == null)
                 return;
@@ -578,7 +576,7 @@ namespace NativeCollections
                 while (nodeStack.Count != 0)
                 {
                     var node1 = (Node<T>*)nodeStack.Pop();
-                    Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)index++)), node1->Item);
+                    UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)index++), node1->Item);
                     for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
                         nodeStack.Push((nint)node2);
                 }
@@ -606,6 +604,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -615,6 +615,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -624,7 +626,8 @@ namespace NativeCollections
         /// <summary>
         ///     Enumerator
         /// </summary>
-        public struct Enumerator : IDisposable
+        [StructLayout(LayoutKind.Sequential)]
+        public struct Enumerator : IIterator<T>, IDisposable
         {
             /// <summary>
             ///     NativeHashSet
@@ -699,6 +702,24 @@ namespace NativeCollections
                 }
 
                 return true;
+            }
+
+            /// <summary>
+            ///     Reset
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Reset()
+            {
+                _nodeStack.Clear();
+                _currentNode = null;
+                _current = default;
+                var node = _nativeSortedSet->_root;
+                while (node != null)
+                {
+                    var next = node->Left;
+                    _nodeStack.Push((nint)node);
+                    node = next;
+                }
             }
 
             /// <summary>

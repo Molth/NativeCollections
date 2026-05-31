@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-#if NET7_0_OR_GREATER
-using System.Numerics;
-using System.Runtime.Intrinsics;
-#endif
 
 // ReSharper disable ALL
 
@@ -21,129 +17,19 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Fill<T>(ref T refData, nuint numElements, T value) where T : unmanaged
         {
-#if NET7_0_OR_GREATER
-            if (!Vector.IsHardwareAccelerated || Unsafe.SizeOf<T>() > Vector<byte>.Count || !BitOperationsHelpers.IsPow2((uint)Unsafe.SizeOf<T>()))
-                goto CannotVectorize;
-            if (numElements >= (uint)(Vector<byte>.Count / Unsafe.SizeOf<T>()))
+            if (Environment.Is64BitProcess || NativeMemoryAllocator.AlignOf<T>() == 1)
             {
-                Vector<byte> vector;
-                if (Unsafe.SizeOf<T>() == 1)
+                for (nuint count; numElements > 0; numElements -= count, refData = ref Unsafe.Add(ref refData, (nint)count))
                 {
-                    vector = new Vector<byte>(UnsafeHelpers.BitCast<T, byte>(value));
-                }
-                else if (Unsafe.SizeOf<T>() == 2)
-                {
-                    vector = (Vector<byte>)new Vector<ushort>(UnsafeHelpers.BitCast<T, ushort>(value));
-                }
-                else if (Unsafe.SizeOf<T>() == 4)
-                {
-                    vector = typeof(T) == typeof(float) ? (Vector<byte>)new Vector<float>(UnsafeHelpers.BitCast<T, float>(value)) : (Vector<byte>)new Vector<uint>(UnsafeHelpers.BitCast<T, uint>(value));
-                }
-                else if (Unsafe.SizeOf<T>() == 8)
-                {
-                    vector = typeof(T) == typeof(double) ? (Vector<byte>)new Vector<double>(UnsafeHelpers.BitCast<T, double>(value)) : (Vector<byte>)new Vector<ulong>(UnsafeHelpers.BitCast<T, ulong>(value));
-                }
-                else if (Unsafe.SizeOf<T>() == Vector<byte>.Count)
-                {
-                    vector = UnsafeHelpers.BitCast<T, Vector<byte>>(value);
-                }
-                else if (Unsafe.SizeOf<T>() == 16)
-                {
-                    if (Vector<byte>.Count == 32)
-                    {
-#if NET9_0_OR_GREATER
-                        vector = Vector256.Create(UnsafeHelpers.BitCast<T, Vector128<byte>>(value)).AsVector();
-#else
-                        var vector128 = UnsafeHelpers.BitCast<T, Vector128<byte>>(value);
-                        vector = Vector256.Create(vector128, vector128).AsVector();
-#endif
-                    }
-#if NET8_0_OR_GREATER
-                    else if (Vector<byte>.Count == 64)
-                    {
-#if NET9_0_OR_GREATER
-                        vector = Vector512.Create(UnsafeHelpers.BitCast<T, Vector128<byte>>(value)).AsVector();
-#else
-                        var vector128 = UnsafeHelpers.BitCast<T, Vector128<byte>>(value);
-                        var vector256 = Vector256.Create(vector128, vector128);
-                        vector = Vector512.Create(vector256, vector256).AsVector();
-#endif
-                    }
-#endif
-                    else
-                        goto CannotVectorize;
-                }
-#if NET8_0_OR_GREATER
-                else if (Unsafe.SizeOf<T>() == 32 && Vector<byte>.Count == 64)
-                {
-#if NET9_0_OR_GREATER
-                    vector = Vector512.Create(UnsafeHelpers.BitCast<T, Vector256<byte>>(value)).AsVector();
-#else
-                    var vector256 = UnsafeHelpers.BitCast<T, Vector256<byte>>(value);
-                    vector = Vector512.Create(vector256, vector256).AsVector();
-#endif
-                }
-#endif
-                else
-                    goto CannotVectorize;
-
-                ref var refDataAsBytes = ref Unsafe.As<T, byte>(ref refData);
-                var totalByteLength = numElements * (nuint)Unsafe.SizeOf<T>();
-                var stopLoopAtOffset = totalByteLength & (nuint)(2 * -Vector<byte>.Count);
-                nuint offset = 0;
-                if (numElements >= (uint)(2 * Vector<byte>.Count / Unsafe.SizeOf<T>()))
-                {
-                    do
-                    {
-                        Unsafe.WriteUnaligned(ref Unsafe.AddByteOffset(ref refDataAsBytes, offset), vector);
-                        Unsafe.WriteUnaligned(ref Unsafe.AddByteOffset(ref refDataAsBytes, offset + (nuint)Vector<byte>.Count), vector);
-                        offset += (uint)(2 * Vector<byte>.Count);
-                    } while (offset < stopLoopAtOffset);
+                    count = numElements > int.MaxValue ? int.MaxValue : numElements;
+                    MemoryMarshal.CreateSpan(ref refData, (int)count).Fill(value);
                 }
 
-                if ((totalByteLength & (nuint)Vector<byte>.Count) != 0)
-                    Unsafe.WriteUnaligned(ref Unsafe.AddByteOffset(ref refDataAsBytes, offset), vector);
-                Unsafe.WriteUnaligned(ref Unsafe.AddByteOffset(ref refDataAsBytes, totalByteLength - (nuint)Vector<byte>.Count), vector);
                 return;
             }
 
-            CannotVectorize:
-#endif
-            nuint i = 0;
-            if (numElements >= 8)
-            {
-                var stopLoopAtOffset = numElements & ~(nuint)7;
-                do
-                {
-                    Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref refData, (nint)i + 0)), value);
-                    Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref refData, (nint)i + 1)), value);
-                    Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref refData, (nint)i + 2)), value);
-                    Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref refData, (nint)i + 3)), value);
-                    Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref refData, (nint)i + 4)), value);
-                    Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref refData, (nint)i + 5)), value);
-                    Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref refData, (nint)i + 6)), value);
-                    Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref refData, (nint)i + 7)), value);
-                } while ((i += 8) < stopLoopAtOffset);
-            }
-
-            if ((numElements & 4) != 0)
-            {
-                Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref refData, (nint)i + 0)), value);
-                Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref refData, (nint)i + 1)), value);
-                Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref refData, (nint)i + 2)), value);
-                Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref refData, (nint)i + 3)), value);
-                i += 4;
-            }
-
-            if ((numElements & 2) != 0)
-            {
-                Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref refData, (nint)i + 0)), value);
-                Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref refData, (nint)i + 1)), value);
-                i += 2;
-            }
-
-            if ((numElements & 1) != 0)
-                Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref refData, (nint)i)), value);
+            for (nuint i = 0; i < numElements; ++i, refData = ref Unsafe.Add(ref refData, new IntPtr(1)))
+                UnsafeHelpers.WriteUnaligned(ref refData, value);
         }
 
         /// <summary>Searches for any value other than the specified <paramref name="value" />.</summary>
@@ -194,19 +80,32 @@ namespace NativeCollections
         ///     Determines whether two sequences are equal.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool Compare(ref byte left, ref byte right, nuint byteCount)
+        public static bool Equals(ref byte left, ref byte right, nuint byteCount)
         {
-            var quotient = byteCount >> 30;
-            var remainder = byteCount & 1073741823;
-            for (nuint i = 0; i < quotient; ++i)
+            for (nuint count; byteCount > 0; byteCount -= count, left = ref Unsafe.AddByteOffset(ref left, (nint)count), right = ref Unsafe.AddByteOffset(ref right, (nint)count))
             {
-                if (!MemoryMarshal.CreateReadOnlySpan(ref left, 1073741824).SequenceEqual(MemoryMarshal.CreateReadOnlySpan(ref right, 1073741824)))
+                count = byteCount > int.MaxValue ? int.MaxValue : byteCount;
+                if (!MemoryMarshal.CreateReadOnlySpan(ref left, (int)count).SequenceEqual(MemoryMarshal.CreateReadOnlySpan(ref right, (int)count)))
                     return false;
-                left = ref Unsafe.AddByteOffset(ref left, new IntPtr(1073741824));
-                right = ref Unsafe.AddByteOffset(ref right, new IntPtr(1073741824));
             }
 
-            return MemoryMarshal.CreateReadOnlySpan(ref left, (int)remainder).SequenceEqual(MemoryMarshal.CreateReadOnlySpan(ref right, (int)remainder));
+            return true;
+        }
+
+        /// <summary>
+        ///     Determines the relative order of the sequences.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Compare(ref byte left, ref byte right, nuint byteCount)
+        {
+            var comparison = 0;
+            for (nuint count; byteCount > 0 && comparison == 0; byteCount -= count, left = ref Unsafe.AddByteOffset(ref left, (nint)count), right = ref Unsafe.AddByteOffset(ref right, (nint)count))
+            {
+                count = byteCount > int.MaxValue ? int.MaxValue : byteCount;
+                comparison = MemoryMarshal.CreateReadOnlySpan(ref left, (int)count).SequenceCompareTo(MemoryMarshal.CreateReadOnlySpan(ref right, (int)count));
+            }
+
+            return comparison;
         }
     }
 }

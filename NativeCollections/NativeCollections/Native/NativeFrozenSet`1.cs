@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using static NativeCollections.ArchitectureHelpers;
@@ -8,9 +9,6 @@ using static NativeCollections.NativeFrozenSet;
 #if !NET5_0_OR_GREATER
 using System.Buffers;
 #endif
-
-#pragma warning disable CA2208
-#pragma warning disable CS8632
 
 // ReSharper disable ALL
 
@@ -139,9 +137,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeFrozenSet(ReadOnlySpan<T> source)
         {
-            if (source.Length == 0)
+            if (source.IsEmpty)
             {
-                var handle = (NativeFrozenSetHandle<T>*)NativeMemoryAllocator.AlignedAlloc((uint)(CACHE_LINE_SIZE + sizeof(EmptyFrozenSet<T>)), CACHE_LINE_SIZE);
+                var handle = (NativeFrozenSetHandle<T>*)NativeMemoryAllocator.AlignedAlloc((uint)(CACHE_LINE_SIZE + Unsafe.SizeOf<EmptyFrozenSet<T>>()), CACHE_LINE_SIZE);
                 Unsafe.AsRef<NativeFrozenSetHandle<T>>(handle) = GetNativeHandle<EmptyFrozenSet<T>, T>();
                 Unsafe.AsRef<EmptyFrozenSet<T>>(UnsafeHelpers.AddByteOffset(handle, CACHE_LINE_SIZE)) = new EmptyFrozenSet<T>();
                 _handle = handle;
@@ -174,7 +172,7 @@ namespace NativeCollections
                     array.AsSpan(0, source.Length).CopyTo(items);
                     ArrayPool<T>.Shared.Return(array);
 #endif
-                    var handle = (NativeFrozenSetHandle<T>*)NativeMemoryAllocator.AlignedAlloc((uint)(CACHE_LINE_SIZE + sizeof(SmallComparableFrozenSet<T>)), CACHE_LINE_SIZE);
+                    var handle = (NativeFrozenSetHandle<T>*)NativeMemoryAllocator.AlignedAlloc((uint)(CACHE_LINE_SIZE + Unsafe.SizeOf<SmallComparableFrozenSet<T>>()), CACHE_LINE_SIZE);
                     Unsafe.AsRef<NativeFrozenSetHandle<T>>(handle) = GetNativeHandle<SmallComparableFrozenSet<T>, T>();
                     Unsafe.AsRef<SmallComparableFrozenSet<T>>(UnsafeHelpers.AddByteOffset(handle, CACHE_LINE_SIZE)) = new SmallComparableFrozenSet<T>(items);
                     _handle = handle;
@@ -187,7 +185,7 @@ namespace NativeCollections
                         ++index;
                     }
 
-                    var handle = (NativeFrozenSetHandle<T>*)NativeMemoryAllocator.AlignedAlloc((uint)(CACHE_LINE_SIZE + sizeof(SmallFrozenSet<T>)), CACHE_LINE_SIZE);
+                    var handle = (NativeFrozenSetHandle<T>*)NativeMemoryAllocator.AlignedAlloc((uint)(CACHE_LINE_SIZE + Unsafe.SizeOf<SmallFrozenSet<T>>()), CACHE_LINE_SIZE);
                     Unsafe.AsRef<NativeFrozenSetHandle<T>>(handle) = GetNativeHandle<SmallFrozenSet<T>, T>();
                     Unsafe.AsRef<SmallFrozenSet<T>>(UnsafeHelpers.AddByteOffset(handle, CACHE_LINE_SIZE)) = new SmallFrozenSet<T>(items);
                     _handle = handle;
@@ -205,14 +203,14 @@ namespace NativeCollections
 
                 if (typeof(T) == typeof(int))
                 {
-                    var handle = (NativeFrozenSetHandle<T>*)NativeMemoryAllocator.AlignedAlloc((uint)(CACHE_LINE_SIZE + sizeof(Int32FrozenSet)), CACHE_LINE_SIZE);
+                    var handle = (NativeFrozenSetHandle<T>*)NativeMemoryAllocator.AlignedAlloc((uint)(CACHE_LINE_SIZE + Unsafe.SizeOf<Int32FrozenSet>()), CACHE_LINE_SIZE);
                     Unsafe.AsRef<NativeFrozenSetHandle<int>>(handle) = GetNativeHandle<Int32FrozenSet, int>();
                     Unsafe.AsRef<Int32FrozenSet>(UnsafeHelpers.AddByteOffset(handle, CACHE_LINE_SIZE)) = new Int32FrozenSet(buffer.Cast<int>());
                     _handle = handle;
                 }
                 else
                 {
-                    var handle = (NativeFrozenSetHandle<T>*)NativeMemoryAllocator.AlignedAlloc((uint)(CACHE_LINE_SIZE + sizeof(DefaultFrozenSet<T>)), CACHE_LINE_SIZE);
+                    var handle = (NativeFrozenSetHandle<T>*)NativeMemoryAllocator.AlignedAlloc((uint)(CACHE_LINE_SIZE + Unsafe.SizeOf<DefaultFrozenSet<T>>()), CACHE_LINE_SIZE);
                     Unsafe.AsRef<NativeFrozenSetHandle<T>>(handle) = GetNativeHandle<DefaultFrozenSet<T>, T>();
                     Unsafe.AsRef<DefaultFrozenSet<T>>(UnsafeHelpers.AddByteOffset(handle, CACHE_LINE_SIZE)) = new DefaultFrozenSet<T>(buffer);
                     _handle = handle;
@@ -317,7 +315,7 @@ namespace NativeCollections
         ///     Enumerator
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public struct Enumerator
+        public struct Enumerator : IIterator<T>
         {
             /// <summary>
             ///     Items
@@ -354,6 +352,12 @@ namespace NativeCollections
                 return false;
             }
 
+            /// <summary>
+            ///     Reset
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Reset() => _index = -1;
+
             /// <summary>Gets the element in the collection at the current position of the enumerator.</summary>
             /// <returns>The element in the collection at the current position of the enumerator.</returns>
             public readonly T Current
@@ -382,6 +386,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -391,6 +397,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();

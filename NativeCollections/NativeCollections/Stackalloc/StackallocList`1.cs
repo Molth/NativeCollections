@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-
-#pragma warning disable CA2208
-#pragma warning disable CS8632
 
 // ReSharper disable ALL
 
@@ -80,7 +78,7 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         /// <returns>Byte count</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetByteCount(int capacity) => capacity * sizeof(T) + (int)NativeMemoryAllocator.AlignOf<T>() - 1;
+        public static int GetByteCount(int capacity) => capacity * Unsafe.SizeOf<T>() + (int)NativeMemoryAllocator.AlignOf<T>() - 1;
 
         /// <summary>
         ///     Structure
@@ -112,7 +110,7 @@ namespace NativeCollections
         /// <param name="item">Item</param>
         /// <returns>Added</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryAdd(in T item)
+        public InsertResult TryAdd(in T item)
         {
             var size = _size;
             if ((uint)size < (uint)_length)
@@ -120,26 +118,25 @@ namespace NativeCollections
                 _version++;
                 _size = size + 1;
                 Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)size) = item;
-                return true;
+                return InsertResult.Success;
             }
 
-            return false;
+            return InsertResult.InsufficientCapacity;
         }
 
         /// <summary>
         ///     Add range
         /// </summary>
-        /// <param name="collection">Collection</param>
+        /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public InsertResult TryAddRange(StackallocList<T>* collection)
+        public InsertResult TryAddRange(ReadOnlySpan<T> buffer)
         {
-            var other = collection;
-            var count = other->_size;
+            var count = buffer.Length;
             if (count > 0)
             {
                 if (_length - _size < count)
                     return InsertResult.InsufficientCapacity;
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_size)), ref Unsafe.AsRef<byte>(other->_buffer), (uint)(other->_size * sizeof(T)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_size)), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(count * Unsafe.SizeOf<T>()));
                 _size += count;
                 _version++;
             }
@@ -155,11 +152,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public InsertResult TryInsert(int index, in T item)
         {
-            ThrowHelpers.ThrowIfGreaterThan((uint)index, (uint)_size, nameof(index));
+            ThrowHelpers.ThrowIfGreaterThan((uint)index, (uint)_size, ExceptionArgument.index);
             if (_size == _length)
                 return InsertResult.InsufficientCapacity;
             if (index < _size)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(index + 1))), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index)), (uint)((_size - index) * sizeof(T)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(index + 1))), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index)), (uint)((_size - index) * Unsafe.SizeOf<T>()));
             Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index) = item;
             _size++;
             _version++;
@@ -170,29 +167,19 @@ namespace NativeCollections
         ///     Insert
         /// </summary>
         /// <param name="index">Index</param>
-        /// <param name="collection">Collection</param>
+        /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public InsertResult TryInsertRange(int index, StackallocList<T>* collection)
+        public InsertResult TryInsertRange(int index, ReadOnlySpan<T> buffer)
         {
-            ThrowHelpers.ThrowIfGreaterThan((uint)index, (uint)_size, nameof(index));
-            var other = collection;
-            var count = other->_size;
+            ThrowHelpers.ThrowIfGreaterThan((uint)index, (uint)_size, ExceptionArgument.index);
+            var count = buffer.Length;
             if (count > 0)
             {
                 if (_length - _size < count)
                     return InsertResult.InsufficientCapacity;
                 if (index < _size)
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(index + count))), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index)), (uint)((_size - index) * sizeof(T)));
-                if (Unsafe.AsPointer(ref this) == collection)
-                {
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index)), ref Unsafe.AsRef<byte>(_buffer), (uint)(index * sizeof(T)));
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(index * 2))), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(index + count))), (uint)((_size - index) * sizeof(T)));
-                }
-                else
-                {
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index)), ref Unsafe.AsRef<byte>(other->_buffer), (uint)(other->_size * sizeof(T)));
-                }
-
+                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(index + count))), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index)), (uint)((_size - index) * Unsafe.SizeOf<T>()));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index)), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(count * Unsafe.SizeOf<T>()));
                 _size += count;
                 _version++;
             }
@@ -243,10 +230,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveAt(int index)
         {
-            ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_size, nameof(index));
+            ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_size, ExceptionArgument.index);
             _size--;
             if (index < _size)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(index + 1))), (uint)((_size - index) * sizeof(T)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<T>()));
             _version++;
         }
 
@@ -257,7 +244,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SwapRemoveAt(int index)
         {
-            ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_size, nameof(index));
+            ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_size, ExceptionArgument.index);
             _size--;
             if (index != _size)
                 Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index) = Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_size);
@@ -272,15 +259,15 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveRange(int index, int count)
         {
-            ThrowHelpers.ThrowIfNegative(index, nameof(index));
-            ThrowHelpers.ThrowIfNegative(count, nameof(count));
+            ThrowHelpers.ThrowIfNegative(index, ExceptionArgument.index);
+            ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
             var offset = _size - index;
-            ThrowHelpers.ThrowIfGreaterThan(count, offset, nameof(count));
+            ThrowHelpers.ThrowIfGreaterThan(count, offset, ExceptionArgument.count);
             if (count > 0)
             {
                 _size -= count;
                 if (index < _size)
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(index + count))), (uint)((_size - index) * sizeof(T)));
+                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(index + count))), (uint)((_size - index) * Unsafe.SizeOf<T>()));
                 _version++;
             }
         }
@@ -291,8 +278,18 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reverse()
         {
-            if (_size > 1)
-                MemoryMarshal.CreateSpan(ref Unsafe.AsRef<T>(_buffer), _size).Reverse();
+            AsSpan().Reverse();
+            _version++;
+        }
+
+        /// <summary>
+        ///     Reverse
+        /// </summary>
+        /// <param name="index">Index</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Reverse(int index)
+        {
+            AsSpan().Slice(index).Reverse();
             _version++;
         }
 
@@ -304,12 +301,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reverse(int index, int count)
         {
-            ThrowHelpers.ThrowIfNegative(index, nameof(index));
-            ThrowHelpers.ThrowIfNegative(count, nameof(count));
-            var offset = _size - index;
-            ThrowHelpers.ThrowIfGreaterThan(count, offset, nameof(count));
-            if (count > 1)
-                MemoryMarshal.CreateSpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index), count).Reverse();
+            AsSpan().Slice(index, count).Reverse();
             _version++;
         }
 
@@ -319,16 +311,16 @@ namespace NativeCollections
         /// <param name="item">Item</param>
         /// <returns>Contains</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly bool Contains(in T item) => _size != 0 && IndexOf(item) >= 0;
+        public readonly bool Contains(in T item) => IndexOf(item) >= 0;
 
         /// <summary>
         ///     Set count
         /// </summary>
         /// <param name="count">Count</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public InsertResult SetCount(int count)
+        public InsertResult TrySetCount(int count)
         {
-            ThrowHelpers.ThrowIfNegative(count, nameof(count));
+            ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
             if (_length < count)
                 return InsertResult.InsufficientCapacity;
             _size = count;
@@ -342,7 +334,7 @@ namespace NativeCollections
         /// <param name="item">Item</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly int IndexOf(in T item) => _size == 0 ? -1 : MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<T>(_buffer), _size).IndexOf(item);
+        public readonly int IndexOf(in T item) => AsReadOnlySpan().IndexOf(item);
 
         /// <summary>
         ///     Index of
@@ -351,14 +343,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly int IndexOf(in T item, int index)
-        {
-            if (_size == 0)
-                return -1;
-            ThrowHelpers.ThrowIfNegative(index, nameof(index));
-            ThrowHelpers.ThrowIfGreaterThan(index, _size, nameof(index));
-            return MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index), _size - index).IndexOf(item);
-        }
+        public readonly int IndexOf(in T item, int index) => AsReadOnlySpan().Slice(index).IndexOf(item);
 
         /// <summary>
         ///     Index of
@@ -368,16 +353,7 @@ namespace NativeCollections
         /// <param name="count">Count</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly int IndexOf(in T item, int index, int count)
-        {
-            if (_size == 0)
-                return -1;
-            ThrowHelpers.ThrowIfNegative(index, nameof(index));
-            ThrowHelpers.ThrowIfNegative(count, nameof(count));
-            ThrowHelpers.ThrowIfGreaterThan(index, _size, nameof(index));
-            ThrowHelpers.ThrowIfGreaterThan(index, _size - count, nameof(count));
-            return MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index), count).IndexOf(item);
-        }
+        public readonly int IndexOf(in T item, int index, int count) => AsReadOnlySpan().Slice(index, count).IndexOf(item);
 
         /// <summary>
         ///     Last index of
@@ -385,7 +361,7 @@ namespace NativeCollections
         /// <param name="item">Item</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly int LastIndexOf(in T item) => _size == 0 ? -1 : MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(_size - 1)), _size).LastIndexOf(item);
+        public readonly int LastIndexOf(in T item) => AsReadOnlySpan().LastIndexOf(item);
 
         /// <summary>
         ///     Last index of
@@ -394,14 +370,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly int LastIndexOf(in T item, int index)
-        {
-            if (_size == 0)
-                return -1;
-            ThrowHelpers.ThrowIfNegative(index, nameof(index));
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, nameof(index));
-            return MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index), index + 1).LastIndexOf(item);
-        }
+        public readonly int LastIndexOf(in T item, int index) => AsReadOnlySpan().Slice(index).LastIndexOf(item);
 
         /// <summary>
         ///     Last index of
@@ -411,16 +380,7 @@ namespace NativeCollections
         /// <param name="count">Count</param>
         /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly int LastIndexOf(in T item, int index, int count)
-        {
-            if (_size == 0)
-                return -1;
-            ThrowHelpers.ThrowIfNegative(index, nameof(index));
-            ThrowHelpers.ThrowIfNegative(count, nameof(count));
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, nameof(index));
-            ThrowHelpers.ThrowIfGreaterThan(count, index + 1, nameof(count));
-            return MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index), count).LastIndexOf(item);
-        }
+        public readonly int LastIndexOf(in T item, int index, int count) => AsReadOnlySpan().Slice(index, count).LastIndexOf(item);
 
         /// <summary>
         ///     As span
@@ -498,6 +458,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -507,6 +469,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -516,7 +480,8 @@ namespace NativeCollections
         /// <summary>
         ///     Enumerator
         /// </summary>
-        public struct Enumerator
+        [StructLayout(LayoutKind.Sequential)]
+        public struct Enumerator : IIterator<T>
         {
             /// <summary>
             ///     NativeList
@@ -547,8 +512,8 @@ namespace NativeCollections
             {
                 var handle = (StackallocList<T>*)nativeList;
                 _nativeList = handle;
-                _index = 0;
                 _version = handle->_version;
+                _index = 0;
                 _current = default;
             }
 
@@ -571,6 +536,16 @@ namespace NativeCollections
                 _index = handle->_size + 1;
                 _current = default;
                 return false;
+            }
+
+            /// <summary>
+            ///     Reset
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Reset()
+            {
+                _index = 0;
+                _current = default;
             }
 
             /// <summary>

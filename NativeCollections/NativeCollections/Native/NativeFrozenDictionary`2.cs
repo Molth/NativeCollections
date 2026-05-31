@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using static NativeCollections.ArchitectureHelpers;
@@ -8,9 +9,6 @@ using static NativeCollections.NativeFrozenDictionary;
 #if !NET5_0_OR_GREATER
 using System.Buffers;
 #endif
-
-#pragma warning disable CA2208
-#pragma warning disable CS8632
 
 // ReSharper disable ALL
 
@@ -212,9 +210,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeFrozenDictionary(ReadOnlySpan<KeyValuePair<TKey, TValue>> source)
         {
-            if (source.Length == 0)
+            if (source.IsEmpty)
             {
-                var handle = (NativeFrozenDictionaryHandle<TKey, TValue>*)NativeMemoryAllocator.AlignedAlloc((uint)(CACHE_LINE_SIZE + sizeof(EmptyFrozenDictionary<TKey, TValue>)), CACHE_LINE_SIZE);
+                var handle = (NativeFrozenDictionaryHandle<TKey, TValue>*)NativeMemoryAllocator.AlignedAlloc((uint)(CACHE_LINE_SIZE + Unsafe.SizeOf<EmptyFrozenDictionary<TKey, TValue>>()), CACHE_LINE_SIZE);
                 Unsafe.AsRef<NativeFrozenDictionaryHandle<TKey, TValue>>(handle) = GetNativeHandle<EmptyFrozenDictionary<TKey, TValue>, TKey, TValue>();
                 Unsafe.AsRef<EmptyFrozenDictionary<TKey, TValue>>(UnsafeHelpers.AddByteOffset(handle, CACHE_LINE_SIZE)) = new EmptyFrozenDictionary<TKey, TValue>();
                 _handle = handle;
@@ -242,7 +240,7 @@ namespace NativeCollections
 #else
                     Array.Sort(keyValuePairs, 0, source.Length, FrozenHelpers.KeyValuePairComparer<TKey, TValue>.Default);
 #endif
-                    var handle = (NativeFrozenDictionaryHandle<TKey, TValue>*)NativeMemoryAllocator.AlignedAlloc((uint)(CACHE_LINE_SIZE + sizeof(SmallComparableFrozenDictionary<TKey, TValue>)), CACHE_LINE_SIZE);
+                    var handle = (NativeFrozenDictionaryHandle<TKey, TValue>*)NativeMemoryAllocator.AlignedAlloc((uint)(CACHE_LINE_SIZE + Unsafe.SizeOf<SmallComparableFrozenDictionary<TKey, TValue>>()), CACHE_LINE_SIZE);
                     Unsafe.AsRef<NativeFrozenDictionaryHandle<TKey, TValue>>(handle) = GetNativeHandle<SmallComparableFrozenDictionary<TKey, TValue>, TKey, TValue>();
                     Unsafe.AsRef<SmallComparableFrozenDictionary<TKey, TValue>>(UnsafeHelpers.AddByteOffset(handle, CACHE_LINE_SIZE)) = new SmallComparableFrozenDictionary<TKey, TValue>(keyValuePairs.AsSpan(0, source.Length));
 #if !NET5_0_OR_GREATER
@@ -253,8 +251,8 @@ namespace NativeCollections
                 else
                 {
                     var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<TKey>(), NativeMemoryAllocator.AlignOf<TValue>());
-                    var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(source.Length * sizeof(TKey)), alignment);
-                    var buckets = (TKey*)NativeMemoryAllocator.AlignedAlloc((uint)(bucketsByteCount + source.Length * sizeof(TValue)), alignment);
+                    var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(source.Length * Unsafe.SizeOf<TKey>()), alignment);
+                    var buckets = (TKey*)NativeMemoryAllocator.AlignedAlloc((uint)(bucketsByteCount + source.Length * Unsafe.SizeOf<TValue>()), alignment);
                     var entries = UnsafeHelpers.AddByteOffset<TValue>(buckets, (nint)bucketsByteCount);
                     var keys = new NativeArray<TKey>(buckets, source.Length);
                     var values = new NativeArray<TValue>(entries, source.Length);
@@ -266,7 +264,7 @@ namespace NativeCollections
                         ++index;
                     }
 
-                    var handle = (NativeFrozenDictionaryHandle<TKey, TValue>*)NativeMemoryAllocator.AlignedAlloc((uint)(CACHE_LINE_SIZE + sizeof(SmallFrozenDictionary<TKey, TValue>)), CACHE_LINE_SIZE);
+                    var handle = (NativeFrozenDictionaryHandle<TKey, TValue>*)NativeMemoryAllocator.AlignedAlloc((uint)(CACHE_LINE_SIZE + Unsafe.SizeOf<SmallFrozenDictionary<TKey, TValue>>()), CACHE_LINE_SIZE);
                     Unsafe.AsRef<NativeFrozenDictionaryHandle<TKey, TValue>>(handle) = GetNativeHandle<SmallFrozenDictionary<TKey, TValue>, TKey, TValue>();
                     Unsafe.AsRef<SmallFrozenDictionary<TKey, TValue>>(UnsafeHelpers.AddByteOffset(handle, CACHE_LINE_SIZE)) = new SmallFrozenDictionary<TKey, TValue>(keys, values);
                     _handle = handle;
@@ -284,14 +282,14 @@ namespace NativeCollections
 
                 if (typeof(TKey) == typeof(int))
                 {
-                    var handle = (NativeFrozenDictionaryHandle<TKey, TValue>*)NativeMemoryAllocator.AlignedAlloc((uint)(CACHE_LINE_SIZE + sizeof(Int32FrozenDictionary<TValue>)), CACHE_LINE_SIZE);
+                    var handle = (NativeFrozenDictionaryHandle<TKey, TValue>*)NativeMemoryAllocator.AlignedAlloc((uint)(CACHE_LINE_SIZE + Unsafe.SizeOf<Int32FrozenDictionary<TValue>>()), CACHE_LINE_SIZE);
                     Unsafe.AsRef<NativeFrozenDictionaryHandle<int, TValue>>(handle) = GetNativeHandle<Int32FrozenDictionary<TValue>, int, TValue>();
                     Unsafe.AsRef<Int32FrozenDictionary<TValue>>(UnsafeHelpers.AddByteOffset(handle, CACHE_LINE_SIZE)) = new Int32FrozenDictionary<TValue>(buffer.Cast<KeyValuePair<int, TValue>>());
                     _handle = handle;
                 }
                 else
                 {
-                    var handle = (NativeFrozenDictionaryHandle<TKey, TValue>*)NativeMemoryAllocator.AlignedAlloc((uint)(CACHE_LINE_SIZE + sizeof(DefaultFrozenDictionary<TKey, TValue>)), CACHE_LINE_SIZE);
+                    var handle = (NativeFrozenDictionaryHandle<TKey, TValue>*)NativeMemoryAllocator.AlignedAlloc((uint)(CACHE_LINE_SIZE + Unsafe.SizeOf<DefaultFrozenDictionary<TKey, TValue>>()), CACHE_LINE_SIZE);
                     Unsafe.AsRef<NativeFrozenDictionaryHandle<TKey, TValue>>(handle) = GetNativeHandle<DefaultFrozenDictionary<TKey, TValue>, TKey, TValue>();
                     Unsafe.AsRef<DefaultFrozenDictionary<TKey, TValue>>(UnsafeHelpers.AddByteOffset(handle, CACHE_LINE_SIZE)) = new DefaultFrozenDictionary<TKey, TValue>(buffer);
                     _handle = handle;
@@ -377,7 +375,7 @@ namespace NativeCollections
         ///     Enumerator
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public struct Enumerator
+        public struct Enumerator : IIterator<KeyValuePair<TKey, TValue>>
         {
             /// <summary>
             ///     Keys
@@ -420,6 +418,12 @@ namespace NativeCollections
                 return false;
             }
 
+            /// <summary>
+            ///     Reset
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Reset() => _index = -1;
+
             /// <summary>Gets the element in the collection at the current position of the enumerator.</summary>
             /// <returns>The element in the collection at the current position of the enumerator.</returns>
             public readonly KeyValuePair<TKey, TValue> Current
@@ -448,6 +452,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -457,6 +463,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();

@@ -3,9 +3,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -213,7 +210,7 @@ namespace NativeCollections
         {
             ref var local1 = ref Unsafe.As<UnsafeConcurrentReaderWriterLock, byte>(ref left);
             ref var local2 = ref Unsafe.As<UnsafeConcurrentReaderWriterLock, byte>(ref right);
-            return SpanHelpers.Compare(ref local1, ref local2, (nuint)sizeof(UnsafeConcurrentReaderWriterLock));
+            return SpanHelpers.Equals(ref local1, ref local2, (nuint)Unsafe.SizeOf<UnsafeConcurrentReaderWriterLock>());
         }
 
         /// <summary>
@@ -226,7 +223,7 @@ namespace NativeCollections
         {
             ref var local1 = ref Unsafe.As<UnsafeConcurrentReaderWriterLock, byte>(ref left);
             ref var local2 = ref Unsafe.As<UnsafeConcurrentReaderWriterLock, byte>(ref right);
-            return !SpanHelpers.Compare(ref local1, ref local2, (nuint)sizeof(UnsafeConcurrentReaderWriterLock));
+            return !SpanHelpers.Equals(ref local1, ref local2, (nuint)Unsafe.SizeOf<UnsafeConcurrentReaderWriterLock>());
         }
 
         /// <summary>

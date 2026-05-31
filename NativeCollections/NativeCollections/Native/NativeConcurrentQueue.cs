@@ -1,10 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
-
-#pragma warning disable CA2208
-#pragma warning disable CS8602
-#pragma warning disable CS8632
+using static NativeCollections.ArchitectureHelpers;
 
 // ReSharper disable ALL
 
@@ -35,7 +32,7 @@ namespace NativeCollections
         /// </summary>
         /// <typeparam name="T">Type</typeparam>
         [StructLayout(LayoutKind.Sequential)]
-        public unsafe struct NativeConcurrentQueueSegment<T> where T : unmanaged
+        public struct NativeConcurrentQueueSegment<T> where T : unmanaged
         {
             /// <summary>
             ///     Slots
@@ -187,20 +184,18 @@ namespace NativeCollections
         /// <summary>
         ///     Padded head and tail
         /// </summary>
-        [StructLayout(LayoutKind.Explicit, Size = 3 * ArchitectureHelpers.CACHE_LINE_SIZE)]
+        [StructLayout(LayoutKind.Explicit, Size = 3 * CACHE_LINE_SIZE)]
         public struct NativeConcurrentQueuePaddedHeadAndTail
         {
             /// <summary>
             ///     Head
             /// </summary>
-            [FieldOffset(1 * ArchitectureHelpers.CACHE_LINE_SIZE)]
-            public int Head;
+            [FieldOffset(1 * CACHE_LINE_SIZE)] public int Head;
 
             /// <summary>
             ///     Tail
             /// </summary>
-            [FieldOffset(2 * ArchitectureHelpers.CACHE_LINE_SIZE)]
-            public int Tail;
+            [FieldOffset(2 * CACHE_LINE_SIZE)] public int Tail;
         }
 
         /// <summary>

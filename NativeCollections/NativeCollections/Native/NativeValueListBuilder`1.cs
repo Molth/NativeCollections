@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8500
-#pragma warning disable CS8632
+#pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
+#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
 
 // ReSharper disable ALL
 
@@ -92,8 +92,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeValueListBuilder(Span<T> buffer, int length)
         {
-            ThrowHelpers.ThrowIfNegative(length, nameof(length));
-            ThrowHelpers.ThrowIfGreaterThan(length, buffer.Length, nameof(length));
+            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
+            ThrowHelpers.ThrowIfGreaterThan(length, buffer.Length, ExceptionArgument.length);
             _buffer = buffer;
             _array = null;
             _length = length;
@@ -106,7 +106,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeValueListBuilder(int capacity)
         {
-            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             _buffer = _array = ArrayPool<T>.Shared.Rent(capacity);
             _length = 0;
         }
@@ -119,9 +119,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeValueListBuilder(int capacity, int length)
         {
-            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
-            ThrowHelpers.ThrowIfNegative(length, nameof(length));
-            ThrowHelpers.ThrowIfGreaterThan(length, capacity, nameof(length));
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
+            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
+            ThrowHelpers.ThrowIfGreaterThan(length, capacity, ExceptionArgument.length);
             _buffer = _array = ArrayPool<T>.Shared.Rent(capacity);
             _length = length;
         }
@@ -184,6 +184,8 @@ namespace NativeCollections
         ///     Equals
         /// </summary>
         /// <returns>Equals</returns>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public readonly override bool Equals(object? obj)
         {
             ThrowHelpers.ThrowCannotCallEqualsException();
@@ -241,7 +243,7 @@ namespace NativeCollections
             {
                 if ((uint)(_length + source.Length) > (uint)_buffer.Length)
                     Grow(_buffer.Length - _length + source.Length);
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref MemoryMarshal.GetReference(_buffer), (nint)_length)), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(source)), (uint)(source.Length * sizeof(T)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref MemoryMarshal.GetReference(_buffer), (nint)_length)), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(source)), (uint)(source.Length * Unsafe.SizeOf<T>()));
                 _length += source.Length;
             }
         }
@@ -288,7 +290,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int EnsureCapacity(int capacity)
         {
-            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             if (_buffer.Length < capacity)
                 Grow(capacity - _buffer.Length);
             return _buffer.Length;
@@ -315,7 +317,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity)
         {
-            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             if (capacity < _length || capacity >= _buffer.Length)
                 return _buffer.Length;
             SetCapacity(capacity);
@@ -329,12 +331,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetCapacity(int capacity)
         {
-            ThrowHelpers.ThrowIfLessThan(capacity, _length, nameof(capacity));
+            ThrowHelpers.ThrowIfLessThan(capacity, _length, ExceptionArgument.capacity);
             if (capacity != _buffer.Length)
             {
                 var destination = ArrayPool<T>.Shared.Rent(capacity);
                 if (_length > 0)
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference((Span<T>)destination)), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(_buffer)), (uint)(_length * sizeof(T)));
+                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference((Span<T>)destination)), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(_buffer)), (uint)(_length * Unsafe.SizeOf<T>()));
                 var array = _array;
                 _buffer = (Span<T>)(_array = destination);
                 if (array == null)

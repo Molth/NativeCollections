@@ -2,9 +2,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -61,8 +58,8 @@ namespace NativeCollections
         public static int GetByteCount(int capacity)
         {
             var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<T>(), NativeMemoryAllocator.AlignOf<int>());
-            var bufferByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * sizeof(T)), alignment);
-            return (int)(bufferByteCount + capacity * sizeof(int) + alignment - 1);
+            var bufferByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * Unsafe.SizeOf<T>()), alignment);
+            return (int)(bufferByteCount + capacity * Unsafe.SizeOf<int>() + alignment - 1);
         }
 
         /// <summary>
@@ -74,7 +71,7 @@ namespace NativeCollections
         public StackallocFixedSizeStackMemoryPool(Span<byte> buffer, int capacity)
         {
             var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<T>(), NativeMemoryAllocator.AlignOf<int>());
-            var bufferByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * sizeof(T)), alignment);
+            var bufferByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * Unsafe.SizeOf<T>()), alignment);
             _buffer = (T*)NativeArray<byte>.Create(buffer, alignment).Buffer;
             _index = UnsafeHelpers.AddByteOffset<int>(_buffer, (nint)bufferByteCount);
             _capacity = capacity;
@@ -121,7 +118,7 @@ namespace NativeCollections
         public void Return(T* ptr)
         {
             var byteOffset = UnsafeHelpers.ByteOffset(_buffer, ptr);
-            var index = byteOffset / sizeof(T);
+            var index = byteOffset / Unsafe.SizeOf<T>();
             Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)_size++) = (int)index;
         }
 

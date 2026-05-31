@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-
-#pragma warning disable CA2208
-#pragma warning disable CS8632
 
 // ReSharper disable ALL
 
@@ -67,7 +65,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is empty
         /// </summary>
-        public readonly bool IsEmpty => _count - _freeCount == 0;
+        public readonly bool IsEmpty => Count == 0;
 
         /// <summary>
         ///     Count
@@ -86,7 +84,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeHashSet(int capacity)
         {
-            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             capacity = Math.Max(capacity, 4);
             this = new UnsafeHashSet<T>();
             Initialize(capacity);
@@ -107,8 +105,8 @@ namespace NativeCollections
             var count = _count;
             if (count > 0)
             {
-                Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(_buckets), 0, (uint)(count * sizeof(int)));
-                Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(_entries), 0, (uint)(count * sizeof(Entry)));
+                Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(_buckets), 0, (uint)(count * Unsafe.SizeOf<int>()));
+                Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(_entries), 0, (uint)(count * Unsafe.SizeOf<Entry>()));
                 _count = 0;
                 _freeList = -1;
                 _freeCount = 0;
@@ -302,7 +300,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int EnsureCapacity(int capacity)
         {
-            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             var currentCapacity = _entriesLength;
             if (currentCapacity >= capacity)
                 return currentCapacity;
@@ -326,7 +324,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity)
         {
-            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             var newSize = HashHelpers.GetPrime(capacity);
             var oldBuckets = _buckets;
             var oldEntries = _entries;
@@ -369,8 +367,8 @@ namespace NativeCollections
             var size = HashHelpers.GetPrime(capacity);
             _freeList = -1;
             var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<int>(), NativeMemoryAllocator.AlignOf<Entry>());
-            var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(size * sizeof(int)), alignment);
-            _buckets = (int*)NativeMemoryAllocator.AlignedAllocZeroed((uint)(bucketsByteCount + size * sizeof(Entry)), alignment);
+            var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(size * Unsafe.SizeOf<int>()), alignment);
+            _buckets = (int*)NativeMemoryAllocator.AlignedAllocZeroed((uint)(bucketsByteCount + size * Unsafe.SizeOf<Entry>()), alignment);
             _entries = UnsafeHelpers.AddByteOffset<Entry>(_buckets, (nint)bucketsByteCount);
             _bucketsLength = size;
             _entriesLength = size;
@@ -391,11 +389,11 @@ namespace NativeCollections
         {
             var oldBuckets = _buckets;
             var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<int>(), NativeMemoryAllocator.AlignOf<Entry>());
-            var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(newSize * sizeof(int)), alignment);
-            var buckets = (int*)NativeMemoryAllocator.AlignedAllocZeroed((uint)(bucketsByteCount + newSize * sizeof(Entry)), alignment);
+            var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(newSize * Unsafe.SizeOf<int>()), alignment);
+            var buckets = (int*)NativeMemoryAllocator.AlignedAllocZeroed((uint)(bucketsByteCount + newSize * Unsafe.SizeOf<Entry>()), alignment);
             var entries = UnsafeHelpers.AddByteOffset<Entry>(buckets, (nint)bucketsByteCount);
             var count = _count;
-            Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(entries), ref Unsafe.AsRef<byte>(_entries), (uint)(_entriesLength * sizeof(Entry)));
+            Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(entries), ref Unsafe.AsRef<byte>(_entries), (uint)(_entriesLength * Unsafe.SizeOf<Entry>()));
             _buckets = buckets;
             _bucketsLength = newSize;
             _fastModMultiplier = Environment.Is64BitProcess ? HashHelpers.GetFastModMultiplier((uint)newSize) : 0;
@@ -474,12 +472,13 @@ namespace NativeCollections
         ///     Copy to
         /// </summary>
         /// <param name="buffer">Buffer</param>
+        /// <param name="count">Count</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly void CopyTo(Span<T> buffer)
+        public readonly int CopyTo(Span<T> buffer, int count)
         {
-            ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, nameof(buffer));
+            ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
             ref var reference = ref MemoryMarshal.GetReference(buffer);
-            var count = _count - _freeCount;
+            var result = count = Math.Min(buffer.Length, Math.Min(count, Count));
             var entries = _entries;
             var offset = 0;
             for (var index = 0; index < _count && count != 0; ++index)
@@ -487,7 +486,40 @@ namespace NativeCollections
                 ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index);
                 if (local.Next >= -1)
                 {
-                    Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)offset++)), local.Value);
+                    UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)offset++), local.Value);
+                    --count;
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <param name="count">Count</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly int CopyTo(Span<byte> buffer, int count) => CopyTo(MemoryMarshal.Cast<byte, T>(buffer), count);
+
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly void CopyTo(Span<T> buffer)
+        {
+            ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, ExceptionArgument.buffer);
+            ref var reference = ref MemoryMarshal.GetReference(buffer);
+            var count = Count;
+            var entries = _entries;
+            var offset = 0;
+            for (var index = 0; index < _count && count != 0; ++index)
+            {
+                ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index);
+                if (local.Next >= -1)
+                {
+                    UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)offset++), local.Value);
                     --count;
                 }
             }
@@ -514,6 +546,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -523,6 +557,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -532,7 +568,8 @@ namespace NativeCollections
         /// <summary>
         ///     Enumerator
         /// </summary>
-        public struct Enumerator
+        [StructLayout(LayoutKind.Sequential)]
+        public struct Enumerator : IIterator<T>
         {
             /// <summary>
             ///     NativeHashSet
@@ -590,6 +627,16 @@ namespace NativeCollections
                 _index = handle->_count + 1;
                 _current = default;
                 return false;
+            }
+
+            /// <summary>
+            ///     Reset
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Reset()
+            {
+                _index = 0;
+                _current = default;
             }
 
             /// <summary>

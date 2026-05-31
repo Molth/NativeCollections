@@ -3,9 +3,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -57,7 +54,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeConcurrentStack(int size, int maxFreeSlabs)
         {
-            var nodePool = new UnsafeMemoryPool(size, sizeof(Node), maxFreeSlabs, (int)NativeMemoryAllocator.AlignOf<Node>());
+            var nodePool = new UnsafeMemoryPool(size, Unsafe.SizeOf<Node>(), maxFreeSlabs, (int)NativeMemoryAllocator.AlignOf<Node>());
             Head = 0;
             NodePool = nodePool;
             NodeLock = new UnsafeConcurrentSpinLock();
@@ -156,8 +153,7 @@ namespace NativeCollections
             var spinWait = new NativeSpinWait();
             var backoff = 1;
 #if !NET6_0_OR_GREATER
-            var random = new NativeXoshiro256();
-            random.Initialize();
+            var random = NativeXoshiro256.Create();
 #endif
             while (true)
             {

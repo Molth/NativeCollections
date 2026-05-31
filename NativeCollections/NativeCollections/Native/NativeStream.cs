@@ -3,9 +3,6 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -20,7 +17,7 @@ namespace NativeCollections
         /// <summary>
         ///     Buffer
         /// </summary>
-        private byte* _buffer;
+        private readonly byte* _buffer;
 
         /// <summary>
         ///     Position
@@ -35,7 +32,7 @@ namespace NativeCollections
         /// <summary>
         ///     Capacity
         /// </summary>
-        private int _capacity;
+        private readonly int _capacity;
 
         /// <summary>
         ///     Structure
@@ -45,7 +42,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeStream(byte* buffer, int length)
         {
-            ThrowHelpers.ThrowIfNegative(length, nameof(length));
+            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
             _buffer = buffer;
             _position = 0;
             _length = length;
@@ -63,6 +60,13 @@ namespace NativeCollections
                 return;
             NativeMemoryAllocator.AlignedFree(buffer);
         }
+
+        /// <summary>
+        ///     Get buffer
+        /// </summary>
+        /// <returns>Buffer</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly Span<byte> GetBuffer() => MemoryMarshal.CreateSpan(ref Unsafe.AsRef<byte>(_buffer), _capacity);
 
         /// <summary>
         ///     Is created
@@ -128,7 +132,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                ThrowHelpers.ThrowIfNegative(value, nameof(value));
+                ThrowHelpers.ThrowIfNegative(value, ExceptionArgument.value);
                 _position = value;
             }
         }
@@ -247,13 +251,6 @@ namespace NativeCollections
         public readonly ReadOnlySpan<byte> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), new IntPtr(start)), length);
 
         /// <summary>
-        ///     Get buffer
-        /// </summary>
-        /// <returns>Buffer</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly byte* GetBuffer() => _buffer;
-
-        /// <summary>
         ///     Seek
         /// </summary>
         /// <param name="offset">Offset</param>
@@ -262,7 +259,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Seek(int offset, SeekOrigin loc)
         {
-            ThrowHelpers.ThrowIfGreaterThan(offset, 2147483647, nameof(offset));
+            ThrowHelpers.ThrowIfGreaterThan(offset, int.MaxValue, ExceptionArgument.offset);
             switch (loc)
             {
                 case SeekOrigin.Begin:
@@ -302,8 +299,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetLength(int length)
         {
-            ThrowHelpers.ThrowIfGreaterThan((uint)length, 2147483647U, nameof(length));
-            ThrowHelpers.ThrowIfGreaterThan(length, _capacity, nameof(length));
+            ThrowHelpers.ThrowIfGreaterThan((uint)length, (uint)int.MaxValue, ExceptionArgument.length);
+            ThrowHelpers.ThrowIfGreaterThan(length, _capacity, ExceptionArgument.length);
             if (length > _length)
                 Unsafe.InitBlockUnaligned(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), new IntPtr(_length)), 0, (uint)(length - _length));
             _length = length;
@@ -362,7 +359,7 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfStreamTooLong(i);
             if (i > _length)
             {
-                ThrowHelpers.ThrowIfGreaterThan(i, _capacity, nameof(buffer));
+                ThrowHelpers.ThrowIfGreaterThan(i, _capacity, ExceptionArgument.buffer);
                 var mustZero = _position > _length;
                 if (mustZero)
                     Unsafe.InitBlockUnaligned(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), new IntPtr(_length)), 0, (uint)(i - _length));
@@ -383,7 +380,7 @@ namespace NativeCollections
             if (_position >= _length)
             {
                 var newLength = _position + 1;
-                ThrowHelpers.ThrowIfGreaterThan(newLength, _capacity, nameof(value));
+                ThrowHelpers.ThrowIfGreaterThan(newLength, _capacity, ExceptionArgument.value);
                 var mustZero = _position > _length;
                 if (mustZero)
                     Unsafe.InitBlockUnaligned(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), new IntPtr(_length)), 0, (uint)(_position - _length));

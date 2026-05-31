@@ -3,9 +3,6 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -52,7 +49,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                ThrowHelpers.ThrowIfNegative(value, nameof(value));
+                ThrowHelpers.ThrowIfNegative(value, ExceptionArgument.value);
                 _position = value;
             }
         }
@@ -100,7 +97,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Seek(int offset, SeekOrigin loc)
         {
-            ThrowHelpers.ThrowIfGreaterThan(offset, 2147483647, nameof(offset));
+            ThrowHelpers.ThrowIfGreaterThan(offset, int.MaxValue, ExceptionArgument.offset);
             switch (loc)
             {
                 case SeekOrigin.Begin:
@@ -140,7 +137,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool SetLength(int length)
         {
-            ThrowHelpers.ThrowIfGreaterThan((uint)length, 2147483647U, nameof(length));
+            ThrowHelpers.ThrowIfGreaterThan((uint)length, (uint)int.MaxValue, ExceptionArgument.length);
             ThrowHelpers.ThrowIfStreamTooLong(length);
             if (length > Capacity)
                 return false;

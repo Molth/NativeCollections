@@ -2,9 +2,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -75,7 +72,7 @@ namespace NativeCollections
         {
             ref var local1 = ref Unsafe.As<CustomMemoryAllocator, byte>(ref Unsafe.AsRef(in this));
             ref var local2 = ref Unsafe.As<CustomMemoryAllocator, byte>(ref other);
-            return SpanHelpers.Compare(ref local1, ref local2, (nuint)sizeof(CustomMemoryAllocator));
+            return SpanHelpers.Equals(ref local1, ref local2, (nuint)Unsafe.SizeOf<CustomMemoryAllocator>());
         }
 
         /// <summary>
@@ -119,7 +116,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T* AlignedAlloc<T>(uint elementCount) where T : unmanaged
         {
-            var byteCount = elementCount * (uint)sizeof(T);
+            var byteCount = elementCount * (uint)Unsafe.SizeOf<T>();
             var alignment = (uint)NativeMemoryAllocator.AlignOf<T>();
             return (T*)AlignedAlloc(byteCount, alignment);
         }
@@ -130,7 +127,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T* AlignedAllocZeroed<T>(uint elementCount) where T : unmanaged
         {
-            var byteCount = elementCount * (uint)sizeof(T);
+            var byteCount = elementCount * (uint)Unsafe.SizeOf<T>();
             var alignment = (uint)NativeMemoryAllocator.AlignOf<T>();
             return (T*)AlignedAllocZeroed(byteCount, alignment);
         }

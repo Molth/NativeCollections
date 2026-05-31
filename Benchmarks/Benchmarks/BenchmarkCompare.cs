@@ -58,7 +58,7 @@ namespace Benchmarks
                 {
                     fixed (byte* right = _buffer)
                     {
-                        Result1 ^= NativeMemoryAllocator.Compare(left, right, (uint)guid.Length) ? 1 : 0;
+                        Result1 ^= NativeMemoryAllocator.Equals(left, right, (uint)guid.Length) ? 1 : 0;
                     }
                 }
             }

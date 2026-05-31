@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-
-#pragma warning disable CA2208
-#pragma warning disable CS8632
 
 // ReSharper disable ALL
 
@@ -79,8 +77,8 @@ namespace NativeCollections
         {
             var size = HashHelpers.GetPrime(capacity);
             var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<int>(), NativeMemoryAllocator.AlignOf<Entry>());
-            var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(size * sizeof(int)), alignment);
-            return (int)(bucketsByteCount + size * sizeof(Entry) + alignment - 1);
+            var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(size * Unsafe.SizeOf<int>()), alignment);
+            return (int)(bucketsByteCount + size * Unsafe.SizeOf<Entry>() + alignment - 1);
         }
 
         /// <summary>
@@ -94,7 +92,7 @@ namespace NativeCollections
         {
             var size = HashHelpers.GetPrime(capacity);
             var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<int>(), NativeMemoryAllocator.AlignOf<Entry>());
-            var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(size * sizeof(int)), alignment);
+            var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(size * Unsafe.SizeOf<int>()), alignment);
             _buckets = (int*)NativeArray<byte>.Create(buffer, alignment).Buffer;
             _entries = UnsafeHelpers.AddByteOffset<Entry>(_buckets, (nint)bucketsByteCount);
             _bucketsLength = size;
@@ -113,8 +111,8 @@ namespace NativeCollections
             var count = _count;
             if (count > 0)
             {
-                Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(_buckets), 0, (uint)(count * sizeof(int)));
-                Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(_entries), 0, (uint)(count * sizeof(Entry)));
+                Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(_buckets), 0, (uint)(count * Unsafe.SizeOf<int>()));
+                Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(_entries), 0, (uint)(count * Unsafe.SizeOf<Entry>()));
                 _count = 0;
                 ++_version;
             }
@@ -195,7 +193,7 @@ namespace NativeCollections
         public void RemoveAt(int index)
         {
             var count = _count;
-            ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)count, nameof(index));
+            ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)count, ExceptionArgument.index);
             RemoveEntryFromBucket(index);
             var entries = _entries;
             for (var entryIndex = index + 1; entryIndex < count; ++entryIndex)
@@ -217,7 +215,7 @@ namespace NativeCollections
         public void RemoveAt(int index, out T item)
         {
             var count = _count;
-            ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)count, nameof(index));
+            ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)count, ExceptionArgument.index);
             item = Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index).Value;
             RemoveEntryFromBucket(index);
             var entries = _entries;
@@ -339,7 +337,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ref readonly T GetAt(int index)
         {
-            ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_count, nameof(index));
+            ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_count, ExceptionArgument.index);
             ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
             return ref local.Value;
         }
@@ -420,7 +418,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public InsertResult TryInsert(int index, in T item)
         {
-            ThrowHelpers.ThrowIfGreaterThan((uint)index, (uint)_count, nameof(index));
+            ThrowHelpers.ThrowIfGreaterThan((uint)index, (uint)_count, ExceptionArgument.index);
             return TryInsertIgnoreInsertion(index, item);
         }
 
@@ -432,7 +430,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetAt(int index, in T item)
         {
-            ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_count, nameof(index));
+            ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_count, ExceptionArgument.index);
             ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
             if (item.Equals(local.Value))
                 return;
@@ -609,12 +607,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int CopyTo(Span<T> buffer, int count)
         {
-            ThrowHelpers.ThrowIfNegative(count, nameof(count));
+            ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
             ref var reference = ref MemoryMarshal.GetReference(buffer);
             count = Math.Min(buffer.Length, Math.Min(count, _count));
             var entries = _entries;
             for (var index = 0; index < count; ++index)
-                Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)index)), Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index).Value);
+                UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)index), Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index).Value);
             return count;
         }
 
@@ -633,11 +631,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void CopyTo(Span<T> buffer)
         {
-            ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, nameof(buffer));
+            ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, ExceptionArgument.buffer);
             ref var reference = ref MemoryMarshal.GetReference(buffer);
             var entries = _entries;
             for (var index = 0; index < _count; ++index)
-                Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)index)), Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index).Value);
+                UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)index), Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index).Value);
         }
 
         /// <summary>
@@ -661,6 +659,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -670,6 +670,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -679,7 +681,8 @@ namespace NativeCollections
         /// <summary>
         ///     Enumerator
         /// </summary>
-        public struct Enumerator
+        [StructLayout(LayoutKind.Sequential)]
+        public struct Enumerator : IIterator<T>
         {
             /// <summary>
             ///     NativeOrderedHashSet
@@ -734,6 +737,16 @@ namespace NativeCollections
 
                 _current = default;
                 return false;
+            }
+
+            /// <summary>
+            ///     Reset
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Reset()
+            {
+                _index = 0;
+                _current = default;
             }
 
             /// <summary>

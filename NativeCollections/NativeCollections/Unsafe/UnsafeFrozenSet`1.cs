@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using static NativeCollections.NativeFrozenSet;
 #if !NET5_0_OR_GREATER
 using System.Buffers;
 #endif
-
-#pragma warning disable CA2208
-#pragma warning disable CS8632
-#pragma warning disable CS9082
-#pragma warning disable CS9092
 
 // ReSharper disable ALL
 
@@ -135,7 +131,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeFrozenSet(ReadOnlySpan<T> source)
         {
-            if (source.Length == 0)
+            if (source.IsEmpty)
             {
                 var handle = GetUnsafeHandle<EmptyFrozenSet<T>, T>();
                 Unsafe.As<UnsafeFrozenSetValue, EmptyFrozenSet<T>>(ref handle.Value) = new EmptyFrozenSet<T>();
@@ -273,6 +269,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -282,6 +280,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();

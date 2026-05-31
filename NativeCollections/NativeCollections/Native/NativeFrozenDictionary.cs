@@ -241,7 +241,7 @@ namespace NativeCollections
         /// <summary>
         ///     Value
         /// </summary>
-        [StructLayout(LayoutKind.Explicit, Size = 128)]
+        [StructLayout(LayoutKind.Explicit)]
         public struct UnsafeFrozenDictionaryValue
         {
             /// <summary>
@@ -401,7 +401,7 @@ namespace NativeCollections
             /// <summary>
             ///     Max
             /// </summary>
-            private readonly TKey _max;
+            private TKey Max => _keys[^1];
 
             /// <summary>
             ///     Structure
@@ -409,8 +409,8 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public SmallComparableFrozenDictionary(ReadOnlySpan<KeyValuePair<TKey, TValue>> source)
             {
-                var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(source.Length * sizeof(TKey)), CACHE_LINE_SIZE);
-                var keysPtr = (TKey*)NativeMemoryAllocator.AlignedAlloc((uint)(bucketsByteCount + source.Length * sizeof(TValue)), CACHE_LINE_SIZE);
+                var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(source.Length * Unsafe.SizeOf<TKey>()), CACHE_LINE_SIZE);
+                var keysPtr = (TKey*)NativeMemoryAllocator.AlignedAlloc((uint)(bucketsByteCount + source.Length * Unsafe.SizeOf<TValue>()), CACHE_LINE_SIZE);
                 var valuesPtr = UnsafeHelpers.AddByteOffset<TValue>(keysPtr, (nint)bucketsByteCount);
                 var keys = new NativeArray<TKey>(keysPtr, source.Length);
                 var values = new NativeArray<TValue>(valuesPtr, source.Length);
@@ -423,7 +423,6 @@ namespace NativeCollections
 
                 _keys = keys;
                 _values = values;
-                _max = keys[^1];
             }
 
             /// <summary>
@@ -432,7 +431,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public ref readonly TValue GetValueRefOrNullRef(in TKey key)
             {
-                if (Comparer<TKey>.Default.Compare(key, _max) <= 0)
+                if (Comparer<TKey>.Default.Compare(key, Max) <= 0)
                 {
                     var keys = _keys.AsReadOnlySpan();
                     for (var index = 0; index < keys.Length; ++index)
@@ -594,8 +593,8 @@ namespace NativeCollections
             public DefaultFrozenDictionary(ReadOnlySpan<KeyValuePair<TKey, TValue>> source)
             {
                 var keysAreHashCodes = KeysAreHashCodes<TKey>();
-                var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(source.Length * sizeof(TKey)), CACHE_LINE_SIZE);
-                var keysPtr = (TKey*)NativeMemoryAllocator.AlignedAlloc((uint)(bucketsByteCount + source.Length * sizeof(TValue)), CACHE_LINE_SIZE);
+                var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(source.Length * Unsafe.SizeOf<TKey>()), CACHE_LINE_SIZE);
+                var keysPtr = (TKey*)NativeMemoryAllocator.AlignedAlloc((uint)(bucketsByteCount + source.Length * Unsafe.SizeOf<TValue>()), CACHE_LINE_SIZE);
                 var valuesPtr = UnsafeHelpers.AddByteOffset<TValue>(keysPtr, (nint)bucketsByteCount);
                 _keys = new NativeArray<TKey>(keysPtr, source.Length);
                 _values = new NativeArray<TValue>(valuesPtr, source.Length);

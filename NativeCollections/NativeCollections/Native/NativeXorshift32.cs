@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
+#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type
 
 // ReSharper disable ALL
 
@@ -18,14 +16,14 @@ namespace NativeCollections
     public unsafe struct NativeXorshift32 : IEquatable<NativeXorshift32>
     {
         /// <summary>
-        ///     State
+        ///     State0
         /// </summary>
-        private uint _state;
+        private uint _s0;
 
         /// <summary>
         ///     Is created
         /// </summary>
-        public readonly bool IsCreated => !(_state == 0U);
+        public readonly bool IsCreated => !((int)_s0 == 0);
 
         /// <summary>
         ///     Structure
@@ -33,7 +31,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         public NativeXorshift32(ReadOnlySpan<byte> buffer)
         {
-            ThrowHelpers.ThrowIfLessThan(buffer.Length, sizeof(NativeXorshift32), nameof(buffer));
+            ThrowHelpers.ThrowIfLessThan(buffer.Length, Unsafe.SizeOf<NativeXorshift32>(), ExceptionArgument.buffer);
             var random = Unsafe.ReadUnaligned<NativeXorshift32>(ref MemoryMarshal.GetReference(buffer));
             if (!random.IsCreated)
                 ThrowHelpers.ThrowMustBeNonEntirelyZeroException();
@@ -45,7 +43,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public readonly bool Equals(NativeXorshift32 other) => _state == other._state;
+        public readonly bool Equals(NativeXorshift32 other) => _s0 == other._s0;
 
         /// <summary>
         ///     Equals
@@ -58,7 +56,7 @@ namespace NativeCollections
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public readonly override int GetHashCode() => (int)_state;
+        public readonly override int GetHashCode() => (int)_s0;
 
         /// <summary>
         ///     To string
@@ -88,11 +86,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Initialize()
         {
-            var data = MemoryMarshal.CreateSpan(ref Unsafe.As<uint, byte>(ref _state), 4);
+            var data = MemoryMarshal.CreateSpan(ref Unsafe.As<uint, byte>(ref _s0), Unsafe.SizeOf<NativeXorshift32>());
             do
             {
-                RandomNumberGenerator.Fill(data);
-            } while (_state == 0U);
+                NativeRandom.NextBytes(data);
+            } while (!IsCreated);
         }
 
         /// <summary>Returns a non-negative random integer.</summary>
@@ -100,15 +98,15 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private uint Next32()
         {
-            var state = (int)_state;
-            var num1 = state ^ (state << 13);
+            var s0 = (int)_s0;
+            var num1 = s0 ^ (s0 << 13);
 #if NET7_0_OR_GREATER
             var num2 = (uint)(num1 ^ (num1 >>> 17));
 #else
             var num2 = (uint)(num1 ^ (int)((uint)num1 >> 17));
 #endif
-            _state = num2 ^ (num2 << 5);
-            return (uint)state;
+            _s0 = num2 ^ (num2 << 5);
+            return (uint)s0;
         }
 
         /// <summary>Returns a non-negative random integer.</summary>
@@ -117,10 +115,10 @@ namespace NativeCollections
         private ulong Next64() => ((ulong)Next32() << 32) | Next32();
 
         /// <summary>
-        ///     Performs an in-place shuffle of a span.
+        ///     Performs an in-place shuffle of a buffer.
         /// </summary>
-        /// <param name="buffer">The span to shuffle.</param>
-        /// <typeparam name="T">The type of span.</typeparam>
+        /// <param name="buffer">The buffer to shuffle.</param>
+        /// <typeparam name="T">The type of buffer.</typeparam>
         /// <remarks>
         ///     This method uses <see cref="NextInt32(int, int)" /> to choose values for shuffling.
         ///     This method is an O(n) operation.
@@ -135,6 +133,97 @@ namespace NativeCollections
                 if (j != i)
                     (buffer[i], buffer[j]) = (buffer[j], buffer[i]);
             }
+        }
+
+        /// <summary>Fills the elements of a specified buffer with items chosen at random from the provided set of choices.</summary>
+        /// <param name="source">The items to use to populate the buffer.</param>
+        /// <param name="destination">The buffer to be filled with items.</param>
+        /// <typeparam name="T">The type of buffer.</typeparam>
+        /// <exception cref="T:System.ArgumentException">
+        ///     <paramref name="source" /> is empty.
+        /// </exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void GetItems<T>(ReadOnlySpan<T> source, Span<T> destination)
+        {
+            ThrowHelpers.ThrowIfReadOnlySpanEmpty(source, ExceptionArgument.source);
+            if (source.Length <= 256)
+            {
+                Span<byte> buffer = stackalloc byte[512];
+                if (BitOperationsHelpers.IsPow2(source.Length))
+                {
+                    var num = source.Length - 1;
+                    for (; !destination.IsEmpty; destination = destination.Slice(buffer.Length))
+                    {
+                        if (destination.Length < buffer.Length)
+                            buffer = buffer.Slice(0, destination.Length);
+                        NextBytes(buffer);
+                        for (var index = 0; index < buffer.Length; ++index)
+                            destination[index] = source[buffer[index] & num];
+                    }
+                }
+                else
+                {
+                    var num1 = (int)BitOperationsHelpers.RoundUpToPowerOf2((uint)source.Length) - 1;
+                    int start;
+                    for (; !destination.IsEmpty; destination = destination.Slice(start))
+                    {
+                        if (destination.Length * 2 < buffer.Length)
+                            buffer = buffer.Slice(0, destination.Length * 2);
+                        NextBytes(buffer);
+                        start = 0;
+                        var span = buffer;
+                        for (var index1 = 0; index1 < span.Length; ++index1)
+                        {
+                            var num2 = span[index1];
+                            if ((uint)start < (uint)destination.Length)
+                            {
+                                var index2 = (byte)(num2 & (uint)num1);
+                                if (index2 < (uint)source.Length)
+                                    destination[start++] = source[index2];
+                            }
+                            else
+                                break;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                for (var index = 0; index < destination.Length; ++index)
+                    destination[index] = source[NextInt32(source.Length)];
+            }
+        }
+
+        /// <summary>
+        ///     Chooses the random element in the buffer.
+        /// </summary>
+        /// <typeparam name="T">The type of elements in the buffer.</typeparam>
+        /// <param name="buffer">The buffer of elements.</param>
+        /// <returns>Randomly selected element from the buffer.</returns>
+        /// <exception cref="ArgumentException"><paramref name="buffer" /> is empty.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref T Sample<T>(Span<T> buffer)
+        {
+            ThrowHelpers.ThrowIfSpanEmpty(buffer, ExceptionArgument.buffer);
+            ref var reference = ref MemoryMarshal.GetReference(buffer);
+            var length = buffer.Length;
+            return ref length == 1 ? ref reference : ref Unsafe.Add(ref reference, (nint)NextInt32(length));
+        }
+
+        /// <summary>
+        ///     Chooses the random element in the buffer.
+        /// </summary>
+        /// <typeparam name="T">The type of elements in the buffer.</typeparam>
+        /// <param name="buffer">The buffer of elements.</param>
+        /// <returns>Randomly selected element from the buffer.</returns>
+        /// <exception cref="ArgumentException"><paramref name="buffer" /> is empty.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref readonly T Peek<T>(ReadOnlySpan<T> buffer)
+        {
+            ThrowHelpers.ThrowIfReadOnlySpanEmpty(buffer, ExceptionArgument.buffer);
+            ref var reference = ref MemoryMarshal.GetReference(buffer);
+            var length = buffer.Length;
+            return ref length == 1 ? ref reference : ref Unsafe.Add(ref reference, (nint)NextInt32(length));
         }
 
         /// <summary>Returns a non-negative random integer.</summary>
@@ -396,12 +485,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public float NextSingle() => (Next32() >> 8) * 5.9604645E-08f;
 
-        /// <summary>Fills the elements of a specified span of bytes with random numbers.</summary>
+        /// <summary>Fills the elements of a specified buffer of bytes with random numbers.</summary>
         /// <param name="buffer">The buffer to be filled with random numbers.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void NextBytes(Span<byte> buffer)
         {
-            var num1 = _state;
+            var num1 = _s0;
             for (; buffer.Length >= 4; buffer = buffer.Slice(4))
             {
                 Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(buffer), num1);
@@ -418,19 +507,66 @@ namespace NativeCollections
                 num1 ^= num1 << 5;
             }
 
-            _state = num1;
+            _s0 = num1;
         }
 
         /// <summary>Fills a specified memory block with random bytes.</summary>
-        /// <param name="ptr">A pointer to the memory location where the random bytes will be written.</param>
+        /// <param name="startAddress">A pointer to the memory location where the random bytes will be written.</param>
         /// <param name="byteCount">The number of bytes to fill with random numbers.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Next(void* ptr, int byteCount) => NextBytes(MemoryMarshal.CreateSpan(ref Unsafe.AsRef<byte>(ptr), byteCount));
+        public void NextBytes(void* startAddress, uint byteCount) => NextBytes(ref Unsafe.AsRef<byte>(startAddress), byteCount);
+
+        /// <summary>Fills a specified memory block with random bytes.</summary>
+        /// <param name="startAddress">A pointer to the memory location where the random bytes will be written.</param>
+        /// <param name="byteCount">The number of bytes to fill with random numbers.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void NextBytes(ref byte startAddress, uint byteCount)
+        {
+            for (uint count; byteCount > 0; byteCount -= count, startAddress = ref Unsafe.AddByteOffset(ref startAddress, (nint)count))
+            {
+                count = byteCount > int.MaxValue ? int.MaxValue : byteCount;
+                NextBytes(MemoryMarshal.CreateSpan(ref startAddress, (int)count));
+            }
+        }
 
         /// <summary>Returns a boolean.</summary>
         /// <returns>True, or false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool NextBoolean() => (Next32() & 1) == 0;
+
+        /// <summary>
+        ///     Generates a random boolean value.
+        /// </summary>
+        /// <param name="trueProbability">A probability of <see langword="true" /> result (should be between 0.0 and 1.0).</param>
+        /// <returns>Randomly generated boolean value.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="trueProbability" /> value is invalid.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool NextBoolean(double trueProbability)
+        {
+            ThrowHelpers.ThrowIfProbabilityOutOfRange(trueProbability, ExceptionArgument.trueProbability);
+            return NextDouble() >= 1.0 - trueProbability;
+        }
+
+        /// <summary>
+        ///     Generates a random value of blittable type.
+        /// </summary>
+        /// <typeparam name="T">The blittable type.</typeparam>
+        /// <returns>The randomly generated value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T Next<T>() where T : unmanaged
+        {
+            Unsafe.SkipInit(out T result);
+            Next(ref result);
+            return result;
+        }
+
+        /// <summary>
+        ///     Generates a random value of blittable type.
+        /// </summary>
+        /// <typeparam name="T">The blittable type.</typeparam>
+        /// <returns>The randomly generated value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Next<T>(ref T destination) => NextBytes(MemoryMarshal.CreateSpan(ref Unsafe.As<T, byte>(ref destination), Unsafe.SizeOf<T>()));
 
         /// <summary>
         ///     Create
@@ -439,7 +575,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeXorshift32 Create()
         {
-            var random = new NativeXorshift32();
+            Unsafe.SkipInit(out NativeXorshift32 random);
             random.Initialize();
             return random;
         }

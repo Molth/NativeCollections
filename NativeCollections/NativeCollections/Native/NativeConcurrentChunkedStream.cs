@@ -2,9 +2,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -157,6 +154,27 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(ReadOnlySpan<byte> buffer) => _handle->Write(buffer);
+
+        /// <summary>
+        ///     Read
+        /// </summary>
+        /// <param name="length">Length</param>
+        /// <returns>Bytes</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int Read(int length) => _handle->Read(length);
+
+        /// <summary>
+        ///     Write
+        /// </summary>
+        /// <param name="length">Length</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Write(int length) => _handle->Write(length);
+
+        /// <summary>
+        ///     Get first read buffer
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Span<byte> GetBuffer() => _handle->GetBuffer();
 
         /// <summary>
         ///     Ensure capacity

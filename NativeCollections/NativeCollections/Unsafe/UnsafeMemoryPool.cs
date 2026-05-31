@@ -2,9 +2,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -116,15 +113,15 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeMemoryPool(int size, int length, int maxFreeSlabs, int alignment)
         {
-            ThrowHelpers.ThrowIfNegativeOrZero(size, nameof(size));
-            ThrowHelpers.ThrowIfNegative(length, nameof(length));
-            ThrowHelpers.ThrowIfNegative(maxFreeSlabs, nameof(maxFreeSlabs));
-            ThrowHelpers.ThrowIfNegative(alignment, nameof(alignment));
-            ThrowHelpers.ThrowIfAlignmentNotBePow2((uint)alignment, nameof(alignment));
+            ThrowHelpers.ThrowIfNegativeOrZero(size, ExceptionArgument.size);
+            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
+            ThrowHelpers.ThrowIfNegative(maxFreeSlabs, ExceptionArgument.maxFreeSlabs);
+            ThrowHelpers.ThrowIfNegative(alignment, ExceptionArgument.alignment);
+            ThrowHelpers.ThrowIfAlignmentNotBePow2((uint)alignment, ExceptionArgument.alignment);
             var alignedLength = (int)NativeMemoryAllocator.AlignUp((nuint)length, (nuint)alignment);
-            var alignedNodeSize = (int)NativeMemoryAllocator.AlignUp((nuint)sizeof(MemoryNode), (nuint)alignment);
+            var alignedNodeSize = (int)NativeMemoryAllocator.AlignUp((nuint)Unsafe.SizeOf<MemoryNode>(), (nuint)alignment);
             var nodeSize = alignedNodeSize + alignedLength;
-            var alignedSlabSize = (int)NativeMemoryAllocator.AlignUp((nuint)sizeof(MemorySlab), (nuint)alignment);
+            var alignedSlabSize = (int)NativeMemoryAllocator.AlignUp((nuint)Unsafe.SizeOf<MemorySlab>(), (nuint)alignment);
             var buffer = NativeMemoryAllocator.AlignedAlloc((uint)(alignedSlabSize + size * nodeSize), (uint)alignment);
             var slab = (MemorySlab*)buffer;
             slab->Next = slab;
@@ -278,7 +275,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int EnsureCapacity(int capacity)
         {
-            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             capacity = Math.Min(capacity, _maxFreeSlabs);
             var size = _size;
             var nodeSize = _alignedNodeSize + _alignedLength;
@@ -330,7 +327,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity)
         {
-            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             var node = _freeList;
             while (_freeSlabs > capacity)
             {

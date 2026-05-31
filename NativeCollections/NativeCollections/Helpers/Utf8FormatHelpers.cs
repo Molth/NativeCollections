@@ -3,11 +3,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8618
-#pragma warning disable CS8632
-#pragma warning disable CS8500
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -458,20 +453,27 @@ namespace NativeCollections
         public static bool TryGetBytes(ReadOnlySpan<char> chars, Span<byte> bytes, out int bytesWritten) => EncodingHelpers.TryGetBytes(Encoding.UTF8, chars, bytes, out bytesWritten);
 
         /// <summary>
-        ///     Handler
+        ///     Dummy bytes 2
         /// </summary>
-        [StructLayout(LayoutKind.Sequential)]
-        public readonly struct Handler
+        [StructLayout(LayoutKind.Sequential, Size = 2)]
+        public readonly struct DummyBytes2
         {
             /// <summary>
-            ///     Try format
+            ///     Padding byte used for alignment calculation.
             /// </summary>
-            public readonly delegate* managed<object, Span<byte>, out int, ReadOnlySpan<char>, IFormatProvider?, bool> TryFormat;
+            private readonly byte _dummy;
+        }
 
+        /// <summary>
+        ///     Dummy bytes 3
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential, Size = 3)]
+        public readonly struct DummyBytes3
+        {
             /// <summary>
-            ///     Structure
+            ///     Padding byte used for alignment calculation.
             /// </summary>
-            public Handler(delegate* managed<object, Span<byte>, out int, ReadOnlySpan<char>, IFormatProvider?, bool> tryFormat) => TryFormat = tryFormat;
+            private readonly byte _dummy;
         }
     }
 }

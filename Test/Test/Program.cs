@@ -27,11 +27,24 @@ namespace Examples
         public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider) => Value.TryFormat(destination, out charsWritten, format, provider);
     }
 
+    public struct TestDisposeable : IDisposable
+    {
+        public void Dispose() => Console.WriteLine("Disposed");
+    }
+
     internal sealed unsafe class Program
     {
-        private static RwLock<int> _lock;
+        private static RwLock<int>* _lock;
 
         private static void Main()
+        {
+            var a = new TestDisposeable();
+            var arc = Arc<TestDisposeable>.Create(a);
+            arc.Clone().Dispose();
+            arc.Dispose();
+        }
+
+        private static void TestParallelHashMap()
         {
             var a = new UnsafeParallelHashMap<int, char>(4);
             var sb = new StringBuilder();
@@ -46,6 +59,7 @@ namespace Examples
 
         private static void TestRwLock()
         {
+            _lock = NativeMemoryAllocator.AlignedAllocZeroed<RwLock<int>>(1);
             var writerCount = Environment.ProcessorCount;
             var readerCount = Environment.ProcessorCount;
             var iterations = Random.Shared.Next(1000, 10000);
@@ -56,7 +70,7 @@ namespace Examples
                 {
                     for (var j = 0; j < iterations; ++j)
                     {
-                        using var write = _lock.BorrowMutable();
+                        using var write = _lock->BorrowMutable();
                         ref var value = ref write.Unwrap();
                         value++;
                     }
@@ -70,7 +84,7 @@ namespace Examples
                     var last = 0;
                     for (var j = 0; j < iterations; ++j)
                     {
-                        using var read = _lock.Borrow();
+                        using var read = _lock->Borrow();
                         ref readonly var value = ref read.Unwrap();
                         var current = value;
                         if (current < last)
@@ -82,7 +96,7 @@ namespace Examples
 
             Task.WaitAll(writers, readers);
 
-            using (var read = _lock.Borrow())
+            using (var read = _lock->Borrow())
             {
                 ref readonly var final = ref read.Unwrap();
                 var expected = writerCount * iterations;
@@ -91,6 +105,8 @@ namespace Examples
                 else
                     Console.WriteLine($"Success. {expected}");
             }
+
+            NativeMemoryAllocator.AlignedFree(_lock);
         }
 
         private static void TestStateMachine()
@@ -256,7 +272,7 @@ namespace Examples
 
             Console.WriteLine((nint)ptr2 - (nint)ptr1);
 
-            NativeRandom.Next(ptr2, 64);
+            NativeRandom.NextBytes(ptr2, 64);
 
             var a3 = Vector512.LoadAligned((byte*)ptr1);
 

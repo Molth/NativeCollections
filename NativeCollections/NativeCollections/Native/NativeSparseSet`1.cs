@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-
-#pragma warning disable CA2208
-#pragma warning disable CS8632
 
 // ReSharper disable ALL
 
@@ -13,28 +11,28 @@ namespace NativeCollections
 {
     /// <summary>
     ///     Native sparseSet
-    ///     //https://github.com/bombela/sparseset
+    ///     https://github.com/bombela/sparseset
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
+    /// <typeparam name="TValue">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Community | FromType.Rust)]
     [BindingType(typeof(UnsafeSparseSet<>))]
-    public readonly unsafe struct NativeSparseSet<T> : IDisposable, IEquatable<NativeSparseSet<T>>, IReadOnlyCollection<KeyValuePair<int, T>> where T : unmanaged
+    public readonly unsafe struct NativeSparseSet<TValue> : IDisposable, IEquatable<NativeSparseSet<TValue>>, IReadOnlyCollection<KeyValuePair<int, TValue>> where TValue : unmanaged
     {
         /// <summary>
         ///     Handle
         /// </summary>
-        private readonly UnsafeSparseSet<T>* _handle;
+        private readonly UnsafeSparseSet<TValue>* _handle;
 
         /// <summary>
         ///     Keys
         /// </summary>
-        public UnsafeSparseSet<T>.KeyCollection Keys => _handle->Keys;
+        public UnsafeSparseSet<TValue>.KeyCollection Keys => _handle->Keys;
 
         /// <summary>
         ///     Values
         /// </summary>
-        public UnsafeSparseSet<T>.ValueCollection Values => _handle->Values;
+        public UnsafeSparseSet<TValue>.ValueCollection Values => _handle->Values;
 
         /// <summary>
         ///     Structure
@@ -43,9 +41,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeSparseSet(int capacity)
         {
-            var value = new UnsafeSparseSet<T>(capacity);
-            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeSparseSet<T>>(1);
-            Unsafe.AsRef<UnsafeSparseSet<T>>(handle) = value;
+            var value = new UnsafeSparseSet<TValue>(capacity);
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeSparseSet<TValue>>(1);
+            Unsafe.AsRef<UnsafeSparseSet<TValue>>(handle) = value;
             _handle = handle;
         }
 
@@ -72,23 +70,23 @@ namespace NativeCollections
         /// <summary>
         ///     Min
         /// </summary>
-        public KeyValuePair<int, T>? Min => _handle->Min;
+        public KeyValuePair<int, TValue>? Min => _handle->Min;
 
         /// <summary>
         ///     Max
         /// </summary>
-        public KeyValuePair<int, T>? Max => _handle->Max;
+        public KeyValuePair<int, TValue>? Max => _handle->Max;
 
         /// <summary>
         ///     Get or set value
         /// </summary>
         /// <param name="key">Key</param>
-        public T this[int key]
+        public TValue this[int key]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => Unsafe.AsRef<UnsafeSparseSet<T>>(_handle)[key];
+            get => Unsafe.AsRef<UnsafeSparseSet<TValue>>(_handle)[key];
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Unsafe.AsRef<UnsafeSparseSet<T>>(_handle)[key] = value;
+            set => Unsafe.AsRef<UnsafeSparseSet<TValue>>(_handle)[key] = value;
         }
 
         /// <summary>
@@ -96,14 +94,14 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeSparseSet<T> other) => other == this;
+        public bool Equals(NativeSparseSet<TValue> other) => other == this;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeSparseSet<T> nativeSparseSet && nativeSparseSet == this;
+        public override bool Equals(object? obj) => obj is NativeSparseSet<TValue> nativeSparseSet && nativeSparseSet == this;
 
         /// <summary>
         ///     Get hashCode
@@ -115,7 +113,7 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => $"NativeSparseSet<{typeof(T).Name}>";
+        public override string ToString() => $"NativeSparseSet<{typeof(TValue).Name}>";
 
         /// <summary>
         ///     Equals
@@ -123,7 +121,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeSparseSet<T> left, NativeSparseSet<T> right) => left._handle == right._handle;
+        public static bool operator ==(NativeSparseSet<TValue> left, NativeSparseSet<TValue> right) => left._handle == right._handle;
 
         /// <summary>
         ///     Not equals
@@ -131,14 +129,14 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeSparseSet<T> left, NativeSparseSet<T> right) => left._handle != right._handle;
+        public static bool operator !=(NativeSparseSet<TValue> left, NativeSparseSet<TValue> right) => left._handle != right._handle;
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<KeyValuePair<int, T>>(in NativeSparseSet<T> nativeSparseSet) => nativeSparseSet.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<KeyValuePair<int, TValue>>(in NativeSparseSet<TValue> nativeSparseSet) => nativeSparseSet.AsReadOnlySpan();
 
         /// <summary>
         ///     Dispose
@@ -172,7 +170,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Add(int key, in T value) => _handle->Add(key, value);
+        public bool Add(int key, in TValue value) => _handle->Add(key, value);
 
         /// <summary>
         ///     Insert
@@ -180,7 +178,7 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public InsertResult Insert(int key, in T value) => _handle->Insert(key, value);
+        public InsertResult Insert(int key, in TValue value) => _handle->Insert(key, value);
 
         /// <summary>
         ///     Remove
@@ -197,7 +195,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Remove(int key, out T value) => _handle->Remove(key, out value);
+        public bool Remove(int key, out TValue value) => _handle->Remove(key, out value);
 
         /// <summary>
         ///     Contains key
@@ -214,7 +212,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValue(int key, out T value) => _handle->TryGetValue(key, out value);
+        public bool TryGetValue(int key, out TValue value) => _handle->TryGetValue(key, out value);
 
         /// <summary>
         ///     Try to get the value
@@ -223,7 +221,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueReference(int key, out NativeReference<T> value) => _handle->TryGetValueReference(key, out value);
+        public bool TryGetValueReference(int key, out NativeReference<TValue> value) => _handle->TryGetValueReference(key, out value);
 
         /// <summary>
         ///     Index of
@@ -247,7 +245,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>KeyValuePair</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref T GetValueAt(int index) => ref _handle->GetValueAt(index);
+        public ref TValue GetValueAt(int index) => ref _handle->GetValueAt(index);
 
         /// <summary>
         ///     Get at
@@ -265,7 +263,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueAt(int index, out T value) => _handle->TryGetValueAt(index, out value);
+        public bool TryGetValueAt(int index, out TValue value) => _handle->TryGetValueAt(index, out value);
 
         /// <summary>
         ///     Get at
@@ -274,7 +272,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueReferenceAt(int index, out NativeReference<T> value) => _handle->TryGetValueReferenceAt(index, out value);
+        public bool TryGetValueReferenceAt(int index, out NativeReference<TValue> value) => _handle->TryGetValueReferenceAt(index, out value);
 
         /// <summary>
         ///     Get at
@@ -282,7 +280,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>KeyValuePair</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public KeyValuePair<int, T> GetAt(int index) => _handle->GetAt(index);
+        public KeyValuePair<int, TValue> GetAt(int index) => _handle->GetAt(index);
 
         /// <summary>
         ///     Get at
@@ -290,7 +288,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>KeyValuePair</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public KeyValuePair<int, NativeReference<T>> GetReferenceAt(int index) => _handle->GetReferenceAt(index);
+        public KeyValuePair<int, NativeReference<TValue>> GetReferenceAt(int index) => _handle->GetReferenceAt(index);
 
         /// <summary>
         ///     Get at
@@ -299,7 +297,7 @@ namespace NativeCollections
         /// <param name="keyValuePair">KeyValuePair</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetAt(int index, out KeyValuePair<int, T> keyValuePair) => _handle->TryGetAt(index, out keyValuePair);
+        public bool TryGetAt(int index, out KeyValuePair<int, TValue> keyValuePair) => _handle->TryGetAt(index, out keyValuePair);
 
         /// <summary>
         ///     Get at
@@ -308,7 +306,7 @@ namespace NativeCollections
         /// <param name="keyValuePair">KeyValuePair</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetReferenceAt(int index, out KeyValuePair<int, NativeReference<T>> keyValuePair) => _handle->TryGetReferenceAt(index, out keyValuePair);
+        public bool TryGetReferenceAt(int index, out KeyValuePair<int, NativeReference<TValue>> keyValuePair) => _handle->TryGetReferenceAt(index, out keyValuePair);
 
         /// <summary>
         ///     Set at
@@ -316,7 +314,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetAt(int index, in T value) => _handle->SetAt(index, value);
+        public void SetAt(int index, in TValue value) => _handle->SetAt(index, value);
 
         /// <summary>
         ///     Remove at
@@ -331,7 +329,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <param name="keyValuePair">KeyValuePair</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void RemoveAt(int index, out KeyValuePair<int, T> keyValuePair) => _handle->RemoveAt(index, out keyValuePair);
+        public void RemoveAt(int index, out KeyValuePair<int, TValue> keyValuePair) => _handle->RemoveAt(index, out keyValuePair);
 
         /// <summary>
         ///     Remove at
@@ -346,14 +344,14 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <param name="keyValuePair">KeyValuePair</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryRemoveAt(int index, out KeyValuePair<int, T> keyValuePair) => _handle->TryRemoveAt(index, out keyValuePair);
+        public bool TryRemoveAt(int index, out KeyValuePair<int, TValue> keyValuePair) => _handle->TryRemoveAt(index, out keyValuePair);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan() => _handle->AsReadOnlySpan();
+        public ReadOnlySpan<KeyValuePair<int, TValue>> AsReadOnlySpan() => _handle->AsReadOnlySpan();
 
         /// <summary>
         ///     As readOnly span
@@ -361,7 +359,7 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan(int start) => _handle->AsReadOnlySpan(start);
+        public ReadOnlySpan<KeyValuePair<int, TValue>> AsReadOnlySpan(int start) => _handle->AsReadOnlySpan(start);
 
         /// <summary>
         ///     As readOnly span
@@ -370,23 +368,25 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan(int start, int length) => _handle->AsReadOnlySpan(start, length);
+        public ReadOnlySpan<KeyValuePair<int, TValue>> AsReadOnlySpan(int start, int length) => _handle->AsReadOnlySpan(start, length);
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeSparseSet<T> Empty => new();
+        public static NativeSparseSet<TValue> Empty => new();
 
         /// <summary>
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
-        public UnsafeSparseSet<T>.Enumerator GetEnumerator() => _handle->GetEnumerator();
+        public UnsafeSparseSet<TValue>.Enumerator GetEnumerator() => _handle->GetEnumerator();
 
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        IEnumerator<KeyValuePair<int, T>> IEnumerable<KeyValuePair<int, T>>.GetEnumerator()
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        IEnumerator<KeyValuePair<int, TValue>> IEnumerable<KeyValuePair<int, TValue>>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -395,6 +395,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();

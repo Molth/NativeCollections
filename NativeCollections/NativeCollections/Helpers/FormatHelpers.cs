@@ -1,13 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
-
-#pragma warning disable CA2208
-#pragma warning disable CS8618
-#pragma warning disable CS8632
-#pragma warning disable CS8500
 
 // ReSharper disable ALL
 
@@ -452,22 +446,5 @@ namespace NativeCollections
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool TryGetChars(ReadOnlySpan<byte> bytes, Span<char> chars, out int charsWritten) => EncodingHelpers.TryGetChars(Encoding.UTF8, bytes, chars, out charsWritten);
-
-        /// <summary>
-        ///     Handler
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential)]
-        public readonly struct Handler
-        {
-            /// <summary>
-            ///     Try format
-            /// </summary>
-            public readonly delegate* managed<object, Span<char>, out int, ReadOnlySpan<char>, IFormatProvider?, bool> TryFormat;
-
-            /// <summary>
-            ///     Structure
-            /// </summary>
-            public Handler(delegate* managed<object, Span<char>, out int, ReadOnlySpan<char>, IFormatProvider?, bool> tryFormat) => TryFormat = tryFormat;
-        }
     }
 }

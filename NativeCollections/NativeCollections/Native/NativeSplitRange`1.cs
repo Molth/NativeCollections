@@ -2,9 +2,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -65,6 +62,7 @@ namespace NativeCollections
         ///     Enumerator
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
+        [IsAssignableTo(typeof(IIterator<>))]
         public ref struct Enumerator
         {
             /// <summary>
@@ -124,6 +122,16 @@ namespace NativeCollections
                 _current = new Range(_next, _next + index);
                 _next += index + _separator.Length;
                 return true;
+            }
+
+            /// <summary>
+            ///     Reset
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Reset()
+            {
+                _current = default;
+                _next = 0;
             }
 
             /// <summary>

@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-
-#pragma warning disable CA2208
-#pragma warning disable CS8632
 
 // ReSharper disable ALL
 
@@ -86,7 +84,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafePriorityQueue(int capacity)
         {
-            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             capacity = Math.Max(capacity, 4);
             _nodes = NativeMemoryAllocator.AlignedAlloc<TPriority>((uint)capacity);
             _length = capacity;
@@ -354,7 +352,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int EnsureCapacity(int capacity)
         {
-            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             if (_length < capacity)
             {
                 Grow(capacity);
@@ -374,7 +372,7 @@ namespace NativeCollections
             if (_size >= (int)(_length * 0.9))
                 return _length;
             var nodes = NativeMemoryAllocator.AlignedAlloc<TPriority>((uint)_size);
-            Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(nodes), ref Unsafe.AsRef<byte>(_nodes), (uint)(_size * sizeof(TPriority)));
+            Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(nodes), ref Unsafe.AsRef<byte>(_nodes), (uint)(_size * Unsafe.SizeOf<TPriority>()));
             NativeMemoryAllocator.AlignedFree(_nodes);
             _nodes = nodes;
             _length = _size;
@@ -389,11 +387,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity)
         {
-            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             if (capacity < _size || capacity >= _length)
                 return _length;
             var nodes = NativeMemoryAllocator.AlignedAlloc<TPriority>((uint)_size);
-            Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(nodes), ref Unsafe.AsRef<byte>(_nodes), (uint)(_size * sizeof(TPriority)));
+            Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(nodes), ref Unsafe.AsRef<byte>(_nodes), (uint)(_size * Unsafe.SizeOf<TPriority>()));
             NativeMemoryAllocator.AlignedFree(_nodes);
             _nodes = nodes;
             _length = _size;
@@ -436,7 +434,7 @@ namespace NativeCollections
             newCapacity = Math.Max(newCapacity, expected);
             newCapacity = Math.Max(newCapacity, capacity);
             var nodes = NativeMemoryAllocator.AlignedAlloc<TPriority>((uint)newCapacity);
-            Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(nodes), ref Unsafe.AsRef<byte>(_nodes), (uint)(_size * sizeof(TPriority)));
+            Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(nodes), ref Unsafe.AsRef<byte>(_nodes), (uint)(_size * Unsafe.SizeOf<TPriority>()));
             NativeMemoryAllocator.AlignedFree(_nodes);
             _nodes = nodes;
             _length = newCapacity;
@@ -574,6 +572,8 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
+            [Obsolete("Call this method will always throw an exception.")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator<TPriority> IEnumerable<TPriority>.GetEnumerator()
             {
                 ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -583,6 +583,8 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
+            [Obsolete("Call this method will always throw an exception.")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator IEnumerable.GetEnumerator()
             {
                 ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -592,7 +594,8 @@ namespace NativeCollections
             /// <summary>
             ///     Enumerator
             /// </summary>
-            public struct Enumerator
+            [StructLayout(LayoutKind.Sequential)]
+            public struct Enumerator : IIterator<TPriority>
             {
                 /// <summary>
                 ///     NativePriorityQueue
@@ -623,8 +626,8 @@ namespace NativeCollections
                 {
                     var handle = (UnsafePriorityQueue<TPriority>*)nativePriorityQueue;
                     _nativePriorityQueue = handle;
-                    _index = 0;
                     _version = handle->_version;
+                    _index = 0;
                     _current = default;
                 }
 
@@ -647,6 +650,16 @@ namespace NativeCollections
                     _current = Unsafe.Add(ref Unsafe.AsRef<TPriority>(handle->_nodes), (nint)_index);
                     ++_index;
                     return true;
+                }
+
+                /// <summary>
+                ///     Reset
+                /// </summary>
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public void Reset()
+                {
+                    _index = 0;
+                    _current = default;
                 }
 
                 /// <summary>

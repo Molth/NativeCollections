@@ -3,9 +3,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using static NativeCollections.TLSF;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -52,7 +49,7 @@ namespace NativeCollections
                 if (handle == null)
                 {
                     NativeMemoryAllocator.AlignedFree(buffer);
-                    ThrowHelpers.ThrowMustBeAlignedToException(8, nameof(size));
+                    ThrowHelpers.ThrowMustBeAlignedToException(8, ExceptionArgument.size);
                 }
             }
             else
@@ -63,7 +60,7 @@ namespace NativeCollections
                 if (handle == null)
                 {
                     NativeMemoryAllocator.AlignedFree(buffer);
-                    ThrowHelpers.ThrowMustBeAlignedToException(4, nameof(size));
+                    ThrowHelpers.ThrowMustBeAlignedToException(4, ExceptionArgument.size);
                 }
             }
 
@@ -187,26 +184,20 @@ namespace NativeCollections
                     bytes = (nuint)TLSF64.tlsf_block_size(ptr);
                     return true;
                 }
-                else
-                {
-                    bytes = 0;
-                    return false;
-                }
+
+                bytes = 0;
+                return false;
             }
-            else
+
+            ptr = TLSF32.tlsf_memalign(_handle, (uint)alignment, (uint)size);
+            if (ptr != null)
             {
-                ptr = TLSF32.tlsf_memalign(_handle, (uint)alignment, (uint)size);
-                if (ptr != null)
-                {
-                    bytes = TLSF32.tlsf_block_size(ptr);
-                    return true;
-                }
-                else
-                {
-                    bytes = 0;
-                    return false;
-                }
+                bytes = TLSF32.tlsf_block_size(ptr);
+                return true;
             }
+
+            bytes = 0;
+            return false;
         }
 
         /// <summary>

@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-
-#pragma warning disable CA2208
-#pragma warning disable CS8600
-#pragma warning disable CS8603
-#pragma warning disable CS8632
 
 // ReSharper disable ALL
 
@@ -38,7 +34,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArrayReference(int length)
         {
-            ThrowHelpers.ThrowIfNegative(length, nameof(length));
+            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
             _handle = GCHandle.Alloc(new T[length], GCHandleType.Normal);
             _length = length;
         }
@@ -51,7 +47,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArrayReference(int length, GCHandleType type)
         {
-            ThrowHelpers.ThrowIfNegative(length, nameof(length));
+            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
             _handle = GCHandle.Alloc(new T[length], type);
             _length = length;
         }
@@ -63,7 +59,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArrayReference(T[] buffer)
         {
-            ThrowHelpers.ThrowIfNull(buffer, nameof(buffer));
+            ThrowHelpers.ThrowIfNull(buffer, ExceptionArgument.buffer);
             _handle = GCHandle.Alloc(buffer, GCHandleType.Normal);
             _length = buffer.Length;
         }
@@ -76,7 +72,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArrayReference(T[] buffer, GCHandleType type)
         {
-            ThrowHelpers.ThrowIfNull(buffer, nameof(buffer));
+            ThrowHelpers.ThrowIfNull(buffer, ExceptionArgument.buffer);
             _handle = GCHandle.Alloc(buffer, type);
             _length = buffer.Length;
         }
@@ -117,7 +113,7 @@ namespace NativeCollections
         public T[] Buffer
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (T[])_handle.Target;
+            get => (T[])_handle.Target!;
         }
 
         /// <summary>
@@ -198,6 +194,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -207,6 +205,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -216,7 +216,8 @@ namespace NativeCollections
         /// <summary>
         ///     Enumerator
         /// </summary>
-        public struct Enumerator
+        [StructLayout(LayoutKind.Sequential)]
+        public struct Enumerator : IRefIterator<T>
         {
             /// <summary>
             ///     Buffer
@@ -255,6 +256,12 @@ namespace NativeCollections
 
                 return false;
             }
+
+            /// <summary>
+            ///     Reset
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Reset() => _index = -1;
 
             /// <summary>
             ///     Current

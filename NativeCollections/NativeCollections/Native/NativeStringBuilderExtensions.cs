@@ -5,10 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8500
-#pragma warning disable CS8632
-#pragma warning disable CS9080
+#pragma warning disable CS9080 // Use of variable in this context may expose referenced variables outside of their declaration scope
 
 // ReSharper disable ALL
 
@@ -29,7 +26,7 @@ namespace NativeCollections
             var newLine = NativeString.NewLine;
             builderRef.EnsureCapacity(builderRef.Length + newLine.Length);
             ref var reference = ref MemoryMarshal.GetReference(builderRef.Buffer);
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)builderRef.Length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(newLine)), (uint)(newLine.Length * sizeof(char)));
+            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)builderRef.Length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(newLine)), (uint)(newLine.Length * Unsafe.SizeOf<char>()));
             builderRef.Advance(newLine.Length);
         }
 
@@ -43,9 +40,9 @@ namespace NativeCollections
             var newLine = NativeString.NewLine;
             builderRef.EnsureCapacity(builderRef.Length + buffer.Length + newLine.Length);
             ref var reference = ref MemoryMarshal.GetReference(builderRef.Buffer);
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)builderRef.Length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(buffer.Length * sizeof(char)));
+            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)builderRef.Length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(buffer.Length * Unsafe.SizeOf<char>()));
             builderRef.Advance(buffer.Length);
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)builderRef.Length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(newLine)), (uint)(newLine.Length * sizeof(char)));
+            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)builderRef.Length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(newLine)), (uint)(newLine.Length * Unsafe.SizeOf<char>()));
             builderRef.Advance(newLine.Length);
         }
 
@@ -61,7 +58,7 @@ namespace NativeCollections
             builderRef.Buffer[builderRef.Length] = value;
             builderRef.Advance(1);
             ref var reference = ref MemoryMarshal.GetReference(builderRef.Buffer);
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)builderRef.Length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(newLine)), (uint)(newLine.Length * sizeof(char)));
+            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)builderRef.Length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(newLine)), (uint)(newLine.Length * Unsafe.SizeOf<char>()));
             builderRef.Advance(newLine.Length);
         }
 
@@ -95,7 +92,7 @@ namespace NativeCollections
                 if (!first)
                     first = true;
                 else
-                    builderRef.Append(in separator);
+                    builderRef.Append(separator);
                 builderRef.AppendFormat(value);
             }
         }
@@ -142,7 +139,7 @@ namespace NativeCollections
         public static void TrimStart(in this NativeStringBuilder<char> builder)
         {
             ref var builderRef = ref builder.AsRef();
-            if (builderRef.Length == 0)
+            if (builderRef.IsEmpty)
                 return;
             ref var reference = ref MemoryMarshal.GetReference(builderRef.Buffer);
             var start = 0;
@@ -151,7 +148,7 @@ namespace NativeCollections
             if (start > 0 && start < builderRef.Length)
             {
                 var count = builderRef.Length - start;
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref reference), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(count * sizeof(char)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref reference), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(count * Unsafe.SizeOf<char>()));
                 builderRef.SetLength(count);
             }
             else if (start >= builderRef.Length)
@@ -167,7 +164,7 @@ namespace NativeCollections
         public static void TrimEnd(in this NativeStringBuilder<char> builder)
         {
             ref var builderRef = ref builder.AsRef();
-            if (builderRef.Length == 0)
+            if (builderRef.IsEmpty)
                 return;
             ref var reference = ref MemoryMarshal.GetReference(builderRef.Buffer);
             var end = builderRef.Length - 1;
@@ -183,7 +180,7 @@ namespace NativeCollections
         public static void Trim(in this NativeStringBuilder<char> builder)
         {
             ref var builderRef = ref builder.AsRef();
-            if (builderRef.Length == 0)
+            if (builderRef.IsEmpty)
                 return;
             ref var reference = ref MemoryMarshal.GetReference(builderRef.Buffer);
             var start = 0;
@@ -200,7 +197,7 @@ namespace NativeCollections
             }
 
             if (start > 0)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref reference), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(newLength * sizeof(char)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref reference), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(newLength * Unsafe.SizeOf<char>()));
             builderRef.SetLength(newLength);
         }
 
@@ -294,8 +291,14 @@ namespace NativeCollections
         public static void AppendFormatted(in this NativeStringBuilder<char> builder, ref DefaultInterpolatedStringHandler handler, bool clear = true)
         {
             ref var builderRef = ref builder.AsRef();
+#if NET10_0_OR_GREATER
+            builderRef.Append(handler.Text);
+            if (clear)
+                handler.Clear();
+#else
             ReadOnlySpan<char> buffer = clear ? handler.ToStringAndClear() : handler.ToString();
             builderRef.Append(buffer);
+#endif
         }
 
         /// <summary>
@@ -305,8 +308,14 @@ namespace NativeCollections
         public static void AppendFormatted(in this NativeStringBuilder<char> builder, IFormatProvider? provider, [InterpolatedStringHandlerArgument("provider")] ref DefaultInterpolatedStringHandler handler, bool clear = true)
         {
             ref var builderRef = ref builder.AsRef();
+#if NET10_0_OR_GREATER
+            builderRef.Append(handler.Text);
+            if (clear)
+                handler.Clear();
+#else
             ReadOnlySpan<char> buffer = clear ? handler.ToStringAndClear() : handler.ToString();
             builderRef.Append(buffer);
+#endif
         }
 
         /// <summary>
@@ -830,33 +839,19 @@ namespace NativeCollections
             builderRef.EnsureCapacity(builderRef.Length + byteCount * repeatCount);
             Span<byte> bytes = stackalloc byte[byteCount];
             Encoding.UTF8.GetBytes(buffer, bytes);
-            if (byteCount == 1)
-            {
-                builderRef.GetSpan(repeatCount).Fill(MemoryMarshal.GetReference(bytes));
-                builderRef.Advance(repeatCount);
-                return;
-            }
-
-            if (byteCount == 2)
-            {
-                SpanHelpers.Fill(ref Unsafe.As<byte, char>(ref MemoryMarshal.GetReference(builderRef.Space)), (nuint)repeatCount, Unsafe.ReadUnaligned<char>(ref MemoryMarshal.GetReference(bytes)));
-                builderRef.Advance(2 * repeatCount);
-                return;
-            }
-
-            if (byteCount == 4)
-            {
-                SpanHelpers.Fill(ref Unsafe.As<byte, uint>(ref MemoryMarshal.GetReference(builderRef.Space)), (nuint)repeatCount, Unsafe.ReadUnaligned<uint>(ref MemoryMarshal.GetReference(bytes)));
-                builderRef.Advance(4 * repeatCount);
-                return;
-            }
-
             ref var destination = ref MemoryMarshal.GetReference(builderRef.Space);
             ref var source = ref MemoryMarshal.GetReference(bytes);
-            for (var i = 0; i < repeatCount; ++i)
+            switch (byteCount)
             {
-                Unsafe.CopyBlockUnaligned(ref destination, ref source, (uint)byteCount);
-                destination = ref Unsafe.AddByteOffset(ref destination, new IntPtr(byteCount));
+                case 1:
+                    SpanHelpers.Fill(ref destination, (nuint)repeatCount, source);
+                    break;
+                case 2:
+                    SpanHelpers.Fill(ref Unsafe.As<byte, Utf8FormatHelpers.DummyBytes2>(ref destination), (nuint)repeatCount, Unsafe.ReadUnaligned<Utf8FormatHelpers.DummyBytes2>(ref source));
+                    break;
+                case 3:
+                    SpanHelpers.Fill(ref Unsafe.As<byte, Utf8FormatHelpers.DummyBytes3>(ref destination), (nuint)repeatCount, Unsafe.ReadUnaligned<Utf8FormatHelpers.DummyBytes3>(ref source));
+                    break;
             }
 
             builderRef.Advance(byteCount * repeatCount);
@@ -1035,8 +1030,14 @@ namespace NativeCollections
         public static void AppendFormatted(in this NativeStringBuilder<byte> builder, ref DefaultInterpolatedStringHandler handler, bool clear = true)
         {
             ref var builderRef = ref builder.AsRef();
+#if NET10_0_OR_GREATER
+            builderRef.Append(handler.Text);
+            if (clear)
+                handler.Clear();
+#else
             ReadOnlySpan<char> buffer = clear ? handler.ToStringAndClear() : handler.ToString();
             builderRef.Append(buffer);
+#endif
         }
 
         /// <summary>
@@ -1046,8 +1047,14 @@ namespace NativeCollections
         public static void AppendFormatted(in this NativeStringBuilder<byte> builder, IFormatProvider? provider, [InterpolatedStringHandlerArgument("provider")] ref DefaultInterpolatedStringHandler handler, bool clear = true)
         {
             ref var builderRef = ref builder.AsRef();
+#if NET10_0_OR_GREATER
+            builderRef.Append(handler.Text);
+            if (clear)
+                handler.Clear();
+#else
             ReadOnlySpan<char> buffer = clear ? handler.ToStringAndClear() : handler.ToString();
             builderRef.Append(buffer);
+#endif
         }
 #endif
         /// <summary>

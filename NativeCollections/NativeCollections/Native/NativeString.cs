@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
-#pragma warning disable CS8500
-#pragma warning disable CS9081
+#pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
+#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
+#pragma warning disable CS9081 // A result of a stackalloc expression of this type in this context may be exposed outside of the containing method
 
 // ReSharper disable ALL
 
@@ -102,8 +102,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeString(Span<char> buffer, int length)
         {
-            ThrowHelpers.ThrowIfNegative(length, nameof(length));
-            ThrowHelpers.ThrowIfGreaterThan(length, buffer.Length, nameof(length));
+            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
+            ThrowHelpers.ThrowIfGreaterThan(length, buffer.Length, ExceptionArgument.length);
             _buffer = buffer;
             _length = length;
         }
@@ -118,7 +118,7 @@ namespace NativeCollections
         {
             if (_length + buffer.Length > Capacity)
                 return false;
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref MemoryMarshal.GetReference(_buffer), (nint)_length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(buffer.Length * sizeof(char)));
+            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref MemoryMarshal.GetReference(_buffer), (nint)_length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(buffer.Length * Unsafe.SizeOf<char>()));
             _length += buffer.Length;
             return true;
         }
@@ -134,7 +134,7 @@ namespace NativeCollections
             if (_length + newLine.Length > Capacity)
                 return false;
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)_length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(newLine)), (uint)(newLine.Length * sizeof(char)));
+            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)_length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(newLine)), (uint)(newLine.Length * Unsafe.SizeOf<char>()));
             _length += newLine.Length;
             return true;
         }
@@ -151,9 +151,9 @@ namespace NativeCollections
             if (_length + buffer.Length + newLine.Length > Capacity)
                 return false;
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)_length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(buffer.Length * sizeof(char)));
+            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)_length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(buffer.Length * Unsafe.SizeOf<char>()));
             _length += buffer.Length;
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)_length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(newLine)), (uint)(newLine.Length * sizeof(char)));
+            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)_length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(newLine)), (uint)(newLine.Length * Unsafe.SizeOf<char>()));
             _length += newLine.Length;
             return true;
         }
@@ -204,7 +204,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Remove(ReadOnlySpan<char> buffer) => Replace(buffer, string.Empty);
+        public void Remove(ReadOnlySpan<char> buffer) => Replace(buffer, "");
 
         /// <summary>
         ///     Insert
@@ -220,8 +220,8 @@ namespace NativeCollections
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
             var count = _length - startIndex;
             if (count > 0)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)(startIndex + buffer.Length))), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)startIndex)), (uint)(count * sizeof(char)));
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)startIndex)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(buffer.Length * sizeof(char)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)(startIndex + buffer.Length))), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)startIndex)), (uint)(count * Unsafe.SizeOf<char>()));
+            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)startIndex)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(buffer.Length * Unsafe.SizeOf<char>()));
             _length += buffer.Length;
             return true;
         }
@@ -235,13 +235,13 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Replace(ReadOnlySpan<char> oldValue, ReadOnlySpan<char> newValue)
         {
-            if (Unsafe.IsNullRef(ref MemoryMarshal.GetReference(oldValue)) || oldValue.Length == 0)
+            if (Unsafe.IsNullRef(ref MemoryMarshal.GetReference(oldValue)) || oldValue.IsEmpty)
                 return false;
             if (Unsafe.IsNullRef(ref MemoryMarshal.GetReference(newValue)))
             {
                 if (newValue.Length != 0)
                     return false;
-                newValue = (ReadOnlySpan<char>)string.Empty;
+                newValue = "";
             }
 
             NativeValueListBuilder<int> valueListBuilder;
@@ -285,7 +285,7 @@ namespace NativeCollections
                 }
             }
 
-            if (valueListBuilder.Length == 0)
+            if (valueListBuilder.IsEmpty)
                 return true;
             var readOnlySpan = valueListBuilder.AsReadOnlySpan();
             var minimumLength = _length + (newValue.Length - oldValue.Length) * readOnlySpan.Length;
@@ -385,7 +385,7 @@ namespace NativeCollections
                 return false;
             _buffer[_length++] = value;
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)_length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(newLine)), (uint)(newLine.Length * sizeof(char)));
+            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)_length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(newLine)), (uint)(newLine.Length * Unsafe.SizeOf<char>()));
             _length += newLine.Length;
             return true;
         }
@@ -448,7 +448,7 @@ namespace NativeCollections
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
             var count = _length - startIndex;
             if (count > 0)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)(startIndex + 1))), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)startIndex)), (uint)(count * sizeof(char)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)(startIndex + 1))), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)startIndex)), (uint)(count * Unsafe.SizeOf<char>()));
             _buffer[startIndex] = value;
             ++_length;
             return true;
@@ -504,7 +504,7 @@ namespace NativeCollections
             if (length > 0)
             {
                 ref var reference = ref MemoryMarshal.GetReference(_buffer);
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)startIndex)), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)(startIndex + length))), (uint)((_length - startIndex - length) * sizeof(char)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)startIndex)), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)(startIndex + length))), (uint)((_length - startIndex - length) * Unsafe.SizeOf<char>()));
                 _length -= length;
             }
 
@@ -539,7 +539,7 @@ namespace NativeCollections
             if (start > 0 && start < _length)
             {
                 var count = _length - start;
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref reference), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(count * sizeof(char)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref reference), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(count * Unsafe.SizeOf<char>()));
                 _length = count;
             }
             else if (start >= _length)
@@ -586,7 +586,7 @@ namespace NativeCollections
             }
 
             if (start > 0)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref reference), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(newLength * sizeof(char)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref reference), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(newLength * Unsafe.SizeOf<char>()));
             _length = newLength;
         }
 
@@ -605,7 +605,7 @@ namespace NativeCollections
             if (start > 0 && start < _length)
             {
                 var count = _length - start;
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref reference), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(count * sizeof(char)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref reference), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(count * Unsafe.SizeOf<char>()));
                 _length = count;
             }
             else if (start >= _length)
@@ -652,7 +652,7 @@ namespace NativeCollections
             }
 
             if (start > 0)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref reference), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(newLength * sizeof(char)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref reference), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(newLength * Unsafe.SizeOf<char>()));
             _length = newLength;
         }
 
@@ -662,7 +662,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void TrimStart(ReadOnlySpan<char> buffer)
         {
-            if (_length == 0 || Unsafe.IsNullRef(ref MemoryMarshal.GetReference(buffer)) || buffer.Length == 0)
+            if (_length == 0 || Unsafe.IsNullRef(ref MemoryMarshal.GetReference(buffer)) || buffer.IsEmpty)
                 return;
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
             var start = 0;
@@ -671,7 +671,7 @@ namespace NativeCollections
             if (start > 0 && start < _length)
             {
                 var count = _length - start;
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref reference), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(count * sizeof(char)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref reference), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(count * Unsafe.SizeOf<char>()));
                 _length = count;
             }
             else if (start >= _length)
@@ -686,7 +686,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void TrimEnd(ReadOnlySpan<char> buffer)
         {
-            if (_length == 0 || Unsafe.IsNullRef(ref MemoryMarshal.GetReference(buffer)) || buffer.Length == 0)
+            if (_length == 0 || Unsafe.IsNullRef(ref MemoryMarshal.GetReference(buffer)) || buffer.IsEmpty)
                 return;
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
             var end = _length - 1;
@@ -701,7 +701,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Trim(ReadOnlySpan<char> buffer)
         {
-            if (_length == 0 || Unsafe.IsNullRef(ref MemoryMarshal.GetReference(buffer)) || buffer.Length == 0)
+            if (_length == 0 || Unsafe.IsNullRef(ref MemoryMarshal.GetReference(buffer)) || buffer.IsEmpty)
                 return;
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
             var start = 0;
@@ -718,7 +718,7 @@ namespace NativeCollections
             }
 
             if (start > 0)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref reference), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(newLength * sizeof(char)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref reference), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(newLength * Unsafe.SizeOf<char>()));
             _length = newLength;
         }
 
@@ -817,6 +817,8 @@ namespace NativeCollections
         ///     Equals
         /// </summary>
         /// <returns>Equals</returns>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public readonly override bool Equals(object? obj)
         {
             ThrowHelpers.ThrowCannotCallEqualsException();
@@ -857,7 +859,7 @@ namespace NativeCollections
         public void Advance(int count)
         {
             var newLength = _length + count;
-            ThrowHelpers.ThrowIfGreaterThan((uint)newLength, (uint)Capacity, nameof(count));
+            ThrowHelpers.ThrowIfGreaterThan((uint)newLength, (uint)Capacity, ExceptionArgument.count);
             _length = newLength;
         }
 
@@ -1305,8 +1307,15 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormatted(ref DefaultInterpolatedStringHandler handler, bool clear = true)
         {
+#if NET10_0_OR_GREATER
+            var result = Append(handler.Text);
+            if (clear)
+                handler.Clear();
+            return result;
+#else
             ReadOnlySpan<char> buffer = clear ? handler.ToStringAndClear() : handler.ToString();
             return Append(buffer);
+#endif
         }
 
         /// <summary>
@@ -1315,8 +1324,15 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormatted(IFormatProvider? provider, [InterpolatedStringHandlerArgument("provider")] ref DefaultInterpolatedStringHandler handler, bool clear = true)
         {
+#if NET10_0_OR_GREATER
+            var result = Append(handler.Text);
+            if (clear)
+                handler.Clear();
+            return result;
+#else
             ReadOnlySpan<char> buffer = clear ? handler.ToStringAndClear() : handler.ToString();
             return Append(buffer);
+#endif
         }
 
         /// <summary>

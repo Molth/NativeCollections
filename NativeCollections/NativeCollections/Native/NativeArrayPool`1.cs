@@ -3,9 +3,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -56,13 +53,13 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArrayPool(int capacity, int maxLength, CustomMemoryAllocator allocator)
         {
-            ThrowHelpers.ThrowIfNegativeOrZero(capacity, nameof(capacity));
-            ThrowHelpers.ThrowIfNegative(maxLength, nameof(maxLength));
+            ThrowHelpers.ThrowIfNegativeOrZero(capacity, ExceptionArgument.capacity);
+            ThrowHelpers.ThrowIfNegative(maxLength, ExceptionArgument.maxLength);
             maxLength = Math.Clamp(maxLength, 16, 1073741824);
             var length = SelectBucketIndex(maxLength) + 1;
             var alignment = Math.Max((uint)NativeMemoryAllocator.AlignOf<NativeArrayPoolBucket>(), (uint)NativeMemoryAllocator.AlignOf<nint>());
-            var bucketsLength = (uint)NativeMemoryAllocator.AlignUp((nuint)(length * sizeof(NativeArrayPoolBucket)), alignment);
-            var extremeLength = capacity * sizeof(nint);
+            var bucketsLength = (uint)NativeMemoryAllocator.AlignUp((nuint)(length * Unsafe.SizeOf<NativeArrayPoolBucket>()), alignment);
+            var extremeLength = capacity * Unsafe.SizeOf<nint>();
             var buffer = NativeMemoryAllocator.AlignedAlloc((uint)(bucketsLength + length * extremeLength), alignment);
             var buckets = (NativeArrayPoolBucket*)buffer;
             buffer = UnsafeHelpers.AddByteOffset(buffer, (nint)bucketsLength);
@@ -161,9 +158,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArray<T> Rent(int minimumLength)
         {
-            ThrowHelpers.ThrowIfNegative(minimumLength, nameof(minimumLength));
+            ThrowHelpers.ThrowIfNegative(minimumLength, ExceptionArgument.minimumLength);
             var index = SelectBucketIndex(minimumLength);
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _length, nameof(minimumLength));
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _length, ExceptionArgument.minimumLength);
             return Unsafe.Add(ref Unsafe.AsRef<NativeArrayPoolBucket>(_buckets), (nint)index).Rent(_capacity, ref _allocator);
         }
 
@@ -217,10 +214,10 @@ namespace NativeCollections
         public void Return(T* buffer, int length)
         {
             if (length < 16 || (length & (length - 1)) != 0)
-                ThrowHelpers.ThrowBufferNotFromPoolException(nameof(buffer));
+                ThrowHelpers.ThrowBufferNotFromPoolException(ExceptionArgument.buffer);
             var bucket = SelectBucketIndex(length);
             if (bucket >= _length)
-                ThrowHelpers.ThrowBufferNotFromPoolException(nameof(buffer));
+                ThrowHelpers.ThrowBufferNotFromPoolException(ExceptionArgument.buffer);
             Unsafe.Add(ref Unsafe.AsRef<NativeArrayPoolBucket>(_buckets), (nint)bucket).Return(buffer, ref _allocator);
         }
 

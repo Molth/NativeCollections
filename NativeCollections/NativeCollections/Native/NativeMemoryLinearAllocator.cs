@@ -2,9 +2,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -39,7 +36,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeMemoryLinearAllocator(byte* buffer, int length)
         {
-            ThrowHelpers.ThrowIfNegative(length, nameof(length));
+            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
             Buffer = buffer;
             Length = length;
             _position = 0;
@@ -142,7 +139,7 @@ namespace NativeCollections
         public void Advance(int count)
         {
             var newPosition = _position + count;
-            ThrowHelpers.ThrowIfGreaterThan((uint)newPosition, (uint)Length, nameof(count));
+            ThrowHelpers.ThrowIfGreaterThan((uint)newPosition, (uint)Length, ExceptionArgument.count);
             _position = newPosition;
         }
 
@@ -168,7 +165,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetPosition(int position)
         {
-            ThrowHelpers.ThrowIfGreaterThan((uint)position, (uint)Length, nameof(position));
+            ThrowHelpers.ThrowIfGreaterThan((uint)position, (uint)Length, ExceptionArgument.position);
             _position = position;
         }
 
@@ -191,7 +188,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryAlignedAlloc<T>(uint elementCount, out T* ptr) where T : unmanaged
         {
-            var byteCount = elementCount * (uint)sizeof(T);
+            var byteCount = elementCount * (uint)Unsafe.SizeOf<T>();
             var alignment = (uint)NativeMemoryAllocator.AlignOf<T>();
             if (TryAlignedAlloc(byteCount, alignment, out var voidPtr))
             {
@@ -208,7 +205,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryAlignedAllocZeroed<T>(uint elementCount, out T* ptr) where T : unmanaged
         {
-            var byteCount = elementCount * (uint)sizeof(T);
+            var byteCount = elementCount * (uint)Unsafe.SizeOf<T>();
             var alignment = (uint)NativeMemoryAllocator.AlignOf<T>();
             if (TryAlignedAllocZeroed(byteCount, alignment, out var voidPtr))
             {
@@ -225,7 +222,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryAlignedAlloc(uint byteCount, uint alignment, out void* ptr)
         {
-            ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, nameof(alignment));
+            ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, ExceptionArgument.alignment);
             var position = (nint)NativeMemoryAllocator.AlignUp((nuint)((nint)Buffer + _position), alignment);
             if (position + (nint)byteCount > (nint)Buffer + Length)
             {

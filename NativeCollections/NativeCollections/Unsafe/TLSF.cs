@@ -2,10 +2,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-#pragma warning disable CA2208
-#pragma warning disable CS1591
-#pragma warning disable CS8632
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -28,9 +24,9 @@ namespace NativeCollections
             public const int SMALL_BLOCK_SIZE = 1 << FL_INDEX_SHIFT;
             public const uint block_header_free_bit = 1 << 0;
             public const uint block_header_prev_free_bit = 1 << 1;
-            public const uint block_header_overhead = sizeof(uint);
-            public const uint block_start_offset = sizeof(uint) + sizeof(uint);
-            public const uint block_size_min = 16 - sizeof(uint);
+            public const uint block_header_overhead = 4U;
+            public const uint block_start_offset = 8U;
+            public const uint block_size_min = 12U;
             public const uint block_size_max = (uint)1 << FL_INDEX_MAX;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -262,7 +258,7 @@ namespace NativeCollections
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static int block_can_split(block_header_t* block, uint size) => block_size(block) >= (uint)sizeof(block_header_t) + size ? 1 : 0;
+            public static int block_can_split(block_header_t* block, uint size) => block_size(block) >= (uint)Unsafe.SizeOf<block_header_t>() + size ? 1 : 0;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static block_header_t* block_split(block_header_t* block, uint size)
@@ -408,7 +404,7 @@ namespace NativeCollections
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static uint tlsf_size() => (uint)sizeof(control_t);
+            public static uint tlsf_size() => (uint)Unsafe.SizeOf<control_t>();
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static uint tlsf_align_size() => ALIGN_SIZE;
@@ -493,7 +489,7 @@ namespace NativeCollections
             {
                 var control = (control_t*)tlsf;
                 var adjust = adjust_request_size(size, ALIGN_SIZE);
-                var gap_minimum = (uint)sizeof(block_header_t);
+                var gap_minimum = (uint)Unsafe.SizeOf<block_header_t>();
                 var size_with_gap = adjust_request_size(adjust + align + gap_minimum, align);
                 var aligned_size = adjust != 0 && align > ALIGN_SIZE ? size_with_gap : adjust;
                 var block = block_locate_free(control, aligned_size);
@@ -632,9 +628,9 @@ namespace NativeCollections
             public const int SMALL_BLOCK_SIZE = 1 << FL_INDEX_SHIFT;
             public const ulong block_header_free_bit = 1 << 0;
             public const ulong block_header_prev_free_bit = 1 << 1;
-            public const ulong block_header_overhead = sizeof(ulong);
-            public const ulong block_start_offset = sizeof(ulong) + sizeof(ulong);
-            public const ulong block_size_min = 32 - sizeof(ulong);
+            public const ulong block_header_overhead = 8UL;
+            public const ulong block_start_offset = 16UL;
+            public const ulong block_size_min = 24UL;
             public const ulong block_size_max = (ulong)1 << FL_INDEX_MAX;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -870,7 +866,7 @@ namespace NativeCollections
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static int block_can_split(block_header_t* block, ulong size) => block_size(block) >= (ulong)sizeof(block_header_t) + size ? 1 : 0;
+            public static int block_can_split(block_header_t* block, ulong size) => block_size(block) >= (ulong)Unsafe.SizeOf<block_header_t>() + size ? 1 : 0;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static block_header_t* block_split(block_header_t* block, ulong size)
@@ -1016,7 +1012,7 @@ namespace NativeCollections
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static ulong tlsf_size() => (ulong)sizeof(control_t);
+            public static ulong tlsf_size() => (ulong)Unsafe.SizeOf<control_t>();
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static ulong tlsf_align_size() => ALIGN_SIZE;
@@ -1101,7 +1097,7 @@ namespace NativeCollections
             {
                 var control = (control_t*)tlsf;
                 var adjust = adjust_request_size(size, ALIGN_SIZE);
-                var gap_minimum = (ulong)sizeof(block_header_t);
+                var gap_minimum = (ulong)Unsafe.SizeOf<block_header_t>();
                 var size_with_gap = adjust_request_size(adjust + align + gap_minimum, align);
                 var aligned_size = adjust != 0 && align > ALIGN_SIZE ? size_with_gap : adjust;
                 var block = block_locate_free(control, aligned_size);

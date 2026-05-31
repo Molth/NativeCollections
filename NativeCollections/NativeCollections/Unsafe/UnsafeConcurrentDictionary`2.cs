@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
-
-#pragma warning disable CA2208
-#pragma warning disable CS8632
 
 // ReSharper disable ALL
 
@@ -129,7 +127,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeConcurrentDictionary(int size, int maxFreeSlabs, int concurrencyLevel, int capacity, bool growLockArray)
         {
-            var nodePool = new UnsafeMemoryPool(size, sizeof(Node), maxFreeSlabs, (int)NativeMemoryAllocator.AlignOf<Node>());
+            var nodePool = new UnsafeMemoryPool(size, Unsafe.SizeOf<Node>(), maxFreeSlabs, (int)NativeMemoryAllocator.AlignOf<Node>());
             if (concurrencyLevel <= 0)
                 concurrencyLevel = Environment.ProcessorCount;
             capacity = Math.Max(capacity, concurrencyLevel);
@@ -602,7 +600,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TValue GetOrAdd(in TKey key, Func<TKey, TValue> valueFactory)
         {
-            ThrowHelpers.ThrowIfNull(valueFactory, nameof(valueFactory));
+            ThrowHelpers.ThrowIfNull(valueFactory, ExceptionArgument.valueFactory);
             var tables = _tables;
             var hashCode = key.GetHashCode();
             if (!TryGetValueInternal(tables, key, hashCode, out var resultingValue))
@@ -620,7 +618,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TValue GetOrAdd<TArg>(in TKey key, Func<TKey, TArg, TValue> valueFactory, in TArg factoryArgument)
         {
-            ThrowHelpers.ThrowIfNull(valueFactory, nameof(valueFactory));
+            ThrowHelpers.ThrowIfNull(valueFactory, ExceptionArgument.valueFactory);
             var tables = _tables;
             var hashCode = key.GetHashCode();
             if (!TryGetValueInternal(tables, key, hashCode, out var resultingValue))
@@ -650,8 +648,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TValue AddOrUpdate<TArg>(in TKey key, Func<TKey, TArg, TValue> addValueFactory, Func<TKey, TValue, TArg, TValue> updateValueFactory, in TArg factoryArgument)
         {
-            ThrowHelpers.ThrowIfNull(addValueFactory, nameof(addValueFactory));
-            ThrowHelpers.ThrowIfNull(updateValueFactory, nameof(updateValueFactory));
+            ThrowHelpers.ThrowIfNull(addValueFactory, ExceptionArgument.addValueFactory);
+            ThrowHelpers.ThrowIfNull(updateValueFactory, ExceptionArgument.updateValueFactory);
             var tables = _tables;
             var hashCode = key.GetHashCode();
             while (true)
@@ -686,8 +684,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TValue AddOrUpdate(in TKey key, Func<TKey, TValue> addValueFactory, Func<TKey, TValue, TValue> updateValueFactory)
         {
-            ThrowHelpers.ThrowIfNull(addValueFactory, nameof(addValueFactory));
-            ThrowHelpers.ThrowIfNull(updateValueFactory, nameof(updateValueFactory));
+            ThrowHelpers.ThrowIfNull(addValueFactory, ExceptionArgument.addValueFactory);
+            ThrowHelpers.ThrowIfNull(updateValueFactory, ExceptionArgument.updateValueFactory);
             var tables = _tables;
             var hashCode = key.GetHashCode();
             while (true)
@@ -722,7 +720,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TValue AddOrUpdate(in TKey key, in TValue addValue, Func<TKey, TValue, TValue> updateValueFactory)
         {
-            ThrowHelpers.ThrowIfNull(updateValueFactory, nameof(updateValueFactory));
+            ThrowHelpers.ThrowIfNull(updateValueFactory, ExceptionArgument.updateValueFactory);
             var tables = _tables;
             var hashCode = key.GetHashCode();
             while (true)
@@ -1149,6 +1147,7 @@ namespace NativeCollections
         /// <summary>
         ///     Volatile node
         /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
         private struct VolatileNode
         {
             /// <summary>
@@ -1160,6 +1159,7 @@ namespace NativeCollections
         /// <summary>
         ///     Node
         /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
         private struct Node
         {
             /// <summary>
@@ -1202,6 +1202,7 @@ namespace NativeCollections
         /// <summary>
         ///     Tables
         /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
         private struct Tables
         {
             /// <summary>
@@ -1265,6 +1266,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -1274,6 +1277,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -1283,7 +1288,8 @@ namespace NativeCollections
         /// <summary>
         ///     Enumerator
         /// </summary>
-        public struct Enumerator
+        [StructLayout(LayoutKind.Sequential)]
+        public struct Enumerator : IIterator<KeyValuePair<TKey, TValue>>
         {
             /// <summary>
             ///     NativeConcurrentDictionary
@@ -1391,6 +1397,19 @@ namespace NativeCollections
             }
 
             /// <summary>
+            ///     Reset
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Reset()
+            {
+                _index = -1;
+                _buckets = default;
+                _node = null;
+                _state = 0;
+                _current = default;
+            }
+
+            /// <summary>
             ///     Current
             /// </summary>
             public readonly KeyValuePair<TKey, TValue> Current
@@ -1432,6 +1451,8 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
+            [Obsolete("Call this method will always throw an exception.")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator()
             {
                 ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -1441,6 +1462,8 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
+            [Obsolete("Call this method will always throw an exception.")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator IEnumerable.GetEnumerator()
             {
                 ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -1450,7 +1473,8 @@ namespace NativeCollections
             /// <summary>
             ///     Enumerator
             /// </summary>
-            public struct Enumerator
+            [StructLayout(LayoutKind.Sequential)]
+            public struct Enumerator : IIterator<TKey>
             {
                 /// <summary>
                 ///     NativeConcurrentDictionary
@@ -1558,6 +1582,19 @@ namespace NativeCollections
                 }
 
                 /// <summary>
+                ///     Reset
+                /// </summary>
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public void Reset()
+                {
+                    _index = -1;
+                    _buckets = default;
+                    _node = null;
+                    _state = 0;
+                    _current = default;
+                }
+
+                /// <summary>
                 ///     Current
                 /// </summary>
                 public readonly TKey Current
@@ -1600,6 +1637,8 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
+            [Obsolete("Call this method will always throw an exception.")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator()
             {
                 ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -1609,6 +1648,8 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
+            [Obsolete("Call this method will always throw an exception.")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator IEnumerable.GetEnumerator()
             {
                 ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -1618,7 +1659,8 @@ namespace NativeCollections
             /// <summary>
             ///     Enumerator
             /// </summary>
-            public struct Enumerator
+            [StructLayout(LayoutKind.Sequential)]
+            public struct Enumerator : IIterator<TValue>
             {
                 /// <summary>
                 ///     NativeConcurrentDictionary
@@ -1723,6 +1765,19 @@ namespace NativeCollections
                             _state = STATE_DONE;
                             return false;
                     }
+                }
+
+                /// <summary>
+                ///     Reset
+                /// </summary>
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public void Reset()
+                {
+                    _index = -1;
+                    _buckets = default;
+                    _node = null;
+                    _state = 0;
+                    _current = default;
                 }
 
                 /// <summary>

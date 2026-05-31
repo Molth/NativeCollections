@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-
-#pragma warning disable CA2208
-#pragma warning disable CS8632
 
 // ReSharper disable ALL
 
@@ -85,7 +83,7 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         /// <returns>Byte count</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetByteCount(int capacity) => capacity * sizeof(TPriority) + (int)NativeMemoryAllocator.AlignOf<TPriority>() - 1;
+        public static int GetByteCount(int capacity) => capacity * Unsafe.SizeOf<TPriority>() + (int)NativeMemoryAllocator.AlignOf<TPriority>() - 1;
 
         /// <summary>
         ///     Structure
@@ -485,6 +483,8 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
+            [Obsolete("Call this method will always throw an exception.")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator<TPriority> IEnumerable<TPriority>.GetEnumerator()
             {
                 ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -494,6 +494,8 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
+            [Obsolete("Call this method will always throw an exception.")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator IEnumerable.GetEnumerator()
             {
                 ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -503,7 +505,8 @@ namespace NativeCollections
             /// <summary>
             ///     Enumerator
             /// </summary>
-            public struct Enumerator
+            [StructLayout(LayoutKind.Sequential)]
+            public struct Enumerator : IIterator<TPriority>
             {
                 /// <summary>
                 ///     NativePriorityQueue
@@ -534,8 +537,8 @@ namespace NativeCollections
                 {
                     var handle = (StackallocPriorityQueue<TPriority>*)nativePriorityQueue;
                     _nativePriorityQueue = handle;
-                    _index = 0;
                     _version = handle->_version;
+                    _index = 0;
                     _current = default;
                 }
 
@@ -558,6 +561,16 @@ namespace NativeCollections
                     _current = Unsafe.Add(ref Unsafe.AsRef<TPriority>(handle->_nodes), (nint)_index);
                     ++_index;
                     return true;
+                }
+
+                /// <summary>
+                ///     Reset
+                /// </summary>
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public void Reset()
+                {
+                    _index = 0;
+                    _current = default;
                 }
 
                 /// <summary>

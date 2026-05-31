@@ -1,8 +1,7 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
-
-#pragma warning disable CS8632
 
 // ReSharper disable ALL
 
@@ -13,7 +12,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    public struct NativeSpinWait
+    public struct NativeSpinWait : IEquatable<NativeSpinWait>
     {
         /// <summary>
         ///     Spin wait
@@ -52,7 +51,7 @@ namespace NativeCollections
 #if NET5_0_OR_GREATER
             _spinWait.SpinOnce(sleepThreshold);
 #else
-            ThrowHelpers.ThrowIfLessThan(sleepThreshold, -1, nameof(sleepThreshold));
+            ThrowHelpers.ThrowIfLessThan(sleepThreshold, -1, ExceptionArgument.sleepThreshold);
             _spinWait.SpinOnce();
 #endif
         }

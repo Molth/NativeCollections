@@ -1,9 +1,9 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
+#pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
 
 // ReSharper disable ALL
 
@@ -15,7 +15,7 @@ namespace NativeCollections
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
     [IsAssignableTo(typeof(IEquatable<>))]
-    public readonly unsafe ref struct NativeReference
+    public readonly ref struct NativeReference
     {
         /// <summary>
         ///     Buffer
@@ -30,7 +30,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is empty
         /// </summary>
-        public bool IsEmpty => _buffer.Length == 0;
+        public bool IsEmpty => _buffer.IsEmpty;
 
         /// <summary>
         ///     Buffer
@@ -68,7 +68,7 @@ namespace NativeCollections
         ///     Cast
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref T Cast<T>() where T : unmanaged => ref Unsafe.As<byte, T>(ref MemoryMarshal.GetReference(_buffer));
+        public ref T Cast<T>() where T : unmanaged => ref MemoryMarshalHelpers.AsRef<T>(_buffer);
 
         /// <summary>
         ///     Cast
@@ -80,7 +80,7 @@ namespace NativeCollections
         ///     Slice
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeReference Slice<T>(int start) where T : unmanaged => new(_buffer.Slice(start * sizeof(T)));
+        public NativeReference Slice<T>(int start) where T : unmanaged => new(_buffer.Slice(start * Unsafe.SizeOf<T>()));
 
         /// <summary>
         ///     As span
@@ -92,7 +92,7 @@ namespace NativeCollections
         ///     As span
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<T> AsSpan<T>(int start, int length) where T : unmanaged => MemoryMarshal.CreateSpan(ref Unsafe.Add(ref Unsafe.As<byte, T>(ref MemoryMarshal.GetReference(_buffer)), (nint)start), length);
+        public Span<T> AsSpan<T>(int start, int length) where T : unmanaged => MemoryMarshal.CreateSpan(ref Unsafe.Add(ref MemoryMarshalHelpers.AsRef<T>(_buffer), (nint)start), length);
 
         /// <summary>
         ///     As readOnly span
@@ -104,7 +104,7 @@ namespace NativeCollections
         ///     As readOnly span
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<T> AsReadOnlySpan<T>(int start, int length) where T : unmanaged => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.As<byte, T>(ref MemoryMarshal.GetReference(_buffer)), (nint)start), length);
+        public ReadOnlySpan<T> AsReadOnlySpan<T>(int start, int length) where T : unmanaged => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref MemoryMarshalHelpers.AsRef<T>(_buffer), (nint)start), length);
 
         /// <summary>
         ///     Equals
@@ -118,6 +118,8 @@ namespace NativeCollections
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public override bool Equals(object? obj)
         {
             ThrowHelpers.ThrowCannotCallEqualsException();
@@ -128,6 +130,8 @@ namespace NativeCollections
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public override int GetHashCode()
         {
             ThrowHelpers.ThrowCannotCallGetHashCodeException();
@@ -172,7 +176,7 @@ namespace NativeCollections
         ///     Create
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeReference Create<T>(ref T reference) where T : unmanaged => new(MemoryMarshal.CreateSpan(ref Unsafe.As<T, byte>(ref reference), sizeof(T)));
+        public static NativeReference Create<T>(ref T reference) where T : unmanaged => new(MemoryMarshal.CreateSpan(ref Unsafe.As<T, byte>(ref reference), Unsafe.SizeOf<T>()));
 
         /// <summary>
         ///     Create

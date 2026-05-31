@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using static NativeCollections.NativeSortedSet;
-
-#pragma warning disable CA2208
-#pragma warning disable CS8632
 
 // ReSharper disable ALL
 
@@ -739,7 +737,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int CopyTo(Span<KeyValuePair<TKey, TValue>> buffer, int count)
         {
-            ThrowHelpers.ThrowIfNegative(count, nameof(count));
+            ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
             ref var reference = ref MemoryMarshal.GetReference(buffer);
             if (_root == null)
                 return 0;
@@ -754,7 +752,7 @@ namespace NativeCollections
                     if (index >= count)
                         break;
                     var node1 = (Node<TKey, TValue>*)nodeStack.Pop();
-                    Unsafe.WriteUnaligned(ref Unsafe.As<KeyValuePair<TKey, TValue>, byte>(ref Unsafe.Add(ref reference, (nint)index++)), new KeyValuePair<TKey, TValue>(node1->Key, node1->Value));
+                    UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)index++), new KeyValuePair<TKey, TValue>(node1->Key, node1->Value));
                     for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
                         nodeStack.Push((nint)node2);
                 }
@@ -778,7 +776,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void CopyTo(Span<KeyValuePair<TKey, TValue>> buffer)
         {
-            ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, nameof(buffer));
+            ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, ExceptionArgument.buffer);
             ref var reference = ref MemoryMarshal.GetReference(buffer);
             if (_root == null)
                 return;
@@ -790,7 +788,7 @@ namespace NativeCollections
                 while (nodeStack.Count != 0)
                 {
                     var node1 = (Node<TKey, TValue>*)nodeStack.Pop();
-                    Unsafe.WriteUnaligned(ref Unsafe.As<KeyValuePair<TKey, TValue>, byte>(ref Unsafe.Add(ref reference, (nint)index++)), new KeyValuePair<TKey, TValue>(node1->Key, node1->Value));
+                    UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)index++), new KeyValuePair<TKey, TValue>(node1->Key, node1->Value));
                     for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
                         nodeStack.Push((nint)node2);
                 }
@@ -818,6 +816,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -827,6 +827,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -836,7 +838,8 @@ namespace NativeCollections
         /// <summary>
         ///     Enumerator
         /// </summary>
-        public struct Enumerator : IDisposable
+        [StructLayout(LayoutKind.Sequential)]
+        public struct Enumerator : IIterator<KeyValuePair<TKey, TValue>>, IDisposable
         {
             /// <summary>
             ///     NativeHashSet
@@ -914,6 +917,24 @@ namespace NativeCollections
             }
 
             /// <summary>
+            ///     Reset
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Reset()
+            {
+                _nodeStack.Clear();
+                _currentNode = null;
+                _current = default;
+                var node = _nativeSortedDictionary->_root;
+                while (node != null)
+                {
+                    var next = node->Left;
+                    _nodeStack.Push((nint)node);
+                    node = next;
+                }
+            }
+
+            /// <summary>
             ///     Current
             /// </summary>
             public readonly KeyValuePair<TKey, TValue> Current
@@ -960,7 +981,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int CopyTo(Span<TKey> buffer, int count)
             {
-                ThrowHelpers.ThrowIfNegative(count, nameof(count));
+                ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
                 ref var reference = ref MemoryMarshal.GetReference(buffer);
                 if (_nativeSortedDictionary->_root == null)
                     return 0;
@@ -975,7 +996,7 @@ namespace NativeCollections
                         if (index >= count)
                             break;
                         var node1 = (Node<TKey, TValue>*)nodeStack.Pop();
-                        Unsafe.WriteUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref reference, (nint)index++)), node1->Key);
+                        UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)index++), node1->Key);
                         for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
                             nodeStack.Push((nint)node2);
                     }
@@ -999,7 +1020,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void CopyTo(Span<TKey> buffer)
             {
-                ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, nameof(buffer));
+                ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, ExceptionArgument.buffer);
                 ref var reference = ref MemoryMarshal.GetReference(buffer);
                 if (_nativeSortedDictionary->_root == null)
                     return;
@@ -1011,7 +1032,7 @@ namespace NativeCollections
                     while (nodeStack.Count != 0)
                     {
                         var node1 = (Node<TKey, TValue>*)nodeStack.Pop();
-                        Unsafe.WriteUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref reference, (nint)index++)), node1->Key);
+                        UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)index++), node1->Key);
                         for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
                             nodeStack.Push((nint)node2);
                     }
@@ -1034,6 +1055,8 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
+            [Obsolete("Call this method will always throw an exception.")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator()
             {
                 ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -1043,6 +1066,8 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
+            [Obsolete("Call this method will always throw an exception.")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator IEnumerable.GetEnumerator()
             {
                 ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -1052,7 +1077,8 @@ namespace NativeCollections
             /// <summary>
             ///     Enumerator
             /// </summary>
-            public struct Enumerator : IDisposable
+            [StructLayout(LayoutKind.Sequential)]
+            public struct Enumerator : IIterator<TKey>, IDisposable
             {
                 /// <summary>
                 ///     NativeHashSet
@@ -1130,6 +1156,24 @@ namespace NativeCollections
                 }
 
                 /// <summary>
+                ///     Reset
+                /// </summary>
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public void Reset()
+                {
+                    _nodeStack.Clear();
+                    _currentNode = null;
+                    _current = default;
+                    var node = _nativeSortedDictionary->_root;
+                    while (node != null)
+                    {
+                        var next = node->Left;
+                        _nodeStack.Push((nint)node);
+                        node = next;
+                    }
+                }
+
+                /// <summary>
                 ///     Current
                 /// </summary>
                 public readonly TKey Current
@@ -1177,7 +1221,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int CopyTo(Span<TValue> buffer, int count)
             {
-                ThrowHelpers.ThrowIfNegative(count, nameof(count));
+                ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
                 ref var reference = ref MemoryMarshal.GetReference(buffer);
                 if (_nativeSortedDictionary->_root == null)
                     return 0;
@@ -1192,7 +1236,7 @@ namespace NativeCollections
                         if (index >= count)
                             break;
                         var node1 = (Node<TKey, TValue>*)nodeStack.Pop();
-                        Unsafe.WriteUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref reference, (nint)index++)), node1->Value);
+                        UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)index++), node1->Value);
                         for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
                             nodeStack.Push((nint)node2);
                     }
@@ -1216,7 +1260,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void CopyTo(Span<TValue> buffer)
             {
-                ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, nameof(buffer));
+                ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, ExceptionArgument.buffer);
                 ref var reference = ref MemoryMarshal.GetReference(buffer);
                 if (_nativeSortedDictionary->_root == null)
                     return;
@@ -1228,7 +1272,7 @@ namespace NativeCollections
                     while (nodeStack.Count != 0)
                     {
                         var node1 = (Node<TKey, TValue>*)nodeStack.Pop();
-                        Unsafe.WriteUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref reference, (nint)index++)), node1->Value);
+                        UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)index++), node1->Value);
                         for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
                             nodeStack.Push((nint)node2);
                     }
@@ -1251,6 +1295,8 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
+            [Obsolete("Call this method will always throw an exception.")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator()
             {
                 ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -1260,6 +1306,8 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
+            [Obsolete("Call this method will always throw an exception.")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator IEnumerable.GetEnumerator()
             {
                 ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -1269,7 +1317,8 @@ namespace NativeCollections
             /// <summary>
             ///     Enumerator
             /// </summary>
-            public struct Enumerator : IDisposable
+            [StructLayout(LayoutKind.Sequential)]
+            public struct Enumerator : IIterator<TValue>, IDisposable
             {
                 /// <summary>
                 ///     NativeHashSet
@@ -1344,6 +1393,24 @@ namespace NativeCollections
                     }
 
                     return true;
+                }
+
+                /// <summary>
+                ///     Reset
+                /// </summary>
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public void Reset()
+                {
+                    _nodeStack.Clear();
+                    _currentNode = null;
+                    _current = default;
+                    var node = _nativeSortedDictionary->_root;
+                    while (node != null)
+                    {
+                        var next = node->Left;
+                        _nodeStack.Push((nint)node);
+                        node = next;
+                    }
                 }
 
                 /// <summary>

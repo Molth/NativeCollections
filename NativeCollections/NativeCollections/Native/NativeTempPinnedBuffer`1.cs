@@ -1,10 +1,10 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-#pragma warning disable CA2208
-#pragma warning disable CA2231
-#pragma warning disable CS8632
+#pragma warning disable CA2231 // Overload operator equals on overriding ValueType.Equals
+#pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
 
 // ReSharper disable ALL
 
@@ -45,7 +45,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeTempPinnedBuffer(int length)
         {
-            ThrowHelpers.ThrowIfNegative(length, nameof(length));
+            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
             _buffer = ManagedMemoryAllocator.AlignedAlloc<T>((uint)length);
             _length = length;
         }
@@ -58,7 +58,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeTempPinnedBuffer(int length, bool zeroed)
         {
-            ThrowHelpers.ThrowIfNegative(length, nameof(length));
+            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
             _buffer = zeroed ? ManagedMemoryAllocator.AlignedAllocZeroed<T>((uint)length) : ManagedMemoryAllocator.AlignedAlloc<T>((uint)length);
             _length = length;
         }
@@ -71,10 +71,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeTempPinnedBuffer(int length, int alignment)
         {
-            ThrowHelpers.ThrowIfNegative(length, nameof(length));
-            ThrowHelpers.ThrowIfNegative(alignment, nameof(alignment));
-            ThrowHelpers.ThrowIfLessThan((uint)alignment, (uint)NativeMemoryAllocator.AlignOf<T>(), nameof(alignment));
-            _buffer = (T*)ManagedMemoryAllocator.AlignedAlloc((uint)(length * sizeof(T)), (uint)alignment);
+            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
+            ThrowHelpers.ThrowIfNegative(alignment, ExceptionArgument.alignment);
+            ThrowHelpers.ThrowIfLessThan((uint)alignment, (uint)NativeMemoryAllocator.AlignOf<T>(), ExceptionArgument.alignment);
+            _buffer = (T*)ManagedMemoryAllocator.AlignedAlloc((uint)(length * Unsafe.SizeOf<T>()), (uint)alignment);
             _length = length;
         }
 
@@ -87,10 +87,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeTempPinnedBuffer(int length, int alignment, bool zeroed)
         {
-            ThrowHelpers.ThrowIfNegative(length, nameof(length));
-            ThrowHelpers.ThrowIfNegative(alignment, nameof(alignment));
-            ThrowHelpers.ThrowIfLessThan((uint)alignment, (uint)NativeMemoryAllocator.AlignOf<T>(), nameof(alignment));
-            _buffer = zeroed ? ManagedMemoryAllocator.AlignedAllocZeroed<T>((uint)(length * sizeof(T))) : ManagedMemoryAllocator.AlignedAlloc<T>((uint)(length * sizeof(T)));
+            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
+            ThrowHelpers.ThrowIfNegative(alignment, ExceptionArgument.alignment);
+            ThrowHelpers.ThrowIfLessThan((uint)alignment, (uint)NativeMemoryAllocator.AlignOf<T>(), ExceptionArgument.alignment);
+            _buffer = zeroed ? ManagedMemoryAllocator.AlignedAllocZeroed<T>((uint)(length * Unsafe.SizeOf<T>())) : ManagedMemoryAllocator.AlignedAlloc<T>((uint)(length * Unsafe.SizeOf<T>()));
             _length = length;
         }
 
@@ -122,6 +122,8 @@ namespace NativeCollections
         ///     Equals
         /// </summary>
         /// <returns>Equals</returns>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public override bool Equals(object? obj)
         {
             ThrowHelpers.ThrowCannotCallEqualsException();
@@ -132,6 +134,8 @@ namespace NativeCollections
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public override int GetHashCode()
         {
             ThrowHelpers.ThrowCannotCallGetHashCodeException();

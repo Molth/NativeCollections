@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -12,7 +9,7 @@ namespace NativeCollections
     ///     Type helpers
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
-    internal static unsafe class TypeHelpers<T> where T : unmanaged, IEquatable<T>
+    internal static class TypeHelpers<T> where T : unmanaged, IEquatable<T>
     {
         /// <summary>
         ///     Is write atomic

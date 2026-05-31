@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-
-#pragma warning disable CA2208
-#pragma warning disable CS8632
 
 // ReSharper disable ALL
 
@@ -14,10 +12,10 @@ namespace NativeCollections
     /// <summary>
     ///     Unsafe orderedSparseSet
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
+    /// <typeparam name="TValue">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.None)]
-    public unsafe struct UnsafeOrderedSparseSet<T> : IDisposable, IReadOnlyCollection<KeyValuePair<int, T>> where T : unmanaged
+    public unsafe struct UnsafeOrderedSparseSet<TValue> : IDisposable, IReadOnlyCollection<KeyValuePair<int, TValue>> where TValue : unmanaged
     {
         /// <summary>
         ///     Dense
@@ -65,6 +63,11 @@ namespace NativeCollections
         public ValueCollection Values => new(Unsafe.AsPointer(ref this));
 
         /// <summary>
+        ///     KeyValuePairs
+        /// </summary>
+        public OrderedKeyValuePairCollection OrderedKeyValuePairs => new(Unsafe.AsPointer(ref this));
+
+        /// <summary>
         ///     Keys
         /// </summary>
         public OrderedKeyCollection OrderedKeys => new(Unsafe.AsPointer(ref this));
@@ -75,15 +78,10 @@ namespace NativeCollections
         public OrderedValueCollection OrderedValues => new(Unsafe.AsPointer(ref this));
 
         /// <summary>
-        ///     KeyValuePairs
-        /// </summary>
-        public OrderedKeyValuePairCollection OrderedKeyValuePairs => new(Unsafe.AsPointer(ref this));
-
-        /// <summary>
         ///     Get or set value
         /// </summary>
         /// <param name="key">Key</param>
-        public T this[int key]
+        public TValue this[int key]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             readonly get
@@ -115,7 +113,7 @@ namespace NativeCollections
         /// <summary>
         ///     Min
         /// </summary>
-        public readonly KeyValuePair<int, T>? Min
+        public readonly KeyValuePair<int, TValue>? Min
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
@@ -135,7 +133,7 @@ namespace NativeCollections
                     }
 
                     ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index);
-                    return Unsafe.As<Entry, KeyValuePair<int, T>>(ref entry);
+                    return Unsafe.As<Entry, KeyValuePair<int, TValue>>(ref entry);
                 }
 
                 return null;
@@ -145,7 +143,7 @@ namespace NativeCollections
         /// <summary>
         ///     Max
         /// </summary>
-        public readonly KeyValuePair<int, T>? Max
+        public readonly KeyValuePair<int, TValue>? Max
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
@@ -165,7 +163,7 @@ namespace NativeCollections
                     }
 
                     ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index);
-                    return Unsafe.As<Entry, KeyValuePair<int, T>>(ref entry);
+                    return Unsafe.As<Entry, KeyValuePair<int, TValue>>(ref entry);
                 }
 
                 return null;
@@ -179,11 +177,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeOrderedSparseSet(int capacity)
         {
-            ThrowHelpers.ThrowIfNegative(capacity, nameof(capacity));
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             capacity = Math.Max(capacity, 4);
             var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<Entry>(), NativeMemoryAllocator.AlignOf<int>());
-            var denseByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * sizeof(Entry)), alignment);
-            _dense = (Entry*)NativeMemoryAllocator.AlignedAlloc((uint)(denseByteCount + capacity * sizeof(int)), alignment);
+            var denseByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * Unsafe.SizeOf<Entry>()), alignment);
+            _dense = (Entry*)NativeMemoryAllocator.AlignedAlloc((uint)(denseByteCount + capacity * Unsafe.SizeOf<int>()), alignment);
             _sparse = UnsafeHelpers.AddByteOffset<int>(_dense, (nint)denseByteCount);
             MemoryMarshal.CreateSpan(ref Unsafe.AsRef<int>(_sparse), capacity).Fill(-1);
             _length = capacity;
@@ -221,15 +219,15 @@ namespace NativeCollections
         {
             var max = Max;
             var maxKey = max?.Key ?? 0;
-            ThrowHelpers.ThrowIfLessThan(capacity, maxKey, nameof(capacity));
+            ThrowHelpers.ThrowIfLessThan(capacity, maxKey, ExceptionArgument.capacity);
             if (capacity != _length)
             {
                 var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<Entry>(), NativeMemoryAllocator.AlignOf<int>());
-                var denseByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * sizeof(Entry)), alignment);
-                var dense = (Entry*)NativeMemoryAllocator.AlignedAlloc((uint)(denseByteCount + capacity * sizeof(int)), alignment);
+                var denseByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * Unsafe.SizeOf<Entry>()), alignment);
+                var dense = (Entry*)NativeMemoryAllocator.AlignedAlloc((uint)(denseByteCount + capacity * Unsafe.SizeOf<int>()), alignment);
                 var sparse = UnsafeHelpers.AddByteOffset<int>(dense, (nint)denseByteCount);
-                Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(dense), ref Unsafe.AsRef<byte>(_dense), (uint)(_count * sizeof(Entry)));
-                Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(sparse), ref Unsafe.AsRef<byte>(_sparse), (uint)(maxKey * sizeof(int)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(dense), ref Unsafe.AsRef<byte>(_dense), (uint)(_count * Unsafe.SizeOf<Entry>()));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(sparse), ref Unsafe.AsRef<byte>(_sparse), (uint)(maxKey * Unsafe.SizeOf<int>()));
                 if (capacity > maxKey)
                     MemoryMarshal.CreateSpan(ref Unsafe.Add(ref Unsafe.AsRef<int>(sparse), (nint)maxKey), capacity - maxKey).Fill(-1);
                 NativeMemoryAllocator.AlignedFree(_dense);
@@ -245,10 +243,10 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Add(int key, in T value)
+        public bool Add(int key, in TValue value)
         {
-            ThrowHelpers.ThrowIfNegative(key, nameof(key));
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(key, _length, nameof(key));
+            ThrowHelpers.ThrowIfNegative(key, ExceptionArgument.key);
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(key, _length, ExceptionArgument.key);
             var index = Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key);
             if (index != -1)
                 return false;
@@ -282,10 +280,10 @@ namespace NativeCollections
         /// <param name="key">Key</param>
         /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public InsertResult Insert(int key, in T value)
+        public InsertResult Insert(int key, in TValue value)
         {
-            ThrowHelpers.ThrowIfNegative(key, nameof(key));
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(key, _length, nameof(key));
+            ThrowHelpers.ThrowIfNegative(key, ExceptionArgument.key);
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(key, _length, ExceptionArgument.key);
             var index = Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key);
             if (index != -1)
             {
@@ -368,7 +366,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Remove(int key, out T value)
+        public bool Remove(int key, out TValue value)
         {
             if ((uint)key >= (uint)_length)
             {
@@ -429,7 +427,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly bool TryGetValue(int key, out T value)
+        public readonly bool TryGetValue(int key, out TValue value)
         {
             if ((uint)key >= (uint)_length)
             {
@@ -455,7 +453,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly bool TryGetValueReference(int key, out NativeReference<T> value)
+        public readonly bool TryGetValueReference(int key, out NativeReference<TValue> value)
         {
             if ((uint)key >= (uint)_length)
             {
@@ -467,7 +465,7 @@ namespace NativeCollections
             if (index != -1)
             {
                 ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index);
-                value = new NativeReference<T>(Unsafe.AsPointer(ref entry.Value));
+                value = new NativeReference<TValue>(Unsafe.AsPointer(ref entry.Value));
                 return true;
             }
 
@@ -491,8 +489,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int GetKeyAt(int index)
         {
-            ThrowHelpers.ThrowIfNegative(index, nameof(index));
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _count, nameof(index));
+            ThrowHelpers.ThrowIfNegative(index, ExceptionArgument.index);
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _count, ExceptionArgument.index);
             return Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index).Key;
         }
 
@@ -502,10 +500,10 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>Value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ref T GetValueAt(int index)
+        public readonly ref TValue GetValueAt(int index)
         {
-            ThrowHelpers.ThrowIfNegative(index, nameof(index));
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _count, nameof(index));
+            ThrowHelpers.ThrowIfNegative(index, ExceptionArgument.index);
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _count, ExceptionArgument.index);
             return ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index).Value;
         }
 
@@ -535,7 +533,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly bool TryGetValueAt(int index, out T value)
+        public readonly bool TryGetValueAt(int index, out TValue value)
         {
             if ((uint)index >= (uint)_count)
             {
@@ -554,7 +552,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly bool TryGetValueReferenceAt(int index, out NativeReference<T> value)
+        public readonly bool TryGetValueReferenceAt(int index, out NativeReference<TValue> value)
         {
             if ((uint)index >= (uint)_count)
             {
@@ -562,7 +560,7 @@ namespace NativeCollections
                 return false;
             }
 
-            value = new NativeReference<T>(Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index).Value));
+            value = new NativeReference<TValue>(Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index).Value));
             return true;
         }
 
@@ -572,11 +570,11 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>KeyValuePair</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly KeyValuePair<int, T> GetAt(int index)
+        public readonly KeyValuePair<int, TValue> GetAt(int index)
         {
-            ThrowHelpers.ThrowIfNegative(index, nameof(index));
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _count, nameof(index));
-            return Unsafe.As<Entry, KeyValuePair<int, T>>(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index));
+            ThrowHelpers.ThrowIfNegative(index, ExceptionArgument.index);
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _count, ExceptionArgument.index);
+            return Unsafe.As<Entry, KeyValuePair<int, TValue>>(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index));
         }
 
         /// <summary>
@@ -585,12 +583,12 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>KeyValuePair</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly KeyValuePair<int, NativeReference<T>> GetReferenceAt(int index)
+        public readonly KeyValuePair<int, NativeReference<TValue>> GetReferenceAt(int index)
         {
-            ThrowHelpers.ThrowIfNegative(index, nameof(index));
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _count, nameof(index));
+            ThrowHelpers.ThrowIfNegative(index, ExceptionArgument.index);
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _count, ExceptionArgument.index);
             ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index);
-            return new KeyValuePair<int, NativeReference<T>>(entry.Key, new NativeReference<T>(Unsafe.AsPointer(ref entry.Value)));
+            return new KeyValuePair<int, NativeReference<TValue>>(entry.Key, new NativeReference<TValue>(Unsafe.AsPointer(ref entry.Value)));
         }
 
         /// <summary>
@@ -600,7 +598,7 @@ namespace NativeCollections
         /// <param name="keyValuePair">KeyValuePair</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly bool TryGetAt(int index, out KeyValuePair<int, T> keyValuePair)
+        public readonly bool TryGetAt(int index, out KeyValuePair<int, TValue> keyValuePair)
         {
             if ((uint)index >= (uint)_count)
             {
@@ -608,7 +606,7 @@ namespace NativeCollections
                 return false;
             }
 
-            keyValuePair = Unsafe.As<Entry, KeyValuePair<int, T>>(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index));
+            keyValuePair = Unsafe.As<Entry, KeyValuePair<int, TValue>>(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index));
             return true;
         }
 
@@ -619,7 +617,7 @@ namespace NativeCollections
         /// <param name="keyValuePair">KeyValuePair</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly bool TryGetReferenceAt(int index, out KeyValuePair<int, NativeReference<T>> keyValuePair)
+        public readonly bool TryGetReferenceAt(int index, out KeyValuePair<int, NativeReference<TValue>> keyValuePair)
         {
             if ((uint)index >= (uint)_count)
             {
@@ -628,7 +626,7 @@ namespace NativeCollections
             }
 
             ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index);
-            keyValuePair = new KeyValuePair<int, NativeReference<T>>(entry.Key, new NativeReference<T>(Unsafe.AsPointer(ref entry.Value)));
+            keyValuePair = new KeyValuePair<int, NativeReference<TValue>>(entry.Key, new NativeReference<TValue>(Unsafe.AsPointer(ref entry.Value)));
             return true;
         }
 
@@ -638,10 +636,10 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetAt(int index, in T value)
+        public void SetAt(int index, in TValue value)
         {
-            ThrowHelpers.ThrowIfNegative(index, nameof(index));
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _count, nameof(index));
+            ThrowHelpers.ThrowIfNegative(index, ExceptionArgument.index);
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _count, ExceptionArgument.index);
             Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index).Value = value;
             ++_version;
         }
@@ -653,8 +651,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveAt(int index)
         {
-            ThrowHelpers.ThrowIfNegative(index, nameof(index));
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _count, nameof(index));
+            ThrowHelpers.ThrowIfNegative(index, ExceptionArgument.index);
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _count, ExceptionArgument.index);
             ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index);
             var key = entry.Key;
             --_count;
@@ -675,13 +673,13 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <param name="keyValuePair">KeyValuePair</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void RemoveAt(int index, out KeyValuePair<int, T> keyValuePair)
+        public void RemoveAt(int index, out KeyValuePair<int, TValue> keyValuePair)
         {
-            ThrowHelpers.ThrowIfNegative(index, nameof(index));
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _count, nameof(index));
+            ThrowHelpers.ThrowIfNegative(index, ExceptionArgument.index);
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _count, ExceptionArgument.index);
             ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index);
             var key = entry.Key;
-            keyValuePair = Unsafe.As<Entry, KeyValuePair<int, T>>(ref entry);
+            keyValuePair = Unsafe.As<Entry, KeyValuePair<int, TValue>>(ref entry);
             --_count;
             if (index != _count)
             {
@@ -724,7 +722,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <param name="keyValuePair">KeyValuePair</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryRemoveAt(int index, out KeyValuePair<int, T> keyValuePair)
+        public bool TryRemoveAt(int index, out KeyValuePair<int, TValue> keyValuePair)
         {
             if ((uint)index >= (uint)_count)
             {
@@ -734,7 +732,7 @@ namespace NativeCollections
 
             ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index);
             var key = entry.Key;
-            keyValuePair = Unsafe.As<Entry, KeyValuePair<int, T>>(ref entry);
+            keyValuePair = Unsafe.As<Entry, KeyValuePair<int, TValue>>(ref entry);
             --_count;
             if (index != _count)
             {
@@ -753,7 +751,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<KeyValuePair<int, T>>(_dense), _count);
+        public readonly ReadOnlySpan<KeyValuePair<int, TValue>> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<KeyValuePair<int, TValue>>(_dense), _count);
 
         /// <summary>
         ///     As readOnly span
@@ -761,7 +759,7 @@ namespace NativeCollections
         /// <param name="start">Start</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<KeyValuePair<int, T>>(_dense), (nint)start), _count - start);
+        public readonly ReadOnlySpan<KeyValuePair<int, TValue>> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<KeyValuePair<int, TValue>>(_dense), (nint)start), _count - start);
 
         /// <summary>
         ///     As readOnly span
@@ -770,14 +768,14 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<KeyValuePair<int, T>> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<KeyValuePair<int, T>>(_dense), (nint)start), length);
+        public readonly ReadOnlySpan<KeyValuePair<int, TValue>> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<KeyValuePair<int, TValue>>(_dense), (nint)start), length);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<KeyValuePair<int, T>>(in UnsafeOrderedSparseSet<T> unsafeOrderedSparseSet) => unsafeOrderedSparseSet.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<KeyValuePair<int, TValue>>(in UnsafeOrderedSparseSet<TValue> unsafeOrderedSparseSet) => unsafeOrderedSparseSet.AsReadOnlySpan();
 
         /// <summary>
         ///     Entry
@@ -793,7 +791,7 @@ namespace NativeCollections
             /// <summary>
             ///     Value
             /// </summary>
-            public T Value;
+            public TValue Value;
 
             /// <summary>
             ///     Next
@@ -809,7 +807,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeOrderedSparseSet<T> Empty => new();
+        public static UnsafeOrderedSparseSet<TValue> Empty => new();
 
         /// <summary>
         ///     Get enumerator
@@ -820,7 +818,9 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        readonly IEnumerator<KeyValuePair<int, T>> IEnumerable<KeyValuePair<int, T>>.GetEnumerator()
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        readonly IEnumerator<KeyValuePair<int, TValue>> IEnumerable<KeyValuePair<int, TValue>>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -829,6 +829,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -838,12 +840,13 @@ namespace NativeCollections
         /// <summary>
         ///     Enumerator
         /// </summary>
-        public struct Enumerator
+        [StructLayout(LayoutKind.Sequential)]
+        public struct Enumerator : IIterator<KeyValuePair<int, TValue>>
         {
             /// <summary>
             ///     NativeSparseSet
             /// </summary>
-            private readonly UnsafeOrderedSparseSet<T>* _nativeSparseSet;
+            private readonly UnsafeOrderedSparseSet<TValue>* _nativeSparseSet;
 
             /// <summary>
             ///     Version
@@ -862,7 +865,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal Enumerator(void* nativeSparseSet)
             {
-                var handle = (UnsafeOrderedSparseSet<T>*)nativeSparseSet;
+                var handle = (UnsafeOrderedSparseSet<TValue>*)nativeSparseSet;
                 _nativeSparseSet = handle;
                 _version = handle->_version;
                 _index = -1;
@@ -885,12 +888,18 @@ namespace NativeCollections
             }
 
             /// <summary>
+            ///     Reset
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Reset() => _index = -1;
+
+            /// <summary>
             ///     Current
             /// </summary>
-            public readonly KeyValuePair<int, T> Current
+            public readonly KeyValuePair<int, TValue> Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => Unsafe.Add(ref Unsafe.AsRef<KeyValuePair<int, T>>(_nativeSparseSet->_dense), (nint)_index);
+                get => Unsafe.Add(ref Unsafe.AsRef<KeyValuePair<int, TValue>>(_nativeSparseSet->_dense), (nint)_index);
             }
         }
 
@@ -903,14 +912,14 @@ namespace NativeCollections
             /// <summary>
             ///     NativeSparseSet
             /// </summary>
-            private readonly UnsafeOrderedSparseSet<T>* _nativeSparseSet;
+            private readonly UnsafeOrderedSparseSet<TValue>* _nativeSparseSet;
 
             /// <summary>
             ///     Structure
             /// </summary>
             /// <param name="nativeSparseSet">NativeSparseSet</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal KeyCollection(void* nativeSparseSet) => _nativeSparseSet = (UnsafeOrderedSparseSet<T>*)nativeSparseSet;
+            internal KeyCollection(void* nativeSparseSet) => _nativeSparseSet = (UnsafeOrderedSparseSet<TValue>*)nativeSparseSet;
 
             /// <summary>
             ///     Count
@@ -927,8 +936,8 @@ namespace NativeCollections
                 get
                 {
                     var handle = _nativeSparseSet;
-                    ThrowHelpers.ThrowIfNegative(index, nameof(index));
-                    ThrowHelpers.ThrowIfGreaterThanOrEqual(index, handle->_count, nameof(index));
+                    ThrowHelpers.ThrowIfNegative(index, ExceptionArgument.index);
+                    ThrowHelpers.ThrowIfGreaterThanOrEqual(index, handle->_count, ExceptionArgument.index);
                     return Unsafe.Add(ref Unsafe.AsRef<Entry>(handle->_dense), (nint)index).Key;
                 }
             }
@@ -942,6 +951,8 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
+            [Obsolete("Call this method will always throw an exception.")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator<int> IEnumerable<int>.GetEnumerator()
             {
                 ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -951,6 +962,8 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
+            [Obsolete("Call this method will always throw an exception.")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator IEnumerable.GetEnumerator()
             {
                 ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -960,12 +973,13 @@ namespace NativeCollections
             /// <summary>
             ///     Enumerator
             /// </summary>
-            public struct Enumerator
+            [StructLayout(LayoutKind.Sequential)]
+            public struct Enumerator : IIterator<int>
             {
                 /// <summary>
                 ///     NativeSparseSet
                 /// </summary>
-                private readonly UnsafeOrderedSparseSet<T>* _nativeSparseSet;
+                private readonly UnsafeOrderedSparseSet<TValue>* _nativeSparseSet;
 
                 /// <summary>
                 ///     Version
@@ -984,7 +998,7 @@ namespace NativeCollections
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 internal Enumerator(void* nativeSparseSet)
                 {
-                    var handle = (UnsafeOrderedSparseSet<T>*)nativeSparseSet;
+                    var handle = (UnsafeOrderedSparseSet<TValue>*)nativeSparseSet;
                     _nativeSparseSet = handle;
                     _version = handle->_version;
                     _index = -1;
@@ -1005,6 +1019,12 @@ namespace NativeCollections
                     _index = num;
                     return true;
                 }
+
+                /// <summary>
+                ///     Reset
+                /// </summary>
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public void Reset() => _index = -1;
 
                 /// <summary>
                 ///     Current
@@ -1021,19 +1041,19 @@ namespace NativeCollections
         ///     Value collection
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public readonly struct ValueCollection : IReadOnlyCollection<T>
+        public readonly struct ValueCollection : IReadOnlyCollection<TValue>
         {
             /// <summary>
             ///     NativeSparseSet
             /// </summary>
-            private readonly UnsafeOrderedSparseSet<T>* _nativeSparseSet;
+            private readonly UnsafeOrderedSparseSet<TValue>* _nativeSparseSet;
 
             /// <summary>
             ///     Structure
             /// </summary>
             /// <param name="nativeSparseSet">NativeSparseSet</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal ValueCollection(void* nativeSparseSet) => _nativeSparseSet = (UnsafeOrderedSparseSet<T>*)nativeSparseSet;
+            internal ValueCollection(void* nativeSparseSet) => _nativeSparseSet = (UnsafeOrderedSparseSet<TValue>*)nativeSparseSet;
 
             /// <summary>
             ///     Count
@@ -1044,14 +1064,14 @@ namespace NativeCollections
             ///     Get reference
             /// </summary>
             /// <param name="index">Index</param>
-            public ref T this[int index]
+            public ref TValue this[int index]
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get
                 {
                     var handle = _nativeSparseSet;
-                    ThrowHelpers.ThrowIfNegative(index, nameof(index));
-                    ThrowHelpers.ThrowIfGreaterThanOrEqual(index, handle->_count, nameof(index));
+                    ThrowHelpers.ThrowIfNegative(index, ExceptionArgument.index);
+                    ThrowHelpers.ThrowIfGreaterThanOrEqual(index, handle->_count, ExceptionArgument.index);
                     return ref Unsafe.Add(ref Unsafe.AsRef<Entry>(handle->_dense), (nint)index).Value;
                 }
             }
@@ -1065,7 +1085,9 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
-            IEnumerator<T> IEnumerable<T>.GetEnumerator()
+            [Obsolete("Call this method will always throw an exception.")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator()
             {
                 ThrowHelpers.ThrowCannotCallGetEnumeratorException();
                 return default;
@@ -1074,6 +1096,8 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
+            [Obsolete("Call this method will always throw an exception.")]
+            [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator IEnumerable.GetEnumerator()
             {
                 ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -1083,12 +1107,13 @@ namespace NativeCollections
             /// <summary>
             ///     Enumerator
             /// </summary>
-            public struct Enumerator
+            [StructLayout(LayoutKind.Sequential)]
+            public struct Enumerator : IIterator<TValue>
             {
                 /// <summary>
                 ///     NativeSparseSet
                 /// </summary>
-                private readonly UnsafeOrderedSparseSet<T>* _nativeSparseSet;
+                private readonly UnsafeOrderedSparseSet<TValue>* _nativeSparseSet;
 
                 /// <summary>
                 ///     Version
@@ -1107,7 +1132,7 @@ namespace NativeCollections
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 internal Enumerator(void* nativeSparseSet)
                 {
-                    var handle = (UnsafeOrderedSparseSet<T>*)nativeSparseSet;
+                    var handle = (UnsafeOrderedSparseSet<TValue>*)nativeSparseSet;
                     _nativeSparseSet = handle;
                     _version = handle->_version;
                     _index = -1;
@@ -1130,12 +1155,179 @@ namespace NativeCollections
                 }
 
                 /// <summary>
+                ///     Reset
+                /// </summary>
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public void Reset() => _index = -1;
+
+                /// <summary>
                 ///     Current
                 /// </summary>
-                public readonly T Current
+                public readonly TValue Current
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
                     get => Unsafe.Add(ref Unsafe.AsRef<Entry>(_nativeSparseSet->_dense), (nint)_index).Value;
+                }
+            }
+        }
+
+        /// <summary>
+        ///     KeyValuePair collection
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
+        public readonly struct OrderedKeyValuePairCollection
+        {
+            /// <summary>
+            ///     NativeSparseSet
+            /// </summary>
+            private readonly UnsafeOrderedSparseSet<TValue>* _nativeSparseSet;
+
+            /// <summary>
+            ///     Structure
+            /// </summary>
+            /// <param name="nativeSparseSet">NativeSparseSet</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            internal OrderedKeyValuePairCollection(void* nativeSparseSet) => _nativeSparseSet = (UnsafeOrderedSparseSet<TValue>*)nativeSparseSet;
+
+            /// <summary>
+            ///     Count
+            /// </summary>
+            public int Count => _nativeSparseSet->_count;
+
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            /// <param name="count">Count</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int CopyTo(Span<KeyValuePair<int, TValue>> buffer, int count)
+            {
+                ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
+                ref var reference = ref MemoryMarshal.GetReference(buffer);
+                count = Math.Min(buffer.Length, Math.Min(count, _nativeSparseSet->_count));
+                var dense = _nativeSparseSet->_dense;
+                var current = _nativeSparseSet->_head;
+                for (var index = 0; index < count; ++index)
+                {
+                    ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(dense), (nint)current);
+                    UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)index), new KeyValuePair<int, TValue>(entry.Key, entry.Value));
+                    current = entry.Next;
+                }
+
+                return count;
+            }
+
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            /// <param name="count">Count</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int CopyTo(Span<byte> buffer, int count) => CopyTo(MemoryMarshal.Cast<byte, KeyValuePair<int, TValue>>(buffer), count);
+
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void CopyTo(Span<KeyValuePair<int, TValue>> buffer)
+            {
+                ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, ExceptionArgument.buffer);
+                ref var reference = ref MemoryMarshal.GetReference(buffer);
+                var dense = _nativeSparseSet->_dense;
+                var current = _nativeSparseSet->_head;
+                for (var index = 0; index < _nativeSparseSet->_count; ++index)
+                {
+                    ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(dense), (nint)current);
+                    UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)index), new KeyValuePair<int, TValue>(entry.Key, entry.Value));
+                    current = entry.Next;
+                }
+            }
+
+            /// <summary>
+            ///     Copy to
+            /// </summary>
+            /// <param name="buffer">Buffer</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, KeyValuePair<int, TValue>>(buffer));
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            /// <returns>Enumerator</returns>
+            public Enumerator GetEnumerator() => new(_nativeSparseSet);
+
+            /// <summary>
+            ///     Enumerator
+            /// </summary>
+            [StructLayout(LayoutKind.Sequential)]
+            public struct Enumerator : IIterator<KeyValuePair<int, TValue>>
+            {
+                /// <summary>
+                ///     NativeSparseSet
+                /// </summary>
+                private readonly UnsafeOrderedSparseSet<TValue>* _nativeSparseSet;
+
+                /// <summary>
+                ///     Version
+                /// </summary>
+                private readonly int _version;
+
+                /// <summary>
+                ///     Index
+                /// </summary>
+                private int _index;
+
+                /// <summary>
+                ///     Current
+                /// </summary>
+                private Entry* _current;
+
+                /// <summary>
+                ///     Structure
+                /// </summary>
+                /// <param name="nativeSparseSet">NativeSparseSet</param>
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                internal Enumerator(void* nativeSparseSet)
+                {
+                    var handle = (UnsafeOrderedSparseSet<TValue>*)nativeSparseSet;
+                    _nativeSparseSet = handle;
+                    _version = handle->_version;
+                    _index = -1;
+                    _current = handle->_head != -1 ? UnsafeHelpers.Add<Entry>(handle->_dense, handle->_head) : null;
+                }
+
+                /// <summary>
+                ///     Move next
+                /// </summary>
+                /// <returns>Moved</returns>
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public bool MoveNext()
+                {
+                    var handle = _nativeSparseSet;
+                    ThrowHelpers.ThrowIfEnumFailedVersion(_version, handle->_version);
+                    var num = _index + 1;
+                    if (num >= handle->_count)
+                        return false;
+                    _index = num;
+                    if (num != 0)
+                        _current = UnsafeHelpers.Add<Entry>(handle->_dense, _current->Next);
+                    return true;
+                }
+
+                /// <summary>
+                ///     Reset
+                /// </summary>
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public void Reset() => _index = -1;
+
+                /// <summary>
+                ///     Current
+                /// </summary>
+                public readonly KeyValuePair<int, TValue> Current
+                {
+                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                    get => Unsafe.AsRef<KeyValuePair<int, TValue>>(_current);
                 }
             }
         }
@@ -1149,14 +1341,14 @@ namespace NativeCollections
             /// <summary>
             ///     NativeSparseSet
             /// </summary>
-            private readonly UnsafeOrderedSparseSet<T>* _nativeSparseSet;
+            private readonly UnsafeOrderedSparseSet<TValue>* _nativeSparseSet;
 
             /// <summary>
             ///     Structure
             /// </summary>
             /// <param name="nativeSparseSet">NativeSparseSet</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal OrderedKeyCollection(void* nativeSparseSet) => _nativeSparseSet = (UnsafeOrderedSparseSet<T>*)nativeSparseSet;
+            internal OrderedKeyCollection(void* nativeSparseSet) => _nativeSparseSet = (UnsafeOrderedSparseSet<TValue>*)nativeSparseSet;
 
             /// <summary>
             ///     Count
@@ -1171,7 +1363,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int CopyTo(Span<int> buffer, int count)
             {
-                ThrowHelpers.ThrowIfNegative(count, nameof(count));
+                ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
                 ref var reference = ref MemoryMarshal.GetReference(buffer);
                 count = Math.Min(buffer.Length, Math.Min(count, _nativeSparseSet->_count));
                 var dense = _nativeSparseSet->_dense;
@@ -1179,7 +1371,7 @@ namespace NativeCollections
                 for (var index = 0; index < count; ++index)
                 {
                     ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(dense), (nint)current);
-                    Unsafe.WriteUnaligned(ref Unsafe.As<int, byte>(ref Unsafe.Add(ref reference, (nint)index)), entry.Key);
+                    UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)index), entry.Key);
                     current = entry.Next;
                 }
 
@@ -1201,14 +1393,14 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void CopyTo(Span<int> buffer)
             {
-                ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, nameof(buffer));
+                ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, ExceptionArgument.buffer);
                 ref var reference = ref MemoryMarshal.GetReference(buffer);
                 var dense = _nativeSparseSet->_dense;
                 var current = _nativeSparseSet->_head;
                 for (var index = 0; index < _nativeSparseSet->_count; ++index)
                 {
                     ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(dense), (nint)current);
-                    Unsafe.WriteUnaligned(ref Unsafe.As<int, byte>(ref Unsafe.Add(ref reference, (nint)index)), entry.Key);
+                    UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)index), entry.Key);
                     current = entry.Next;
                 }
             }
@@ -1229,12 +1421,13 @@ namespace NativeCollections
             /// <summary>
             ///     Enumerator
             /// </summary>
-            public struct Enumerator
+            [StructLayout(LayoutKind.Sequential)]
+            public struct Enumerator : IIterator<int>
             {
                 /// <summary>
                 ///     NativeSparseSet
                 /// </summary>
-                private readonly UnsafeOrderedSparseSet<T>* _nativeSparseSet;
+                private readonly UnsafeOrderedSparseSet<TValue>* _nativeSparseSet;
 
                 /// <summary>
                 ///     Version
@@ -1258,7 +1451,7 @@ namespace NativeCollections
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 internal Enumerator(void* nativeSparseSet)
                 {
-                    var handle = (UnsafeOrderedSparseSet<T>*)nativeSparseSet;
+                    var handle = (UnsafeOrderedSparseSet<TValue>*)nativeSparseSet;
                     _nativeSparseSet = handle;
                     _version = handle->_version;
                     _index = -1;
@@ -1282,6 +1475,12 @@ namespace NativeCollections
                         _current = UnsafeHelpers.Add<Entry>(handle->_dense, _current->Next);
                     return true;
                 }
+
+                /// <summary>
+                ///     Reset
+                /// </summary>
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public void Reset() => _index = -1;
 
                 /// <summary>
                 ///     Current
@@ -1303,14 +1502,14 @@ namespace NativeCollections
             /// <summary>
             ///     NativeSparseSet
             /// </summary>
-            private readonly UnsafeOrderedSparseSet<T>* _nativeSparseSet;
+            private readonly UnsafeOrderedSparseSet<TValue>* _nativeSparseSet;
 
             /// <summary>
             ///     Structure
             /// </summary>
             /// <param name="nativeSparseSet">NativeSparseSet</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal OrderedValueCollection(void* nativeSparseSet) => _nativeSparseSet = (UnsafeOrderedSparseSet<T>*)nativeSparseSet;
+            internal OrderedValueCollection(void* nativeSparseSet) => _nativeSparseSet = (UnsafeOrderedSparseSet<TValue>*)nativeSparseSet;
 
             /// <summary>
             ///     Count
@@ -1323,9 +1522,9 @@ namespace NativeCollections
             /// <param name="buffer">Buffer</param>
             /// <param name="count">Count</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public int CopyTo(Span<T> buffer, int count)
+            public int CopyTo(Span<TValue> buffer, int count)
             {
-                ThrowHelpers.ThrowIfNegative(count, nameof(count));
+                ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
                 ref var reference = ref MemoryMarshal.GetReference(buffer);
                 count = Math.Min(buffer.Length, Math.Min(count, _nativeSparseSet->_count));
                 var dense = _nativeSparseSet->_dense;
@@ -1333,7 +1532,7 @@ namespace NativeCollections
                 for (var index = 0; index < count; ++index)
                 {
                     ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(dense), (nint)current);
-                    Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)index)), entry.Value);
+                    UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)index), entry.Value);
                     current = entry.Next;
                 }
 
@@ -1346,23 +1545,23 @@ namespace NativeCollections
             /// <param name="buffer">Buffer</param>
             /// <param name="count">Count</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public int CopyTo(Span<byte> buffer, int count) => CopyTo(MemoryMarshal.Cast<byte, T>(buffer), count);
+            public int CopyTo(Span<byte> buffer, int count) => CopyTo(MemoryMarshal.Cast<byte, TValue>(buffer), count);
 
             /// <summary>
             ///     Copy to
             /// </summary>
             /// <param name="buffer">Buffer</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void CopyTo(Span<T> buffer)
+            public void CopyTo(Span<TValue> buffer)
             {
-                ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, nameof(buffer));
+                ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, ExceptionArgument.buffer);
                 ref var reference = ref MemoryMarshal.GetReference(buffer);
                 var dense = _nativeSparseSet->_dense;
                 var current = _nativeSparseSet->_head;
                 for (var index = 0; index < _nativeSparseSet->_count; ++index)
                 {
                     ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(dense), (nint)current);
-                    Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)index)), entry.Value);
+                    UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)index), entry.Value);
                     current = entry.Next;
                 }
             }
@@ -1372,7 +1571,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="buffer">Buffer</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, T>(buffer));
+            public void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, TValue>(buffer));
 
             /// <summary>
             ///     Get enumerator
@@ -1383,12 +1582,13 @@ namespace NativeCollections
             /// <summary>
             ///     Enumerator
             /// </summary>
-            public struct Enumerator
+            [StructLayout(LayoutKind.Sequential)]
+            public struct Enumerator : IIterator<TValue>
             {
                 /// <summary>
                 ///     NativeSparseSet
                 /// </summary>
-                private readonly UnsafeOrderedSparseSet<T>* _nativeSparseSet;
+                private readonly UnsafeOrderedSparseSet<TValue>* _nativeSparseSet;
 
                 /// <summary>
                 ///     Version
@@ -1412,7 +1612,7 @@ namespace NativeCollections
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 internal Enumerator(void* nativeSparseSet)
                 {
-                    var handle = (UnsafeOrderedSparseSet<T>*)nativeSparseSet;
+                    var handle = (UnsafeOrderedSparseSet<TValue>*)nativeSparseSet;
                     _nativeSparseSet = handle;
                     _version = handle->_version;
                     _index = -1;
@@ -1438,166 +1638,18 @@ namespace NativeCollections
                 }
 
                 /// <summary>
+                ///     Reset
+                /// </summary>
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public void Reset() => _index = -1;
+
+                /// <summary>
                 ///     Current
                 /// </summary>
-                public T Current
+                public TValue Current
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
                     get => _current->Value;
-                }
-            }
-        }
-
-        /// <summary>
-        ///     KeyValuePair collection
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential)]
-        public readonly struct OrderedKeyValuePairCollection
-        {
-            /// <summary>
-            ///     NativeSparseSet
-            /// </summary>
-            private readonly UnsafeOrderedSparseSet<T>* _nativeSparseSet;
-
-            /// <summary>
-            ///     Structure
-            /// </summary>
-            /// <param name="nativeSparseSet">NativeSparseSet</param>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal OrderedKeyValuePairCollection(void* nativeSparseSet) => _nativeSparseSet = (UnsafeOrderedSparseSet<T>*)nativeSparseSet;
-
-            /// <summary>
-            ///     Count
-            /// </summary>
-            public int Count => _nativeSparseSet->_count;
-
-            /// <summary>
-            ///     Copy to
-            /// </summary>
-            /// <param name="buffer">Buffer</param>
-            /// <param name="count">Count</param>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public int CopyTo(Span<KeyValuePair<int, T>> buffer, int count)
-            {
-                ThrowHelpers.ThrowIfNegative(count, nameof(count));
-                ref var reference = ref MemoryMarshal.GetReference(buffer);
-                count = Math.Min(buffer.Length, Math.Min(count, _nativeSparseSet->_count));
-                var dense = _nativeSparseSet->_dense;
-                var current = _nativeSparseSet->_head;
-                for (var index = 0; index < count; ++index)
-                {
-                    ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(dense), (nint)current);
-                    Unsafe.WriteUnaligned(ref Unsafe.As<KeyValuePair<int, T>, byte>(ref Unsafe.Add(ref reference, (nint)index)), new KeyValuePair<int, T>(entry.Key, entry.Value));
-                    current = entry.Next;
-                }
-
-                return count;
-            }
-
-            /// <summary>
-            ///     Copy to
-            /// </summary>
-            /// <param name="buffer">Buffer</param>
-            /// <param name="count">Count</param>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public int CopyTo(Span<byte> buffer, int count) => CopyTo(MemoryMarshal.Cast<byte, KeyValuePair<int, T>>(buffer), count);
-
-            /// <summary>
-            ///     Copy to
-            /// </summary>
-            /// <param name="buffer">Buffer</param>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void CopyTo(Span<KeyValuePair<int, T>> buffer)
-            {
-                ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, nameof(buffer));
-                ref var reference = ref MemoryMarshal.GetReference(buffer);
-                var dense = _nativeSparseSet->_dense;
-                var current = _nativeSparseSet->_head;
-                for (var index = 0; index < _nativeSparseSet->_count; ++index)
-                {
-                    ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(dense), (nint)current);
-                    Unsafe.WriteUnaligned(ref Unsafe.As<KeyValuePair<int, T>, byte>(ref Unsafe.Add(ref reference, (nint)index)), new KeyValuePair<int, T>(entry.Key, entry.Value));
-                    current = entry.Next;
-                }
-            }
-
-            /// <summary>
-            ///     Copy to
-            /// </summary>
-            /// <param name="buffer">Buffer</param>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, KeyValuePair<int, T>>(buffer));
-
-            /// <summary>
-            ///     Get enumerator
-            /// </summary>
-            /// <returns>Enumerator</returns>
-            public Enumerator GetEnumerator() => new(_nativeSparseSet);
-
-            /// <summary>
-            ///     Enumerator
-            /// </summary>
-            public struct Enumerator
-            {
-                /// <summary>
-                ///     NativeSparseSet
-                /// </summary>
-                private readonly UnsafeOrderedSparseSet<T>* _nativeSparseSet;
-
-                /// <summary>
-                ///     Version
-                /// </summary>
-                private readonly int _version;
-
-                /// <summary>
-                ///     Index
-                /// </summary>
-                private int _index;
-
-                /// <summary>
-                ///     Current
-                /// </summary>
-                private Entry* _current;
-
-                /// <summary>
-                ///     Structure
-                /// </summary>
-                /// <param name="nativeSparseSet">NativeSparseSet</param>
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(void* nativeSparseSet)
-                {
-                    var handle = (UnsafeOrderedSparseSet<T>*)nativeSparseSet;
-                    _nativeSparseSet = handle;
-                    _version = handle->_version;
-                    _index = -1;
-                    _current = handle->_head != -1 ? UnsafeHelpers.Add<Entry>(handle->_dense, handle->_head) : null;
-                }
-
-                /// <summary>
-                ///     Move next
-                /// </summary>
-                /// <returns>Moved</returns>
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public bool MoveNext()
-                {
-                    var handle = _nativeSparseSet;
-                    ThrowHelpers.ThrowIfEnumFailedVersion(_version, handle->_version);
-                    var num = _index + 1;
-                    if (num >= handle->_count)
-                        return false;
-                    _index = num;
-                    if (num != 0)
-                        _current = UnsafeHelpers.Add<Entry>(handle->_dense, _current->Next);
-                    return true;
-                }
-
-                /// <summary>
-                ///     Current
-                /// </summary>
-                public readonly KeyValuePair<int, T> Current
-                {
-                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                    get => Unsafe.AsRef<KeyValuePair<int, T>>(_current);
                 }
             }
         }

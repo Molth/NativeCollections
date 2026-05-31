@@ -7,10 +7,16 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Array helpers
+    ///     Memory marshal helpers
     /// </summary>
-    internal static class ArrayHelpers
+    internal static class MemoryMarshalHelpers
     {
+        /// <summary>
+        ///     Re-interprets a span of bytes as a reference to structure of type T.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ref T AsRef<T>(Span<byte> buffer) where T : unmanaged => ref Unsafe.As<byte, T>(ref MemoryMarshal.GetReference(buffer));
+
         /// <summary>
         ///     Returns a reference to the 0th element of <paramref name="array" />. If the array is empty, returns a reference to
         ///     where the 0th element

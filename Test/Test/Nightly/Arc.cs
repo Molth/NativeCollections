@@ -1,101 +1,44 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using NativeCollections;
 
 namespace Examples
 {
-    public unsafe struct Arc<T> where T : unmanaged
+    public readonly unsafe struct Arc<T> : IDisposable where T : unmanaged, IDisposable
     {
-        private T _value;
-        private int _state;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ArcRef<T> BorrowMutable()
-        {
-            if (Interlocked.CompareExchange(ref _state, -1, 0) != 0)
-                throw new InvalidOperationException();
-            return new ArcRef<T>(Unsafe.AsPointer(ref _value), Unsafe.AsPointer(ref _state));
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ArcReadOnlyRef<T> Borrow()
-        {
-            while (true)
-            {
-                var snapshot = Volatile.Read(ref _state);
-                if (snapshot < 0)
-                    throw new InvalidOperationException();
-                if (Interlocked.CompareExchange(ref _state, snapshot + 1, snapshot) == snapshot)
-                    break;
-            }
-
-            return new ArcReadOnlyRef<T>(Unsafe.AsPointer(ref _value), Unsafe.AsPointer(ref _state));
-        }
-    }
-
-    public unsafe struct ArcRef<T> : IDisposable where T : unmanaged
-    {
-        private nint _ptr;
         private readonly int* _state;
-        private int _disposed;
+        private readonly T* _value;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal ArcRef(void* ptr, void* state)
+        private Arc(int* state, T* value)
         {
-            _ptr = (nint)ptr;
-            _state = (int*)state;
-            _disposed = 0;
+            _state = state;
+            _value = value;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref T Unwrap()
-        {
-            var handle = Interlocked.Exchange(ref _ptr, 0);
-            if (handle == 0)
-                throw new InvalidOperationException();
-            return ref Unsafe.AsRef<T>((void*)handle);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            if (Interlocked.Exchange(ref _disposed, 1) != 0)
+            if (Interlocked.Decrement(ref Unsafe.AsRef<int>(_state)) > 0)
                 return;
-            Interlocked.Exchange(ref _ptr, 0);
-            Volatile.Write(ref Unsafe.AsRef<int>(_state), 0);
-        }
-    }
-
-    public unsafe struct ArcReadOnlyRef<T> : IDisposable where T : unmanaged
-    {
-        private nint _ptr;
-        private readonly int* _state;
-        private int _disposed;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal ArcReadOnlyRef(void* ptr, void* state)
-        {
-            _ptr = (nint)ptr;
-            _state = (int*)state;
-            _disposed = 0;
+            _value->Dispose();
+            NativeMemoryAllocator.AlignedFree(_state);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref readonly T Unwrap()
+        public Arc<T> Clone()
         {
-            var handle = Interlocked.Exchange(ref _ptr, 0);
-            if (handle == 0)
-                throw new InvalidOperationException();
-            return ref Unsafe.AsRef<T>((void*)handle);
+            Interlocked.Increment(ref Unsafe.AsRef<int>(_state));
+            return this;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
+        public static Arc<T> Create(in T value)
         {
-            if (Interlocked.Exchange(ref _disposed, 1) != 0)
-                return;
-            Interlocked.Exchange(ref _ptr, 0);
-            Interlocked.Decrement(ref Unsafe.AsRef<int>(_state));
+            var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<int>(), NativeMemoryAllocator.AlignOf<T>());
+            var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)Unsafe.SizeOf<int>(), alignment);
+            var buckets = (int*)NativeMemoryAllocator.AlignedAllocZeroed((uint)(bucketsByteCount + Unsafe.SizeOf<T>()), alignment);
+            var entries = (T*)((nint)buckets + (nint)bucketsByteCount);
+            Unsafe.AsRef<int>(buckets) = 1;
+            Unsafe.AsRef<T>(entries) = value;
+            return new Arc<T>(buckets, entries);
         }
     }
 }

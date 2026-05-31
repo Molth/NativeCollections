@@ -1,11 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-
-#pragma warning disable CA2208
-#pragma warning disable CS8632
 
 // ReSharper disable ALL
 
@@ -182,6 +180,13 @@ namespace NativeCollections
         public void AddRange(ReadOnlySpan<T> buffer) => _handle->AddRange(buffer);
 
         /// <summary>
+        ///     Try add range
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryAddRange(ReadOnlySpan<T> buffer) => _handle->TryAddRange(buffer);
+
+        /// <summary>
         ///     Insert
         /// </summary>
         /// <param name="index">Index</param>
@@ -190,12 +195,28 @@ namespace NativeCollections
         public void Insert(int index, in T item) => _handle->Insert(index, item);
 
         /// <summary>
+        ///     Try insert
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="item">Item</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryInsert(int index, in T item) => _handle->TryInsert(index, item);
+
+        /// <summary>
         ///     Insert
         /// </summary>
         /// <param name="index">Index</param>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void InsertRange(int index, ReadOnlySpan<T> buffer) => _handle->InsertRange(index, buffer);
+
+        /// <summary>
+        ///     Try insert
+        /// </summary>
+        /// <param name="index">Index</param>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryInsertRange(int index, ReadOnlySpan<T> buffer) => _handle->TryInsertRange(index, buffer);
 
         /// <summary>
         ///     Remove
@@ -240,6 +261,13 @@ namespace NativeCollections
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reverse() => _handle->Reverse();
+
+        /// <summary>
+        ///     Reverse
+        /// </summary>
+        /// <param name="index">Index</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Reverse(int index) => _handle->Reverse(index);
 
         /// <summary>
         ///     Reverse
@@ -410,6 +438,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
@@ -419,6 +449,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();

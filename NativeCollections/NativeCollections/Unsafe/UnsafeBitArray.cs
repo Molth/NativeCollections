@@ -2,9 +2,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-#pragma warning disable CA2208
-#pragma warning disable CS8632
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -89,7 +86,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeBitArray(int length)
         {
-            ThrowHelpers.ThrowIfNegative(length, nameof(length));
+            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
             _buffer = new NativeArray<int>(GetInt32ArrayLengthFromBitLength(length), true);
             _length = length;
         }
@@ -102,7 +99,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeBitArray(int length, bool defaultValue)
         {
-            ThrowHelpers.ThrowIfNegative(length, nameof(length));
+            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
             _buffer = new NativeArray<int>(GetInt32ArrayLengthFromBitLength(length));
             _length = length;
             if (defaultValue)
@@ -126,7 +123,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeBitArray(int* buffer, int length)
         {
-            ThrowHelpers.ThrowIfNegative(length, nameof(length));
+            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
             _buffer = new NativeArray<int>(buffer, GetInt32ArrayLengthFromBitLength(length));
             _length = length;
         }
@@ -140,7 +137,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeBitArray(int* buffer, int length, bool defaultValue)
         {
-            ThrowHelpers.ThrowIfNegative(length, nameof(length));
+            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
             _buffer = new NativeArray<int>(buffer, GetInt32ArrayLengthFromBitLength(length));
             _length = length;
             if (defaultValue)
@@ -164,9 +161,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeBitArray(NativeArray<int> buffer, int length)
         {
-            ThrowHelpers.ThrowIfNegative(length, nameof(length));
+            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
             var intCount = GetInt32ArrayLengthFromBitLength(length);
-            ThrowHelpers.ThrowIfLessThan(buffer.Length, intCount, nameof(buffer));
+            ThrowHelpers.ThrowIfLessThan(buffer.Length, intCount, ExceptionArgument.buffer);
             _buffer = buffer;
             _length = length;
         }
@@ -180,9 +177,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeBitArray(NativeArray<int> buffer, int length, bool defaultValue)
         {
-            ThrowHelpers.ThrowIfNegative(length, nameof(length));
+            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
             var intCount = GetInt32ArrayLengthFromBitLength(length);
-            ThrowHelpers.ThrowIfLessThan(buffer.Length, intCount, nameof(buffer));
+            ThrowHelpers.ThrowIfLessThan(buffer.Length, intCount, ExceptionArgument.buffer);
             _buffer = buffer;
             _length = length;
             if (defaultValue)
@@ -205,18 +202,24 @@ namespace NativeCollections
         public readonly void Dispose() => _buffer.Dispose();
 
         /// <summary>
+        ///     As bytes
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly Span<byte> AsBytes() => MemoryMarshal.CreateSpan(ref Unsafe.AsRef<byte>(_buffer.Buffer), GetByteArrayLengthFromBitLength(_length));
+
+        /// <summary>
         ///     Set length
         /// </summary>
         /// <param name="length">Length</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetLength(int length)
         {
-            ThrowHelpers.ThrowIfNegative(length, nameof(length));
+            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
             var newLength = GetInt32ArrayLengthFromBitLength(length);
             if (newLength > _buffer.Length || newLength + 256 < _buffer.Length)
             {
                 var buffer = new NativeArray<int>(newLength);
-                Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(buffer.Buffer), ref Unsafe.AsRef<byte>(_buffer.Buffer), (uint)(_buffer.Length * sizeof(int)));
+                Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(buffer.Buffer), ref Unsafe.AsRef<byte>(_buffer.Buffer), (uint)(_buffer.Length * Unsafe.SizeOf<int>()));
                 Unsafe.InitBlockUnaligned(ref Unsafe.As<int, byte>(ref Unsafe.Add(ref Unsafe.AsRef<int>(buffer.Buffer), (nint)buffer.Length)), 0, (uint)(newLength - _buffer.Length));
                 _buffer.Dispose();
                 _buffer = buffer;
@@ -242,7 +245,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool Get(int index)
         {
-            ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_length, nameof(index));
+            ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_length, ExceptionArgument.index);
             return (_buffer[index >> 5] & (1 << index)) != 0;
         }
 
@@ -254,7 +257,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Set(int index, bool value)
         {
-            ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_length, nameof(index));
+            ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_length, ExceptionArgument.index);
             var bitMask = 1 << index;
             ref var segment = ref _buffer[index >> 5];
             if (value)
@@ -271,7 +274,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool Get(uint index)
         {
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, (uint)_length, nameof(index));
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, (uint)_length, ExceptionArgument.index);
             return (_buffer[index >> 5] & (1 << (int)index)) != 0;
         }
 
@@ -283,7 +286,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Set(uint index, bool value)
         {
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, (uint)_length, nameof(index));
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, (uint)_length, ExceptionArgument.index);
             var bitMask = 1 << (int)index;
             ref var segment = ref _buffer[index >> 5];
             if (value)
@@ -323,7 +326,7 @@ namespace NativeCollections
         public readonly void And(NativeBitArray value)
         {
             if (!value.IsCreated)
-                ThrowHelpers.ThrowArgumentNullException(nameof(value));
+                ThrowHelpers.ThrowArgumentNullException(ExceptionArgument.value);
             And(new UnsafeBitArray(value.Buffer, value.Length));
         }
 
@@ -350,7 +353,7 @@ namespace NativeCollections
         public readonly void Or(NativeBitArray value)
         {
             if (!value.IsCreated)
-                ThrowHelpers.ThrowArgumentNullException(nameof(value));
+                ThrowHelpers.ThrowArgumentNullException(ExceptionArgument.value);
             Or(new UnsafeBitArray(value.Buffer, value.Length));
         }
 
@@ -377,7 +380,7 @@ namespace NativeCollections
         public readonly void Xor(NativeBitArray value)
         {
             if (!value.IsCreated)
-                ThrowHelpers.ThrowArgumentNullException(nameof(value));
+                ThrowHelpers.ThrowArgumentNullException(ExceptionArgument.value);
             Xor(new UnsafeBitArray(value.Buffer, value.Length));
         }
 
@@ -414,7 +417,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RightShift(int count)
         {
-            ThrowHelpers.ThrowIfNegative(count, nameof(count));
+            ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
             if (count == 0)
                 return;
             var toIndex = 0;
@@ -431,7 +434,7 @@ namespace NativeCollections
                         _buffer[length - 1] &= (int)mask;
                     }
 
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(_buffer.Buffer), ref Unsafe.As<int, byte>(ref Unsafe.Add(ref Unsafe.AsRef<int>(_buffer.Buffer), (nint)fromIndex)), (uint)((length - fromIndex) * sizeof(int)));
+                    Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(_buffer.Buffer), ref Unsafe.As<int, byte>(ref Unsafe.Add(ref Unsafe.AsRef<int>(_buffer.Buffer), (nint)fromIndex)), (uint)((length - fromIndex) * Unsafe.SizeOf<int>()));
                     toIndex = length - fromIndex;
                 }
                 else
@@ -464,7 +467,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void LeftShift(int count)
         {
-            ThrowHelpers.ThrowIfNegative(count, nameof(count));
+            ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
             if (count == 0)
                 return;
             int lengthToClear;
@@ -474,7 +477,7 @@ namespace NativeCollections
                 lengthToClear = Div32Rem(count, out var shiftCount);
                 if (shiftCount == 0)
                 {
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<int, byte>(ref Unsafe.Add(ref Unsafe.AsRef<int>(_buffer.Buffer), (nint)lengthToClear)), ref Unsafe.AsRef<byte>(_buffer.Buffer), (uint)((lastIndex + 1 - lengthToClear) * sizeof(int)));
+                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<int, byte>(ref Unsafe.Add(ref Unsafe.AsRef<int>(_buffer.Buffer), (nint)lengthToClear)), ref Unsafe.AsRef<byte>(_buffer.Buffer), (uint)((lastIndex + 1 - lengthToClear) * Unsafe.SizeOf<int>()));
                 }
                 else
                 {
@@ -543,7 +546,7 @@ namespace NativeCollections
         /// <returns>Value</returns>
         public readonly NativeBitArraySlot GetSlot(int index)
         {
-            ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_length, nameof(index));
+            ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_length, ExceptionArgument.index);
             return new NativeBitArraySlot(UnsafeHelpers.Add<int>(_buffer.Buffer, index >> 5), 1 << index);
         }
 
@@ -572,7 +575,7 @@ namespace NativeCollections
         /// <returns>Value</returns>
         public readonly NativeBitArraySlot GetSlot(uint index)
         {
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, (uint)_length, nameof(index));
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, (uint)_length, ExceptionArgument.index);
             return new NativeBitArraySlot(UnsafeHelpers.Add<int>(_buffer.Buffer, (nint)index >> 5), 1 << (int)index);
         }
 
@@ -592,6 +595,21 @@ namespace NativeCollections
 
             slot = new NativeBitArraySlot(UnsafeHelpers.Add<int>(_buffer.Buffer, (nint)(index >> 5)), 1 << (int)index);
             return true;
+        }
+
+        /// <summary>
+        ///     Get byte buffer length from bit length
+        /// </summary>
+        /// <param name="n">Bit length</param>
+        /// <returns>Byte buffer length</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int GetByteArrayLengthFromBitLength(int n)
+        {
+#if NET7_0_OR_GREATER
+            return (n + 7) >>> 3;
+#else
+            return (int)(((uint)n + 7) >> 3);
+#endif
         }
 
         /// <summary>

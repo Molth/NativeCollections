@@ -1,11 +1,10 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-#pragma warning disable CS1591
-#pragma warning disable CA2208
-#pragma warning disable CA2231
-#pragma warning disable CS8632
+#pragma warning disable CA2231 // Overload operator equals on overriding ValueType.Equals
+#pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
 
 // ReSharper disable ALL
 
@@ -74,6 +73,8 @@ namespace NativeCollections
         /// <summary>
         ///     Equals
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public readonly override bool Equals(object? obj)
         {
             ThrowHelpers.ThrowCannotCallEqualsException();
@@ -83,6 +84,8 @@ namespace NativeCollections
         /// <summary>
         ///     Get hashCode
         /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public readonly override int GetHashCode()
         {
             ThrowHelpers.ThrowCannotCallGetHashCodeException();

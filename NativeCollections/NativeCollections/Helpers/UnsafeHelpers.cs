@@ -11,6 +11,12 @@ namespace NativeCollections
     internal static unsafe class UnsafeHelpers
     {
         /// <summary>
+        ///     Writes a value of type <typeparamref name="T" /> to the given location.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteUnaligned<T>(ref T destination, in T value) => Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref destination), value);
+
+        /// <summary>
         ///     Reinterprets the given value of type <typeparamref name="TFrom" /> as a value of type <typeparamref name="TTo" />.
         /// </summary>
         /// <exception cref="NotSupportedException">
@@ -25,7 +31,7 @@ namespace NativeCollections
 #if NET8_0_OR_GREATER
             return Unsafe.BitCast<TFrom, TTo>(source);
 #else
-            if (sizeof(TFrom) != sizeof(TTo))
+            if (Unsafe.SizeOf<TFrom>() != Unsafe.SizeOf<TTo>())
                 ThrowHelpers.ThrowNotSupportedException();
             return Unsafe.ReadUnaligned<TTo>(ref Unsafe.As<TFrom, byte>(ref source));
 #endif
