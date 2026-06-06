@@ -16,17 +16,17 @@ namespace NativeCollections
         /// <summary>
         ///     Capacity
         /// </summary>
-        private int _capacity;
+        private readonly int _capacity;
 
         /// <summary>
         ///     Length
         /// </summary>
-        private int _length;
+        private readonly int _length;
 
         /// <summary>
         ///     Buffer
         /// </summary>
-        private nint* _buffer;
+        private readonly nint* _buffer;
 
         /// <summary>
         ///     Index
@@ -36,7 +36,7 @@ namespace NativeCollections
         /// <summary>
         ///     Memory allocator
         /// </summary>
-        private CustomMemoryAllocator _allocator;
+        private readonly CustomMemoryAllocator _allocator;
 
         /// <summary>
         ///     Capacity

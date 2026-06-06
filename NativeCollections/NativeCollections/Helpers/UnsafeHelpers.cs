@@ -11,6 +11,12 @@ namespace NativeCollections
     internal static unsafe class UnsafeHelpers
     {
         /// <summary>
+        ///     Reads a value of type <typeparamref name="T" /> from the given location.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T ReadUnaligned<T>(ref T source) => Unsafe.ReadUnaligned<T>(ref Unsafe.As<T, byte>(ref source));
+
+        /// <summary>
         ///     Writes a value of type <typeparamref name="T" /> to the given location.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -60,12 +66,6 @@ namespace NativeCollections
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void* AddByteOffset(void* source, nint byteOffset) => Unsafe.AsPointer(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(source), byteOffset));
-
-        /// <summary>
-        ///     Subtracts an element offset from the given reference.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T* Subtract<T>(void* source, nint elementOffset) where T : unmanaged => (T*)Unsafe.AsPointer(ref Unsafe.Subtract(ref Unsafe.AsRef<T>(source), elementOffset));
 
         /// <summary>
         ///     Subtracts a byte offset from the given reference.

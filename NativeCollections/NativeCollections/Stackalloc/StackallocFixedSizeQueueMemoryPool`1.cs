@@ -67,6 +67,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetByteCount(int capacity)
         {
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<T>(), NativeMemoryAllocator.AlignOf<int>());
             var bufferByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * Unsafe.SizeOf<T>()), alignment);
             return (int)(bufferByteCount + capacity * Unsafe.SizeOf<int>() + alignment - 1);
@@ -78,8 +79,10 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MustBePinned("Span<byte> buffer")]
         public StackallocFixedSizeQueueMemoryPool(Span<byte> buffer, int capacity)
         {
+            ThrowHelpers.ThrowIfLessThan(buffer.Length, GetByteCount(capacity), ExceptionArgument.capacity);
             var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<T>(), NativeMemoryAllocator.AlignOf<int>());
             var bufferByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * Unsafe.SizeOf<T>()), alignment);
             _buffer = (T*)NativeArray<byte>.Create(buffer, alignment).Buffer;

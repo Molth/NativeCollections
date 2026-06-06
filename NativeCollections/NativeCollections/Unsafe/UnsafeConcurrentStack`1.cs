@@ -19,17 +19,22 @@ namespace NativeCollections
         /// <summary>
         ///     Head
         /// </summary>
-        public volatile nint Head;
+        private volatile nint _head;
 
         /// <summary>
         ///     Node pool
         /// </summary>
-        public UnsafeMemoryPool NodePool;
+        private UnsafeMemoryPool _nodePool;
 
         /// <summary>
         ///     Node lock
         /// </summary>
-        public UnsafeConcurrentSpinLock NodeLock;
+        private UnsafeConcurrentSpinLock _nodeLock;
+
+        /// <summary>
+        ///     IsEmpty
+        /// </summary>
+        public readonly bool IsEmpty => _head == 0;
 
         /// <summary>
         ///     Count
@@ -40,7 +45,7 @@ namespace NativeCollections
             get
             {
                 var count = 0;
-                for (var node = (Node*)Head; node != null; node = node->Next)
+                for (var node = (Node*)_head; node != null; node = node->Next)
                     count++;
                 return count;
             }
@@ -55,16 +60,16 @@ namespace NativeCollections
         public UnsafeConcurrentStack(int size, int maxFreeSlabs)
         {
             var nodePool = new UnsafeMemoryPool(size, Unsafe.SizeOf<Node>(), maxFreeSlabs, (int)NativeMemoryAllocator.AlignOf<Node>());
-            Head = 0;
-            NodePool = nodePool;
-            NodeLock = new UnsafeConcurrentSpinLock();
+            _head = 0;
+            _nodePool = nodePool;
+            _nodeLock = new UnsafeConcurrentSpinLock();
         }
 
         /// <summary>
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => NodePool.Dispose();
+        public void Dispose() => _nodePool.Dispose();
 
         /// <summary>
         ///     Clear
@@ -72,20 +77,20 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
-            NodeLock.Enter();
+            _nodeLock.Enter();
             try
             {
-                var node = (Node*)Head;
+                var node = (Node*)_head;
                 while (node != null)
                 {
                     var temp = node;
                     node = node->Next;
-                    NodePool.Return(temp);
+                    _nodePool.Return(temp);
                 }
             }
             finally
             {
-                NodeLock.Exit();
+                _nodeLock.Exit();
             }
         }
 
@@ -97,26 +102,26 @@ namespace NativeCollections
         public void Push(in T item)
         {
             Node* newNode;
-            NodeLock.Enter();
+            _nodeLock.Enter();
             try
             {
-                newNode = (Node*)NodePool.Rent();
+                newNode = (Node*)_nodePool.Rent();
             }
             finally
             {
-                NodeLock.Exit();
+                _nodeLock.Exit();
             }
 
             newNode->Value = item;
-            newNode->Next = (Node*)Head;
-            if (Interlocked.CompareExchange(ref Head, (nint)newNode, (nint)newNode->Next) == (nint)newNode->Next)
+            newNode->Next = (Node*)_head;
+            if (Interlocked.CompareExchange(ref _head, (nint)newNode, (nint)newNode->Next) == (nint)newNode->Next)
                 return;
             var spinWait = new NativeSpinWait();
             do
             {
                 spinWait.SpinOnce(-1);
-                newNode->Next = (Node*)Head;
-            } while (Interlocked.CompareExchange(ref Head, (nint)newNode, (nint)newNode->Next) != (nint)newNode->Next);
+                newNode->Next = (Node*)_head;
+            } while (Interlocked.CompareExchange(ref _head, (nint)newNode, (nint)newNode->Next) != (nint)newNode->Next);
         }
 
         /// <summary>
@@ -127,24 +132,24 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryPop(out T result)
         {
-            var head = (Node*)Head;
+            var head = (Node*)_head;
             if (head == null)
             {
                 result = default;
                 return false;
             }
 
-            if (Interlocked.CompareExchange(ref Head, (nint)head->Next, (nint)head) == (nint)head)
+            if (Interlocked.CompareExchange(ref _head, (nint)head->Next, (nint)head) == (nint)head)
             {
                 result = head->Value;
-                NodeLock.Enter();
+                _nodeLock.Enter();
                 try
                 {
-                    NodePool.Return(head);
+                    _nodePool.Return(head);
                 }
                 finally
                 {
-                    NodeLock.Exit();
+                    _nodeLock.Exit();
                 }
 
                 return true;
@@ -157,24 +162,24 @@ namespace NativeCollections
 #endif
             while (true)
             {
-                head = (Node*)Head;
+                head = (Node*)_head;
                 if (head == null)
                 {
                     result = default;
                     return false;
                 }
 
-                if (Interlocked.CompareExchange(ref Head, (nint)head->Next, (nint)head) == (nint)head)
+                if (Interlocked.CompareExchange(ref _head, (nint)head->Next, (nint)head) == (nint)head)
                 {
                     result = head->Value;
-                    NodeLock.Enter();
+                    _nodeLock.Enter();
                     try
                     {
-                        NodePool.Return(head);
+                        _nodePool.Return(head);
                     }
                     finally
                     {
-                        NodeLock.Exit();
+                        _nodeLock.Exit();
                     }
 
                     return true;

@@ -36,37 +36,37 @@ namespace NativeCollections
         /// <summary>
         ///     Max free slabs
         /// </summary>
-        private int _maxFreeSlabs;
+        private readonly int _maxFreeSlabs;
 
         /// <summary>
         ///     Size
         /// </summary>
-        private int _size;
+        private readonly int _size;
 
         /// <summary>
         ///     Length
         /// </summary>
-        private int _length;
+        private readonly int _length;
 
         /// <summary>
         ///     Alignment
         /// </summary>
-        private int _alignment;
+        private readonly int _alignment;
 
         /// <summary>
         ///     Aligned length
         /// </summary>
-        private int _alignedLength;
+        private readonly int _alignedLength;
 
         /// <summary>
         ///     Aligned node size
         /// </summary>
-        private int _alignedNodeSize;
+        private readonly int _alignedNodeSize;
 
         /// <summary>
         ///     Aligned slab size
         /// </summary>
-        private int _alignedSlabSize;
+        private readonly int _alignedSlabSize;
 
         /// <summary>
         ///     Slabs
@@ -239,28 +239,41 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Return(void* ptr)
         {
-            var node = (MemoryNode*)UnsafeHelpers.Subtract<byte>(ptr, _alignedNodeSize);
+            var node = (MemoryNode*)UnsafeHelpers.SubtractByteOffset<byte>(ptr, _alignedNodeSize);
             var slab = node->Slab;
             slab->Count++;
-            if (slab->Count == _size && slab != _sentinel)
+            if (slab != _sentinel)
             {
-                slab->Previous->Next = slab->Next;
-                slab->Next->Previous = slab->Previous;
-                if (_freeSlabs == _maxFreeSlabs)
+                if (slab->Count == _size)
                 {
-                    NativeMemoryAllocator.AlignedFree(slab);
-                }
-                else
-                {
-                    node->Next = slab->Sentinel;
-                    slab->Sentinel = node;
-                    slab->Next = _freeList;
-                    _freeList = slab;
-                    _freeSlabs++;
+                    slab->Previous->Next = slab->Next;
+                    slab->Next->Previous = slab->Previous;
+                    if (_freeSlabs == _maxFreeSlabs)
+                    {
+                        NativeMemoryAllocator.AlignedFree(slab);
+                    }
+                    else
+                    {
+                        node->Next = slab->Sentinel;
+                        slab->Sentinel = node;
+                        slab->Next = _freeList;
+                        _freeList = slab;
+                        _freeSlabs++;
+                    }
+
+                    _slabs--;
+                    return;
                 }
 
-                _slabs--;
-                return;
+                if (slab->Count == 1)
+                {
+                    slab->Previous->Next = slab->Next;
+                    slab->Next->Previous = slab->Previous;
+                    slab->Next = _sentinel->Next;
+                    slab->Previous = _sentinel;
+                    _sentinel->Next->Previous = slab;
+                    _sentinel->Next = slab;
+                }
             }
 
             node->Next = slab->Sentinel;

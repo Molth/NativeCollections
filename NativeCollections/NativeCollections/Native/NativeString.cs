@@ -1215,6 +1215,17 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Get hashCode
+        /// </summary>
+        /// <returns>HashCode</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int GetHashCode(void* ptr, int charCount)
+        {
+            ThrowHelpers.ThrowIfNegative(charCount, ExceptionArgument.charCount);
+            return GetHashCode(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<char>(ptr), charCount));
+        }
+
+        /// <summary>
         ///     Create
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

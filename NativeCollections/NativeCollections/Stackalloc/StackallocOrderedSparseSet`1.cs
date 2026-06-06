@@ -20,17 +20,17 @@ namespace NativeCollections
         /// <summary>
         ///     Dense
         /// </summary>
-        private Entry* _dense;
+        private readonly Entry* _dense;
 
         /// <summary>
         ///     Sparse
         /// </summary>
-        private int* _sparse;
+        private readonly int* _sparse;
 
         /// <summary>
         ///     Length
         /// </summary>
-        private int _length;
+        private readonly int _length;
 
         /// <summary>
         ///     Head
@@ -176,6 +176,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetByteCount(int capacity)
         {
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<Entry>(), NativeMemoryAllocator.AlignOf<int>());
             var denseByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * Unsafe.SizeOf<Entry>()), alignment);
             return (int)(denseByteCount + capacity * Unsafe.SizeOf<int>() + alignment - 1);
@@ -187,8 +188,10 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MustBePinned("Span<byte> buffer")]
         public StackallocOrderedSparseSet(Span<byte> buffer, int capacity)
         {
+            ThrowHelpers.ThrowIfLessThan(buffer.Length, GetByteCount(capacity), ExceptionArgument.capacity);
             var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<Entry>(), NativeMemoryAllocator.AlignOf<int>());
             var denseByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * Unsafe.SizeOf<Entry>()), alignment);
             _dense = (Entry*)NativeArray<byte>.Create(buffer, alignment).Buffer;

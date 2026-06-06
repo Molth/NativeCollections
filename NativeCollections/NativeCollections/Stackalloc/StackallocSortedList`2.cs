@@ -21,12 +21,12 @@ namespace NativeCollections
         /// <summary>
         ///     Keys
         /// </summary>
-        private TKey* _keys;
+        private readonly TKey* _keys;
 
         /// <summary>
         ///     Values
         /// </summary>
-        private TValue* _values;
+        private readonly TValue* _values;
 
         /// <summary>
         ///     Size
@@ -41,7 +41,7 @@ namespace NativeCollections
         /// <summary>
         ///     Capacity
         /// </summary>
-        private int _capacity;
+        private readonly int _capacity;
 
         /// <summary>
         ///     Keys
@@ -76,6 +76,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetByteCount(int capacity)
         {
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<TKey>(), NativeMemoryAllocator.AlignOf<TValue>());
             var keysByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * Unsafe.SizeOf<TKey>()), alignment);
             return (int)(keysByteCount + capacity * Unsafe.SizeOf<TValue>() + alignment - 1);
@@ -87,8 +88,10 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MustBePinned("Span<byte> buffer")]
         public StackallocSortedList(Span<byte> buffer, int capacity)
         {
+            ThrowHelpers.ThrowIfLessThan(buffer.Length, GetByteCount(capacity), ExceptionArgument.capacity);
             var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<TKey>(), NativeMemoryAllocator.AlignOf<TValue>());
             var keysByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * Unsafe.SizeOf<TKey>()), alignment);
             _keys = (TKey*)NativeArray<byte>.Create(buffer, alignment).Buffer;

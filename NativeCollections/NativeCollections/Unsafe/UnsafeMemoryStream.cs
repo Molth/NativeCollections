@@ -182,7 +182,11 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <returns>Bytes</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int Read(byte* buffer, int length) => Read(MemoryMarshal.CreateSpan(ref Unsafe.AsRef<byte>(buffer), length));
+        public int Read(byte* buffer, int length)
+        {
+            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
+            return Read(MemoryMarshal.CreateSpan(ref Unsafe.AsRef<byte>(buffer), length));
+        }
 
         /// <summary>
         ///     Read
@@ -214,7 +218,11 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="length">Length</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(byte* buffer, int length) => Write(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<byte>(buffer), length));
+        public void Write(byte* buffer, int length)
+        {
+            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
+            Write(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<byte>(buffer), length));
+        }
 
         /// <summary>
         ///     Write

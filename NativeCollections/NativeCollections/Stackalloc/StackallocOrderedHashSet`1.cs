@@ -20,22 +20,22 @@ namespace NativeCollections
         /// <summary>
         ///     Buckets
         /// </summary>
-        private int* _buckets;
+        private readonly int* _buckets;
 
         /// <summary>
         ///     Entries
         /// </summary>
-        private Entry* _entries;
+        private readonly Entry* _entries;
 
         /// <summary>
         ///     BucketsLength
         /// </summary>
-        private int _bucketsLength;
+        private readonly int _bucketsLength;
 
         /// <summary>
         ///     EntriesLength
         /// </summary>
-        private int _entriesLength;
+        private readonly int _entriesLength;
 
         /// <summary>
         ///     Count
@@ -50,7 +50,7 @@ namespace NativeCollections
         /// <summary>
         ///     FastModMultiplier
         /// </summary>
-        private ulong _fastModMultiplier;
+        private readonly ulong _fastModMultiplier;
 
         /// <summary>
         ///     Is empty
@@ -75,6 +75,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetByteCount(int capacity)
         {
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             var size = HashHelpers.GetPrime(capacity);
             var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<int>(), NativeMemoryAllocator.AlignOf<Entry>());
             var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(size * Unsafe.SizeOf<int>()), alignment);
@@ -88,8 +89,10 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBeZeroed("Span<byte> buffer")]
+        [MustBePinned("Span<byte> buffer")]
         public StackallocOrderedHashSet(Span<byte> buffer, int capacity)
         {
+            ThrowHelpers.ThrowIfLessThan(buffer.Length, GetByteCount(capacity), ExceptionArgument.capacity);
             var size = HashHelpers.GetPrime(capacity);
             var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<int>(), NativeMemoryAllocator.AlignOf<Entry>());
             var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(size * Unsafe.SizeOf<int>()), alignment);

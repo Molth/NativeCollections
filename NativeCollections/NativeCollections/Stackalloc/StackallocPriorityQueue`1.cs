@@ -20,12 +20,12 @@ namespace NativeCollections
         /// <summary>
         ///     Nodes
         /// </summary>
-        private TPriority* _nodes;
+        private readonly TPriority* _nodes;
 
         /// <summary>
         ///     Length
         /// </summary>
-        private int _length;
+        private readonly int _length;
 
         /// <summary>
         ///     Size
@@ -83,7 +83,11 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         /// <returns>Byte count</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetByteCount(int capacity) => capacity * Unsafe.SizeOf<TPriority>() + (int)NativeMemoryAllocator.AlignOf<TPriority>() - 1;
+        public static int GetByteCount(int capacity)
+        {
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
+            return capacity * Unsafe.SizeOf<TPriority>() + (int)NativeMemoryAllocator.AlignOf<TPriority>() - 1;
+        }
 
         /// <summary>
         ///     Structure
@@ -91,8 +95,10 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MustBePinned("Span<byte> buffer")]
         public StackallocPriorityQueue(Span<byte> buffer, int capacity)
         {
+            ThrowHelpers.ThrowIfLessThan(buffer.Length, GetByteCount(capacity), ExceptionArgument.capacity);
             _nodes = NativeArray<TPriority>.Create(buffer).Buffer;
             _length = capacity;
             _size = 0;

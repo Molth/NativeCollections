@@ -212,7 +212,7 @@ namespace NativeCollections
         ///     Slots
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public struct NativeConcurrentQueueSegmentSlots512<T> where T : unmanaged
+        private struct NativeConcurrentQueueSegmentSlots512<T> where T : unmanaged
         {
             private NativeConcurrentQueueSegmentSlots256<T> _element0;
             private NativeConcurrentQueueSegmentSlots256<T> _element1;
@@ -222,7 +222,7 @@ namespace NativeCollections
         ///     Slots
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public struct NativeConcurrentQueueSegmentSlots256<T> where T : unmanaged
+        private struct NativeConcurrentQueueSegmentSlots256<T> where T : unmanaged
         {
             private NativeConcurrentQueueSegmentSlots128<T> _element0;
             private NativeConcurrentQueueSegmentSlots128<T> _element1;
@@ -232,7 +232,7 @@ namespace NativeCollections
         ///     Slots
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public struct NativeConcurrentQueueSegmentSlots128<T> where T : unmanaged
+        private struct NativeConcurrentQueueSegmentSlots128<T> where T : unmanaged
         {
             private NativeConcurrentQueueSegmentSlots64<T> _element0;
             private NativeConcurrentQueueSegmentSlots64<T> _element1;
@@ -242,7 +242,7 @@ namespace NativeCollections
         ///     Slots
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public struct NativeConcurrentQueueSegmentSlots64<T> where T : unmanaged
+        private struct NativeConcurrentQueueSegmentSlots64<T> where T : unmanaged
         {
             private NativeConcurrentQueueSegmentSlots32<T> _element0;
             private NativeConcurrentQueueSegmentSlots32<T> _element1;
@@ -252,7 +252,7 @@ namespace NativeCollections
         ///     Slots
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public struct NativeConcurrentQueueSegmentSlots32<T> where T : unmanaged
+        private struct NativeConcurrentQueueSegmentSlots32<T> where T : unmanaged
         {
             private NativeConcurrentQueueSegmentSlots16<T> _element0;
             private NativeConcurrentQueueSegmentSlots16<T> _element1;
@@ -262,7 +262,7 @@ namespace NativeCollections
         ///     Slots
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public struct NativeConcurrentQueueSegmentSlots16<T> where T : unmanaged
+        private struct NativeConcurrentQueueSegmentSlots16<T> where T : unmanaged
         {
             private NativeConcurrentQueueSegmentSlots8<T> _element0;
             private NativeConcurrentQueueSegmentSlots8<T> _element1;
@@ -272,7 +272,7 @@ namespace NativeCollections
         ///     Slots
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public struct NativeConcurrentQueueSegmentSlots8<T> where T : unmanaged
+        private struct NativeConcurrentQueueSegmentSlots8<T> where T : unmanaged
         {
             private NativeConcurrentQueueSegmentSlots4<T> _element0;
             private NativeConcurrentQueueSegmentSlots4<T> _element1;
@@ -282,7 +282,7 @@ namespace NativeCollections
         ///     Slots
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public struct NativeConcurrentQueueSegmentSlots4<T> where T : unmanaged
+        private struct NativeConcurrentQueueSegmentSlots4<T> where T : unmanaged
         {
             private NativeConcurrentQueueSegmentSlots2<T> _element0;
             private NativeConcurrentQueueSegmentSlots2<T> _element1;
@@ -292,7 +292,7 @@ namespace NativeCollections
         ///     Slots
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public struct NativeConcurrentQueueSegmentSlots2<T> where T : unmanaged
+        private struct NativeConcurrentQueueSegmentSlots2<T> where T : unmanaged
         {
             private NativeConcurrentQueueSegmentSlot<T> _element0;
             private NativeConcurrentQueueSegmentSlot<T> _element1;

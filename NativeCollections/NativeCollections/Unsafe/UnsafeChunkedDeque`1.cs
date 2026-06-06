@@ -46,12 +46,12 @@ namespace NativeCollections
         /// <summary>
         ///     Max free chunks
         /// </summary>
-        private int _maxFreeChunks;
+        private readonly int _maxFreeChunks;
 
         /// <summary>
         ///     Size
         /// </summary>
-        private int _size;
+        private readonly int _size;
 
         /// <summary>
         ///     Read offset

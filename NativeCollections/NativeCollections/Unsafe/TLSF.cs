@@ -601,9 +601,9 @@ namespace NativeCollections
             }
 
             [StructLayout(LayoutKind.Sequential)]
-            public struct block_header_t_ptr
+            public readonly struct block_header_t_ptr
             {
-                public block_header_t* value;
+                public readonly block_header_t* value;
 
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 private block_header_t_ptr(block_header_t* value) => this.value = value;
@@ -1209,9 +1209,9 @@ namespace NativeCollections
             }
 
             [StructLayout(LayoutKind.Sequential)]
-            public struct block_header_t_ptr
+            public readonly struct block_header_t_ptr
             {
-                public block_header_t* value;
+                public readonly block_header_t* value;
 
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 private block_header_t_ptr(block_header_t* value) => this.value = value;

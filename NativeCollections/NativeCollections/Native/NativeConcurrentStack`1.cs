@@ -43,7 +43,7 @@ namespace NativeCollections
         /// <summary>
         ///     IsEmpty
         /// </summary>
-        public bool IsEmpty => _handle->Head == 0;
+        public bool IsEmpty => _handle->IsEmpty;
 
         /// <summary>
         ///     Count

@@ -45,7 +45,11 @@ namespace NativeCollections
         ///     Compute hash 32
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetHashCode(void* ptr, int byteCount) => GetHashCode(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<byte>(ptr), byteCount));
+        public static int GetHashCode(void* ptr, int byteCount)
+        {
+            ThrowHelpers.ThrowIfNegative(byteCount, ExceptionArgument.byteCount);
+            return GetHashCode(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<byte>(ptr), byteCount));
+        }
 
         /// <summary>
         ///     Compute hash 32
@@ -57,14 +61,14 @@ namespace NativeCollections
             if (getHashCode != null)
                 return getHashCode(buffer);
 
-            return ComputeHash32(buffer, DefaultSeed);
+            return ComputeHash32(ref MemoryMarshal.GetReference(buffer), (nuint)buffer.Length, DefaultSeed);
         }
 
         /// <summary>
         ///     Compute hash 32
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int ComputeHash32(ReadOnlySpan<byte> buffer, uint seed)
+        private static int ComputeHash32(ref byte source, nuint length, uint seed)
         {
             uint num1 = 0;
             uint num2 = 0;
@@ -74,33 +78,32 @@ namespace NativeCollections
             uint num6 = 0;
             uint num7 = 0;
             uint num8 = 0;
-            ref var local1 = ref MemoryMarshal.GetReference(buffer);
-            ref var local2 = ref Unsafe.AddByteOffset(ref local1, new IntPtr(buffer.Length));
-            if (buffer.Length >= 16)
+            ref var local = ref Unsafe.AddByteOffset(ref source, (nint)length);
+            if (length >= 16)
             {
                 num1 = (uint)((int)seed - 1640531535 - 2048144777);
                 num2 = seed + 2246822519U;
                 num3 = seed;
                 num4 = seed - 2654435761U;
                 const nint byteOffset1 = 16;
-                for (ref var local3 = ref Unsafe.SubtractByteOffset(ref local2, Unsafe.ByteOffset(ref local1, ref local2) % byteOffset1); Unsafe.IsAddressLessThan(ref local1, ref local3); local1 = ref Unsafe.AddByteOffset(ref local1, new IntPtr(16)))
+                for (ref var local3 = ref Unsafe.SubtractByteOffset(ref local, Unsafe.ByteOffset(ref source, ref local) % byteOffset1); Unsafe.IsAddressLessThan(ref source, ref local3); source = ref Unsafe.AddByteOffset(ref source, new IntPtr(16)))
                 {
-                    var num9 = num1 + Unsafe.ReadUnaligned<uint>(ref local1) * 2246822519U;
+                    var num9 = num1 + Unsafe.ReadUnaligned<uint>(ref source) * 2246822519U;
                     num1 = (uint)((((int)num9 << 13) | (int)(num9 >> 19)) * -1640531535);
-                    var num10 = num2 + Unsafe.ReadUnaligned<uint>(ref Unsafe.AddByteOffset(ref local1, new IntPtr(4))) * 2246822519U;
+                    var num10 = num2 + Unsafe.ReadUnaligned<uint>(ref Unsafe.AddByteOffset(ref source, new IntPtr(4))) * 2246822519U;
                     num2 = (uint)((((int)num10 << 13) | (int)(num10 >> 19)) * -1640531535);
-                    var num11 = num3 + Unsafe.ReadUnaligned<uint>(ref Unsafe.AddByteOffset(ref local1, new IntPtr(8))) * 2246822519U;
+                    var num11 = num3 + Unsafe.ReadUnaligned<uint>(ref Unsafe.AddByteOffset(ref source, new IntPtr(8))) * 2246822519U;
                     num3 = (uint)((((int)num11 << 13) | (int)(num11 >> 19)) * -1640531535);
-                    var num12 = num4 + Unsafe.ReadUnaligned<uint>(ref Unsafe.AddByteOffset(ref local1, new IntPtr(12))) * 2246822519U;
+                    var num12 = num4 + Unsafe.ReadUnaligned<uint>(ref Unsafe.AddByteOffset(ref source, new IntPtr(12))) * 2246822519U;
                     num4 = (uint)((((int)num12 << 13) | (int)(num12 >> 19)) * -1640531535);
                     num8 += 4U;
                 }
             }
 
             const nint byteOffset2 = 4;
-            for (; Unsafe.ByteOffset(ref local1, ref local2) >= byteOffset2; local1 = ref Unsafe.AddByteOffset(ref local1, new IntPtr(4)))
+            for (; Unsafe.ByteOffset(ref source, ref local) >= byteOffset2; source = ref Unsafe.AddByteOffset(ref source, new IntPtr(4)))
             {
-                var num13 = (uint)Unsafe.ReadUnaligned<int>(ref local1);
+                var num13 = (uint)Unsafe.ReadUnaligned<int>(ref source);
                 var num14 = num8++;
                 switch (num14 % 4U)
                 {
@@ -134,9 +137,9 @@ namespace NativeCollections
                 }
             }
 
-            for (; Unsafe.IsAddressLessThan(ref local1, ref local2); local1 = ref Unsafe.AddByteOffset(ref local1, new IntPtr(1)))
+            for (; Unsafe.IsAddressLessThan(ref source, ref local); source = ref Unsafe.AddByteOffset(ref source, new IntPtr(1)))
             {
-                uint num19 = local1;
+                uint num19 = source;
                 var num20 = num8++;
                 switch (num20 % 4U)
                 {

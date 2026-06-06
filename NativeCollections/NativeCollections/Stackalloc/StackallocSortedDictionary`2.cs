@@ -104,6 +104,8 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">Buffer</param>
         /// <param name="capacity">Capacity</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MustBePinned("Span<byte> buffer")]
         public StackallocSortedDictionary(Span<byte> buffer, int capacity)
         {
             var nodePool = new StackallocFixedSizeStackMemoryPool<Node<TKey, TValue>>(buffer, capacity);

@@ -33,7 +33,7 @@ namespace NativeCollections
         /// <summary>
         ///     Grow lock array
         /// </summary>
-        private bool _growLockArray;
+        private readonly bool _growLockArray;
 
         /// <summary>
         ///     Node pool

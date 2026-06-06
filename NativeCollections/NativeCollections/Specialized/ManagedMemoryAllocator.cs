@@ -87,12 +87,12 @@ namespace NativeCollections
         ///     Helper struct for byte-level memory operations with ArrayPool.
         /// </summary>
         [StructLayout(LayoutKind.Sequential, Size = 1)]
-        private struct DummyByteHelper
+        private readonly struct DummyByteHelper
         {
             /// <summary>
             ///     Unused field to satisfy compiler requirements.
             /// </summary>
-            private byte _dummy;
+            private readonly byte _dummy;
         }
     }
 }

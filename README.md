@@ -84,7 +84,7 @@ This project is licensed under the MIT License.
 15. `SortedDictionary<TKey, TValue>`
 16. `SortedList<TKey, TValue>`
 17. `SortedSet<T>`
-18. `SparseSet<T>`
+18. `SparseSet<TValue>`
 19. `Stack<T>`
 20. `String`
 21. `StringBuilder<T>`

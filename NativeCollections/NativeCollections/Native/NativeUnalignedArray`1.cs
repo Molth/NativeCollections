@@ -113,7 +113,7 @@ namespace NativeCollections
         public T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => Unsafe.ReadUnaligned<T>(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index)));
+            get => UnsafeHelpers.ReadUnaligned(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index));
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set => UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index), value);
         }
@@ -125,7 +125,7 @@ namespace NativeCollections
         public T this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => Unsafe.ReadUnaligned<T>(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index)));
+            get => UnsafeHelpers.ReadUnaligned(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index));
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set => UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index), value);
         }

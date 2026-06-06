@@ -36,12 +36,12 @@ namespace NativeCollections
         /// <summary>
         ///     Max free slabs
         /// </summary>
-        private int _maxFreeSlabs;
+        private readonly int _maxFreeSlabs;
 
         /// <summary>
         ///     Size
         /// </summary>
-        private int _size;
+        private readonly int _size;
 
         /// <summary>
         ///     Slabs
@@ -301,7 +301,7 @@ namespace NativeCollections
             /// <summary>
             ///     Dummy
             /// </summary>
-            private nint _dummy;
+            private readonly nint _dummy;
         }
 
         /// <summary>

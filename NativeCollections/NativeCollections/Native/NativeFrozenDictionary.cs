@@ -242,32 +242,32 @@ namespace NativeCollections
         ///     Value
         /// </summary>
         [StructLayout(LayoutKind.Explicit)]
-        public struct UnsafeFrozenDictionaryValue
+        public readonly struct UnsafeFrozenDictionaryValue
         {
             /// <summary>
             ///     Element
             /// </summary>
-            [FieldOffset(0)] private EmptyFrozenDictionary<int, int> _element0;
+            [FieldOffset(0)] private readonly EmptyFrozenDictionary<int, int> _element0;
 
             /// <summary>
             ///     Element
             /// </summary>
-            [FieldOffset(0)] private SmallFrozenDictionary<int, int> _element1;
+            [FieldOffset(0)] private readonly SmallFrozenDictionary<int, int> _element1;
 
             /// <summary>
             ///     Element
             /// </summary>
-            [FieldOffset(0)] private SmallComparableFrozenDictionary<int, int> _element2;
+            [FieldOffset(0)] private readonly SmallComparableFrozenDictionary<int, int> _element2;
 
             /// <summary>
             ///     Element
             /// </summary>
-            [FieldOffset(0)] private Int32FrozenDictionary<int> _element3;
+            [FieldOffset(0)] private readonly Int32FrozenDictionary<int> _element3;
 
             /// <summary>
             ///     Element
             /// </summary>
-            [FieldOffset(0)] private DefaultFrozenDictionary<int, int> _element4;
+            [FieldOffset(0)] private readonly DefaultFrozenDictionary<int, int> _element4;
         }
 
         /// <summary>

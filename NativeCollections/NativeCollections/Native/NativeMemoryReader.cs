@@ -233,7 +233,11 @@ namespace NativeCollections
         /// <param name="count">Count</param>
         /// <typeparam name="T">Type</typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Read<T>(T* obj, int count) where T : unmanaged => ReadSpan(MemoryMarshal.CreateSpan(ref Unsafe.AsRef<T>(obj), count));
+        public void Read<T>(T* obj, int count) where T : unmanaged
+        {
+            ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
+            ReadSpan(MemoryMarshal.CreateSpan(ref Unsafe.AsRef<T>(obj), count));
+        }
 
         /// <summary>
         ///     Try read
@@ -243,7 +247,11 @@ namespace NativeCollections
         /// <typeparam name="T">Type</typeparam>
         /// <returns>Read</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryRead<T>(T* obj, int count) where T : unmanaged => TryReadSpan(MemoryMarshal.CreateSpan(ref Unsafe.AsRef<T>(obj), count));
+        public bool TryRead<T>(T* obj, int count) where T : unmanaged
+        {
+            ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
+            return TryReadSpan(MemoryMarshal.CreateSpan(ref Unsafe.AsRef<T>(obj), count));
+        }
 
         /// <summary>
         ///     Read

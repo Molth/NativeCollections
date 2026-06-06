@@ -20,7 +20,7 @@ namespace NativeCollections
         /// <summary>
         ///     Items
         /// </summary>
-        private T* _items;
+        private readonly T* _items;
 
         /// <summary>
         ///     Size
@@ -35,7 +35,7 @@ namespace NativeCollections
         /// <summary>
         ///     Capacity
         /// </summary>
-        private int _capacity;
+        private readonly int _capacity;
 
         /// <summary>
         ///     Is empty
@@ -58,7 +58,11 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         /// <returns>Byte count</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetByteCount(int capacity) => capacity * Unsafe.SizeOf<T>() + (int)NativeMemoryAllocator.AlignOf<T>() - 1;
+        public static int GetByteCount(int capacity)
+        {
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
+            return capacity * Unsafe.SizeOf<T>() + (int)NativeMemoryAllocator.AlignOf<T>() - 1;
+        }
 
         /// <summary>
         ///     Structure
@@ -66,8 +70,10 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MustBePinned("Span<byte> buffer")]
         public StackallocSortedList(Span<byte> buffer, int capacity)
         {
+            ThrowHelpers.ThrowIfLessThan(buffer.Length, GetByteCount(capacity), ExceptionArgument.capacity);
             _items = NativeArray<T>.Create(buffer).Buffer;
             _size = 0;
             _version = 0;
