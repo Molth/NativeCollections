@@ -144,7 +144,7 @@ namespace NativeCollections
         /// <typeparam name="T">Type</typeparam>
         /// <returns>NativeIntPtr</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeIntPtr Create<T>(ref T reference) where T : unmanaged => new(Unsafe.AsPointer(ref reference));
+        public static NativeIntPtr Create<T>(ref T reference) where T : unmanaged => new(UnsafeHelpers.AsPointer(ref reference));
 
         /// <summary>
         ///     Empty

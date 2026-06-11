@@ -24,7 +24,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeConcurrentReaderWriterLock(void* buffer) => _handle = (UnsafeConcurrentReaderWriterLock*)buffer;
+        public NativeConcurrentReaderWriterLock(UnsafeConcurrentReaderWriterLock* buffer) => _handle = buffer;
 
         /// <summary>
         ///     Dispose
@@ -105,11 +105,18 @@ namespace NativeCollections
         /// <summary>
         ///     Read
         /// </summary>
+        /// <param name="sleep1Threshold">
+        ///     A minimum spin count after which <see langword="Thread.Sleep(1)" /> may be used. A value
+        ///     of -1 disables the use of <see langword="Thread.Sleep(1)" />.
+        /// </param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="sleep1Threshold" /> is less than -1.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeDisposable<UnsafeConcurrentReaderWriterLock> ReadLock(int sleepThreshold)
+        public NativeDisposable<UnsafeConcurrentReaderWriterLock> ReadLock(int sleep1Threshold)
         {
             var handle = _handle;
-            handle->Read(sleepThreshold);
+            handle->Read(sleep1Threshold);
             return new NativeDisposable<UnsafeConcurrentReaderWriterLock>(handle);
         }
 
@@ -127,11 +134,18 @@ namespace NativeCollections
         /// <summary>
         ///     Write
         /// </summary>
+        /// <param name="sleep1Threshold">
+        ///     A minimum spin count after which <see langword="Thread.Sleep(1)" /> may be used. A value
+        ///     of -1 disables the use of <see langword="Thread.Sleep(1)" />.
+        /// </param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="sleep1Threshold" /> is less than -1.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeDisposable<UnsafeConcurrentReaderWriterLock> WriteLock(int sleepThreshold)
+        public NativeDisposable<UnsafeConcurrentReaderWriterLock> WriteLock(int sleep1Threshold)
         {
             var handle = _handle;
-            handle->Write(sleepThreshold);
+            handle->Write(sleep1Threshold);
             return new NativeDisposable<UnsafeConcurrentReaderWriterLock>(handle);
         }
 
@@ -144,8 +158,15 @@ namespace NativeCollections
         /// <summary>
         ///     Read
         /// </summary>
+        /// <param name="sleep1Threshold">
+        ///     A minimum spin count after which <see langword="Thread.Sleep(1)" /> may be used. A value
+        ///     of -1 disables the use of <see langword="Thread.Sleep(1)" />.
+        /// </param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="sleep1Threshold" /> is less than -1.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Read(int sleepThreshold) => _handle->Read(sleepThreshold);
+        public void Read(int sleep1Threshold) => _handle->Read(sleep1Threshold);
 
         /// <summary>
         ///     Write
@@ -156,8 +177,15 @@ namespace NativeCollections
         /// <summary>
         ///     Write
         /// </summary>
+        /// <param name="sleep1Threshold">
+        ///     A minimum spin count after which <see langword="Thread.Sleep(1)" /> may be used. A value
+        ///     of -1 disables the use of <see langword="Thread.Sleep(1)" />.
+        /// </param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="sleep1Threshold" /> is less than -1.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(int sleepThreshold) => _handle->Write(sleepThreshold);
+        public void Write(int sleep1Threshold) => _handle->Write(sleep1Threshold);
 
         /// <summary>
         ///     Exit
@@ -169,19 +197,19 @@ namespace NativeCollections
         ///     As native concurrent spinLock
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeConcurrentReaderWriterLock(void* buffer) => new(buffer);
+        public static implicit operator NativeConcurrentReaderWriterLock(UnsafeConcurrentReaderWriterLock* buffer) => new(buffer);
 
         /// <summary>
         ///     As native concurrent spinLock
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeConcurrentReaderWriterLock(Span<byte> span) => new(Unsafe.AsPointer(ref MemoryMarshal.GetReference(span)));
+        public static implicit operator NativeConcurrentReaderWriterLock(Span<byte> span) => new((UnsafeConcurrentReaderWriterLock*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(span)));
 
         /// <summary>
         ///     As native concurrent spinLock
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeConcurrentReaderWriterLock(ReadOnlySpan<byte> readOnlySpan) => new(Unsafe.AsPointer(ref MemoryMarshal.GetReference(readOnlySpan)));
+        public static implicit operator NativeConcurrentReaderWriterLock(ReadOnlySpan<byte> readOnlySpan) => new((UnsafeConcurrentReaderWriterLock*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(readOnlySpan)));
 
         /// <summary>
         ///     Create

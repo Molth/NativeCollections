@@ -213,9 +213,8 @@ namespace NativeCollections
             var alignedNodeSize = _alignedNodeSize;
             var nodeSize = alignedNodeSize + _alignedLength;
             var alignedSlabSize = _alignedSlabSize;
-            var buffer = (byte*)ptr;
-            var id = (int)Unsafe.AsRef<nint>(UnsafeHelpers.SubtractByteOffset(buffer, alignedNodeSize));
-            buffer = UnsafeHelpers.SubtractByteOffset<byte>(buffer, alignedSlabSize + id * nodeSize + alignedNodeSize);
+            var id = (int)Unsafe.AsRef<nint>(UnsafeHelpers.SubtractByteOffset(ptr, alignedNodeSize));
+            var buffer = UnsafeHelpers.SubtractByteOffset(ptr, alignedSlabSize + id * nodeSize + alignedNodeSize);
             var slab = (MemorySlab*)buffer;
             ref var segment = ref slab->Bitmap;
             segment &= ~(1U << id);

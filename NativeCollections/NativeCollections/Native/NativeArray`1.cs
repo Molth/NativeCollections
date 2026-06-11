@@ -193,14 +193,14 @@ namespace NativeCollections
         /// </summary>
         /// <returns>NativeArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeArray<T>(Span<T> span) => new((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(span)), span.Length);
+        public static implicit operator NativeArray<T>(Span<T> span) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(span)), span.Length);
 
         /// <summary>
         ///     As native array
         /// </summary>
         /// <returns>NativeArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeArray<T>(ReadOnlySpan<T> readOnlySpan) => new((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(readOnlySpan)), readOnlySpan.Length);
+        public static implicit operator NativeArray<T>(ReadOnlySpan<T> readOnlySpan) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(readOnlySpan)), readOnlySpan.Length);
 
         /// <summary>
         ///     Equals
@@ -334,7 +334,7 @@ namespace NativeCollections
             var alignedPtr = (nint)NativeMemoryAllocator.AlignUp((nuint)(nint)ptr, alignment);
             var byteOffset = alignedPtr - (nint)ptr;
             var alignedBuffer = MemoryMarshal.Cast<byte, T>(buffer.Slice((int)byteOffset));
-            return new NativeArray<T>((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(alignedBuffer)), alignedBuffer.Length);
+            return new NativeArray<T>(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(alignedBuffer)), alignedBuffer.Length);
         }
 
         /// <summary>
@@ -352,7 +352,7 @@ namespace NativeCollections
             var alignedPtr = (nint)NativeMemoryAllocator.AlignUp((nuint)(nint)ptr, alignment);
             byteOffset = alignedPtr - (nint)ptr;
             var alignedBuffer = MemoryMarshal.Cast<byte, T>(buffer.Slice((int)byteOffset));
-            return new NativeArray<T>((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(alignedBuffer)), alignedBuffer.Length);
+            return new NativeArray<T>(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(alignedBuffer)), alignedBuffer.Length);
         }
 
         /// <summary>

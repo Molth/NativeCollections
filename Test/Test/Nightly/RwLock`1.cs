@@ -20,21 +20,22 @@ namespace Examples
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public RwLockRef<T> BorrowMutable()
         {
-            if (Interlocked.CompareExchange(ref _state, -1, 0) != 0)
-                throw new InvalidOperationException();
+            var spinWait = new SpinWait();
+            while (Interlocked.CompareExchange(ref _state, -1, 0) != 0)
+                spinWait.SpinOnce();
             return new RwLockRef<T>(Unsafe.AsPointer(ref _value), Unsafe.AsPointer(ref _state));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public RwLockReadOnlyRef<T> Borrow()
         {
+            var spinWait = new SpinWait();
             while (true)
             {
                 var snapshot = Volatile.Read(ref _state);
-                if (snapshot < 0)
-                    throw new InvalidOperationException();
-                if (Interlocked.CompareExchange(ref _state, snapshot + 1, snapshot) == snapshot)
+                if (snapshot >= 0 && Interlocked.CompareExchange(ref _state, snapshot + 1, snapshot) == snapshot)
                     break;
+                spinWait.SpinOnce();
             }
 
             return new RwLockReadOnlyRef<T>(Unsafe.AsPointer(ref _value), Unsafe.AsPointer(ref _state));

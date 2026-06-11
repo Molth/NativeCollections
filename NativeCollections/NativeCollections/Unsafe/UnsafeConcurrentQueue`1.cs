@@ -24,7 +24,7 @@ namespace NativeCollections
         /// <summary>
         ///     Segment pool
         /// </summary>
-        private UnsafeMemoryPool _segmentPool;
+        private UnsafeMemoryPool<NativeConcurrentQueue.NativeConcurrentQueueSegment<T>> _segmentPool;
 
         /// <summary>
         ///     Tail
@@ -119,10 +119,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeConcurrentQueue(int size, int maxFreeSlabs)
         {
-            var segmentPool = new UnsafeMemoryPool(size, Unsafe.SizeOf<NativeConcurrentQueue.NativeConcurrentQueueSegment<T>>(), maxFreeSlabs, (int)Math.Max(NativeMemoryAllocator.AlignOf<T>(), ArchitectureHelpers.CACHE_LINE_SIZE));
+            var segmentPool = new UnsafeMemoryPool<NativeConcurrentQueue.NativeConcurrentQueueSegment<T>>(size, Unsafe.SizeOf<NativeConcurrentQueue.NativeConcurrentQueueSegment<T>>(), maxFreeSlabs, (int)Math.Max(NativeMemoryAllocator.AlignOf<T>(), ArchitectureHelpers.CACHE_LINE_SIZE));
             _crossSegmentLock = GCHandle.Alloc(new object(), GCHandleType.Normal);
             _segmentPool = segmentPool;
-            var segment = (NativeConcurrentQueue.NativeConcurrentQueueSegment<T>*)_segmentPool.Rent();
+            var segment = _segmentPool.Rent();
             segment->Initialize();
             _tail = _head = segment;
         }
@@ -154,7 +154,7 @@ namespace NativeCollections
                     _segmentPool.Return(temp);
                 }
 
-                var segment = (NativeConcurrentQueue.NativeConcurrentQueueSegment<T>*)_segmentPool.Rent();
+                var segment = _segmentPool.Rent();
                 segment->Initialize();
                 _tail = _head = segment;
             }
@@ -179,7 +179,7 @@ namespace NativeCollections
                         if (tail == _tail)
                         {
                             tail->EnsureFrozenForEnqueues();
-                            var newTail = (NativeConcurrentQueue.NativeConcurrentQueueSegment<T>*)_segmentPool.Rent();
+                            var newTail = _segmentPool.Rent();
                             newTail->Initialize();
                             tail->NextSegment = (nint)newTail;
                             _tail = newTail;

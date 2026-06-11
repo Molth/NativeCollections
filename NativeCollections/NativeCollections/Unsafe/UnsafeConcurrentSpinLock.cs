@@ -57,7 +57,7 @@ namespace NativeCollections
         public NativeDisposable<UnsafeConcurrentSpinLock> EnterLock()
         {
             Enter();
-            return new NativeDisposable<UnsafeConcurrentSpinLock>((UnsafeConcurrentSpinLock*)Unsafe.AsPointer(ref this));
+            return new NativeDisposable<UnsafeConcurrentSpinLock>(UnsafeHelpers.AsPointer(ref this));
         }
 
         /// <summary>
@@ -67,7 +67,7 @@ namespace NativeCollections
         public NativeDisposable<UnsafeConcurrentSpinLock> EnterLock(int sequenceNumber)
         {
             Enter(sequenceNumber);
-            return new NativeDisposable<UnsafeConcurrentSpinLock>((UnsafeConcurrentSpinLock*)Unsafe.AsPointer(ref this));
+            return new NativeDisposable<UnsafeConcurrentSpinLock>(UnsafeHelpers.AsPointer(ref this));
         }
 
         /// <summary>
@@ -93,13 +93,19 @@ namespace NativeCollections
         ///     Wait
         /// </summary>
         /// <param name="sequenceNumber">Sequence number</param>
-        /// <param name="sleepThreshold">Sleep threshold</param>
+        /// <param name="sleep1Threshold">
+        ///     A minimum spin count after which <see langword="Thread.Sleep(1)" /> may be used. A value
+        ///     of -1 disables the use of <see langword="Thread.Sleep(1)" />.
+        /// </param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="sleep1Threshold" /> is less than -1.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly void Wait(int sequenceNumber, int sleepThreshold)
+        public readonly void Wait(int sequenceNumber, int sleep1Threshold)
         {
             var spinWait = new NativeSpinWait();
             while (sequenceNumber != _nextSequenceNumber)
-                spinWait.SpinOnce(sleepThreshold);
+                spinWait.SpinOnce(sleep1Threshold);
         }
 
         /// <summary>
@@ -117,14 +123,20 @@ namespace NativeCollections
         /// <summary>
         ///     Enter
         /// </summary>
-        /// <param name="sleepThreshold">Sleep threshold</param>
+        /// <param name="sleep1Threshold">
+        ///     A minimum spin count after which <see langword="Thread.Sleep(1)" /> may be used. A value
+        ///     of -1 disables the use of <see langword="Thread.Sleep(1)" />.
+        /// </param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="sleep1Threshold" /> is less than -1.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Enter(int sleepThreshold)
+        public void Enter(int sleep1Threshold)
         {
             var spinWait = new NativeSpinWait();
             var sequenceNumber = Interlocked.Increment(ref _sequenceNumber) - 1;
             while (sequenceNumber != _nextSequenceNumber)
-                spinWait.SpinOnce(sleepThreshold);
+                spinWait.SpinOnce(sleep1Threshold);
         }
 
         /// <summary>

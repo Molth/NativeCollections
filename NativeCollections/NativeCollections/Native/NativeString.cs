@@ -5,6 +5,9 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+#if NET9_0_OR_GREATER
+using System.Collections;
+#endif
 
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
 #pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
@@ -19,9 +22,12 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Standard)]
-    [IsAssignableTo(typeof(IEquatable<>), typeof(IReadOnlyCollection<char>))]
+    [IsAssignableTo(typeof(IEquatable<>), typeof(IEquatable<>), typeof(IReadOnlyCollection<char>))]
     [Customizable("public static int GetHashCode(ReadOnlySpan<char> buffer)")]
     public unsafe ref struct NativeString
+#if NET9_0_OR_GREATER
+        : IEquatable<NativeString>, IEquatable<ReadOnlySpan<char>>, IReadOnlyCollection<char>
+#endif
     {
         /// <summary>
         ///     GetHashCode
@@ -52,6 +58,11 @@ namespace NativeCollections
         ///     Length
         /// </summary>
         public readonly int Length => _length;
+
+        /// <summary>
+        ///     Count
+        /// </summary>
+        public readonly int Count => _length;
 
         /// <summary>
         ///     Capacity
@@ -1036,10 +1047,14 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ref NativeString AsRef()
         {
+#if NET9_0_OR_GREATER
+            return ref Unsafe.AsRef(in this);
+#else
             fixed (NativeString* ptr = &this)
             {
                 return ref *ptr;
             }
+#endif
         }
 
         /// <summary>
@@ -1048,10 +1063,14 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly NativeString* AsPointer()
         {
+#if NET9_0_OR_GREATER
+            return UnsafeHelpers.AsPointer(ref Unsafe.AsRef(in this));
+#else
             fixed (NativeString* ptr = &this)
             {
                 return ptr;
             }
+#endif
         }
 
         /// <summary>
@@ -1204,6 +1223,7 @@ namespace NativeCollections
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
+        [Customizable]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetHashCode(ReadOnlySpan<char> buffer)
         {
@@ -1219,7 +1239,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>HashCode</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetHashCode(void* ptr, int charCount)
+        public static int GetHashCode(char* ptr, int charCount)
         {
             ThrowHelpers.ThrowIfNegative(charCount, ExceptionArgument.charCount);
             return GetHashCode(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<char>(ptr), charCount));
@@ -1246,6 +1266,30 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         public readonly Span<char>.Enumerator GetEnumerator() => Text.GetEnumerator();
+
+#if NET9_0_OR_GREATER
+        /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        readonly IEnumerator<char> IEnumerable<char>.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
+
+        /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        readonly IEnumerator IEnumerable.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
+#endif
 
         /// <summary>
         ///     Append format
@@ -1285,34 +1329,6 @@ namespace NativeCollections
 
 #if NET6_0_OR_GREATER
         /// <summary>
-        ///     Append
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Append([InterpolatedStringHandlerArgument("")] ref NativeStringInterpolatedStringHandler handler)
-        {
-            if (handler.Handle != AsPointer())
-                ThrowHelpers.ThrowNotSupportedException();
-            var result = handler.Result;
-            if (result)
-                this = handler.StringBuilder;
-            return result;
-        }
-
-        /// <summary>
-        ///     Append
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Append(IFormatProvider? provider, [InterpolatedStringHandlerArgument("", "provider")] ref NativeStringInterpolatedStringHandler handler)
-        {
-            if (handler.Handle != AsPointer())
-                ThrowHelpers.ThrowNotSupportedException();
-            var result = handler.Result;
-            if (result)
-                this = handler.StringBuilder;
-            return result;
-        }
-
-        /// <summary>
         ///     Append formatted
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1351,21 +1367,6 @@ namespace NativeCollections
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormattable<T>(in T obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) where T : ISpanFormattable
-        {
-            if (obj.TryFormat(Space, out var charsWritten, format, provider))
-            {
-                _length += charsWritten;
-                return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        ///     Append formattable
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool AppendFormattable(ISpanFormattable obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
         {
             if (obj.TryFormat(Space, out var charsWritten, format, provider))
             {

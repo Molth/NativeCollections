@@ -1,6 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+#if NET9_0_OR_GREATER
+using System.Collections;
+using System.ComponentModel;
+#endif
 
 // ReSharper disable ALL
 
@@ -12,7 +17,12 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    public readonly ref struct NativeSplitAnyRange<T> where T : IEquatable<T>
+    [IsAssignableTo(typeof(IEnumerable<Range>))]
+    public readonly ref struct NativeSplitAnyRange<T>
+#if NET9_0_OR_GREATER
+        : IEnumerable<Range>
+#endif
+        where T : IEquatable<T>
     {
         /// <summary>
         ///     Buffer
@@ -58,12 +68,39 @@ namespace NativeCollections
         /// </summary>
         public Enumerator GetEnumerator() => new(_buffer, _separator);
 
+#if NET9_0_OR_GREATER
+        /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        IEnumerator<Range> IEnumerable<Range>.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
+
+        /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
+#endif
+
         /// <summary>
         ///     Enumerator
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        [IsAssignableTo(typeof(IIterator<>))]
+        [IsAssignableTo(typeof(IIterator<Range>))]
         public ref struct Enumerator
+#if NET9_0_OR_GREATER
+            : IIterator<Range>
+#endif
         {
             /// <summary>
             ///     Current

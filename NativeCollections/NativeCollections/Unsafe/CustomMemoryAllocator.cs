@@ -92,7 +92,7 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => "UnsafeMemoryAllocator";
+        public override string ToString() => "CustomMemoryAllocator";
 
         /// <summary>
         ///     Equals

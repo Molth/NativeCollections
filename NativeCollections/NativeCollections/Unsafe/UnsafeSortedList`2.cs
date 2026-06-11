@@ -46,12 +46,12 @@ namespace NativeCollections
         /// <summary>
         ///     Keys
         /// </summary>
-        public KeyCollection Keys => new(Unsafe.AsPointer(ref this));
+        public KeyCollection Keys => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Values
         /// </summary>
-        public ValueCollection Values => new(Unsafe.AsPointer(ref this));
+        public ValueCollection Values => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Get or set value
@@ -418,7 +418,7 @@ namespace NativeCollections
             var index = IndexOf(key);
             if (index >= 0)
             {
-                value = new NativeReference<TValue>(Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)));
+                value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)));
                 return true;
             }
 
@@ -479,7 +479,7 @@ namespace NativeCollections
                 return false;
             }
 
-            value = new NativeReference<TValue>(Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)));
+            value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)));
             return true;
         }
 
@@ -506,7 +506,7 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfNegative(index, ExceptionArgument.index);
             ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, ExceptionArgument.index);
-            return new KeyValuePair<TKey, NativeReference<TValue>>(Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index), new NativeReference<TValue>(Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index))));
+            return new KeyValuePair<TKey, NativeReference<TValue>>(Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index), new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index))));
         }
 
         /// <summary>
@@ -543,7 +543,7 @@ namespace NativeCollections
                 return false;
             }
 
-            keyValuePair = new KeyValuePair<TKey, NativeReference<TValue>>(Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index), new NativeReference<TValue>(Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index))));
+            keyValuePair = new KeyValuePair<TKey, NativeReference<TValue>>(Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index), new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index))));
             return true;
         }
 
@@ -558,8 +558,8 @@ namespace NativeCollections
             if (_capacity < capacity)
             {
                 var newCapacity = 2 * _capacity;
-                if ((uint)newCapacity > 2147483591)
-                    newCapacity = 2147483591;
+                if ((uint)newCapacity > ArrayHelpers.MaxLength)
+                    newCapacity = ArrayHelpers.MaxLength;
                 var expected = _capacity + 4;
                 newCapacity = Math.Max(newCapacity, expected);
                 newCapacity = Math.Max(newCapacity, capacity);
@@ -656,7 +656,7 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
-        public Enumerator GetEnumerator() => new(Unsafe.AsPointer(ref this));
+        public Enumerator GetEnumerator() => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Get enumerator
@@ -711,9 +711,9 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeSortedList">NativeSortedList</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(void* nativeSortedList)
+            internal Enumerator(UnsafeSortedList<TKey, TValue>* nativeSortedList)
             {
-                var handle = (UnsafeSortedList<TKey, TValue>*)nativeSortedList;
+                var handle = nativeSortedList;
                 _nativeSortedList = handle;
                 _version = handle->_version;
                 _current = default;
@@ -781,7 +781,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeSortedList">NativeSortedList</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal KeyCollection(void* nativeSortedList) => _nativeSortedList = (UnsafeSortedList<TKey, TValue>*)nativeSortedList;
+            internal KeyCollection(UnsafeSortedList<TKey, TValue>* nativeSortedList) => _nativeSortedList = nativeSortedList;
 
             /// <summary>
             ///     As readOnly span
@@ -882,9 +882,9 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativeSortedList">NativeSortedList</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(void* nativeSortedList)
+                internal Enumerator(UnsafeSortedList<TKey, TValue>* nativeSortedList)
                 {
-                    var handle = (UnsafeSortedList<TKey, TValue>*)nativeSortedList;
+                    var handle = nativeSortedList;
                     _nativeSortedList = handle;
                     _version = handle->_version;
                     _current = default;
@@ -953,7 +953,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeSortedList">NativeSortedList</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal ValueCollection(void* nativeSortedList) => _nativeSortedList = (UnsafeSortedList<TKey, TValue>*)nativeSortedList;
+            internal ValueCollection(UnsafeSortedList<TKey, TValue>* nativeSortedList) => _nativeSortedList = nativeSortedList;
 
             /// <summary>
             ///     As span
@@ -1094,9 +1094,9 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativeSortedList">NativeSortedList</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(void* nativeSortedList)
+                internal Enumerator(UnsafeSortedList<TKey, TValue>* nativeSortedList)
                 {
-                    var handle = (UnsafeSortedList<TKey, TValue>*)nativeSortedList;
+                    var handle = nativeSortedList;
                     _nativeSortedList = handle;
                     _version = handle->_version;
                     _current = default;

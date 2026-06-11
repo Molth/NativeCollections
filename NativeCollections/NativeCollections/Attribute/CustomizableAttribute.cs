@@ -7,13 +7,20 @@ namespace NativeCollections
     /// <summary>
     ///     Customizable attribute
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Method)]
     public sealed class CustomizableAttribute : Attribute
     {
         /// <summary>
         ///     Methods
         /// </summary>
         public readonly string[]? Methods;
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        public CustomizableAttribute()
+        {
+        }
 
         /// <summary>
         ///     Structure

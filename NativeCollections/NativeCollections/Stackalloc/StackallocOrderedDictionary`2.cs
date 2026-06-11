@@ -71,12 +71,12 @@ namespace NativeCollections
         /// <summary>
         ///     Keys
         /// </summary>
-        public KeyCollection Keys => new(Unsafe.AsPointer(ref this));
+        public KeyCollection Keys => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Values
         /// </summary>
-        public ValueCollection Values => new(Unsafe.AsPointer(ref this));
+        public ValueCollection Values => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Get byte count
@@ -101,7 +101,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBeZeroed("Span<byte> buffer")]
         [MustBePinned("Span<byte> buffer")]
-        public StackallocOrderedDictionary(Span<byte> buffer, int capacity)
+        public StackallocOrderedDictionary([MustBeZeroed] [MustBePinned] Span<byte> buffer, int capacity)
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, GetByteCount(capacity), ExceptionArgument.capacity);
             var size = HashHelpers.GetPrime(capacity);
@@ -343,7 +343,7 @@ namespace NativeCollections
             var index = IndexOf(key);
             if (index >= 0)
             {
-                value = new NativeReference<TValue>(Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index).Value));
+                value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index).Value));
                 return true;
             }
 
@@ -397,7 +397,7 @@ namespace NativeCollections
             var index1 = IndexOf(key, ref outHashCode, ref outCollisionCount);
             if (index1 >= 0)
             {
-                value = new NativeReference<TValue>(Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index1).Value));
+                value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index1).Value));
                 return true;
             }
 
@@ -422,7 +422,7 @@ namespace NativeCollections
             PushEntryIntoBucket(ref local, index);
             ++_count;
             ++_version;
-            value = new NativeReference<TValue>(Unsafe.AsPointer(ref local.Value));
+            value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref local.Value));
             return true;
         }
 
@@ -441,7 +441,7 @@ namespace NativeCollections
             var index1 = IndexOf(key, ref outHashCode, ref outCollisionCount);
             if (index1 >= 0)
             {
-                value = new NativeReference<TValue>(Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index1).Value));
+                value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index1).Value));
                 exists = true;
                 return true;
             }
@@ -468,7 +468,7 @@ namespace NativeCollections
             PushEntryIntoBucket(ref local, index);
             ++_count;
             ++_version;
-            value = new NativeReference<TValue>(Unsafe.AsPointer(ref local.Value));
+            value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref local.Value));
             exists = false;
             return true;
         }
@@ -555,7 +555,7 @@ namespace NativeCollections
             }
 
             ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
-            value = new NativeReference<TValue>(Unsafe.AsPointer(ref local.Value));
+            value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref local.Value));
             return true;
         }
 
@@ -582,7 +582,7 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_count, ExceptionArgument.index);
             ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
-            return new KeyValuePair<TKey, NativeReference<TValue>>(local.Key, new NativeReference<TValue>(Unsafe.AsPointer(ref local.Value)));
+            return new KeyValuePair<TKey, NativeReference<TValue>>(local.Key, new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref local.Value)));
         }
 
         /// <summary>
@@ -621,7 +621,7 @@ namespace NativeCollections
             }
 
             ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
-            keyValuePair = new KeyValuePair<TKey, NativeReference<TValue>>(local.Key, new NativeReference<TValue>(Unsafe.AsPointer(ref local.Value)));
+            keyValuePair = new KeyValuePair<TKey, NativeReference<TValue>>(local.Key, new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref local.Value)));
             return true;
         }
 
@@ -995,7 +995,7 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
-        public Enumerator GetEnumerator() => new(Unsafe.AsPointer(ref this));
+        public Enumerator GetEnumerator() => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Get enumerator
@@ -1050,9 +1050,9 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeOrderedDictionary">NativeOrderedDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(void* nativeOrderedDictionary)
+            internal Enumerator(StackallocOrderedDictionary<TKey, TValue>* nativeOrderedDictionary)
             {
-                var handle = (StackallocOrderedDictionary<TKey, TValue>*)nativeOrderedDictionary;
+                var handle = nativeOrderedDictionary;
                 _nativeOrderedDictionary = handle;
                 _version = handle->_version;
                 _index = 0;
@@ -1121,7 +1121,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeOrderedDictionary">NativeOrderedDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal KeyCollection(void* nativeOrderedDictionary) => _nativeOrderedDictionary = (StackallocOrderedDictionary<TKey, TValue>*)nativeOrderedDictionary;
+            internal KeyCollection(StackallocOrderedDictionary<TKey, TValue>* nativeOrderedDictionary) => _nativeOrderedDictionary = nativeOrderedDictionary;
 
             /// <summary>
             ///     Copy to
@@ -1228,9 +1228,9 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativeOrderedDictionary">NativeOrderedDictionary</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(void* nativeOrderedDictionary)
+                internal Enumerator(StackallocOrderedDictionary<TKey, TValue>* nativeOrderedDictionary)
                 {
-                    var handle = (StackallocOrderedDictionary<TKey, TValue>*)nativeOrderedDictionary;
+                    var handle = nativeOrderedDictionary;
                     _nativeOrderedDictionary = handle;
                     _version = handle->_version;
                     _index = 0;
@@ -1300,7 +1300,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeOrderedDictionary">NativeOrderedDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal ValueCollection(void* nativeOrderedDictionary) => _nativeOrderedDictionary = (StackallocOrderedDictionary<TKey, TValue>*)nativeOrderedDictionary;
+            internal ValueCollection(StackallocOrderedDictionary<TKey, TValue>* nativeOrderedDictionary) => _nativeOrderedDictionary = nativeOrderedDictionary;
 
             /// <summary>
             ///     Copy to
@@ -1407,9 +1407,9 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativeOrderedDictionary">NativeOrderedDictionary</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(void* nativeOrderedDictionary)
+                internal Enumerator(StackallocOrderedDictionary<TKey, TValue>* nativeOrderedDictionary)
                 {
-                    var handle = (StackallocOrderedDictionary<TKey, TValue>*)nativeOrderedDictionary;
+                    var handle = nativeOrderedDictionary;
                     _nativeOrderedDictionary = handle;
                     _version = handle->_version;
                     _index = 0;

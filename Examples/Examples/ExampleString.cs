@@ -19,7 +19,7 @@ namespace Examples
 
             str.Clear();
 
-            str.AppendFormatted($"test2: {100:D4}");
+            str.AppendInterpolated($"test2: {100:D4}");
             Console.WriteLine(str.ToString());
             Console.WriteLine();
 

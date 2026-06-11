@@ -67,7 +67,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="handle">Handle</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeReference(void* handle) => _handle = (T*)handle;
+        public NativeReference(T* handle) => _handle = handle;
 
         /// <summary>
         ///     Structure
@@ -112,7 +112,7 @@ namespace NativeCollections
         ///     Cast
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeReference<TTo> Cast<TTo>() where TTo : unmanaged => new(_handle);
+        public NativeReference<TTo> Cast<TTo>() where TTo : unmanaged => new((TTo*)_handle);
 
         /// <summary>
         ///     Slice
@@ -148,7 +148,7 @@ namespace NativeCollections
         ///     As reference
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeReference<T>(void* handle) => new(handle);
+        public static implicit operator NativeReference<T>(T* handle) => new(handle);
 
         /// <summary>
         ///     As handle
@@ -160,7 +160,7 @@ namespace NativeCollections
         ///     As reference
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeReference<T>(nint handle) => new((void*)handle);
+        public static implicit operator NativeReference<T>(nint handle) => new((T*)handle);
 
         /// <summary>
         ///     As handle
@@ -213,21 +213,21 @@ namespace NativeCollections
         /// </summary>
         /// <param name="reference">Reference</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeReference<T> Create<TFrom>(ref TFrom reference) => new(Unsafe.AsPointer(ref reference));
+        public static NativeReference<T> Create<TFrom>(ref TFrom reference) => new((T*)Unsafe.AsPointer(ref reference));
 
         /// <summary>
         ///     Create
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeReference<T> Create<TFrom>(Span<TFrom> buffer) => new(Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)));
+        public static NativeReference<T> Create<TFrom>(Span<TFrom> buffer) => new((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)));
 
         /// <summary>
         ///     Create
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeReference<T> Create<TFrom>(ReadOnlySpan<TFrom> buffer) => new(Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)));
+        public static NativeReference<T> Create<TFrom>(ReadOnlySpan<TFrom> buffer) => new((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)));
 
         /// <summary>
         ///     Empty

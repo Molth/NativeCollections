@@ -91,7 +91,7 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned("Span<byte> buffer")]
-        public StackallocList(Span<byte> buffer, int capacity)
+        public StackallocList([MustBePinned] Span<byte> buffer, int capacity)
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, GetByteCount(capacity), ExceptionArgument.capacity);
             _buffer = NativeArray<T>.Create(buffer).Buffer;
@@ -459,7 +459,7 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
-        public Enumerator GetEnumerator() => new(Unsafe.AsPointer(ref this));
+        public Enumerator GetEnumerator() => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Get enumerator
@@ -514,9 +514,9 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeList">NativeList</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(void* nativeList)
+            internal Enumerator(StackallocList<T>* nativeList)
             {
-                var handle = (StackallocList<T>*)nativeList;
+                var handle = nativeList;
                 _nativeList = handle;
                 _version = handle->_version;
                 _index = 0;

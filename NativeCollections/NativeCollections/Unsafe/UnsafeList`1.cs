@@ -462,8 +462,8 @@ namespace NativeCollections
         private void Grow(int capacity)
         {
             var newCapacity = 2 * _length;
-            if ((uint)newCapacity > 2147483591)
-                newCapacity = 2147483591;
+            if ((uint)newCapacity > ArrayHelpers.MaxLength)
+                newCapacity = ArrayHelpers.MaxLength;
             var expected = _length + 4;
             newCapacity = Math.Max(newCapacity, expected);
             newCapacity = Math.Max(newCapacity, capacity);
@@ -614,7 +614,7 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
-        public Enumerator GetEnumerator() => new(Unsafe.AsPointer(ref this));
+        public Enumerator GetEnumerator() => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Get enumerator
@@ -669,9 +669,9 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeList">NativeList</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(void* nativeList)
+            internal Enumerator(UnsafeList<T>* nativeList)
             {
-                var handle = (UnsafeList<T>*)nativeList;
+                var handle = nativeList;
                 _nativeList = handle;
                 _version = handle->_version;
                 _index = 0;

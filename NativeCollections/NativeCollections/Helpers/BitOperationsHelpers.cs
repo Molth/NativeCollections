@@ -47,7 +47,7 @@ namespace NativeCollections
 #if NET6_0_OR_GREATER
             return BitOperations.IsPow2(value);
 #else
-            return (value & value - 1) == 0 && value > 0;
+            return (value & (value - 1)) == 0 && value > 0;
 #endif
         }
 

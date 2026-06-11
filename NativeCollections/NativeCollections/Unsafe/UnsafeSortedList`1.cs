@@ -283,8 +283,8 @@ namespace NativeCollections
             if (_capacity < capacity)
             {
                 var newCapacity = 2 * _capacity;
-                if ((uint)newCapacity > 2147483591)
-                    newCapacity = 2147483591;
+                if ((uint)newCapacity > ArrayHelpers.MaxLength)
+                    newCapacity = ArrayHelpers.MaxLength;
                 var expected = _capacity + 4;
                 newCapacity = Math.Max(newCapacity, expected);
                 newCapacity = Math.Max(newCapacity, capacity);
@@ -395,7 +395,7 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
-        public Enumerator GetEnumerator() => new(Unsafe.AsPointer(ref this));
+        public Enumerator GetEnumerator() => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Get enumerator
@@ -450,9 +450,9 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeSortedList">NativeSortedList</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(void* nativeSortedList)
+            internal Enumerator(UnsafeSortedList<T>* nativeSortedList)
             {
-                var handle = (UnsafeSortedList<T>*)nativeSortedList;
+                var handle = nativeSortedList;
                 _nativeSortedList = handle;
                 _version = handle->_version;
                 _current = default;

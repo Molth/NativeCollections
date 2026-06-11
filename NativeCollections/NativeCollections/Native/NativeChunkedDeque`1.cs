@@ -202,6 +202,36 @@ namespace NativeCollections
         public int TrimExcess(int capacity) => _handle->TrimExcess(capacity);
 
         /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <param name="count">Count</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int CopyTo(Span<T> buffer, int count) => _handle->CopyTo(buffer, count);
+
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <param name="count">Count</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int CopyTo(Span<byte> buffer, int count) => _handle->CopyTo(buffer, count);
+
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void CopyTo(Span<T> buffer) => _handle->CopyTo(buffer);
+
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void CopyTo(Span<byte> buffer) => _handle->CopyTo(buffer);
+
+        /// <summary>
         ///     Empty
         /// </summary>
         public static NativeChunkedDeque<T> Empty => new();

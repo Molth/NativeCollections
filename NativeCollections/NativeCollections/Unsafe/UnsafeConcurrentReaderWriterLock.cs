@@ -65,17 +65,24 @@ namespace NativeCollections
         public NativeDisposable<UnsafeConcurrentReaderWriterLock> ReadLock()
         {
             Read();
-            return new NativeDisposable<UnsafeConcurrentReaderWriterLock>((UnsafeConcurrentReaderWriterLock*)Unsafe.AsPointer(ref this));
+            return new NativeDisposable<UnsafeConcurrentReaderWriterLock>(UnsafeHelpers.AsPointer(ref this));
         }
 
         /// <summary>
         ///     Read
         /// </summary>
+        /// <param name="sleep1Threshold">
+        ///     A minimum spin count after which <see langword="Thread.Sleep(1)" /> may be used. A value
+        ///     of -1 disables the use of <see langword="Thread.Sleep(1)" />.
+        /// </param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="sleep1Threshold" /> is less than -1.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeDisposable<UnsafeConcurrentReaderWriterLock> ReadLock(int sleepThreshold)
+        public NativeDisposable<UnsafeConcurrentReaderWriterLock> ReadLock(int sleep1Threshold)
         {
-            Read(sleepThreshold);
-            return new NativeDisposable<UnsafeConcurrentReaderWriterLock>((UnsafeConcurrentReaderWriterLock*)Unsafe.AsPointer(ref this));
+            Read(sleep1Threshold);
+            return new NativeDisposable<UnsafeConcurrentReaderWriterLock>(UnsafeHelpers.AsPointer(ref this));
         }
 
         /// <summary>
@@ -85,17 +92,24 @@ namespace NativeCollections
         public NativeDisposable<UnsafeConcurrentReaderWriterLock> WriteLock()
         {
             Write();
-            return new NativeDisposable<UnsafeConcurrentReaderWriterLock>((UnsafeConcurrentReaderWriterLock*)Unsafe.AsPointer(ref this));
+            return new NativeDisposable<UnsafeConcurrentReaderWriterLock>(UnsafeHelpers.AsPointer(ref this));
         }
 
         /// <summary>
         ///     Write
         /// </summary>
+        /// <param name="sleep1Threshold">
+        ///     A minimum spin count after which <see langword="Thread.Sleep(1)" /> may be used. A value
+        ///     of -1 disables the use of <see langword="Thread.Sleep(1)" />.
+        /// </param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="sleep1Threshold" /> is less than -1.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeDisposable<UnsafeConcurrentReaderWriterLock> WriteLock(int sleepThreshold)
+        public NativeDisposable<UnsafeConcurrentReaderWriterLock> WriteLock(int sleep1Threshold)
         {
-            Write(sleepThreshold);
-            return new NativeDisposable<UnsafeConcurrentReaderWriterLock>((UnsafeConcurrentReaderWriterLock*)Unsafe.AsPointer(ref this));
+            Write(sleep1Threshold);
+            return new NativeDisposable<UnsafeConcurrentReaderWriterLock>(UnsafeHelpers.AsPointer(ref this));
         }
 
         /// <summary>
@@ -120,8 +134,15 @@ namespace NativeCollections
         /// <summary>
         ///     Read
         /// </summary>
+        /// <param name="sleep1Threshold">
+        ///     A minimum spin count after which <see langword="Thread.Sleep(1)" /> may be used. A value
+        ///     of -1 disables the use of <see langword="Thread.Sleep(1)" />.
+        /// </param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="sleep1Threshold" /> is less than -1.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Read(int sleepThreshold)
+        public void Read(int sleep1Threshold)
         {
             _spinLock.Enter();
             var state = _readWriteState;
@@ -133,7 +154,7 @@ namespace NativeCollections
             _spinLock.Exit();
             var spinWait = new NativeSpinWait();
             while ((int)(Volatile.Read(ref _nextSequenceNumber) - readSequenceNumber) < 0)
-                spinWait.SpinOnce(sleepThreshold);
+                spinWait.SpinOnce(sleep1Threshold);
         }
 
         /// <summary>
@@ -155,8 +176,15 @@ namespace NativeCollections
         /// <summary>
         ///     Write
         /// </summary>
+        /// <param name="sleep1Threshold">
+        ///     A minimum spin count after which <see langword="Thread.Sleep(1)" /> may be used. A value
+        ///     of -1 disables the use of <see langword="Thread.Sleep(1)" />.
+        /// </param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="sleep1Threshold" /> is less than -1.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Write(int sleepThreshold)
+        public void Write(int sleep1Threshold)
         {
             _spinLock.Enter();
             _readWriteState = 1;
@@ -165,7 +193,7 @@ namespace NativeCollections
             _spinLock.Exit();
             var spinWait = new NativeSpinWait();
             while (sequenceNumber != Volatile.Read(ref _nextSequenceNumber))
-                spinWait.SpinOnce(sleepThreshold);
+                spinWait.SpinOnce(sleep1Threshold);
         }
 
         /// <summary>

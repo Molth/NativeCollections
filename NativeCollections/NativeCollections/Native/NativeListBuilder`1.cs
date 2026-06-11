@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+#if NET9_0_OR_GREATER
+using System.Collections;
+#endif
 
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
 #pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
@@ -20,6 +23,9 @@ namespace NativeCollections
     [NativeCollection(FromType.Standard)]
     [IsAssignableTo(typeof(IDisposable), typeof(IReadOnlyCollection<>))]
     public unsafe ref struct NativeListBuilder<T>
+#if NET9_0_OR_GREATER
+        : IDisposable, IReadOnlyCollection<T>
+#endif
     {
         /// <summary>
         ///     Buffer
@@ -44,6 +50,11 @@ namespace NativeCollections
             readonly get => _length;
             set => _length = value;
         }
+
+        /// <summary>
+        ///     Count
+        /// </summary>
+        public readonly int Count => _length;
 
         /// <summary>
         ///     Capacity
@@ -145,10 +156,14 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ref NativeListBuilder<T> AsRef()
         {
+#if NET9_0_OR_GREATER
+            return ref Unsafe.AsRef(in this);
+#else
             fixed (NativeListBuilder<T>* ptr = &this)
             {
                 return ref *ptr;
             }
+#endif
         }
 
         /// <summary>
@@ -157,10 +172,14 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly NativeListBuilder<T>* AsPointer()
         {
+#if NET9_0_OR_GREATER
+            return UnsafeHelpers.AsPointer(ref Unsafe.AsRef(in this));
+#else
             fixed (NativeListBuilder<T>* ptr = &this)
             {
                 return ptr;
             }
+#endif
         }
 
         /// <summary>
@@ -351,8 +370,8 @@ namespace NativeCollections
         private void Grow(int additionalCapacityRequired = 1)
         {
             var minimumLength = Math.Max(_buffer.Length != 0 ? _buffer.Length * 2 : 4, _buffer.Length + additionalCapacityRequired);
-            if ((uint)minimumLength > 2147483591U)
-                minimumLength = Math.Max(Math.Max(_buffer.Length + 1, 2147483591), _buffer.Length);
+            if ((uint)minimumLength > ArrayHelpers.MaxLength)
+                minimumLength = Math.Max(Math.Max(_buffer.Length + 1, ArrayHelpers.MaxLength), _buffer.Length);
             SetCapacity(minimumLength);
         }
 
@@ -688,5 +707,29 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         public readonly Span<T>.Enumerator GetEnumerator() => _buffer.GetEnumerator();
+
+#if NET9_0_OR_GREATER
+        /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        readonly IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
+
+        /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        [Obsolete("Call this method will always throw an exception.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        readonly IEnumerator IEnumerable.GetEnumerator()
+        {
+            ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+            return default;
+        }
+#endif
     }
 }

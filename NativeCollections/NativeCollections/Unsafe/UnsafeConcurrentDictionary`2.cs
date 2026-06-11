@@ -38,7 +38,7 @@ namespace NativeCollections
         /// <summary>
         ///     Node pool
         /// </summary>
-        private UnsafeMemoryPool _nodePool;
+        private UnsafeMemoryPool<Node> _nodePool;
 
         /// <summary>
         ///     Node lock
@@ -109,12 +109,12 @@ namespace NativeCollections
         /// <summary>
         ///     Keys
         /// </summary>
-        public KeyCollection Keys => new(Unsafe.AsPointer(ref this));
+        public KeyCollection Keys => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Values
         /// </summary>
-        public ValueCollection Values => new(Unsafe.AsPointer(ref this));
+        public ValueCollection Values => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Structure
@@ -127,7 +127,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeConcurrentDictionary(int size, int maxFreeSlabs, int concurrencyLevel, int capacity, bool growLockArray)
         {
-            var nodePool = new UnsafeMemoryPool(size, Unsafe.SizeOf<Node>(), maxFreeSlabs, (int)NativeMemoryAllocator.AlignOf<Node>());
+            var nodePool = new UnsafeMemoryPool<Node>(size, maxFreeSlabs);
             if (concurrencyLevel <= 0)
                 concurrencyLevel = Environment.ProcessorCount;
             capacity = Math.Max(capacity, concurrencyLevel);
@@ -396,7 +396,7 @@ namespace NativeCollections
             {
                 if (hashCode == node->HashCode && node->Key.Equals(key))
                 {
-                    value = new NativeReference<TValue>(Unsafe.AsPointer(ref node->Value));
+                    value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref node->Value));
                     return true;
                 }
             }
@@ -483,7 +483,7 @@ namespace NativeCollections
                     _nodeLock.Enter();
                     try
                     {
-                        resultNode = (Node*)_nodePool.Rent();
+                        resultNode = _nodePool.Rent();
                     }
                     finally
                     {
@@ -551,7 +551,7 @@ namespace NativeCollections
                     _nodeLock.Enter();
                     try
                     {
-                        resultNode = (Node*)_nodePool.Rent();
+                        resultNode = _nodePool.Rent();
                     }
                     finally
                     {
@@ -781,9 +781,9 @@ namespace NativeCollections
                         return;
                     }
 
-                    if ((newLength = tables->Buckets.Length * 2) < 0 || (newLength = HashHelpers.GetPrime(newLength)) > 2147483591)
+                    if ((newLength = tables->Buckets.Length * 2) < 0 || (newLength = HashHelpers.GetPrime(newLength)) > ArrayHelpers.MaxLength)
                     {
-                        newLength = 2147483591;
+                        newLength = ArrayHelpers.MaxLength;
                         _budget = int.MaxValue;
                     }
                 }
@@ -926,7 +926,7 @@ namespace NativeCollections
                                     _nodeLock.Enter();
                                     try
                                     {
-                                        newNode = (Node*)_nodePool.Rent();
+                                        newNode = _nodePool.Rent();
                                     }
                                     finally
                                     {
@@ -966,7 +966,7 @@ namespace NativeCollections
                     _nodeLock.Enter();
                     try
                     {
-                        resultNode = (Node*)_nodePool.Rent();
+                        resultNode = _nodePool.Rent();
                     }
                     finally
                     {
@@ -1032,7 +1032,7 @@ namespace NativeCollections
                                     _nodeLock.Enter();
                                     try
                                     {
-                                        newNode = (Node*)_nodePool.Rent();
+                                        newNode = _nodePool.Rent();
                                     }
                                     finally
                                     {
@@ -1261,7 +1261,7 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
-        public Enumerator GetEnumerator() => new(Unsafe.AsPointer(ref this));
+        public Enumerator GetEnumerator() => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Get enumerator
@@ -1346,9 +1346,9 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeConcurrentDictionary">NativeConcurrentDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(void* nativeConcurrentDictionary)
+            internal Enumerator(UnsafeConcurrentDictionary<TKey, TValue>* nativeConcurrentDictionary)
             {
-                _nativeConcurrentDictionary = (UnsafeConcurrentDictionary<TKey, TValue>*)nativeConcurrentDictionary;
+                _nativeConcurrentDictionary = nativeConcurrentDictionary;
                 _index = -1;
                 _buckets = default;
                 _node = null;
@@ -1440,7 +1440,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeConcurrentDictionary">NativeConcurrentDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal KeyCollection(void* nativeConcurrentDictionary) => _nativeConcurrentDictionary = (UnsafeConcurrentDictionary<TKey, TValue>*)nativeConcurrentDictionary;
+            internal KeyCollection(UnsafeConcurrentDictionary<TKey, TValue>* nativeConcurrentDictionary) => _nativeConcurrentDictionary = nativeConcurrentDictionary;
 
             /// <summary>
             ///     Get enumerator
@@ -1531,9 +1531,9 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativeConcurrentDictionary">NativeConcurrentDictionary</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(void* nativeConcurrentDictionary)
+                internal Enumerator(UnsafeConcurrentDictionary<TKey, TValue>* nativeConcurrentDictionary)
                 {
-                    _nativeConcurrentDictionary = (UnsafeConcurrentDictionary<TKey, TValue>*)nativeConcurrentDictionary;
+                    _nativeConcurrentDictionary = nativeConcurrentDictionary;
                     _index = -1;
                     _buckets = default;
                     _node = null;
@@ -1626,7 +1626,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeConcurrentDictionary">NativeConcurrentDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal ValueCollection(void* nativeConcurrentDictionary) => _nativeConcurrentDictionary = (UnsafeConcurrentDictionary<TKey, TValue>*)nativeConcurrentDictionary;
+            internal ValueCollection(UnsafeConcurrentDictionary<TKey, TValue>* nativeConcurrentDictionary) => _nativeConcurrentDictionary = nativeConcurrentDictionary;
 
             /// <summary>
             ///     Get enumerator
@@ -1717,9 +1717,9 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativeConcurrentDictionary">NativeConcurrentDictionary</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(void* nativeConcurrentDictionary)
+                internal Enumerator(UnsafeConcurrentDictionary<TKey, TValue>* nativeConcurrentDictionary)
                 {
-                    _nativeConcurrentDictionary = (UnsafeConcurrentDictionary<TKey, TValue>*)nativeConcurrentDictionary;
+                    _nativeConcurrentDictionary = nativeConcurrentDictionary;
                     _index = -1;
                     _buckets = default;
                     _node = null;

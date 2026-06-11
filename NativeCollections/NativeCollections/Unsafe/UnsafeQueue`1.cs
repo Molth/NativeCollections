@@ -296,8 +296,8 @@ namespace NativeCollections
         private void Grow(int capacity)
         {
             var newCapacity = 2 * _length;
-            if ((uint)newCapacity > 2147483591)
-                newCapacity = 2147483591;
+            if ((uint)newCapacity > ArrayHelpers.MaxLength)
+                newCapacity = ArrayHelpers.MaxLength;
             var expected = _length + 4;
             newCapacity = Math.Max(newCapacity, expected);
             newCapacity = Math.Max(newCapacity, capacity);
@@ -328,14 +328,7 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
             ref var reference = ref MemoryMarshal.GetReference(buffer);
             var size = Math.Min(buffer.Length, Math.Min(count, _size));
-            if (size == 0)
-                return 0;
-            var length1 = _length - _head;
-            var length2 = Math.Min(length1, size);
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_head)), (uint)(length2 * Unsafe.SizeOf<T>()));
-            var length3 = size - length2;
-            if (length3 > 0)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)length1)), ref Unsafe.AsRef<byte>(_buffer), (uint)(length2 * Unsafe.SizeOf<T>()));
+            RingBufferHelpers.Copy(ref reference, ref Unsafe.AsRef<T>(_buffer), size, _length, _head);
             return size;
         }
 
@@ -356,16 +349,7 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, ExceptionArgument.buffer);
             ref var reference = ref MemoryMarshal.GetReference(buffer);
-            var size = _size;
-            if (size == 0)
-                return;
-            var length1 = _length - _head;
-            var length2 = Math.Min(length1, size);
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_head)), (uint)(length2 * Unsafe.SizeOf<T>()));
-            var length3 = size - length2;
-            if (length3 <= 0)
-                return;
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)length1)), ref Unsafe.AsRef<byte>(_buffer), (uint)(length2 * Unsafe.SizeOf<T>()));
+            RingBufferHelpers.Copy(ref reference, ref Unsafe.AsRef<T>(_buffer), _size, _length, _head);
         }
 
         /// <summary>
@@ -384,7 +368,7 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
-        public Enumerator GetEnumerator() => new(Unsafe.AsPointer(ref this));
+        public Enumerator GetEnumerator() => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Get enumerator
@@ -439,9 +423,9 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeQueue">NativeQueue</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(void* nativeQueue)
+            internal Enumerator(UnsafeQueue<T>* nativeQueue)
             {
-                var handle = (UnsafeQueue<T>*)nativeQueue;
+                var handle = nativeQueue;
                 _nativeQueue = handle;
                 _version = handle->_version;
                 _index = -1;

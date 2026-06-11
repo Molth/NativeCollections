@@ -80,9 +80,9 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned("Span<byte> buffer")]
-        public StackallocMemoryStream(Span<byte> buffer)
+        public StackallocMemoryStream([MustBePinned] Span<byte> buffer)
         {
-            _buffer = (byte*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer));
+            _buffer = UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(buffer));
             _capacity = buffer.Length;
             _position = 0;
             _length = 0;

@@ -440,7 +440,7 @@ namespace NativeCollections
                 ExceptionArgument.position => "position",
                 ExceptionArgument.right => "right",
                 ExceptionArgument.size => "size",
-                ExceptionArgument.sleepThreshold => "sleepThreshold",
+                ExceptionArgument.sleep1Threshold => "sleep1Threshold",
                 ExceptionArgument.source => "source",
                 ExceptionArgument.trueProbability => "trueProbability",
                 ExceptionArgument.updateValueFactory => "updateValueFactory",

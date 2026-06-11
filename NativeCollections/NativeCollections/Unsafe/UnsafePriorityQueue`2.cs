@@ -76,7 +76,7 @@ namespace NativeCollections
         /// <summary>
         ///     Unordered items
         /// </summary>
-        public UnorderedItemsCollection UnorderedItems => new(Unsafe.AsPointer(ref this));
+        public UnorderedItemsCollection UnorderedItems => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Structure
@@ -459,8 +459,8 @@ namespace NativeCollections
         private void Grow(int capacity)
         {
             var newCapacity = 2 * _length;
-            if ((uint)newCapacity > 2147483591)
-                newCapacity = 2147483591;
+            if ((uint)newCapacity > ArrayHelpers.MaxLength)
+                newCapacity = ArrayHelpers.MaxLength;
             var expected = _length + 4;
             newCapacity = Math.Max(newCapacity, expected);
             newCapacity = Math.Max(newCapacity, capacity);
@@ -571,7 +571,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativePriorityQueue">Native priorityQueue</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal UnorderedItemsCollection(void* nativePriorityQueue) => _nativePriorityQueue = (UnsafePriorityQueue<TElement, TPriority>*)nativePriorityQueue;
+            internal UnorderedItemsCollection(UnsafePriorityQueue<TElement, TPriority>* nativePriorityQueue) => _nativePriorityQueue = nativePriorityQueue;
 
             /// <summary>
             ///     As readOnly span
@@ -653,9 +653,9 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativePriorityQueue">Native priorityQueue</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(void* nativePriorityQueue)
+                internal Enumerator(UnsafePriorityQueue<TElement, TPriority>* nativePriorityQueue)
                 {
-                    var handle = (UnsafePriorityQueue<TElement, TPriority>*)nativePriorityQueue;
+                    var handle = nativePriorityQueue;
                     _nativePriorityQueue = handle;
                     _version = handle->_version;
                     _index = 0;

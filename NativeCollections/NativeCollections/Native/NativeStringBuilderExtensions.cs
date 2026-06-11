@@ -272,7 +272,7 @@ namespace NativeCollections
         ///     Append formatted
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Append(in this NativeStringBuilder<char> builder, [InterpolatedStringHandlerArgument("builder")] ref NativeStringBuilderUtf16InterpolatedStringHandler handler)
+        public static void AppendInterpolated(in this NativeStringBuilder<char> builder, [InterpolatedStringHandlerArgument("builder")] ref NativeStringBuilderUtf16InterpolatedStringHandler handler)
         {
         }
 
@@ -280,7 +280,7 @@ namespace NativeCollections
         ///     Append formatted
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Append(in this NativeStringBuilder<char> builder, IFormatProvider? provider, [InterpolatedStringHandlerArgument("builder", "provider")] ref NativeStringBuilderUtf16InterpolatedStringHandler handler)
+        public static void AppendInterpolated(in this NativeStringBuilder<char> builder, IFormatProvider? provider, [InterpolatedStringHandlerArgument("builder", "provider")] ref NativeStringBuilderUtf16InterpolatedStringHandler handler)
         {
         }
 
@@ -323,19 +323,6 @@ namespace NativeCollections
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable<T>(in this NativeStringBuilder<char> builder, in T obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) where T : ISpanFormattable
-        {
-            ref var builderRef = ref builder.AsRef();
-            int charsWritten;
-            while (!obj.TryFormat(builderRef.Space, out charsWritten, format, provider))
-                builderRef.EnsureCapacity(builderRef.Capacity + 1);
-            builderRef.Advance(charsWritten);
-        }
-
-        /// <summary>
-        ///     Append formattable
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void AppendFormattable(in this NativeStringBuilder<char> builder, ISpanFormattable obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
         {
             ref var builderRef = ref builder.AsRef();
             int charsWritten;
@@ -1105,39 +1092,12 @@ namespace NativeCollections
                 builderRef.EnsureCapacity(builderRef.Capacity + 1);
             builderRef.Advance(bytesWritten);
         }
-
-        /// <summary>
-        ///     Append formattable
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void AppendFormattable(in this NativeStringBuilder<byte> builder, IUtf8SpanFormattable obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
-        {
-            ref var builderRef = ref builder.AsRef();
-            int bytesWritten;
-            while (!obj.TryFormat(builderRef.Space, out bytesWritten, format, provider))
-                builderRef.EnsureCapacity(builderRef.Capacity + 1);
-            builderRef.Advance(bytesWritten);
-        }
 #elif NET6_0_OR_GREATER
         /// <summary>
         ///     Append formattable
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable<T>(in this NativeStringBuilder<byte> builder, in T obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) where T : ISpanFormattable
-        {
-            ref var builderRef = ref builder.AsRef();
-            using (var temp = new NativeStringBuilder<char>(stackalloc char[512], 0))
-            {
-                temp.AppendFormattable(obj, format, provider);
-                builderRef.Append(temp);
-            }
-        }
-
-        /// <summary>
-        ///     Append formattable
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void AppendFormattable(in this NativeStringBuilder<byte> builder, ISpanFormattable obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
         {
             ref var builderRef = ref builder.AsRef();
             using (var temp = new NativeStringBuilder<char>(stackalloc char[512], 0))

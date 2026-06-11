@@ -24,7 +24,7 @@ namespace NativeCollections
         /// <summary>
         ///     Node pool
         /// </summary>
-        private UnsafeMemoryPool _nodePool;
+        private UnsafeMemoryPool<Node> _nodePool;
 
         /// <summary>
         ///     Node lock
@@ -59,7 +59,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeConcurrentStack(int size, int maxFreeSlabs)
         {
-            var nodePool = new UnsafeMemoryPool(size, Unsafe.SizeOf<Node>(), maxFreeSlabs, (int)NativeMemoryAllocator.AlignOf<Node>());
+            var nodePool = new UnsafeMemoryPool<Node>(size, maxFreeSlabs);
             _head = 0;
             _nodePool = nodePool;
             _nodeLock = new UnsafeConcurrentSpinLock();
@@ -105,7 +105,7 @@ namespace NativeCollections
             _nodeLock.Enter();
             try
             {
-                newNode = (Node*)_nodePool.Rent();
+                newNode = _nodePool.Rent();
             }
             finally
             {

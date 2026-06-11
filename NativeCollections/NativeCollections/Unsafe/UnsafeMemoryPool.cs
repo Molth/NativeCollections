@@ -239,7 +239,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Return(void* ptr)
         {
-            var node = (MemoryNode*)UnsafeHelpers.SubtractByteOffset<byte>(ptr, _alignedNodeSize);
+            var node = UnsafeHelpers.SubtractByteOffset<MemoryNode>(ptr, _alignedNodeSize);
             var slab = node->Slab;
             slab->Count++;
             if (slab != _sentinel)

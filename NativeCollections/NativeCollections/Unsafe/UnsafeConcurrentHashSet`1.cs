@@ -37,7 +37,7 @@ namespace NativeCollections
         /// <summary>
         ///     Node pool
         /// </summary>
-        private UnsafeMemoryPool _nodePool;
+        private UnsafeMemoryPool<Node> _nodePool;
 
         /// <summary>
         ///     Node lock
@@ -99,7 +99,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeConcurrentHashSet(int size, int maxFreeSlabs, int concurrencyLevel, int capacity, bool growLockArray)
         {
-            var nodePool = new UnsafeMemoryPool(size, Unsafe.SizeOf<Node>(), maxFreeSlabs, (int)NativeMemoryAllocator.AlignOf<Node>());
+            var nodePool = new UnsafeMemoryPool<Node>(size, maxFreeSlabs);
             if (concurrencyLevel <= 0)
                 concurrencyLevel = Environment.ProcessorCount;
             capacity = Math.Max(capacity, concurrencyLevel);
@@ -207,7 +207,7 @@ namespace NativeCollections
                     _nodeLock.Enter();
                     try
                     {
-                        resultNode = (Node*)_nodePool.Rent();
+                        resultNode = _nodePool.Rent();
                     }
                     finally
                     {
@@ -355,7 +355,7 @@ namespace NativeCollections
             {
                 if (hashCode == node->HashCode && node->Item.Equals(equalValue))
                 {
-                    actualValue = new NativeReference<T>(Unsafe.AsPointer(ref node->Item));
+                    actualValue = new NativeReference<T>(UnsafeHelpers.AsPointer(ref node->Item));
                     return true;
                 }
             }
@@ -396,9 +396,9 @@ namespace NativeCollections
                         return;
                     }
 
-                    if ((newLength = tables->Buckets.Length * 2) < 0 || (newLength = HashHelpers.GetPrime(newLength)) > 2147483591)
+                    if ((newLength = tables->Buckets.Length * 2) < 0 || (newLength = HashHelpers.GetPrime(newLength)) > ArrayHelpers.MaxLength)
                     {
-                        newLength = 2147483591;
+                        newLength = ArrayHelpers.MaxLength;
                         _budget = int.MaxValue;
                     }
                 }
@@ -660,7 +660,7 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
-        public Enumerator GetEnumerator() => new(Unsafe.AsPointer(ref this));
+        public Enumerator GetEnumerator() => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Get enumerator
@@ -745,9 +745,9 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeConcurrentHashSet">NativeConcurrentHashSet</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(void* nativeConcurrentHashSet)
+            internal Enumerator(UnsafeConcurrentHashSet<T>* nativeConcurrentHashSet)
             {
-                _nativeConcurrentHashSet = (UnsafeConcurrentHashSet<T>*)nativeConcurrentHashSet;
+                _nativeConcurrentHashSet = nativeConcurrentHashSet;
                 _index = -1;
                 _buckets = default;
                 _node = null;

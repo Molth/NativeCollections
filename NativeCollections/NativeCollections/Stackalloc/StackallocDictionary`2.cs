@@ -81,12 +81,12 @@ namespace NativeCollections
         /// <summary>
         ///     Keys
         /// </summary>
-        public KeyCollection Keys => new(Unsafe.AsPointer(ref this));
+        public KeyCollection Keys => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Values
         /// </summary>
-        public ValueCollection Values => new(Unsafe.AsPointer(ref this));
+        public ValueCollection Values => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Get byte count
@@ -111,7 +111,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBeZeroed("Span<byte> buffer")]
         [MustBePinned("Span<byte> buffer")]
-        public StackallocDictionary(Span<byte> buffer, int capacity)
+        public StackallocDictionary([MustBeZeroed] [MustBePinned] Span<byte> buffer, int capacity)
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, GetByteCount(capacity), ExceptionArgument.capacity);
             var size = HashHelpers.GetPrime(capacity);
@@ -280,7 +280,7 @@ namespace NativeCollections
             ref var valRef = ref FindValue(key);
             if (!Unsafe.IsNullRef(ref Unsafe.AsRef(in valRef)))
             {
-                value = new NativeReference<TValue>(Unsafe.AsPointer(ref valRef));
+                value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref valRef));
                 return true;
             }
 
@@ -330,7 +330,7 @@ namespace NativeCollections
                 ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)i);
                 if (entry.HashCode == hashCode && entry.Key.Equals(key))
                 {
-                    value = new NativeReference<TValue>(Unsafe.AsPointer(ref entry.Value));
+                    value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref entry.Value));
                     return true;
                 }
 
@@ -367,7 +367,7 @@ namespace NativeCollections
             newEntry.Value = default;
             bucket = index + 1;
             _version++;
-            value = new NativeReference<TValue>(Unsafe.AsPointer(ref newEntry.Value));
+            value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref newEntry.Value));
             return true;
         }
 
@@ -392,7 +392,7 @@ namespace NativeCollections
                 ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)i);
                 if (entry.HashCode == hashCode && entry.Key.Equals(key))
                 {
-                    value = new NativeReference<TValue>(Unsafe.AsPointer(ref entry.Value));
+                    value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref entry.Value));
                     exists = true;
                     return true;
                 }
@@ -431,7 +431,7 @@ namespace NativeCollections
             newEntry.Value = default;
             bucket = index + 1;
             _version++;
-            value = new NativeReference<TValue>(Unsafe.AsPointer(ref newEntry.Value));
+            value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref newEntry.Value));
             exists = false;
             return true;
         }
@@ -677,7 +677,7 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
-        public Enumerator GetEnumerator() => new(Unsafe.AsPointer(ref this));
+        public Enumerator GetEnumerator() => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Get enumerator
@@ -732,9 +732,9 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeDictionary">NativeDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(void* nativeDictionary)
+            internal Enumerator(StackallocDictionary<TKey, TValue>* nativeDictionary)
             {
-                var handle = (StackallocDictionary<TKey, TValue>*)nativeDictionary;
+                var handle = nativeDictionary;
                 _nativeDictionary = handle;
                 _version = handle->_version;
                 _index = 0;
@@ -806,7 +806,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeDictionary">NativeDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal KeyCollection(void* nativeDictionary) => _nativeDictionary = (StackallocDictionary<TKey, TValue>*)nativeDictionary;
+            internal KeyCollection(StackallocDictionary<TKey, TValue>* nativeDictionary) => _nativeDictionary = nativeDictionary;
 
             /// <summary>
             ///     Copy to
@@ -931,9 +931,9 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativeDictionary">NativeDictionary</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(void* nativeDictionary)
+                internal Enumerator(StackallocDictionary<TKey, TValue>* nativeDictionary)
                 {
-                    var handle = (StackallocDictionary<TKey, TValue>*)nativeDictionary;
+                    var handle = nativeDictionary;
                     _nativeDictionary = handle;
                     _version = handle->_version;
                     _index = 0;
@@ -1006,7 +1006,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeDictionary">NativeDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal ValueCollection(void* nativeDictionary) => _nativeDictionary = (StackallocDictionary<TKey, TValue>*)nativeDictionary;
+            internal ValueCollection(StackallocDictionary<TKey, TValue>* nativeDictionary) => _nativeDictionary = nativeDictionary;
 
             /// <summary>
             ///     Copy to
@@ -1131,9 +1131,9 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativeDictionary">NativeDictionary</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(void* nativeDictionary)
+                internal Enumerator(StackallocDictionary<TKey, TValue>* nativeDictionary)
                 {
-                    var handle = (StackallocDictionary<TKey, TValue>*)nativeDictionary;
+                    var handle = nativeDictionary;
                     _nativeDictionary = handle;
                     _version = handle->_version;
                     _index = 0;

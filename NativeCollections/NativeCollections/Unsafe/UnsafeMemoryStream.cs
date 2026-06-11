@@ -309,8 +309,8 @@ namespace NativeCollections
                 var newCapacity = Math.Max(capacity, 256);
                 var expected = _capacity * 2;
                 newCapacity = Math.Max(newCapacity, expected);
-                if ((uint)expected > 2147483591)
-                    newCapacity = Math.Max(capacity, 2147483591);
+                if ((uint)expected > ArrayHelpers.MaxLength)
+                    newCapacity = Math.Max(capacity, ArrayHelpers.MaxLength);
                 SetCapacity(newCapacity);
                 return true;
             }

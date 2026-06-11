@@ -16,6 +16,9 @@ namespace NativeCollections
     [NativeCollection(FromType.None)]
     [IsAssignableTo(typeof(IEquatable<>))]
     public readonly ref struct NativeReference
+#if NET9_0_OR_GREATER
+        : IEquatable<NativeReference>
+#endif
     {
         /// <summary>
         ///     Buffer

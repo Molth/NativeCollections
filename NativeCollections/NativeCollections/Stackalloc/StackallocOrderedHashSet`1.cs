@@ -90,7 +90,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBeZeroed("Span<byte> buffer")]
         [MustBePinned("Span<byte> buffer")]
-        public StackallocOrderedHashSet(Span<byte> buffer, int capacity)
+        public StackallocOrderedHashSet([MustBeZeroed] [MustBePinned] Span<byte> buffer, int capacity)
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, GetByteCount(capacity), ExceptionArgument.capacity);
             var size = HashHelpers.GetPrime(capacity);
@@ -324,7 +324,7 @@ namespace NativeCollections
             var index = IndexOf(equalValue);
             if (index >= 0)
             {
-                actualValue = new NativeReference<T>(Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index).Value));
+                actualValue = new NativeReference<T>(UnsafeHelpers.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index).Value));
                 return true;
             }
 
@@ -657,7 +657,7 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
-        public Enumerator GetEnumerator() => new(Unsafe.AsPointer(ref this));
+        public Enumerator GetEnumerator() => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Get enumerator
@@ -712,9 +712,9 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeOrderedDictionary">NativeOrderedHashSet</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(void* nativeOrderedDictionary)
+            internal Enumerator(StackallocOrderedHashSet<T>* nativeOrderedDictionary)
             {
-                var handle = (StackallocOrderedHashSet<T>*)nativeOrderedDictionary;
+                var handle = nativeOrderedDictionary;
                 _nativeOrderedDictionary = handle;
                 _version = handle->_version;
                 _index = 0;

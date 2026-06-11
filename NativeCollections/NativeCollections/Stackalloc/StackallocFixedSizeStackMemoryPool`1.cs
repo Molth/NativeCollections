@@ -70,7 +70,7 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned("Span<byte> buffer")]
-        public StackallocFixedSizeStackMemoryPool(Span<byte> buffer, int capacity)
+        public StackallocFixedSizeStackMemoryPool([MustBePinned] Span<byte> buffer, int capacity)
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, GetByteCount(capacity), ExceptionArgument.capacity);
             var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<T>(), NativeMemoryAllocator.AlignOf<int>());

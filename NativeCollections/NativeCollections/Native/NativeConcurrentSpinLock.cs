@@ -24,7 +24,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeConcurrentSpinLock(void* buffer) => _handle = (UnsafeConcurrentSpinLock*)buffer;
+        public NativeConcurrentSpinLock(UnsafeConcurrentSpinLock* buffer) => _handle = buffer;
 
         /// <summary>
         ///     Dispose
@@ -141,9 +141,15 @@ namespace NativeCollections
         ///     Wait
         /// </summary>
         /// <param name="sequenceNumber">Sequence number</param>
-        /// <param name="sleepThreshold">Sleep threshold</param>
+        /// <param name="sleep1Threshold">
+        ///     A minimum spin count after which <see langword="Thread.Sleep(1)" /> may be used. A value
+        ///     of -1 disables the use of <see langword="Thread.Sleep(1)" />.
+        /// </param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="sleep1Threshold" /> is less than -1.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Wait(int sequenceNumber, int sleepThreshold) => _handle->Wait(sequenceNumber, sleepThreshold);
+        public void Wait(int sequenceNumber, int sleep1Threshold) => _handle->Wait(sequenceNumber, sleep1Threshold);
 
         /// <summary>
         ///     Enter
@@ -154,9 +160,15 @@ namespace NativeCollections
         /// <summary>
         ///     Enter
         /// </summary>
-        /// <param name="sleepThreshold">Sleep threshold</param>
+        /// <param name="sleep1Threshold">
+        ///     A minimum spin count after which <see langword="Thread.Sleep(1)" /> may be used. A value
+        ///     of -1 disables the use of <see langword="Thread.Sleep(1)" />.
+        /// </param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="sleep1Threshold" /> is less than -1.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Enter(int sleepThreshold) => _handle->Enter(sleepThreshold);
+        public void Enter(int sleep1Threshold) => _handle->Enter(sleep1Threshold);
 
         /// <summary>
         ///     Exit
@@ -169,21 +181,21 @@ namespace NativeCollections
         /// </summary>
         /// <returns>NativeConcurrentSpinLock</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeConcurrentSpinLock(void* buffer) => new(buffer);
+        public static implicit operator NativeConcurrentSpinLock(UnsafeConcurrentSpinLock* buffer) => new(buffer);
 
         /// <summary>
         ///     As native concurrent spinLock
         /// </summary>
         /// <returns>NativeConcurrentSpinLock</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeConcurrentSpinLock(Span<byte> span) => new(Unsafe.AsPointer(ref MemoryMarshal.GetReference(span)));
+        public static implicit operator NativeConcurrentSpinLock(Span<byte> span) => new((UnsafeConcurrentSpinLock*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(span)));
 
         /// <summary>
         ///     As native concurrent spinLock
         /// </summary>
         /// <returns>NativeConcurrentSpinLock</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeConcurrentSpinLock(ReadOnlySpan<byte> readOnlySpan) => new(Unsafe.AsPointer(ref MemoryMarshal.GetReference(readOnlySpan)));
+        public static implicit operator NativeConcurrentSpinLock(ReadOnlySpan<byte> readOnlySpan) => new((UnsafeConcurrentSpinLock*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(readOnlySpan)));
 
         /// <summary>
         ///     Create

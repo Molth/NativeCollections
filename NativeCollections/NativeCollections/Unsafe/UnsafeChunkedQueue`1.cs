@@ -341,6 +341,104 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <param name="count">Count</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly int CopyTo(Span<T> buffer, int count)
+        {
+            ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
+            ref var reference = ref MemoryMarshal.GetReference(buffer);
+            var result = count = Math.Min(buffer.Length, Math.Min(count, _count));
+            if (count == 0)
+                return 0;
+            var node = _head;
+            var elementCount = Math.Min(_size - _readOffset, count);
+            if (elementCount > 0)
+            {
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(node->Buffer), (nint)_readOffset)), (uint)(elementCount * Unsafe.SizeOf<T>()));
+                count -= elementCount;
+            }
+
+            if (count == 0)
+                return elementCount;
+            reference = ref Unsafe.Add(ref reference, (nint)elementCount);
+            elementCount = _size;
+            var (chunks, remaining) = MathHelpers.DivRem(count, elementCount);
+            for (var i = 0; i < chunks; ++i)
+            {
+                node = node->Next;
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.AsRef<byte>(node->Buffer), (uint)(elementCount * Unsafe.SizeOf<T>()));
+                reference = ref Unsafe.Add(ref reference, (nint)elementCount);
+            }
+
+            if (remaining > 0)
+            {
+                elementCount = remaining;
+                node = node->Next;
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.AsRef<byte>(node->Buffer), (uint)(elementCount * Unsafe.SizeOf<T>()));
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <param name="count">Count</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly int CopyTo(Span<byte> buffer, int count) => CopyTo(MemoryMarshal.Cast<byte, T>(buffer), count);
+
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly void CopyTo(Span<T> buffer)
+        {
+            ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, ExceptionArgument.buffer);
+            ref var reference = ref MemoryMarshal.GetReference(buffer);
+            var count = _count;
+            if (count == 0)
+                return;
+            var node = _head;
+            var elementCount = Math.Min(_size - _readOffset, count);
+            if (elementCount > 0)
+            {
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(node->Buffer), (nint)_readOffset)), (uint)(elementCount * Unsafe.SizeOf<T>()));
+                count -= elementCount;
+            }
+
+            if (count == 0)
+                return;
+            reference = ref Unsafe.Add(ref reference, (nint)elementCount);
+            elementCount = _size;
+            var (chunks, remaining) = MathHelpers.DivRem(count, elementCount);
+            for (var i = 0; i < chunks; ++i)
+            {
+                node = node->Next;
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.AsRef<byte>(node->Buffer), (uint)(elementCount * Unsafe.SizeOf<T>()));
+                reference = ref Unsafe.Add(ref reference, (nint)elementCount);
+            }
+
+            if (remaining > 0)
+            {
+                elementCount = remaining;
+                node = node->Next;
+                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.AsRef<byte>(node->Buffer), (uint)(elementCount * Unsafe.SizeOf<T>()));
+            }
+        }
+
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, T>(buffer));
+
+        /// <summary>
         ///     Chunk
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
@@ -366,7 +464,7 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
-        public Enumerator GetEnumerator() => new(Unsafe.AsPointer(ref this));
+        public Enumerator GetEnumerator() => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Get enumerator
@@ -431,9 +529,9 @@ namespace NativeCollections
             /// </summary>
             /// <param name="chunkedQueue">UnsafeChunkedQueue</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(void* chunkedQueue)
+            internal Enumerator(UnsafeChunkedQueue<T>* chunkedQueue)
             {
-                var handle = (UnsafeChunkedQueue<T>*)chunkedQueue;
+                var handle = chunkedQueue;
                 _chunkedQueue = handle;
                 _version = handle->_version;
                 _currentChunk = handle->_head;
@@ -470,7 +568,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Reset()
             {
-                var handle = (UnsafeChunkedQueue<T>*)_chunkedQueue;
+                var handle = _chunkedQueue;
                 _currentChunk = handle->_head;
                 _readOffset = handle->_readOffset;
                 _count = handle->_count;

@@ -212,7 +212,7 @@ namespace NativeCollections
             {
                 var child = Right;
                 Right = child->Left;
-                child->Left = (Node<T>*)Unsafe.AsPointer(ref this);
+                child->Left = UnsafeHelpers.AsPointer(ref this);
                 return child;
             }
 
@@ -226,7 +226,7 @@ namespace NativeCollections
                 var child = Left;
                 var grandChild = child->Right;
                 Left = grandChild->Right;
-                grandChild->Right = (Node<T>*)Unsafe.AsPointer(ref this);
+                grandChild->Right = UnsafeHelpers.AsPointer(ref this);
                 child->Right = grandChild->Left;
                 grandChild->Left = child;
                 return grandChild;
@@ -241,7 +241,7 @@ namespace NativeCollections
             {
                 var child = Left;
                 Left = child->Right;
-                child->Right = (Node<T>*)Unsafe.AsPointer(ref this);
+                child->Right = UnsafeHelpers.AsPointer(ref this);
                 return child;
             }
 
@@ -255,7 +255,7 @@ namespace NativeCollections
                 var child = Right;
                 var grandChild = child->Left;
                 Right = grandChild->Left;
-                grandChild->Left = (Node<T>*)Unsafe.AsPointer(ref this);
+                grandChild->Left = UnsafeHelpers.AsPointer(ref this);
                 child->Left = grandChild->Right;
                 grandChild->Right = child;
                 return grandChild;
@@ -451,7 +451,7 @@ namespace NativeCollections
             {
                 var child = Right;
                 Right = child->Left;
-                child->Left = (Node<TKey, TValue>*)Unsafe.AsPointer(ref this);
+                child->Left = UnsafeHelpers.AsPointer(ref this);
                 return child;
             }
 
@@ -465,7 +465,7 @@ namespace NativeCollections
                 var child = Left;
                 var grandChild = child->Right;
                 Left = grandChild->Right;
-                grandChild->Right = (Node<TKey, TValue>*)Unsafe.AsPointer(ref this);
+                grandChild->Right = UnsafeHelpers.AsPointer(ref this);
                 child->Right = grandChild->Left;
                 grandChild->Left = child;
                 return grandChild;
@@ -480,7 +480,7 @@ namespace NativeCollections
             {
                 var child = Left;
                 Left = child->Right;
-                child->Right = (Node<TKey, TValue>*)Unsafe.AsPointer(ref this);
+                child->Right = UnsafeHelpers.AsPointer(ref this);
                 return child;
             }
 
@@ -494,7 +494,7 @@ namespace NativeCollections
                 var child = Right;
                 var grandChild = child->Left;
                 Right = grandChild->Left;
-                grandChild->Left = (Node<TKey, TValue>*)Unsafe.AsPointer(ref this);
+                grandChild->Left = UnsafeHelpers.AsPointer(ref this);
                 child->Left = grandChild->Right;
                 grandChild->Right = child;
                 return grandChild;

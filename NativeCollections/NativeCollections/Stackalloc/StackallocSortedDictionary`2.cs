@@ -42,12 +42,12 @@ namespace NativeCollections
         /// <summary>
         ///     Keys
         /// </summary>
-        public KeyCollection Keys => new(Unsafe.AsPointer(ref this));
+        public KeyCollection Keys => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Values
         /// </summary>
-        public ValueCollection Values => new(Unsafe.AsPointer(ref this));
+        public ValueCollection Values => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Is empty
@@ -106,7 +106,7 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned("Span<byte> buffer")]
-        public StackallocSortedDictionary(Span<byte> buffer, int capacity)
+        public StackallocSortedDictionary([MustBePinned] Span<byte> buffer, int capacity)
         {
             var nodePool = new StackallocFixedSizeStackMemoryPool<Node<TKey, TValue>>(buffer, capacity);
             _root = null;
@@ -434,7 +434,7 @@ namespace NativeCollections
             var node = FindNode(key);
             if (node != null)
             {
-                value = new NativeReference<TValue>(Unsafe.AsPointer(ref node->Value));
+                value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref node->Value));
                 return true;
             }
 
@@ -498,7 +498,7 @@ namespace NativeCollections
                 _root->Color = NodeColor.Black;
                 _count = 1;
                 _version++;
-                value = new NativeReference<TValue>(Unsafe.AsPointer(ref _root->Value));
+                value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref _root->Value));
                 return true;
             }
 
@@ -514,7 +514,7 @@ namespace NativeCollections
                 if (order == 0)
                 {
                     _root->ColorBlack();
-                    value = new NativeReference<TValue>(Unsafe.AsPointer(ref current->Value));
+                    value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref current->Value));
                     return true;
                 }
 
@@ -551,7 +551,7 @@ namespace NativeCollections
                 InsertionBalance(node, parent, grandParent, greatGrandParent);
             _root->ColorBlack();
             ++_count;
-            value = new NativeReference<TValue>(Unsafe.AsPointer(ref node->Value));
+            value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref node->Value));
             return true;
         }
 
@@ -581,7 +581,7 @@ namespace NativeCollections
                 _root->Color = NodeColor.Black;
                 _count = 1;
                 _version++;
-                value = new NativeReference<TValue>(Unsafe.AsPointer(ref _root->Value));
+                value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref _root->Value));
                 exists = false;
                 return true;
             }
@@ -598,7 +598,7 @@ namespace NativeCollections
                 if (order == 0)
                 {
                     _root->ColorBlack();
-                    value = new NativeReference<TValue>(Unsafe.AsPointer(ref current->Value));
+                    value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref current->Value));
                     exists = true;
                     return true;
                 }
@@ -637,7 +637,7 @@ namespace NativeCollections
                 InsertionBalance(node, parent, grandParent, greatGrandParent);
             _root->ColorBlack();
             ++_count;
-            value = new NativeReference<TValue>(Unsafe.AsPointer(ref node->Value));
+            value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref node->Value));
             exists = false;
             return true;
         }
@@ -745,10 +745,10 @@ namespace NativeCollections
                 return 0;
             count = Math.Min(buffer.Length, Math.Min(count, _count));
             var index = 0;
-            using (var nodeStack = new UnsafeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(_count + 1))))
+            using (var nodeStack = new UnsafeStack<NativeReference<Node<TKey, TValue>>>(2 * BitOperationsHelpers.Log2((uint)(_count + 1))))
             {
                 for (var node = _root; node != null; node = node->Left)
-                    nodeStack.Push((nint)node);
+                    nodeStack.Push(node);
                 while (nodeStack.Count != 0)
                 {
                     if (index >= count)
@@ -756,7 +756,7 @@ namespace NativeCollections
                     var node1 = (Node<TKey, TValue>*)nodeStack.Pop();
                     UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)index++), new KeyValuePair<TKey, TValue>(node1->Key, node1->Value));
                     for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
-                        nodeStack.Push((nint)node2);
+                        nodeStack.Push(node2);
                 }
             }
 
@@ -783,16 +783,16 @@ namespace NativeCollections
             if (_root == null)
                 return;
             var index = 0;
-            using (var nodeStack = new UnsafeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(_count + 1))))
+            using (var nodeStack = new UnsafeStack<NativeReference<Node<TKey, TValue>>>(2 * BitOperationsHelpers.Log2((uint)(_count + 1))))
             {
                 for (var node = _root; node != null; node = node->Left)
-                    nodeStack.Push((nint)node);
+                    nodeStack.Push(node);
                 while (nodeStack.Count != 0)
                 {
                     var node1 = (Node<TKey, TValue>*)nodeStack.Pop();
                     UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)index++), new KeyValuePair<TKey, TValue>(node1->Key, node1->Value));
                     for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
-                        nodeStack.Push((nint)node2);
+                        nodeStack.Push(node2);
                 }
             }
         }
@@ -813,7 +813,7 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
-        public Enumerator GetEnumerator() => new(Unsafe.AsPointer(ref this));
+        public Enumerator GetEnumerator() => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Get enumerator
@@ -856,7 +856,7 @@ namespace NativeCollections
             /// <summary>
             ///     Node stack
             /// </summary>
-            private readonly NativeStack<nint> _nodeStack;
+            private readonly NativeStack<NativeReference<Node<TKey, TValue>>> _nodeStack;
 
             /// <summary>
             ///     Current
@@ -873,19 +873,19 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeSortedDictionary">NativeSortedDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(void* nativeSortedDictionary)
+            internal Enumerator(StackallocSortedDictionary<TKey, TValue>* nativeSortedDictionary)
             {
-                var handle = (StackallocSortedDictionary<TKey, TValue>*)nativeSortedDictionary;
+                var handle = nativeSortedDictionary;
                 _nativeSortedDictionary = handle;
                 _version = handle->_version;
-                _nodeStack = new NativeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(handle->_count + 1)));
+                _nodeStack = new NativeStack<NativeReference<Node<TKey, TValue>>>(2 * BitOperationsHelpers.Log2((uint)(handle->_count + 1)));
                 _currentNode = null;
                 _current = default;
                 var node = handle->_root;
                 while (node != null)
                 {
                     var next = node->Left;
-                    _nodeStack.Push((nint)node);
+                    _nodeStack.Push(node);
                     node = next;
                 }
             }
@@ -905,13 +905,13 @@ namespace NativeCollections
                     return false;
                 }
 
-                _currentNode = (Node<TKey, TValue>*)result;
+                _currentNode = result;
                 _current = new KeyValuePair<TKey, TValue>(_currentNode->Key, _currentNode->Value);
                 var node = _currentNode->Right;
                 while (node != null)
                 {
                     var next = node->Left;
-                    _nodeStack.Push((nint)node);
+                    _nodeStack.Push(node);
                     node = next;
                 }
 
@@ -931,7 +931,7 @@ namespace NativeCollections
                 while (node != null)
                 {
                     var next = node->Left;
-                    _nodeStack.Push((nint)node);
+                    _nodeStack.Push(node);
                     node = next;
                 }
             }
@@ -973,7 +973,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeSortedDictionary">NativeSortedDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal KeyCollection(void* nativeSortedDictionary) => _nativeSortedDictionary = (StackallocSortedDictionary<TKey, TValue>*)nativeSortedDictionary;
+            internal KeyCollection(StackallocSortedDictionary<TKey, TValue>* nativeSortedDictionary) => _nativeSortedDictionary = nativeSortedDictionary;
 
             /// <summary>
             ///     Copy to
@@ -989,10 +989,10 @@ namespace NativeCollections
                     return 0;
                 count = Math.Min(buffer.Length, Math.Min(count, _nativeSortedDictionary->_count));
                 var index = 0;
-                using (var nodeStack = new UnsafeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(_nativeSortedDictionary->_count + 1))))
+                using (var nodeStack = new UnsafeStack<NativeReference<Node<TKey, TValue>>>(2 * BitOperationsHelpers.Log2((uint)(_nativeSortedDictionary->_count + 1))))
                 {
                     for (var node = _nativeSortedDictionary->_root; node != null; node = node->Left)
-                        nodeStack.Push((nint)node);
+                        nodeStack.Push(node);
                     while (nodeStack.Count != 0)
                     {
                         if (index >= count)
@@ -1000,7 +1000,7 @@ namespace NativeCollections
                         var node1 = (Node<TKey, TValue>*)nodeStack.Pop();
                         UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)index++), node1->Key);
                         for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
-                            nodeStack.Push((nint)node2);
+                            nodeStack.Push(node2);
                     }
                 }
 
@@ -1027,16 +1027,16 @@ namespace NativeCollections
                 if (_nativeSortedDictionary->_root == null)
                     return;
                 var index = 0;
-                using (var nodeStack = new UnsafeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(_nativeSortedDictionary->_count + 1))))
+                using (var nodeStack = new UnsafeStack<NativeReference<Node<TKey, TValue>>>(2 * BitOperationsHelpers.Log2((uint)(_nativeSortedDictionary->_count + 1))))
                 {
                     for (var node = _nativeSortedDictionary->_root; node != null; node = node->Left)
-                        nodeStack.Push((nint)node);
+                        nodeStack.Push(node);
                     while (nodeStack.Count != 0)
                     {
                         var node1 = (Node<TKey, TValue>*)nodeStack.Pop();
                         UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)index++), node1->Key);
                         for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
-                            nodeStack.Push((nint)node2);
+                            nodeStack.Push(node2);
                     }
                 }
             }
@@ -1095,7 +1095,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     Node stack
                 /// </summary>
-                private readonly NativeStack<nint> _nodeStack;
+                private readonly NativeStack<NativeReference<Node<TKey, TValue>>> _nodeStack;
 
                 /// <summary>
                 ///     Current
@@ -1112,19 +1112,19 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativeSortedDictionary">NativeSortedDictionary</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(void* nativeSortedDictionary)
+                internal Enumerator(StackallocSortedDictionary<TKey, TValue>* nativeSortedDictionary)
                 {
-                    var handle = (StackallocSortedDictionary<TKey, TValue>*)nativeSortedDictionary;
+                    var handle = nativeSortedDictionary;
                     _nativeSortedDictionary = handle;
                     _version = handle->_version;
-                    _nodeStack = new NativeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(handle->_count + 1)));
+                    _nodeStack = new NativeStack<NativeReference<Node<TKey, TValue>>>(2 * BitOperationsHelpers.Log2((uint)(handle->_count + 1)));
                     _currentNode = null;
                     _current = default;
                     var node = handle->_root;
                     while (node != null)
                     {
                         var next = node->Left;
-                        _nodeStack.Push((nint)node);
+                        _nodeStack.Push(node);
                         node = next;
                     }
                 }
@@ -1144,13 +1144,13 @@ namespace NativeCollections
                         return false;
                     }
 
-                    _currentNode = (Node<TKey, TValue>*)result;
+                    _currentNode = result;
                     _current = _currentNode->Key;
                     var node = _currentNode->Right;
                     while (node != null)
                     {
                         var next = node->Left;
-                        _nodeStack.Push((nint)node);
+                        _nodeStack.Push(node);
                         node = next;
                     }
 
@@ -1170,7 +1170,7 @@ namespace NativeCollections
                     while (node != null)
                     {
                         var next = node->Left;
-                        _nodeStack.Push((nint)node);
+                        _nodeStack.Push(node);
                         node = next;
                     }
                 }
@@ -1213,7 +1213,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeSortedDictionary">NativeSortedDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal ValueCollection(void* nativeSortedDictionary) => _nativeSortedDictionary = (StackallocSortedDictionary<TKey, TValue>*)nativeSortedDictionary;
+            internal ValueCollection(StackallocSortedDictionary<TKey, TValue>* nativeSortedDictionary) => _nativeSortedDictionary = nativeSortedDictionary;
 
             /// <summary>
             ///     Copy to
@@ -1229,10 +1229,10 @@ namespace NativeCollections
                     return 0;
                 count = Math.Min(buffer.Length, Math.Min(count, _nativeSortedDictionary->_count));
                 var index = 0;
-                using (var nodeStack = new UnsafeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(_nativeSortedDictionary->_count + 1))))
+                using (var nodeStack = new UnsafeStack<NativeReference<Node<TKey, TValue>>>(2 * BitOperationsHelpers.Log2((uint)(_nativeSortedDictionary->_count + 1))))
                 {
                     for (var node = _nativeSortedDictionary->_root; node != null; node = node->Left)
-                        nodeStack.Push((nint)node);
+                        nodeStack.Push(node);
                     while (nodeStack.Count != 0)
                     {
                         if (index >= count)
@@ -1240,7 +1240,7 @@ namespace NativeCollections
                         var node1 = (Node<TKey, TValue>*)nodeStack.Pop();
                         UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)index++), node1->Value);
                         for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
-                            nodeStack.Push((nint)node2);
+                            nodeStack.Push(node2);
                     }
                 }
 
@@ -1267,16 +1267,16 @@ namespace NativeCollections
                 if (_nativeSortedDictionary->_root == null)
                     return;
                 var index = 0;
-                using (var nodeStack = new UnsafeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(_nativeSortedDictionary->_count + 1))))
+                using (var nodeStack = new UnsafeStack<NativeReference<Node<TKey, TValue>>>(2 * BitOperationsHelpers.Log2((uint)(_nativeSortedDictionary->_count + 1))))
                 {
                     for (var node = _nativeSortedDictionary->_root; node != null; node = node->Left)
-                        nodeStack.Push((nint)node);
+                        nodeStack.Push(node);
                     while (nodeStack.Count != 0)
                     {
                         var node1 = (Node<TKey, TValue>*)nodeStack.Pop();
                         UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)index++), node1->Value);
                         for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
-                            nodeStack.Push((nint)node2);
+                            nodeStack.Push(node2);
                     }
                 }
             }
@@ -1335,7 +1335,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     Node stack
                 /// </summary>
-                private readonly NativeStack<nint> _nodeStack;
+                private readonly NativeStack<NativeReference<Node<TKey, TValue>>> _nodeStack;
 
                 /// <summary>
                 ///     Current
@@ -1352,19 +1352,19 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativeSortedDictionary">NativeSortedDictionary</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(void* nativeSortedDictionary)
+                internal Enumerator(StackallocSortedDictionary<TKey, TValue>* nativeSortedDictionary)
                 {
-                    var handle = (StackallocSortedDictionary<TKey, TValue>*)nativeSortedDictionary;
+                    var handle = nativeSortedDictionary;
                     _nativeSortedDictionary = handle;
                     _version = handle->_version;
-                    _nodeStack = new NativeStack<nint>(2 * BitOperationsHelpers.Log2((uint)(handle->_count + 1)));
+                    _nodeStack = new NativeStack<NativeReference<Node<TKey, TValue>>>(2 * BitOperationsHelpers.Log2((uint)(handle->_count + 1)));
                     _currentNode = null;
                     _current = default;
                     var node = handle->_root;
                     while (node != null)
                     {
                         var next = node->Left;
-                        _nodeStack.Push((nint)node);
+                        _nodeStack.Push(node);
                         node = next;
                     }
                 }
@@ -1384,13 +1384,13 @@ namespace NativeCollections
                         return false;
                     }
 
-                    _currentNode = (Node<TKey, TValue>*)result;
+                    _currentNode = result;
                     _current = _currentNode->Value;
                     var node = _currentNode->Right;
                     while (node != null)
                     {
                         var next = node->Left;
-                        _nodeStack.Push((nint)node);
+                        _nodeStack.Push(node);
                         node = next;
                     }
 
@@ -1410,7 +1410,7 @@ namespace NativeCollections
                     while (node != null)
                     {
                         var next = node->Left;
-                        _nodeStack.Push((nint)node);
+                        _nodeStack.Push(node);
                         node = next;
                     }
                 }

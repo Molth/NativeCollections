@@ -7,13 +7,20 @@ namespace NativeCollections
     /// <summary>
     ///     Must be pinned attribute
     /// </summary>
-    [AttributeUsage(AttributeTargets.Constructor)]
+    [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Parameter)]
     public sealed class MustBePinnedAttribute : Attribute
     {
         /// <summary>
         ///     Parameter
         /// </summary>
-        public readonly string Parameter;
+        public readonly string? Parameter;
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        public MustBePinnedAttribute()
+        {
+        }
 
         /// <summary>
         ///     Structure

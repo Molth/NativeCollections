@@ -306,7 +306,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>NativeMemoryLinearAllocator</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeMemoryLinearAllocator(Span<byte> span) => new((byte*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(span)), span.Length);
+        public static implicit operator NativeMemoryLinearAllocator(Span<byte> span) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(span)), span.Length);
 
         /// <summary>
         ///     As span
@@ -320,7 +320,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>NativeMemoryLinearAllocator</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeMemoryLinearAllocator(ReadOnlySpan<byte> readOnlySpan) => new((byte*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(readOnlySpan)), readOnlySpan.Length);
+        public static implicit operator NativeMemoryLinearAllocator(ReadOnlySpan<byte> readOnlySpan) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(readOnlySpan)), readOnlySpan.Length);
 
         /// <summary>
         ///     As readOnly span

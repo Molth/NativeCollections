@@ -7,13 +7,20 @@ namespace NativeCollections
     /// <summary>
     ///     Must be zeroed attribute
     /// </summary>
-    [AttributeUsage(AttributeTargets.Constructor)]
+    [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Parameter)]
     public sealed class MustBeZeroedAttribute : Attribute
     {
         /// <summary>
         ///     Parameter
         /// </summary>
-        public readonly string Parameter;
+        public readonly string? Parameter;
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        public MustBeZeroedAttribute()
+        {
+        }
 
         /// <summary>
         ///     Structure

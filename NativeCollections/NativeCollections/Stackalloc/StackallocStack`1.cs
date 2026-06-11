@@ -91,7 +91,7 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned("Span<byte> buffer")]
-        public StackallocStack(Span<byte> buffer, int capacity)
+        public StackallocStack([MustBePinned] Span<byte> buffer, int capacity)
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, GetByteCount(capacity), ExceptionArgument.capacity);
             _buffer = NativeArray<T>.Create(buffer).Buffer;
@@ -230,10 +230,7 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, ExceptionArgument.buffer);
             ref var reference = ref MemoryMarshal.GetReference(buffer);
-            var num1 = 0;
-            var num2 = _size;
-            while (num1 < _size)
-                UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)(--num2)), Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)num1++));
+            StackHelpers.Copy(ref reference, ref Unsafe.AsRef<T>(_buffer), _size);
         }
 
         /// <summary>
@@ -252,7 +249,7 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
-        public Enumerator GetEnumerator() => new(Unsafe.AsPointer(ref this));
+        public Enumerator GetEnumerator() => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Get enumerator
@@ -307,9 +304,9 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeStack">NativeStack</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(void* nativeStack)
+            internal Enumerator(StackallocStack<T>* nativeStack)
             {
-                var handle = (StackallocStack<T>*)nativeStack;
+                var handle = nativeStack;
                 _nativeStack = handle;
                 _version = handle->_version;
                 _index = -2;

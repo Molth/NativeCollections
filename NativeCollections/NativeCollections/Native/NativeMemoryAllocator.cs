@@ -70,6 +70,7 @@ namespace NativeCollections
         /// <param name="byteCount">The size, in bytes, of the block to allocate.</param>
         /// <param name="alignment">The alignment, in bytes, of the block to allocate. This must be a power of <c>2</c>.</param>
         /// <returns>A pointer to the allocated aligned block of memory.</returns>
+        [Customizable]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void* AlignedAlloc(uint byteCount, uint alignment)
         {
@@ -139,6 +140,7 @@ namespace NativeCollections
         /// <param name="byteCount">The size, in bytes, of the block to allocate.</param>
         /// <param name="alignment">The alignment, in bytes, of the block to allocate. This must be a power of <c>2</c>.</param>
         /// <returns>A pointer to the allocated and zeroed aligned block of memory.</returns>
+        [Customizable]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void* AlignedAllocZeroed(uint byteCount, uint alignment)
         {
@@ -230,6 +232,7 @@ namespace NativeCollections
 
         /// <summary>Frees an aligned block of memory.</summary>
         /// <param name="ptr">A pointer to the aligned block of memory that should be freed.</param>
+        [Customizable]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AlignedFree(void* ptr)
         {
@@ -429,7 +432,7 @@ namespace NativeCollections
         /// <param name="value">The object whose address is obtained.</param>
         /// <returns>An address of the given object.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static nint AddressOf<T>(ref T value) where T : unmanaged => (nint)Unsafe.AsPointer(ref value);
+        public static nint AddressOf<T>(ref T value) where T : unmanaged => (nint)UnsafeHelpers.AsPointer(ref value);
 
         /// <summary>Helper structure for calculating type alignment.</summary>
         /// <typeparam name="T">The unmanaged type being measured.</typeparam>

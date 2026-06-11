@@ -76,7 +76,7 @@ namespace NativeCollections
         /// <summary>
         ///     Unordered items
         /// </summary>
-        public UnorderedItemsCollection UnorderedItems => new(Unsafe.AsPointer(ref this));
+        public UnorderedItemsCollection UnorderedItems => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Get byte count
@@ -97,7 +97,7 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned("Span<byte> buffer")]
-        public StackallocPriorityQueue(Span<byte> buffer, int capacity)
+        public StackallocPriorityQueue([MustBePinned] Span<byte> buffer, int capacity)
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, GetByteCount(capacity), ExceptionArgument.capacity);
             _nodes = NativeArray<(TElement Element, TPriority Priority)>.Create(buffer).Buffer;
@@ -487,7 +487,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativePriorityQueue">Native priorityQueue</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal UnorderedItemsCollection(void* nativePriorityQueue) => _nativePriorityQueue = (StackallocPriorityQueue<TElement, TPriority>*)nativePriorityQueue;
+            internal UnorderedItemsCollection(StackallocPriorityQueue<TElement, TPriority>* nativePriorityQueue) => _nativePriorityQueue = nativePriorityQueue;
 
             /// <summary>
             ///     As readOnly span
@@ -569,9 +569,9 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativePriorityQueue">Native priorityQueue</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(void* nativePriorityQueue)
+                internal Enumerator(StackallocPriorityQueue<TElement, TPriority>* nativePriorityQueue)
                 {
-                    var handle = (StackallocPriorityQueue<TElement, TPriority>*)nativePriorityQueue;
+                    var handle = nativePriorityQueue;
                     _nativePriorityQueue = handle;
                     _version = handle->_version;
                     _index = 0;

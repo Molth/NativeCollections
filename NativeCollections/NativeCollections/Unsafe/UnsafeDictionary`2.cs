@@ -100,12 +100,12 @@ namespace NativeCollections
         /// <summary>
         ///     Keys
         /// </summary>
-        public KeyCollection Keys => new(Unsafe.AsPointer(ref this));
+        public KeyCollection Keys => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Values
         /// </summary>
-        public ValueCollection Values => new(Unsafe.AsPointer(ref this));
+        public ValueCollection Values => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Structure
@@ -279,7 +279,7 @@ namespace NativeCollections
             ref var valRef = ref FindValue(key);
             if (!Unsafe.IsNullRef(ref Unsafe.AsRef(in valRef)))
             {
-                value = new NativeReference<TValue>(Unsafe.AsPointer(ref valRef));
+                value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref valRef));
                 return true;
             }
 
@@ -849,7 +849,7 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
-        public Enumerator GetEnumerator() => new(Unsafe.AsPointer(ref this));
+        public Enumerator GetEnumerator() => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Get enumerator
@@ -904,9 +904,9 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeDictionary">NativeDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(void* nativeDictionary)
+            internal Enumerator(UnsafeDictionary<TKey, TValue>* nativeDictionary)
             {
-                var handle = (UnsafeDictionary<TKey, TValue>*)nativeDictionary;
+                var handle = nativeDictionary;
                 _nativeDictionary = handle;
                 _version = handle->_version;
                 _index = 0;
@@ -978,7 +978,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeDictionary">NativeDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal KeyCollection(void* nativeDictionary) => _nativeDictionary = (UnsafeDictionary<TKey, TValue>*)nativeDictionary;
+            internal KeyCollection(UnsafeDictionary<TKey, TValue>* nativeDictionary) => _nativeDictionary = nativeDictionary;
 
             /// <summary>
             ///     Copy to
@@ -1103,9 +1103,9 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativeDictionary">NativeDictionary</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(void* nativeDictionary)
+                internal Enumerator(UnsafeDictionary<TKey, TValue>* nativeDictionary)
                 {
-                    var handle = (UnsafeDictionary<TKey, TValue>*)nativeDictionary;
+                    var handle = nativeDictionary;
                     _nativeDictionary = handle;
                     _version = handle->_version;
                     _index = 0;
@@ -1178,7 +1178,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeDictionary">NativeDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal ValueCollection(void* nativeDictionary) => _nativeDictionary = (UnsafeDictionary<TKey, TValue>*)nativeDictionary;
+            internal ValueCollection(UnsafeDictionary<TKey, TValue>* nativeDictionary) => _nativeDictionary = nativeDictionary;
 
             /// <summary>
             ///     Copy to
@@ -1303,9 +1303,9 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativeDictionary">NativeDictionary</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(void* nativeDictionary)
+                internal Enumerator(UnsafeDictionary<TKey, TValue>* nativeDictionary)
                 {
-                    var handle = (UnsafeDictionary<TKey, TValue>*)nativeDictionary;
+                    var handle = nativeDictionary;
                     _nativeDictionary = handle;
                     _version = handle->_version;
                     _index = 0;

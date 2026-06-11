@@ -10,7 +10,7 @@ namespace NativeCollections
     /// <summary>
     ///     Format helpers
     /// </summary>
-    internal static unsafe class FormatHelpers
+    internal static class FormatHelpers
     {
         /// <summary>
         ///     Gets whether the provider provides a custom formatter.

@@ -159,7 +159,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Read(byte* buffer, int length)
         {
-            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
+            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.buffer);
             return Read(MemoryMarshal.CreateSpan(ref Unsafe.AsRef<byte>(buffer), length));
         }
 
@@ -171,7 +171,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(byte* buffer, int length)
         {
-            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
+            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.buffer);
             Write(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<byte>(buffer), length));
         }
 
@@ -184,7 +184,6 @@ namespace NativeCollections
         public int Read(Span<byte> buffer)
         {
             var length = buffer.Length;
-            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.buffer);
             ref var reference = ref MemoryMarshal.GetReference(buffer);
             if (length >= _length)
             {
@@ -193,7 +192,7 @@ namespace NativeCollections
                     return 0;
                 ++_version;
                 var size = _size;
-                var byteCount = (nint)(size - _readOffset);
+                var byteCount = size - _readOffset;
                 if (byteCount >= length)
                 {
                     Unsafe.CopyBlockUnaligned(ref reference, ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_head->Buffer), new IntPtr(_readOffset)), (uint)length);
@@ -221,7 +220,7 @@ namespace NativeCollections
                         }
 
                         --_chunks;
-                        Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteCount), ref Unsafe.AsRef<byte>(_head->Buffer), (uint)size);
+                        Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, new IntPtr(byteCount)), ref Unsafe.AsRef<byte>(_head->Buffer), (uint)size);
                         byteCount += size;
                     }
 
@@ -241,7 +240,7 @@ namespace NativeCollections
                         }
 
                         --_chunks;
-                        Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteCount), ref Unsafe.AsRef<byte>(_head->Buffer), (uint)remaining);
+                        Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, new IntPtr(byteCount)), ref Unsafe.AsRef<byte>(_head->Buffer), (uint)remaining);
                     }
                 }
 
@@ -255,7 +254,7 @@ namespace NativeCollections
                     return 0;
                 ++_version;
                 var size = _size;
-                var byteCount = (nint)(size - _readOffset);
+                var byteCount = size - _readOffset;
                 if (byteCount >= length)
                 {
                     Unsafe.CopyBlockUnaligned(ref reference, ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_head->Buffer), new IntPtr(_readOffset)), (uint)length);
@@ -284,7 +283,7 @@ namespace NativeCollections
                         }
 
                         --_chunks;
-                        Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteCount), ref Unsafe.AsRef<byte>(_head->Buffer), (uint)size);
+                        Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, new IntPtr(byteCount)), ref Unsafe.AsRef<byte>(_head->Buffer), (uint)size);
                         byteCount += size;
                     }
 
@@ -304,10 +303,10 @@ namespace NativeCollections
                         }
 
                         --_chunks;
-                        Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, byteCount), ref Unsafe.AsRef<byte>(_head->Buffer), (uint)remaining);
+                        Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref reference, new IntPtr(byteCount)), ref Unsafe.AsRef<byte>(_head->Buffer), (uint)remaining);
                     }
 
-                    _readOffset = remaining == 0 ? _size : (int)remaining;
+                    _readOffset = remaining == 0 ? _size : remaining;
                 }
 
                 _length -= length;
@@ -324,13 +323,12 @@ namespace NativeCollections
         public void Write(ReadOnlySpan<byte> buffer)
         {
             var length = buffer.Length;
-            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.buffer);
             if (length == 0)
                 return;
             ++_version;
             ref var reference = ref MemoryMarshal.GetReference(buffer);
             var size = _size;
-            var byteCount = (nint)(size - _writeOffset);
+            var byteCount = size - _writeOffset;
             if (byteCount >= length)
             {
                 Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_tail->Buffer), new IntPtr(_writeOffset)), ref reference, (uint)length);
@@ -359,7 +357,7 @@ namespace NativeCollections
                     _tail->Next = chunk;
                     _tail = chunk;
                     ++_chunks;
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(_tail->Buffer), ref Unsafe.AddByteOffset(ref reference, byteCount), (uint)size);
+                    Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(_tail->Buffer), ref Unsafe.AddByteOffset(ref reference, new IntPtr(byteCount)), (uint)size);
                     byteCount += size;
                 }
 
@@ -379,10 +377,10 @@ namespace NativeCollections
                     _tail->Next = chunk;
                     _tail = chunk;
                     ++_chunks;
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(_tail->Buffer), ref Unsafe.AddByteOffset(ref reference, byteCount), (uint)remaining);
+                    Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(_tail->Buffer), ref Unsafe.AddByteOffset(ref reference, new IntPtr(byteCount)), (uint)remaining);
                 }
 
-                _writeOffset = remaining == 0 ? _size : (int)remaining;
+                _writeOffset = remaining == 0 ? _size : remaining;
             }
 
             _length += length;
@@ -404,7 +402,7 @@ namespace NativeCollections
                     return 0;
                 ++_version;
                 var size = _size;
-                var byteCount = (nint)(size - _readOffset);
+                var byteCount = size - _readOffset;
                 if (byteCount < length)
                 {
                     MemoryChunk* chunk;
@@ -458,7 +456,7 @@ namespace NativeCollections
                     return 0;
                 ++_version;
                 var size = _size;
-                var byteCount = (nint)(size - _readOffset);
+                var byteCount = size - _readOffset;
                 if (byteCount >= length)
                 {
                     _readOffset += length;
@@ -505,7 +503,7 @@ namespace NativeCollections
                         --_chunks;
                     }
 
-                    _readOffset = remaining == 0 ? _size : (int)remaining;
+                    _readOffset = remaining == 0 ? _size : remaining;
                 }
 
                 _length -= length;
@@ -526,7 +524,7 @@ namespace NativeCollections
                 return;
             ++_version;
             var size = _size;
-            var byteCount = (nint)(size - _writeOffset);
+            var byteCount = size - _writeOffset;
             if (byteCount >= length)
             {
                 _writeOffset += length;
@@ -573,7 +571,7 @@ namespace NativeCollections
                     ++_chunks;
                 }
 
-                _writeOffset = remaining == 0 ? _size : (int)remaining;
+                _writeOffset = remaining == 0 ? _size : remaining;
             }
 
             _length += length;
@@ -651,6 +649,89 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <param name="count">Count</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly int CopyTo(Span<byte> buffer, int count)
+        {
+            ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
+            ref var reference = ref MemoryMarshal.GetReference(buffer);
+            var result = count = Math.Min(buffer.Length, Math.Min(count, _length));
+            if (count == 0)
+                return 0;
+            var node = _head;
+            var elementCount = Math.Min(_size - _readOffset, count);
+            if (elementCount > 0)
+            {
+                Unsafe.CopyBlockUnaligned(ref reference, ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(node->Buffer), new IntPtr(_readOffset)), (uint)elementCount);
+                count -= elementCount;
+            }
+
+            if (count == 0)
+                return elementCount;
+            reference = ref Unsafe.Add(ref reference, (nint)elementCount);
+            elementCount = _size;
+            var (chunks, remaining) = MathHelpers.DivRem(count, elementCount);
+            for (var i = 0; i < chunks; ++i)
+            {
+                node = node->Next;
+                Unsafe.CopyBlockUnaligned(ref reference, ref Unsafe.AsRef<byte>(node->Buffer), (uint)elementCount);
+                reference = ref Unsafe.Add(ref reference, (nint)elementCount);
+            }
+
+            if (remaining > 0)
+            {
+                elementCount = remaining;
+                node = node->Next;
+                Unsafe.CopyBlockUnaligned(ref reference, ref Unsafe.AsRef<byte>(node->Buffer), (uint)elementCount);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly void CopyTo(Span<byte> buffer)
+        {
+            ThrowHelpers.ThrowIfLessThan(buffer.Length, _length, ExceptionArgument.buffer);
+            ref var reference = ref MemoryMarshal.GetReference(buffer);
+            var count = _length;
+            if (count == 0)
+                return;
+            var node = _head;
+            var elementCount = Math.Min(_size - _readOffset, count);
+            if (elementCount > 0)
+            {
+                Unsafe.CopyBlockUnaligned(ref reference, ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(node->Buffer), new IntPtr(_readOffset)), (uint)elementCount);
+                count -= elementCount;
+            }
+
+            if (count == 0)
+                return;
+            reference = ref Unsafe.Add(ref reference, (nint)elementCount);
+            elementCount = _size;
+            var (chunks, remaining) = MathHelpers.DivRem(count, elementCount);
+            for (var i = 0; i < chunks; ++i)
+            {
+                node = node->Next;
+                Unsafe.CopyBlockUnaligned(ref reference, ref Unsafe.AsRef<byte>(node->Buffer), (uint)elementCount);
+                reference = ref Unsafe.Add(ref reference, (nint)elementCount);
+            }
+
+            if (remaining > 0)
+            {
+                elementCount = remaining;
+                node = node->Next;
+                Unsafe.CopyBlockUnaligned(ref reference, ref Unsafe.AsRef<byte>(node->Buffer), (uint)elementCount);
+            }
+        }
+
+        /// <summary>
         ///     Chunk
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
@@ -676,7 +757,7 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
-        public Enumerator GetEnumerator() => new(Unsafe.AsPointer(ref this));
+        public Enumerator GetEnumerator() => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Get enumerator
@@ -741,9 +822,9 @@ namespace NativeCollections
             /// </summary>
             /// <param name="chunkedStream">UnsafeChunkedStream</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(void* chunkedStream)
+            internal Enumerator(UnsafeChunkedStream* chunkedStream)
             {
-                var handle = (UnsafeChunkedStream*)chunkedStream;
+                var handle = chunkedStream;
                 _chunkedStream = handle;
                 _version = handle->_version;
                 _currentChunk = handle->_head;

@@ -23,12 +23,12 @@ namespace NativeCollections
         /// <summary>
         ///     Handle
         /// </summary>
-        internal readonly NativeString* Handle;
+        private readonly NativeString* _handle;
 
         /// <summary>
         ///     The associated NativeStringBuilder to which to append.
         /// </summary>
-        internal readonly NativeString StringBuilder;
+        private readonly NativeString _stringBuilder;
 
         /// <summary>
         ///     Optional provider to pass to IFormattable.ToString or ISpanFormattable.TryFormat calls.
@@ -48,7 +48,7 @@ namespace NativeCollections
         /// <summary>
         ///     Tracks the cumulative success state of all append operations.
         /// </summary>
-        internal bool Result;
+        private bool _result;
 
         /// <summary>Creates a handler used to append an interpolated string into a <see cref="NativeString" />.</summary>
         /// <param name="literalLength">
@@ -63,11 +63,11 @@ namespace NativeCollections
         /// </remarks>
         public NativeStringInterpolatedStringHandler(int literalLength, int formattedCount, in NativeString stringBuilder)
         {
-            Handle = stringBuilder.AsPointer();
-            StringBuilder = stringBuilder;
+            _handle = stringBuilder.AsPointer();
+            _stringBuilder = stringBuilder;
             _provider = null;
             _hasCustomFormatter = false;
-            Result = true;
+            _result = true;
         }
 
         /// <summary>Creates a handler used to translate an interpolated string into a <see cref="string" />.</summary>
@@ -84,19 +84,32 @@ namespace NativeCollections
         /// </remarks>
         public NativeStringInterpolatedStringHandler(int literalLength, int formattedCount, in NativeString stringBuilder, IFormatProvider? provider)
         {
-            Handle = stringBuilder.AsPointer();
-            StringBuilder = stringBuilder;
+            _handle = stringBuilder.AsPointer();
+            _stringBuilder = stringBuilder;
             _provider = provider;
             _hasCustomFormatter = provider != null && FormatHelpers.HasCustomFormatter(provider);
-            Result = true;
+            _result = true;
+        }
+
+        /// <summary>
+        ///     Try copy to
+        /// </summary>
+        internal readonly bool TryCopyTo(ref NativeString builder)
+        {
+            if (builder.AsPointer() != _handle)
+                ThrowHelpers.ThrowNotSupportedException();
+            var result = _result;
+            if (result)
+                builder = _stringBuilder;
+            return result;
         }
 
         /// <summary>Writes the specified string to the handler.</summary>
         /// <param name="value">The string to write.</param>
         public void AppendLiteral(string value)
         {
-            ref var sbRef = ref StringBuilder.AsRef();
-            Result &= sbRef.Append(value);
+            ref var sbRef = ref _stringBuilder.AsRef();
+            _result &= sbRef.Append(value);
         }
 
         /// <summary>Writes the specified value to the handler.</summary>
@@ -114,16 +127,16 @@ namespace NativeCollections
         /// <typeparam name="T">The type of the value to write.</typeparam>
         public void AppendFormatted<T>(T value)
         {
-            ref var sbRef = ref StringBuilder.AsRef();
+            ref var sbRef = ref _stringBuilder.AsRef();
             if (_hasCustomFormatter)
             {
                 var formatter = (ICustomFormatter?)_provider!.GetFormat(typeof(ICustomFormatter));
                 if (formatter != null)
-                    Result &= sbRef.Append(formatter.Format(null, value, _provider));
+                    _result &= sbRef.Append(formatter.Format(null, value, _provider));
                 return;
             }
 
-            Result &= sbRef.AppendFormat(value, default, _provider);
+            _result &= sbRef.AppendFormat(value, default, _provider);
         }
 
         /// <summary>Writes the specified value to the handler.</summary>
@@ -143,16 +156,16 @@ namespace NativeCollections
         /// <typeparam name="T">The type of the value to write.</typeparam>
         public void AppendFormatted<T>(T value, string? format)
         {
-            ref var sbRef = ref StringBuilder.AsRef();
+            ref var sbRef = ref _stringBuilder.AsRef();
             if (_hasCustomFormatter)
             {
                 var formatter = (ICustomFormatter?)_provider!.GetFormat(typeof(ICustomFormatter));
                 if (formatter != null)
-                    Result &= sbRef.Append(formatter.Format(format, value, _provider));
+                    _result &= sbRef.Append(formatter.Format(format, value, _provider));
                 return;
             }
 
-            Result &= sbRef.AppendFormat(value, format, _provider);
+            _result &= sbRef.AppendFormat(value, format, _provider);
         }
 
         /// <summary>Writes the specified value to the handler.</summary>
@@ -209,12 +222,12 @@ namespace NativeCollections
             }
             else if (alignment < 0)
             {
-                ref var sbRef = ref StringBuilder.AsRef();
+                ref var sbRef = ref _stringBuilder.AsRef();
                 var start = sbRef.Length;
                 AppendFormatted(value, format);
                 var paddingRequired = -alignment - (sbRef.Length - start);
                 if (paddingRequired > 0)
-                    Result &= sbRef.Append(' ', paddingRequired);
+                    _result &= sbRef.Append(' ', paddingRequired);
             }
             else
             {
@@ -237,8 +250,8 @@ namespace NativeCollections
         /// <param name="value">The span to write.</param>
         public void AppendFormatted(ReadOnlySpan<char> value)
         {
-            ref var sbRef = ref StringBuilder.AsRef();
-            Result &= sbRef.Append(value);
+            ref var sbRef = ref _stringBuilder.AsRef();
+            _result &= sbRef.Append(value);
         }
 
         /// <summary>Writes the specified string of chars to the handler.</summary>
@@ -250,10 +263,10 @@ namespace NativeCollections
         /// <param name="format">The format string.</param>
         public void AppendFormatted(ReadOnlySpan<char> value, int alignment, string? format = null)
         {
-            ref var sbRef = ref StringBuilder.AsRef();
+            ref var sbRef = ref _stringBuilder.AsRef();
             if (alignment == 0)
             {
-                Result &= sbRef.Append(value);
+                _result &= sbRef.Append(value);
             }
             else
             {
@@ -267,17 +280,17 @@ namespace NativeCollections
                 var paddingRequired = alignment - value.Length;
                 if (paddingRequired <= 0)
                 {
-                    Result &= sbRef.Append(value);
+                    _result &= sbRef.Append(value);
                 }
                 else if (leftAlign)
                 {
-                    Result &= sbRef.Append(value);
-                    Result &= sbRef.Append(' ', paddingRequired);
+                    _result &= sbRef.Append(value);
+                    _result &= sbRef.Append(' ', paddingRequired);
                 }
                 else
                 {
-                    Result &= sbRef.Append(' ', paddingRequired);
-                    Result &= sbRef.Append(value);
+                    _result &= sbRef.Append(' ', paddingRequired);
+                    _result &= sbRef.Append(value);
                 }
             }
         }
@@ -288,8 +301,8 @@ namespace NativeCollections
         {
             if (!_hasCustomFormatter)
             {
-                ref var sbRef = ref StringBuilder.AsRef();
-                Result &= sbRef.Append(value);
+                ref var sbRef = ref _stringBuilder.AsRef();
+                _result &= sbRef.Append(value);
             }
             else
             {

@@ -86,14 +86,14 @@ namespace NativeCollections
         /// </summary>
         /// <param name="reference">Reference</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeAtomicReference<T> Create(ref T reference) => new((T*)Unsafe.AsPointer(ref reference));
+        public static NativeAtomicReference<T> Create(ref T reference) => new(UnsafeHelpers.AsPointer(ref reference));
 
         /// <summary>
         ///     Create
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeAtomicReference<T> Create(Span<T> buffer) => new((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)));
+        public static NativeAtomicReference<T> Create(Span<T> buffer) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(buffer)));
 
         /// <summary>
         ///     Empty

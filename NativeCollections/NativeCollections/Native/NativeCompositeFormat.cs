@@ -97,6 +97,7 @@ namespace NativeCollections
         /// <summary>Throws an exception if the specified number of arguments is fewer than the number required.</summary>
         /// <param name="numArgs">The number of arguments provided by the caller.</param>
         /// <exception cref="FormatException">An insufficient number of arguments were provided.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void ValidateNumberOfArgs(int numArgs)
         {
             if (numArgs < ArgsRequired)

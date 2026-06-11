@@ -320,6 +320,98 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <param name="count">Count</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly int CopyTo(Span<T> buffer, int count)
+        {
+            ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
+            ref var reference = ref MemoryMarshal.GetReference(buffer);
+            var result = count = Math.Min(buffer.Length, Math.Min(count, _count));
+            if (count == 0)
+                return 0;
+            var node = _sentinel;
+            var elementCount = Math.Min(_offset, count);
+            if (elementCount > 0)
+            {
+                StackHelpers.Copy(ref reference, ref Unsafe.AsRef<T>(node->Buffer), elementCount);
+                count -= elementCount;
+            }
+
+            if (count == 0)
+                return elementCount;
+            reference = ref Unsafe.Add(ref reference, (nint)elementCount);
+            elementCount = _size;
+            var (chunks, remaining) = MathHelpers.DivRem(count, elementCount);
+            for (var i = 0; i < chunks; ++i)
+            {
+                node = node->Next;
+                StackHelpers.Copy(ref reference, ref Unsafe.AsRef<T>(node->Buffer), elementCount);
+                reference = ref Unsafe.Add(ref reference, (nint)elementCount);
+            }
+
+            if (remaining > 0)
+            {
+                elementCount = remaining;
+                var elementOffset = _size - elementCount;
+                node = node->Next;
+                StackHelpers.Copy(ref reference, ref Unsafe.Add(ref Unsafe.AsRef<T>(node->Buffer), (nint)elementOffset), elementCount);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        /// <param name="count">Count</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly int CopyTo(Span<byte> buffer, int count) => CopyTo(MemoryMarshal.Cast<byte, T>(buffer), count);
+
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly void CopyTo(Span<T> buffer)
+        {
+            ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, ExceptionArgument.buffer);
+            ref var reference = ref MemoryMarshal.GetReference(buffer);
+            var count = _count;
+            if (count == 0)
+                return;
+            var node = _sentinel;
+            var elementCount = Math.Min(_offset, count);
+            if (elementCount > 0)
+            {
+                StackHelpers.Copy(ref reference, ref Unsafe.AsRef<T>(node->Buffer), elementCount);
+                count -= elementCount;
+            }
+
+            if (count == 0)
+                return;
+            reference = ref Unsafe.Add(ref reference, (nint)elementCount);
+            elementCount = _size;
+            var chunks = count / elementCount;
+            for (var i = 0; i < chunks; ++i)
+            {
+                node = node->Next;
+                StackHelpers.Copy(ref reference, ref Unsafe.AsRef<T>(node->Buffer), elementCount);
+                reference = ref Unsafe.Add(ref reference, (nint)elementCount);
+            }
+        }
+
+        /// <summary>
+        ///     Copy to
+        /// </summary>
+        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, T>(buffer));
+
+        /// <summary>
         ///     Chunk
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
@@ -345,7 +437,7 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
-        public Enumerator GetEnumerator() => new(Unsafe.AsPointer(ref this));
+        public Enumerator GetEnumerator() => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Get enumerator
@@ -410,9 +502,9 @@ namespace NativeCollections
             /// </summary>
             /// <param name="chunkedStack">UnsafeChunkedStack</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(void* chunkedStack)
+            internal Enumerator(UnsafeChunkedStack<T>* chunkedStack)
             {
-                var handle = (UnsafeChunkedStack<T>*)chunkedStack;
+                var handle = chunkedStack;
                 _chunkedStack = handle;
                 _version = handle->_version;
                 _currentChunk = handle->_sentinel;

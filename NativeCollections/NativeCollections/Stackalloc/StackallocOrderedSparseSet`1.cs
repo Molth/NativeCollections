@@ -55,27 +55,27 @@ namespace NativeCollections
         /// <summary>
         ///     Keys
         /// </summary>
-        public KeyCollection Keys => new(Unsafe.AsPointer(ref this));
+        public KeyCollection Keys => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Values
         /// </summary>
-        public ValueCollection Values => new(Unsafe.AsPointer(ref this));
+        public ValueCollection Values => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     KeyValuePairs
         /// </summary>
-        public OrderedKeyValuePairCollection OrderedKeyValuePairs => new(Unsafe.AsPointer(ref this));
+        public OrderedKeyValuePairCollection OrderedKeyValuePairs => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Keys
         /// </summary>
-        public OrderedKeyCollection OrderedKeys => new(Unsafe.AsPointer(ref this));
+        public OrderedKeyCollection OrderedKeys => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Values
         /// </summary>
-        public OrderedValueCollection OrderedValues => new(Unsafe.AsPointer(ref this));
+        public OrderedValueCollection OrderedValues => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Get or set value
@@ -189,7 +189,7 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned("Span<byte> buffer")]
-        public StackallocOrderedSparseSet(Span<byte> buffer, int capacity)
+        public StackallocOrderedSparseSet([MustBePinned] Span<byte> buffer, int capacity)
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, GetByteCount(capacity), ExceptionArgument.capacity);
             var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<Entry>(), NativeMemoryAllocator.AlignOf<int>());
@@ -445,7 +445,7 @@ namespace NativeCollections
             if (index != -1)
             {
                 ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index);
-                value = new NativeReference<TValue>(Unsafe.AsPointer(ref entry.Value));
+                value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref entry.Value));
                 return true;
             }
 
@@ -540,7 +540,7 @@ namespace NativeCollections
                 return false;
             }
 
-            value = new NativeReference<TValue>(Unsafe.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index).Value));
+            value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index).Value));
             return true;
         }
 
@@ -568,7 +568,7 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfNegative(index, ExceptionArgument.index);
             ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _count, ExceptionArgument.index);
             ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index);
-            return new KeyValuePair<int, NativeReference<TValue>>(entry.Key, new NativeReference<TValue>(Unsafe.AsPointer(ref entry.Value)));
+            return new KeyValuePair<int, NativeReference<TValue>>(entry.Key, new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref entry.Value)));
         }
 
         /// <summary>
@@ -606,7 +606,7 @@ namespace NativeCollections
             }
 
             ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_dense), (nint)index);
-            keyValuePair = new KeyValuePair<int, NativeReference<TValue>>(entry.Key, new NativeReference<TValue>(Unsafe.AsPointer(ref entry.Value)));
+            keyValuePair = new KeyValuePair<int, NativeReference<TValue>>(entry.Key, new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref entry.Value)));
             return true;
         }
 
@@ -793,7 +793,7 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
-        public Enumerator GetEnumerator() => new(Unsafe.AsPointer(ref this));
+        public Enumerator GetEnumerator() => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Get enumerator
@@ -843,9 +843,9 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeSparseSet">NativeSparseSet</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(void* nativeSparseSet)
+            internal Enumerator(StackallocOrderedSparseSet<TValue>* nativeSparseSet)
             {
-                var handle = (StackallocOrderedSparseSet<TValue>*)nativeSparseSet;
+                var handle = nativeSparseSet;
                 _nativeSparseSet = handle;
                 _version = handle->_version;
                 _index = -1;
@@ -899,7 +899,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeSparseSet">NativeSparseSet</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal KeyCollection(void* nativeSparseSet) => _nativeSparseSet = (StackallocOrderedSparseSet<TValue>*)nativeSparseSet;
+            internal KeyCollection(StackallocOrderedSparseSet<TValue>* nativeSparseSet) => _nativeSparseSet = nativeSparseSet;
 
             /// <summary>
             ///     Count
@@ -976,9 +976,9 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativeSparseSet">NativeSparseSet</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(void* nativeSparseSet)
+                internal Enumerator(StackallocOrderedSparseSet<TValue>* nativeSparseSet)
                 {
-                    var handle = (StackallocOrderedSparseSet<TValue>*)nativeSparseSet;
+                    var handle = nativeSparseSet;
                     _nativeSparseSet = handle;
                     _version = handle->_version;
                     _index = -1;
@@ -1033,7 +1033,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeSparseSet">NativeSparseSet</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal ValueCollection(void* nativeSparseSet) => _nativeSparseSet = (StackallocOrderedSparseSet<TValue>*)nativeSparseSet;
+            internal ValueCollection(StackallocOrderedSparseSet<TValue>* nativeSparseSet) => _nativeSparseSet = nativeSparseSet;
 
             /// <summary>
             ///     Count
@@ -1110,9 +1110,9 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativeSparseSet">NativeSparseSet</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(void* nativeSparseSet)
+                internal Enumerator(StackallocOrderedSparseSet<TValue>* nativeSparseSet)
                 {
-                    var handle = (StackallocOrderedSparseSet<TValue>*)nativeSparseSet;
+                    var handle = nativeSparseSet;
                     _nativeSparseSet = handle;
                     _version = handle->_version;
                     _index = -1;
@@ -1167,7 +1167,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeSparseSet">NativeSparseSet</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal OrderedKeyValuePairCollection(void* nativeSparseSet) => _nativeSparseSet = (StackallocOrderedSparseSet<TValue>*)nativeSparseSet;
+            internal OrderedKeyValuePairCollection(StackallocOrderedSparseSet<TValue>* nativeSparseSet) => _nativeSparseSet = nativeSparseSet;
 
             /// <summary>
             ///     Count
@@ -1268,9 +1268,9 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativeSparseSet">NativeSparseSet</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(void* nativeSparseSet)
+                internal Enumerator(StackallocOrderedSparseSet<TValue>* nativeSparseSet)
                 {
-                    var handle = (StackallocOrderedSparseSet<TValue>*)nativeSparseSet;
+                    var handle = nativeSparseSet;
                     _nativeSparseSet = handle;
                     _version = handle->_version;
                     _index = -1;
@@ -1328,7 +1328,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeSparseSet">NativeSparseSet</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal OrderedKeyCollection(void* nativeSparseSet) => _nativeSparseSet = (StackallocOrderedSparseSet<TValue>*)nativeSparseSet;
+            internal OrderedKeyCollection(StackallocOrderedSparseSet<TValue>* nativeSparseSet) => _nativeSparseSet = nativeSparseSet;
 
             /// <summary>
             ///     Count
@@ -1429,9 +1429,9 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativeSparseSet">NativeSparseSet</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(void* nativeSparseSet)
+                internal Enumerator(StackallocOrderedSparseSet<TValue>* nativeSparseSet)
                 {
-                    var handle = (StackallocOrderedSparseSet<TValue>*)nativeSparseSet;
+                    var handle = nativeSparseSet;
                     _nativeSparseSet = handle;
                     _version = handle->_version;
                     _index = -1;
@@ -1489,7 +1489,7 @@ namespace NativeCollections
             /// </summary>
             /// <param name="nativeSparseSet">NativeSparseSet</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal OrderedValueCollection(void* nativeSparseSet) => _nativeSparseSet = (StackallocOrderedSparseSet<TValue>*)nativeSparseSet;
+            internal OrderedValueCollection(StackallocOrderedSparseSet<TValue>* nativeSparseSet) => _nativeSparseSet = nativeSparseSet;
 
             /// <summary>
             ///     Count
@@ -1590,9 +1590,9 @@ namespace NativeCollections
                 /// </summary>
                 /// <param name="nativeSparseSet">NativeSparseSet</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(void* nativeSparseSet)
+                internal Enumerator(StackallocOrderedSparseSet<TValue>* nativeSparseSet)
                 {
-                    var handle = (StackallocOrderedSparseSet<TValue>*)nativeSparseSet;
+                    var handle = nativeSparseSet;
                     _nativeSparseSet = handle;
                     _version = handle->_version;
                     _index = -1;

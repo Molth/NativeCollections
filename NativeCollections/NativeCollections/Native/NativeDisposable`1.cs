@@ -116,7 +116,7 @@ namespace NativeCollections
         ///     Create
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Create(ref T reference) => _handle = (T*)Unsafe.AsPointer(ref reference);
+        public void Create(ref T reference) => _handle = UnsafeHelpers.AsPointer(ref reference);
 
         /// <summary>
         ///     Empty

@@ -40,7 +40,14 @@ namespace NativeCollections
             ///     As ref
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public ref NativeStringBuilder<byte> AsRef() => ref *_handle;
+            public ref NativeStringBuilder<byte> AsRef()
+            {
+#if NET9_0_OR_GREATER
+                return ref Unsafe.AsRef<NativeStringBuilder<byte>>(_handle);
+#else
+                return ref *_handle;
+#endif
+            }
         }
 
         /// <summary>

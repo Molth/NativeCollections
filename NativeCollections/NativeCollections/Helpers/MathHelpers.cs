@@ -49,5 +49,20 @@ namespace NativeCollections
             return (quotient, left - quotient * right);
 #endif
         }
+
+        /// <summary>Produces the quotient and the remainder of two signed native-size numbers.</summary>
+        /// <param name="left">The dividend.</param>
+        /// <param name="right">The divisor.</param>
+        /// <returns>The quotient and the remainder of the specified numbers.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static (int Quotient, int Remainder) DivRem(int left, int right)
+        {
+#if NET6_0_OR_GREATER
+            return Math.DivRem(left, right);
+#else
+            var quotient = left / right;
+            return (quotient, left - quotient * right);
+#endif
+        }
     }
 }

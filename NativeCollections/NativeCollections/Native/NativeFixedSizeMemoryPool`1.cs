@@ -128,6 +128,13 @@ namespace NativeCollections
         public void Return(T* ptr) => _handle->Return(ptr);
 
         /// <summary>
+        ///     Try return buffer
+        /// </summary>
+        /// <param name="ptr">Pointer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryReturn(T* ptr) => _handle->TryReturn(ptr);
+
+        /// <summary>
         ///     Empty
         /// </summary>
         public static NativeFixedSizeMemoryPool<T> Empty => new();

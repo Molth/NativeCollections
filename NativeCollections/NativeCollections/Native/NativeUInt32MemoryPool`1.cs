@@ -1,0 +1,180 @@
+﻿using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+// ReSharper disable ALL
+
+namespace NativeCollections
+{
+    /// <summary>
+    ///     Native ulong bitmap memory pool
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    [NativeCollection(FromType.None)]
+    [BindingType(typeof(UnsafeUInt32MemoryPool<>))]
+    public readonly unsafe struct NativeUInt32MemoryPool<T> : IDisposable, IEquatable<NativeUInt32MemoryPool<T>> where T : unmanaged
+    {
+        /// <summary>
+        ///     Handle
+        /// </summary>
+        private readonly UnsafeUInt32MemoryPool<T>* _handle;
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="maxFreeSlabs">Max free slabs</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeUInt32MemoryPool(int maxFreeSlabs)
+        {
+            var value = new UnsafeUInt32MemoryPool<T>(maxFreeSlabs);
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeUInt32MemoryPool<T>>(1);
+            Unsafe.AsRef<UnsafeUInt32MemoryPool<T>>(handle) = value;
+            _handle = handle;
+        }
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="length">Length</param>
+        /// <param name="maxFreeSlabs">Max free slabs</param>
+        /// <param name="alignment">Alignment</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeUInt32MemoryPool(int length, int maxFreeSlabs, int alignment)
+        {
+            var value = new UnsafeUInt32MemoryPool<T>(length, maxFreeSlabs, alignment);
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeUInt32MemoryPool<T>>(1);
+            Unsafe.AsRef<UnsafeUInt32MemoryPool<T>>(handle) = value;
+            _handle = handle;
+        }
+
+        /// <summary>
+        ///     Is created
+        /// </summary>
+        public bool IsCreated => _handle != null;
+
+        /// <summary>
+        ///     Slabs
+        /// </summary>
+        public int Slabs => _handle->Slabs;
+
+        /// <summary>
+        ///     Free slabs
+        /// </summary>
+        public int FreeSlabs => _handle->FreeSlabs;
+
+        /// <summary>
+        ///     Max free slabs
+        /// </summary>
+        public int MaxFreeSlabs => _handle->MaxFreeSlabs;
+
+        /// <summary>
+        ///     Length
+        /// </summary>
+        public int Length => _handle->Length;
+
+        /// <summary>
+        ///     Alignment
+        /// </summary>
+        public int Alignment => _handle->Alignment;
+
+        /// <summary>
+        ///     Aligned length
+        /// </summary>
+        public int AlignedLength => _handle->AlignedLength;
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public bool Equals(NativeUInt32MemoryPool<T> other) => other == this;
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="obj">object</param>
+        /// <returns>Equals</returns>
+        public override bool Equals(object? obj) => obj is NativeUInt32MemoryPool<T> nativeUInt32MemoryPool && nativeUInt32MemoryPool == this;
+
+        /// <summary>
+        ///     Get hashCode
+        /// </summary>
+        /// <returns>HashCode</returns>
+        public override int GetHashCode() => ((nint)_handle).GetHashCode();
+
+        /// <summary>
+        ///     To string
+        /// </summary>
+        /// <returns>String</returns>
+        public override string ToString() => $"NativeUInt32MemoryPool<{typeof(T).Name}>";
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Equals</returns>
+        public static bool operator ==(NativeUInt32MemoryPool<T> left, NativeUInt32MemoryPool<T> right) => left._handle == right._handle;
+
+        /// <summary>
+        ///     Not equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Not equals</returns>
+        public static bool operator !=(NativeUInt32MemoryPool<T> left, NativeUInt32MemoryPool<T> right) => left._handle != right._handle;
+
+        /// <summary>
+        ///     Dispose
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Dispose()
+        {
+            var handle = _handle;
+            if (handle == null)
+                return;
+            handle->Dispose();
+            NativeMemoryAllocator.AlignedFree(handle);
+        }
+
+        /// <summary>
+        ///     Rent buffer
+        /// </summary>
+        /// <returns>Buffer</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T* Rent() => _handle->Rent();
+
+        /// <summary>
+        ///     Return buffer
+        /// </summary>
+        /// <param name="ptr">Pointer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Return(T* ptr) => _handle->Return(ptr);
+
+        /// <summary>
+        ///     Ensure capacity
+        /// </summary>
+        /// <param name="capacity">Capacity</param>
+        /// <returns>New capacity</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int EnsureCapacity(int capacity) => _handle->EnsureCapacity(capacity);
+
+        /// <summary>
+        ///     Trim excess
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void TrimExcess() => _handle->TrimExcess();
+
+        /// <summary>
+        ///     Trim excess
+        /// </summary>
+        /// <param name="capacity">Remaining free slabs</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int TrimExcess(int capacity) => _handle->TrimExcess(capacity);
+
+        /// <summary>
+        ///     Empty
+        /// </summary>
+        public static NativeUInt32MemoryPool<T> Empty => new();
+    }
+}

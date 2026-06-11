@@ -142,6 +142,26 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Try return buffer
+        /// </summary>
+        /// <param name="ptr">Pointer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryReturn(T* ptr)
+        {
+            var byteOffset = UnsafeHelpers.ByteOffset(_buffer, ptr);
+            var (index, remainder) = MathHelpers.DivRem(byteOffset, Unsafe.SizeOf<T>());
+            if ((ulong)index >= (ulong)_capacity || remainder != 0)
+                return false;
+            ref var segment = ref Unsafe.Add(ref Unsafe.AsRef<int>(_bitArray), index >> 5);
+            var bitMask = 1 << (int)index;
+            if ((segment & bitMask) == 0)
+                return false;
+            segment &= ~bitMask;
+            Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)_size++) = (int)index;
+            return true;
+        }
+
+        /// <summary>
         ///     Empty
         /// </summary>
         public static UnsafeFixedSizeMemoryPool<T> Empty => new();

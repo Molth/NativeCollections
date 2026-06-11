@@ -54,6 +54,7 @@ namespace NativeCollections
         /// <summary>
         ///     Compute hash 32
         /// </summary>
+        [Customizable]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetHashCode(ReadOnlySpan<byte> buffer)
         {

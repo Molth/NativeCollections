@@ -29,7 +29,7 @@ namespace NativeCollections
         position,
         right,
         size,
-        sleepThreshold,
+        sleep1Threshold,
         source,
         trueProbability,
         updateValueFactory,
