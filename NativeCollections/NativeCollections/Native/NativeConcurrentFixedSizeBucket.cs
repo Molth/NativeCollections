@@ -12,7 +12,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    public readonly unsafe struct NativeConcurrentFixedSizeBucket : IDisposable, IEquatable<NativeConcurrentFixedSizeBucket>
+    public readonly unsafe struct NativeConcurrentFixedSizeBucket : IIsCreated, IDisposable, IEquatable<NativeConcurrentFixedSizeBucket>
     {
         /// <summary>
         ///     Buffer
@@ -41,30 +41,26 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">Buffer</param>
         /// <param name="capacity">Capacity</param>
+        [MustBeZeroed(nameof(buffer))]
+        [MustBePinned(nameof(buffer))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeConcurrentFixedSizeBucket(int* buffer, int capacity)
+        public NativeConcurrentFixedSizeBucket([MustBeZeroed] [MustBePinned] Span<int> buffer, int capacity)
         {
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
-            _buffer = buffer;
+            ThrowHelpers.ThrowIfLessThan((uint)buffer.Length, (uint)(2 + capacity), ExceptionArgument.buffer);
+            _buffer = (int*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer));
             _length = capacity;
         }
 
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => _buffer != null;
+        public bool IsCreated => !UnsafeHelpers.IsNull(_buffer);
 
         /// <summary>
         ///     Is empty
         /// </summary>
-        public bool IsEmpty
-        {
-            get
-            {
-                var buffer = _buffer;
-                return Unsafe.AsRef<int>(buffer) - Unsafe.Add(ref Unsafe.AsRef<int>(buffer), (nint)1) == _length;
-            }
-        }
+        public bool IsEmpty => Remaining == 0;
 
         /// <summary>
         ///     Capacity
@@ -74,52 +70,38 @@ namespace NativeCollections
         /// <summary>
         ///     Count
         /// </summary>
-        public int Count
-        {
-            get
-            {
-                var buffer = _buffer;
-                return Unsafe.AsRef<int>(buffer) - Unsafe.Add(ref Unsafe.AsRef<int>(buffer), (nint)1);
-            }
-        }
+        public int Count => Unsafe.AsRef<int>(_buffer) - Unsafe.Add(ref Unsafe.AsRef<int>(_buffer), (nint)1);
 
         /// <summary>
         ///     Remaining
         /// </summary>
-        public int Remaining
-        {
-            get
-            {
-                var buffer = _buffer;
-                return _length - (Unsafe.AsRef<int>(buffer) - Unsafe.Add(ref Unsafe.AsRef<int>(buffer), (nint)1));
-            }
-        }
+        public int Remaining => _length - Count;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeConcurrentFixedSizeBucket other) => other == this;
+        public bool Equals(NativeConcurrentFixedSizeBucket other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeConcurrentFixedSizeBucket nativeConcurrentFixedSizeBucket && nativeConcurrentFixedSizeBucket == this;
+        public override bool Equals(object? obj) => obj is NativeConcurrentFixedSizeBucket other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => ((nint)_buffer).GetHashCode();
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => $"NativeConcurrentFixedSizeBucket[{_length}]";
+        public override string ToString() => SR.Format("NativeConcurrentFixedSizeBucket[{0}]", _length);
 
         /// <summary>
         ///     Equals
@@ -127,7 +109,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeConcurrentFixedSizeBucket left, NativeConcurrentFixedSizeBucket right) => left._buffer == right._buffer;
+        public static bool operator ==(NativeConcurrentFixedSizeBucket left, NativeConcurrentFixedSizeBucket right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -135,7 +117,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeConcurrentFixedSizeBucket left, NativeConcurrentFixedSizeBucket right) => left._buffer != right._buffer;
+        public static bool operator !=(NativeConcurrentFixedSizeBucket left, NativeConcurrentFixedSizeBucket right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
@@ -144,7 +126,7 @@ namespace NativeCollections
         public void Dispose()
         {
             var buffer = _buffer;
-            if (buffer == null)
+            if (UnsafeHelpers.IsNull(buffer))
                 return;
             NativeMemoryAllocator.AlignedFree(buffer);
         }
@@ -157,9 +139,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryRent(out int index)
         {
-            var spinWait = new NativeSpinWait();
-            var buffer = _buffer;
-            ref var location = ref Unsafe.Add(ref Unsafe.AsRef<int>(buffer), (nint)1);
+            var spinWait = new UnsafeSpinWait();
+            ref var buffer = ref Unsafe.AsRef<int>(_buffer);
+            ref var location = ref Unsafe.Add(ref buffer, (nint)1);
             var id = location - 1;
             while (id >= 0 && Interlocked.CompareExchange(ref location, id, id + 1) != id + 1)
             {
@@ -171,7 +153,7 @@ namespace NativeCollections
             {
                 spinWait.Reset();
                 int value;
-                location = ref Unsafe.Add(ref Unsafe.AsRef<int>(buffer), (nint)(2 + id));
+                location = ref Unsafe.Add(ref buffer, (nint)(2 + id));
                 do
                 {
                     value = Interlocked.Exchange(ref location, 0);
@@ -182,7 +164,7 @@ namespace NativeCollections
                 return true;
             }
 
-            location = ref Unsafe.AsRef<int>(buffer);
+            location = ref buffer;
             id = Interlocked.Increment(ref location) - 1;
             if (id >= _length)
             {
@@ -202,10 +184,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Return(int index)
         {
-            var spinWait = new NativeSpinWait();
-            var buffer = _buffer;
-            var id = Interlocked.Increment(ref Unsafe.Add(ref Unsafe.AsRef<int>(buffer), (nint)1)) - 1;
-            ref var location = ref Unsafe.Add(ref Unsafe.AsRef<int>(buffer), (nint)(id + 2));
+            var spinWait = new UnsafeSpinWait();
+            ref var buffer = ref Unsafe.AsRef<int>(_buffer);
+            var id = Interlocked.Increment(ref Unsafe.Add(ref buffer, (nint)1)) - 1;
+            ref var location = ref Unsafe.Add(ref buffer, (nint)(2 + id));
             var value = index + 1;
             while (Interlocked.CompareExchange(ref location, value, 0) != 0)
                 spinWait.SpinOnce(-1);

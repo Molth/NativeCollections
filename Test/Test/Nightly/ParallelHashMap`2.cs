@@ -1504,18 +1504,6 @@ namespace NativeCollections
         {
             internal UnsafeParallelHashMapData* m_Buffer;
 
-            internal int m_ThreadIndex => Thread.GetCurrentProcessorId();
-
-            /// <summary>
-            ///     Returns the index of the current thread.
-            /// </summary>
-            /// <remarks>
-            ///     In a job, each thread gets its own copy of the ParallelWriter struct, and the job system assigns
-            ///     each copy the index of its thread.
-            /// </remarks>
-            /// <value>The index of the current thread.</value>
-            public int ThreadIndex => m_ThreadIndex;
-
             /// <summary>
             ///     The number of key-value pairs that fit in the current allocation.
             /// </summary>
@@ -1528,18 +1516,6 @@ namespace NativeCollections
                     UnsafeParallelHashMapData* data = m_Buffer;
                     return data->keyCapacity;
                 }
-            }
-
-            /// <summary>
-            ///     Adds a new key-value pair.
-            /// </summary>
-            /// <remarks>If the key is already present, this method returns false without modifying the hash map.</remarks>
-            /// <param name="key">The key to add.</param>
-            /// <param name="item">The value to add.</param>
-            /// <returns>True if the key-value pair was added.</returns>
-            public bool TryAdd(TKey key, TValue item)
-            {
-                return UnsafeParallelHashMapBase<TKey, TValue>.TryAddAtomic(m_Buffer, key, item, m_ThreadIndex);
             }
 
             /// <summary>
@@ -1985,8 +1961,6 @@ namespace NativeCollections
         {
             internal UnsafeParallelHashMapData* m_Buffer;
 
-            internal int m_ThreadIndex => Thread.GetCurrentProcessorId();
-
             /// <summary>
             ///     Returns the number of key-value pairs that fit in the current allocation.
             /// </summary>
@@ -2005,9 +1979,10 @@ namespace NativeCollections
             /// </remarks>
             /// <param name="key">The key to add.</param>
             /// <param name="item">The value to add.</param>
-            public void Add(TKey key, TValue item)
+            /// <param name="threadIndexOverride"></param>
+            public void Add(TKey key, TValue item, int threadIndexOverride)
             {
-                UnsafeParallelHashMapBase<TKey, TValue>.AddAtomicMulti(m_Buffer, key, item, m_ThreadIndex);
+                UnsafeParallelHashMapBase<TKey, TValue>.AddAtomicMulti(m_Buffer, key, item, threadIndexOverride);
             }
         }
 
@@ -2383,13 +2358,6 @@ namespace NativeCollections
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => m_Data.Capacity;
             }
-
-            /// <summary>
-            ///     Adds a new value (unless it is already present).
-            /// </summary>
-            /// <param name="item">The value to add.</param>
-            /// <returns>True if the value is not already present.</returns>
-            public bool Add(T item) => m_Data.TryAdd(item, false);
 
             /// <summary>
             ///     Adds a new value (unless it is already present).

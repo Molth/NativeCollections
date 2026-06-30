@@ -15,7 +15,7 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    public readonly unsafe struct NativeSlice<T> : IDisposable, IEquatable<NativeSlice<T>>, IReadOnlyCollection<T> where T : unmanaged
+    public readonly unsafe struct NativeSlice<T> : IIsCreated, IDisposable, IEquatable<NativeSlice<T>>, IReadOnlyCollection<T> where T : unmanaged
     {
         /// <summary>
         ///     Buffer
@@ -117,7 +117,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => _buffer != null;
+        public bool IsCreated => !UnsafeHelpers.IsNull(_buffer);
 
         /// <summary>
         ///     Is empty
@@ -164,26 +164,26 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeSlice<T> other) => other == this;
+        public bool Equals(NativeSlice<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeSlice<T> nativeSlice && nativeSlice == this;
+        public override bool Equals(object? obj) => obj is NativeSlice<T> other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => ((nint)_buffer).GetHashCode();
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => $"NativeSlice<{typeof(T).Name}>[{_offset}, {_count}]";
+        public override string ToString() => SR.Format("NativeSlice<{0}>[{1}, {2}]", SR.GetTypeName(typeof(T)), _offset, _count);
 
         /// <summary>
         ///     As pointer
@@ -205,7 +205,8 @@ namespace NativeCollections
         /// <param name="span">Span</param>
         /// <returns>NativeSlice</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeSlice<T>(Span<T> span) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(span)), 0, span.Length);
+        [MustBePinned(nameof(span))]
+        public static implicit operator NativeSlice<T>([MustBePinned] Span<T> span) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(span)), 0, span.Length);
 
         /// <summary>
         ///     As readOnly span
@@ -219,7 +220,8 @@ namespace NativeCollections
         /// </summary>
         /// <returns>NativeSlice</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeSlice<T>(ReadOnlySpan<T> readOnlySpan) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(readOnlySpan)), 0, readOnlySpan.Length);
+        [MustBePinned(nameof(readOnlySpan))]
+        public static implicit operator NativeSlice<T>([MustBePinned] ReadOnlySpan<T> readOnlySpan) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(readOnlySpan)), 0, readOnlySpan.Length);
 
         /// <summary>
         ///     As native array
@@ -255,7 +257,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeSlice<T> left, NativeSlice<T> right) => left._offset == right._offset && left._count == right._count && left._buffer == right._buffer;
+        public static bool operator ==(NativeSlice<T> left, NativeSlice<T> right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -263,7 +265,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeSlice<T> left, NativeSlice<T> right) => left._offset != right._offset || left._count != right._count || left._buffer != right._buffer;
+        public static bool operator !=(NativeSlice<T> left, NativeSlice<T> right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
@@ -272,7 +274,7 @@ namespace NativeCollections
         public void Dispose()
         {
             var buffer = _buffer;
-            if (buffer == null)
+            if (UnsafeHelpers.IsNull(buffer))
                 return;
             NativeMemoryAllocator.AlignedFree(buffer);
         }
@@ -356,7 +358,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
@@ -367,7 +369,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator IEnumerable.GetEnumerator()
         {
@@ -384,7 +386,7 @@ namespace NativeCollections
             /// <summary>
             ///     NativeSlice
             /// </summary>
-            private readonly NativeSlice<T> _nativeSlice;
+            private readonly NativeSlice<T> _handle;
 
             /// <summary>
             ///     Index
@@ -394,11 +396,10 @@ namespace NativeCollections
             /// <summary>
             ///     Structure
             /// </summary>
-            /// <param name="nativeSlice">NativeSlice</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(NativeSlice<T> nativeSlice)
+            internal Enumerator(NativeSlice<T> handle)
             {
-                _nativeSlice = nativeSlice;
+                _handle = handle;
                 _index = -1;
             }
 
@@ -410,7 +411,7 @@ namespace NativeCollections
             public bool MoveNext()
             {
                 var index = _index + 1;
-                if (index < _nativeSlice._count)
+                if (index < _handle._count)
                 {
                     _index = index;
                     return true;
@@ -431,7 +432,7 @@ namespace NativeCollections
             public readonly ref T Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => ref _nativeSlice[_index];
+                get => ref _handle[_index];
             }
         }
     }

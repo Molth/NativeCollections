@@ -15,7 +15,7 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    public readonly unsafe struct NativeArray3<T> : IDisposable, IEquatable<NativeArray3<T>>, IReadOnlyCollection<T> where T : unmanaged
+    public readonly unsafe struct NativeArray3<T> : IIsCreated, IDisposable, IEquatable<NativeArray3<T>>, IReadOnlyCollection<T> where T : unmanaged
     {
         /// <summary>
         ///     Buffer
@@ -139,7 +139,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => _buffer != null;
+        public bool IsCreated => !UnsafeHelpers.IsNull(_buffer);
 
         /// <summary>
         ///     Is empty
@@ -242,26 +242,26 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeArray3<T> other) => other == this;
+        public bool Equals(NativeArray3<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeArray3<T> nativeArray3 && nativeArray3 == this;
+        public override bool Equals(object? obj) => obj is NativeArray3<T> other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => ((nint)_buffer).GetHashCode();
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => $"NativeArray3<{typeof(T).Name}>[{_x}, {_y}, {_z}]";
+        public override string ToString() => SR.Format("NativeArray3<{0}>[{1}, {2}, {3}]", SR.GetTypeName(typeof(T)), _x, _y, _z);
 
         /// <summary>
         ///     Equals
@@ -269,7 +269,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeArray3<T> left, NativeArray3<T> right) => left._buffer == right._buffer;
+        public static bool operator ==(NativeArray3<T> left, NativeArray3<T> right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -277,7 +277,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeArray3<T> left, NativeArray3<T> right) => left._buffer != right._buffer;
+        public static bool operator !=(NativeArray3<T> left, NativeArray3<T> right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
@@ -286,7 +286,7 @@ namespace NativeCollections
         public void Dispose()
         {
             var buffer = _buffer;
-            if (buffer == null)
+            if (UnsafeHelpers.IsNull(buffer))
                 return;
             NativeMemoryAllocator.AlignedFree(buffer);
         }
@@ -395,7 +395,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
@@ -406,7 +406,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator IEnumerable.GetEnumerator()
         {

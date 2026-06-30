@@ -107,5 +107,17 @@ namespace NativeCollections
 
             return comparison;
         }
+
+        /// <summary>
+        ///     Determines whether two sequences are equal.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool Equals<T>(ref T left, ref T right) where T : unmanaged => Equals(ref Unsafe.As<T, byte>(ref left), ref Unsafe.As<T, byte>(ref right), (nuint)Unsafe.SizeOf<T>());
+
+        /// <summary>
+        ///     Determines the relative order of the sequences.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Compare<T>(ref T left, ref T right) where T : unmanaged => Compare(ref Unsafe.As<T, byte>(ref left), ref Unsafe.As<T, byte>(ref right), (nuint)Unsafe.SizeOf<T>());
     }
 }

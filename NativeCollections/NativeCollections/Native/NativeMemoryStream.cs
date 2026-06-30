@@ -13,7 +13,7 @@ namespace NativeCollections
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Standard)]
     [BindingType(typeof(UnsafeMemoryStream))]
-    public readonly unsafe struct NativeMemoryStream : IDisposable, IEquatable<NativeMemoryStream>
+    public readonly unsafe struct NativeMemoryStream : IIsCreated, IDisposable, IEquatable<NativeMemoryStream>
     {
         /// <summary>
         ///     Handle
@@ -36,7 +36,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => _handle != null;
+        public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
         /// <summary>
         ///     Is empty
@@ -110,20 +110,20 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeMemoryStream other) => other == this;
+        public bool Equals(NativeMemoryStream other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeMemoryStream nativeMemoryStream && nativeMemoryStream == this;
+        public override bool Equals(object? obj) => obj is NativeMemoryStream other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => ((nint)_handle).GetHashCode();
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
@@ -151,7 +151,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeMemoryStream left, NativeMemoryStream right) => left._handle == right._handle;
+        public static bool operator ==(NativeMemoryStream left, NativeMemoryStream right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -159,7 +159,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeMemoryStream left, NativeMemoryStream right) => left._handle != right._handle;
+        public static bool operator !=(NativeMemoryStream left, NativeMemoryStream right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
@@ -168,7 +168,7 @@ namespace NativeCollections
         public void Dispose()
         {
             var handle = _handle;
-            if (handle == null)
+            if (UnsafeHelpers.IsNull(handle))
                 return;
             handle->Dispose();
             NativeMemoryAllocator.AlignedFree(handle);

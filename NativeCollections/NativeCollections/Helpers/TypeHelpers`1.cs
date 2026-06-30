@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
 
 // ReSharper disable ALL
 
@@ -9,38 +8,66 @@ namespace NativeCollections
     ///     Type helpers
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
-    internal static class TypeHelpers<T> where T : unmanaged, IEquatable<T>
+    internal static class TypeHelpers<T> where T : unmanaged
     {
         /// <summary>
-        ///     Is write atomic
+        ///     Is supported for target-64
         /// </summary>
-        public static readonly bool IsWriteAtomic = IsWriteAtomicPrivate();
+        public static readonly bool IsSupported64 = IsSupported64Private();
 
         /// <summary>
-        ///     Is write atomic
+        ///     Is supported for target-32
         /// </summary>
-        /// <returns>Is write atomic</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool IsWriteAtomicPrivate()
+        public static readonly bool IsSupported32 = IsSupported32Private();
+
+        /// <summary>
+        ///     Is supported for target-64
+        /// </summary>
+        private static bool IsSupported64Private()
         {
-            if (typeof(T) == typeof(nint) || typeof(T) == typeof(nuint))
+            if (typeof(T) == typeof(IntPtr) || typeof(T) == typeof(UIntPtr))
                 return true;
+
             switch (Type.GetTypeCode(typeof(T)))
             {
                 case TypeCode.Boolean:
                 case TypeCode.Byte:
+                case TypeCode.SByte:
                 case TypeCode.Char:
                 case TypeCode.Int16:
-                case TypeCode.Int32:
-                case TypeCode.SByte:
-                case TypeCode.Single:
                 case TypeCode.UInt16:
+                case TypeCode.Int32:
+                case TypeCode.Single:
                 case TypeCode.UInt32:
-                    return true;
                 case TypeCode.Double:
                 case TypeCode.Int64:
                 case TypeCode.UInt64:
-                    return Environment.Is64BitProcess;
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        ///     Is supported for target-32
+        /// </summary>
+        private static bool IsSupported32Private()
+        {
+            if (typeof(T) == typeof(IntPtr) || typeof(T) == typeof(UIntPtr))
+                return !Environment.Is64BitProcess;
+
+            switch (Type.GetTypeCode(typeof(T)))
+            {
+                case TypeCode.Boolean:
+                case TypeCode.Byte:
+                case TypeCode.SByte:
+                case TypeCode.Char:
+                case TypeCode.Int16:
+                case TypeCode.UInt16:
+                case TypeCode.Int32:
+                case TypeCode.Single:
+                case TypeCode.UInt32:
+                    return true;
                 default:
                     return false;
             }

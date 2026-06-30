@@ -12,7 +12,7 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [StackallocCollection(FromType.None)]
-    public unsafe struct StackallocFixedSizeMemoryPool<T> where T : unmanaged
+    public unsafe struct StackallocFixedSizeMemoryPool<T> : IIsCreated, IEquatable<StackallocFixedSizeMemoryPool<T>> where T : unmanaged
     {
         /// <summary>
         ///     Buffer
@@ -43,6 +43,11 @@ namespace NativeCollections
         ///     Size
         /// </summary>
         private int _size;
+
+        /// <summary>
+        ///     Is created
+        /// </summary>
+        public readonly bool IsCreated => !UnsafeHelpers.IsNull(_buffer);
 
         /// <summary>
         ///     Is empty
@@ -79,8 +84,8 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">Buffer</param>
         /// <param name="capacity">Capacity</param>
+        [MustBePinned(nameof(buffer))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [MustBePinned("Span<byte> buffer")]
         public StackallocFixedSizeMemoryPool([MustBePinned] Span<byte> buffer, int capacity)
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, GetByteCount(capacity), ExceptionArgument.capacity);
@@ -97,6 +102,48 @@ namespace NativeCollections
             for (var i = 0; i < capacity; ++i)
                 Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)i) = i;
         }
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public readonly bool Equals(StackallocFixedSizeMemoryPool<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="obj">object</param>
+        /// <returns>Equals</returns>
+        public readonly override bool Equals(object? obj) => obj is StackallocFixedSizeMemoryPool<T> other && other.Equals(this);
+
+        /// <summary>
+        ///     Get hashCode
+        /// </summary>
+        /// <returns>HashCode</returns>
+        public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
+
+        /// <summary>
+        ///     To string
+        /// </summary>
+        /// <returns>String</returns>
+        public readonly override string ToString() => SR.Format("StackallocFixedSizeMemoryPool<{0}>", SR.GetTypeName(typeof(T)));
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Equals</returns>
+        public static bool operator ==(StackallocFixedSizeMemoryPool<T> left, StackallocFixedSizeMemoryPool<T> right) => left.Equals(right);
+
+        /// <summary>
+        ///     Not equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Not equals</returns>
+        public static bool operator !=(StackallocFixedSizeMemoryPool<T> left, StackallocFixedSizeMemoryPool<T> right) => !left.Equals(right);
 
         /// <summary>
         ///     Reset

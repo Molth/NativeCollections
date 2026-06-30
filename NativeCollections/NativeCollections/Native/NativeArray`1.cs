@@ -15,7 +15,7 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    public readonly unsafe struct NativeArray<T> : IDisposable, IEquatable<NativeArray<T>>, IReadOnlyCollection<T> where T : unmanaged
+    public readonly unsafe struct NativeArray<T> : IIsCreated, IDisposable, IEquatable<NativeArray<T>>, IReadOnlyCollection<T> where T : unmanaged
     {
         /// <summary>
         ///     Buffer
@@ -99,7 +99,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => _buffer != null;
+        public bool IsCreated => !UnsafeHelpers.IsNull(_buffer);
 
         /// <summary>
         ///     Is empty
@@ -146,26 +146,26 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeArray<T> other) => other == this;
+        public bool Equals(NativeArray<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeArray<T> nativeArray && nativeArray == this;
+        public override bool Equals(object? obj) => obj is NativeArray<T> other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => ((nint)_buffer).GetHashCode();
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => $"NativeArray<{typeof(T).Name}>[{_length}]";
+        public override string ToString() => SR.Format("NativeArray<{0}>[{1}]", SR.GetTypeName(typeof(T)), _length);
 
         /// <summary>
         ///     As pointer
@@ -193,14 +193,16 @@ namespace NativeCollections
         /// </summary>
         /// <returns>NativeArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeArray<T>(Span<T> span) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(span)), span.Length);
+        [MustBePinned(nameof(span))]
+        public static implicit operator NativeArray<T>([MustBePinned] Span<T> span) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(span)), span.Length);
 
         /// <summary>
         ///     As native array
         /// </summary>
         /// <returns>NativeArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeArray<T>(ReadOnlySpan<T> readOnlySpan) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(readOnlySpan)), readOnlySpan.Length);
+        [MustBePinned(nameof(readOnlySpan))]
+        public static implicit operator NativeArray<T>([MustBePinned] ReadOnlySpan<T> readOnlySpan) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(readOnlySpan)), readOnlySpan.Length);
 
         /// <summary>
         ///     Equals
@@ -208,7 +210,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeArray<T> left, NativeArray<T> right) => left._length == right._length && left._buffer == right._buffer;
+        public static bool operator ==(NativeArray<T> left, NativeArray<T> right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -216,7 +218,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeArray<T> left, NativeArray<T> right) => left._length != right._length || left._buffer != right._buffer;
+        public static bool operator !=(NativeArray<T> left, NativeArray<T> right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
@@ -225,7 +227,7 @@ namespace NativeCollections
         public void Dispose()
         {
             var buffer = _buffer;
-            if (buffer == null)
+            if (UnsafeHelpers.IsNull(buffer))
                 return;
             NativeMemoryAllocator.AlignedFree(buffer);
         }
@@ -327,7 +329,8 @@ namespace NativeCollections
         /// <param name="alignment">Alignment</param>
         /// <returns>NativeArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeArray<T> Create(Span<byte> buffer, uint alignment)
+        [MustBePinned(nameof(buffer))]
+        public static NativeArray<T> Create([MustBePinned] ReadOnlySpan<byte> buffer, uint alignment)
         {
             ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, ExceptionArgument.alignment);
             var ptr = Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer));
@@ -345,7 +348,8 @@ namespace NativeCollections
         /// <param name="byteOffset">Byte offset</param>
         /// <returns>NativeArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeArray<T> Create(Span<byte> buffer, uint alignment, out nint byteOffset)
+        [MustBePinned(nameof(buffer))]
+        public static NativeArray<T> Create([MustBePinned] ReadOnlySpan<byte> buffer, uint alignment, out nint byteOffset)
         {
             ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, ExceptionArgument.alignment);
             var ptr = Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer));
@@ -361,7 +365,8 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <returns>NativeArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeArray<T> Create(Span<byte> buffer) => Create(buffer, (uint)NativeMemoryAllocator.AlignOf<T>());
+        [MustBePinned(nameof(buffer))]
+        public static NativeArray<T> Create([MustBePinned] ReadOnlySpan<byte> buffer) => Create(buffer, (uint)NativeMemoryAllocator.AlignOf<T>());
 
         /// <summary>
         ///     Create aligned native array
@@ -370,7 +375,8 @@ namespace NativeCollections
         /// <param name="byteOffset">Byte offset</param>
         /// <returns>NativeArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeArray<T> Create(Span<byte> buffer, out nint byteOffset) => Create(buffer, (uint)NativeMemoryAllocator.AlignOf<T>(), out byteOffset);
+        [MustBePinned(nameof(buffer))]
+        public static NativeArray<T> Create([MustBePinned] ReadOnlySpan<byte> buffer, out nint byteOffset) => Create(buffer, (uint)NativeMemoryAllocator.AlignOf<T>(), out byteOffset);
 
         /// <summary>
         ///     Get enumerator
@@ -381,7 +387,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
@@ -392,7 +398,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator IEnumerable.GetEnumerator()
         {
@@ -409,7 +415,7 @@ namespace NativeCollections
             /// <summary>
             ///     NativeArray
             /// </summary>
-            private readonly NativeArray<T> _nativeArray;
+            private readonly NativeArray<T> _handle;
 
             /// <summary>
             ///     Index
@@ -419,11 +425,10 @@ namespace NativeCollections
             /// <summary>
             ///     Structure
             /// </summary>
-            /// <param name="nativeArray">NativeArray</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(NativeArray<T> nativeArray)
+            internal Enumerator(NativeArray<T> handle)
             {
-                _nativeArray = nativeArray;
+                _handle = handle;
                 _index = -1;
             }
 
@@ -435,7 +440,7 @@ namespace NativeCollections
             public bool MoveNext()
             {
                 var index = _index + 1;
-                if (index < _nativeArray._length)
+                if (index < _handle._length)
                 {
                     _index = index;
                     return true;
@@ -456,7 +461,7 @@ namespace NativeCollections
             public readonly ref T Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => ref _nativeArray[_index];
+                get => ref _handle[_index];
             }
         }
     }

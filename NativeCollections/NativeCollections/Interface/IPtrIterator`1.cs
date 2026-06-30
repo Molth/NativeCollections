@@ -7,9 +7,6 @@ namespace NativeCollections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     public unsafe interface IPtrIterator<T> where T : unmanaged
-#if NET9_0_OR_GREATER
-        , allows ref struct
-#endif
     {
         /// <summary>Advances the enumerator to the next element of the collection.</summary>
         /// <returns>

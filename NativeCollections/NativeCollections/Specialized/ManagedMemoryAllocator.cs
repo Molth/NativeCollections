@@ -9,6 +9,7 @@ namespace NativeCollections
     /// <summary>
     ///     Managed memory allocator
     /// </summary>
+    [BindingType(typeof(ArrayPool<DummyByteHelper>))]
     public static unsafe class ManagedMemoryAllocator
     {
         /// <summary>Allocates an aligned block of memory of the specified size and alignment, in bytes.</summary>
@@ -75,7 +76,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AlignedFree(void* ptr)
         {
-            if (ptr == null)
+            if (UnsafeHelpers.IsNull(ptr))
                 return;
             var gcHandle = Unsafe.ReadUnaligned<GCHandle>(UnsafeHelpers.SubtractByteOffset(ptr, Unsafe.SizeOf<GCHandle>()));
             var array = (DummyByteHelper[])gcHandle.Target!;

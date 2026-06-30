@@ -5,9 +5,6 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using static NativeCollections.NativeFrozenSet;
-#if !NET5_0_OR_GREATER
-using System.Buffers;
-#endif
 
 // ReSharper disable ALL
 
@@ -19,12 +16,17 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard)]
-    public readonly unsafe struct UnsafeFrozenSet<T> : IDisposable, IReadOnlyCollection<T> where T : unmanaged, IEquatable<T>
+    public readonly unsafe struct UnsafeFrozenSet<T> : IIsCreated, IDisposable, IEquatable<UnsafeFrozenSet<T>>, IReadOnlyCollection<T> where T : unmanaged, IEquatable<T>
     {
         /// <summary>
         ///     Handle
         /// </summary>
         private readonly UnsafeFrozenSetHandle<T> _handle;
+
+        /// <summary>
+        ///     Is created
+        /// </summary>
+        public bool IsCreated => _handle.IsCreated;
 
         /// <summary>
         ///     Is empty
@@ -61,16 +63,12 @@ namespace NativeCollections
         ///     Structure
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeFrozenSet<T> Create<TReadOnlyCollection>(in TReadOnlyCollection source) where TReadOnlyCollection : IReadOnlyCollection<T>
+        public static UnsafeFrozenSet<T> Create(HashSet<T> source)
         {
             using var items = new NativeArray<T>(source.Count);
             var index = 0;
-            foreach (var kvp in source)
-            {
-                items[index] = kvp;
-                ++index;
-            }
-
+            foreach (var item in source)
+                items[index++] = item;
             return new UnsafeFrozenSet<T>(items);
         }
 
@@ -81,13 +79,7 @@ namespace NativeCollections
         public static UnsafeFrozenSet<T> Create(NativeHashSet<T> source)
         {
             using var items = new NativeArray<T>(source.Count);
-            var index = 0;
-            foreach (var kvp in source)
-            {
-                items[index] = kvp;
-                ++index;
-            }
-
+            source.CopyTo(items);
             return new UnsafeFrozenSet<T>(items);
         }
 
@@ -95,16 +87,10 @@ namespace NativeCollections
         ///     Structure
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeFrozenSet<T> Create(in UnsafeHashSet<T> source)
+        public static UnsafeFrozenSet<T> Create(UnsafeHashSet<T> source)
         {
             using var items = new NativeArray<T>(source.Count);
-            var index = 0;
-            foreach (var kvp in source)
-            {
-                items[index] = kvp;
-                ++index;
-            }
-
+            source.CopyTo(items);
             return new UnsafeFrozenSet<T>(items);
         }
 
@@ -112,99 +98,101 @@ namespace NativeCollections
         ///     Structure
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeFrozenSet<T> Create(in StackallocHashSet<T> source)
+        public static UnsafeFrozenSet<T> Create(StackallocHashSet<T> source)
         {
             using var items = new NativeArray<T>(source.Count);
-            var index = 0;
-            foreach (var kvp in source)
-            {
-                items[index] = kvp;
-                ++index;
-            }
-
+            source.CopyTo(items);
             return new UnsafeFrozenSet<T>(items);
         }
 
         /// <summary>
         ///     Structure
         /// </summary>
+        [MustBeDistinct(nameof(source))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeFrozenSet(ReadOnlySpan<T> source)
+        public UnsafeFrozenSet([MustBeDistinct] ReadOnlySpan<T> source) => _handle = Initialize(source);
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public bool Equals(UnsafeFrozenSet<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="obj">object</param>
+        /// <returns>Equals</returns>
+        public override bool Equals(object? obj) => obj is UnsafeFrozenSet<T> other && other.Equals(this);
+
+        /// <summary>
+        ///     Get hashCode
+        /// </summary>
+        /// <returns>HashCode</returns>
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
+
+        /// <summary>
+        ///     To string
+        /// </summary>
+        /// <returns>String</returns>
+        public override string ToString() => SR.Format("UnsafeFrozenSet<{0}>", SR.GetTypeName(typeof(T)));
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Equals</returns>
+        public static bool operator ==(UnsafeFrozenSet<T> left, UnsafeFrozenSet<T> right) => left.Equals(right);
+
+        /// <summary>
+        ///     Not equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Not equals</returns>
+        public static bool operator !=(UnsafeFrozenSet<T> left, UnsafeFrozenSet<T> right) => !left.Equals(right);
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static UnsafeFrozenSetHandle<T> Initialize(ReadOnlySpan<T> source)
         {
+            UnsafeFrozenSetHandle<T> handle;
             if (source.IsEmpty)
             {
-                var handle = GetUnsafeHandle<EmptyFrozenSet<T>, T>();
+                handle = GetUnsafeHandle<EmptyFrozenSet<T>, T>();
                 Unsafe.As<UnsafeFrozenSetValue, EmptyFrozenSet<T>>(ref handle.Value) = new EmptyFrozenSet<T>();
-                _handle = handle;
-                return;
+                return handle;
             }
 
             if (source.Length <= 10)
             {
-                var items = new NativeArray<T>(source.Length);
-                var index = 0;
                 if (FrozenHelpers.IsKnownComparable<T>())
                 {
-#if !NET5_0_OR_GREATER
-                    var array = ArrayPool<T>.Shared.Rent(source.Length);
-#endif
-                    foreach (var item in source)
-                    {
-#if NET5_0_OR_GREATER
-                        items[index] = item;
-#else
-                        array[index] = item;
-#endif
-                        ++index;
-                    }
-
-#if NET5_0_OR_GREATER
-                    items.AsSpan().Sort();
-#else
-                    Array.Sort(array, 0, source.Length);
-                    array.AsSpan(0, source.Length).CopyTo(items);
-                    ArrayPool<T>.Shared.Return(array);
-#endif
-                    var handle = GetUnsafeHandle<SmallComparableFrozenSet<T>, T>();
-                    Unsafe.As<UnsafeFrozenSetValue, SmallComparableFrozenSet<T>>(ref handle.Value) = new SmallComparableFrozenSet<T>(items);
-                    _handle = handle;
+                    handle = GetUnsafeHandle<SmallComparableFrozenSet<T>, T>();
+                    Unsafe.As<UnsafeFrozenSetValue, SmallComparableFrozenSet<T>>(ref handle.Value) = new SmallComparableFrozenSet<T>(source);
+                    return handle;
                 }
-                else
-                {
-                    foreach (var item in source)
-                    {
-                        items[index] = item;
-                        ++index;
-                    }
 
-                    var handle = GetUnsafeHandle<SmallFrozenSet<T>, T>();
-                    Unsafe.As<UnsafeFrozenSetValue, SmallFrozenSet<T>>(ref handle.Value) = new SmallFrozenSet<T>(items);
-                    _handle = handle;
-                }
+                handle = GetUnsafeHandle<SmallFrozenSet<T>, T>();
+                Unsafe.As<UnsafeFrozenSetValue, SmallFrozenSet<T>>(ref handle.Value) = new SmallFrozenSet<T>(source);
+                return handle;
             }
-            else
+
+            if (typeof(T) == typeof(int))
             {
-                using var buffer = new NativeArray<T>(source.Length);
-                var index = 0;
-                foreach (var kvp in source)
-                {
-                    buffer[index] = kvp;
-                    ++index;
-                }
-
-                if (typeof(T) == typeof(int))
-                {
-                    var handle = GetUnsafeHandle<Int32FrozenSet, int>();
-                    Unsafe.As<UnsafeFrozenSetValue, Int32FrozenSet>(ref handle.Value) = new Int32FrozenSet(buffer.Cast<int>());
-                    _handle = Unsafe.As<UnsafeFrozenSetHandle<int>, UnsafeFrozenSetHandle<T>>(ref handle);
-                }
-                else
-                {
-                    var handle = GetUnsafeHandle<DefaultFrozenSet<T>, T>();
-                    Unsafe.As<UnsafeFrozenSetValue, DefaultFrozenSet<T>>(ref handle.Value) = new DefaultFrozenSet<T>(buffer);
-                    _handle = handle;
-                }
+                var int32Handle = GetUnsafeHandle<Int32FrozenSet, int>();
+                handle = Unsafe.As<UnsafeFrozenSetHandle<int>, UnsafeFrozenSetHandle<T>>(ref int32Handle);
+                Unsafe.As<UnsafeFrozenSetValue, Int32FrozenSet>(ref handle.Value) = new Int32FrozenSet(MemoryMarshal.Cast<T, int>(source));
+                return handle;
             }
+
+            handle = GetUnsafeHandle<DefaultFrozenSet<T>, T>();
+            Unsafe.As<UnsafeFrozenSetValue, DefaultFrozenSet<T>>(ref handle.Value) = new DefaultFrozenSet<T>(source);
+            return handle;
         }
 
         /// <summary>
@@ -251,6 +239,27 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Try to get the actual value
+        /// </summary>
+        /// <param name="equalValue">Equal value</param>
+        /// <param name="actualValue">Actual value</param>
+        /// <returns>Got</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetValueReference(in T equalValue, out NativeReference<T> actualValue)
+        {
+            ref var handle = ref Unsafe.AsRef(in _handle);
+            var index = handle.FindItemIndex(ref handle.Value, equalValue);
+            if (index >= 0)
+            {
+                actualValue = new NativeReference<T>(UnsafeHelpers.AsPointer(ref handle.Items(ref handle.Value)[index]));
+                return true;
+            }
+
+            actualValue = default;
+            return false;
+        }
+
+        /// <summary>
         ///     Empty
         /// </summary>
         public static UnsafeFrozenSet<T> Empty => new();
@@ -269,7 +278,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
@@ -280,7 +289,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator IEnumerable.GetEnumerator()
         {

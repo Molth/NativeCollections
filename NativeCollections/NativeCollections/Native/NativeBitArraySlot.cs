@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // ReSharper disable ALL
@@ -10,7 +11,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    public readonly unsafe struct NativeBitArraySlot
+    public readonly unsafe struct NativeBitArraySlot : IIsCreated, IEquatable<NativeBitArraySlot>
     {
         /// <summary>
         ///     Segment
@@ -25,7 +26,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => _segment != null;
+        public bool IsCreated => !UnsafeHelpers.IsNull(_segment);
 
         /// <summary>
         ///     Structure
@@ -44,14 +45,14 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeBitArraySlot other) => other == this;
+        public bool Equals(NativeBitArraySlot other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeBitArraySlot nativeBitArraySlot && nativeBitArraySlot == this;
+        public override bool Equals(object? obj) => obj is NativeBitArraySlot other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
@@ -98,7 +99,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeBitArraySlot left, NativeBitArraySlot right) => left._segment == right._segment && left._bitMask == right._bitMask;
+        public static bool operator ==(NativeBitArraySlot left, NativeBitArraySlot right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -106,7 +107,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeBitArraySlot left, NativeBitArraySlot right) => left._segment != right._segment || left._bitMask != right._bitMask;
+        public static bool operator !=(NativeBitArraySlot left, NativeBitArraySlot right) => !left.Equals(right);
 
         /// <summary>
         ///     Empty

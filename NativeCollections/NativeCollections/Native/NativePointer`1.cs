@@ -11,7 +11,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    public readonly struct NativePointer<T> : IEquatable<NativePointer<T>>
+    public readonly unsafe struct NativePointer<T> : IIsCreated, IDisposable, IEquatable<NativePointer<T>>
     {
         /// <summary>
         ///     Handle
@@ -66,25 +66,25 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativePointer<T> other) => other == this;
+        public bool Equals(NativePointer<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativePointer<T> nativePointer && nativePointer == this;
+        public override bool Equals(object? obj) => obj is NativePointer<T> other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => _handle.GetHashCode();
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
         /// </summary>
-        public override string ToString() => $"NativePointer<{typeof(T).Name}>";
+        public override string ToString() => SR.Format("NativePointer<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
         ///     Equals
@@ -92,7 +92,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativePointer<T> left, NativePointer<T> right) => left._handle == right._handle;
+        public static bool operator ==(NativePointer<T> left, NativePointer<T> right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -100,7 +100,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativePointer<T> left, NativePointer<T> right) => left._handle != right._handle;
+        public static bool operator !=(NativePointer<T> left, NativePointer<T> right) => !left.Equals(right);
 
         /// <summary>
         ///     Structure
@@ -173,6 +173,18 @@ namespace NativeCollections
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator ReadOnlySpan<T>(NativePointer<T> nativePointer) => nativePointer.AsReadOnlySpan();
+
+        /// <summary>
+        ///     Dispose
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Dispose()
+        {
+            var handle = _handle;
+            if (handle == 0)
+                return;
+            NativeMemoryAllocator.AlignedFree((void*)handle);
+        }
 
         /// <summary>
         ///     Create

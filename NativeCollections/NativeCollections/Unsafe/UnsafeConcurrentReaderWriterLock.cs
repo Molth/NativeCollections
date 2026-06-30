@@ -62,10 +62,11 @@ namespace NativeCollections
         ///     Read
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeDisposable<UnsafeConcurrentReaderWriterLock> ReadLock()
+        [MustBePinned(SR.parameter_this)]
+        public UnsafeDisposable<UnsafeConcurrentReaderWriterLock> ReadLock()
         {
             Read();
-            return new NativeDisposable<UnsafeConcurrentReaderWriterLock>(UnsafeHelpers.AsPointer(ref this));
+            return new UnsafeDisposable<UnsafeConcurrentReaderWriterLock>(UnsafeHelpers.AsPointer(ref this));
         }
 
         /// <summary>
@@ -79,20 +80,22 @@ namespace NativeCollections
         ///     <paramref name="sleep1Threshold" /> is less than -1.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeDisposable<UnsafeConcurrentReaderWriterLock> ReadLock(int sleep1Threshold)
+        [MustBePinned(SR.parameter_this)]
+        public UnsafeDisposable<UnsafeConcurrentReaderWriterLock> ReadLock(int sleep1Threshold)
         {
             Read(sleep1Threshold);
-            return new NativeDisposable<UnsafeConcurrentReaderWriterLock>(UnsafeHelpers.AsPointer(ref this));
+            return new UnsafeDisposable<UnsafeConcurrentReaderWriterLock>(UnsafeHelpers.AsPointer(ref this));
         }
 
         /// <summary>
         ///     Write
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeDisposable<UnsafeConcurrentReaderWriterLock> WriteLock()
+        [MustBePinned(SR.parameter_this)]
+        public UnsafeDisposable<UnsafeConcurrentReaderWriterLock> WriteLock()
         {
             Write();
-            return new NativeDisposable<UnsafeConcurrentReaderWriterLock>(UnsafeHelpers.AsPointer(ref this));
+            return new UnsafeDisposable<UnsafeConcurrentReaderWriterLock>(UnsafeHelpers.AsPointer(ref this));
         }
 
         /// <summary>
@@ -106,10 +109,11 @@ namespace NativeCollections
         ///     <paramref name="sleep1Threshold" /> is less than -1.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeDisposable<UnsafeConcurrentReaderWriterLock> WriteLock(int sleep1Threshold)
+        [MustBePinned(SR.parameter_this)]
+        public UnsafeDisposable<UnsafeConcurrentReaderWriterLock> WriteLock(int sleep1Threshold)
         {
             Write(sleep1Threshold);
-            return new NativeDisposable<UnsafeConcurrentReaderWriterLock>(UnsafeHelpers.AsPointer(ref this));
+            return new UnsafeDisposable<UnsafeConcurrentReaderWriterLock>(UnsafeHelpers.AsPointer(ref this));
         }
 
         /// <summary>
@@ -126,7 +130,7 @@ namespace NativeCollections
             var readSequenceNumber = _readSequenceNumber;
             ++_sequenceNumber;
             _spinLock.Exit();
-            var spinWait = new NativeSpinWait();
+            var spinWait = new UnsafeSpinWait();
             while ((int)(Volatile.Read(ref _nextSequenceNumber) - readSequenceNumber) < 0)
                 spinWait.SpinOnce(-1);
         }
@@ -152,7 +156,7 @@ namespace NativeCollections
             var readSequenceNumber = _readSequenceNumber;
             ++_sequenceNumber;
             _spinLock.Exit();
-            var spinWait = new NativeSpinWait();
+            var spinWait = new UnsafeSpinWait();
             while ((int)(Volatile.Read(ref _nextSequenceNumber) - readSequenceNumber) < 0)
                 spinWait.SpinOnce(sleep1Threshold);
         }
@@ -168,7 +172,7 @@ namespace NativeCollections
             var sequenceNumber = _sequenceNumber;
             ++_sequenceNumber;
             _spinLock.Exit();
-            var spinWait = new NativeSpinWait();
+            var spinWait = new UnsafeSpinWait();
             while (sequenceNumber != Volatile.Read(ref _nextSequenceNumber))
                 spinWait.SpinOnce(-1);
         }
@@ -191,7 +195,7 @@ namespace NativeCollections
             var sequenceNumber = _sequenceNumber;
             ++_sequenceNumber;
             _spinLock.Exit();
-            var spinWait = new NativeSpinWait();
+            var spinWait = new UnsafeSpinWait();
             while (sequenceNumber != Volatile.Read(ref _nextSequenceNumber))
                 spinWait.SpinOnce(sleep1Threshold);
         }
@@ -207,14 +211,14 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public readonly bool Equals(UnsafeConcurrentReaderWriterLock other) => other == this;
+        public readonly bool Equals(UnsafeConcurrentReaderWriterLock other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public readonly override bool Equals(object? obj) => obj is UnsafeConcurrentReaderWriterLock unsafeConcurrentReaderWriterLock && unsafeConcurrentReaderWriterLock == this;
+        public readonly override bool Equals(object? obj) => obj is UnsafeConcurrentReaderWriterLock other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
@@ -234,12 +238,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(UnsafeConcurrentReaderWriterLock left, UnsafeConcurrentReaderWriterLock right)
-        {
-            ref var local1 = ref Unsafe.As<UnsafeConcurrentReaderWriterLock, byte>(ref left);
-            ref var local2 = ref Unsafe.As<UnsafeConcurrentReaderWriterLock, byte>(ref right);
-            return SpanHelpers.Equals(ref local1, ref local2, (nuint)Unsafe.SizeOf<UnsafeConcurrentReaderWriterLock>());
-        }
+        public static bool operator ==(UnsafeConcurrentReaderWriterLock left, UnsafeConcurrentReaderWriterLock right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -247,12 +246,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(UnsafeConcurrentReaderWriterLock left, UnsafeConcurrentReaderWriterLock right)
-        {
-            ref var local1 = ref Unsafe.As<UnsafeConcurrentReaderWriterLock, byte>(ref left);
-            ref var local2 = ref Unsafe.As<UnsafeConcurrentReaderWriterLock, byte>(ref right);
-            return !SpanHelpers.Equals(ref local1, ref local2, (nuint)Unsafe.SizeOf<UnsafeConcurrentReaderWriterLock>());
-        }
+        public static bool operator !=(UnsafeConcurrentReaderWriterLock left, UnsafeConcurrentReaderWriterLock right) => !left.Equals(right);
 
         /// <summary>
         ///     Empty

@@ -7,7 +7,7 @@ namespace NativeCollections
     /// <summary>
     ///     Binding type attribute
     /// </summary>
-    [AttributeUsage(AttributeTargets.Struct)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
     public sealed class BindingTypeAttribute : Attribute
     {
         /// <summary>

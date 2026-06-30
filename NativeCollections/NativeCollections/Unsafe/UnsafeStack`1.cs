@@ -15,7 +15,7 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard)]
-    public unsafe struct UnsafeStack<T> : IDisposable, IReadOnlyCollection<T> where T : unmanaged
+    public unsafe struct UnsafeStack<T> : IIsCreated, IDisposable, IEquatable<UnsafeStack<T>>, IReadOnlyCollection<T> where T : unmanaged
     {
         /// <summary>
         ///     Buffer
@@ -58,6 +58,11 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Is created
+        /// </summary>
+        public readonly bool IsCreated => !UnsafeHelpers.IsNull(_buffer);
+
+        /// <summary>
         ///     Is empty
         /// </summary>
         public readonly bool IsEmpty => _size == 0;
@@ -86,6 +91,48 @@ namespace NativeCollections
             _size = 0;
             _version = 0;
         }
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public readonly bool Equals(UnsafeStack<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="obj">object</param>
+        /// <returns>Equals</returns>
+        public readonly override bool Equals(object? obj) => obj is UnsafeStack<T> other && other.Equals(this);
+
+        /// <summary>
+        ///     Get hashCode
+        /// </summary>
+        /// <returns>HashCode</returns>
+        public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
+
+        /// <summary>
+        ///     To string
+        /// </summary>
+        /// <returns>String</returns>
+        public readonly override string ToString() => SR.Format("UnsafeStack<{0}>", SR.GetTypeName(typeof(T)));
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Equals</returns>
+        public static bool operator ==(UnsafeStack<T> left, UnsafeStack<T> right) => left.Equals(right);
+
+        /// <summary>
+        ///     Not equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Not equals</returns>
+        public static bool operator !=(UnsafeStack<T> left, UnsafeStack<T> right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
@@ -338,12 +385,13 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
+        [MustBePinned(SR.parameter_this)]
         public Enumerator GetEnumerator() => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
@@ -354,7 +402,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator IEnumerable.GetEnumerator()
         {
@@ -371,7 +419,7 @@ namespace NativeCollections
             /// <summary>
             ///     NativeStack
             /// </summary>
-            private readonly UnsafeStack<T>* _nativeStack;
+            private readonly UnsafeStack<T>* _handle;
 
             /// <summary>
             ///     Version
@@ -391,12 +439,10 @@ namespace NativeCollections
             /// <summary>
             ///     Structure
             /// </summary>
-            /// <param name="nativeStack">NativeStack</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(UnsafeStack<T>* nativeStack)
+            internal Enumerator(UnsafeStack<T>* handle)
             {
-                var handle = nativeStack;
-                _nativeStack = handle;
+                _handle = handle;
                 _version = handle->_version;
                 _index = -2;
                 _currentElement = default;
@@ -409,7 +455,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext()
             {
-                var handle = _nativeStack;
+                var handle = _handle;
                 ThrowHelpers.ThrowIfEnumFailedVersion(_version, handle->_version);
                 bool returned;
                 if (_index == -2)

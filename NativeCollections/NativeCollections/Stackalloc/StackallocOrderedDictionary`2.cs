@@ -16,7 +16,7 @@ namespace NativeCollections
     /// <typeparam name="TValue">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [StackallocCollection(FromType.Standard)]
-    public unsafe struct StackallocOrderedDictionary<TKey, TValue> : IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
+    public unsafe struct StackallocOrderedDictionary<TKey, TValue> : IIsCreated, IEquatable<StackallocOrderedDictionary<TKey, TValue>>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
     {
         /// <summary>
         ///     Buckets
@@ -49,9 +49,14 @@ namespace NativeCollections
         private int _version;
 
         /// <summary>
-        ///     FastModMultiplier
+        ///     Pre-computed multiplier for use on 64-bit performing faster modulo operations.
         /// </summary>
         private readonly ulong _fastModMultiplier;
+
+        /// <summary>
+        ///     Is created
+        /// </summary>
+        public readonly bool IsCreated => !UnsafeHelpers.IsNull(_buckets);
 
         /// <summary>
         ///     Is empty
@@ -71,11 +76,13 @@ namespace NativeCollections
         /// <summary>
         ///     Keys
         /// </summary>
+        [MustBePinned(SR.parameter_this)]
         public KeyCollection Keys => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Values
         /// </summary>
+        [MustBePinned(SR.parameter_this)]
         public ValueCollection Values => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
@@ -98,9 +105,9 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">Buffer</param>
         /// <param name="capacity">Capacity</param>
+        [MustBeZeroed(nameof(buffer))]
+        [MustBePinned(nameof(buffer))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [MustBeZeroed("Span<byte> buffer")]
-        [MustBePinned("Span<byte> buffer")]
         public StackallocOrderedDictionary([MustBeZeroed] [MustBePinned] Span<byte> buffer, int capacity)
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, GetByteCount(capacity), ExceptionArgument.capacity);
@@ -115,6 +122,48 @@ namespace NativeCollections
             _count = 0;
             _version = 0;
         }
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public readonly bool Equals(StackallocOrderedDictionary<TKey, TValue> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="obj">object</param>
+        /// <returns>Equals</returns>
+        public readonly override bool Equals(object? obj) => obj is StackallocOrderedDictionary<TKey, TValue> other && other.Equals(this);
+
+        /// <summary>
+        ///     Get hashCode
+        /// </summary>
+        /// <returns>HashCode</returns>
+        public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
+
+        /// <summary>
+        ///     To string
+        /// </summary>
+        /// <returns>String</returns>
+        public readonly override string ToString() => SR.Format("StackallocOrderedDictionary<{0}, {1}>", SR.GetTypeName(typeof(TKey)), SR.GetTypeName(typeof(TValue)));
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Equals</returns>
+        public static bool operator ==(StackallocOrderedDictionary<TKey, TValue> left, StackallocOrderedDictionary<TKey, TValue> right) => left.Equals(right);
+
+        /// <summary>
+        ///     Not equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Not equals</returns>
+        public static bool operator !=(StackallocOrderedDictionary<TKey, TValue> left, StackallocOrderedDictionary<TKey, TValue> right) => !left.Equals(right);
 
         /// <summary>
         ///     Clear
@@ -995,12 +1044,13 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
+        [MustBePinned(SR.parameter_this)]
         public Enumerator GetEnumerator() => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
         {
@@ -1011,7 +1061,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator IEnumerable.GetEnumerator()
         {
@@ -1028,7 +1078,7 @@ namespace NativeCollections
             /// <summary>
             ///     NativeOrderedDictionary
             /// </summary>
-            private readonly StackallocOrderedDictionary<TKey, TValue>* _nativeOrderedDictionary;
+            private readonly StackallocOrderedDictionary<TKey, TValue>* _handle;
 
             /// <summary>
             ///     Version
@@ -1048,12 +1098,10 @@ namespace NativeCollections
             /// <summary>
             ///     Structure
             /// </summary>
-            /// <param name="nativeOrderedDictionary">NativeOrderedDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(StackallocOrderedDictionary<TKey, TValue>* nativeOrderedDictionary)
+            internal Enumerator(StackallocOrderedDictionary<TKey, TValue>* handle)
             {
-                var handle = nativeOrderedDictionary;
-                _nativeOrderedDictionary = handle;
+                _handle = handle;
                 _version = handle->_version;
                 _index = 0;
                 _current = default;
@@ -1066,7 +1114,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext()
             {
-                var handle = _nativeOrderedDictionary;
+                var handle = _handle;
                 ThrowHelpers.ThrowIfEnumFailedVersion(_version, handle->_version);
                 if (_index < handle->_count)
                 {
@@ -1104,24 +1152,28 @@ namespace NativeCollections
         ///     Key collection
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public readonly struct KeyCollection : IReadOnlyCollection<TKey>
+        public readonly struct KeyCollection : IIsCreated, IReadOnlyCollection<TKey>
         {
             /// <summary>
             ///     NativeOrderedDictionary
             /// </summary>
-            private readonly StackallocOrderedDictionary<TKey, TValue>* _nativeOrderedDictionary;
+            private readonly StackallocOrderedDictionary<TKey, TValue>* _handle;
+
+            /// <summary>
+            ///     Is created
+            /// </summary>
+            public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
             /// <summary>
             ///     Count
             /// </summary>
-            public int Count => _nativeOrderedDictionary->Count;
+            public int Count => _handle->Count;
 
             /// <summary>
             ///     Structure
             /// </summary>
-            /// <param name="nativeOrderedDictionary">NativeOrderedDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal KeyCollection(StackallocOrderedDictionary<TKey, TValue>* nativeOrderedDictionary) => _nativeOrderedDictionary = nativeOrderedDictionary;
+            internal KeyCollection(StackallocOrderedDictionary<TKey, TValue>* handle) => _handle = handle;
 
             /// <summary>
             ///     Copy to
@@ -1133,8 +1185,8 @@ namespace NativeCollections
             {
                 ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
                 ref var reference = ref MemoryMarshal.GetReference(buffer);
-                count = Math.Min(buffer.Length, Math.Min(count, _nativeOrderedDictionary->_count));
-                var entries = _nativeOrderedDictionary->_entries;
+                count = Math.Min(buffer.Length, Math.Min(count, _handle->_count));
+                var entries = _handle->_entries;
                 for (var index = 0; index < count; ++index)
                     UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)index), Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index).Key);
                 return count;
@@ -1157,8 +1209,8 @@ namespace NativeCollections
             {
                 ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, ExceptionArgument.buffer);
                 ref var reference = ref MemoryMarshal.GetReference(buffer);
-                var entries = _nativeOrderedDictionary->_entries;
-                for (var index = 0; index < _nativeOrderedDictionary->_count; ++index)
+                var entries = _handle->_entries;
+                for (var index = 0; index < _handle->_count; ++index)
                     UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)index), Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index).Key);
             }
 
@@ -1173,12 +1225,12 @@ namespace NativeCollections
             ///     Get enumerator
             /// </summary>
             /// <returns>Enumerator</returns>
-            public Enumerator GetEnumerator() => new(_nativeOrderedDictionary);
+            public Enumerator GetEnumerator() => new(_handle);
 
             /// <summary>
             ///     Get enumerator
             /// </summary>
-            [Obsolete("Call this method will always throw an exception.")]
+            [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator()
             {
@@ -1189,7 +1241,7 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
-            [Obsolete("Call this method will always throw an exception.")]
+            [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator IEnumerable.GetEnumerator()
             {
@@ -1206,7 +1258,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     NativeOrderedDictionary
                 /// </summary>
-                private readonly StackallocOrderedDictionary<TKey, TValue>* _nativeOrderedDictionary;
+                private readonly StackallocOrderedDictionary<TKey, TValue>* _handle;
 
                 /// <summary>
                 ///     Index
@@ -1226,12 +1278,10 @@ namespace NativeCollections
                 /// <summary>
                 ///     Structure
                 /// </summary>
-                /// <param name="nativeOrderedDictionary">NativeOrderedDictionary</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(StackallocOrderedDictionary<TKey, TValue>* nativeOrderedDictionary)
+                internal Enumerator(StackallocOrderedDictionary<TKey, TValue>* handle)
                 {
-                    var handle = nativeOrderedDictionary;
-                    _nativeOrderedDictionary = handle;
+                    _handle = handle;
                     _version = handle->_version;
                     _index = 0;
                     _currentKey = default;
@@ -1244,7 +1294,7 @@ namespace NativeCollections
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public bool MoveNext()
                 {
-                    var handle = _nativeOrderedDictionary;
+                    var handle = _handle;
                     ThrowHelpers.ThrowIfEnumFailedVersion(_version, handle->_version);
                     if (_index < handle->_count)
                     {
@@ -1283,24 +1333,28 @@ namespace NativeCollections
         ///     Value collection
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public readonly struct ValueCollection : IReadOnlyCollection<TValue>
+        public readonly struct ValueCollection : IIsCreated, IReadOnlyCollection<TValue>
         {
             /// <summary>
             ///     NativeOrderedDictionary
             /// </summary>
-            private readonly StackallocOrderedDictionary<TKey, TValue>* _nativeOrderedDictionary;
+            private readonly StackallocOrderedDictionary<TKey, TValue>* _handle;
+
+            /// <summary>
+            ///     Is created
+            /// </summary>
+            public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
             /// <summary>
             ///     Count
             /// </summary>
-            public int Count => _nativeOrderedDictionary->Count;
+            public int Count => _handle->Count;
 
             /// <summary>
             ///     Structure
             /// </summary>
-            /// <param name="nativeOrderedDictionary">NativeOrderedDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal ValueCollection(StackallocOrderedDictionary<TKey, TValue>* nativeOrderedDictionary) => _nativeOrderedDictionary = nativeOrderedDictionary;
+            internal ValueCollection(StackallocOrderedDictionary<TKey, TValue>* handle) => _handle = handle;
 
             /// <summary>
             ///     Copy to
@@ -1312,8 +1366,8 @@ namespace NativeCollections
             {
                 ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
                 ref var reference = ref MemoryMarshal.GetReference(buffer);
-                count = Math.Min(buffer.Length, Math.Min(count, _nativeOrderedDictionary->_count));
-                var entries = _nativeOrderedDictionary->_entries;
+                count = Math.Min(buffer.Length, Math.Min(count, _handle->_count));
+                var entries = _handle->_entries;
                 for (var index = 0; index < count; ++index)
                     UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)index), Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index).Value);
                 return count;
@@ -1336,8 +1390,8 @@ namespace NativeCollections
             {
                 ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, ExceptionArgument.buffer);
                 ref var reference = ref MemoryMarshal.GetReference(buffer);
-                var entries = _nativeOrderedDictionary->_entries;
-                for (var index = 0; index < _nativeOrderedDictionary->_count; ++index)
+                var entries = _handle->_entries;
+                for (var index = 0; index < _handle->_count; ++index)
                     UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)index), Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)index).Value);
             }
 
@@ -1352,12 +1406,12 @@ namespace NativeCollections
             ///     Get enumerator
             /// </summary>
             /// <returns>Enumerator</returns>
-            public Enumerator GetEnumerator() => new(_nativeOrderedDictionary);
+            public Enumerator GetEnumerator() => new(_handle);
 
             /// <summary>
             ///     Get enumerator
             /// </summary>
-            [Obsolete("Call this method will always throw an exception.")]
+            [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator()
             {
@@ -1368,7 +1422,7 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
-            [Obsolete("Call this method will always throw an exception.")]
+            [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator IEnumerable.GetEnumerator()
             {
@@ -1385,7 +1439,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     NativeOrderedDictionary
                 /// </summary>
-                private readonly StackallocOrderedDictionary<TKey, TValue>* _nativeOrderedDictionary;
+                private readonly StackallocOrderedDictionary<TKey, TValue>* _handle;
 
                 /// <summary>
                 ///     Index
@@ -1405,12 +1459,10 @@ namespace NativeCollections
                 /// <summary>
                 ///     Structure
                 /// </summary>
-                /// <param name="nativeOrderedDictionary">NativeOrderedDictionary</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(StackallocOrderedDictionary<TKey, TValue>* nativeOrderedDictionary)
+                internal Enumerator(StackallocOrderedDictionary<TKey, TValue>* handle)
                 {
-                    var handle = nativeOrderedDictionary;
-                    _nativeOrderedDictionary = handle;
+                    _handle = handle;
                     _version = handle->_version;
                     _index = 0;
                     _currentValue = default;
@@ -1423,7 +1475,7 @@ namespace NativeCollections
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public bool MoveNext()
                 {
-                    var handle = _nativeOrderedDictionary;
+                    var handle = _handle;
                     ThrowHelpers.ThrowIfEnumFailedVersion(_version, handle->_version);
                     if (_index < handle->_count)
                     {

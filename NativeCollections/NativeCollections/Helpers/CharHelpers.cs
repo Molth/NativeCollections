@@ -22,17 +22,12 @@ namespace NativeCollections
 #endif
         }
 
+#if !NET7_0_OR_GREATER
         /// <summary>
         ///     Is between
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsBetween(char c, char minInclusive, char maxInclusive)
-        {
-#if NET7_0_OR_GREATER
-            return char.IsBetween(c, minInclusive, maxInclusive);
-#else
-            return (uint)(c - minInclusive) <= (uint)(maxInclusive - minInclusive);
+        public static bool IsBetween(char c, char minInclusive, char maxInclusive) => (uint)(c - minInclusive) <= (uint)(maxInclusive - minInclusive);
 #endif
-        }
     }
 }

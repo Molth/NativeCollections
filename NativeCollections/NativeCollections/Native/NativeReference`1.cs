@@ -12,7 +12,7 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    public readonly unsafe struct NativeReference<T> : IDisposable, IEquatable<NativeReference<T>> where T : unmanaged
+    public readonly unsafe struct NativeReference<T> : IIsCreated, IDisposable, IEquatable<NativeReference<T>> where T : unmanaged
     {
         /// <summary>
         ///     Handle
@@ -22,7 +22,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => _handle != null;
+        public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
         /// <summary>
         ///     Handle
@@ -81,26 +81,26 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeReference<T> other) => other == this;
+        public bool Equals(NativeReference<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeReference<T> nativeReference && nativeReference == this;
+        public override bool Equals(object? obj) => obj is NativeReference<T> other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => ((nint)_handle).GetHashCode();
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => $"NativeReference<{typeof(T).Name}>";
+        public override string ToString() => SR.Format("NativeReference<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
         ///     Reinterprets the given location as a reference to a value of type <typeparamref name="T" />.
@@ -186,7 +186,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeReference<T> left, NativeReference<T> right) => left._handle == right._handle;
+        public static bool operator ==(NativeReference<T> left, NativeReference<T> right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -194,7 +194,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeReference<T> left, NativeReference<T> right) => left._handle != right._handle;
+        public static bool operator !=(NativeReference<T> left, NativeReference<T> right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
@@ -203,7 +203,7 @@ namespace NativeCollections
         public void Dispose()
         {
             var handle = _handle;
-            if (handle == null)
+            if (UnsafeHelpers.IsNull(handle))
                 return;
             NativeMemoryAllocator.AlignedFree(handle);
         }
@@ -213,21 +213,24 @@ namespace NativeCollections
         /// </summary>
         /// <param name="reference">Reference</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeReference<T> Create<TFrom>(ref TFrom reference) => new((T*)Unsafe.AsPointer(ref reference));
+        [MustBePinned(nameof(reference))]
+        public static NativeReference<T> Create<TFrom>([MustBePinned] ref TFrom reference) => new((T*)Unsafe.AsPointer(ref reference));
 
         /// <summary>
         ///     Create
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeReference<T> Create<TFrom>(Span<TFrom> buffer) => new((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)));
+        [MustBePinned(nameof(buffer))]
+        public static NativeReference<T> Create<TFrom>([MustBePinned] Span<TFrom> buffer) => new((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)));
 
         /// <summary>
         ///     Create
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeReference<T> Create<TFrom>(ReadOnlySpan<TFrom> buffer) => new((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)));
+        [MustBePinned(nameof(buffer))]
+        public static NativeReference<T> Create<TFrom>([MustBePinned] ReadOnlySpan<TFrom> buffer) => new((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)));
 
         /// <summary>
         ///     Empty

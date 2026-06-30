@@ -12,7 +12,7 @@ namespace NativeCollections
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Standard)]
     [BindingType(typeof(UnsafeBitArray))]
-    public readonly unsafe struct NativeBitArray : IDisposable, IEquatable<NativeBitArray>
+    public readonly unsafe struct NativeBitArray : IIsCreated, IDisposable, IEquatable<NativeBitArray>
     {
         /// <summary>
         ///     Handle
@@ -51,8 +51,9 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">Buffer</param>
         /// <param name="length">Length</param>
+        [MustBePinned(nameof(buffer))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeBitArray(int* buffer, int length)
+        public NativeBitArray([MustBePinned] Span<int> buffer, int length)
         {
             var value = new UnsafeBitArray(buffer, length);
             var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeBitArray>(1);
@@ -66,37 +67,9 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="length">Length</param>
         /// <param name="defaultValue">Default value</param>
+        [MustBePinned(nameof(buffer))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeBitArray(int* buffer, int length, bool defaultValue)
-        {
-            var value = new UnsafeBitArray(buffer, length, defaultValue);
-            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeBitArray>(1);
-            Unsafe.AsRef<UnsafeBitArray>(handle) = value;
-            _handle = handle;
-        }
-
-        /// <summary>
-        ///     Structure
-        /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="length">Length</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeBitArray(NativeArray<int> buffer, int length)
-        {
-            var value = new UnsafeBitArray(buffer, length);
-            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeBitArray>(1);
-            Unsafe.AsRef<UnsafeBitArray>(handle) = value;
-            _handle = handle;
-        }
-
-        /// <summary>
-        ///     Structure
-        /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="length">Length</param>
-        /// <param name="defaultValue">Default value</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeBitArray(NativeArray<int> buffer, int length, bool defaultValue)
+        public NativeBitArray([MustBePinned] Span<int> buffer, int length, bool defaultValue)
         {
             var value = new UnsafeBitArray(buffer, length, defaultValue);
             var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeBitArray>(1);
@@ -107,7 +80,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => _handle != null;
+        public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
         /// <summary>
         ///     Buffer
@@ -154,20 +127,20 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeBitArray other) => other == this;
+        public bool Equals(NativeBitArray other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeBitArray nativeBitArray && nativeBitArray == this;
+        public override bool Equals(object? obj) => obj is NativeBitArray other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => ((nint)_handle).GetHashCode();
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
@@ -181,7 +154,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeBitArray left, NativeBitArray right) => left._handle == right._handle;
+        public static bool operator ==(NativeBitArray left, NativeBitArray right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -189,7 +162,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeBitArray left, NativeBitArray right) => left._handle != right._handle;
+        public static bool operator !=(NativeBitArray left, NativeBitArray right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
@@ -198,7 +171,7 @@ namespace NativeCollections
         public void Dispose()
         {
             var handle = _handle;
-            if (handle == null)
+            if (UnsafeHelpers.IsNull(handle))
                 return;
             handle->Dispose();
             NativeMemoryAllocator.AlignedFree(handle);

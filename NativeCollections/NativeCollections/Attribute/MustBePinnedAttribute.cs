@@ -7,7 +7,7 @@ namespace NativeCollections
     /// <summary>
     ///     Must be pinned attribute
     /// </summary>
-    [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Parameter)]
+    [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Parameter)]
     public sealed class MustBePinnedAttribute : Attribute
     {
         /// <summary>

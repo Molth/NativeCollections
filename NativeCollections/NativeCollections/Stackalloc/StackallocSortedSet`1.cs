@@ -16,7 +16,7 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [StackallocCollection(FromType.Standard)]
-    public unsafe struct StackallocSortedSet<T> : IReadOnlyCollection<T> where T : unmanaged, IComparable<T>
+    public unsafe struct StackallocSortedSet<T> : IIsCreated, IEquatable<StackallocSortedSet<T>>, IReadOnlyCollection<T> where T : unmanaged, IComparable<T>
     {
         /// <summary>
         ///     Root
@@ -39,6 +39,11 @@ namespace NativeCollections
         private StackallocFixedSizeStackMemoryPool<Node<T>> _nodePool;
 
         /// <summary>
+        ///     Is created
+        /// </summary>
+        public readonly bool IsCreated => _nodePool.IsCreated;
+
+        /// <summary>
         ///     Is empty
         /// </summary>
         public readonly bool IsEmpty => _count == 0;
@@ -55,10 +60,10 @@ namespace NativeCollections
         {
             get
             {
-                if (_root == null)
+                if (UnsafeHelpers.IsNull(_root))
                     return default;
                 var current = _root;
-                while (current->Left != null)
+                while (!UnsafeHelpers.IsNull(current->Left))
                     current = current->Left;
                 return current->Item;
             }
@@ -71,10 +76,10 @@ namespace NativeCollections
         {
             get
             {
-                if (_root == null)
+                if (UnsafeHelpers.IsNull(_root))
                     return default;
                 var current = _root;
-                while (current->Right != null)
+                while (!UnsafeHelpers.IsNull(current->Right))
                     current = current->Right;
                 return current->Item;
             }
@@ -93,8 +98,8 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">Buffer</param>
         /// <param name="capacity">Capacity</param>
+        [MustBePinned(nameof(buffer))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [MustBePinned("Span<byte> buffer")]
         public StackallocSortedSet([MustBePinned] Span<byte> buffer, int capacity)
         {
             var nodePool = new StackallocFixedSizeStackMemoryPool<Node<T>>(buffer, capacity);
@@ -103,6 +108,48 @@ namespace NativeCollections
             _version = 0;
             _nodePool = nodePool;
         }
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public readonly bool Equals(StackallocSortedSet<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="obj">object</param>
+        /// <returns>Equals</returns>
+        public readonly override bool Equals(object? obj) => obj is StackallocSortedSet<T> other && other.Equals(this);
+
+        /// <summary>
+        ///     Get hashCode
+        /// </summary>
+        /// <returns>HashCode</returns>
+        public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
+
+        /// <summary>
+        ///     To string
+        /// </summary>
+        /// <returns>String</returns>
+        public readonly override string ToString() => SR.Format("StackallocSortedSet<{0}>", SR.GetTypeName(typeof(T)));
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Equals</returns>
+        public static bool operator ==(StackallocSortedSet<T> left, StackallocSortedSet<T> right) => left.Equals(right);
+
+        /// <summary>
+        ///     Not equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Not equals</returns>
+        public static bool operator !=(StackallocSortedSet<T> left, StackallocSortedSet<T> right) => !left.Equals(right);
 
         /// <summary>
         ///     Clear
@@ -124,7 +171,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public InsertResult TryAdd(in T item)
         {
-            if (_root == null)
+            if (UnsafeHelpers.IsNull(_root))
             {
                 if (!_nodePool.TryRent(out _root))
                     return InsertResult.InsufficientCapacity;
@@ -143,7 +190,7 @@ namespace NativeCollections
             Node<T>* greatGrandParent = null;
             _version++;
             var order = 0;
-            while (current != null)
+            while (!UnsafeHelpers.IsNull(current))
             {
                 order = item.CompareTo(current->Item);
                 if (order == 0)
@@ -195,7 +242,7 @@ namespace NativeCollections
         public InsertResult TryAdd(in T equalValue, in T actualValue)
         {
             var node = FindNode(equalValue);
-            if (node == null)
+            if (UnsafeHelpers.IsNull(node))
                 return TryAdd(actualValue);
             node->Item = actualValue;
             _version++;
@@ -210,7 +257,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(in T item)
         {
-            if (_root == null)
+            if (UnsafeHelpers.IsNull(_root))
                 return false;
             _version++;
             var current = _root;
@@ -219,11 +266,11 @@ namespace NativeCollections
             Node<T>* match = null;
             Node<T>* parentOfMatch = null;
             var foundMatch = false;
-            while (current != null)
+            while (!UnsafeHelpers.IsNull(current))
             {
                 if (current->Is2Node)
                 {
-                    if (parent == null)
+                    if (UnsafeHelpers.IsNull(parent))
                     {
                         current->ColorRed();
                     }
@@ -275,14 +322,14 @@ namespace NativeCollections
                 current = order < 0 ? current->Left : current->Right;
             }
 
-            if (match != null)
+            if (!UnsafeHelpers.IsNull(match))
             {
                 ReplaceNode(match, parentOfMatch, parent, grandParent);
                 --_count;
                 _nodePool.Return(match);
             }
 
-            if (_root != null)
+            if (!UnsafeHelpers.IsNull(_root))
                 _root->ColorBlack();
             return foundMatch;
         }
@@ -296,7 +343,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(in T equalValue, out T actualValue)
         {
-            if (_root == null)
+            if (UnsafeHelpers.IsNull(_root))
             {
                 actualValue = default;
                 return false;
@@ -309,11 +356,11 @@ namespace NativeCollections
             Node<T>* match = null;
             Node<T>* parentOfMatch = null;
             var foundMatch = false;
-            while (current != null)
+            while (!UnsafeHelpers.IsNull(current))
             {
                 if (current->Is2Node)
                 {
-                    if (parent == null)
+                    if (UnsafeHelpers.IsNull(parent))
                     {
                         current->ColorRed();
                     }
@@ -365,7 +412,7 @@ namespace NativeCollections
                 current = order < 0 ? current->Left : current->Right;
             }
 
-            if (match != null)
+            if (!UnsafeHelpers.IsNull(match))
             {
                 actualValue = match->Item;
                 ReplaceNode(match, parentOfMatch, parent, grandParent);
@@ -377,7 +424,7 @@ namespace NativeCollections
                 actualValue = default;
             }
 
-            if (_root != null)
+            if (!UnsafeHelpers.IsNull(_root))
                 _root->ColorBlack();
             return foundMatch;
         }
@@ -388,7 +435,7 @@ namespace NativeCollections
         /// <param name="item">Item</param>
         /// <returns>Contains</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly bool Contains(in T item) => FindNode(item) != null;
+        public readonly bool Contains(in T item) => !UnsafeHelpers.IsNull(FindNode(item));
 
         /// <summary>
         ///     Try to get the actual value
@@ -400,7 +447,7 @@ namespace NativeCollections
         public readonly bool TryGetValue(in T equalValue, out T actualValue)
         {
             var node = FindNode(equalValue);
-            if (node != null)
+            if (!UnsafeHelpers.IsNull(node))
             {
                 actualValue = node->Item;
                 return true;
@@ -420,7 +467,7 @@ namespace NativeCollections
         public readonly bool TryGetValueReference(in T equalValue, out NativeReference<T> actualValue)
         {
             var node = FindNode(equalValue);
-            if (node != null)
+            if (!UnsafeHelpers.IsNull(node))
             {
                 actualValue = new NativeReference<T>(UnsafeHelpers.AsPointer(ref node->Item));
                 return true;
@@ -461,7 +508,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ReplaceChildOrRoot(Node<T>* parent, Node<T>* child, Node<T>* newChild)
         {
-            if (parent != null)
+            if (!UnsafeHelpers.IsNull(parent))
                 parent->ReplaceChild(child, newChild);
             else
                 _root = newChild;
@@ -483,7 +530,7 @@ namespace NativeCollections
             }
             else
             {
-                if (successor->Right != null)
+                if (!UnsafeHelpers.IsNull(successor->Right))
                     successor->Right->ColorBlack();
                 if (parentOfSuccessor != match)
                 {
@@ -494,7 +541,7 @@ namespace NativeCollections
                 successor->Left = match->Left;
             }
 
-            if (successor != null)
+            if (!UnsafeHelpers.IsNull(successor))
                 successor->Color = match->Color;
             ReplaceChildOrRoot(parentOfMatch, match, successor);
         }
@@ -508,7 +555,7 @@ namespace NativeCollections
         private readonly Node<T>* FindNode(in T item)
         {
             var current = _root;
-            while (current != null)
+            while (!UnsafeHelpers.IsNull(current))
             {
                 var order = item.CompareTo(current->Item);
                 if (order == 0)
@@ -529,13 +576,13 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
             ref var reference = ref MemoryMarshal.GetReference(buffer);
-            if (_root == null)
+            if (UnsafeHelpers.IsNull(_root))
                 return 0;
             count = Math.Min(buffer.Length, Math.Min(count, _count));
             var index = 0;
             using (var nodeStack = new UnsafeStack<NativeReference<Node<T>>>(2 * BitOperationsHelpers.Log2((uint)(_count + 1))))
             {
-                for (var node = _root; node != null; node = node->Left)
+                for (var node = _root; !UnsafeHelpers.IsNull(node); node = node->Left)
                     nodeStack.Push(node);
                 while (nodeStack.Count != 0)
                 {
@@ -543,7 +590,7 @@ namespace NativeCollections
                         break;
                     var node1 = (Node<T>*)nodeStack.Pop();
                     UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)index++), node1->Item);
-                    for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
+                    for (var node2 = node1->Right; !UnsafeHelpers.IsNull(node2); node2 = node2->Left)
                         nodeStack.Push(node2);
                 }
             }
@@ -568,18 +615,18 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, ExceptionArgument.buffer);
             ref var reference = ref MemoryMarshal.GetReference(buffer);
-            if (_root == null)
+            if (UnsafeHelpers.IsNull(_root))
                 return;
             var index = 0;
             using (var nodeStack = new UnsafeStack<NativeReference<Node<T>>>(2 * BitOperationsHelpers.Log2((uint)(_count + 1))))
             {
-                for (var node = _root; node != null; node = node->Left)
+                for (var node = _root; !UnsafeHelpers.IsNull(node); node = node->Left)
                     nodeStack.Push(node);
                 while (nodeStack.Count != 0)
                 {
                     var node1 = (Node<T>*)nodeStack.Pop();
                     UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)index++), node1->Item);
-                    for (var node2 = node1->Right; node2 != null; node2 = node2->Left)
+                    for (var node2 = node1->Right; !UnsafeHelpers.IsNull(node2); node2 = node2->Left)
                         nodeStack.Push(node2);
                 }
             }
@@ -601,12 +648,13 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
+        [MustBePinned(SR.parameter_this)]
         public Enumerator GetEnumerator() => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
@@ -617,7 +665,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator IEnumerable.GetEnumerator()
         {
@@ -634,7 +682,7 @@ namespace NativeCollections
             /// <summary>
             ///     NativeHashSet
             /// </summary>
-            private readonly StackallocSortedSet<T>* _nativeSortedSet;
+            private readonly StackallocSortedSet<T>* _handle;
 
             /// <summary>
             ///     Version
@@ -659,18 +707,16 @@ namespace NativeCollections
             /// <summary>
             ///     Structure
             /// </summary>
-            /// <param name="nativeSortedSet">NativeSortedSet</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(StackallocSortedSet<T>* nativeSortedSet)
+            internal Enumerator(StackallocSortedSet<T>* handle)
             {
-                var handle = nativeSortedSet;
-                _nativeSortedSet = handle;
+                _handle = handle;
                 _version = handle->_version;
                 _nodeStack = new NativeStack<NativeReference<Node<T>>>(2 * BitOperationsHelpers.Log2((uint)(handle->_count + 1)));
                 _currentNode = null;
                 _current = default;
                 var node = handle->_root;
-                while (node != null)
+                while (!UnsafeHelpers.IsNull(node))
                 {
                     var next = node->Left;
                     _nodeStack.Push(node);
@@ -685,7 +731,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext()
             {
-                ThrowHelpers.ThrowIfEnumFailedVersion(_version, _nativeSortedSet->_version);
+                ThrowHelpers.ThrowIfEnumFailedVersion(_version, _handle->_version);
                 if (!_nodeStack.TryPop(out var result))
                 {
                     _currentNode = null;
@@ -696,7 +742,7 @@ namespace NativeCollections
                 _currentNode = result;
                 _current = _currentNode->Item;
                 var node = _currentNode->Right;
-                while (node != null)
+                while (!UnsafeHelpers.IsNull(node))
                 {
                     var next = node->Left;
                     _nodeStack.Push(node);
@@ -715,8 +761,8 @@ namespace NativeCollections
                 _nodeStack.Clear();
                 _currentNode = null;
                 _current = default;
-                var node = _nativeSortedSet->_root;
-                while (node != null)
+                var node = _handle->_root;
+                while (!UnsafeHelpers.IsNull(node))
                 {
                     var next = node->Left;
                     _nodeStack.Push(node);

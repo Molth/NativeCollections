@@ -11,7 +11,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.None)]
-    public unsafe struct UnsafeMemoryBucket : IDisposable
+    public unsafe struct UnsafeMemoryBucket : IIsCreated, IDisposable, IEquatable<UnsafeMemoryBucket>
     {
         /// <summary>
         ///     Capacity
@@ -24,9 +24,14 @@ namespace NativeCollections
         private readonly int _length;
 
         /// <summary>
+        ///     Alignment
+        /// </summary>
+        private readonly int _alignment;
+
+        /// <summary>
         ///     Buffer
         /// </summary>
-        private readonly nint* _buffer;
+        [NativePointer(typeof(void*))] private readonly nint* _buffer;
 
         /// <summary>
         ///     Index
@@ -39,6 +44,11 @@ namespace NativeCollections
         private readonly CustomMemoryAllocator _allocator;
 
         /// <summary>
+        ///     Is created
+        /// </summary>
+        public readonly bool IsCreated => !UnsafeHelpers.IsNull(_buffer);
+
+        /// <summary>
         ///     Capacity
         /// </summary>
         public readonly int Capacity => _capacity;
@@ -49,12 +59,23 @@ namespace NativeCollections
         public readonly int Length => _length;
 
         /// <summary>
+        ///     Alignment
+        /// </summary>
+        public readonly int Alignment => _alignment;
+
+        /// <summary>
+        ///     Memory allocator
+        /// </summary>
+        public readonly CustomMemoryAllocator Allocator => _allocator;
+
+        /// <summary>
         ///     Structure
         /// </summary>
         /// <param name="capacity">Capacity</param>
         /// <param name="length">Length</param>
+        /// <param name="alignment">Alignment</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeMemoryBucket(int capacity, int length) : this(capacity, length, CustomMemoryAllocator.Default)
+        public UnsafeMemoryBucket(int capacity, int length, int alignment) : this(capacity, length, alignment, CustomMemoryAllocator.Default)
         {
         }
 
@@ -63,16 +84,63 @@ namespace NativeCollections
         /// </summary>
         /// <param name="capacity">Capacity</param>
         /// <param name="length">Length</param>
+        /// <param name="alignment">Alignment</param>
         /// <param name="allocator">Memory allocator</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeMemoryBucket(int capacity, int length, CustomMemoryAllocator allocator)
+        public UnsafeMemoryBucket(int capacity, int length, int alignment, CustomMemoryAllocator allocator)
         {
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
+            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
+            ThrowHelpers.ThrowIfNegative(alignment, ExceptionArgument.alignment);
             _capacity = capacity;
             _length = length;
+            _alignment = alignment;
             _buffer = NativeMemoryAllocator.AlignedAllocZeroed<nint>((uint)capacity);
             _index = 0;
             _allocator = allocator;
         }
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public readonly bool Equals(UnsafeMemoryBucket other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="obj">object</param>
+        /// <returns>Equals</returns>
+        public readonly override bool Equals(object? obj) => obj is UnsafeMemoryBucket other && other.Equals(this);
+
+        /// <summary>
+        ///     Get hashCode
+        /// </summary>
+        /// <returns>HashCode</returns>
+        public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
+
+        /// <summary>
+        ///     To string
+        /// </summary>
+        /// <returns>String</returns>
+        public readonly override string ToString() => "UnsafeMemoryBucket";
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Equals</returns>
+        public static bool operator ==(UnsafeMemoryBucket left, UnsafeMemoryBucket right) => left.Equals(right);
+
+        /// <summary>
+        ///     Not equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Not equals</returns>
+        public static bool operator !=(UnsafeMemoryBucket left, UnsafeMemoryBucket right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
@@ -80,10 +148,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void Dispose()
         {
-            for (var i = _capacity - 1; i >= 0; --i)
+            for (var i = _index; i < _capacity; ++i)
             {
                 var buffer = (void*)Unsafe.Add(ref Unsafe.AsRef<nint>(_buffer), (nint)i);
-                if (buffer == null)
+                if (UnsafeHelpers.IsNull(buffer))
                     break;
                 _allocator.AlignedFree(buffer);
             }
@@ -98,16 +166,16 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void* Rent()
         {
-            void* buffer = null;
+            void* ptr = null;
             if (_index < _capacity)
             {
-                buffer = (void*)Unsafe.Add(ref Unsafe.AsRef<nint>(_buffer), (nint)_index);
+                ptr = (void*)Unsafe.Add(ref Unsafe.AsRef<nint>(_buffer), (nint)_index);
                 Unsafe.Add(ref Unsafe.AsRef<nint>(_buffer), (nint)_index++) = 0;
             }
 
-            if (buffer == null)
-                buffer = _allocator.AlignedAlloc<byte>((uint)_length);
-            return buffer;
+            if (UnsafeHelpers.IsNull(ptr))
+                ptr = _allocator.AlignedAlloc((uint)_length, (uint)_alignment);
+            return ptr;
         }
 
         /// <summary>

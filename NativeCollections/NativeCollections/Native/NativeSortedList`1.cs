@@ -16,7 +16,7 @@ namespace NativeCollections
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Standard)]
     [BindingType(typeof(UnsafeSortedList<>))]
-    public readonly unsafe struct NativeSortedList<T> : IDisposable, IEquatable<NativeSortedList<T>>, IReadOnlyCollection<T> where T : unmanaged, IComparable<T>
+    public readonly unsafe struct NativeSortedList<T> : IIsCreated, IDisposable, IEquatable<NativeSortedList<T>>, IReadOnlyCollection<T> where T : unmanaged, IComparable<T>
     {
         /// <summary>
         ///     Handle
@@ -39,7 +39,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => _handle != null;
+        public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
         /// <summary>
         ///     Is empty
@@ -61,26 +61,26 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeSortedList<T> other) => other == this;
+        public bool Equals(NativeSortedList<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeSortedList<T> nativeSortedList && nativeSortedList == this;
+        public override bool Equals(object? obj) => obj is NativeSortedList<T> other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => ((nint)_handle).GetHashCode();
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => $"NativeSortedList<{typeof(T).Name}>";
+        public override string ToString() => SR.Format("NativeSortedList<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
         ///     Equals
@@ -88,7 +88,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeSortedList<T> left, NativeSortedList<T> right) => left._handle == right._handle;
+        public static bool operator ==(NativeSortedList<T> left, NativeSortedList<T> right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -96,7 +96,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeSortedList<T> left, NativeSortedList<T> right) => left._handle != right._handle;
+        public static bool operator !=(NativeSortedList<T> left, NativeSortedList<T> right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
@@ -105,7 +105,7 @@ namespace NativeCollections
         public void Dispose()
         {
             var handle = _handle;
-            if (handle == null)
+            if (UnsafeHelpers.IsNull(handle))
                 return;
             handle->Dispose();
             NativeMemoryAllocator.AlignedFree(handle);
@@ -282,7 +282,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
@@ -293,7 +293,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator IEnumerable.GetEnumerator()
         {

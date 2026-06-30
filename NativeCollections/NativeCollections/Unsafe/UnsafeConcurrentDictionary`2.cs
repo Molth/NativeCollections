@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Threading;
 
 // ReSharper disable ALL
 
@@ -17,1240 +17,381 @@ namespace NativeCollections
     /// <typeparam name="TKey">Type</typeparam>
     /// <typeparam name="TValue">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(FromType.Standard)]
-    public unsafe struct UnsafeConcurrentDictionary<TKey, TValue> : IDisposable, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged, IEquatable<TValue>
+    [UnsafeCollection(FromType.Standard | FromType.NotImplemented)]
+    [BindingType(typeof(ConcurrentDictionary<,>))]
+    public readonly struct UnsafeConcurrentDictionary<TKey, TValue> : IIsCreated, IDisposable, IEquatable<UnsafeConcurrentDictionary<TKey, TValue>>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged, IEquatable<TValue>
     {
         /// <summary>
-        ///     Tables
+        ///     Handle
         /// </summary>
-        private volatile Tables* _tables;
+        private readonly NativeObject<ConcurrentDictionary<TKey, TValue>> _handle;
 
         /// <summary>
-        ///     Budget
+        ///     Handle
         /// </summary>
-        private int _budget;
+        private ConcurrentDictionary<TKey, TValue> Handle => _handle.Value;
 
-        /// <summary>
-        ///     Grow lock array
-        /// </summary>
-        private readonly bool _growLockArray;
-
-        /// <summary>
-        ///     Node pool
-        /// </summary>
-        private UnsafeMemoryPool<Node> _nodePool;
-
-        /// <summary>
-        ///     Node lock
-        /// </summary>
-        private UnsafeConcurrentSpinLock _nodeLock;
-
-        /// <summary>
-        ///     Get or set value
-        /// </summary>
-        /// <param name="key">Key</param>
-        public TValue this[in TKey key]
+        /// <summary>Gets or sets the value associated with the specified key.</summary>
+        /// <param name="key">The key of the value to get or set.</param>
+        /// <value>
+        ///     The value associated with the specified key. If the specified key is not found, a get operation throws a
+        ///     <see cref="KeyNotFoundException" />, and a set operation creates a new element with the specified key.
+        /// </value>
+        /// <exception cref="KeyNotFoundException">
+        ///     The property is retrieved and <paramref name="key" /> does not exist in the collection.
+        /// </exception>
+        public TValue this[TKey key]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            readonly get
-            {
-                if (!TryGetValue(key, out var value))
-                    ThrowHelpers.ThrowKeyNotFoundException(key);
-                return value;
-            }
+            get => Handle[key];
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => TryAddInternal(_tables, key, key.GetHashCode(), value, true, out _);
+            set => Handle[key] = value;
         }
 
         /// <summary>
         ///     Is created
         /// </summary>
+        public bool IsCreated => _handle.IsCreated;
+
+        /// <summary>
+        ///     Gets a value that indicates whether this is empty.
+        /// </summary>
+        /// <value>
+        ///     true if this is empty;
+        ///     otherwise, false.
+        /// </value>
         public bool IsEmpty
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-                if (!AreAllBucketsEmpty())
-                    return false;
-                var locksAcquired = 0;
-                try
-                {
-                    AcquireAllLocks(ref locksAcquired);
-                    return AreAllBucketsEmpty();
-                }
-                finally
-                {
-                    ReleaseLocks(locksAcquired);
-                }
-            }
+            get => Handle.IsEmpty;
         }
 
         /// <summary>
-        ///     Count
+        ///     Gets the number of key/value pairs contained in this.
         /// </summary>
+        /// <exception cref="OverflowException">
+        ///     The dictionary contains too many elements.
+        /// </exception>
+        /// <value>
+        ///     The number of key/value pairs contained in this.
+        /// </value>
+        /// <remarks>
+        ///     Count has snapshot semantics and represents the number of items in this
+        ///     at the moment when Count was accessed.
+        /// </remarks>
         public int Count
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-                var locksAcquired = 0;
-                try
-                {
-                    AcquireAllLocks(ref locksAcquired);
-                    return GetCountNoLocks();
-                }
-                finally
-                {
-                    ReleaseLocks(locksAcquired);
-                }
-            }
+            get => Handle.Count;
         }
 
         /// <summary>
         ///     Keys
         /// </summary>
-        public KeyCollection Keys => new(UnsafeHelpers.AsPointer(ref this));
+        public KeyCollection Keys => new(_handle);
 
         /// <summary>
         ///     Values
         /// </summary>
-        public ValueCollection Values => new(UnsafeHelpers.AsPointer(ref this));
+        public ValueCollection Values => new(_handle);
 
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="size">Size</param>
-        /// <param name="maxFreeSlabs">Max free slabs</param>
-        /// <param name="concurrencyLevel">Concurrency level</param>
-        /// <param name="capacity">Capacity</param>
-        /// <param name="growLockArray">Grow lock array</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeConcurrentDictionary(int size, int maxFreeSlabs, int concurrencyLevel, int capacity, bool growLockArray)
-        {
-            var nodePool = new UnsafeMemoryPool<Node>(size, maxFreeSlabs);
-            if (concurrencyLevel <= 0)
-                concurrencyLevel = Environment.ProcessorCount;
-            capacity = Math.Max(capacity, concurrencyLevel);
-            capacity = HashHelpers.GetPrime(capacity);
-            var locks = new NativeArrayReference<object>(concurrencyLevel);
-            for (var i = 0; i < locks.Length; ++i)
-                locks[i] = new object();
-            var countPerLock = new NativeArray<int>(locks.Length, true);
-            var buckets = new NativeArray<VolatileNode>(capacity, true);
-            _tables = NativeMemoryAllocator.AlignedAlloc<Tables>(1);
-            _tables->Initialize(buckets, locks, countPerLock);
-            _growLockArray = growLockArray;
-            _budget = buckets.Length / locks.Length;
-            _nodePool = nodePool;
-            _nodeLock = new UnsafeConcurrentSpinLock();
-        }
+        private UnsafeConcurrentDictionary(NativeObject<ConcurrentDictionary<TKey, TValue>> handle) => _handle = handle;
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public bool Equals(UnsafeConcurrentDictionary<TKey, TValue> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="obj">object</param>
+        /// <returns>Equals</returns>
+        public override bool Equals(object? obj) => obj is UnsafeConcurrentDictionary<TKey, TValue> other && other.Equals(this);
+
+        /// <summary>
+        ///     Get hashCode
+        /// </summary>
+        /// <returns>HashCode</returns>
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
+
+        /// <summary>
+        ///     To string
+        /// </summary>
+        /// <returns>String</returns>
+        public override string ToString() => SR.Format("UnsafeConcurrentDictionary<{0}, {1}>", SR.GetTypeName(typeof(TKey)), SR.GetTypeName(typeof(TValue)));
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Equals</returns>
+        public static bool operator ==(UnsafeConcurrentDictionary<TKey, TValue> left, UnsafeConcurrentDictionary<TKey, TValue> right) => left.Equals(right);
+
+        /// <summary>
+        ///     Not equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Not equals</returns>
+        public static bool operator !=(UnsafeConcurrentDictionary<TKey, TValue> left, UnsafeConcurrentDictionary<TKey, TValue> right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            _tables->Dispose();
-            _nodePool.Dispose();
-            NativeMemoryAllocator.AlignedFree(_tables);
-        }
+        public void Dispose() => _handle.Dispose();
 
         /// <summary>
-        ///     Clear
+        ///     Removes all keys and values from this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Clear()
-        {
-            var locksAcquired = 0;
-            try
-            {
-                AcquireAllLocks(ref locksAcquired);
-                if (AreAllBucketsEmpty())
-                    return;
-                foreach (var bucket in _tables->Buckets)
-                {
-                    var node = (Node*)bucket.Node;
-                    while (node != null)
-                    {
-                        var temp = node;
-                        node = node->Next;
-                        _nodePool.Return(temp);
-                    }
-                }
-
-                var length = HashHelpers.GetPrime(31);
-                if (_tables->Buckets.Length != length)
-                {
-                    _tables->Buckets.Dispose();
-                    _tables->Buckets = new NativeArray<VolatileNode>(length, true);
-                }
-                else
-                {
-                    _tables->Buckets.Clear();
-                }
-
-                _tables->CountPerLock.Clear();
-                var budget = _tables->Buckets.Length / _tables->Locks.Length;
-                _budget = Math.Max(budget, 1);
-            }
-            finally
-            {
-                ReleaseLocks(locksAcquired);
-            }
-        }
+        public void Clear() => Handle.Clear();
 
         /// <summary>
-        ///     Try add
+        ///     Attempts to add the specified key and value to this.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
-        /// <returns>Added</returns>
+        /// <param name="key">The key of the element to add.</param>
+        /// <param name="value">
+        ///     The value of the element to add.
+        /// </param>
+        /// <returns>
+        ///     true if the key/value pair was added to this successfully;
+        ///     otherwise, false.
+        /// </returns>
+        /// <exception cref="OverflowException">This contains too many elements.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryAdd(in TKey key, in TValue value) => TryAddInternal(_tables, key, key.GetHashCode(), value, false, out _);
+        public bool TryAdd(TKey key, TValue value) => Handle.TryAdd(key, value);
 
         /// <summary>
-        ///     Try remove
+        ///     Attempts to remove and return the value with the specified key from this.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
-        /// <returns>Removed</returns>
+        /// <param name="key">The key of the element to remove and return.</param>
+        /// <param name="value">
+        ///     When this method returns, <paramref name="value" /> contains the object removed from this or the default value of
+        ///     <typeparamref name="TValue" /> if the operation failed.
+        /// </param>
+        /// <returns>
+        ///     true if an object was removed successfully;
+        ///     otherwise, false.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryRemove(in TKey key, out TValue value)
-        {
-            var tables = _tables;
-            var hashCode = key.GetHashCode();
-            while (true)
-            {
-                var locks = tables->Locks;
-                ref var bucket = ref GetBucketAndLock(tables, hashCode, out var lockNo);
-                if (tables->CountPerLock[lockNo] != 0)
-                {
-                    Monitor.Enter(locks[lockNo]);
-                    try
-                    {
-                        if (tables != _tables)
-                        {
-                            tables = _tables;
-                            continue;
-                        }
+        public bool TryRemove(TKey key, out TValue value) => Handle.TryRemove(key, out value);
 
-                        Node* prev = null;
-                        for (var curr = (Node*)bucket; curr != null; curr = curr->Next)
-                        {
-                            if (hashCode == curr->HashCode && curr->Key.Equals(key))
-                            {
-                                if (prev == null)
-                                    Volatile.Write(ref bucket, (nint)curr->Next);
-                                else
-                                    prev->Next = curr->Next;
-                                value = curr->Value;
-                                _nodeLock.Enter();
-                                try
-                                {
-                                    _nodePool.Return(curr);
-                                }
-                                finally
-                                {
-                                    _nodeLock.Exit();
-                                }
-
-                                tables->CountPerLock[lockNo]--;
-                                return true;
-                            }
-
-                            prev = curr;
-                        }
-                    }
-                    finally
-                    {
-                        Monitor.Exit(locks[lockNo]);
-                    }
-                }
-
-                value = default;
-                return false;
-            }
-        }
-
-        /// <summary>
-        ///     Try remove
-        /// </summary>
-        /// <param name="keyValuePair">Key value pair</param>
-        /// <returns>Removed</returns>
+#if NET5_0_OR_GREATER
+        /// <summary>Removes a key and value from the dictionary.</summary>
+        /// <param name="keyValuePair">The <see cref="KeyValuePair{TKey,TValue}" /> representing the key and value to remove.</param>
+        /// <returns>
+        ///     true if the key and value represented by <paramref name="keyValuePair" /> are successfully found and removed;
+        ///     otherwise, false.
+        /// </returns>
+        /// <remarks>
+        ///     Both the specified key and value must match the entry in the dictionary for it to be removed.
+        ///     The key is compared using the default comparer for <typeparamref name="TKey" />.
+        ///     The value is compared using the default comparer for <typeparamref name="TValue" />.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryRemove(in KeyValuePair<TKey, TValue> keyValuePair)
-        {
-            var key = keyValuePair.Key;
-            var oldValue = keyValuePair.Value;
-            var tables = _tables;
-            var hashCode = key.GetHashCode();
-            while (true)
-            {
-                var locks = tables->Locks;
-                ref var bucket = ref GetBucketAndLock(tables, hashCode, out var lockNo);
-                if (tables->CountPerLock[lockNo] != 0)
-                {
-                    Monitor.Enter(locks[lockNo]);
-                    try
-                    {
-                        if (tables != _tables)
-                        {
-                            tables = _tables;
-                            continue;
-                        }
-
-                        Node* prev = null;
-                        for (var curr = (Node*)bucket; curr != null; curr = curr->Next)
-                        {
-                            if (hashCode == curr->HashCode && curr->Key.Equals(key))
-                            {
-                                if (!oldValue.Equals(curr->Value))
-                                    return false;
-                                if (prev == null)
-                                    Volatile.Write(ref bucket, (nint)curr->Next);
-                                else
-                                    prev->Next = curr->Next;
-                                _nodeLock.Enter();
-                                try
-                                {
-                                    _nodePool.Return(curr);
-                                }
-                                finally
-                                {
-                                    _nodeLock.Exit();
-                                }
-
-                                tables->CountPerLock[lockNo]--;
-                                return true;
-                            }
-
-                            prev = curr;
-                        }
-                    }
-                    finally
-                    {
-                        Monitor.Exit(locks[lockNo]);
-                    }
-                }
-
-                return false;
-            }
-        }
+        public bool TryRemove(KeyValuePair<TKey, TValue> keyValuePair) => Handle.TryRemove(keyValuePair);
+#endif
 
         /// <summary>
-        ///     Contains key
+        ///     Determines whether this contains the specified key.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <returns>Contains key</returns>
+        /// <param name="key">The key to locate in this.</param>
+        /// <returns>
+        ///     true if this contains an element with the specified key;
+        ///     otherwise, false.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly bool ContainsKey(in TKey key)
-        {
-            var tables = _tables;
-            var hashCode = key.GetHashCode();
-            for (var node = (Node*)GetBucket(tables, hashCode); node != null; node = node->Next)
-            {
-                if (hashCode == node->HashCode && node->Key.Equals(key))
-                    return true;
-            }
-
-            return false;
-        }
+        public bool ContainsKey(TKey key) => Handle.ContainsKey(key);
 
         /// <summary>
-        ///     Try to get the value
+        ///     Attempts to get the value associated with the specified key from this.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
-        /// <returns>Got</returns>
+        /// <param name="key">The key of the value to get.</param>
+        /// <param name="value">
+        ///     When this method returns, <paramref name="value" /> contains the object from this with the specified key or the
+        ///     default value of <typeparamref name="TValue" />, if the operation failed.
+        /// </param>
+        /// <returns>
+        ///     true if the key was found in this;
+        ///     otherwise, false.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly bool TryGetValue(in TKey key, out TValue value)
-        {
-            var tables = _tables;
-            var hashCode = key.GetHashCode();
-            for (var node = (Node*)GetBucket(tables, hashCode); node != null; node = node->Next)
-            {
-                if (hashCode == node->HashCode && node->Key.Equals(key))
-                {
-                    value = node->Value;
-                    return true;
-                }
-            }
-
-            value = default;
-            return false;
-        }
+        public bool TryGetValue(TKey key, out TValue value) => Handle.TryGetValue(key, out value);
 
         /// <summary>
-        ///     Try to get the value
+        ///     Updates the value associated with <paramref name="key" /> to <paramref name="newValue" />
+        ///     if the existing value is equal to <paramref name="comparisonValue" />.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
-        /// <returns>Got</returns>
+        /// <param name="key">
+        ///     The key whose value is compared with <paramref name="comparisonValue" /> and possibly replaced.
+        /// </param>
+        /// <param name="newValue">
+        ///     The value that replaces the value of the element with
+        ///     <paramref name="key" /> if the comparison results in equality.
+        /// </param>
+        /// <param name="comparisonValue">
+        ///     The value that is compared to the value of the element with
+        ///     <paramref name="key" />.
+        /// </param>
+        /// <returns>
+        ///     true if the value with <paramref name="key" /> was equal to <paramref name="comparisonValue" /> and
+        ///     replaced with <paramref name="newValue" />;
+        ///     otherwise, false.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly bool TryGetValueReference(in TKey key, out NativeReference<TValue> value)
-        {
-            var tables = _tables;
-            var hashCode = key.GetHashCode();
-            for (var node = (Node*)GetBucket(tables, hashCode); node != null; node = node->Next)
-            {
-                if (hashCode == node->HashCode && node->Key.Equals(key))
-                {
-                    value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref node->Value));
-                    return true;
-                }
-            }
-
-            value = default;
-            return false;
-        }
+        public bool TryUpdate(TKey key, TValue newValue, TValue comparisonValue) => Handle.TryUpdate(key, newValue, comparisonValue);
 
         /// <summary>
-        ///     Get value ref
+        ///     Adds a key/value pair to this
+        ///     if the key does not already exist.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <returns>Value ref</returns>
+        /// <param name="key">The key of the element to add.</param>
+        /// <param name="valueFactory">The function used to generate a value for the key</param>
+        /// <exception cref="ArgumentNullException">
+        ///     <paramref name="valueFactory" /> is a null reference.
+        /// </exception>
+        /// <exception cref="OverflowException">
+        ///     The dictionary contains too many elements.
+        /// </exception>
+        /// <returns>
+        ///     The value for the key.
+        ///     This will be either the existing value for the key if the
+        ///     key is already in the dictionary, or the new value for the key as returned by valueFactory
+        ///     if the key was not in the dictionary.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ref TValue GetValueRefOrNullRef(in TKey key)
-        {
-            var tables = _tables;
-            var hashCode = key.GetHashCode();
-            for (var node = (Node*)GetBucket(tables, hashCode); node != null; node = node->Next)
-            {
-                if (hashCode == node->HashCode && node->Key.Equals(key))
-                    return ref node->Value;
-            }
-
-            return ref Unsafe.NullRef<TValue>();
-        }
+        public TValue GetOrAdd(TKey key, Func<TKey, TValue> valueFactory) => Handle.GetOrAdd(key, valueFactory);
 
         /// <summary>
-        ///     Get value ref
+        ///     Adds a key/value pair to this if the key does not already exist.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="exists">Exists</param>
-        /// <returns>Value ref</returns>
+        /// <param name="key">The key of the element to add.</param>
+        /// <param name="valueFactory">The function used to generate a value for the key</param>
+        /// <param name="factoryArgument">An argument value to pass into <paramref name="valueFactory" />.</param>
+        /// <exception cref="ArgumentNullException">
+        ///     <paramref name="valueFactory" /> is a null reference.
+        /// </exception>
+        /// <exception cref="OverflowException">
+        ///     The dictionary contains too many elements.
+        /// </exception>
+        /// <returns>
+        ///     The value for the key.
+        ///     This will be either the existing value for the key if the
+        ///     key is already in the dictionary, or the new value for the key as returned by valueFactory
+        ///     if the key was not in the dictionary.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ref TValue GetValueRefOrNullRef(in TKey key, out bool exists)
-        {
-            var tables = _tables;
-            var hashCode = key.GetHashCode();
-            for (var node = (Node*)GetBucket(tables, hashCode); node != null; node = node->Next)
-            {
-                if (hashCode == node->HashCode && node->Key.Equals(key))
-                {
-                    exists = true;
-                    return ref node->Value;
-                }
-            }
-
-            exists = false;
-            return ref Unsafe.NullRef<TValue>();
-        }
+        public TValue GetOrAdd<TArg>(TKey key, Func<TKey, TArg, TValue> valueFactory, TArg factoryArgument) => Handle.GetOrAdd(key, valueFactory, factoryArgument);
 
         /// <summary>
-        ///     Get value ref or add default
+        ///     Adds a key/value pair to this if the key does not already exist.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <returns>Value ref</returns>
+        /// <param name="key">The key of the element to add.</param>
+        /// <param name="value">the value to be added, if the key does not already exist</param>
+        /// <exception cref="OverflowException">
+        ///     The dictionary contains too many elements.
+        /// </exception>
+        /// <returns>
+        ///     The value for the key.
+        ///     This will be either the existing value for the key if the
+        ///     key is already in the dictionary, or the new value if the key was not in the dictionary.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref TValue GetValueRefOrAddDefault(in TKey key)
-        {
-            var tables = _tables;
-            var hashCode = key.GetHashCode();
-            while (true)
-            {
-                var locks = tables->Locks;
-                ref var bucket = ref GetBucketAndLock(tables, hashCode, out var lockNo);
-                var resizeDesired = false;
-                var lockTaken = false;
-                Node* resultNode;
-                try
-                {
-                    Monitor.Enter(locks[lockNo], ref lockTaken);
-                    if (tables != _tables)
-                    {
-                        tables = _tables;
-                        continue;
-                    }
-
-                    for (var node = (Node*)bucket; node != null; node = node->Next)
-                    {
-                        if (hashCode == node->HashCode && node->Key.Equals(key))
-                            return ref node->Value;
-                    }
-
-                    _nodeLock.Enter();
-                    try
-                    {
-                        resultNode = _nodePool.Rent();
-                    }
-                    finally
-                    {
-                        _nodeLock.Exit();
-                    }
-
-                    resultNode->Initialize(key, default, hashCode, (Node*)bucket);
-                    Volatile.Write(ref bucket, (nint)resultNode);
-                    checked
-                    {
-                        tables->CountPerLock[lockNo]++;
-                    }
-
-                    if (tables->CountPerLock[lockNo] > _budget)
-                        resizeDesired = true;
-                }
-                finally
-                {
-                    if (lockTaken)
-                        Monitor.Exit(locks[lockNo]);
-                }
-
-                if (resizeDesired)
-                    GrowTable(tables, resizeDesired);
-                return ref resultNode->Value;
-            }
-        }
+        public TValue GetOrAdd(TKey key, TValue value) => Handle.GetOrAdd(key, value);
 
         /// <summary>
-        ///     Get value ref or add default
+        ///     Adds a key/value pair to this if the key does not already
+        ///     exist, or updates a key/value pair in this if the key
+        ///     already exists.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="exists">Exists</param>
-        /// <returns>Value ref</returns>
+        /// <param name="key">The key to be added or whose value should be updated</param>
+        /// <param name="addValueFactory">The function used to generate a value for an absent key</param>
+        /// <param name="updateValueFactory">
+        ///     The function used to generate a new value for an existing key
+        ///     based on the key's existing value
+        /// </param>
+        /// <param name="factoryArgument">
+        ///     An argument to pass into <paramref name="addValueFactory" /> and
+        ///     <paramref name="updateValueFactory" />.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        ///     <paramref name="addValueFactory" /> is a null reference.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     <paramref name="updateValueFactory" /> is a null reference.
+        /// </exception>
+        /// <exception cref="OverflowException">
+        ///     The dictionary contains too many elements.
+        /// </exception>
+        /// <returns>
+        ///     The new value for the key.
+        ///     This will be either be the result of addValueFactory (if the key was
+        ///     absent) or the result of updateValueFactory (if the key was present).
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref TValue GetValueRefOrAddDefault(in TKey key, out bool exists)
-        {
-            var tables = _tables;
-            var hashCode = key.GetHashCode();
-            while (true)
-            {
-                var locks = tables->Locks;
-                ref var bucket = ref GetBucketAndLock(tables, hashCode, out var lockNo);
-                var resizeDesired = false;
-                var lockTaken = false;
-                Node* resultNode;
-                try
-                {
-                    Monitor.Enter(locks[lockNo], ref lockTaken);
-                    if (tables != _tables)
-                    {
-                        tables = _tables;
-                        continue;
-                    }
-
-                    for (var node = (Node*)bucket; node != null; node = node->Next)
-                    {
-                        if (hashCode == node->HashCode && node->Key.Equals(key))
-                        {
-                            exists = true;
-                            return ref node->Value;
-                        }
-                    }
-
-                    _nodeLock.Enter();
-                    try
-                    {
-                        resultNode = _nodePool.Rent();
-                    }
-                    finally
-                    {
-                        _nodeLock.Exit();
-                    }
-
-                    resultNode->Initialize(key, default, hashCode, (Node*)bucket);
-                    Volatile.Write(ref bucket, (nint)resultNode);
-                    checked
-                    {
-                        tables->CountPerLock[lockNo]++;
-                    }
-
-                    if (tables->CountPerLock[lockNo] > _budget)
-                        resizeDesired = true;
-                }
-                finally
-                {
-                    if (lockTaken)
-                        Monitor.Exit(locks[lockNo]);
-                }
-
-                if (resizeDesired)
-                    GrowTable(tables, resizeDesired);
-                exists = false;
-                return ref resultNode->Value;
-            }
-        }
+        public TValue AddOrUpdate<TArg>(TKey key, Func<TKey, TArg, TValue> addValueFactory, Func<TKey, TValue, TArg, TValue> updateValueFactory, TArg factoryArgument) => Handle.AddOrUpdate(key, addValueFactory, updateValueFactory, factoryArgument);
 
         /// <summary>
-        ///     Try update
+        ///     Adds a key/value pair to this if the key does not already
+        ///     exist, or updates a key/value pair in this if the key
+        ///     already exists.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="newValue">New value</param>
-        /// <param name="comparisonValue">Comparison value</param>
-        /// <returns>Updated</returns>
+        /// <param name="key">The key to be added or whose value should be updated</param>
+        /// <param name="addValueFactory">The function used to generate a value for an absent key</param>
+        /// <param name="updateValueFactory">
+        ///     The function used to generate a new value for an existing key
+        ///     based on the key's existing value
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        ///     <paramref name="addValueFactory" /> is a null reference.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///     <paramref name="updateValueFactory" /> is a null reference.
+        /// </exception>
+        /// <exception cref="OverflowException">
+        ///     The dictionary contains too many elements.
+        /// </exception>
+        /// <returns>
+        ///     The new value for the key.
+        ///     This will be either the result of addValueFactory (if the key was
+        ///     absent) or the result of updateValueFactory (if the key was present).
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryUpdate(in TKey key, in TValue newValue, in TValue comparisonValue) => TryUpdateInternal(_tables, key, key.GetHashCode(), newValue, comparisonValue);
+        public TValue AddOrUpdate(TKey key, Func<TKey, TValue> addValueFactory, Func<TKey, TValue, TValue> updateValueFactory) => Handle.AddOrUpdate(key, addValueFactory, updateValueFactory);
 
         /// <summary>
-        ///     Get or add value
+        ///     Adds a key/value pair to this if the key does not already
+        ///     exist, or updates a key/value pair in this if the key
+        ///     already exists.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="valueFactory">Value factory</param>
-        /// <returns>Value</returns>
+        /// <param name="key">The key to be added or whose value should be updated</param>
+        /// <param name="addValue">The value to be added for an absent key</param>
+        /// <param name="updateValueFactory">
+        ///     The function used to generate a new value for an existing key based on
+        ///     the key's existing value
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        ///     <paramref name="updateValueFactory" /> is a null reference.
+        /// </exception>
+        /// <exception cref="OverflowException">
+        ///     The dictionary contains too many elements.
+        /// </exception>
+        /// <returns>
+        ///     The new value for the key.
+        ///     This will be either the value of addValue (if the key was
+        ///     absent) or the result of updateValueFactory (if the key was present).
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TValue GetOrAdd(in TKey key, Func<TKey, TValue> valueFactory)
-        {
-            ThrowHelpers.ThrowIfNull(valueFactory, ExceptionArgument.valueFactory);
-            var tables = _tables;
-            var hashCode = key.GetHashCode();
-            if (!TryGetValueInternal(tables, key, hashCode, out var resultingValue))
-                TryAddInternal(tables, key, hashCode, valueFactory(key), false, out resultingValue);
-            return resultingValue;
-        }
-
-        /// <summary>
-        ///     Get or add value
-        /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="valueFactory">Value factory</param>
-        /// <param name="factoryArgument">Factory argument</param>
-        /// <returns>Value</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TValue GetOrAdd<TArg>(in TKey key, Func<TKey, TArg, TValue> valueFactory, in TArg factoryArgument)
-        {
-            ThrowHelpers.ThrowIfNull(valueFactory, ExceptionArgument.valueFactory);
-            var tables = _tables;
-            var hashCode = key.GetHashCode();
-            if (!TryGetValueInternal(tables, key, hashCode, out var resultingValue))
-                TryAddInternal(tables, key, hashCode, valueFactory(key, factoryArgument), false, out resultingValue);
-            return resultingValue;
-        }
-
-        /// <summary>
-        ///     Get or add value
-        /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
-        /// <returns>Value</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TValue GetOrAdd(in TKey key, in TValue value)
-        {
-            var tables = _tables;
-            var hashCode = key.GetHashCode();
-            if (!TryGetValueInternal(tables, key, hashCode, out var resultingValue))
-                TryAddInternal(tables, key, hashCode, value, false, out resultingValue);
-            return resultingValue;
-        }
-
-        /// <summary>
-        ///     Add or add value
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TValue AddOrUpdate<TArg>(in TKey key, Func<TKey, TArg, TValue> addValueFactory, Func<TKey, TValue, TArg, TValue> updateValueFactory, in TArg factoryArgument)
-        {
-            ThrowHelpers.ThrowIfNull(addValueFactory, ExceptionArgument.addValueFactory);
-            ThrowHelpers.ThrowIfNull(updateValueFactory, ExceptionArgument.updateValueFactory);
-            var tables = _tables;
-            var hashCode = key.GetHashCode();
-            while (true)
-            {
-                do
-                {
-                    do
-                    {
-                        TValue comparisonValue;
-                        if (TryGetValueInternal(tables, key, hashCode, out comparisonValue))
-                        {
-                            var newValue = updateValueFactory(key, comparisonValue, factoryArgument);
-                            if (TryUpdateInternal(tables, key, hashCode, newValue, comparisonValue))
-                                return newValue;
-                        }
-                        else
-                        {
-                            TValue resultingValue;
-                            if (TryAddInternal(tables, key, hashCode, addValueFactory(key, factoryArgument), false, out resultingValue))
-                                return resultingValue;
-                        }
-                    } while (tables == _tables);
-
-                    tables = _tables;
-                } while (true);
-            }
-        }
-
-        /// <summary>
-        ///     Add or add value
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TValue AddOrUpdate(in TKey key, Func<TKey, TValue> addValueFactory, Func<TKey, TValue, TValue> updateValueFactory)
-        {
-            ThrowHelpers.ThrowIfNull(addValueFactory, ExceptionArgument.addValueFactory);
-            ThrowHelpers.ThrowIfNull(updateValueFactory, ExceptionArgument.updateValueFactory);
-            var tables = _tables;
-            var hashCode = key.GetHashCode();
-            while (true)
-            {
-                do
-                {
-                    do
-                    {
-                        TValue comparisonValue;
-                        if (TryGetValueInternal(tables, key, hashCode, out comparisonValue))
-                        {
-                            var newValue = updateValueFactory(key, comparisonValue);
-                            if (TryUpdateInternal(tables, key, hashCode, newValue, comparisonValue))
-                                return newValue;
-                        }
-                        else
-                        {
-                            TValue resultingValue;
-                            if (TryAddInternal(tables, key, hashCode, addValueFactory(key), false, out resultingValue))
-                                return resultingValue;
-                        }
-                    } while (tables == _tables);
-
-                    tables = _tables;
-                } while (true);
-            }
-        }
-
-        /// <summary>
-        ///     Add or add value
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TValue AddOrUpdate(in TKey key, in TValue addValue, Func<TKey, TValue, TValue> updateValueFactory)
-        {
-            ThrowHelpers.ThrowIfNull(updateValueFactory, ExceptionArgument.updateValueFactory);
-            var tables = _tables;
-            var hashCode = key.GetHashCode();
-            while (true)
-            {
-                do
-                {
-                    do
-                    {
-                        TValue comparisonValue;
-                        if (TryGetValueInternal(tables, key, hashCode, out comparisonValue))
-                        {
-                            var newValue = updateValueFactory(key, comparisonValue);
-                            if (TryUpdateInternal(tables, key, hashCode, newValue, comparisonValue))
-                                return newValue;
-                        }
-                        else
-                        {
-                            TValue resultingValue;
-                            if (TryAddInternal(tables, key, hashCode, addValue, false, out resultingValue))
-                                return resultingValue;
-                        }
-                    } while (tables == _tables);
-
-                    tables = _tables;
-                } while (true);
-            }
-        }
-
-        /// <summary>
-        ///     Check all buckets are empty
-        /// </summary>
-        /// <returns>All buckets are empty</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool AreAllBucketsEmpty() => !SpanHelpers.ContainsAnyExcept(_tables->CountPerLock.AsReadOnlySpan(), 0);
-
-        /// <summary>
-        ///     Grow table
-        /// </summary>
-        /// <param name="tables">Tables</param>
-        /// <param name="resizeDesired">Resize desired</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void GrowTable(Tables* tables, bool resizeDesired)
-        {
-            var locksAcquired = 0;
-            try
-            {
-                AcquireFirstLock(ref locksAcquired);
-                if (tables != _tables)
-                    return;
-                var newLength = tables->Buckets.Length;
-                if (resizeDesired)
-                {
-                    if (GetCountNoLocks() < tables->Buckets.Length / 4)
-                    {
-                        _budget = 2 * _budget;
-                        if (_budget < 0)
-                            _budget = int.MaxValue;
-                        return;
-                    }
-
-                    if ((newLength = tables->Buckets.Length * 2) < 0 || (newLength = HashHelpers.GetPrime(newLength)) > ArrayHelpers.MaxLength)
-                    {
-                        newLength = ArrayHelpers.MaxLength;
-                        _budget = int.MaxValue;
-                    }
-                }
-
-                var newLocks = tables->Locks;
-                if (_growLockArray && tables->Locks.Length < 1024)
-                {
-                    newLocks = new NativeArrayReference<object>(tables->Locks.Length * 2);
-                    Array.Copy(tables->Locks.Buffer, newLocks.Buffer, tables->Locks.Length);
-                    for (var i = tables->Locks.Length; i < newLocks.Length; ++i)
-                        newLocks[i] = new object();
-                }
-
-                var newBuckets = new NativeArray<VolatileNode>(newLength, true);
-                var newCountPerLock = new NativeArray<int>(newLocks.Length, true);
-                var newTables = NativeMemoryAllocator.AlignedAlloc<Tables>(1);
-                newTables->Initialize(newBuckets, newLocks, newCountPerLock);
-                AcquirePostFirstLock(tables, ref locksAcquired);
-                foreach (var bucket in tables->Buckets)
-                {
-                    var current = (Node*)bucket.Node;
-                    while (current != null)
-                    {
-                        var hashCode = current->HashCode;
-                        var next = current->Next;
-                        ref var newBucket = ref GetBucketAndLock(newTables, hashCode, out var newLockNo);
-                        var newNode = current;
-                        newNode->Initialize(current->Key, current->Value, hashCode, (Node*)newBucket);
-                        newBucket = (nint)newNode;
-                        checked
-                        {
-                            newCountPerLock[newLockNo]++;
-                        }
-
-                        current = next;
-                    }
-                }
-
-                var budget = newBuckets.Length / newLocks.Length;
-                _budget = Math.Max(budget, 1);
-                _tables->Buckets.Dispose();
-                if (_tables->Locks != newLocks)
-                    _tables->Locks.Dispose();
-                _tables->CountPerLock.Dispose();
-                NativeMemoryAllocator.AlignedFree(_tables);
-                _tables = newTables;
-            }
-            finally
-            {
-                ReleaseLocks(locksAcquired);
-            }
-        }
-
-        /// <summary>
-        ///     Acquire all locks
-        /// </summary>
-        /// <param name="locksAcquired">Locks acquired</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void AcquireAllLocks(ref int locksAcquired)
-        {
-            AcquireFirstLock(ref locksAcquired);
-            AcquirePostFirstLock(_tables, ref locksAcquired);
-        }
-
-        /// <summary>
-        ///     Acquire first lock
-        /// </summary>
-        /// <param name="locksAcquired">Locks acquired</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void AcquireFirstLock(ref int locksAcquired)
-        {
-            var locks = _tables->Locks;
-            Monitor.Enter(locks[0]);
-            locksAcquired = 1;
-        }
-
-        /// <summary>
-        ///     Acquire post first locks
-        /// </summary>
-        /// <param name="tables">Tables</param>
-        /// <param name="locksAcquired">Locks acquired</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void AcquirePostFirstLock(Tables* tables, ref int locksAcquired)
-        {
-            var locks = tables->Locks;
-            for (var i = 1; i < locks.Length; ++i)
-            {
-                Monitor.Enter(locks[i]);
-                locksAcquired++;
-            }
-        }
-
-        /// <summary>
-        ///     Release locks
-        /// </summary>
-        /// <param name="locksAcquired">Locks acquired</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ReleaseLocks(int locksAcquired)
-        {
-            var locks = _tables->Locks;
-            for (var i = 0; i < locksAcquired; ++i)
-                Monitor.Exit(locks[i]);
-        }
-
-        /// <summary>
-        ///     Try add internal
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool TryAddInternal(Tables* tables, in TKey key, int hashCode, in TValue value, bool updateIfExists, out TValue resultingValue)
-        {
-            while (true)
-            {
-                var locks = tables->Locks;
-                ref var bucket = ref GetBucketAndLock(tables, hashCode, out var lockNo);
-                var resizeDesired = false;
-                var lockTaken = false;
-                try
-                {
-                    Monitor.Enter(locks[lockNo], ref lockTaken);
-                    if (tables != _tables)
-                    {
-                        tables = _tables;
-                        continue;
-                    }
-
-                    Node* prev = null;
-                    for (var node = (Node*)bucket; node != null; node = node->Next)
-                    {
-                        if (hashCode == node->HashCode && node->Key.Equals(key))
-                        {
-                            if (updateIfExists)
-                            {
-                                if (TypeHelpers<TValue>.IsWriteAtomic)
-                                {
-                                    node->Value = value;
-                                }
-                                else
-                                {
-                                    Node* newNode;
-                                    _nodeLock.Enter();
-                                    try
-                                    {
-                                        newNode = _nodePool.Rent();
-                                    }
-                                    finally
-                                    {
-                                        _nodeLock.Exit();
-                                    }
-
-                                    newNode->Initialize(node->Key, value, hashCode, node->Next);
-                                    if (prev == null)
-                                        Volatile.Write(ref bucket, (nint)newNode);
-                                    else
-                                        prev->Next = newNode;
-                                    _nodeLock.Enter();
-                                    try
-                                    {
-                                        _nodePool.Return(node);
-                                    }
-                                    finally
-                                    {
-                                        _nodeLock.Exit();
-                                    }
-                                }
-
-                                resultingValue = value;
-                            }
-                            else
-                            {
-                                resultingValue = node->Value;
-                            }
-
-                            return false;
-                        }
-
-                        prev = node;
-                    }
-
-                    Node* resultNode;
-                    _nodeLock.Enter();
-                    try
-                    {
-                        resultNode = _nodePool.Rent();
-                    }
-                    finally
-                    {
-                        _nodeLock.Exit();
-                    }
-
-                    resultNode->Initialize(key, value, hashCode, (Node*)bucket);
-                    Volatile.Write(ref bucket, (nint)resultNode);
-                    checked
-                    {
-                        tables->CountPerLock[lockNo]++;
-                    }
-
-                    if (tables->CountPerLock[lockNo] > _budget)
-                        resizeDesired = true;
-                }
-                finally
-                {
-                    if (lockTaken)
-                        Monitor.Exit(locks[lockNo]);
-                }
-
-                if (resizeDesired)
-                    GrowTable(tables, resizeDesired);
-                resultingValue = value;
-                return true;
-            }
-        }
-
-        /// <summary>
-        ///     Try update internal
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool TryUpdateInternal(Tables* tables, in TKey key, int hashCode, in TValue newValue, in TValue comparisonValue)
-        {
-            while (true)
-            {
-                var locks = tables->Locks;
-                ref var bucket = ref GetBucketAndLock(tables, hashCode, out var lockNo);
-                Monitor.Enter(locks[lockNo]);
-                try
-                {
-                    if (tables != _tables)
-                    {
-                        tables = _tables;
-                        continue;
-                    }
-
-                    Node* prev = null;
-                    for (var node = (Node*)bucket; node != null; node = node->Next)
-                    {
-                        if (hashCode == node->HashCode && node->Key.Equals(key))
-                        {
-                            if (node->Value.Equals(comparisonValue))
-                            {
-                                if (TypeHelpers<TValue>.IsWriteAtomic)
-                                {
-                                    node->Value = newValue;
-                                }
-                                else
-                                {
-                                    Node* newNode;
-                                    _nodeLock.Enter();
-                                    try
-                                    {
-                                        newNode = _nodePool.Rent();
-                                    }
-                                    finally
-                                    {
-                                        _nodeLock.Exit();
-                                    }
-
-                                    newNode->Initialize(node->Key, newValue, hashCode, node->Next);
-                                    if (prev == null)
-                                        Volatile.Write(ref bucket, (nint)newNode);
-                                    else
-                                        prev->Next = newNode;
-                                    _nodeLock.Enter();
-                                    try
-                                    {
-                                        _nodePool.Return(node);
-                                    }
-                                    finally
-                                    {
-                                        _nodeLock.Exit();
-                                    }
-                                }
-
-                                return true;
-                            }
-
-                            return false;
-                        }
-
-                        prev = node;
-                    }
-
-                    return false;
-                }
-                finally
-                {
-                    Monitor.Exit(locks[lockNo]);
-                }
-            }
-        }
-
-        /// <summary>
-        ///     Try to get the value
-        /// </summary>
-        /// <param name="tables">Tables</param>
-        /// <param name="key">Key</param>
-        /// <param name="hashCode">HashCode</param>
-        /// <param name="value">Value</param>
-        /// <returns>Got</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool TryGetValueInternal(Tables* tables, in TKey key, int hashCode, out TValue value)
-        {
-            for (var node = (Node*)GetBucket(tables, hashCode); node != null; node = node->Next)
-            {
-                if (hashCode == node->HashCode && node->Key.Equals(key))
-                {
-                    value = node->Value;
-                    return true;
-                }
-            }
-
-            value = default;
-            return false;
-        }
-
-        /// <summary>
-        ///     Get count no locks
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private int GetCountNoLocks()
-        {
-            var count = 0;
-            foreach (var value in _tables->CountPerLock)
-            {
-                checked
-                {
-                    count += value;
-                }
-            }
-
-            return count;
-        }
-
-        /// <summary>
-        ///     Get bucket
-        /// </summary>
-        /// <param name="tables">Tables</param>
-        /// <param name="hashCode">HashCode</param>
-        /// <returns>Bucket</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static nint GetBucket(Tables* tables, int hashCode)
-        {
-            var buckets = tables->Buckets;
-            return Environment.Is64BitProcess ? buckets[HashHelpers.FastMod((uint)hashCode, (uint)buckets.Length, tables->FastModBucketsMultiplier)].Node : buckets[(uint)hashCode % (uint)buckets.Length].Node;
-        }
-
-        /// <summary>
-        ///     Get bucket and lock
-        /// </summary>
-        /// <param name="tables">Tables</param>
-        /// <param name="hashCode">HashCode</param>
-        /// <param name="lockNo">Lock no</param>
-        /// <returns>Bucket</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static ref nint GetBucketAndLock(Tables* tables, int hashCode, out uint lockNo)
-        {
-            var buckets = tables->Buckets;
-            var bucketNo = Environment.Is64BitProcess ? HashHelpers.FastMod((uint)hashCode, (uint)buckets.Length, tables->FastModBucketsMultiplier) : (uint)hashCode % (uint)buckets.Length;
-            lockNo = bucketNo % (uint)tables->Locks.Length;
-            return ref buckets[bucketNo].Node;
-        }
-
-        /// <summary>
-        ///     Volatile node
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential)]
-        private struct VolatileNode
-        {
-            /// <summary>
-            ///     Node
-            /// </summary>
-            public volatile nint Node;
-        }
-
-        /// <summary>
-        ///     Node
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential)]
-        private struct Node
-        {
-            /// <summary>
-            ///     Key
-            /// </summary>
-            public TKey Key;
-
-            /// <summary>
-            ///     Value
-            /// </summary>
-            public TValue Value;
-
-            /// <summary>
-            ///     Next
-            /// </summary>
-            public volatile Node* Next;
-
-            /// <summary>
-            ///     HashCode
-            /// </summary>
-            public int HashCode;
-
-            /// <summary>
-            ///     Initialize
-            /// </summary>
-            /// <param name="key">Key</param>
-            /// <param name="value">Value</param>
-            /// <param name="hashCode">HashCode</param>
-            /// <param name="next">Next</param>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void Initialize(in TKey key, in TValue value, int hashCode, Node* next)
-            {
-                Key = key;
-                Value = value;
-                Next = next;
-                HashCode = hashCode;
-            }
-        }
-
-        /// <summary>
-        ///     Tables
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential)]
-        private struct Tables
-        {
-            /// <summary>
-            ///     Buckets
-            /// </summary>
-            public NativeArray<VolatileNode> Buckets;
-
-            /// <summary>
-            ///     Fast mod buckets multiplier
-            /// </summary>
-            public ulong FastModBucketsMultiplier;
-
-            /// <summary>
-            ///     Locks
-            /// </summary>
-            public NativeArrayReference<object> Locks;
-
-            /// <summary>
-            ///     Count per lock
-            /// </summary>
-            public NativeArray<int> CountPerLock;
-
-            /// <summary>
-            ///     Initialize
-            /// </summary>
-            /// <param name="buckets">Buckets</param>
-            /// <param name="locks">Locks</param>
-            /// <param name="countPerLock">Count per lock</param>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void Initialize(NativeArray<VolatileNode> buckets, NativeArrayReference<object> locks, NativeArray<int> countPerLock)
-            {
-                Buckets = buckets;
-                Locks = locks;
-                CountPerLock = countPerLock;
-                FastModBucketsMultiplier = Environment.Is64BitProcess ? HashHelpers.GetFastModMultiplier((uint)buckets.Length) : 0;
-            }
-
-            /// <summary>
-            ///     Dispose
-            /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public readonly void Dispose()
-            {
-                Buckets.Dispose();
-                Locks.Dispose();
-                CountPerLock.Dispose();
-            }
-        }
+        public TValue AddOrUpdate(TKey key, TValue addValue, Func<TKey, TValue, TValue> updateValueFactory) => Handle.AddOrUpdate(key, addValue, updateValueFactory);
 
         /// <summary>
         ///     Empty
@@ -1258,17 +399,60 @@ namespace NativeCollections
         public static UnsafeConcurrentDictionary<TKey, TValue> Empty => new();
 
         /// <summary>
-        ///     Get enumerator
+        ///     Initializes a new instance of this
+        ///     class that is empty, has the default concurrency level, has the default initial capacity, and
+        ///     uses the default comparer for the key type.
         /// </summary>
-        /// <returns>Enumerator</returns>
-        public Enumerator GetEnumerator() => new(UnsafeHelpers.AsPointer(ref this));
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UnsafeConcurrentDictionary<TKey, TValue> Create()
+        {
+            var handle = NativeObject<ConcurrentDictionary<TKey, TValue>>.Alloc(new ConcurrentDictionary<TKey, TValue>());
+            return new UnsafeConcurrentDictionary<TKey, TValue>(handle);
+        }
+
+        /// <summary>
+        ///     Initializes a new instance of this
+        ///     class that is empty, has the specified concurrency level and capacity, and uses the default
+        ///     comparer for the key type.
+        /// </summary>
+        /// <param name="concurrencyLevel">
+        ///     The estimated number of threads that will update this concurrently, or -1 to indicate a default value.
+        /// </param>
+        /// <param name="capacity">
+        ///     The initial number of elements that this can contain.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="concurrencyLevel" /> is less than 1.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"> <paramref name="capacity" /> is less than 0.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UnsafeConcurrentDictionary<TKey, TValue> Create(int concurrencyLevel, int capacity)
+        {
+            var handle = NativeObject<ConcurrentDictionary<TKey, TValue>>.Alloc(new ConcurrentDictionary<TKey, TValue>(concurrencyLevel, capacity));
+            return new UnsafeConcurrentDictionary<TKey, TValue>(handle);
+        }
 
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        /// <returns>Enumerator</returns>
+        public Enumerator GetEnumerator() => new(AllocEnumerator(Handle));
+
+        /// <summary>
+        ///     Alloc enumerator
+        /// </summary>
+        private static NativeObject<IEnumerator<KeyValuePair<TKey, TValue>>> AllocEnumerator(ConcurrentDictionary<TKey, TValue> handle) => NativeObject<IEnumerator<KeyValuePair<TKey, TValue>>>.Alloc(BoxEnumerator(handle));
+
+        /// <summary>
+        ///     Box enumerator
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static IEnumerator<KeyValuePair<TKey, TValue>> BoxEnumerator(ConcurrentDictionary<TKey, TValue> handle) => handle.GetEnumerator();
+
+        /// <summary>
+        ///     Get enumerator
+        /// </summary>
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        readonly IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
+        IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -1277,9 +461,9 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        readonly IEnumerator IEnumerable.GetEnumerator()
+        IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -1289,133 +473,50 @@ namespace NativeCollections
         ///     Enumerator
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public struct Enumerator : IIterator<KeyValuePair<TKey, TValue>>
+        public readonly struct Enumerator : IIterator<KeyValuePair<TKey, TValue>>, IDisposable
         {
             /// <summary>
-            ///     NativeConcurrentDictionary
+            ///     Handle
             /// </summary>
-            private readonly UnsafeConcurrentDictionary<TKey, TValue>* _nativeConcurrentDictionary;
+            private readonly NativeObject<IEnumerator<KeyValuePair<TKey, TValue>>> _handle;
 
             /// <summary>
-            ///     Buckets
+            ///     Handle
             /// </summary>
-            private NativeArray<VolatileNode> _buckets;
-
-            /// <summary>
-            ///     Node
-            /// </summary>
-            private Node* _node;
-
-            /// <summary>
-            ///     Index
-            /// </summary>
-            private int _index;
-
-            /// <summary>
-            ///     State
-            /// </summary>
-            private int _state;
-
-            /// <summary>
-            ///     State uninitialized
-            /// </summary>
-            private const int STATE_UNINITIALIZED = 0;
-
-            /// <summary>
-            ///     State outer loop
-            /// </summary>
-            private const int STATE_OUTER_LOOP = 1;
-
-            /// <summary>
-            ///     State inner loop
-            /// </summary>
-            private const int STATE_INNER_LOOP = 2;
-
-            /// <summary>
-            ///     State done
-            /// </summary>
-            private const int STATE_DONE = 3;
-
-            /// <summary>
-            ///     Current
-            /// </summary>
-            private KeyValuePair<TKey, TValue> _current;
+            private IEnumerator<KeyValuePair<TKey, TValue>> Handle => _handle.Value;
 
             /// <summary>
             ///     Structure
             /// </summary>
-            /// <param name="nativeConcurrentDictionary">NativeConcurrentDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(UnsafeConcurrentDictionary<TKey, TValue>* nativeConcurrentDictionary)
-            {
-                _nativeConcurrentDictionary = nativeConcurrentDictionary;
-                _index = -1;
-                _buckets = default;
-                _node = null;
-                _state = 0;
-                _current = default;
-            }
+            internal Enumerator(NativeObject<IEnumerator<KeyValuePair<TKey, TValue>>> handle) => _handle = handle;
 
             /// <summary>
             ///     Move next
             /// </summary>
             /// <returns>Moved</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool MoveNext()
-            {
-                switch (_state)
-                {
-                    case STATE_UNINITIALIZED:
-                        _buckets = _nativeConcurrentDictionary->_tables->Buckets;
-                        _index = -1;
-                        goto case STATE_OUTER_LOOP;
-                    case STATE_OUTER_LOOP:
-                        var buckets = _buckets;
-                        var i = ++_index;
-                        if ((uint)i < (uint)buckets.Length)
-                        {
-                            _node = (Node*)buckets[i].Node;
-                            _state = STATE_INNER_LOOP;
-                            goto case STATE_INNER_LOOP;
-                        }
-
-                        goto default;
-                    case STATE_INNER_LOOP:
-                        if (_node != null)
-                        {
-                            var node = _node;
-                            _current = new KeyValuePair<TKey, TValue>(node->Key, node->Value);
-                            _node = node->Next;
-                            return true;
-                        }
-
-                        goto case STATE_OUTER_LOOP;
-                    default:
-                        _state = STATE_DONE;
-                        return false;
-                }
-            }
+            public bool MoveNext() => Handle.MoveNext();
 
             /// <summary>
             ///     Reset
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void Reset()
-            {
-                _index = -1;
-                _buckets = default;
-                _node = null;
-                _state = 0;
-                _current = default;
-            }
+            public void Reset() => Handle.Reset();
 
             /// <summary>
             ///     Current
             /// </summary>
-            public readonly KeyValuePair<TKey, TValue> Current
+            public KeyValuePair<TKey, TValue> Current => Handle.Current;
+
+            /// <summary>
+            ///     Dispose
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Dispose()
             {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => _current;
+                Handle.Dispose();
+                _handle.Dispose();
             }
         }
 
@@ -1423,35 +524,44 @@ namespace NativeCollections
         ///     Key collection
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public readonly struct KeyCollection : IReadOnlyCollection<TKey>
+        public readonly struct KeyCollection : IIsCreated, IReadOnlyCollection<TKey>
         {
             /// <summary>
             ///     NativeConcurrentDictionary
             /// </summary>
-            private readonly UnsafeConcurrentDictionary<TKey, TValue>* _nativeConcurrentDictionary;
+            private readonly NativeObject<ConcurrentDictionary<TKey, TValue>> _handle;
+
+            /// <summary>
+            ///     Handle
+            /// </summary>
+            private ConcurrentDictionary<TKey, TValue> Handle => _handle.Value;
+
+            /// <summary>
+            ///     Is created
+            /// </summary>
+            public bool IsCreated => _handle.IsCreated;
 
             /// <summary>
             ///     Count
             /// </summary>
-            public int Count => _nativeConcurrentDictionary->Count;
+            public int Count => Handle.Count;
 
             /// <summary>
             ///     Structure
             /// </summary>
-            /// <param name="nativeConcurrentDictionary">NativeConcurrentDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal KeyCollection(UnsafeConcurrentDictionary<TKey, TValue>* nativeConcurrentDictionary) => _nativeConcurrentDictionary = nativeConcurrentDictionary;
+            internal KeyCollection(NativeObject<ConcurrentDictionary<TKey, TValue>> handle) => _handle = handle;
 
             /// <summary>
             ///     Get enumerator
             /// </summary>
             /// <returns>Enumerator</returns>
-            public Enumerator GetEnumerator() => new(_nativeConcurrentDictionary);
+            public Enumerator GetEnumerator() => new(AllocEnumerator(Handle));
 
             /// <summary>
             ///     Get enumerator
             /// </summary>
-            [Obsolete("Call this method will always throw an exception.")]
+            [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator()
             {
@@ -1462,7 +572,7 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
-            [Obsolete("Call this method will always throw an exception.")]
+            [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator IEnumerable.GetEnumerator()
             {
@@ -1474,133 +584,50 @@ namespace NativeCollections
             ///     Enumerator
             /// </summary>
             [StructLayout(LayoutKind.Sequential)]
-            public struct Enumerator : IIterator<TKey>
+            public readonly struct Enumerator : IIterator<TKey>, IDisposable
             {
                 /// <summary>
-                ///     NativeConcurrentDictionary
+                ///     Handle
                 /// </summary>
-                private readonly UnsafeConcurrentDictionary<TKey, TValue>* _nativeConcurrentDictionary;
+                private readonly NativeObject<IEnumerator<KeyValuePair<TKey, TValue>>> _handle;
 
                 /// <summary>
-                ///     Buckets
+                ///     Handle
                 /// </summary>
-                private NativeArray<VolatileNode> _buckets;
-
-                /// <summary>
-                ///     Node
-                /// </summary>
-                private Node* _node;
-
-                /// <summary>
-                ///     Index
-                /// </summary>
-                private int _index;
-
-                /// <summary>
-                ///     State
-                /// </summary>
-                private int _state;
-
-                /// <summary>
-                ///     State uninitialized
-                /// </summary>
-                private const int STATE_UNINITIALIZED = 0;
-
-                /// <summary>
-                ///     State outer loop
-                /// </summary>
-                private const int STATE_OUTER_LOOP = 1;
-
-                /// <summary>
-                ///     State inner loop
-                /// </summary>
-                private const int STATE_INNER_LOOP = 2;
-
-                /// <summary>
-                ///     State done
-                /// </summary>
-                private const int STATE_DONE = 3;
-
-                /// <summary>
-                ///     Current
-                /// </summary>
-                private TKey _current;
+                private IEnumerator<KeyValuePair<TKey, TValue>> Handle => _handle.Value;
 
                 /// <summary>
                 ///     Structure
                 /// </summary>
-                /// <param name="nativeConcurrentDictionary">NativeConcurrentDictionary</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(UnsafeConcurrentDictionary<TKey, TValue>* nativeConcurrentDictionary)
-                {
-                    _nativeConcurrentDictionary = nativeConcurrentDictionary;
-                    _index = -1;
-                    _buckets = default;
-                    _node = null;
-                    _state = 0;
-                    _current = default;
-                }
+                internal Enumerator(NativeObject<IEnumerator<KeyValuePair<TKey, TValue>>> handle) => _handle = handle;
 
                 /// <summary>
                 ///     Move next
                 /// </summary>
                 /// <returns>Moved</returns>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public bool MoveNext()
-                {
-                    switch (_state)
-                    {
-                        case STATE_UNINITIALIZED:
-                            _buckets = _nativeConcurrentDictionary->_tables->Buckets;
-                            _index = -1;
-                            goto case STATE_OUTER_LOOP;
-                        case STATE_OUTER_LOOP:
-                            var buckets = _buckets;
-                            var i = ++_index;
-                            if ((uint)i < (uint)buckets.Length)
-                            {
-                                _node = (Node*)buckets[i].Node;
-                                _state = STATE_INNER_LOOP;
-                                goto case STATE_INNER_LOOP;
-                            }
-
-                            goto default;
-                        case STATE_INNER_LOOP:
-                            if (_node != null)
-                            {
-                                var node = _node;
-                                _current = node->Key;
-                                _node = node->Next;
-                                return true;
-                            }
-
-                            goto case STATE_OUTER_LOOP;
-                        default:
-                            _state = STATE_DONE;
-                            return false;
-                    }
-                }
+                public bool MoveNext() => Handle.MoveNext();
 
                 /// <summary>
                 ///     Reset
                 /// </summary>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public void Reset()
-                {
-                    _index = -1;
-                    _buckets = default;
-                    _node = null;
-                    _state = 0;
-                    _current = default;
-                }
+                public void Reset() => Handle.Reset();
 
                 /// <summary>
                 ///     Current
                 /// </summary>
-                public readonly TKey Current
+                public TKey Current => Handle.Current.Key;
+
+                /// <summary>
+                ///     Dispose
+                /// </summary>
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public void Dispose()
                 {
-                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                    get => _current;
+                    Handle.Dispose();
+                    _handle.Dispose();
                 }
             }
         }
@@ -1609,35 +636,44 @@ namespace NativeCollections
         ///     Value collection
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public readonly struct ValueCollection : IReadOnlyCollection<TValue>
+        public readonly struct ValueCollection : IIsCreated, IReadOnlyCollection<TValue>
         {
             /// <summary>
             ///     NativeConcurrentDictionary
             /// </summary>
-            private readonly UnsafeConcurrentDictionary<TKey, TValue>* _nativeConcurrentDictionary;
+            private readonly NativeObject<ConcurrentDictionary<TKey, TValue>> _handle;
+
+            /// <summary>
+            ///     Handle
+            /// </summary>
+            private ConcurrentDictionary<TKey, TValue> Handle => _handle.Value;
+
+            /// <summary>
+            ///     Is created
+            /// </summary>
+            public bool IsCreated => _handle.IsCreated;
 
             /// <summary>
             ///     Count
             /// </summary>
-            public int Count => _nativeConcurrentDictionary->Count;
+            public int Count => Handle.Count;
 
             /// <summary>
             ///     Structure
             /// </summary>
-            /// <param name="nativeConcurrentDictionary">NativeConcurrentDictionary</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal ValueCollection(UnsafeConcurrentDictionary<TKey, TValue>* nativeConcurrentDictionary) => _nativeConcurrentDictionary = nativeConcurrentDictionary;
+            internal ValueCollection(NativeObject<ConcurrentDictionary<TKey, TValue>> handle) => _handle = handle;
 
             /// <summary>
             ///     Get enumerator
             /// </summary>
             /// <returns>Enumerator</returns>
-            public Enumerator GetEnumerator() => new(_nativeConcurrentDictionary);
+            public Enumerator GetEnumerator() => new(AllocEnumerator(Handle));
 
             /// <summary>
             ///     Get enumerator
             /// </summary>
-            [Obsolete("Call this method will always throw an exception.")]
+            [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator()
             {
@@ -1648,7 +684,7 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
-            [Obsolete("Call this method will always throw an exception.")]
+            [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator IEnumerable.GetEnumerator()
             {
@@ -1660,133 +696,50 @@ namespace NativeCollections
             ///     Enumerator
             /// </summary>
             [StructLayout(LayoutKind.Sequential)]
-            public struct Enumerator : IIterator<TValue>
+            public readonly struct Enumerator : IIterator<TValue>, IDisposable
             {
                 /// <summary>
-                ///     NativeConcurrentDictionary
+                ///     Handle
                 /// </summary>
-                private readonly UnsafeConcurrentDictionary<TKey, TValue>* _nativeConcurrentDictionary;
+                private readonly NativeObject<IEnumerator<KeyValuePair<TKey, TValue>>> _handle;
 
                 /// <summary>
-                ///     Buckets
+                ///     Handle
                 /// </summary>
-                private NativeArray<VolatileNode> _buckets;
-
-                /// <summary>
-                ///     Node
-                /// </summary>
-                private Node* _node;
-
-                /// <summary>
-                ///     Index
-                /// </summary>
-                private int _index;
-
-                /// <summary>
-                ///     State
-                /// </summary>
-                private int _state;
-
-                /// <summary>
-                ///     State uninitialized
-                /// </summary>
-                private const int STATE_UNINITIALIZED = 0;
-
-                /// <summary>
-                ///     State outer loop
-                /// </summary>
-                private const int STATE_OUTER_LOOP = 1;
-
-                /// <summary>
-                ///     State inner loop
-                /// </summary>
-                private const int STATE_INNER_LOOP = 2;
-
-                /// <summary>
-                ///     State done
-                /// </summary>
-                private const int STATE_DONE = 3;
-
-                /// <summary>
-                ///     Current
-                /// </summary>
-                private TValue _current;
+                private IEnumerator<KeyValuePair<TKey, TValue>> Handle => _handle.Value;
 
                 /// <summary>
                 ///     Structure
                 /// </summary>
-                /// <param name="nativeConcurrentDictionary">NativeConcurrentDictionary</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(UnsafeConcurrentDictionary<TKey, TValue>* nativeConcurrentDictionary)
-                {
-                    _nativeConcurrentDictionary = nativeConcurrentDictionary;
-                    _index = -1;
-                    _buckets = default;
-                    _node = null;
-                    _state = 0;
-                    _current = default;
-                }
+                internal Enumerator(NativeObject<IEnumerator<KeyValuePair<TKey, TValue>>> handle) => _handle = handle;
 
                 /// <summary>
                 ///     Move next
                 /// </summary>
                 /// <returns>Moved</returns>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public bool MoveNext()
-                {
-                    switch (_state)
-                    {
-                        case STATE_UNINITIALIZED:
-                            _buckets = _nativeConcurrentDictionary->_tables->Buckets;
-                            _index = -1;
-                            goto case STATE_OUTER_LOOP;
-                        case STATE_OUTER_LOOP:
-                            var buckets = _buckets;
-                            var i = ++_index;
-                            if ((uint)i < (uint)buckets.Length)
-                            {
-                                _node = (Node*)buckets[i].Node;
-                                _state = STATE_INNER_LOOP;
-                                goto case STATE_INNER_LOOP;
-                            }
-
-                            goto default;
-                        case STATE_INNER_LOOP:
-                            if (_node != null)
-                            {
-                                var node = _node;
-                                _current = node->Value;
-                                _node = node->Next;
-                                return true;
-                            }
-
-                            goto case STATE_OUTER_LOOP;
-                        default:
-                            _state = STATE_DONE;
-                            return false;
-                    }
-                }
+                public bool MoveNext() => Handle.MoveNext();
 
                 /// <summary>
                 ///     Reset
                 /// </summary>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public void Reset()
-                {
-                    _index = -1;
-                    _buckets = default;
-                    _node = null;
-                    _state = 0;
-                    _current = default;
-                }
+                public void Reset() => Handle.Reset();
 
                 /// <summary>
                 ///     Current
                 /// </summary>
-                public readonly TValue Current
+                public TValue Current => Handle.Current.Value;
+
+                /// <summary>
+                ///     Dispose
+                /// </summary>
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public void Dispose()
                 {
-                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                    get => _current;
+                    Handle.Dispose();
+                    _handle.Dispose();
                 }
             }
         }

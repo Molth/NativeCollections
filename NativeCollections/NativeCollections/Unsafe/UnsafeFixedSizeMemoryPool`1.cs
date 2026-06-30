@@ -12,7 +12,7 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.None)]
-    public unsafe struct UnsafeFixedSizeMemoryPool<T> : IDisposable where T : unmanaged
+    public unsafe struct UnsafeFixedSizeMemoryPool<T> : IIsCreated, IDisposable, IEquatable<UnsafeFixedSizeMemoryPool<T>> where T : unmanaged
     {
         /// <summary>
         ///     Buffer
@@ -43,6 +43,11 @@ namespace NativeCollections
         ///     Size
         /// </summary>
         private int _size;
+
+        /// <summary>
+        ///     Is created
+        /// </summary>
+        public readonly bool IsCreated => !UnsafeHelpers.IsNull(_buffer);
 
         /// <summary>
         ///     Is empty
@@ -81,6 +86,48 @@ namespace NativeCollections
             for (var i = 0; i < capacity; ++i)
                 Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)i) = i;
         }
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public readonly bool Equals(UnsafeFixedSizeMemoryPool<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="obj">object</param>
+        /// <returns>Equals</returns>
+        public readonly override bool Equals(object? obj) => obj is UnsafeFixedSizeMemoryPool<T> other && other.Equals(this);
+
+        /// <summary>
+        ///     Get hashCode
+        /// </summary>
+        /// <returns>HashCode</returns>
+        public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
+
+        /// <summary>
+        ///     To string
+        /// </summary>
+        /// <returns>String</returns>
+        public readonly override string ToString() => SR.Format("UnsafeFixedSizeMemoryPool<{0}>", SR.GetTypeName(typeof(T)));
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Equals</returns>
+        public static bool operator ==(UnsafeFixedSizeMemoryPool<T> left, UnsafeFixedSizeMemoryPool<T> right) => left.Equals(right);
+
+        /// <summary>
+        ///     Not equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Not equals</returns>
+        public static bool operator !=(UnsafeFixedSizeMemoryPool<T> left, UnsafeFixedSizeMemoryPool<T> right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose

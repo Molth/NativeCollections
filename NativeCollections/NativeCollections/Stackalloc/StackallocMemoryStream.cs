@@ -12,7 +12,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [StackallocCollection(FromType.Standard)]
-    public unsafe struct StackallocMemoryStream
+    public unsafe struct StackallocMemoryStream : IIsCreated, IEquatable<StackallocMemoryStream>
     {
         /// <summary>
         ///     Buffer
@@ -33,6 +33,11 @@ namespace NativeCollections
         ///     Capacity
         /// </summary>
         private readonly int _capacity;
+
+        /// <summary>
+        ///     Is created
+        /// </summary>
+        public readonly bool IsCreated => !UnsafeHelpers.IsNull(_buffer);
 
         /// <summary>
         ///     Is empty
@@ -78,8 +83,8 @@ namespace NativeCollections
         ///     Structure
         /// </summary>
         /// <param name="buffer">Buffer</param>
+        [MustBePinned(nameof(buffer))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [MustBePinned("Span<byte> buffer")]
         public StackallocMemoryStream([MustBePinned] Span<byte> buffer)
         {
             _buffer = UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(buffer));
@@ -87,6 +92,48 @@ namespace NativeCollections
             _position = 0;
             _length = 0;
         }
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public readonly bool Equals(StackallocMemoryStream other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="obj">object</param>
+        /// <returns>Equals</returns>
+        public readonly override bool Equals(object? obj) => obj is StackallocMemoryStream other && other.Equals(this);
+
+        /// <summary>
+        ///     Get hashCode
+        /// </summary>
+        /// <returns>HashCode</returns>
+        public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
+
+        /// <summary>
+        ///     To string
+        /// </summary>
+        /// <returns>String</returns>
+        public readonly override string ToString() => "StackallocMemoryStream";
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Equals</returns>
+        public static bool operator ==(StackallocMemoryStream left, StackallocMemoryStream right) => left.Equals(right);
+
+        /// <summary>
+        ///     Not equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Not equals</returns>
+        public static bool operator !=(StackallocMemoryStream left, StackallocMemoryStream right) => !left.Equals(right);
 
         /// <summary>
         ///     Get buffer

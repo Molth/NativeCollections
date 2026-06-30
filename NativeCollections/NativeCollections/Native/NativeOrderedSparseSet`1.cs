@@ -16,7 +16,7 @@ namespace NativeCollections
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
     [BindingType(typeof(UnsafeOrderedSparseSet<>))]
-    public readonly unsafe struct NativeOrderedSparseSet<TValue> : IDisposable, IEquatable<NativeOrderedSparseSet<TValue>>, IReadOnlyCollection<KeyValuePair<int, TValue>> where TValue : unmanaged
+    public readonly unsafe struct NativeOrderedSparseSet<TValue> : IIsCreated, IDisposable, IEquatable<NativeOrderedSparseSet<TValue>>, IReadOnlyCollection<KeyValuePair<int, TValue>> where TValue : unmanaged
     {
         /// <summary>
         ///     Handle
@@ -64,7 +64,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => _handle != null;
+        public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
         /// <summary>
         ///     Is empty
@@ -108,26 +108,26 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeOrderedSparseSet<TValue> other) => other == this;
+        public bool Equals(NativeOrderedSparseSet<TValue> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeOrderedSparseSet<TValue> nativeOrderedSparseSet && nativeOrderedSparseSet == this;
+        public override bool Equals(object? obj) => obj is NativeOrderedSparseSet<TValue> other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => ((nint)_handle).GetHashCode();
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => $"NativeOrderedSparseSet<{typeof(TValue).Name}>";
+        public override string ToString() => SR.Format("NativeOrderedSparseSet<{0}>", SR.GetTypeName(typeof(TValue)));
 
         /// <summary>
         ///     Equals
@@ -135,7 +135,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeOrderedSparseSet<TValue> left, NativeOrderedSparseSet<TValue> right) => left._handle == right._handle;
+        public static bool operator ==(NativeOrderedSparseSet<TValue> left, NativeOrderedSparseSet<TValue> right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -143,14 +143,14 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeOrderedSparseSet<TValue> left, NativeOrderedSparseSet<TValue> right) => left._handle != right._handle;
+        public static bool operator !=(NativeOrderedSparseSet<TValue> left, NativeOrderedSparseSet<TValue> right) => !left.Equals(right);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<KeyValuePair<int, TValue>>(in NativeOrderedSparseSet<TValue> nativeOrderedSparseSet) => nativeOrderedSparseSet.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<KeyValuePair<int, TValue>>(NativeOrderedSparseSet<TValue> nativeOrderedSparseSet) => nativeOrderedSparseSet.AsReadOnlySpan();
 
         /// <summary>
         ///     Dispose
@@ -159,7 +159,7 @@ namespace NativeCollections
         public void Dispose()
         {
             var handle = _handle;
-            if (handle == null)
+            if (UnsafeHelpers.IsNull(handle))
                 return;
             handle->Dispose();
             NativeMemoryAllocator.AlignedFree(handle);
@@ -398,7 +398,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator<KeyValuePair<int, TValue>> IEnumerable<KeyValuePair<int, TValue>>.GetEnumerator()
         {
@@ -409,7 +409,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator IEnumerable.GetEnumerator()
         {

@@ -10,6 +10,7 @@ namespace NativeCollections
     ///     Native memory manager
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
+    [IsReferenceOrContainsReferences]
     public sealed unsafe class NativeMemoryManager<T> : MemoryManager<T> where T : unmanaged
     {
         /// <summary>
@@ -67,6 +68,12 @@ namespace NativeCollections
         /// <returns>NativeArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator NativeArray<T>(NativeMemoryManager<T> nativeMemoryManager) => nativeMemoryManager._buffer;
+
+        /// <summary>
+        ///     To string
+        /// </summary>
+        /// <returns>String</returns>
+        public override string ToString() => SR.Format("NativeMemoryManager<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
         ///     Dispose

@@ -65,7 +65,7 @@ namespace NativeCollections
             /// <param name="node">Node</param>
             /// <returns>Is non null red</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static bool IsNonNullRed(Node<T>* node) => node != null && node->IsRed;
+            public static bool IsNonNullRed(Node<T>* node) => !UnsafeHelpers.IsNull(node) && node->IsRed;
 
             /// <summary>
             ///     Is null or black
@@ -73,7 +73,7 @@ namespace NativeCollections
             /// <param name="node">Node</param>
             /// <returns>Is null or black</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private static bool IsNullOrBlack(Node<T>* node) => node == null || node->IsBlack;
+            private static bool IsNullOrBlack(Node<T>* node) => UnsafeHelpers.IsNull(node) || node->IsBlack;
 
             /// <summary>
             ///     Item
@@ -299,7 +299,7 @@ namespace NativeCollections
             /// <param name="node">Node</param>
             /// <returns>Is non null red</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static bool IsNonNullRed(Node<TKey, TValue>* node) => node != null && node->IsRed;
+            public static bool IsNonNullRed(Node<TKey, TValue>* node) => !UnsafeHelpers.IsNull(node) && node->IsRed;
 
             /// <summary>
             ///     Is null or black
@@ -307,7 +307,7 @@ namespace NativeCollections
             /// <param name="node">Node</param>
             /// <returns>Is null or black</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private static bool IsNullOrBlack(Node<TKey, TValue>* node) => node == null || node->IsBlack;
+            private static bool IsNullOrBlack(Node<TKey, TValue>* node) => UnsafeHelpers.IsNull(node) || node->IsBlack;
 
             /// <summary>
             ///     Key

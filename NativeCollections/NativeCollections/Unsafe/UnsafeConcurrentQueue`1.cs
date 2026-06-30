@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Threading;
 
 // ReSharper disable ALL
 
@@ -13,245 +13,146 @@ namespace NativeCollections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(FromType.Standard)]
-    public unsafe struct UnsafeConcurrentQueue<T> : IDisposable where T : unmanaged
+    [UnsafeCollection(FromType.Standard | FromType.NotImplemented)]
+    [BindingType(typeof(ConcurrentQueue<>))]
+    public readonly struct UnsafeConcurrentQueue<T> : IIsCreated, IDisposable, IEquatable<UnsafeConcurrentQueue<T>> where T : unmanaged
     {
         /// <summary>
-        ///     Cross segment lock
+        ///     Handle
         /// </summary>
-        private GCHandle _crossSegmentLock;
+        private readonly NativeObject<ConcurrentQueue<T>> _handle;
 
         /// <summary>
-        ///     Segment pool
+        ///     Handle
         /// </summary>
-        private UnsafeMemoryPool<NativeConcurrentQueue.NativeConcurrentQueueSegment<T>> _segmentPool;
+        private ConcurrentQueue<T> Handle => _handle.Value;
 
         /// <summary>
-        ///     Tail
+        ///     Is created
         /// </summary>
-        private volatile NativeConcurrentQueue.NativeConcurrentQueueSegment<T>* _tail;
+        public bool IsCreated => _handle.IsCreated;
 
         /// <summary>
-        ///     Head
+        ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        private volatile NativeConcurrentQueue.NativeConcurrentQueueSegment<T>* _head;
-
-        /// <summary>
-        ///     IsEmpty
-        /// </summary>
-        public readonly bool IsEmpty
+        /// <value>true if this is empty; otherwise, false.</value>
+        /// <remarks>
+        ///     For determining whether the collection contains any items, use of this property is recommended
+        ///     rather than retrieving the number of items from the <see cref="Count" /> property and comparing it to 0.
+        ///     However, as this collection is intended to be accessed concurrently, it may be the case that another thread will
+        ///     modify the collection after <see cref="IsEmpty" /> returns, thus invalidating the result.
+        /// </remarks>
+        public bool IsEmpty
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-                var segment = _head;
-                while (true)
-                {
-                    var next = Volatile.Read(ref segment->NextSegment);
-                    if (segment->TryPeek())
-                        return false;
-                    if (next != new IntPtr(0))
-                        segment = (NativeConcurrentQueue.NativeConcurrentQueueSegment<T>*)next;
-                    else if (Volatile.Read(ref segment->NextSegment) == new IntPtr(0))
-                        break;
-                }
-
-                return true;
-            }
+            get => Handle.IsEmpty;
         }
 
         /// <summary>
-        ///     Count
+        ///     Gets the number of elements contained in this.
         /// </summary>
-        public readonly int Count
+        /// <value>The number of elements contained in this.</value>
+        /// <remarks>
+        ///     For determining whether the collection contains any items, use of the <see cref="IsEmpty" />
+        ///     property is recommended rather than retrieving the number of items from the <see cref="Count" />
+        ///     property and comparing it to 0.
+        /// </remarks>
+        public int Count
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-                var spinWait = new NativeSpinWait();
-                while (true)
-                {
-                    var head = _head;
-                    var tail = _tail;
-                    var headHead = Volatile.Read(ref head->HeadAndTail.Head);
-                    var headTail = Volatile.Read(ref head->HeadAndTail.Tail);
-                    if (head == tail)
-                    {
-                        if (head == _head && tail == _tail && headHead == Volatile.Read(ref head->HeadAndTail.Head) && headTail == Volatile.Read(ref head->HeadAndTail.Tail))
-                            return GetCount(headHead, headTail);
-                    }
-                    else if ((NativeConcurrentQueue.NativeConcurrentQueueSegment<T>*)head->NextSegment == tail)
-                    {
-                        var tailHead = Volatile.Read(ref tail->HeadAndTail.Head);
-                        var tailTail = Volatile.Read(ref tail->HeadAndTail.Tail);
-                        if (head == _head && tail == _tail && headHead == Volatile.Read(ref head->HeadAndTail.Head) && headTail == Volatile.Read(ref head->HeadAndTail.Tail) && tailHead == Volatile.Read(ref tail->HeadAndTail.Head) && tailTail == Volatile.Read(ref tail->HeadAndTail.Tail))
-                            return GetCount(headHead, headTail) + GetCount(tailHead, tailTail);
-                    }
-                    else
-                    {
-                        lock (_crossSegmentLock.Target!)
-                        {
-                            if (head == _head && tail == _tail)
-                            {
-                                var tailHead = Volatile.Read(ref tail->HeadAndTail.Head);
-                                var tailTail = Volatile.Read(ref tail->HeadAndTail.Tail);
-                                if (headHead == Volatile.Read(ref head->HeadAndTail.Head) && headTail == Volatile.Read(ref head->HeadAndTail.Tail) && tailHead == Volatile.Read(ref tail->HeadAndTail.Head) && tailTail == Volatile.Read(ref tail->HeadAndTail.Tail))
-                                {
-                                    var count = GetCount(headHead, headTail) + GetCount(tailHead, tailTail);
-                                    for (var s = (NativeConcurrentQueue.NativeConcurrentQueueSegment<T>*)head->NextSegment; s != tail; s = (NativeConcurrentQueue.NativeConcurrentQueueSegment<T>*)s->NextSegment)
-                                        count += s->HeadAndTail.Tail - NativeConcurrentQueue.SEGMENT_FREEZE_OFFSET;
-                                    return count;
-                                }
-                            }
-                        }
-                    }
-
-                    spinWait.SpinOnce(-1);
-                }
-            }
+            get => Handle.Count;
         }
 
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="size">Size</param>
-        /// <param name="maxFreeSlabs">Max free slabs</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeConcurrentQueue(int size, int maxFreeSlabs)
-        {
-            var segmentPool = new UnsafeMemoryPool<NativeConcurrentQueue.NativeConcurrentQueueSegment<T>>(size, Unsafe.SizeOf<NativeConcurrentQueue.NativeConcurrentQueueSegment<T>>(), maxFreeSlabs, (int)Math.Max(NativeMemoryAllocator.AlignOf<T>(), ArchitectureHelpers.CACHE_LINE_SIZE));
-            _crossSegmentLock = GCHandle.Alloc(new object(), GCHandleType.Normal);
-            _segmentPool = segmentPool;
-            var segment = _segmentPool.Rent();
-            segment->Initialize();
-            _tail = _head = segment;
-        }
+        private UnsafeConcurrentQueue(NativeObject<ConcurrentQueue<T>> handle) => _handle = handle;
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public bool Equals(UnsafeConcurrentQueue<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="obj">object</param>
+        /// <returns>Equals</returns>
+        public override bool Equals(object? obj) => obj is UnsafeConcurrentQueue<T> other && other.Equals(this);
+
+        /// <summary>
+        ///     Get hashCode
+        /// </summary>
+        /// <returns>HashCode</returns>
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
+
+        /// <summary>
+        ///     To string
+        /// </summary>
+        /// <returns>String</returns>
+        public override string ToString() => SR.Format("UnsafeConcurrentQueue<{0}>", SR.GetTypeName(typeof(T)));
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Equals</returns>
+        public static bool operator ==(UnsafeConcurrentQueue<T> left, UnsafeConcurrentQueue<T> right) => left.Equals(right);
+
+        /// <summary>
+        ///     Not equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Not equals</returns>
+        public static bool operator !=(UnsafeConcurrentQueue<T> left, UnsafeConcurrentQueue<T> right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            _crossSegmentLock.Free();
-            _segmentPool.Dispose();
-        }
+        public void Dispose() => _handle.Dispose();
 
         /// <summary>
-        ///     Clear
+        ///     Removes all objects from this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Clear()
-        {
-            lock (_crossSegmentLock.Target!)
-            {
-                _tail->EnsureFrozenForEnqueues();
-                var node = _head;
-                while (node != null)
-                {
-                    var temp = node;
-                    node = (NativeConcurrentQueue.NativeConcurrentQueueSegment<T>*)node->NextSegment;
-                    _segmentPool.Return(temp);
-                }
+        public void Clear() => Handle.Clear();
 
-                var segment = _segmentPool.Rent();
-                segment->Initialize();
-                _tail = _head = segment;
-            }
-        }
+        /// <summary>Adds an object to the end of this.</summary>
+        /// <param name="item">
+        ///     The object to add to the end of this.
+        /// </param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Enqueue(T item) => Handle.Enqueue(item);
 
         /// <summary>
-        ///     Enqueue
+        ///     Attempts to remove and return the object at the beginning of this.
         /// </summary>
-        /// <param name="item">Item</param>
+        /// <param name="result">
+        ///     When this method returns, if the operation was successful, <paramref name="result" /> contains the
+        ///     object removed. If no object was available to be removed, the value is unspecified.
+        /// </param>
+        /// <returns>
+        ///     true if an element was removed and returned from the beginning of this successfully;
+        ///     otherwise, false.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Enqueue(in T item)
-        {
-            if (!_tail->TryEnqueue(item))
-            {
-                while (true)
-                {
-                    var tail = _tail;
-                    if (tail->TryEnqueue(item))
-                        return;
-                    lock (_crossSegmentLock.Target!)
-                    {
-                        if (tail == _tail)
-                        {
-                            tail->EnsureFrozenForEnqueues();
-                            var newTail = _segmentPool.Rent();
-                            newTail->Initialize();
-                            tail->NextSegment = (nint)newTail;
-                            _tail = newTail;
-                        }
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        ///     Try dequeue
-        /// </summary>
-        /// <param name="result">Item</param>
-        /// <returns>Dequeued</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDequeue(out T result)
-        {
-            var head = _head;
-            if (head->TryDequeue(out result))
-                return true;
-            if (head->NextSegment == 0)
-            {
-                result = default;
-                return false;
-            }
-
-            while (true)
-            {
-                head = _head;
-                if (head->TryDequeue(out result))
-                    return true;
-                if (head->NextSegment == 0)
-                {
-                    result = default;
-                    return false;
-                }
-
-                if (head->TryDequeue(out result))
-                    return true;
-                lock (_crossSegmentLock.Target!)
-                {
-                    if (head == _head)
-                    {
-                        _head = (NativeConcurrentQueue.NativeConcurrentQueueSegment<T>*)head->NextSegment;
-                        _segmentPool.Return(head);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        ///     Get count
-        /// </summary>
-        /// <param name="head">Head</param>
-        /// <param name="tail">Tail</param>
-        /// <returns>Count</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int GetCount(int head, int tail)
-        {
-            if (head != tail && head != tail - NativeConcurrentQueue.SEGMENT_FREEZE_OFFSET)
-            {
-                head &= NativeConcurrentQueue.SLOTS_MASK;
-                tail &= NativeConcurrentQueue.SLOTS_MASK;
-                return head < tail ? tail - head : NativeConcurrentQueue.SLOTS_LENGTH - head + tail;
-            }
-
-            return 0;
-        }
+        public bool TryDequeue(out T result) => Handle.TryDequeue(out result);
 
         /// <summary>
         ///     Empty
         /// </summary>
         public static UnsafeConcurrentQueue<T> Empty => new();
+
+        /// <summary>
+        ///     Initializes a new instance of this class.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UnsafeConcurrentQueue<T> Create() => new(NativeObject<ConcurrentQueue<T>>.Alloc(new ConcurrentQueue<T>()));
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Threading;
 
 // ReSharper disable ALL
 
@@ -14,214 +14,139 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard)]
-    public unsafe struct UnsafeConcurrentStack<T> : IDisposable where T : unmanaged
+    [BindingType(typeof(ConcurrentStack<>))]
+    public readonly struct UnsafeConcurrentStack<T> : IIsCreated, IDisposable, IEquatable<UnsafeConcurrentStack<T>> where T : unmanaged
     {
         /// <summary>
-        ///     Head
+        ///     Handle
         /// </summary>
-        private volatile nint _head;
+        private readonly NativeObject<ConcurrentStack<T>> _handle;
 
         /// <summary>
-        ///     Node pool
+        ///     Handle
         /// </summary>
-        private UnsafeMemoryPool<Node> _nodePool;
+        private ConcurrentStack<T> Handle => _handle.Value;
 
         /// <summary>
-        ///     Node lock
+        ///     Is created
         /// </summary>
-        private UnsafeConcurrentSpinLock _nodeLock;
+        public bool IsCreated => _handle.IsCreated;
 
         /// <summary>
-        ///     IsEmpty
+        ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        public readonly bool IsEmpty => _head == 0;
+        /// <value>true if this is empty; otherwise, false.</value>
+        /// <remarks>
+        ///     For determining whether the collection contains any items, use of this property is recommended rather than
+        ///     retrieving the number of items from the <see cref="Count" /> property and comparing it to 0.
+        ///     However, as this collection is intended to be accessed concurrently, it may be the case that another thread will
+        ///     modify the collection after <see cref="IsEmpty" /> returns, thus invalidating the result.
+        /// </remarks>
+        public bool IsEmpty => Handle.IsEmpty;
 
         /// <summary>
-        ///     Count
+        ///     Gets the number of elements contained in this.
         /// </summary>
-        public readonly int Count
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-                var count = 0;
-                for (var node = (Node*)_head; node != null; node = node->Next)
-                    count++;
-                return count;
-            }
-        }
+        /// <value>The number of elements contained in this.</value>
+        /// <remarks>
+        ///     For determining whether the collection contains any items, use of the <see cref="IsEmpty" />
+        ///     property is recommended rather than retrieving the number of items from the <see cref="Count" />
+        ///     property and comparing it to 0.
+        /// </remarks>
+        public int Count => Handle.Count;
 
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="size">Size</param>
-        /// <param name="maxFreeSlabs">Max free slabs</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeConcurrentStack(int size, int maxFreeSlabs)
-        {
-            var nodePool = new UnsafeMemoryPool<Node>(size, maxFreeSlabs);
-            _head = 0;
-            _nodePool = nodePool;
-            _nodeLock = new UnsafeConcurrentSpinLock();
-        }
+        public UnsafeConcurrentStack(NativeObject<ConcurrentStack<T>> handle) => _handle = handle;
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public bool Equals(UnsafeConcurrentStack<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="obj">object</param>
+        /// <returns>Equals</returns>
+        public override bool Equals(object? obj) => obj is UnsafeConcurrentStack<T> other && other.Equals(this);
+
+        /// <summary>
+        ///     Get hashCode
+        /// </summary>
+        /// <returns>HashCode</returns>
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
+
+        /// <summary>
+        ///     To string
+        /// </summary>
+        /// <returns>String</returns>
+        public override string ToString() => SR.Format("UnsafeConcurrentStack<{0}>", SR.GetTypeName(typeof(T)));
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Equals</returns>
+        public static bool operator ==(UnsafeConcurrentStack<T> left, UnsafeConcurrentStack<T> right) => left.Equals(right);
+
+        /// <summary>
+        ///     Not equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Not equals</returns>
+        public static bool operator !=(UnsafeConcurrentStack<T> left, UnsafeConcurrentStack<T> right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => _nodePool.Dispose();
+        public void Dispose() => _handle.Dispose();
 
         /// <summary>
-        ///     Clear
+        ///     Removes all objects from this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Clear()
-        {
-            _nodeLock.Enter();
-            try
-            {
-                var node = (Node*)_head;
-                while (node != null)
-                {
-                    var temp = node;
-                    node = node->Next;
-                    _nodePool.Return(temp);
-                }
-            }
-            finally
-            {
-                _nodeLock.Exit();
-            }
-        }
+        public void Clear() => Handle.Clear();
 
         /// <summary>
-        ///     Push
+        ///     Inserts an object at the top of this.
         /// </summary>
-        /// <param name="item">Item</param>
+        /// <param name="item">
+        ///     The object to push onto this.
+        /// </param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Push(in T item)
-        {
-            Node* newNode;
-            _nodeLock.Enter();
-            try
-            {
-                newNode = _nodePool.Rent();
-            }
-            finally
-            {
-                _nodeLock.Exit();
-            }
-
-            newNode->Value = item;
-            newNode->Next = (Node*)_head;
-            if (Interlocked.CompareExchange(ref _head, (nint)newNode, (nint)newNode->Next) == (nint)newNode->Next)
-                return;
-            var spinWait = new NativeSpinWait();
-            do
-            {
-                spinWait.SpinOnce(-1);
-                newNode->Next = (Node*)_head;
-            } while (Interlocked.CompareExchange(ref _head, (nint)newNode, (nint)newNode->Next) != (nint)newNode->Next);
-        }
+        public void Push(T item) => Handle.Push(item);
 
         /// <summary>
-        ///     Try pop
+        ///     Attempts to pop and return the object at the top of this.
         /// </summary>
-        /// <param name="result">Item</param>
-        /// <returns>Popped</returns>
+        /// <param name="result">
+        ///     When this method returns, if the operation was successful, <paramref name="result" /> contains the object removed.
+        ///     If no object was available to be removed, the value is unspecified.
+        /// </param>
+        /// <returns>
+        ///     true if an element was removed and returned from the top of this successfully;
+        ///     otherwise, false.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryPop(out T result)
-        {
-            var head = (Node*)_head;
-            if (head == null)
-            {
-                result = default;
-                return false;
-            }
-
-            if (Interlocked.CompareExchange(ref _head, (nint)head->Next, (nint)head) == (nint)head)
-            {
-                result = head->Value;
-                _nodeLock.Enter();
-                try
-                {
-                    _nodePool.Return(head);
-                }
-                finally
-                {
-                    _nodeLock.Exit();
-                }
-
-                return true;
-            }
-
-            var spinWait = new NativeSpinWait();
-            var backoff = 1;
-#if !NET6_0_OR_GREATER
-            var random = NativeXoshiro256.Create();
-#endif
-            while (true)
-            {
-                head = (Node*)_head;
-                if (head == null)
-                {
-                    result = default;
-                    return false;
-                }
-
-                if (Interlocked.CompareExchange(ref _head, (nint)head->Next, (nint)head) == (nint)head)
-                {
-                    result = head->Value;
-                    _nodeLock.Enter();
-                    try
-                    {
-                        _nodePool.Return(head);
-                    }
-                    finally
-                    {
-                        _nodeLock.Exit();
-                    }
-
-                    return true;
-                }
-
-                for (var i = 0; i < backoff; ++i)
-                    spinWait.SpinOnce(-1);
-                if (spinWait.NextSpinWillYield)
-                {
-#if NET6_0_OR_GREATER
-                    backoff = Random.Shared.Next(1, 8);
-#else
-                    backoff = random.NextInt32(1, 8);
-#endif
-                }
-                else
-                {
-                    backoff *= 2;
-                }
-            }
-        }
-
-        /// <summary>
-        ///     Node
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential)]
-        private struct Node
-        {
-            /// <summary>
-            ///     Value
-            /// </summary>
-            public T Value;
-
-            /// <summary>
-            ///     Next
-            /// </summary>
-            public Node* Next;
-        }
+        public bool TryPop(out T result) => Handle.TryPop(out result);
 
         /// <summary>
         ///     Empty
         /// </summary>
         public static UnsafeConcurrentStack<T> Empty => new();
+
+        /// <summary>
+        ///     Initializes a new instance of this class.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UnsafeConcurrentStack<T> Create() => new(NativeObject<ConcurrentStack<T>>.Alloc(new ConcurrentStack<T>()));
     }
 }

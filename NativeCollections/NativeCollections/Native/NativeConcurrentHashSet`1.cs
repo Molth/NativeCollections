@@ -15,9 +15,9 @@ namespace NativeCollections
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection(FromType.None)]
+    [NativeCollection(FromType.None | FromType.NotImplemented)]
     [BindingType(typeof(UnsafeConcurrentHashSet<>))]
-    public readonly unsafe struct NativeConcurrentHashSet<T> : IDisposable, IEquatable<NativeConcurrentHashSet<T>>, IReadOnlyCollection<T> where T : unmanaged, IEquatable<T>
+    public readonly unsafe struct NativeConcurrentHashSet<T> : IIsCreated, IDisposable, IEquatable<NativeConcurrentHashSet<T>>, IReadOnlyCollection<T> where T : unmanaged, IEquatable<T>
     {
         /// <summary>
         ///     Handle
@@ -27,24 +27,13 @@ namespace NativeCollections
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="size">Size</param>
-        /// <param name="maxFreeSlabs">Max free slabs</param>
-        /// <param name="concurrencyLevel">Concurrency level</param>
-        /// <param name="capacity">Capacity</param>
-        /// <param name="growLockArray">Grow lock array</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeConcurrentHashSet(int size, int maxFreeSlabs, int concurrencyLevel, int capacity, bool growLockArray)
-        {
-            var value = new UnsafeConcurrentHashSet<T>(size, maxFreeSlabs, concurrencyLevel, capacity, growLockArray);
-            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeConcurrentHashSet<T>>(1);
-            Unsafe.AsRef<UnsafeConcurrentHashSet<T>>(handle) = value;
-            _handle = handle;
-        }
+        private NativeConcurrentHashSet(UnsafeConcurrentHashSet<T>* handle) => _handle = handle;
 
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => _handle != null;
+        public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
         /// <summary>
         ///     Is created
@@ -69,26 +58,26 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeConcurrentHashSet<T> other) => other == this;
+        public bool Equals(NativeConcurrentHashSet<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeConcurrentHashSet<T> nativeConcurrentHashSet && nativeConcurrentHashSet == this;
+        public override bool Equals(object? obj) => obj is NativeConcurrentHashSet<T> other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => ((nint)_handle).GetHashCode();
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => $"NativeConcurrentHashSet<{typeof(T).Name}>";
+        public override string ToString() => SR.Format("NativeConcurrentHashSet<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
         ///     Equals
@@ -96,7 +85,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeConcurrentHashSet<T> left, NativeConcurrentHashSet<T> right) => left._handle == right._handle;
+        public static bool operator ==(NativeConcurrentHashSet<T> left, NativeConcurrentHashSet<T> right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -104,7 +93,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeConcurrentHashSet<T> left, NativeConcurrentHashSet<T> right) => left._handle != right._handle;
+        public static bool operator !=(NativeConcurrentHashSet<T> left, NativeConcurrentHashSet<T> right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
@@ -113,64 +102,92 @@ namespace NativeCollections
         public void Dispose()
         {
             var handle = _handle;
-            if (handle == null)
+            if (UnsafeHelpers.IsNull(handle))
                 return;
             handle->Dispose();
             NativeMemoryAllocator.AlignedFree(handle);
         }
 
         /// <summary>
-        ///     Clear
+        ///     Removes all keys from this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear() => _handle->Clear();
 
         /// <summary>
-        ///     Add
+        ///     Attempts to add the specified key to this.
         /// </summary>
-        /// <param name="item">Item</param>
-        /// <returns>Added</returns>
+        /// <param name="item">The element to add.</param>
+        /// <returns>
+        ///     true if the key was added to this successfully;
+        ///     otherwise, false.
+        /// </returns>
+        /// <exception cref="OverflowException">This contains too many elements.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Add(in T item) => _handle->Add(item);
+        public bool Add(T item) => _handle->Add(item);
 
         /// <summary>
-        ///     Remove
+        ///     Attempts to remove with the specified key from this.
         /// </summary>
-        /// <param name="item">Item</param>
-        /// <returns>Removed</returns>
+        /// <param name="item">The element to remove and return.</param>
+        /// <returns>
+        ///     true if an object was removed successfully;
+        ///     otherwise, false.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Remove(in T item) => _handle->Remove(item);
+        public bool Remove(T item) => _handle->Remove(item);
 
         /// <summary>
-        ///     Contains item
+        ///     Determines whether this contains the specified key.
         /// </summary>
-        /// <param name="item">Item</param>
-        /// <returns>Contains item</returns>
+        /// <param name="item">The key to locate in this.</param>
+        /// <returns>
+        ///     true if this contains an element with the specified key;
+        ///     otherwise, false.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Contains(in T item) => _handle->Contains(item);
-
-        /// <summary>
-        ///     Try to get the actual value
-        /// </summary>
-        /// <param name="equalValue">Equal value</param>
-        /// <param name="actualValue">Actual value</param>
-        /// <returns>Got</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValue(in T equalValue, out T actualValue) => _handle->TryGetValue(equalValue, out actualValue);
-
-        /// <summary>
-        ///     Try to get the actual value
-        /// </summary>
-        /// <param name="equalValue">Equal value</param>
-        /// <param name="actualValue">Actual value</param>
-        /// <returns>Got</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueReference(in T equalValue, out NativeReference<T> actualValue) => _handle->TryGetValueReference(equalValue, out actualValue);
+        public bool Contains(T item) => _handle->Contains(item);
 
         /// <summary>
         ///     Empty
         /// </summary>
         public static NativeConcurrentHashSet<T> Empty => new();
+
+        /// <summary>
+        ///     Initializes a new instance of this
+        ///     class that is empty, has the default concurrency level, has the default initial capacity, and
+        ///     uses the default comparer for the key type.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeConcurrentHashSet<T> Create()
+        {
+            var value = UnsafeConcurrentHashSet<T>.Create();
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeConcurrentHashSet<T>>(1);
+            Unsafe.AsRef<UnsafeConcurrentHashSet<T>>(handle) = value;
+            return new NativeConcurrentHashSet<T>(handle);
+        }
+
+        /// <summary>
+        ///     Initializes a new instance of this
+        ///     class that is empty, has the specified concurrency level and capacity, and uses the default
+        ///     comparer for the key type.
+        /// </summary>
+        /// <param name="concurrencyLevel">
+        ///     The estimated number of threads that will update this concurrently, or -1 to indicate a default value.
+        /// </param>
+        /// <param name="capacity">
+        ///     The initial number of elements that this can contain.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="concurrencyLevel" /> is less than 1.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"> <paramref name="capacity" /> is less than 0.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeConcurrentHashSet<T> Create(int concurrencyLevel, int capacity)
+        {
+            var value = UnsafeConcurrentHashSet<T>.Create(concurrencyLevel, capacity);
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeConcurrentHashSet<T>>(1);
+            Unsafe.AsRef<UnsafeConcurrentHashSet<T>>(handle) = value;
+            return new NativeConcurrentHashSet<T>(handle);
+        }
 
         /// <summary>
         ///     Get enumerator
@@ -181,7 +198,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
@@ -192,7 +209,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator IEnumerable.GetEnumerator()
         {

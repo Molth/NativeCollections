@@ -17,7 +17,7 @@ namespace NativeCollections
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Standard)]
     [BindingType(typeof(UnsafeSortedDictionary<,>))]
-    public readonly unsafe struct NativeSortedDictionary<TKey, TValue> : IDisposable, IEquatable<NativeSortedDictionary<TKey, TValue>>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IComparable<TKey> where TValue : unmanaged
+    public readonly unsafe struct NativeSortedDictionary<TKey, TValue> : IIsCreated, IDisposable, IEquatable<NativeSortedDictionary<TKey, TValue>>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IComparable<TKey> where TValue : unmanaged
     {
         /// <summary>
         ///     Handle
@@ -50,7 +50,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => _handle != null;
+        public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
         /// <summary>
         ///     Is empty
@@ -89,26 +89,26 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeSortedDictionary<TKey, TValue> other) => other == this;
+        public bool Equals(NativeSortedDictionary<TKey, TValue> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeSortedDictionary<TKey, TValue> nativeSortedDictionary && nativeSortedDictionary == this;
+        public override bool Equals(object? obj) => obj is NativeSortedDictionary<TKey, TValue> other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => ((nint)_handle).GetHashCode();
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => $"NativeSortedDictionary<{typeof(TKey).Name}, {typeof(TValue).Name}>";
+        public override string ToString() => SR.Format("NativeSortedDictionary<{0}, {1}>", SR.GetTypeName(typeof(TKey)), SR.GetTypeName(typeof(TValue)));
 
         /// <summary>
         ///     Equals
@@ -116,7 +116,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeSortedDictionary<TKey, TValue> left, NativeSortedDictionary<TKey, TValue> right) => left._handle == right._handle;
+        public static bool operator ==(NativeSortedDictionary<TKey, TValue> left, NativeSortedDictionary<TKey, TValue> right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -124,7 +124,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeSortedDictionary<TKey, TValue> left, NativeSortedDictionary<TKey, TValue> right) => left._handle != right._handle;
+        public static bool operator !=(NativeSortedDictionary<TKey, TValue> left, NativeSortedDictionary<TKey, TValue> right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
@@ -133,7 +133,7 @@ namespace NativeCollections
         public void Dispose()
         {
             var handle = _handle;
-            if (handle == null)
+            if (UnsafeHelpers.IsNull(handle))
                 return;
             handle->Dispose();
             NativeMemoryAllocator.AlignedFree(handle);
@@ -275,7 +275,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
         {
@@ -286,7 +286,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator IEnumerable.GetEnumerator()
         {

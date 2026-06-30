@@ -12,7 +12,7 @@ namespace NativeCollections
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
     [BindingType(typeof(UnsafeConcurrentReaderWriterLock))]
-    public readonly unsafe struct NativeConcurrentReaderWriterLock : IDisposable, IEquatable<NativeConcurrentReaderWriterLock>
+    public readonly unsafe struct NativeConcurrentReaderWriterLock : IIsCreated, IDisposable, IEquatable<NativeConcurrentReaderWriterLock>
     {
         /// <summary>
         ///     Handle
@@ -33,7 +33,7 @@ namespace NativeCollections
         public void Dispose()
         {
             var handle = _handle;
-            if (handle == null)
+            if (UnsafeHelpers.IsNull(handle))
                 return;
             NativeMemoryAllocator.AlignedFree(handle);
         }
@@ -41,27 +41,27 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => _handle != null;
+        public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeConcurrentReaderWriterLock other) => other == this;
+        public bool Equals(NativeConcurrentReaderWriterLock other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeConcurrentReaderWriterLock nativeConcurrentReaderWriterLock && nativeConcurrentReaderWriterLock == this;
+        public override bool Equals(object? obj) => obj is NativeConcurrentReaderWriterLock other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => ((nint)_handle).GetHashCode();
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
@@ -75,7 +75,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeConcurrentReaderWriterLock left, NativeConcurrentReaderWriterLock right) => left._handle == right._handle;
+        public static bool operator ==(NativeConcurrentReaderWriterLock left, NativeConcurrentReaderWriterLock right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -83,7 +83,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeConcurrentReaderWriterLock left, NativeConcurrentReaderWriterLock right) => left._handle != right._handle;
+        public static bool operator !=(NativeConcurrentReaderWriterLock left, NativeConcurrentReaderWriterLock right) => !left.Equals(right);
 
         /// <summary>
         ///     Reset
@@ -95,11 +95,11 @@ namespace NativeCollections
         ///     Read
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeDisposable<UnsafeConcurrentReaderWriterLock> ReadLock()
+        public UnsafeDisposable<UnsafeConcurrentReaderWriterLock> ReadLock()
         {
             var handle = _handle;
             handle->Read();
-            return new NativeDisposable<UnsafeConcurrentReaderWriterLock>(handle);
+            return new UnsafeDisposable<UnsafeConcurrentReaderWriterLock>(handle);
         }
 
         /// <summary>
@@ -113,22 +113,22 @@ namespace NativeCollections
         ///     <paramref name="sleep1Threshold" /> is less than -1.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeDisposable<UnsafeConcurrentReaderWriterLock> ReadLock(int sleep1Threshold)
+        public UnsafeDisposable<UnsafeConcurrentReaderWriterLock> ReadLock(int sleep1Threshold)
         {
             var handle = _handle;
             handle->Read(sleep1Threshold);
-            return new NativeDisposable<UnsafeConcurrentReaderWriterLock>(handle);
+            return new UnsafeDisposable<UnsafeConcurrentReaderWriterLock>(handle);
         }
 
         /// <summary>
         ///     Write
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeDisposable<UnsafeConcurrentReaderWriterLock> WriteLock()
+        public UnsafeDisposable<UnsafeConcurrentReaderWriterLock> WriteLock()
         {
             var handle = _handle;
             handle->Write();
-            return new NativeDisposable<UnsafeConcurrentReaderWriterLock>(handle);
+            return new UnsafeDisposable<UnsafeConcurrentReaderWriterLock>(handle);
         }
 
         /// <summary>
@@ -142,11 +142,11 @@ namespace NativeCollections
         ///     <paramref name="sleep1Threshold" /> is less than -1.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeDisposable<UnsafeConcurrentReaderWriterLock> WriteLock(int sleep1Threshold)
+        public UnsafeDisposable<UnsafeConcurrentReaderWriterLock> WriteLock(int sleep1Threshold)
         {
             var handle = _handle;
             handle->Write(sleep1Threshold);
-            return new NativeDisposable<UnsafeConcurrentReaderWriterLock>(handle);
+            return new UnsafeDisposable<UnsafeConcurrentReaderWriterLock>(handle);
         }
 
         /// <summary>
@@ -192,24 +192,6 @@ namespace NativeCollections
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Exit() => _handle->Exit();
-
-        /// <summary>
-        ///     As native concurrent spinLock
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeConcurrentReaderWriterLock(UnsafeConcurrentReaderWriterLock* buffer) => new(buffer);
-
-        /// <summary>
-        ///     As native concurrent spinLock
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeConcurrentReaderWriterLock(Span<byte> span) => new((UnsafeConcurrentReaderWriterLock*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(span)));
-
-        /// <summary>
-        ///     As native concurrent spinLock
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeConcurrentReaderWriterLock(ReadOnlySpan<byte> readOnlySpan) => new((UnsafeConcurrentReaderWriterLock*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(readOnlySpan)));
 
         /// <summary>
         ///     Create

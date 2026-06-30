@@ -11,7 +11,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    public readonly unsafe struct NativeIntPtr : IDisposable, IEquatable<NativeIntPtr>
+    public readonly unsafe struct NativeIntPtr : IIsCreated, IDisposable, IEquatable<NativeIntPtr>
     {
         /// <summary>
         ///     Handle
@@ -35,7 +35,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => _handle != null;
+        public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
         /// <summary>
         ///     Handle
@@ -60,20 +60,20 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeIntPtr other) => other == this;
+        public bool Equals(NativeIntPtr other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeIntPtr nativeIntPtr && nativeIntPtr == this;
+        public override bool Equals(object? obj) => obj is NativeIntPtr other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => ((nint)_handle).GetHashCode();
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
@@ -115,7 +115,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeIntPtr left, NativeIntPtr right) => left._handle == right._handle;
+        public static bool operator ==(NativeIntPtr left, NativeIntPtr right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -123,7 +123,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeIntPtr left, NativeIntPtr right) => left._handle != right._handle;
+        public static bool operator !=(NativeIntPtr left, NativeIntPtr right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
@@ -132,7 +132,7 @@ namespace NativeCollections
         public void Dispose()
         {
             var handle = _handle;
-            if (handle == null)
+            if (UnsafeHelpers.IsNull(handle))
                 return;
             NativeMemoryAllocator.AlignedFree(handle);
         }
@@ -144,7 +144,8 @@ namespace NativeCollections
         /// <typeparam name="T">Type</typeparam>
         /// <returns>NativeIntPtr</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeIntPtr Create<T>(ref T reference) where T : unmanaged => new(UnsafeHelpers.AsPointer(ref reference));
+        [MustBePinned(nameof(reference))]
+        public static NativeIntPtr Create<T>([MustBePinned] ref T reference) where T : unmanaged => new(UnsafeHelpers.AsPointer(ref reference));
 
         /// <summary>
         ///     Empty

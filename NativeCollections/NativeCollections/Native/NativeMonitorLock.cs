@@ -12,7 +12,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    public readonly struct NativeMonitorLock : IDisposable, IEquatable<NativeMonitorLock>
+    public readonly struct NativeMonitorLock : IIsCreated, IDisposable, IEquatable<NativeMonitorLock>
     {
         /// <summary>
         ///     Handle
@@ -36,20 +36,20 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeMonitorLock other) => other == this;
+        public bool Equals(NativeMonitorLock other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeMonitorLock nativeMonitorLock && nativeMonitorLock == this;
+        public override bool Equals(object? obj) => obj is NativeMonitorLock other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => ((nint)_handle).GetHashCode();
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
@@ -63,7 +63,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeMonitorLock left, NativeMonitorLock right) => left._handle == right._handle;
+        public static bool operator ==(NativeMonitorLock left, NativeMonitorLock right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -71,7 +71,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeMonitorLock left, NativeMonitorLock right) => left._handle != right._handle;
+        public static bool operator !=(NativeMonitorLock left, NativeMonitorLock right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose

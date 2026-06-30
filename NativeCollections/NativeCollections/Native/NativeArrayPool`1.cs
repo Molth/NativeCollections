@@ -8,11 +8,11 @@ using System.Threading;
 namespace NativeCollections
 {
     /// <summary>
-    ///     NativeMemoryPool
+    ///     Native array pool
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    public unsafe struct NativeArrayPool<T> : IDisposable, IEquatable<NativeArrayPool<T>> where T : unmanaged
+    public readonly unsafe struct NativeArrayPool<T> : IIsCreated, IDisposable, IEquatable<NativeArrayPool<T>> where T : unmanaged
     {
         /// <summary>
         ///     Buckets
@@ -32,7 +32,7 @@ namespace NativeCollections
         /// <summary>
         ///     Allocator
         /// </summary>
-        private CustomMemoryAllocator _allocator;
+        private readonly CustomMemoryAllocator _allocator;
 
         /// <summary>
         ///     Structure
@@ -67,10 +67,7 @@ namespace NativeCollections
             for (var i = 0; i < length; ++i)
             {
                 ref var bucket = ref Unsafe.Add(ref Unsafe.AsRef<NativeArrayPoolBucket>(buckets), (nint)i);
-                bucket.Buffer = UnsafeHelpers.AddByteOffset<nint>(buffer, i * extremeLength);
-                bucket.Length = 16 << i;
-                bucket.Index = 0;
-                bucket.SpinLock = new SpinLock();
+                bucket = new NativeArrayPoolBucket(UnsafeHelpers.AddByteOffset<nint>(buffer, i * extremeLength), 16 << i);
             }
 
             _buckets = buckets;
@@ -82,43 +79,43 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public readonly bool IsCreated => _buckets != null;
+        public bool IsCreated => !UnsafeHelpers.IsNull(_buckets);
 
         /// <summary>
         ///     Capacity
         /// </summary>
-        public readonly int Capacity => _capacity;
+        public int Capacity => _capacity;
 
         /// <summary>
         ///     Max length
         /// </summary>
-        public readonly int MaxLength => 16 << (_length - 1);
+        public int MaxLength => 16 << (_length - 1);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public readonly bool Equals(NativeArrayPool<T> other) => other == this;
+        public bool Equals(NativeArrayPool<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public readonly override bool Equals(object? obj) => obj is NativeArrayPool<T> nativeArrayPool && nativeArrayPool == this;
+        public override bool Equals(object? obj) => obj is NativeArrayPool<T> other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public readonly override int GetHashCode() => ((nint)_buckets).GetHashCode();
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public readonly override string ToString() => $"NativeArrayPool<{typeof(T).Name}>";
+        public override string ToString() => SR.Format("NativeArrayPool<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
         ///     Equals
@@ -126,7 +123,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeArrayPool<T> left, NativeArrayPool<T> right) => left._buckets == right._buckets;
+        public static bool operator ==(NativeArrayPool<T> left, NativeArrayPool<T> right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -134,7 +131,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeArrayPool<T> left, NativeArrayPool<T> right) => left._buckets != right._buckets;
+        public static bool operator !=(NativeArrayPool<T> left, NativeArrayPool<T> right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
@@ -143,10 +140,10 @@ namespace NativeCollections
         public void Dispose()
         {
             var buckets = _buckets;
-            if (buckets == null)
+            if (UnsafeHelpers.IsNull(buckets))
                 return;
             for (var i = 0; i < _length; ++i)
-                Unsafe.Add(ref Unsafe.AsRef<NativeArrayPoolBucket>(buckets), (nint)i).Dispose(_capacity, ref _allocator);
+                Unsafe.Add(ref Unsafe.AsRef<NativeArrayPoolBucket>(buckets), (nint)i).Dispose(_capacity, _allocator);
             NativeMemoryAllocator.AlignedFree(buckets);
         }
 
@@ -161,7 +158,7 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfNegative(minimumLength, ExceptionArgument.minimumLength);
             var index = SelectBucketIndex(minimumLength);
             ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _length, ExceptionArgument.minimumLength);
-            return Unsafe.Add(ref Unsafe.AsRef<NativeArrayPoolBucket>(_buckets), (nint)index).Rent(_capacity, ref _allocator);
+            return Unsafe.Add(ref Unsafe.AsRef<NativeArrayPoolBucket>(_buckets), (nint)index).Rent(_capacity, _allocator);
         }
 
         /// <summary>
@@ -182,7 +179,7 @@ namespace NativeCollections
             var index = SelectBucketIndex(minimumLength);
             if (index < _length)
             {
-                nativeArray = Unsafe.Add(ref Unsafe.AsRef<NativeArrayPoolBucket>(_buckets), (nint)index).Rent(_capacity, ref _allocator);
+                nativeArray = Unsafe.Add(ref Unsafe.AsRef<NativeArrayPoolBucket>(_buckets), (nint)index).Rent(_capacity, _allocator);
                 return true;
             }
 
@@ -218,7 +215,7 @@ namespace NativeCollections
             var bucket = SelectBucketIndex(length);
             if (bucket >= _length)
                 ThrowHelpers.ThrowBufferNotFromPoolException(ExceptionArgument.buffer);
-            Unsafe.Add(ref Unsafe.AsRef<NativeArrayPoolBucket>(_buckets), (nint)bucket).Return(buffer, ref _allocator);
+            Unsafe.Add(ref Unsafe.AsRef<NativeArrayPoolBucket>(_buckets), (nint)bucket).Return(buffer, _allocator);
         }
 
         /// <summary>
@@ -235,7 +232,7 @@ namespace NativeCollections
             var bucket = SelectBucketIndex(length);
             if (bucket >= _length)
                 return false;
-            Unsafe.Add(ref Unsafe.AsRef<NativeArrayPoolBucket>(_buckets), (nint)bucket).Return(buffer, ref _allocator);
+            Unsafe.Add(ref Unsafe.AsRef<NativeArrayPoolBucket>(_buckets), (nint)bucket).Return(buffer, _allocator);
             return true;
         }
 
@@ -261,33 +258,45 @@ namespace NativeCollections
             /// <summary>
             ///     Buffers
             /// </summary>
-            public nint* Buffer;
+            [NativePointer(typeof(void*))] private readonly nint* _buffer;
 
             /// <summary>
             ///     Length
             /// </summary>
-            public int Length;
+            private readonly int _length;
 
             /// <summary>
             ///     Index
             /// </summary>
-            public int Index;
+            private int _index;
 
             /// <summary>
             ///     State lock
             /// </summary>
-            public SpinLock SpinLock;
+            private SpinLock _spinLock;
+
+            /// <summary>
+            ///     Structure
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public NativeArrayPoolBucket(nint* buffer, int length)
+            {
+                _buffer = buffer;
+                _length = length;
+                _index = 0;
+                _spinLock = new SpinLock();
+            }
 
             /// <summary>
             ///     Dispose
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public readonly void Dispose(int capacity, ref CustomMemoryAllocator allocator)
+            public readonly void Dispose(int capacity, in CustomMemoryAllocator allocator)
             {
-                for (var i = capacity - 1; i >= 0; --i)
+                for (var i = _index; i < capacity; ++i)
                 {
-                    var buffer = (void*)Unsafe.Add(ref Unsafe.AsRef<nint>(Buffer), (nint)i);
-                    if (buffer == null)
+                    var buffer = (void*)Unsafe.Add(ref Unsafe.AsRef<nint>(_buffer), (nint)i);
+                    if (UnsafeHelpers.IsNull(buffer))
                         break;
                     allocator.AlignedFree(buffer);
                 }
@@ -296,57 +305,51 @@ namespace NativeCollections
             /// <summary>
             ///     Rent buffer
             /// </summary>
-            /// <returns>Buffer</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public NativeArray<T> Rent(int capacity, ref CustomMemoryAllocator allocator)
+            public NativeArray<T> Rent(int capacity, in CustomMemoryAllocator allocator)
             {
-                var buffer = Buffer;
-                T* ptr = null;
-                ref var spinLock = ref SpinLock;
-                ref var index = ref Index;
+                void* ptr = null;
                 var lockTaken = false;
                 try
                 {
-                    spinLock.Enter(ref lockTaken);
-                    if (index < capacity)
+                    _spinLock.Enter(ref lockTaken);
+                    if (_index < capacity)
                     {
-                        ptr = (T*)Unsafe.Add(ref Unsafe.AsRef<nint>(buffer), (nint)index);
-                        Unsafe.Add(ref Unsafe.AsRef<nint>(buffer), (nint)index++) = 0;
+                        ptr = (void*)Unsafe.Add(ref Unsafe.AsRef<nint>(_buffer), (nint)_index);
+                        Unsafe.Add(ref Unsafe.AsRef<nint>(_buffer), (nint)_index++) = 0;
                     }
 
-                    if (ptr == null)
-                        ptr = (T*)allocator.AlignedAlloc((uint)Length, (uint)NativeMemoryAllocator.AlignOf<T>());
+                    if (UnsafeHelpers.IsNull(ptr))
+                        ptr = allocator.AlignedAlloc((uint)_length, (uint)NativeMemoryAllocator.AlignOf<T>());
                 }
                 finally
                 {
                     if (lockTaken)
-                        spinLock.Exit(false);
+                        _spinLock.Exit(false);
                 }
 
-                return new NativeArray<T>(ptr, Length);
+                return new NativeArray<T>((T*)ptr, _length);
             }
 
             /// <summary>
             ///     Return buffer
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public void Return(T* ptr, ref CustomMemoryAllocator allocator)
+            public void Return(void* ptr, in CustomMemoryAllocator allocator)
             {
-                ref var spinLock = ref SpinLock;
-                ref var index = ref Index;
                 var lockTaken = false;
                 try
                 {
-                    spinLock.Enter(ref lockTaken);
-                    if (index != 0)
-                        Unsafe.Add(ref Unsafe.AsRef<nint>(Buffer), (nint)(--index)) = (nint)ptr;
+                    _spinLock.Enter(ref lockTaken);
+                    if (_index != 0)
+                        Unsafe.Add(ref Unsafe.AsRef<nint>(_buffer), (nint)(--_index)) = (nint)ptr;
                     else
                         allocator.AlignedFree(ptr);
                 }
                 finally
                 {
                     if (lockTaken)
-                        spinLock.Exit(false);
+                        _spinLock.Exit(false);
                 }
             }
         }

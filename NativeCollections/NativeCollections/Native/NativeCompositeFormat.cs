@@ -11,6 +11,7 @@ namespace NativeCollections
     /// <summary>
     ///     Represents a parsed composite format string.
     /// </summary>
+    [IsReferenceOrContainsReferences]
     public sealed class NativeCompositeFormat
     {
         /// <summary>The parsed segments that make up the composite format string.</summary>
@@ -73,6 +74,12 @@ namespace NativeCollections
         /// <remarks>It's permissible to supply more arguments than this value, but it's an error to pass fewer.</remarks>
         public int MinimumArgumentCount => ArgsRequired;
 
+        /// <summary>
+        ///     To string
+        /// </summary>
+        /// <returns>String</returns>
+        public override string ToString() => "NativeCompositeFormat";
+
         /// <summary>Parse the composite format string <paramref name="format" />.</summary>
         /// <param name="format">The string to parse.</param>
         /// <returns>The parsed <see cref="NativeCompositeFormat" />.</returns>
@@ -85,7 +92,7 @@ namespace NativeCollections
             string format)
         {
             ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
-            using var segments = new NativeListBuilder<(string? Literal, int ArgIndex, int Alignment, string? Format)>(4);
+            using var segments = new UnsafeListBuilder<(string? Literal, int ArgIndex, int Alignment, string? Format)>(4);
             ref var segmentsRef = ref segments.AsRef();
             var failureOffset = 0;
             var failureReason = (ExceptionResource)(-1);
@@ -110,9 +117,9 @@ namespace NativeCollections
         /// <param name="failureOffset">The offset at which a parsing error occured if <see langword="false" /> is returned.</param>
         /// <param name="failureReason">The reason for a parsing failure if <see langword="false" /> is returned.</param>
         /// <returns>true if the format string can be parsed successfully; otherwise, false.</returns>
-        private static bool TryParseLiterals(ReadOnlySpan<char> format, ref NativeListBuilder<(string? Literal, int ArgIndex, int Alignment, string? Format)> segments, ref int failureOffset, ref ExceptionResource failureReason)
+        private static bool TryParseLiterals(ReadOnlySpan<char> format, ref UnsafeListBuilder<(string? Literal, int ArgIndex, int Alignment, string? Format)> segments, ref int failureOffset, ref ExceptionResource failureReason)
         {
-            using var temp = new NativeStringBuilder<char>(stackalloc char[512], 0);
+            using var temp = new UnsafeStringBuilder<char>(stackalloc char[512], 0);
             var position = 0;
             while (true)
             {

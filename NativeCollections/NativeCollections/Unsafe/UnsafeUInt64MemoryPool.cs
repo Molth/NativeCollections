@@ -11,7 +11,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.None)]
-    public unsafe struct UnsafeUInt64MemoryPool : IDisposable
+    public unsafe struct UnsafeUInt64MemoryPool : IIsCreated, IDisposable, IEquatable<UnsafeUInt64MemoryPool>
     {
         /// <summary>
         ///     Sentinel
@@ -49,9 +49,9 @@ namespace NativeCollections
         private readonly int _alignment;
 
         /// <summary>
-        ///     Aligned length
+        ///     Aligned slab size
         /// </summary>
-        private readonly int _alignedLength;
+        private readonly int _alignedSlabSize;
 
         /// <summary>
         ///     Aligned node size
@@ -59,9 +59,19 @@ namespace NativeCollections
         private readonly int _alignedNodeSize;
 
         /// <summary>
-        ///     Aligned slab size
+        ///     Aligned length
         /// </summary>
-        private readonly int _alignedSlabSize;
+        private readonly int _alignedLength;
+
+        /// <summary>
+        ///     Full node size
+        /// </summary>
+        private readonly int _fullNodeSize;
+
+        /// <summary>
+        ///     Is created
+        /// </summary>
+        public readonly bool IsCreated => !UnsafeHelpers.IsNull(_sentinel);
 
         /// <summary>
         ///     Slabs
@@ -106,18 +116,14 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfNegative(maxFreeSlabs, ExceptionArgument.maxFreeSlabs);
             ThrowHelpers.ThrowIfNegative(alignment, ExceptionArgument.alignment);
             ThrowHelpers.ThrowIfAlignmentNotBePow2((uint)alignment, ExceptionArgument.alignment);
-            var alignedLength = (int)NativeMemoryAllocator.AlignUp((nuint)length, (nuint)alignment);
-            var alignedNodeSize = (int)NativeMemoryAllocator.AlignUp((nuint)Unsafe.SizeOf<nint>(), (nuint)alignment);
-            var nodeSize = alignedNodeSize + alignedLength;
+            alignment = Math.Max(alignment, (int)NativeMemoryAllocator.AlignOf<MemorySlab>());
             var alignedSlabSize = (int)NativeMemoryAllocator.AlignUp((nuint)Unsafe.SizeOf<MemorySlab>(), (nuint)alignment);
-            var buffer = NativeMemoryAllocator.AlignedAlloc((uint)(alignedSlabSize + 64 * nodeSize), (uint)alignment);
-            var slab = (MemorySlab*)buffer;
+            var alignedNodeSize = (int)NativeMemoryAllocator.AlignUp((nuint)Unsafe.SizeOf<nint>(), (nuint)alignment);
+            var alignedLength = (int)NativeMemoryAllocator.AlignUp((nuint)length, (nuint)alignment);
+            var fullNodeSize = alignedNodeSize + alignedLength;
+            var slab = Create(alignedSlabSize, fullNodeSize, alignment);
             slab->Next = slab;
             slab->Previous = slab;
-            slab->Bitmap = 0UL;
-            buffer = UnsafeHelpers.AddByteOffset(buffer, alignedSlabSize);
-            for (var i = 0; i < 64; ++i)
-                Unsafe.As<byte, nint>(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(buffer), new IntPtr(i * nodeSize))) = i;
             _sentinel = slab;
             _freeList = null;
             _slabs = 1;
@@ -125,10 +131,53 @@ namespace NativeCollections
             _maxFreeSlabs = maxFreeSlabs;
             _length = length;
             _alignment = alignment;
-            _alignedLength = alignedLength;
-            _alignedNodeSize = alignedNodeSize;
             _alignedSlabSize = alignedSlabSize;
+            _alignedNodeSize = alignedNodeSize;
+            _alignedLength = alignedLength;
+            _fullNodeSize = fullNodeSize;
         }
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public readonly bool Equals(UnsafeUInt64MemoryPool other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="obj">object</param>
+        /// <returns>Equals</returns>
+        public readonly override bool Equals(object? obj) => obj is UnsafeUInt64MemoryPool other && other.Equals(this);
+
+        /// <summary>
+        ///     Get hashCode
+        /// </summary>
+        /// <returns>HashCode</returns>
+        public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
+
+        /// <summary>
+        ///     To string
+        /// </summary>
+        /// <returns>String</returns>
+        public readonly override string ToString() => "UnsafeUInt64MemoryPool";
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Equals</returns>
+        public static bool operator ==(UnsafeUInt64MemoryPool left, UnsafeUInt64MemoryPool right) => left.Equals(right);
+
+        /// <summary>
+        ///     Not equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Not equals</returns>
+        public static bool operator !=(UnsafeUInt64MemoryPool left, UnsafeUInt64MemoryPool right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
@@ -156,6 +205,56 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Clear
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Clear() => ClearInternal(0);
+
+        /// <summary>
+        ///     Clear
+        /// </summary>
+        /// <param name="capacity">Remaining free slabs</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int Clear(int capacity)
+        {
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
+            capacity = Math.Min(capacity, _maxFreeSlabs);
+            ClearInternal(capacity);
+            return _freeSlabs;
+        }
+
+        /// <summary>
+        ///     Clear
+        /// </summary>
+        /// <param name="capacity">Remaining free slabs</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void ClearInternal(int capacity)
+        {
+            TrimExcessInternal(capacity);
+            var node = _sentinel;
+            while (_slabs > 1)
+            {
+                _slabs--;
+                var temp = node;
+                node = node->Next;
+                if (_freeSlabs == capacity)
+                {
+                    NativeMemoryAllocator.AlignedFree(temp);
+                }
+                else
+                {
+                    temp->Next = _freeList;
+                    _freeList = temp;
+                    _freeSlabs++;
+                }
+            }
+
+            node->Next = node;
+            node->Previous = node;
+            _sentinel = node;
+        }
+
+        /// <summary>
         ///     Rent buffer
         /// </summary>
         /// <returns>Buffer</returns>
@@ -163,9 +262,6 @@ namespace NativeCollections
         public void* Rent()
         {
             var slab = _sentinel;
-            var alignedNodeSize = _alignedNodeSize;
-            var nodeSize = alignedNodeSize + _alignedLength;
-            var alignedSlabSize = _alignedSlabSize;
             if (slab->Bitmap == ulong.MaxValue)
             {
                 _sentinel = slab->Next;
@@ -174,11 +270,7 @@ namespace NativeCollections
                 {
                     if (_freeSlabs == 0)
                     {
-                        var buffer = NativeMemoryAllocator.AlignedAlloc((uint)(alignedSlabSize + 64 * nodeSize), (uint)_alignment);
-                        slab = (MemorySlab*)buffer;
-                        buffer = UnsafeHelpers.AddByteOffset(buffer, alignedSlabSize);
-                        for (var i = 0; i < 64; ++i)
-                            Unsafe.As<byte, nint>(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(buffer), new IntPtr(i * nodeSize))) = i;
+                        slab = Create(_alignedSlabSize, _fullNodeSize, _alignment);
                     }
                     else
                     {
@@ -189,7 +281,6 @@ namespace NativeCollections
 
                     slab->Next = _sentinel;
                     slab->Previous = _sentinel->Previous;
-                    slab->Bitmap = 0UL;
                     _sentinel->Previous->Next = slab;
                     _sentinel->Previous = slab;
                     _sentinel = slab;
@@ -198,9 +289,9 @@ namespace NativeCollections
             }
 
             ref var segment = ref slab->Bitmap;
-            var id = BitOperationsHelpers.TrailingZeroCount(~segment);
-            segment |= 1UL << id;
-            return UnsafeHelpers.AddByteOffset(slab, alignedSlabSize + id * nodeSize + alignedNodeSize);
+            var bitMask = BitOperationsHelpers.TrailingZeroCount(~segment);
+            segment |= 1UL << bitMask;
+            return UnsafeHelpers.AddByteOffset(slab, _alignedSlabSize + bitMask * _fullNodeSize + _alignedNodeSize);
         }
 
         /// <summary>
@@ -210,14 +301,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Return(void* ptr)
         {
-            var alignedNodeSize = _alignedNodeSize;
-            var nodeSize = alignedNodeSize + _alignedLength;
-            var alignedSlabSize = _alignedSlabSize;
-            var id = (int)Unsafe.AsRef<nint>(UnsafeHelpers.SubtractByteOffset(ptr, alignedNodeSize));
-            var buffer = UnsafeHelpers.SubtractByteOffset(ptr, alignedSlabSize + id * nodeSize + alignedNodeSize);
-            var slab = (MemorySlab*)buffer;
+            var bitMask = (int)Unsafe.AsRef<nint>(UnsafeHelpers.SubtractByteOffset(ptr, _alignedNodeSize));
+            var slab = (MemorySlab*)UnsafeHelpers.SubtractByteOffset(ptr, _alignedSlabSize + bitMask * _fullNodeSize + _alignedNodeSize);
             ref var segment = ref slab->Bitmap;
-            segment &= ~(1UL << id);
+            segment &= ~(1UL << bitMask);
             if (slab != _sentinel)
             {
                 if (segment == 0)
@@ -239,7 +326,7 @@ namespace NativeCollections
                     return;
                 }
 
-                if ((segment | (1UL << id)) == ulong.MaxValue)
+                if ((segment | (1UL << bitMask)) == ulong.MaxValue)
                 {
                     slab->Previous->Next = slab->Next;
                     slab->Next->Previous = slab->Previous;
@@ -261,16 +348,10 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             capacity = Math.Min(capacity, _maxFreeSlabs);
-            var nodeSize = Unsafe.SizeOf<nint>() + _alignedLength;
-            var alignedSlabSize = _alignedSlabSize;
             while (_freeSlabs < capacity)
             {
                 _freeSlabs++;
-                var buffer = NativeMemoryAllocator.AlignedAlloc((uint)(alignedSlabSize + 64 * nodeSize), (uint)_alignment);
-                var slab = (MemorySlab*)buffer;
-                buffer = UnsafeHelpers.AddByteOffset(buffer, alignedSlabSize);
-                for (var i = 0; i < 64; ++i)
-                    Unsafe.As<byte, nint>(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(buffer), new IntPtr(i * nodeSize))) = i;
+                var slab = Create(_alignedSlabSize, _fullNodeSize, _alignment);
                 slab->Next = _freeList;
                 _freeList = slab;
             }
@@ -282,10 +363,28 @@ namespace NativeCollections
         ///     Trim excess
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void TrimExcess()
+        public void TrimExcess() => TrimExcessInternal(0);
+
+        /// <summary>
+        ///     Trim excess
+        /// </summary>
+        /// <param name="capacity">Remaining free slabs</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int TrimExcess(int capacity)
+        {
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
+            TrimExcessInternal(capacity);
+            return _freeSlabs;
+        }
+
+        /// <summary>
+        ///     Trim excess
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void TrimExcessInternal(int capacity)
         {
             var node = _freeList;
-            while (_freeSlabs > 0)
+            while (_freeSlabs > capacity)
             {
                 _freeSlabs--;
                 var temp = node;
@@ -297,24 +396,26 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Trim excess
+        ///     Create
         /// </summary>
-        /// <param name="capacity">Remaining free slabs</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int TrimExcess(int capacity)
+        private static MemorySlab* Create(int alignedSlabSize, int fullNodeSize, int alignment)
         {
-            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
-            var node = _freeList;
-            while (_freeSlabs > capacity)
-            {
-                _freeSlabs--;
-                var temp = node;
-                node = node->Next;
-                NativeMemoryAllocator.AlignedFree(temp);
-            }
+            var slab = (MemorySlab*)NativeMemoryAllocator.AlignedAlloc((uint)(alignedSlabSize + 64 * fullNodeSize), (uint)alignment);
+            Initialize(slab, alignedSlabSize, fullNodeSize);
+            return slab;
+        }
 
-            _freeList = node;
-            return _freeSlabs;
+        /// <summary>
+        ///     Initialize
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void Initialize(MemorySlab* slab, int alignedSlabSize, int fullNodeSize)
+        {
+            var buffer = UnsafeHelpers.AddByteOffset(slab, alignedSlabSize);
+            for (var i = 0; i < 64; ++i)
+                Unsafe.AsRef<nint>(UnsafeHelpers.AddByteOffset(buffer, i * fullNodeSize)) = i;
+            slab->Bitmap = 0UL;
         }
 
         /// <summary>

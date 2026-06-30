@@ -12,7 +12,7 @@ namespace NativeCollections
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
     [BindingType(typeof(UnsafeConcurrentChunkedStream))]
-    public readonly unsafe struct NativeConcurrentChunkedStream : IDisposable, IEquatable<NativeConcurrentChunkedStream>
+    public readonly unsafe struct NativeConcurrentChunkedStream : IIsCreated, IDisposable, IEquatable<NativeConcurrentChunkedStream>
     {
         /// <summary>
         ///     Handle
@@ -36,7 +36,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => _handle != null;
+        public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
         /// <summary>
         ///     Is empty
@@ -73,20 +73,20 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeConcurrentChunkedStream other) => other == this;
+        public bool Equals(NativeConcurrentChunkedStream other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeConcurrentChunkedStream nativeConcurrentChunkedStream && nativeConcurrentChunkedStream == this;
+        public override bool Equals(object? obj) => obj is NativeConcurrentChunkedStream other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => ((nint)_handle).GetHashCode();
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
@@ -100,7 +100,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeConcurrentChunkedStream left, NativeConcurrentChunkedStream right) => left._handle == right._handle;
+        public static bool operator ==(NativeConcurrentChunkedStream left, NativeConcurrentChunkedStream right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -108,7 +108,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeConcurrentChunkedStream left, NativeConcurrentChunkedStream right) => left._handle != right._handle;
+        public static bool operator !=(NativeConcurrentChunkedStream left, NativeConcurrentChunkedStream right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
@@ -117,7 +117,7 @@ namespace NativeCollections
         public void Dispose()
         {
             var handle = _handle;
-            if (handle == null)
+            if (UnsafeHelpers.IsNull(handle))
                 return;
             handle->Dispose();
             NativeMemoryAllocator.AlignedFree(handle);

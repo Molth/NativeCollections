@@ -15,7 +15,7 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard)]
-    public unsafe struct UnsafeHashSet<T> : IDisposable, IReadOnlyCollection<T> where T : unmanaged, IEquatable<T>
+    public unsafe struct UnsafeHashSet<T> : IIsCreated, IDisposable, IEquatable<UnsafeHashSet<T>>, IReadOnlyCollection<T> where T : unmanaged, IEquatable<T>
     {
         /// <summary>
         ///     Buckets
@@ -38,7 +38,7 @@ namespace NativeCollections
         private int _entriesLength;
 
         /// <summary>
-        ///     FastModMultiplier
+        ///     Pre-computed multiplier for use on 64-bit performing faster modulo operations.
         /// </summary>
         private ulong _fastModMultiplier;
 
@@ -61,6 +61,11 @@ namespace NativeCollections
         ///     Version
         /// </summary>
         private int _version;
+
+        /// <summary>
+        ///     Is created
+        /// </summary>
+        public readonly bool IsCreated => !UnsafeHelpers.IsNull(_buckets);
 
         /// <summary>
         ///     Is empty
@@ -89,6 +94,48 @@ namespace NativeCollections
             this = new UnsafeHashSet<T>();
             Initialize(capacity);
         }
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public readonly bool Equals(UnsafeHashSet<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="obj">object</param>
+        /// <returns>Equals</returns>
+        public readonly override bool Equals(object? obj) => obj is UnsafeHashSet<T> other && other.Equals(this);
+
+        /// <summary>
+        ///     Get hashCode
+        /// </summary>
+        /// <returns>HashCode</returns>
+        public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
+
+        /// <summary>
+        ///     To string
+        /// </summary>
+        /// <returns>String</returns>
+        public readonly override string ToString() => SR.Format("UnsafeHashSet<{0}>", SR.GetTypeName(typeof(T)));
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Equals</returns>
+        public static bool operator ==(UnsafeHashSet<T> left, UnsafeHashSet<T> right) => left.Equals(right);
+
+        /// <summary>
+        ///     Not equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Not equals</returns>
+        public static bool operator !=(UnsafeHashSet<T> left, UnsafeHashSet<T> right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
@@ -541,12 +588,13 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
+        [MustBePinned(SR.parameter_this)]
         public Enumerator GetEnumerator() => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
@@ -557,7 +605,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator IEnumerable.GetEnumerator()
         {
@@ -574,7 +622,7 @@ namespace NativeCollections
             /// <summary>
             ///     NativeHashSet
             /// </summary>
-            private readonly UnsafeHashSet<T>* _nativeHashSet;
+            private readonly UnsafeHashSet<T>* _handle;
 
             /// <summary>
             ///     Version
@@ -594,12 +642,10 @@ namespace NativeCollections
             /// <summary>
             ///     Structure
             /// </summary>
-            /// <param name="nativeHashSet">NativeHashSet</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(UnsafeHashSet<T>* nativeHashSet)
+            internal Enumerator(UnsafeHashSet<T>* handle)
             {
-                var handle = nativeHashSet;
-                _nativeHashSet = handle;
+                _handle = handle;
                 _version = handle->_version;
                 _index = 0;
                 _current = default;
@@ -612,7 +658,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext()
             {
-                var handle = _nativeHashSet;
+                var handle = _handle;
                 ThrowHelpers.ThrowIfEnumFailedVersion(_version, handle->_version);
                 while ((uint)_index < (uint)handle->_count)
                 {

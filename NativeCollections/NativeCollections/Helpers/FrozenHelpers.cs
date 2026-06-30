@@ -2,11 +2,9 @@
 using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using static NativeCollections.ArchitectureHelpers;
+using static NativeCollections.PaddingHelpers;
 #if NET5_0_OR_GREATER
 using System.Text;
-#else
-using System.Collections.Generic;
 #endif
 
 // ReSharper disable ALL
@@ -69,7 +67,7 @@ namespace NativeCollections
             private readonly NativeArray<Bucket> _buckets;
 
             /// <summary>
-            ///     Fast mod multiplier
+            ///     Pre-computed multiplier for use on 64-bit performing faster modulo operations.
             /// </summary>
             private readonly ulong _fastModMultiplier;
 
@@ -172,7 +170,7 @@ namespace NativeCollections
             private static int CalculateNumBuckets(ReadOnlySpan<int> hashCodes, bool hashCodesAreUnique)
             {
                 var intSet = NativeHashSet<int>.Empty;
-                using var autoDisposable = new NativeDisposable<NativeHashSet<int>>(&intSet);
+                using var autoDisposable = new UnsafeDisposable<NativeHashSet<int>>(&intSet);
                 var min = hashCodes.Length;
                 ReadOnlySpan<int> readOnlySpan;
                 if (!hashCodesAreUnique)
@@ -295,24 +293,5 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Dispose() => _hashCodes.Dispose();
         }
-
-#if !NET5_0_OR_GREATER
-        /// <summary>
-        ///     Key value pair comparer
-        /// </summary>
-        public sealed class KeyValuePairComparer<TKey, TValue> : IComparer<KeyValuePair<TKey, TValue>>
-        {
-            /// <summary>
-            ///     Default
-            /// </summary>
-            public static KeyValuePairComparer<TKey, TValue> Default { get; } = new();
-
-            /// <summary>
-            ///     Compare
-            /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public int Compare(KeyValuePair<TKey, TValue> x, KeyValuePair<TKey, TValue> y) => Comparer<TKey>.Default.Compare(x.Key, y.Key);
-        }
-#endif
     }
 }

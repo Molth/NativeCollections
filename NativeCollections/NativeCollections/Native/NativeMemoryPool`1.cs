@@ -12,7 +12,7 @@ namespace NativeCollections
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
     [BindingType(typeof(UnsafeMemoryPool<>))]
-    public readonly unsafe struct NativeMemoryPool<T> : IDisposable, IEquatable<NativeMemoryPool<T>> where T : unmanaged
+    public readonly unsafe struct NativeMemoryPool<T> : IIsCreated, IDisposable, IEquatable<NativeMemoryPool<T>> where T : unmanaged
     {
         /// <summary>
         ///     Handle
@@ -52,7 +52,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => _handle != null;
+        public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
         /// <summary>
         ///     Slabs
@@ -94,26 +94,26 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeMemoryPool<T> other) => other == this;
+        public bool Equals(NativeMemoryPool<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeMemoryPool<T> nativeAlignedMemoryPool && nativeAlignedMemoryPool == this;
+        public override bool Equals(object? obj) => obj is NativeMemoryPool<T> other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => ((nint)_handle).GetHashCode();
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => $"NativeMemoryPool<{typeof(T).Name}>";
+        public override string ToString() => SR.Format("NativeMemoryPool<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
         ///     Equals
@@ -121,7 +121,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeMemoryPool<T> left, NativeMemoryPool<T> right) => left._handle == right._handle;
+        public static bool operator ==(NativeMemoryPool<T> left, NativeMemoryPool<T> right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -129,7 +129,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeMemoryPool<T> left, NativeMemoryPool<T> right) => left._handle != right._handle;
+        public static bool operator !=(NativeMemoryPool<T> left, NativeMemoryPool<T> right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
@@ -138,11 +138,24 @@ namespace NativeCollections
         public void Dispose()
         {
             var handle = _handle;
-            if (handle == null)
+            if (UnsafeHelpers.IsNull(handle))
                 return;
             handle->Dispose();
             NativeMemoryAllocator.AlignedFree(handle);
         }
+
+        /// <summary>
+        ///     Clear
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Clear() => _handle->Clear();
+
+        /// <summary>
+        ///     Clear
+        /// </summary>
+        /// <param name="capacity">Remaining free slabs</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int Clear(int capacity) => _handle->Clear(capacity);
 
         /// <summary>
         ///     Rent buffer

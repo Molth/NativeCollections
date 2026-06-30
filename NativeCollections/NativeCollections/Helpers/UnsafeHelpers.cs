@@ -13,6 +13,12 @@ namespace NativeCollections
     internal static unsafe class UnsafeHelpers
     {
         /// <summary>
+        ///     Returns if a given pointer is a null reference.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsNull(void* ptr) => (nint)ptr == 0;
+
+        /// <summary>
         ///     Returns a pointer to the given by-ref parameter.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -44,8 +50,6 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TTo BitCast<TFrom, TTo>(TFrom source) where TFrom : unmanaged where TTo : unmanaged
         {
-            if (typeof(TFrom) == typeof(TTo))
-                return Unsafe.As<TFrom, TTo>(ref source);
 #if NET8_0_OR_GREATER
             return Unsafe.BitCast<TFrom, TTo>(source);
 #else
@@ -94,6 +98,7 @@ namespace NativeCollections
         /// <summary>
         ///     Determines the byte offset from origin to target from the given references.
         /// </summary>
+        /// <returns>The byte offset from origin to target, that is, target - origin.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static nint ByteOffset(void* origin, void* target) => Unsafe.ByteOffset(ref Unsafe.AsRef<byte>(origin), ref Unsafe.AsRef<byte>(target));
     }

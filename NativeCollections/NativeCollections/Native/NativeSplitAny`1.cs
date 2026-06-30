@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 #if NET9_0_OR_GREATER
 using System.Collections;
-using System.ComponentModel;
 #endif
+
+#pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
 
 // ReSharper disable ALL
 
@@ -17,10 +19,11 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    [IsAssignableTo(typeof(IEnumerable<>))]
+    [IsReferenceOrContainsReferences]
+    [IsAssignableTo(typeof(IIsCreated), typeof(IEnumerable<>))]
     public readonly ref struct NativeSplitAny<T>
 #if NET9_0_OR_GREATER
-        : IEnumerable<ReadOnlySpan<T>>
+        : IIsCreated, IEnumerable<ReadOnlySpan<T>>
 #endif
         where T : IEquatable<T>
     {
@@ -40,7 +43,8 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="separator">Separator</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeSplitAny(ReadOnlySpan<T> buffer, in T separator)
+        [MustBePinned(nameof(separator))]
+        public NativeSplitAny(ReadOnlySpan<T> buffer, [MustBePinned] in T separator)
         {
             _buffer = buffer;
             _separator = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in separator), 1);
@@ -59,6 +63,39 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Equals
+        /// </summary>
+        [Obsolete(SR.parameter_obsolete)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public override bool Equals(object? obj)
+        {
+            ThrowHelpers.ThrowCannotCallEqualsException();
+            return default;
+        }
+
+        /// <summary>
+        ///     Get hashCode
+        /// </summary>
+        [Obsolete(SR.parameter_obsolete)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public override int GetHashCode()
+        {
+            ThrowHelpers.ThrowCannotCallGetHashCodeException();
+            return default;
+        }
+
+        /// <summary>
+        ///     To string
+        /// </summary>
+        /// <returns>String</returns>
+        public override string ToString() => SR.Format("NativeSplitAny<{0}>", SR.GetTypeName(typeof(T)));
+
+        /// <summary>
+        ///     Is created
+        /// </summary>
+        public bool IsCreated => !_buffer.IsEmpty;
+
+        /// <summary>
         ///     Empty
         /// </summary>
         public static NativeSplitAny<T> Empty => new();
@@ -72,7 +109,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator<ReadOnlySpan<T>> IEnumerable<ReadOnlySpan<T>>.GetEnumerator()
         {
@@ -83,7 +120,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator IEnumerable.GetEnumerator()
         {

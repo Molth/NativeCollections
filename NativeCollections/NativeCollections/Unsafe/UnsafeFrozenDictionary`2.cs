@@ -5,12 +5,11 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using static NativeCollections.NativeFrozenDictionary;
-#if !NET5_0_OR_GREATER
-using System.Buffers;
-#endif
 
+#if !NET7_0_OR_GREATER
 #pragma warning disable CS9082 // Local is returned by reference but was initialized to a value that cannot be returned by reference
-#pragma warning disable CS9083 // A member is returned by reference but was initialized to a value that cannot be returned by reference
+#pragma warning disable CS9083 // A member is returned by reference but was initialized to a value that cannot be returned by reference 
+#endif
 
 // ReSharper disable ALL
 
@@ -23,7 +22,7 @@ namespace NativeCollections
     /// <typeparam name="TValue">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard)]
-    public readonly unsafe struct UnsafeFrozenDictionary<TKey, TValue> : IDisposable, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
+    public readonly unsafe struct UnsafeFrozenDictionary<TKey, TValue> : IIsCreated, IDisposable, IEquatable<UnsafeFrozenDictionary<TKey, TValue>>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
     {
         /// <summary>
         ///     Handle
@@ -46,6 +45,11 @@ namespace NativeCollections
                 return ref local;
             }
         }
+
+        /// <summary>
+        ///     Is created
+        /// </summary>
+        public bool IsCreated => _handle.IsCreated;
 
         /// <summary>
         ///     Is empty
@@ -95,16 +99,12 @@ namespace NativeCollections
         ///     Structure
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeFrozenDictionary<TKey, TValue> Create<TReadOnlyCollection>(in TReadOnlyCollection source) where TReadOnlyCollection : IReadOnlyCollection<KeyValuePair<TKey, TValue>>
+        public static UnsafeFrozenDictionary<TKey, TValue> Create(Dictionary<TKey, TValue> source)
         {
             using var keyValuePairs = new NativeArray<KeyValuePair<TKey, TValue>>(source.Count);
             var index = 0;
             foreach (var kvp in source)
-            {
-                keyValuePairs[index] = kvp;
-                ++index;
-            }
-
+                keyValuePairs[index++] = kvp;
             return new UnsafeFrozenDictionary<TKey, TValue>(keyValuePairs);
         }
 
@@ -115,13 +115,7 @@ namespace NativeCollections
         public static UnsafeFrozenDictionary<TKey, TValue> Create(NativeDictionary<TKey, TValue> source)
         {
             using var keyValuePairs = new NativeArray<KeyValuePair<TKey, TValue>>(source.Count);
-            var index = 0;
-            foreach (var kvp in source)
-            {
-                keyValuePairs[index] = kvp;
-                ++index;
-            }
-
+            source.CopyTo(keyValuePairs);
             return new UnsafeFrozenDictionary<TKey, TValue>(keyValuePairs);
         }
 
@@ -132,13 +126,7 @@ namespace NativeCollections
         public static UnsafeFrozenDictionary<TKey, TValue> Create(in UnsafeDictionary<TKey, TValue> source)
         {
             using var keyValuePairs = new NativeArray<KeyValuePair<TKey, TValue>>(source.Count);
-            var index = 0;
-            foreach (var kvp in source)
-            {
-                keyValuePairs[index] = kvp;
-                ++index;
-            }
-
+            source.CopyTo(keyValuePairs);
             return new UnsafeFrozenDictionary<TKey, TValue>(keyValuePairs);
         }
 
@@ -149,102 +137,98 @@ namespace NativeCollections
         public static UnsafeFrozenDictionary<TKey, TValue> Create(in StackallocDictionary<TKey, TValue> source)
         {
             using var keyValuePairs = new NativeArray<KeyValuePair<TKey, TValue>>(source.Count);
-            var index = 0;
-            foreach (var kvp in source)
-            {
-                keyValuePairs[index] = kvp;
-                ++index;
-            }
-
+            source.CopyTo(keyValuePairs);
             return new UnsafeFrozenDictionary<TKey, TValue>(keyValuePairs);
         }
 
         /// <summary>
         ///     Structure
         /// </summary>
+        [MustBeDistinct(nameof(source))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeFrozenDictionary(ReadOnlySpan<KeyValuePair<TKey, TValue>> source)
+        public UnsafeFrozenDictionary([MustBeDistinct] ReadOnlySpan<KeyValuePair<TKey, TValue>> source) => _handle = Initialize(source);
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public bool Equals(UnsafeFrozenDictionary<TKey, TValue> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="obj">object</param>
+        /// <returns>Equals</returns>
+        public override bool Equals(object? obj) => obj is UnsafeFrozenDictionary<TKey, TValue> other && other.Equals(this);
+
+        /// <summary>
+        ///     Get hashCode
+        /// </summary>
+        /// <returns>HashCode</returns>
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
+
+        /// <summary>
+        ///     To string
+        /// </summary>
+        /// <returns>String</returns>
+        public override string ToString() => SR.Format("UnsafeFrozenDictionary<{0}, {1}>", SR.GetTypeName(typeof(TKey)), SR.GetTypeName(typeof(TValue)));
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Equals</returns>
+        public static bool operator ==(UnsafeFrozenDictionary<TKey, TValue> left, UnsafeFrozenDictionary<TKey, TValue> right) => left.Equals(right);
+
+        /// <summary>
+        ///     Not equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Not equals</returns>
+        public static bool operator !=(UnsafeFrozenDictionary<TKey, TValue> left, UnsafeFrozenDictionary<TKey, TValue> right) => !left.Equals(right);
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static UnsafeFrozenDictionaryHandle<TKey, TValue> Initialize(ReadOnlySpan<KeyValuePair<TKey, TValue>> source)
         {
+            UnsafeFrozenDictionaryHandle<TKey, TValue> handle;
             if (source.IsEmpty)
             {
-                var handle = GetUnsafeHandle<EmptyFrozenDictionary<TKey, TValue>, TKey, TValue>();
+                handle = GetUnsafeHandle<EmptyFrozenDictionary<TKey, TValue>, TKey, TValue>();
                 Unsafe.As<UnsafeFrozenDictionaryValue, EmptyFrozenDictionary<TKey, TValue>>(ref handle.Value) = new EmptyFrozenDictionary<TKey, TValue>();
-                _handle = handle;
-                return;
+                return handle;
             }
 
             if (source.Length <= 10)
             {
                 if (FrozenHelpers.IsKnownComparable<TKey>())
                 {
-#if NET5_0_OR_GREATER
-                    using var keyValuePairs = new NativeArray<KeyValuePair<TKey, TValue>>(source.Length);
-#else
-                    var keyValuePairs = ArrayPool<KeyValuePair<TKey, TValue>>.Shared.Rent(source.Length);
-#endif
-                    var index = 0;
-                    foreach (var kvp in source)
-                    {
-                        keyValuePairs[index] = kvp;
-                        ++index;
-                    }
-
-#if NET5_0_OR_GREATER
-                    keyValuePairs.AsSpan().Sort(static (x, y) => Comparer<TKey>.Default.Compare(x.Key, y.Key));
-#else
-                    Array.Sort(keyValuePairs, 0, source.Length, FrozenHelpers.KeyValuePairComparer<TKey, TValue>.Default);
-#endif
-                    var handle = GetUnsafeHandle<SmallComparableFrozenDictionary<TKey, TValue>, TKey, TValue>();
-                    Unsafe.As<UnsafeFrozenDictionaryValue, SmallComparableFrozenDictionary<TKey, TValue>>(ref handle.Value) = new SmallComparableFrozenDictionary<TKey, TValue>(keyValuePairs.AsSpan(0, source.Length));
-#if !NET5_0_OR_GREATER
-                    ArrayPool<KeyValuePair<TKey, TValue>>.Shared.Return(keyValuePairs);
-#endif
-                    _handle = handle;
+                    handle = GetUnsafeHandle<SmallComparableFrozenDictionary<TKey, TValue>, TKey, TValue>();
+                    Unsafe.As<UnsafeFrozenDictionaryValue, SmallComparableFrozenDictionary<TKey, TValue>>(ref handle.Value) = new SmallComparableFrozenDictionary<TKey, TValue>(source);
+                    return handle;
                 }
-                else
-                {
-                    var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<TKey>(), NativeMemoryAllocator.AlignOf<TValue>());
-                    var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(source.Length * Unsafe.SizeOf<TKey>()), alignment);
-                    var buckets = (TKey*)NativeMemoryAllocator.AlignedAlloc((uint)(bucketsByteCount + source.Length * Unsafe.SizeOf<TValue>()), alignment);
-                    var entries = UnsafeHelpers.AddByteOffset<TValue>(buckets, (nint)bucketsByteCount);
-                    var keys = new NativeArray<TKey>(buckets, source.Length);
-                    var values = new NativeArray<TValue>(entries, source.Length);
-                    var index = 0;
-                    foreach (var kvp in source)
-                    {
-                        keys[index] = kvp.Key;
-                        values[index] = kvp.Value;
-                        ++index;
-                    }
 
-                    var handle = GetUnsafeHandle<SmallFrozenDictionary<TKey, TValue>, TKey, TValue>();
-                    Unsafe.As<UnsafeFrozenDictionaryValue, SmallFrozenDictionary<TKey, TValue>>(ref handle.Value) = new SmallFrozenDictionary<TKey, TValue>(keys, values);
-                    _handle = handle;
-                }
+                handle = GetUnsafeHandle<SmallFrozenDictionary<TKey, TValue>, TKey, TValue>();
+                Unsafe.As<UnsafeFrozenDictionaryValue, SmallFrozenDictionary<TKey, TValue>>(ref handle.Value) = new SmallFrozenDictionary<TKey, TValue>(source);
+                return handle;
             }
-            else
+
+            if (typeof(TKey) == typeof(int))
             {
-                using var buffer = new NativeArray<KeyValuePair<TKey, TValue>>(source.Length);
-                var index = 0;
-                foreach (var kvp in source)
-                {
-                    buffer[index] = kvp;
-                    ++index;
-                }
-
-                if (typeof(TKey) == typeof(int))
-                {
-                    var handle = GetUnsafeHandle<Int32FrozenDictionary<TValue>, int, TValue>();
-                    Unsafe.As<UnsafeFrozenDictionaryValue, Int32FrozenDictionary<TValue>>(ref handle.Value) = new Int32FrozenDictionary<TValue>(buffer.Cast<KeyValuePair<int, TValue>>());
-                    _handle = Unsafe.As<UnsafeFrozenDictionaryHandle<int, TValue>, UnsafeFrozenDictionaryHandle<TKey, TValue>>(ref handle);
-                }
-                else
-                {
-                    var handle = GetUnsafeHandle<DefaultFrozenDictionary<TKey, TValue>, TKey, TValue>();
-                    Unsafe.As<UnsafeFrozenDictionaryValue, DefaultFrozenDictionary<TKey, TValue>>(ref handle.Value) = new DefaultFrozenDictionary<TKey, TValue>(buffer);
-                    _handle = handle;
-                }
+                var int32Handle = GetUnsafeHandle<Int32FrozenDictionary<TValue>, int, TValue>();
+                handle = Unsafe.As<UnsafeFrozenDictionaryHandle<int, TValue>, UnsafeFrozenDictionaryHandle<TKey, TValue>>(ref int32Handle);
+                Unsafe.As<UnsafeFrozenDictionaryValue, Int32FrozenDictionary<TValue>>(ref handle.Value) = new Int32FrozenDictionary<TValue>(MemoryMarshal.Cast<KeyValuePair<TKey, TValue>, KeyValuePair<int, TValue>>(source));
+                return handle;
             }
+
+            handle = GetUnsafeHandle<DefaultFrozenDictionary<TKey, TValue>, TKey, TValue>();
+            Unsafe.As<UnsafeFrozenDictionaryValue, DefaultFrozenDictionary<TKey, TValue>>(ref handle.Value) = new DefaultFrozenDictionary<TKey, TValue>(source);
+            return handle;
         }
 
         /// <summary>
@@ -332,7 +316,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
         {
@@ -343,7 +327,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator IEnumerable.GetEnumerator()
         {

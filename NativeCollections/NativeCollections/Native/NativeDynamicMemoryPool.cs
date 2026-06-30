@@ -13,7 +13,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Community | FromType.C)]
-    public readonly unsafe struct NativeDynamicMemoryPool : IDisposable, IEquatable<NativeDynamicMemoryPool>
+    public readonly unsafe struct NativeDynamicMemoryPool : IIsCreated, IDisposable, IEquatable<NativeDynamicMemoryPool>
     {
         /// <summary>
         ///     Handle
@@ -46,7 +46,7 @@ namespace NativeCollections
                 bytes = (nuint)TLSF64.align_up(TLSF64.tlsf_size() + TLSF64.tlsf_pool_overhead() + blocks * TLSF64.tlsf_alloc_overhead() + size, 8);
                 buffer = NativeMemoryAllocator.AlignedAlloc((uint)bytes, (uint)NativeMemoryAllocator.AlignOf<TLSF32.control_t>());
                 handle = TLSF64.tlsf_create_with_pool(buffer, bytes);
-                if (handle == null)
+                if (UnsafeHelpers.IsNull(handle))
                 {
                     NativeMemoryAllocator.AlignedFree(buffer);
                     ThrowHelpers.ThrowMustBeAlignedToException(8, ExceptionArgument.size);
@@ -57,7 +57,7 @@ namespace NativeCollections
                 bytes = TLSF32.align_up((uint)(TLSF32.tlsf_size() + TLSF32.tlsf_pool_overhead() + blocks * TLSF32.tlsf_alloc_overhead() + size), 4);
                 buffer = NativeMemoryAllocator.AlignedAlloc((uint)bytes, (uint)NativeMemoryAllocator.AlignOf<TLSF64.control_t>());
                 handle = TLSF32.tlsf_create_with_pool(buffer, (uint)bytes);
-                if (handle == null)
+                if (UnsafeHelpers.IsNull(handle))
                 {
                     NativeMemoryAllocator.AlignedFree(buffer);
                     ThrowHelpers.ThrowMustBeAlignedToException(4, ExceptionArgument.size);
@@ -72,7 +72,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => _handle != null;
+        public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
         /// <summary>
         ///     Size
@@ -89,20 +89,20 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeDynamicMemoryPool other) => other == this;
+        public bool Equals(NativeDynamicMemoryPool other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeDynamicMemoryPool nativeDynamicMemoryPool && nativeDynamicMemoryPool == this;
+        public override bool Equals(object? obj) => obj is NativeDynamicMemoryPool other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => ((nint)_handle).GetHashCode();
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
@@ -116,7 +116,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeDynamicMemoryPool left, NativeDynamicMemoryPool right) => left._handle == right._handle;
+        public static bool operator ==(NativeDynamicMemoryPool left, NativeDynamicMemoryPool right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -124,7 +124,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeDynamicMemoryPool left, NativeDynamicMemoryPool right) => left._handle != right._handle;
+        public static bool operator !=(NativeDynamicMemoryPool left, NativeDynamicMemoryPool right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
@@ -133,7 +133,7 @@ namespace NativeCollections
         public void Dispose()
         {
             var handle = _handle;
-            if (handle == null)
+            if (UnsafeHelpers.IsNull(handle))
                 return;
             NativeMemoryAllocator.AlignedFree(handle);
         }
@@ -167,7 +167,7 @@ namespace NativeCollections
         public bool TryRent(nuint size, nuint alignment, out void* ptr)
         {
             ptr = Environment.Is64BitProcess ? TLSF64.tlsf_memalign(_handle, alignment, size) : TLSF32.tlsf_memalign(_handle, (uint)alignment, (uint)size);
-            return ptr != null;
+            return !UnsafeHelpers.IsNull(ptr);
         }
 
         /// <summary>
@@ -179,7 +179,7 @@ namespace NativeCollections
             if (Environment.Is64BitProcess)
             {
                 ptr = TLSF64.tlsf_memalign(_handle, alignment, size);
-                if (ptr != null)
+                if (!UnsafeHelpers.IsNull(ptr))
                 {
                     bytes = (nuint)TLSF64.tlsf_block_size(ptr);
                     return true;
@@ -190,7 +190,7 @@ namespace NativeCollections
             }
 
             ptr = TLSF32.tlsf_memalign(_handle, (uint)alignment, (uint)size);
-            if (ptr != null)
+            if (!UnsafeHelpers.IsNull(ptr))
             {
                 bytes = TLSF32.tlsf_block_size(ptr);
                 return true;

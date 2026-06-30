@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+#if NET8_0_OR_GREATER
 using System.Text;
+#endif
 
 // ReSharper disable ALL
 
@@ -403,7 +405,7 @@ namespace NativeCollections
 #if NET8_0_OR_GREATER
             if (value is IUtf8SpanFormattable utf8SpanFormattable)
             {
-                using var temp = new NativeStringBuilder<byte>(stackalloc byte[1024], 0);
+                using var temp = new UnsafeStringBuilder<byte>(stackalloc byte[1024], 0);
                 temp.AppendFormattable(utf8SpanFormattable, format, provider);
                 return TryGetChars(temp.Text, destination, out charsWritten);
             }
@@ -430,6 +432,7 @@ namespace NativeCollections
             return false;
         }
 
+#if NET8_0_OR_GREATER
         /// <summary>
         ///     Decodes into a span of chars a set of bytes from the specified read-only span if the destination is large
         ///     enough.
@@ -445,6 +448,7 @@ namespace NativeCollections
         ///     destination was too small to contain all the decoded chars.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool TryGetChars(ReadOnlySpan<byte> bytes, Span<char> chars, out int charsWritten) => EncodingHelpers.TryGetChars(Encoding.UTF8, bytes, chars, out charsWritten);
+        public static bool TryGetChars(ReadOnlySpan<byte> bytes, Span<char> chars, out int charsWritten) => Encoding.UTF8.TryGetChars(bytes, chars, out charsWritten);
+#endif
     }
 }

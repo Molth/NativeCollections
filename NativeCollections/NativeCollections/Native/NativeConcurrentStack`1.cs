@@ -14,7 +14,7 @@ namespace NativeCollections
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Standard)]
     [BindingType(typeof(UnsafeConcurrentStack<>))]
-    public readonly unsafe struct NativeConcurrentStack<T> : IDisposable, IEquatable<NativeConcurrentStack<T>> where T : unmanaged
+    public readonly unsafe struct NativeConcurrentStack<T> : IIsCreated, IDisposable, IEquatable<NativeConcurrentStack<T>> where T : unmanaged
     {
         /// <summary>
         ///     Handle
@@ -24,61 +24,62 @@ namespace NativeCollections
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="size">Size</param>
-        /// <param name="maxFreeSlabs">Max free slabs</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeConcurrentStack(int size, int maxFreeSlabs)
-        {
-            var value = new UnsafeConcurrentStack<T>(size, maxFreeSlabs);
-            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeConcurrentStack<T>>(1);
-            Unsafe.AsRef<UnsafeConcurrentStack<T>>(handle) = value;
-            _handle = handle;
-        }
+        private NativeConcurrentStack(UnsafeConcurrentStack<T>* handle) => _handle = handle;
 
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => _handle != null;
+        public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
         /// <summary>
-        ///     IsEmpty
+        ///     Gets a value that indicates whether this is empty.
         /// </summary>
+        /// <value>true if this is empty; otherwise, false.</value>
+        /// <remarks>
+        ///     For determining whether the collection contains any items, use of this property is recommended rather than
+        ///     retrieving the number of items from the <see cref="Count" /> property and comparing it to 0.
+        ///     However, as this collection is intended to be accessed concurrently, it may be the case that another thread will
+        ///     modify the collection after <see cref="IsEmpty" /> returns, thus invalidating the result.
+        /// </remarks>
         public bool IsEmpty => _handle->IsEmpty;
 
         /// <summary>
-        ///     Count
+        ///     Gets the number of elements contained in this.
         /// </summary>
-        public int Count
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _handle->Count;
-        }
+        /// <value>The number of elements contained in this.</value>
+        /// <remarks>
+        ///     For determining whether the collection contains any items, use of the <see cref="IsEmpty" />
+        ///     property is recommended rather than retrieving the number of items from the <see cref="Count" />
+        ///     property and comparing it to 0.
+        /// </remarks>
+        public int Count => _handle->Count;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeConcurrentStack<T> other) => other == this;
+        public bool Equals(NativeConcurrentStack<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeConcurrentStack<T> nativeConcurrentStack && nativeConcurrentStack == this;
+        public override bool Equals(object? obj) => obj is NativeConcurrentStack<T> other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => ((nint)_handle).GetHashCode();
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => $"NativeConcurrentStack<{typeof(T).Name}>";
+        public override string ToString() => SR.Format("NativeConcurrentStack<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
         ///     Equals
@@ -86,7 +87,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeConcurrentStack<T> left, NativeConcurrentStack<T> right) => left._handle == right._handle;
+        public static bool operator ==(NativeConcurrentStack<T> left, NativeConcurrentStack<T> right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -94,7 +95,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeConcurrentStack<T> left, NativeConcurrentStack<T> right) => left._handle != right._handle;
+        public static bool operator !=(NativeConcurrentStack<T> left, NativeConcurrentStack<T> right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
@@ -103,30 +104,38 @@ namespace NativeCollections
         public void Dispose()
         {
             var handle = _handle;
-            if (handle == null)
+            if (UnsafeHelpers.IsNull(handle))
                 return;
             handle->Dispose();
             NativeMemoryAllocator.AlignedFree(handle);
         }
 
         /// <summary>
-        ///     Clear
+        ///     Removes all objects from this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear() => _handle->Clear();
 
         /// <summary>
-        ///     Push
+        ///     Inserts an object at the top of this.
         /// </summary>
-        /// <param name="item">Item</param>
+        /// <param name="item">
+        ///     The object to push onto this.
+        /// </param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Push(in T item) => _handle->Push(item);
+        public void Push(T item) => _handle->Push(item);
 
         /// <summary>
-        ///     Try pop
+        ///     Attempts to pop and return the object at the top of this.
         /// </summary>
-        /// <param name="result">Item</param>
-        /// <returns>Popped</returns>
+        /// <param name="result">
+        ///     When this method returns, if the operation was successful, <paramref name="result" /> contains the object removed.
+        ///     If no object was available to be removed, the value is unspecified.
+        /// </param>
+        /// <returns>
+        ///     true if an element was removed and returned from the top of this successfully;
+        ///     otherwise, false.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryPop(out T result) => _handle->TryPop(out result);
 
@@ -134,5 +143,17 @@ namespace NativeCollections
         ///     Empty
         /// </summary>
         public static NativeConcurrentStack<T> Empty => new();
+
+        /// <summary>
+        ///     Initializes a new instance of this class.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeConcurrentStack<T> Create()
+        {
+            var value = UnsafeConcurrentStack<T>.Create();
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeConcurrentStack<T>>(1);
+            Unsafe.AsRef<UnsafeConcurrentStack<T>>(handle) = value;
+            return new NativeConcurrentStack<T>(handle);
+        }
     }
 }

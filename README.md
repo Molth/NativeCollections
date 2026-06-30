@@ -6,7 +6,7 @@
 
 ## Introduction
 
-- It is fully based on unmanaged memory, allowing developers to manipulate memory with lower overhead and more control, while offering a wide range of container types.
+- It is almost based on unmanaged memory, allowing developers to manipulate memory with lower overhead and more control, while offering a wide range of container types.
 - The library provides extensive support for `Span<T>` and `unsafe` operations, making it suitable for scenarios with strict performance and memory behavior requirements.
 
 ---
@@ -29,7 +29,7 @@ For example:
 
 - `List<T>` does not allow fast access via `Span<T>` or `ReadOnlySpan<T>`, which limits both performance and development efficiency.
 - In older versions of .NET, `Dictionary<TKey, TValue>` does not expose direct references to values, requiring operations to be performed on copies instead. This adds unnecessary overhead in performance-critical scenarios.
-- In many cases, types like `string` are overkill when only a `ReadOnlySpan<char>` is needed. By using `NativeString`, it’s possible to avoid frequent string allocations and reduce GC pressure significantly.
+- In many cases, types like `string` are overkill when only a `ReadOnlySpan<char>` is needed. By using `UnsafeString`, it’s possible to avoid frequent string allocations and reduce GC pressure significantly.
 
 ---
 
@@ -48,7 +48,7 @@ For example:
   - `public static void AlignedFree(void* ptr)`
 - You can use `NativeHashCode.Custom` to override:
   - `public static int GetHashCode(ReadOnlySpan<byte> buffer)`.
-- You can use `NativeString.Custom` to override:
+- You can use `UnsafeString.Custom` to override:
   - `public static int GetHashCode(ReadOnlySpan<char> buffer)`.
 
 ---
@@ -68,23 +68,19 @@ This project is licensed under the MIT License.
 ## Some implemented types
 
 1. `BitArray`
-2. `ConcurrentDictionary<TKey, TValue>`
-3. `ConcurrentHashSet<T>`
-4. `ConcurrentQueue<T>`
-5. `ConcurrentStack<T>`
-6. `Deque<T>`
-7. `Dictionary<TKey, TValue>`
-8. `HashSet<T>`
-9. `List<T>`
-10. `MemoryStream`
-11. `OrderedDictionary<TKey, TValue>`
-12. `OrderedHashSet<T>`
-13. `PriorityQueue<TKey, TValue>`
-14. `Queue<T>`
-15. `SortedDictionary<TKey, TValue>`
-16. `SortedList<TKey, TValue>`
-17. `SortedSet<T>`
-18. `SparseSet<TValue>`
-19. `Stack<T>`
-20. `String`
-21. `StringBuilder<T>`
+2. `Deque<T>`
+3. `Dictionary<TKey, TValue>`
+4. `HashSet<T>`
+5. `List<T>`
+6. `MemoryStream`
+7. `OrderedDictionary<TKey, TValue>`
+8. `OrderedHashSet<T>`
+9. `PriorityQueue<TKey, TValue>`
+10. `Queue<T>`
+11. `SortedDictionary<TKey, TValue>`
+12. `SortedList<TKey, TValue>`
+13. `SortedSet<T>`
+14. `SparseSet<TValue>`
+15. `Stack<T>`
+16. `String`
+17. `StringBuilder<T>`

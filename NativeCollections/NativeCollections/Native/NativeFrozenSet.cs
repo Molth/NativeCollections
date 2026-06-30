@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Buffers;
+using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using static NativeCollections.PaddingHelpers;
 using static NativeCollections.FrozenHelpers;
 
 // ReSharper disable ALL
@@ -14,6 +17,26 @@ namespace NativeCollections
     /// </summary>
     internal static unsafe class NativeFrozenSet
     {
+        /// <summary>
+        ///     Sorts the elements in the entire <see cref="Span{T}" /> using the <see cref="IComparable{T}" /> implementation
+        ///     of each element of the <see cref="Span{T}" />
+        /// </summary>
+        /// <typeparam name="T">The type of the elements of the span.</typeparam>
+        /// <param name="span">The <see cref="Span{T}" /> to sort.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void InsertionSort<T>(Span<T> span)
+        {
+            var comparer = Comparer<T>.Default;
+            for (var i = 0; i < span.Length - 1; ++i)
+            {
+                var key = span[i + 1];
+                int j;
+                for (j = i; j >= 0 && comparer.Compare(key, span[j]) < 0; --j)
+                    span[j + 1] = span[j];
+                span[j + 1] = key;
+            }
+        }
+
         /// <summary>
         ///     Find item index
         /// </summary>
@@ -30,7 +53,7 @@ namespace NativeCollections
         ///     Count
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int Count<T, TItem>(void* ptr) where T : unmanaged, IFrozenSet<TItem> where TItem : unmanaged, IEquatable<TItem> => Unsafe.AsRef<T>(ptr).Count();
+        private static int Count<T, TItem>(void* ptr) where T : unmanaged, IFrozenSet<TItem> where TItem : unmanaged, IEquatable<TItem> => Unsafe.AsRef<T>(ptr).Count;
 
         /// <summary>
         ///     Get enumerator
@@ -66,7 +89,7 @@ namespace NativeCollections
         ///     Count
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int Count<T, TItem>(ref UnsafeFrozenSetValue ptr) where T : unmanaged, IFrozenSet<TItem> where TItem : unmanaged, IEquatable<TItem> => Unsafe.As<UnsafeFrozenSetValue, T>(ref ptr).Count();
+        private static int Count<T, TItem>(ref UnsafeFrozenSetValue ptr) where T : unmanaged, IFrozenSet<TItem> where TItem : unmanaged, IEquatable<TItem> => Unsafe.As<UnsafeFrozenSetValue, T>(ref ptr).Count;
 
         /// <summary>
         ///     Get enumerator
@@ -92,6 +115,11 @@ namespace NativeCollections
         public interface IFrozenSet<T> : IDisposable where T : unmanaged, IEquatable<T>
         {
             /// <summary>
+            ///     Count
+            /// </summary>
+            int Count { get; }
+
+            /// <summary>
             ///     Find item index
             /// </summary>
             int FindItemIndex(in T item);
@@ -105,19 +133,64 @@ namespace NativeCollections
             ///     Get enumerator
             /// </summary>
             NativeFrozenSet<T>.Enumerator GetEnumerator();
+        }
+
+        /// <summary>
+        ///     Native frozen set handle
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential, Size = CACHE_LINE_SIZE)]
+        public readonly struct NativeFrozenSetHandle<T> where T : unmanaged, IEquatable<T>
+        {
+            /// <summary>
+            ///     Find item index
+            /// </summary>
+            public readonly delegate* managed<void*, in T, int> FindItemIndex;
+
+            /// <summary>
+            ///     Items
+            /// </summary>
+            public readonly delegate* managed<void*, NativeArray<T>> Items;
 
             /// <summary>
             ///     Count
             /// </summary>
-            int Count();
+            public readonly delegate* managed<void*, int> Count;
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            public readonly delegate* managed<void*, NativeFrozenSet<T>.Enumerator> GetEnumerator;
+
+            /// <summary>
+            ///     Dispose
+            /// </summary>
+            public readonly delegate* managed<void*, void> Dispose;
+
+            /// <summary>
+            ///     Structure
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public NativeFrozenSetHandle(delegate* managed<void*, in T, int> findItemIndex, delegate* managed<void*, NativeArray<T>> items, delegate* managed<void*, int> count, delegate* managed<void*, NativeFrozenSet<T>.Enumerator> getEnumerator, delegate* managed<void*, void> dispose)
+            {
+                FindItemIndex = findItemIndex;
+                Items = items;
+                Count = count;
+                GetEnumerator = getEnumerator;
+                Dispose = dispose;
+            }
         }
 
         /// <summary>
         ///     Unsafe frozen set handle
         /// </summary>
-        [StructLayout(LayoutKind.Sequential)]
-        public struct UnsafeFrozenSetHandle<T> where T : unmanaged, IEquatable<T>
+        [StructLayout(LayoutKind.Sequential, Size = CACHE_LINE_SIZE)]
+        public struct UnsafeFrozenSetHandle<T> : IIsCreated where T : unmanaged, IEquatable<T>
         {
+            /// <summary>
+            ///     Is created
+            /// </summary>
+            public readonly bool IsCreated => FindItemIndex != null;
+
             /// <summary>
             ///     Find item index
             /// </summary>
@@ -166,7 +239,7 @@ namespace NativeCollections
         /// <summary>
         ///     Value
         /// </summary>
-        [StructLayout(LayoutKind.Explicit, Size = 128)]
+        [StructLayout(LayoutKind.Explicit, Size = CACHE_LINE_SIZE)]
         public readonly struct UnsafeFrozenSetValue
         {
             /// <summary>
@@ -196,55 +269,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Native frozen set handle
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential)]
-        public readonly struct NativeFrozenSetHandle<T> where T : unmanaged, IEquatable<T>
-        {
-            /// <summary>
-            ///     Find item index
-            /// </summary>
-            public readonly delegate* managed<void*, in T, int> FindItemIndex;
-
-            /// <summary>
-            ///     Items
-            /// </summary>
-            public readonly delegate* managed<void*, NativeArray<T>> Items;
-
-            /// <summary>
-            ///     Count
-            /// </summary>
-            public readonly delegate* managed<void*, int> Count;
-
-            /// <summary>
-            ///     Get enumerator
-            /// </summary>
-            public readonly delegate* managed<void*, NativeFrozenSet<T>.Enumerator> GetEnumerator;
-
-            /// <summary>
-            ///     Dispose
-            /// </summary>
-            public readonly delegate* managed<void*, void> Dispose;
-
-            /// <summary>
-            ///     Structure
-            /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public NativeFrozenSetHandle(delegate* managed<void*, in T, int> findItemIndex, delegate* managed<void*, NativeArray<T>> items, delegate* managed<void*, int> count, delegate* managed<void*, NativeFrozenSet<T>.Enumerator> getEnumerator, delegate* managed<void*, void> dispose)
-            {
-                FindItemIndex = findItemIndex;
-                Items = items;
-                Count = count;
-                GetEnumerator = getEnumerator;
-                Dispose = dispose;
-            }
-        }
-
-        /// <summary>
         ///     Empty frozen set
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public readonly struct EmptyFrozenSet<T> : IFrozenSet<T> where T : unmanaged, IEquatable<T>
+        public readonly struct EmptyFrozenSet<T> : IFrozenSet<T>, IReadOnlyCollection<T> where T : unmanaged, IEquatable<T>
         {
             /// <summary>
             ///     Find item index
@@ -265,10 +293,35 @@ namespace NativeCollections
             public NativeFrozenSet<T>.Enumerator GetEnumerator() => new(NativeArray<T>.Empty);
 
             /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            [Obsolete(SR.parameter_obsolete)]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            IEnumerator<T> IEnumerable<T>.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            [Obsolete(SR.parameter_obsolete)]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
+
+            /// <summary>
             ///     Count
             /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public int Count() => 0;
+            public int Count
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => 0;
+            }
 
             /// <summary>
             ///     Dispose
@@ -283,7 +336,7 @@ namespace NativeCollections
         ///     Small frozen set
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public readonly struct SmallFrozenSet<T> : IFrozenSet<T> where T : unmanaged, IEquatable<T>
+        public readonly struct SmallFrozenSet<T> : IFrozenSet<T>, IReadOnlyCollection<T> where T : unmanaged, IEquatable<T>
         {
             /// <summary>
             ///     Items
@@ -294,7 +347,12 @@ namespace NativeCollections
             ///     Structure
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public SmallFrozenSet(NativeArray<T> items) => _items = items;
+            public SmallFrozenSet(ReadOnlySpan<T> source)
+            {
+                var items = new NativeArray<T>(source.Length);
+                source.CopyTo(items);
+                _items = items;
+            }
 
             /// <summary>
             ///     Find item index
@@ -315,10 +373,35 @@ namespace NativeCollections
             public NativeFrozenSet<T>.Enumerator GetEnumerator() => new(_items);
 
             /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            [Obsolete(SR.parameter_obsolete)]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            IEnumerator<T> IEnumerable<T>.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            [Obsolete(SR.parameter_obsolete)]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
+
+            /// <summary>
             ///     Count
             /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public int Count() => _items.Length;
+            public int Count
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => _items.Length;
+            }
 
             /// <summary>
             ///     Dispose
@@ -331,7 +414,7 @@ namespace NativeCollections
         ///     Small comparable frozen set
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public readonly struct SmallComparableFrozenSet<T> : IFrozenSet<T> where T : unmanaged, IEquatable<T>
+        public readonly struct SmallComparableFrozenSet<T> : IFrozenSet<T>, IReadOnlyCollection<T> where T : unmanaged, IEquatable<T>
         {
             /// <summary>
             ///     Items
@@ -341,16 +424,18 @@ namespace NativeCollections
             /// <summary>
             ///     Max
             /// </summary>
-            private readonly T _max;
+            private T Max => _items[^1];
 
             /// <summary>
             ///     Structure
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public SmallComparableFrozenSet(NativeArray<T> items)
+            public SmallComparableFrozenSet(ReadOnlySpan<T> source)
             {
+                var items = new NativeArray<T>(source.Length);
+                source.CopyTo(items);
+                InsertionSort<T>(items);
                 _items = items;
-                _max = items[^1];
             }
 
             /// <summary>
@@ -359,7 +444,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int FindItemIndex(in T item)
             {
-                if (Comparer<T>.Default.Compare(item, _max) <= 0)
+                if (Comparer<T>.Default.Compare(item, Max) <= 0)
                 {
                     var items = _items.AsReadOnlySpan();
                     for (var index = 0; index < items.Length; ++index)
@@ -390,10 +475,35 @@ namespace NativeCollections
             public NativeFrozenSet<T>.Enumerator GetEnumerator() => new(_items);
 
             /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            [Obsolete(SR.parameter_obsolete)]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            IEnumerator<T> IEnumerable<T>.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            [Obsolete(SR.parameter_obsolete)]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
+
+            /// <summary>
             ///     Count
             /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public int Count() => _items.Length;
+            public int Count
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => _items.Length;
+            }
 
             /// <summary>
             ///     Dispose
@@ -406,7 +516,7 @@ namespace NativeCollections
         ///     Int32 frozen set
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public readonly struct Int32FrozenSet : IFrozenSet<int>
+        public readonly struct Int32FrozenSet : IFrozenSet<int>, IReadOnlyCollection<int>
         {
             /// <summary>
             ///     Frozen hash table
@@ -417,7 +527,14 @@ namespace NativeCollections
             ///     Structure
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public Int32FrozenSet(Span<int> source) => _hashTable = FrozenHashTable.Create(source, true);
+            public Int32FrozenSet(ReadOnlySpan<int> source)
+            {
+                var array = ArrayPool<int>.Shared.Rent(source.Length);
+                var hashCodes = array.AsSpan(0, source.Length);
+                source.CopyTo(hashCodes);
+                _hashTable = FrozenHashTable.Create(hashCodes, true);
+                ArrayPool<int>.Shared.Return(array);
+            }
 
             /// <summary>
             ///     Find item index
@@ -449,10 +566,35 @@ namespace NativeCollections
             public NativeFrozenSet<int>.Enumerator GetEnumerator() => new(_hashTable.HashCodes);
 
             /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            [Obsolete(SR.parameter_obsolete)]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            IEnumerator<int> IEnumerable<int>.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            [Obsolete(SR.parameter_obsolete)]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
+
+            /// <summary>
             ///     Count
             /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public int Count() => _hashTable.Count;
+            public int Count
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => _hashTable.Count;
+            }
 
             /// <summary>
             ///     Dispose
@@ -465,7 +607,7 @@ namespace NativeCollections
         ///     Default frozen set
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public readonly struct DefaultFrozenSet<T> : IFrozenSet<T> where T : unmanaged, IEquatable<T>
+        public readonly struct DefaultFrozenSet<T> : IFrozenSet<T>, IReadOnlyCollection<T> where T : unmanaged, IEquatable<T>
         {
             /// <summary>
             ///     Frozen hash table
@@ -529,10 +671,35 @@ namespace NativeCollections
             public NativeFrozenSet<T>.Enumerator GetEnumerator() => new(_items);
 
             /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            [Obsolete(SR.parameter_obsolete)]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            IEnumerator<T> IEnumerable<T>.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            [Obsolete(SR.parameter_obsolete)]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
+
+            /// <summary>
             ///     Count
             /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public int Count() => _items.Length;
+            public int Count
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => _items.Length;
+            }
 
             /// <summary>
             ///     Dispose

@@ -380,12 +380,14 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ThrowNotSupportedException() => throw new NotSupportedException();
 
+#if !NET5_0_OR_GREATER
         /// <summary>
         ///     Throws a <see cref="NullReferenceException" />.
         /// </summary>
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ThrowNullReferenceException() => throw new NullReferenceException();
+#endif
 
         /// <summary>
         ///     Throws a <see cref="FormatException" /> indicating that the string format is invalid at a specific offset.

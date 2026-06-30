@@ -12,7 +12,7 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    public readonly struct NativeMemory<T> : IDisposable, IEquatable<NativeMemory<T>> where T : unmanaged
+    public readonly struct NativeMemory<T> : IIsCreated, IDisposable, IEquatable<NativeMemory<T>> where T : unmanaged
     {
         /// <summary>
         ///     Handle
@@ -62,26 +62,26 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeMemory<T> other) => other == this;
+        public bool Equals(NativeMemory<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeMemory<T> nativeMemory && nativeMemory == this;
+        public override bool Equals(object? obj) => obj is NativeMemory<T> other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => _handle.GetHashCode();
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => $"NativeMemory<{typeof(T).Name}>";
+        public override string ToString() => SR.Format("NativeMemory<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
         ///     Equals
@@ -89,7 +89,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeMemory<T> left, NativeMemory<T> right) => left._handle == right._handle;
+        public static bool operator ==(NativeMemory<T> left, NativeMemory<T> right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -97,7 +97,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeMemory<T> left, NativeMemory<T> right) => left._handle != right._handle;
+        public static bool operator !=(NativeMemory<T> left, NativeMemory<T> right) => !left.Equals(right);
 
         /// <summary>
         ///     As span

@@ -12,7 +12,7 @@ namespace NativeCollections
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
     [BindingType(typeof(UnsafeMemoryBucket))]
-    public readonly unsafe struct NativeMemoryBucket : IDisposable, IEquatable<NativeMemoryBucket>
+    public readonly unsafe struct NativeMemoryBucket : IIsCreated, IDisposable, IEquatable<NativeMemoryBucket>
     {
         /// <summary>
         ///     Handle
@@ -24,9 +24,14 @@ namespace NativeCollections
         /// </summary>
         /// <param name="capacity">Capacity</param>
         /// <param name="length">Length</param>
+        /// <param name="alignment">Alignment</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeMemoryBucket(int capacity, int length) : this(capacity, length, CustomMemoryAllocator.Default)
+        public NativeMemoryBucket(int capacity, int length, int alignment)
         {
+            var value = new UnsafeMemoryBucket(capacity, length, alignment);
+            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeMemoryBucket>(1);
+            Unsafe.AsRef<UnsafeMemoryBucket>(handle) = value;
+            _handle = handle;
         }
 
         /// <summary>
@@ -34,11 +39,12 @@ namespace NativeCollections
         /// </summary>
         /// <param name="capacity">Capacity</param>
         /// <param name="length">Length</param>
+        /// <param name="alignment">Alignment</param>
         /// <param name="allocator">Memory allocator</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeMemoryBucket(int capacity, int length, CustomMemoryAllocator allocator)
+        public NativeMemoryBucket(int capacity, int length, int alignment, CustomMemoryAllocator allocator)
         {
-            var value = new UnsafeMemoryBucket(capacity, length, allocator);
+            var value = new UnsafeMemoryBucket(capacity, length, alignment, allocator);
             var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeMemoryBucket>(1);
             Unsafe.AsRef<UnsafeMemoryBucket>(handle) = value;
             _handle = handle;
@@ -47,7 +53,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => _handle != null;
+        public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
         /// <summary>
         ///     Capacity
@@ -60,24 +66,29 @@ namespace NativeCollections
         public int Length => _handle->Length;
 
         /// <summary>
+        ///     Alignment
+        /// </summary>
+        public int Alignment => _handle->Alignment;
+
+        /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeMemoryBucket other) => other == this;
+        public bool Equals(NativeMemoryBucket other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeMemoryBucket nativeMemoryBucket && nativeMemoryBucket == this;
+        public override bool Equals(object? obj) => obj is NativeMemoryBucket other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => ((nint)_handle).GetHashCode();
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
@@ -91,7 +102,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeMemoryBucket left, NativeMemoryBucket right) => left._handle == right._handle;
+        public static bool operator ==(NativeMemoryBucket left, NativeMemoryBucket right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -99,7 +110,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeMemoryBucket left, NativeMemoryBucket right) => left._handle != right._handle;
+        public static bool operator !=(NativeMemoryBucket left, NativeMemoryBucket right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
@@ -108,7 +119,7 @@ namespace NativeCollections
         public void Dispose()
         {
             var handle = _handle;
-            if (handle == null)
+            if (UnsafeHelpers.IsNull(handle))
                 return;
             handle->Dispose();
             NativeMemoryAllocator.AlignedFree(handle);

@@ -11,7 +11,7 @@ namespace Examples
             Span<char> buffer1 = stackalloc char[128];
             var buffer2 = MemoryMarshal.CreateSpan(ref MemoryMarshal.GetReference(buffer1), buffer1.Length);
 
-            var str = new NativeString(buffer2, 0);
+            var str = new UnsafeString(buffer2, 0);
             str.AppendFormat("test1: ");
             str.AppendFormattable(100, "D4");
             Console.WriteLine(str.ToString());

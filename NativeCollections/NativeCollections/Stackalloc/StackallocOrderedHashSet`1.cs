@@ -15,7 +15,7 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [StackallocCollection(FromType.None)]
-    public unsafe struct StackallocOrderedHashSet<T> : IReadOnlyCollection<T> where T : unmanaged, IEquatable<T>
+    public unsafe struct StackallocOrderedHashSet<T> : IIsCreated, IEquatable<StackallocOrderedHashSet<T>>, IReadOnlyCollection<T> where T : unmanaged, IEquatable<T>
     {
         /// <summary>
         ///     Buckets
@@ -48,9 +48,14 @@ namespace NativeCollections
         private int _version;
 
         /// <summary>
-        ///     FastModMultiplier
+        ///     Pre-computed multiplier for use on 64-bit performing faster modulo operations.
         /// </summary>
         private readonly ulong _fastModMultiplier;
+
+        /// <summary>
+        ///     Is created
+        /// </summary>
+        public readonly bool IsCreated => !UnsafeHelpers.IsNull(_buckets);
 
         /// <summary>
         ///     Is empty
@@ -87,9 +92,9 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">Buffer</param>
         /// <param name="capacity">Capacity</param>
+        [MustBeZeroed(nameof(buffer))]
+        [MustBePinned(nameof(buffer))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [MustBeZeroed("Span<byte> buffer")]
-        [MustBePinned("Span<byte> buffer")]
         public StackallocOrderedHashSet([MustBeZeroed] [MustBePinned] Span<byte> buffer, int capacity)
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, GetByteCount(capacity), ExceptionArgument.capacity);
@@ -104,6 +109,48 @@ namespace NativeCollections
             _count = 0;
             _version = 0;
         }
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public readonly bool Equals(StackallocOrderedHashSet<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="obj">object</param>
+        /// <returns>Equals</returns>
+        public readonly override bool Equals(object? obj) => obj is StackallocOrderedHashSet<T> other && other.Equals(this);
+
+        /// <summary>
+        ///     Get hashCode
+        /// </summary>
+        /// <returns>HashCode</returns>
+        public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
+
+        /// <summary>
+        ///     To string
+        /// </summary>
+        /// <returns>String</returns>
+        public readonly override string ToString() => SR.Format("StackallocOrderedHashSet<{0}>", SR.GetTypeName(typeof(T)));
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Equals</returns>
+        public static bool operator ==(StackallocOrderedHashSet<T> left, StackallocOrderedHashSet<T> right) => left.Equals(right);
+
+        /// <summary>
+        ///     Not equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Not equals</returns>
+        public static bool operator !=(StackallocOrderedHashSet<T> left, StackallocOrderedHashSet<T> right) => !left.Equals(right);
 
         /// <summary>
         ///     Clear
@@ -657,12 +704,13 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
+        [MustBePinned(SR.parameter_this)]
         public Enumerator GetEnumerator() => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
@@ -673,7 +721,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator IEnumerable.GetEnumerator()
         {
@@ -690,7 +738,7 @@ namespace NativeCollections
             /// <summary>
             ///     NativeOrderedHashSet
             /// </summary>
-            private readonly StackallocOrderedHashSet<T>* _nativeOrderedDictionary;
+            private readonly StackallocOrderedHashSet<T>* _handle;
 
             /// <summary>
             ///     Version
@@ -710,12 +758,10 @@ namespace NativeCollections
             /// <summary>
             ///     Structure
             /// </summary>
-            /// <param name="nativeOrderedDictionary">NativeOrderedHashSet</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(StackallocOrderedHashSet<T>* nativeOrderedDictionary)
+            internal Enumerator(StackallocOrderedHashSet<T>* handle)
             {
-                var handle = nativeOrderedDictionary;
-                _nativeOrderedDictionary = handle;
+                _handle = handle;
                 _version = handle->_version;
                 _index = 0;
                 _current = default;
@@ -728,7 +774,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext()
             {
-                var handle = _nativeOrderedDictionary;
+                var handle = _handle;
                 ThrowHelpers.ThrowIfEnumFailedVersion(_version, handle->_version);
                 if (_index < handle->_count)
                 {

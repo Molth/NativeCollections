@@ -38,10 +38,7 @@ namespace Examples
 
         private static void Main()
         {
-            var a = new TestDisposeable();
-            var arc = Arc<TestDisposeable>.Create(a);
-            arc.Clone().Dispose();
-            arc.Dispose();
+            TestConcurrent2();
         }
 
         private static void TestParallelHashMap()
@@ -126,7 +123,7 @@ namespace Examples
             var sb = new StringBuilder();
             sb.Append((char)(0x7F + 1), 16);
 
-            var sb2 = new NativeStringBuilder<byte>();
+            var sb2 = new UnsafeStringBuilder<byte>();
             sb2.Append((char)(0x7F + 1), 16);
 
             Console.WriteLine(sb.ToString() == sb2.ToString());
@@ -169,7 +166,7 @@ namespace Examples
 
         private static string TestString()
         {
-            var sb = new NativeStringBuilder<byte>();
+            var sb = new UnsafeStringBuilder<byte>();
             sb.Append((char)(0x7F + 1), 4);
             sb.AppendFormat<Sb?>(new Sb { Value = 100.12345f }, "F5", CultureInfo.GetCultureInfo("de-DE"));
             sb.Append(' ');
@@ -194,7 +191,7 @@ namespace Examples
         private static string TestString3()
         {
             Span<char> buffer = stackalloc char[1024];
-            var sb = new NativeString(MemoryMarshal.CreateSpan(ref MemoryMarshal.GetReference(buffer), buffer.Length), 0).AsRef();
+            var sb = new UnsafeString(MemoryMarshal.CreateSpan(ref MemoryMarshal.GetReference(buffer), buffer.Length), 0).AsRef();
             sb.AppendFormatted(CultureInfo.GetCultureInfo("de-DE"), $"Sb{1.250f:F5}");
             var str2 = sb.ToString();
             return str2;
@@ -202,7 +199,7 @@ namespace Examples
 
         private static string TestString4()
         {
-            var sb = new NativeStringBuilder<char>();
+            var sb = new UnsafeStringBuilder<char>();
             sb.AppendFormatted(CultureInfo.GetCultureInfo("de-DE"), $"Sb{1.250f:F5}");
             var str2 = sb.ToString();
             return str2;
@@ -285,7 +282,7 @@ namespace Examples
         private static void TestStackalloc2()
         {
             var ptr = stackalloc byte[1024];
-            var buffer = new NativeMemoryLinearAllocator(ptr, 1024);
+            var buffer = new UnsafeMemoryLinearAllocator(ptr, 1024);
             var result = buffer.TryAlignedAlloc<Vector512<byte>>(1, out var ptr1);
 
             var position1 = buffer.Position;
@@ -314,33 +311,44 @@ namespace Examples
 
         private static void TestConcurrent()
         {
-            const int testNumTotal = 4096 + 3333;
+            int testNumTotal = 4096 + Random.Shared.Next(0, 10000);
             var testThreadCount = Math.Min(Environment.ProcessorCount, 16);
 
-            var queue = new NativeConcurrentQueue<int>(1, 1);
+            var sum = 0;
+            for (var i = 0; i < testNumTotal; ++i)
+                sum += i;
+
+            var queue = NativeConcurrentQueue<int>.Create();
+
             var enqueueSum = 0;
-
-            Parallel.For(0, testThreadCount, threadId =>
-            {
-                var localSum = 0;
-                for (var i = threadId; i < testNumTotal; i += testThreadCount)
-                {
-                    try
-                    {
-                        queue.Enqueue(i);
-                        localSum += i;
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine($"Thread {threadId} failed on {i}: {e}");
-                        throw;
-                    }
-                }
-
-                Interlocked.Add(ref enqueueSum, localSum);
-            });
-
             var dequeueSum = 0;
+
+            var enqueueThreads = new Task[testThreadCount];
+
+            for (var t = 0; t < testThreadCount; t++)
+            {
+                var threadId = t;
+                enqueueThreads[threadId] = new Task(() =>
+                {
+                    var localSum = 0;
+                    for (var i = threadId; i < testNumTotal; i += testThreadCount)
+                    {
+                        try
+                        {
+                            queue.Enqueue(i);
+                            localSum += i;
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine($"Thread {threadId} failed on {i}: {e}");
+                            throw;
+                        }
+                    }
+
+                    Interlocked.Add(ref enqueueSum, localSum);
+                });
+            }
+
             var dequeueThreads = new Task[testThreadCount];
 
             for (var t = 0; t < testThreadCount; t++)
@@ -360,17 +368,121 @@ namespace Examples
                 });
             }
 
-            foreach (var task in dequeueThreads)
+            var a = new List<Task>();
+            a.AddRange(enqueueThreads);
+            a.AddRange(dequeueThreads);
+
+            foreach (var task in a)
                 task.Start();
 
-            Task.WaitAll(dequeueThreads);
+            Task.WaitAll(a);
+
+            {
+                var localSum = 0;
+                while (true)
+                {
+                    if (queue.TryDequeue(out var item))
+                        localSum += item;
+                    else
+                        break;
+                }
+
+                Interlocked.Add(ref dequeueSum, localSum);
+            }
+
             queue.Dispose();
+
+            Console.WriteLine(enqueueSum == dequeueSum && dequeueSum == sum ? "Success" : "Mismatch");
+
+            // Console.WriteLine(enqueueSum + ", " + dequeueSum + ", " + sum);
+        }
+
+        private static void TestConcurrent2()
+        {
+            int testNumTotal = 4096 + Random.Shared.Next(0, 10000);
+            var testThreadCount = Math.Min(Environment.ProcessorCount, 16);
 
             var sum = 0;
             for (var i = 0; i < testNumTotal; ++i)
                 sum += i;
 
+            var queue = new ConcurrentQueue.SegQueue<int>();
+
+            var enqueueSum = 0;
+            var dequeueSum = 0;
+
+            var enqueueThreads = new Task[testThreadCount];
+
+            for (var t = 0; t < testThreadCount; t++)
+            {
+                var threadId = t;
+                enqueueThreads[threadId] = new Task(() =>
+                {
+                    var localSum = 0;
+                    for (var i = threadId; i < testNumTotal; i += testThreadCount)
+                    {
+                        try
+                        {
+                            queue.push(i);
+                            localSum += i;
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine($"Thread {threadId} failed on {i}: {e}");
+                            throw;
+                        }
+                    }
+
+                    Interlocked.Add(ref enqueueSum, localSum);
+                });
+            }
+
+            var dequeueThreads = new Task[testThreadCount];
+
+            for (var t = 0; t < testThreadCount; t++)
+            {
+                dequeueThreads[t] = new Task(() =>
+                {
+                    var localSum = 0;
+                    while (true)
+                    {
+                        if (queue.pop(out var item))
+                            localSum += item;
+                        else
+                            break;
+                    }
+
+                    Interlocked.Add(ref dequeueSum, localSum);
+                });
+            }
+
+            var a = new List<Task>();
+            a.AddRange(enqueueThreads);
+            a.AddRange(dequeueThreads);
+
+            foreach (var task in a)
+                task.Start();
+
+            Task.WaitAll(a);
+
+            {
+                var localSum = 0;
+                while (true)
+                {
+                    if (queue.pop(out var item))
+                        localSum += item;
+                    else
+                        break;
+                }
+
+                Interlocked.Add(ref dequeueSum, localSum);
+            }
+
+            queue.drop();
+
             Console.WriteLine(enqueueSum == dequeueSum && dequeueSum == sum ? "Success" : "Mismatch");
+
+            // Console.WriteLine(enqueueSum + ", " + dequeueSum + ", " + sum);
         }
 
         private static void Test()

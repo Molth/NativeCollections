@@ -15,7 +15,7 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    public readonly struct NativeArrayReference<T> : IDisposable, IEquatable<NativeArrayReference<T>>, IReadOnlyCollection<T>
+    public readonly struct NativeArrayReference<T> : IIsCreated, IDisposable, IEquatable<NativeArrayReference<T>>, IReadOnlyCollection<T>
     {
         /// <summary>
         ///     Handle
@@ -131,26 +131,26 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeArrayReference<T> other) => other == this;
+        public bool Equals(NativeArrayReference<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeArrayReference<T> nativeArrayReference && nativeArrayReference == this;
+        public override bool Equals(object? obj) => obj is NativeArrayReference<T> other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => ((nint)_handle).GetHashCode();
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => $"NativeArrayReference<{typeof(T).Name}>";
+        public override string ToString() => SR.Format("NativeArrayReference<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
         ///     Equals
@@ -158,7 +158,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeArrayReference<T> left, NativeArrayReference<T> right) => left._handle == right._handle;
+        public static bool operator ==(NativeArrayReference<T> left, NativeArrayReference<T> right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -166,7 +166,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeArrayReference<T> left, NativeArrayReference<T> right) => left._handle != right._handle;
+        public static bool operator !=(NativeArrayReference<T> left, NativeArrayReference<T> right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
@@ -194,7 +194,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
@@ -205,7 +205,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator IEnumerable.GetEnumerator()
         {
@@ -222,7 +222,7 @@ namespace NativeCollections
             /// <summary>
             ///     Buffer
             /// </summary>
-            private readonly T[] _buffer;
+            private readonly T[] _handle;
 
             /// <summary>
             ///     Index
@@ -232,11 +232,10 @@ namespace NativeCollections
             /// <summary>
             ///     Structure
             /// </summary>
-            /// <param name="buffer">Buffer</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(T[] buffer)
+            internal Enumerator(T[] handle)
             {
-                _buffer = buffer;
+                _handle = handle;
                 _index = -1;
             }
 
@@ -248,7 +247,7 @@ namespace NativeCollections
             public bool MoveNext()
             {
                 var index = _index + 1;
-                if (index < _buffer.Length)
+                if (index < _handle.Length)
                 {
                     _index = index;
                     return true;
@@ -269,7 +268,7 @@ namespace NativeCollections
             public readonly ref T Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => ref _buffer[_index];
+                get => ref _handle[_index];
             }
         }
     }

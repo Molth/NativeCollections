@@ -16,7 +16,7 @@ namespace NativeCollections
     /// <typeparam name="TPriority">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard)]
-    public unsafe struct UnsafePriorityQueue<TElement, TPriority> : IDisposable where TElement : unmanaged where TPriority : unmanaged, IComparable<TPriority>
+    public unsafe struct UnsafePriorityQueue<TElement, TPriority> : IIsCreated, IDisposable, IEquatable<UnsafePriorityQueue<TElement, TPriority>> where TElement : unmanaged where TPriority : unmanaged, IComparable<TPriority>
     {
         /// <summary>
         ///     Nodes
@@ -37,6 +37,11 @@ namespace NativeCollections
         ///     Version
         /// </summary>
         private int _version;
+
+        /// <summary>
+        ///     Is created
+        /// </summary>
+        public readonly bool IsCreated => !UnsafeHelpers.IsNull(_nodes);
 
         /// <summary>
         ///     Is empty
@@ -76,6 +81,7 @@ namespace NativeCollections
         /// <summary>
         ///     Unordered items
         /// </summary>
+        [MustBePinned(SR.parameter_this)]
         public UnorderedItemsCollection UnorderedItems => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
@@ -92,6 +98,48 @@ namespace NativeCollections
             _size = 0;
             _version = 0;
         }
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public readonly bool Equals(UnsafePriorityQueue<TElement, TPriority> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="obj">object</param>
+        /// <returns>Equals</returns>
+        public readonly override bool Equals(object? obj) => obj is UnsafePriorityQueue<TElement, TPriority> other && other.Equals(this);
+
+        /// <summary>
+        ///     Get hashCode
+        /// </summary>
+        /// <returns>HashCode</returns>
+        public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
+
+        /// <summary>
+        ///     To string
+        /// </summary>
+        /// <returns>String</returns>
+        public readonly override string ToString() => SR.Format("UnsafePriorityQueue<{0}, {1}>", SR.GetTypeName(typeof(TElement)), SR.GetTypeName(typeof(TPriority)));
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Equals</returns>
+        public static bool operator ==(UnsafePriorityQueue<TElement, TPriority> left, UnsafePriorityQueue<TElement, TPriority> right) => left.Equals(right);
+
+        /// <summary>
+        ///     Not equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Not equals</returns>
+        public static bool operator !=(UnsafePriorityQueue<TElement, TPriority> left, UnsafePriorityQueue<TElement, TPriority> right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
@@ -554,56 +602,60 @@ namespace NativeCollections
         ///     Unordered items collection
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public readonly struct UnorderedItemsCollection : IReadOnlyCollection<(TElement Element, TPriority Priority)>
+        public readonly struct UnorderedItemsCollection : IIsCreated, IReadOnlyCollection<(TElement Element, TPriority Priority)>
         {
             /// <summary>
             ///     NativePriorityQueue
             /// </summary>
-            private readonly UnsafePriorityQueue<TElement, TPriority>* _nativePriorityQueue;
+            private readonly UnsafePriorityQueue<TElement, TPriority>* _handle;
+
+            /// <summary>
+            ///     Is created
+            /// </summary>
+            public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
             /// <summary>
             ///     Count
             /// </summary>
-            public int Count => _nativePriorityQueue->Count;
+            public int Count => _handle->Count;
 
             /// <summary>
             ///     Structure
             /// </summary>
-            /// <param name="nativePriorityQueue">Native priorityQueue</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal UnorderedItemsCollection(UnsafePriorityQueue<TElement, TPriority>* nativePriorityQueue) => _nativePriorityQueue = nativePriorityQueue;
+            internal UnorderedItemsCollection(UnsafePriorityQueue<TElement, TPriority>* handle) => _handle = handle;
 
             /// <summary>
             ///     As readOnly span
             /// </summary>
             /// <returns>ReadOnlySpan</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan() => _nativePriorityQueue->AsReadOnlySpan();
+            public ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan() => _handle->AsReadOnlySpan();
 
             /// <summary>
             ///     As readOnly span
             /// </summary>
             /// <returns>ReadOnlySpan</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan(int start) => _nativePriorityQueue->AsReadOnlySpan(start);
+            public ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan(int start) => _handle->AsReadOnlySpan(start);
 
             /// <summary>
             ///     As readOnly span
             /// </summary>
             /// <returns>ReadOnlySpan</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan(int start, int length) => _nativePriorityQueue->AsReadOnlySpan(start, length);
+            public ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan(int start, int length) => _handle->AsReadOnlySpan(start, length);
 
             /// <summary>
             ///     Get enumerator
             /// </summary>
             /// <returns>Enumerator</returns>
-            public Enumerator GetEnumerator() => new(_nativePriorityQueue);
+            public Enumerator GetEnumerator() => new(_handle);
 
             /// <summary>
             ///     Get enumerator
             /// </summary>
-            [Obsolete("Call this method will always throw an exception.")]
+            [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator<(TElement Element, TPriority Priority)> IEnumerable<(TElement Element, TPriority Priority)>.GetEnumerator()
             {
@@ -614,7 +666,7 @@ namespace NativeCollections
             /// <summary>
             ///     Get enumerator
             /// </summary>
-            [Obsolete("Call this method will always throw an exception.")]
+            [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator IEnumerable.GetEnumerator()
             {
@@ -631,7 +683,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     NativePriorityQueue
                 /// </summary>
-                private readonly UnsafePriorityQueue<TElement, TPriority>* _nativePriorityQueue;
+                private readonly UnsafePriorityQueue<TElement, TPriority>* _handle;
 
                 /// <summary>
                 ///     Version
@@ -651,12 +703,10 @@ namespace NativeCollections
                 /// <summary>
                 ///     Structure
                 /// </summary>
-                /// <param name="nativePriorityQueue">Native priorityQueue</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                internal Enumerator(UnsafePriorityQueue<TElement, TPriority>* nativePriorityQueue)
+                internal Enumerator(UnsafePriorityQueue<TElement, TPriority>* handle)
                 {
-                    var handle = nativePriorityQueue;
-                    _nativePriorityQueue = handle;
+                    _handle = handle;
                     _version = handle->_version;
                     _index = 0;
                     _current = default;
@@ -669,7 +719,7 @@ namespace NativeCollections
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public bool MoveNext()
                 {
-                    var handle = _nativePriorityQueue;
+                    var handle = _handle;
                     ThrowHelpers.ThrowIfEnumFailedVersion(_version, handle->_version);
                     if ((uint)_index >= (uint)handle->_size)
                     {

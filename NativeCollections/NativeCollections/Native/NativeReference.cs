@@ -14,10 +14,10 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    [IsAssignableTo(typeof(IEquatable<>))]
+    [IsAssignableTo(typeof(IIsCreated), typeof(IEquatable<>))]
     public readonly ref struct NativeReference
 #if NET9_0_OR_GREATER
-        : IEquatable<NativeReference>
+        : IIsCreated, IEquatable<NativeReference>
 #endif
     {
         /// <summary>
@@ -114,14 +114,14 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeReference other) => other == this;
+        public bool Equals(NativeReference other) => Unsafe.AreSame(ref MemoryMarshal.GetReference(_buffer), ref MemoryMarshal.GetReference(other._buffer));
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public override bool Equals(object? obj)
         {
@@ -133,7 +133,7 @@ namespace NativeCollections
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public override int GetHashCode()
         {
@@ -153,7 +153,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeReference left, NativeReference right) => Unsafe.AreSame(ref MemoryMarshal.GetReference(left._buffer), ref MemoryMarshal.GetReference(right._buffer));
+        public static bool operator ==(NativeReference left, NativeReference right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -161,7 +161,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeReference left, NativeReference right) => !Unsafe.AreSame(ref MemoryMarshal.GetReference(left._buffer), ref MemoryMarshal.GetReference(right._buffer));
+        public static bool operator !=(NativeReference left, NativeReference right) => !left.Equals(right);
 
         /// <summary>
         ///     As span

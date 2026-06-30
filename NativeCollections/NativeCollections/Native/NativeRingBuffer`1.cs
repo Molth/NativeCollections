@@ -16,7 +16,7 @@ namespace NativeCollections
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
     [BindingType(typeof(UnsafeRingBuffer<>))]
-    public readonly unsafe struct NativeRingBuffer<T> : IDisposable, IEquatable<NativeRingBuffer<T>>, IReadOnlyCollection<T> where T : unmanaged
+    public readonly unsafe struct NativeRingBuffer<T> : IIsCreated, IDisposable, IEquatable<NativeRingBuffer<T>>, IReadOnlyCollection<T> where T : unmanaged
     {
         /// <summary>
         ///     Handle
@@ -39,7 +39,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => _handle != null;
+        public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
         /// <summary>
         ///     Is empty
@@ -81,26 +81,26 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeRingBuffer<T> other) => other == this;
+        public bool Equals(NativeRingBuffer<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeRingBuffer<T> nativeRingBuffer && nativeRingBuffer == this;
+        public override bool Equals(object? obj) => obj is NativeRingBuffer<T> other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => ((nint)_handle).GetHashCode();
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => $"NativeRingBuffer<{typeof(T).Name}>";
+        public override string ToString() => SR.Format("NativeRingBuffer<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
         ///     Equals
@@ -108,7 +108,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeRingBuffer<T> left, NativeRingBuffer<T> right) => left._handle == right._handle;
+        public static bool operator ==(NativeRingBuffer<T> left, NativeRingBuffer<T> right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -116,7 +116,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeRingBuffer<T> left, NativeRingBuffer<T> right) => left._handle != right._handle;
+        public static bool operator !=(NativeRingBuffer<T> left, NativeRingBuffer<T> right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
@@ -125,7 +125,7 @@ namespace NativeCollections
         public void Dispose()
         {
             var handle = _handle;
-            if (handle == null)
+            if (UnsafeHelpers.IsNull(handle))
                 return;
             handle->Dispose();
             NativeMemoryAllocator.AlignedFree(handle);
@@ -259,7 +259,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
@@ -270,7 +270,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator IEnumerable.GetEnumerator()
         {

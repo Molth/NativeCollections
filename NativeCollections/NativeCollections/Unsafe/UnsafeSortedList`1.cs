@@ -15,7 +15,7 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard)]
-    public unsafe struct UnsafeSortedList<T> : IDisposable, IReadOnlyCollection<T> where T : unmanaged, IComparable<T>
+    public unsafe struct UnsafeSortedList<T> : IIsCreated, IDisposable, IEquatable<UnsafeSortedList<T>>, IReadOnlyCollection<T> where T : unmanaged, IComparable<T>
     {
         /// <summary>
         ///     Items
@@ -36,6 +36,11 @@ namespace NativeCollections
         ///     Capacity
         /// </summary>
         private int _capacity;
+
+        /// <summary>
+        ///     Is created
+        /// </summary>
+        public readonly bool IsCreated => !UnsafeHelpers.IsNull(_items);
 
         /// <summary>
         ///     Is empty
@@ -68,6 +73,48 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public readonly bool Equals(UnsafeSortedList<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="obj">object</param>
+        /// <returns>Equals</returns>
+        public readonly override bool Equals(object? obj) => obj is UnsafeSortedList<T> other && other.Equals(this);
+
+        /// <summary>
+        ///     Get hashCode
+        /// </summary>
+        /// <returns>HashCode</returns>
+        public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
+
+        /// <summary>
+        ///     To string
+        /// </summary>
+        /// <returns>String</returns>
+        public readonly override string ToString() => SR.Format("UnsafeSortedList<{0}>", SR.GetTypeName(typeof(T)));
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Equals</returns>
+        public static bool operator ==(UnsafeSortedList<T> left, UnsafeSortedList<T> right) => left.Equals(right);
+
+        /// <summary>
+        ///     Not equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Not equals</returns>
+        public static bool operator !=(UnsafeSortedList<T> left, UnsafeSortedList<T> right) => !left.Equals(right);
+
+        /// <summary>
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -91,7 +138,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int IndexOf(in T item)
         {
-            var num = BinarySearchHelpers.IndexOf(_items, _size, item);
+            var num = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<T>(_items), _size).BinarySearch(item);
             return num >= 0 ? num : -1;
         }
 
@@ -395,12 +442,13 @@ namespace NativeCollections
         ///     Get enumerator
         /// </summary>
         /// <returns>Enumerator</returns>
+        [MustBePinned(SR.parameter_this)]
         public Enumerator GetEnumerator() => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
@@ -411,7 +459,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get enumerator
         /// </summary>
-        [Obsolete("Call this method will always throw an exception.")]
+        [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator IEnumerable.GetEnumerator()
         {
@@ -428,7 +476,7 @@ namespace NativeCollections
             /// <summary>
             ///     NativeSortedList
             /// </summary>
-            private readonly UnsafeSortedList<T>* _nativeSortedList;
+            private readonly UnsafeSortedList<T>* _handle;
 
             /// <summary>
             ///     Current
@@ -448,12 +496,10 @@ namespace NativeCollections
             /// <summary>
             ///     Structure
             /// </summary>
-            /// <param name="nativeSortedList">NativeSortedList</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(UnsafeSortedList<T>* nativeSortedList)
+            internal Enumerator(UnsafeSortedList<T>* handle)
             {
-                var handle = nativeSortedList;
-                _nativeSortedList = handle;
+                _handle = handle;
                 _version = handle->_version;
                 _current = default;
                 _index = 0;
@@ -466,7 +512,7 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext()
             {
-                var handle = _nativeSortedList;
+                var handle = _handle;
                 ThrowHelpers.ThrowIfEnumFailedVersion(_version, handle->_version);
                 if ((uint)_index < (uint)handle->_size)
                 {

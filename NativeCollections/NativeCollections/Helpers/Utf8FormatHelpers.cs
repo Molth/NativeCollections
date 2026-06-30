@@ -400,7 +400,7 @@ namespace NativeCollections
 #if NET6_0_OR_GREATER
             if (value is ISpanFormattable spanFormattable)
             {
-                using var temp = new NativeStringBuilder<char>(stackalloc char[512], 0);
+                using var temp = new UnsafeStringBuilder<char>(stackalloc char[512], 0);
                 temp.AppendFormattable(spanFormattable, format, provider);
                 return TryGetBytes(temp.Text, destination, out bytesWritten);
             }
@@ -425,11 +425,11 @@ namespace NativeCollections
 #if NET8_0_OR_GREATER
             return value.TryFormat(destination, out bytesWritten, format, provider);
 #elif NET6_0_OR_GREATER
-            using var temp = new NativeStringBuilder<char>(stackalloc char[512], 0);
+            using var temp = new UnsafeStringBuilder<char>(stackalloc char[512], 0);
             temp.AppendFormattable(value, format, provider);
             return TryGetBytes(temp.Text, destination, out bytesWritten);
 #else
-            using var temp = new NativeStringBuilder<char>(stackalloc char[512], 0);
+            using var temp = new UnsafeStringBuilder<char>(stackalloc char[512], 0);
             temp.AppendFormat(value, format, provider);
             return TryGetBytes(temp.Text, destination, out bytesWritten);
 #endif

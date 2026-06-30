@@ -12,7 +12,7 @@ namespace NativeCollections
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
     [BindingType(typeof(UnsafeConcurrentSpinLock))]
-    public readonly unsafe struct NativeConcurrentSpinLock : IDisposable, IEquatable<NativeConcurrentSpinLock>
+    public readonly unsafe struct NativeConcurrentSpinLock : IIsCreated, IDisposable, IEquatable<NativeConcurrentSpinLock>
     {
         /// <summary>
         ///     Handle
@@ -33,7 +33,7 @@ namespace NativeCollections
         public void Dispose()
         {
             var handle = _handle;
-            if (handle == null)
+            if (UnsafeHelpers.IsNull(handle))
                 return;
             NativeMemoryAllocator.AlignedFree(handle);
         }
@@ -41,7 +41,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => _handle != null;
+        public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
         /// <summary>
         ///     Sequence number
@@ -58,20 +58,20 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeConcurrentSpinLock other) => other == this;
+        public bool Equals(NativeConcurrentSpinLock other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeConcurrentSpinLock nativeConcurrentSpinLock && nativeConcurrentSpinLock == this;
+        public override bool Equals(object? obj) => obj is NativeConcurrentSpinLock other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => ((nint)_handle).GetHashCode();
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
@@ -85,7 +85,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeConcurrentSpinLock left, NativeConcurrentSpinLock right) => left._handle == right._handle;
+        public static bool operator ==(NativeConcurrentSpinLock left, NativeConcurrentSpinLock right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -93,7 +93,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeConcurrentSpinLock left, NativeConcurrentSpinLock right) => left._handle != right._handle;
+        public static bool operator !=(NativeConcurrentSpinLock left, NativeConcurrentSpinLock right) => !left.Equals(right);
 
         /// <summary>
         ///     Reset
@@ -105,22 +105,22 @@ namespace NativeCollections
         ///     Enter
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeDisposable<UnsafeConcurrentSpinLock> EnterLock()
+        public UnsafeDisposable<UnsafeConcurrentSpinLock> EnterLock()
         {
             var handle = _handle;
             handle->Enter();
-            return new NativeDisposable<UnsafeConcurrentSpinLock>(handle);
+            return new UnsafeDisposable<UnsafeConcurrentSpinLock>(handle);
         }
 
         /// <summary>
         ///     Enter
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeDisposable<UnsafeConcurrentSpinLock> EnterLock(int sequenceNumber)
+        public UnsafeDisposable<UnsafeConcurrentSpinLock> EnterLock(int sequenceNumber)
         {
             var handle = _handle;
             handle->Enter(sequenceNumber);
-            return new NativeDisposable<UnsafeConcurrentSpinLock>(handle);
+            return new UnsafeDisposable<UnsafeConcurrentSpinLock>(handle);
         }
 
         /// <summary>
@@ -175,27 +175,6 @@ namespace NativeCollections
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Exit() => _handle->Exit();
-
-        /// <summary>
-        ///     As native concurrent spinLock
-        /// </summary>
-        /// <returns>NativeConcurrentSpinLock</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeConcurrentSpinLock(UnsafeConcurrentSpinLock* buffer) => new(buffer);
-
-        /// <summary>
-        ///     As native concurrent spinLock
-        /// </summary>
-        /// <returns>NativeConcurrentSpinLock</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeConcurrentSpinLock(Span<byte> span) => new((UnsafeConcurrentSpinLock*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(span)));
-
-        /// <summary>
-        ///     As native concurrent spinLock
-        /// </summary>
-        /// <returns>NativeConcurrentSpinLock</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeConcurrentSpinLock(ReadOnlySpan<byte> readOnlySpan) => new((UnsafeConcurrentSpinLock*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(readOnlySpan)));
 
         /// <summary>
         ///     Create

@@ -54,20 +54,22 @@ namespace NativeCollections
         ///     Enter
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeDisposable<UnsafeConcurrentSpinLock> EnterLock()
+        [MustBePinned(SR.parameter_this)]
+        public UnsafeDisposable<UnsafeConcurrentSpinLock> EnterLock()
         {
             Enter();
-            return new NativeDisposable<UnsafeConcurrentSpinLock>(UnsafeHelpers.AsPointer(ref this));
+            return new UnsafeDisposable<UnsafeConcurrentSpinLock>(UnsafeHelpers.AsPointer(ref this));
         }
 
         /// <summary>
         ///     Enter
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeDisposable<UnsafeConcurrentSpinLock> EnterLock(int sequenceNumber)
+        [MustBePinned(SR.parameter_this)]
+        public UnsafeDisposable<UnsafeConcurrentSpinLock> EnterLock(int sequenceNumber)
         {
             Enter(sequenceNumber);
-            return new NativeDisposable<UnsafeConcurrentSpinLock>(UnsafeHelpers.AsPointer(ref this));
+            return new UnsafeDisposable<UnsafeConcurrentSpinLock>(UnsafeHelpers.AsPointer(ref this));
         }
 
         /// <summary>
@@ -84,7 +86,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void Wait(int sequenceNumber)
         {
-            var spinWait = new NativeSpinWait();
+            var spinWait = new UnsafeSpinWait();
             while (sequenceNumber != _nextSequenceNumber)
                 spinWait.SpinOnce(-1);
         }
@@ -103,7 +105,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void Wait(int sequenceNumber, int sleep1Threshold)
         {
-            var spinWait = new NativeSpinWait();
+            var spinWait = new UnsafeSpinWait();
             while (sequenceNumber != _nextSequenceNumber)
                 spinWait.SpinOnce(sleep1Threshold);
         }
@@ -114,7 +116,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Enter()
         {
-            var spinWait = new NativeSpinWait();
+            var spinWait = new UnsafeSpinWait();
             var sequenceNumber = Interlocked.Increment(ref _sequenceNumber) - 1;
             while (sequenceNumber != _nextSequenceNumber)
                 spinWait.SpinOnce(-1);
@@ -133,7 +135,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Enter(int sleep1Threshold)
         {
-            var spinWait = new NativeSpinWait();
+            var spinWait = new UnsafeSpinWait();
             var sequenceNumber = Interlocked.Increment(ref _sequenceNumber) - 1;
             while (sequenceNumber != _nextSequenceNumber)
                 spinWait.SpinOnce(sleep1Threshold);
@@ -150,14 +152,14 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public readonly bool Equals(UnsafeConcurrentSpinLock other) => other == this;
+        public readonly bool Equals(UnsafeConcurrentSpinLock other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public readonly override bool Equals(object? obj) => obj is UnsafeConcurrentSpinLock unsafeConcurrentSpinLock && unsafeConcurrentSpinLock == this;
+        public readonly override bool Equals(object? obj) => obj is UnsafeConcurrentSpinLock other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
@@ -177,12 +179,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(UnsafeConcurrentSpinLock left, UnsafeConcurrentSpinLock right)
-        {
-            ref var local1 = ref Unsafe.As<UnsafeConcurrentSpinLock, int>(ref left);
-            ref var local2 = ref Unsafe.As<UnsafeConcurrentSpinLock, int>(ref right);
-            return local1 == local2 && Unsafe.Add(ref local1, (nint)1) == Unsafe.Add(ref local2, (nint)1);
-        }
+        public static bool operator ==(UnsafeConcurrentSpinLock left, UnsafeConcurrentSpinLock right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -190,12 +187,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(UnsafeConcurrentSpinLock left, UnsafeConcurrentSpinLock right)
-        {
-            ref var local1 = ref Unsafe.As<UnsafeConcurrentSpinLock, int>(ref left);
-            ref var local2 = ref Unsafe.As<UnsafeConcurrentSpinLock, int>(ref right);
-            return local1 != local2 || Unsafe.Add(ref local1, (nint)1) != Unsafe.Add(ref local2, (nint)1);
-        }
+        public static bool operator !=(UnsafeConcurrentSpinLock left, UnsafeConcurrentSpinLock right) => !left.Equals(right);
 
         /// <summary>
         ///     Empty

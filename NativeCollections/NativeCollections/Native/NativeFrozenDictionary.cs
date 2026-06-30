@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Buffers;
+using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using static NativeCollections.ArchitectureHelpers;
+using static NativeCollections.PaddingHelpers;
 using static NativeCollections.FrozenHelpers;
 
 // ReSharper disable ALL
@@ -15,6 +17,54 @@ namespace NativeCollections
     /// </summary>
     internal static unsafe class NativeFrozenDictionary
     {
+        /// <summary>
+        ///     Sorts a pair of spans (one containing the keys and the other containing the corresponding items)
+        ///     based on the keys in the first <see cref="Span{TKey}" /> using the <see cref="IComparable{T}" />
+        ///     implementation of each key.
+        /// </summary>
+        /// <typeparam name="TKey">The type of the elements of the key span.</typeparam>
+        /// <typeparam name="TValue">The type of the elements of the items span.</typeparam>
+        /// <param name="keys">The span that contains the keys to sort.</param>
+        /// <param name="items">The span that contains the items that correspond to the keys in <paramref name="keys" />.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void InsertionSort<TKey, TValue>(Span<TKey> keys, Span<TValue> items)
+        {
+            var comparer = Comparer<TKey>.Default;
+            for (var i = 0; i < keys.Length - 1; ++i)
+            {
+                var key = keys[i + 1];
+                var value = items[i + 1];
+                int j;
+                for (j = i; j >= 0 && comparer.Compare(key, keys[j]) < 0; --j)
+                {
+                    keys[j + 1] = keys[j];
+                    items[j + 1] = items[j];
+                }
+
+                keys[j + 1] = key;
+                items[j + 1] = value;
+            }
+        }
+
+        /// <summary>
+        ///     Copies the keys and values from a read-only span of key-value pairs into separate key and value spans.
+        /// </summary>
+        /// <typeparam name="TKey">The type of the keys.</typeparam>
+        /// <typeparam name="TValue">The type of the values.</typeparam>
+        /// <param name="source">The read-only span containing the key-value pairs to copy from.</param>
+        /// <param name="keys">The destination span for the keys. Must have length at least equal to the source length.</param>
+        /// <param name="values">The destination span for the values. Must have length at least equal to the source length.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void CopyTo<TKey, TValue>(ReadOnlySpan<KeyValuePair<TKey, TValue>> source, Span<TKey> keys, Span<TValue> values)
+        {
+            for (var i = 0; i < source.Length; ++i)
+            {
+                ref readonly var kvp = ref source[i];
+                keys[i] = kvp.Key;
+                values[i] = kvp.Value;
+            }
+        }
+
         /// <summary>
         ///     Get value ref or null ref
         /// </summary>
@@ -37,7 +87,7 @@ namespace NativeCollections
         ///     Count
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int Count<T, TKey, TValue>(void* ptr) where T : unmanaged, IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged => Unsafe.AsRef<T>(ptr).Count();
+        private static int Count<T, TKey, TValue>(void* ptr) where T : unmanaged, IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged => Unsafe.AsRef<T>(ptr).Count;
 
         /// <summary>
         ///     Get enumerator
@@ -79,7 +129,7 @@ namespace NativeCollections
         ///     Count
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int Count<T, TKey, TValue>(ref UnsafeFrozenDictionaryValue ptr) where T : unmanaged, IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged => Unsafe.As<UnsafeFrozenDictionaryValue, T>(ref ptr).Count();
+        private static int Count<T, TKey, TValue>(ref UnsafeFrozenDictionaryValue ptr) where T : unmanaged, IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged => Unsafe.As<UnsafeFrozenDictionaryValue, T>(ref ptr).Count;
 
         /// <summary>
         ///     Get enumerator
@@ -105,6 +155,11 @@ namespace NativeCollections
         public interface IFrozenDictionary<TKey, TValue> : IDisposable where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
         {
             /// <summary>
+            ///     Count
+            /// </summary>
+            int Count { get; }
+
+            /// <summary>
             ///     Get value ref or null ref
             /// </summary>
             ref readonly TValue GetValueRefOrNullRef(in TKey key);
@@ -123,11 +178,6 @@ namespace NativeCollections
             ///     Get enumerator
             /// </summary>
             NativeFrozenDictionary<TKey, TValue>.Enumerator GetEnumerator();
-
-            /// <summary>
-            ///     Count
-            /// </summary>
-            int Count();
         }
 
         /// <summary>
@@ -185,8 +235,13 @@ namespace NativeCollections
         ///     Unsafe frozen dictionary handle
         /// </summary>
         [StructLayout(LayoutKind.Sequential, Size = CACHE_LINE_SIZE)]
-        public struct UnsafeFrozenDictionaryHandle<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
+        public struct UnsafeFrozenDictionaryHandle<TKey, TValue> : IIsCreated where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
         {
+            /// <summary>
+            ///     Is created
+            /// </summary>
+            public readonly bool IsCreated => GetValueRefOrNullRef != null;
+
             /// <summary>
             ///     Get value ref or null ref
             /// </summary>
@@ -274,7 +329,7 @@ namespace NativeCollections
         ///     Empty frozen dictionary
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public readonly struct EmptyFrozenDictionary<TKey, TValue> : IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
+        public readonly struct EmptyFrozenDictionary<TKey, TValue> : IFrozenDictionary<TKey, TValue>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
         {
             /// <summary>
             ///     Get value ref or null ref
@@ -301,10 +356,35 @@ namespace NativeCollections
             public NativeFrozenDictionary<TKey, TValue>.Enumerator GetEnumerator() => new(NativeArray<TKey>.Empty, NativeArray<TValue>.Empty);
 
             /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            [Obsolete(SR.parameter_obsolete)]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            [Obsolete(SR.parameter_obsolete)]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
+
+            /// <summary>
             ///     Count
             /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public int Count() => 0;
+            public int Count
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => 0;
+            }
 
             /// <summary>
             ///     Dispose
@@ -319,7 +399,7 @@ namespace NativeCollections
         ///     Small frozen dictionary
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public readonly struct SmallFrozenDictionary<TKey, TValue> : IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
+        public readonly struct SmallFrozenDictionary<TKey, TValue> : IFrozenDictionary<TKey, TValue>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
         {
             /// <summary>
             ///     Keys
@@ -335,8 +415,15 @@ namespace NativeCollections
             ///     Structure
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public SmallFrozenDictionary(NativeArray<TKey> keys, NativeArray<TValue> values)
+            public SmallFrozenDictionary(ReadOnlySpan<KeyValuePair<TKey, TValue>> source)
             {
+                var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<TKey>(), NativeMemoryAllocator.AlignOf<TValue>());
+                var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(source.Length * Unsafe.SizeOf<TKey>()), alignment);
+                var buckets = (TKey*)NativeMemoryAllocator.AlignedAlloc((uint)(bucketsByteCount + source.Length * Unsafe.SizeOf<TValue>()), alignment);
+                var entries = UnsafeHelpers.AddByteOffset<TValue>(buckets, (nint)bucketsByteCount);
+                var keys = new NativeArray<TKey>(buckets, source.Length);
+                var values = new NativeArray<TValue>(entries, source.Length);
+                CopyTo(source, keys, values);
                 _keys = keys;
                 _values = values;
             }
@@ -366,14 +453,39 @@ namespace NativeCollections
             /// <summary>
             ///     Count
             /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public int Count() => _keys.Length;
+            public int Count
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => _keys.Length;
+            }
 
             /// <summary>
             ///     Get enumerator
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeFrozenDictionary<TKey, TValue>.Enumerator GetEnumerator() => new(_keys, _values);
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            [Obsolete(SR.parameter_obsolete)]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            [Obsolete(SR.parameter_obsolete)]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
 
             /// <summary>
             ///     Dispose
@@ -386,7 +498,7 @@ namespace NativeCollections
         ///     Small comparable frozen dictionary
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public readonly struct SmallComparableFrozenDictionary<TKey, TValue> : IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
+        public readonly struct SmallComparableFrozenDictionary<TKey, TValue> : IFrozenDictionary<TKey, TValue>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
         {
             /// <summary>
             ///     Keys
@@ -414,13 +526,8 @@ namespace NativeCollections
                 var valuesPtr = UnsafeHelpers.AddByteOffset<TValue>(keysPtr, (nint)bucketsByteCount);
                 var keys = new NativeArray<TKey>(keysPtr, source.Length);
                 var values = new NativeArray<TValue>(valuesPtr, source.Length);
-                for (var i = 0; i < source.Length; ++i)
-                {
-                    ref readonly var entry = ref source[i];
-                    keys[i] = entry.Key;
-                    values[i] = entry.Value;
-                }
-
+                CopyTo(source, keys, values);
+                InsertionSort<TKey, TValue>(keys, values);
                 _keys = keys;
                 _values = values;
             }
@@ -464,14 +571,39 @@ namespace NativeCollections
             /// <summary>
             ///     Count
             /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public int Count() => _keys.Length;
+            public int Count
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => _keys.Length;
+            }
 
             /// <summary>
             ///     Get enumerator
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeFrozenDictionary<TKey, TValue>.Enumerator GetEnumerator() => new(_keys, _values);
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            [Obsolete(SR.parameter_obsolete)]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            [Obsolete(SR.parameter_obsolete)]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
 
             /// <summary>
             ///     Dispose
@@ -484,7 +616,7 @@ namespace NativeCollections
         ///     Int32 frozen dictionary
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public readonly struct Int32FrozenDictionary<TValue> : IFrozenDictionary<int, TValue> where TValue : unmanaged
+        public readonly struct Int32FrozenDictionary<TValue> : IFrozenDictionary<int, TValue>, IReadOnlyCollection<KeyValuePair<int, TValue>> where TValue : unmanaged
         {
             /// <summary>
             ///     Frozen hash table
@@ -500,7 +632,7 @@ namespace NativeCollections
             ///     Structure
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public Int32FrozenDictionary(Span<KeyValuePair<int, TValue>> source)
+            public Int32FrozenDictionary(ReadOnlySpan<KeyValuePair<int, TValue>> source)
             {
                 _values = new NativeArray<TValue>(source.Length);
                 var array = ArrayPool<int>.Shared.Rent(source.Length);
@@ -545,14 +677,39 @@ namespace NativeCollections
             /// <summary>
             ///     Count
             /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public int Count() => _hashTable.Count;
+            public int Count
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => _hashTable.Count;
+            }
 
             /// <summary>
             ///     Get enumerator
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeFrozenDictionary<int, TValue>.Enumerator GetEnumerator() => new(_hashTable.HashCodes, _values);
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            [Obsolete(SR.parameter_obsolete)]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            IEnumerator<KeyValuePair<int, TValue>> IEnumerable<KeyValuePair<int, TValue>>.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            [Obsolete(SR.parameter_obsolete)]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
 
             /// <summary>
             ///     Dispose
@@ -569,7 +726,7 @@ namespace NativeCollections
         ///     Default frozen dictionary
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
-        public readonly struct DefaultFrozenDictionary<TKey, TValue> : IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
+        public readonly struct DefaultFrozenDictionary<TKey, TValue> : IFrozenDictionary<TKey, TValue>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
         {
             /// <summary>
             ///     Frozen hash table
@@ -645,14 +802,39 @@ namespace NativeCollections
             /// <summary>
             ///     Count
             /// </summary>
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public int Count() => _hashTable.Count;
+            public int Count
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => _hashTable.Count;
+            }
 
             /// <summary>
             ///     Get enumerator
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeFrozenDictionary<TKey, TValue>.Enumerator GetEnumerator() => new(_keys, _values);
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            [Obsolete(SR.parameter_obsolete)]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
+
+            /// <summary>
+            ///     Get enumerator
+            /// </summary>
+            [Obsolete(SR.parameter_obsolete)]
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                ThrowHelpers.ThrowCannotCallGetEnumeratorException();
+                return default;
+            }
 
             /// <summary>
             ///     Dispose

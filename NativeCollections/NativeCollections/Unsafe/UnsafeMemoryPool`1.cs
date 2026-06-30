@@ -12,12 +12,17 @@ namespace NativeCollections
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.None)]
     [BindingType(typeof(UnsafeMemoryPool))]
-    public unsafe struct UnsafeMemoryPool<T> : IDisposable where T : unmanaged
+    public unsafe struct UnsafeMemoryPool<T> : IIsCreated, IDisposable, IEquatable<UnsafeMemoryPool<T>> where T : unmanaged
     {
         /// <summary>
         ///     Handle
         /// </summary>
         private UnsafeMemoryPool _handle;
+
+        /// <summary>
+        ///     Is created
+        /// </summary>
+        public readonly bool IsCreated => _handle.IsCreated;
 
         /// <summary>
         ///     Slabs
@@ -78,10 +83,65 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="other">Other</param>
+        /// <returns>Equals</returns>
+        public readonly bool Equals(UnsafeMemoryPool<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="obj">object</param>
+        /// <returns>Equals</returns>
+        public readonly override bool Equals(object? obj) => obj is UnsafeMemoryPool<T> other && other.Equals(this);
+
+        /// <summary>
+        ///     Get hashCode
+        /// </summary>
+        /// <returns>HashCode</returns>
+        public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
+
+        /// <summary>
+        ///     To string
+        /// </summary>
+        /// <returns>String</returns>
+        public readonly override string ToString() => SR.Format("UnsafeMemoryPool<{0}>", SR.GetTypeName(typeof(T)));
+
+        /// <summary>
+        ///     Equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Equals</returns>
+        public static bool operator ==(UnsafeMemoryPool<T> left, UnsafeMemoryPool<T> right) => left.Equals(right);
+
+        /// <summary>
+        ///     Not equals
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Not equals</returns>
+        public static bool operator !=(UnsafeMemoryPool<T> left, UnsafeMemoryPool<T> right) => !left.Equals(right);
+
+        /// <summary>
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose() => _handle.Dispose();
+
+        /// <summary>
+        ///     Clear
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Clear() => _handle.Clear();
+
+        /// <summary>
+        ///     Clear
+        /// </summary>
+        /// <param name="capacity">Remaining free slabs</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int Clear(int capacity) => _handle.Clear(capacity);
 
         /// <summary>
         ///     Rent buffer

@@ -1,10 +1,10 @@
-﻿using System.Runtime.CompilerServices;
-#if NET5_0_OR_GREATER
+﻿#if NET5_0_OR_GREATER
 using System.Numerics;
 #else
 using System;
 using System.Runtime.InteropServices;
 #endif
+using System.Runtime.CompilerServices;
 
 // ReSharper disable ALL
 

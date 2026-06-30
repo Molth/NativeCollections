@@ -12,6 +12,16 @@ namespace NativeCollections
     internal static class HashHelpers
     {
         /// <summary>
+        ///     This is the maximum prime smaller than Array.MaxLength.
+        /// </summary>
+        private const int MAX_PRIME_ARRAY_LENGTH = 2147483587;
+
+        /// <summary>
+        ///     Hash prime
+        /// </summary>
+        private const int HASH_PRIME = 101;
+
+        /// <summary>
         ///     Lookup table
         /// </summary>
         private static ReadOnlySpan<int> LookupTable => new int[96]
@@ -24,9 +34,19 @@ namespace NativeCollections
             1674319, 2009191, 2411033, 2893249, 3471899, 4166287, 4999559, 5999471, 7199369
         };
 
-        /// <summary>
-        ///     Primes
-        /// </summary>
+        // Table of prime numbers to use as hash table sizes.
+        // A typical resize algorithm would pick the smallest prime number in this array
+        // that is larger than twice the previous capacity.
+        // Suppose our Hashtable currently has capacity x and enough elements are added
+        // such that a resize needs to occur. Resizing first computes 2x then finds the
+        // first prime in the table greater than 2x, i.e. if primes are ordered
+        // p_1, p_2, ..., p_i, ..., it finds p_n such that p_n-1 < 2x < p_n.
+        // Doubling is important for preserving the asymptotic complexity of the
+        // hashtable operations such as add.  Having a prime guarantees that double
+        // hashing does not lead to infinite loops.  IE, your hash function will be
+        // h1(key) + i*h2(key), 0 <= i < size.  h2 and the size must be relatively prime.
+        // We prefer the low computation costs of higher prime numbers over the increased
+        // memory allocation of a fixed prime number i.e. when right sizing a HashSet.
         public static ReadOnlySpan<int> Primes => LookupTable.Slice(24);
 
         /// <summary>
@@ -76,7 +96,7 @@ namespace NativeCollections
 
             for (var i = min | 1; i < int.MaxValue; i += 2)
             {
-                if (IsPrime(i) && (i - 1) % 101 != 0)
+                if (IsPrime(i) && (i - 1) % HASH_PRIME != 0)
                     return i;
             }
 
@@ -84,32 +104,30 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Expand prime
+        ///     Returns size of hashtable to grow to.
         /// </summary>
-        /// <param name="oldSize">Old size</param>
-        /// <returns>Prime</returns>
+        /// <remarks>
+        ///     Allow the hashtables to grow to maximum possible size (~2G elements) before encountering capacity overflow.
+        ///     Note that this check works even when _items.Length overflowed thanks to the (uint) cast
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int ExpandPrime(int oldSize)
         {
             var newSize = 2 * oldSize;
-            return (uint)newSize > 2147483587 && 2147483587 > oldSize ? 2147483587 : GetPrime(newSize);
+            return (uint)newSize > MAX_PRIME_ARRAY_LENGTH && MAX_PRIME_ARRAY_LENGTH > oldSize ? MAX_PRIME_ARRAY_LENGTH : GetPrime(newSize);
         }
 
         /// <summary>
-        ///     Get fast mod multiplier
+        ///     Returns approximate reciprocal of the divisor: ceil(2**64 / divisor).
         /// </summary>
-        /// <param name="divisor">Divisor</param>
-        /// <returns>Fast mod multiplier</returns>
+        /// <remarks>This should only be used on 64-bit.</remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ulong GetFastModMultiplier(uint divisor) => ulong.MaxValue / divisor + 1;
 
         /// <summary>
-        ///     Fast mod
+        ///     Performs a mod operation using the multiplier pre-computed with <see cref="GetFastModMultiplier" />.
         /// </summary>
-        /// <param name="value">Value</param>
-        /// <param name="divisor">Divisor</param>
-        /// <param name="multiplier">Multiplier</param>
-        /// <returns>Mod</returns>
+        /// <remarks>This should only be used on 64-bit.</remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint FastMod(uint value, uint divisor, ulong multiplier) => (uint)(((((multiplier * value) >> 32) + 1) * divisor) >> 32);
     }
