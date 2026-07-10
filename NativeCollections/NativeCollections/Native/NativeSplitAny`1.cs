@@ -98,7 +98,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeSplitAny<T> Empty => new();
+        public static NativeSplitAny<T> Empty => default;
 
         /// <summary>
         ///     Get enumerator

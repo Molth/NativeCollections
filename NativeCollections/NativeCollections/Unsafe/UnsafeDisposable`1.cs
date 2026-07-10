@@ -70,13 +70,13 @@ namespace NativeCollections
         ///     As reference
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator UnsafeDisposable<T>(T* handle) => new(handle);
+        public static implicit operator UnsafeDisposable<T>(T* value) => new(value);
 
         /// <summary>
         ///     As handle
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator T*(UnsafeDisposable<T> unsafeDisposable) => unsafeDisposable._handle;
+        public static implicit operator T*(UnsafeDisposable<T> value) => value._handle;
 
         /// <summary>
         ///     Equals
@@ -122,6 +122,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeDisposable<T> Empty => new();
+        public static UnsafeDisposable<T> Empty => default;
     }
 }

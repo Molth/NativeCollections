@@ -54,7 +54,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => _nodePool.IsCreated;
+        public readonly bool IsCreated => _nodePool.IsCreated;
 
         /// <summary>
         ///     Is empty
@@ -829,7 +829,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeSortedDictionary<TKey, TValue> Empty => new();
+        public static UnsafeSortedDictionary<TKey, TValue> Empty => default;
 
         /// <summary>
         ///     Get enumerator

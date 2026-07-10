@@ -183,7 +183,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeArrayReference<T> Empty => new();
+        public static NativeArrayReference<T> Empty => default;
 
         /// <summary>
         ///     Get enumerator

@@ -12,6 +12,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard)]
+    [BindingType(typeof(SpinWait))]
     public struct UnsafeSpinWait : IEquatable<UnsafeSpinWait>
     {
         /// <summary>
@@ -129,6 +130,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeSpinWait Empty => new();
+        public static UnsafeSpinWait Empty => default;
     }
 }

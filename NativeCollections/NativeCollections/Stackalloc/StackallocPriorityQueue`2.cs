@@ -512,7 +512,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static StackallocPriorityQueue<TElement, TPriority> Empty => new();
+        public static StackallocPriorityQueue<TElement, TPriority> Empty => default;
 
         /// <summary>
         ///     Unordered items collection

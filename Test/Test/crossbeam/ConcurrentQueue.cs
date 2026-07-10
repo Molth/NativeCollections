@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Threading;
 using NativeCollections;
+using static Examples.PaddingHelpers;
 
 #pragma warning disable CS9084 // Struct member returns 'this' or other instance members by reference
 
@@ -14,7 +15,10 @@ namespace Examples
     /// </summary>
     public static unsafe class ConcurrentQueue
     {
-        public const int CACHE_LINE_SIZE = 128;
+        // Bits indicating the state of a slot:
+        // * If a value has been written into the slot, `WRITE` is set.
+        // * If a value has been read from the slot, `READ` is set.
+        // * If the block is being destroyed, `DESTROY` is set.
 
         public const nuint WRITE = 1;
         public const nuint READ = 2;
@@ -32,6 +36,7 @@ namespace Examples
         // Indicates that the block is not the last one.
         public const nuint HAS_NEXT = 1;
 
+        /// A slot in a block.
         public struct Slot<T> where T : unmanaged
         {
             /// The value.
@@ -57,6 +62,8 @@ namespace Examples
             public Slot<T> slot;
 
             public Slot<T>* get_unchecked(nuint index) => (Slot<T>*)Unsafe.AsPointer(ref Unsafe.Add(ref slot, index));
+
+            public Slot<T>* get_unchecked_mut(nuint index) => get_unchecked(index);
         }
 
         /// A block in a linked list.
@@ -84,12 +91,6 @@ namespace Examples
 
                     backoff.SpinOnce();
                 }
-            }
-
-            public static void destroy(Block<T>* block)
-            {
-                // No thread is using the block, now it is safe to destroy it.
-                NativeMemoryAllocator.AlignedFree(block);
             }
 
             /// Sets the `DESTROY` bit in slots starting from `start` and destroys the block.
@@ -130,11 +131,18 @@ namespace Examples
         {
             public CachePaddedPosition data;
 
+            /// The index in the queue.
             public ref UnsafeAtomicUIntPtr index => ref Unsafe.As<nuint, UnsafeAtomicUIntPtr>(ref data.index);
 
+            /// The block in the linked list.
             public ref UnsafeAtomicReference<Block<T>> block => ref Unsafe.As<nuint, UnsafeAtomicReference<Block<T>>>(ref data.block);
         }
 
+        /// An unbounded multi-producer multi-consumer queue.
+        /// 
+        /// This queue is implemented as a linked list of segments, where each segment is a small buffer
+        /// that can hold a handful of elements. There is no limit to how many elements can be in the queue
+        /// at a time. However, since segments need to be dynamically allocated as elements get pushed,
         public struct SegQueue<T> where T : unmanaged
         {
             /// The head of the queue.
@@ -143,6 +151,7 @@ namespace Examples
             /// The tail of the queue.
             public CachePaddedPosition<T> tail;
 
+            /// Pushes back an element to the tail.
             public void push(T value)
             {
                 var backoff = new UnsafeSpinWait();
@@ -209,14 +218,14 @@ namespace Examples
                             // If we've reached the end of the block, install the next one.
                             if (offset + 1 == BLOCK_CAP)
                             {
-                                // Debug.Assert(next_block != null);
+                                var next_block_unwarp = next_block;
+                                next_block = null;
+
                                 var next_index = unchecked(new_tail + (1 << (int)SHIFT));
 
-                                this.tail.block.Exchange(next_block);
+                                this.tail.block.Exchange(next_block_unwarp);
                                 this.tail.index.Exchange(next_index);
-                                block->next.Exchange(next_block);
-
-                                next_block = null;
+                                block->next.Exchange(next_block_unwarp);
                             }
 
                             // Write the value into the slot.
@@ -237,10 +246,57 @@ namespace Examples
                 finally
                 {
                     if (next_block != null)
-                        Block<T>.destroy(next_block);
+                        NativeMemoryAllocator.AlignedFree(next_block);
                 }
             }
 
+            /// Pushes an element to the queue with exclusive mutable access.
+            /// 
+            /// Avoids atomic operations and synchronization, assuming
+            /// no other threads access the queue concurrently.
+            public void push_mut(T value)
+            {
+                var tail = this.tail.index.AsRef();
+                var block = this.tail.block.AsRef();
+
+                // Calculate the offset of the index into the block.
+                var offset = (tail >> (int)SHIFT) % LAP;
+
+                // If this is the first push operation, we need to allocate the first block.
+                if (block == null)
+                {
+                    var @new = NativeMemoryAllocator.AlignedAllocZeroed<Block<T>>(1);
+                    this.head.block.AsRef() = @new;
+                    this.tail.block.AsRef() = @new;
+
+                    block = @new;
+                }
+
+                var new_tail = tail + (1 << (int)SHIFT);
+
+                this.tail.index.AsRef() = new_tail;
+
+                unsafe
+                {
+                    // If we've reached the end of the block, install the next one.
+                    if (offset + 1 == BLOCK_CAP)
+                    {
+                        var next_block = NativeMemoryAllocator.AlignedAllocZeroed<Block<T>>(1);
+                        var next_index = unchecked(new_tail + (1 << (int)SHIFT));
+
+                        this.tail.block.AsRef() = next_block;
+                        this.tail.index.AsRef() = next_index;
+                        block->next.AsRef() = next_block;
+                    }
+
+                    // Write the value into the slot.
+                    var slot = block->slots.get_unchecked(offset);
+                    slot->value = value;
+                    block->slots.get_unchecked_mut(offset)->state.AsRef() |= WRITE;
+                }
+            }
+
+            /// Pops the head element from the queue.
             public bool pop(out T result)
             {
                 var backoff = new UnsafeSpinWait();
@@ -342,6 +398,80 @@ namespace Examples
                 }
             }
 
+            /// Pops the head element from the queue using an exclusive reference.
+            /// 
+            /// Avoids atomic operations and synchronization, assuming
+            /// no other threads access the queue concurrently.
+            public bool pop_mut(out T result)
+            {
+                var head = this.head.index.AsRef();
+                var block = this.head.block.AsRef();
+
+                // Calculate the offset of the index into the block.
+                var offset = (head >> (int)SHIFT) % LAP;
+
+                var new_head = head + (1 << (int)SHIFT);
+
+                if ((new_head & HAS_NEXT) == 0)
+                {
+                    var tail = this.tail.index.AsRef();
+
+                    // If the tail equals the head, that means the queue is empty.
+                    if (head >> (int)SHIFT == tail >> (int)SHIFT)
+                    {
+                        result = default;
+                        return false;
+                    }
+
+                    // If head and tail are not in the same block, set `HAS_NEXT` in head.
+                    if ((head >> (int)SHIFT) / LAP != (tail >> (int)SHIFT) / LAP)
+                    {
+                        new_head |= HAS_NEXT;
+                    }
+                }
+
+                this.head.index.AsRef() = new_head;
+
+                unsafe
+                {
+                    // If we've reached the end of the block, move to the next one.
+                    if (offset + 1 == BLOCK_CAP)
+                    {
+                        var next = block->next.AsRef();
+                        var next_index = unchecked((new_head & ~HAS_NEXT) + (1 << (int)SHIFT));
+                        if (next->next.AsRef() != null)
+                        {
+                            next_index |= HAS_NEXT;
+                        }
+
+                        this.head.block.AsRef() = next;
+                        this.head.index.AsRef() = next_index;
+                    }
+
+                    // Read the value.
+                    var slot = block->slots.get_unchecked(offset);
+                    var value = slot->value;
+
+                    // Destroy the block if we've reached the end
+                    if (offset + 1 == BLOCK_CAP)
+                    {
+                        NativeMemoryAllocator.AlignedFree(block);
+                    }
+                    else
+                    {
+                        var state = block->slots.get_unchecked_mut(offset)->state.AsRef();
+                        block->slots.get_unchecked_mut(offset)->state.AsRef() = state | READ;
+                        if ((state & DESTROY) != 0)
+                        {
+                            Block<T>.destroy(block, offset + 1);
+                        }
+                    }
+
+                    result = value;
+                    return true;
+                }
+            }
+
             /// Returns `true` if the queue is empty.
             public bool is_empty()
             {
@@ -412,13 +542,13 @@ namespace Examples
                         if (offset < BLOCK_CAP)
                         {
                             // Drop the value in the slot.
-                            // var slot = *((Block<T>*)block)->slots.get_unchecked(offset);
+                            // var slot = *block->slots.get_unchecked(offset);
                         }
                         else
                         {
                             // Deallocate the block and move to the next one.
-                            var next = ((Block<T>*)block)->next.AsRef();
-                            Block<T>.destroy((Block<T>*)block);
+                            var next = block->next.AsRef();
+                            NativeMemoryAllocator.AlignedFree(block);
                             block = next;
                         }
 
@@ -426,9 +556,9 @@ namespace Examples
                     }
 
                     // Deallocate the last remaining block.
-                    if (block != 0)
+                    if (block != null)
                     {
-                        Block<T>.destroy((Block<T>*)block);
+                        NativeMemoryAllocator.AlignedFree(block);
                     }
                 }
             }

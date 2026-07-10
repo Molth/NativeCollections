@@ -63,9 +63,9 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             capacity = Math.Max(capacity, 4);
-            var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<T>(), NativeMemoryAllocator.AlignOf<int>());
+            var alignment = Math.Max(NativeMemoryAllocator.AlignOf<T>(), NativeMemoryAllocator.AlignOf<int>());
             var bufferByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * Unsafe.SizeOf<T>()), alignment);
-            _buffer = (T*)NativeMemoryAllocator.AlignedAlloc((uint)(bufferByteCount + capacity * Unsafe.SizeOf<int>()), alignment);
+            _buffer = (T*)NativeMemoryAllocator.AlignedAlloc(bufferByteCount + (uint)capacity * (uint)Unsafe.SizeOf<int>(), alignment);
             _index = UnsafeHelpers.AddByteOffset<int>(_buffer, (nint)bufferByteCount);
             _capacity = capacity;
             _size = capacity;
@@ -166,6 +166,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeFixedSizeStackMemoryPool<T> Empty => new();
+        public static UnsafeFixedSizeStackMemoryPool<T> Empty => default;
     }
 }

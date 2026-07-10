@@ -703,7 +703,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeListBuilder<T> Empty => new();
+        public static UnsafeListBuilder<T> Empty => default;
 
         /// <summary>
         ///     Get enumerator

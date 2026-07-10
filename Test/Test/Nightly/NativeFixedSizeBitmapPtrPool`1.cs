@@ -15,8 +15,8 @@ namespace Examples
         public NativeFixedSizeBitmapPtrPool(int blocks)
         {
             var capacity = blocks * 32;
-            var alignment = Math.Max((uint)NativeMemoryAllocator.AlignOf<int>(), (uint)NativeMemoryAllocator.AlignOf<T>());
-            alignment = Math.Max(alignment, (uint)NativeMemoryAllocator.AlignOf<Block>());
+            var alignment = Math.Max(NativeMemoryAllocator.AlignOf<int>(), NativeMemoryAllocator.AlignOf<T>());
+            alignment = Math.Max(alignment, NativeMemoryAllocator.AlignOf<Block>());
             var indexesByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(blocks * Unsafe.SizeOf<int>()), alignment);
             var blocksByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(blocks * Unsafe.SizeOf<Block>()), alignment);
             var ptr = (byte*)NativeMemoryAllocator.AlignedAllocZeroed((uint)(indexesByteCount + blocksByteCount + capacity * Unsafe.SizeOf<T>()), alignment);

@@ -96,7 +96,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator T(NativeObject<T> nativeObject) => nativeObject.Value;
+        public static implicit operator T(NativeObject<T> value) => value.Value;
 
         /// <summary>
         ///     Dispose
@@ -130,6 +130,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeObject<T> Empty => new();
+        public static NativeObject<T> Empty => default;
     }
 }

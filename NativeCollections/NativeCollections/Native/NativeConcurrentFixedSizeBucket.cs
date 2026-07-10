@@ -48,7 +48,7 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             ThrowHelpers.ThrowIfLessThan((uint)buffer.Length, (uint)(2 + capacity), ExceptionArgument.buffer);
-            _buffer = (int*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer));
+            _buffer = UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(buffer));
             _length = capacity;
         }
 
@@ -123,13 +123,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            var buffer = _buffer;
-            if (UnsafeHelpers.IsNull(buffer))
-                return;
-            NativeMemoryAllocator.AlignedFree(buffer);
-        }
+        public void Dispose() => Box.Free(_buffer);
 
         /// <summary>
         ///     Try rent
@@ -196,6 +190,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeConcurrentFixedSizeBucket Empty => new();
+        public static NativeConcurrentFixedSizeBucket Empty => default;
     }
 }

@@ -114,7 +114,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeReference other) => Unsafe.AreSame(ref MemoryMarshal.GetReference(_buffer), ref MemoryMarshal.GetReference(other._buffer));
+        public bool Equals(NativeReference other) => other._buffer == _buffer;
 
         /// <summary>
         ///     Equals
@@ -167,13 +167,13 @@ namespace NativeCollections
         ///     As span
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<byte>(NativeReference nativeReference) => nativeReference._buffer;
+        public static implicit operator Span<byte>(NativeReference value) => value._buffer;
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<byte>(NativeReference nativeReference) => nativeReference._buffer;
+        public static implicit operator ReadOnlySpan<byte>(NativeReference value) => value._buffer;
 
         /// <summary>
         ///     Create
@@ -200,6 +200,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeReference Empty => new();
+        public static NativeReference Empty => default;
     }
 }

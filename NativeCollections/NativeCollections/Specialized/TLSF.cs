@@ -10,9 +10,9 @@ namespace NativeCollections
     ///     Two-Level Segregated Fit memory allocator
     ///     https://github.com/mattconte/tlsf
     /// </summary>
-    internal static class TLSF
+    internal static unsafe class TLSF
     {
-        public static unsafe class TLSF32
+        public static class TLSF32
         {
             public const int SL_INDEX_COUNT_LOG2 = 5;
             public const int ALIGN_SIZE_LOG2 = 2;
@@ -30,7 +30,7 @@ namespace NativeCollections
             public const uint block_size_max = (uint)1 << FL_INDEX_MAX;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void memcpy(void* dst, void* src, uint size) => Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(dst), ref Unsafe.AsRef<byte>(src), size);
+            public static void memcpy(void* dst, void* src, uint size) => SpanHelpers.Copy(ref Unsafe.AsRef<byte>(dst), ref Unsafe.AsRef<byte>(src), size);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static int tlsf_fls(uint word)
@@ -609,14 +609,14 @@ namespace NativeCollections
                 private block_header_t_ptr(block_header_t* value) => this.value = value;
 
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public static implicit operator block_header_t_ptr(block_header_t* ptr) => new(ptr);
+                public static implicit operator block_header_t_ptr(block_header_t* value) => new(value);
 
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public static implicit operator block_header_t*(block_header_t_ptr ptr) => ptr.value;
+                public static implicit operator block_header_t*(block_header_t_ptr value) => value.value;
             }
         }
 
-        public static unsafe class TLSF64
+        public static class TLSF64
         {
             public const int SL_INDEX_COUNT_LOG2 = 5;
             public const int ALIGN_SIZE_LOG2 = 3;
@@ -634,7 +634,7 @@ namespace NativeCollections
             public const ulong block_size_max = (ulong)1 << FL_INDEX_MAX;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static void memcpy(void* dst, void* src, ulong size) => Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(dst), ref Unsafe.AsRef<byte>(src), (uint)size);
+            public static void memcpy(void* dst, void* src, ulong size) => SpanHelpers.Copy(ref Unsafe.AsRef<byte>(dst), ref Unsafe.AsRef<byte>(src), (uint)size);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static int tlsf_fls(uint word)
@@ -1217,10 +1217,10 @@ namespace NativeCollections
                 private block_header_t_ptr(block_header_t* value) => this.value = value;
 
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public static implicit operator block_header_t_ptr(block_header_t* ptr) => new(ptr);
+                public static implicit operator block_header_t_ptr(block_header_t* value) => new(value);
 
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public static implicit operator block_header_t*(block_header_t_ptr ptr) => ptr.value;
+                public static implicit operator block_header_t*(block_header_t_ptr value) => value.value;
             }
         }
     }

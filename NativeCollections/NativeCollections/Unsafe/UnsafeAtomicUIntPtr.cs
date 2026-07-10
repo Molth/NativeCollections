@@ -37,18 +37,28 @@ namespace NativeCollections
         public ref nuint AsRef() => ref _value;
 
         /// <summary>
-        ///     Bitwise "ands" two 64-bit signed integers and replaces the first integer with the result, as an atomic operation.
+        ///     Bitwise "ands" two native-sized unsigned integers and replaces the first integer with the result, as an atomic
+        ///     operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public nuint And(nuint value) => InterlockedHelpers.And(ref _value, value);
 
         /// <summary>
-        ///     Bitwise "ors" two 64-bit signed integers and replaces the first integer with the result, as an atomic operation.
+        ///     Bitwise "ors" two native-sized unsigned integers and replaces the first integer with the result, as an atomic
+        ///     operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public nuint Or(nuint value) => InterlockedHelpers.Or(ref _value, value);
+
+        /// <summary>
+        ///     Bitwise "xors" two native-sized unsigned integers and replaces the first integer with the result, as an atomic
+        ///     operation.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public nuint Xor(nuint value) => InterlockedHelpers.Xor(ref _value, value);
 
         /// <summary>
         ///     Returns a value, loaded as an atomic operation.
@@ -83,7 +93,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The new value stored.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint Subtract(nuint value) => InterlockedHelpers.Add(ref _value, (nuint)(-(nint)value));
+        public nuint Subtract(nuint value) => InterlockedHelpers.Add(ref _value, unchecked((nuint)(-(nint)value)));
 
         /// <summary>
         ///     Increments a specified variable and stores the result, as an atomic operation.
@@ -129,6 +139,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeAtomicUIntPtr Empty => new();
+        public static UnsafeAtomicUIntPtr Empty => default;
     }
 }

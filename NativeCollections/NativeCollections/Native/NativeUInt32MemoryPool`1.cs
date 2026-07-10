@@ -27,9 +27,7 @@ namespace NativeCollections
         public NativeUInt32MemoryPool(int maxFreeSlabs)
         {
             var value = new UnsafeUInt32MemoryPool<T>(maxFreeSlabs);
-            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeUInt32MemoryPool<T>>(1);
-            Unsafe.AsRef<UnsafeUInt32MemoryPool<T>>(handle) = value;
-            _handle = handle;
+            _handle = Box.New(ref value);
         }
 
         /// <summary>
@@ -42,9 +40,7 @@ namespace NativeCollections
         public NativeUInt32MemoryPool(int length, int maxFreeSlabs, int alignment)
         {
             var value = new UnsafeUInt32MemoryPool<T>(length, maxFreeSlabs, alignment);
-            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeUInt32MemoryPool<T>>(1);
-            Unsafe.AsRef<UnsafeUInt32MemoryPool<T>>(handle) = value;
-            _handle = handle;
+            _handle = Box.New(ref value);
         }
 
         /// <summary>
@@ -128,14 +124,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            var handle = _handle;
-            if (UnsafeHelpers.IsNull(handle))
-                return;
-            handle->Dispose();
-            NativeMemoryAllocator.AlignedFree(handle);
-        }
+        public void Dispose() => Box.Drop(_handle);
 
         /// <summary>
         ///     Clear
@@ -188,6 +177,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeUInt32MemoryPool<T> Empty => new();
+        public static NativeUInt32MemoryPool<T> Empty => default;
     }
 }

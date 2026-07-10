@@ -30,13 +30,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            var handle = _handle;
-            if (UnsafeHelpers.IsNull(handle))
-                return;
-            NativeMemoryAllocator.AlignedFree(handle);
-        }
+        public void Dispose() => Box.Free(_handle);
 
         /// <summary>
         ///     Is created
@@ -95,11 +89,11 @@ namespace NativeCollections
         ///     Read
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeDisposable<UnsafeConcurrentReaderWriterLock> ReadLock()
+        public NativeConcurrentReaderWriterLockRef ReadLock()
         {
             var handle = _handle;
             handle->Read();
-            return new UnsafeDisposable<UnsafeConcurrentReaderWriterLock>(handle);
+            return new NativeConcurrentReaderWriterLockRef(handle);
         }
 
         /// <summary>
@@ -113,22 +107,22 @@ namespace NativeCollections
         ///     <paramref name="sleep1Threshold" /> is less than -1.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeDisposable<UnsafeConcurrentReaderWriterLock> ReadLock(int sleep1Threshold)
+        public NativeConcurrentReaderWriterLockRef ReadLock(int sleep1Threshold)
         {
             var handle = _handle;
             handle->Read(sleep1Threshold);
-            return new UnsafeDisposable<UnsafeConcurrentReaderWriterLock>(handle);
+            return new NativeConcurrentReaderWriterLockRef(handle);
         }
 
         /// <summary>
         ///     Write
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeDisposable<UnsafeConcurrentReaderWriterLock> WriteLock()
+        public NativeConcurrentReaderWriterLockRef WriteLock()
         {
             var handle = _handle;
             handle->Write();
-            return new UnsafeDisposable<UnsafeConcurrentReaderWriterLock>(handle);
+            return new NativeConcurrentReaderWriterLockRef(handle);
         }
 
         /// <summary>
@@ -142,11 +136,11 @@ namespace NativeCollections
         ///     <paramref name="sleep1Threshold" /> is less than -1.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeDisposable<UnsafeConcurrentReaderWriterLock> WriteLock(int sleep1Threshold)
+        public NativeConcurrentReaderWriterLockRef WriteLock(int sleep1Threshold)
         {
             var handle = _handle;
             handle->Write(sleep1Threshold);
-            return new UnsafeDisposable<UnsafeConcurrentReaderWriterLock>(handle);
+            return new NativeConcurrentReaderWriterLockRef(handle);
         }
 
         /// <summary>
@@ -202,6 +196,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeConcurrentReaderWriterLock Empty => new();
+        public static NativeConcurrentReaderWriterLock Empty => default;
     }
 }

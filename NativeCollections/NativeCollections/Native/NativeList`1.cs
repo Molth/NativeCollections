@@ -31,9 +31,7 @@ namespace NativeCollections
         public NativeList(int capacity)
         {
             var value = new UnsafeList<T>(capacity);
-            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeList<T>>(1);
-            Unsafe.AsRef<UnsafeList<T>>(handle) = value;
-            _handle = handle;
+            _handle = Box.New(ref value);
         }
 
         /// <summary>
@@ -113,14 +111,14 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<T>(NativeList<T> nativeList) => nativeList.AsSpan();
+        public static implicit operator Span<T>(NativeList<T> value) => value.AsSpan();
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<T>(NativeList<T> nativeList) => nativeList.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<T>(NativeList<T> value) => value.AsReadOnlySpan();
 
         /// <summary>
         ///     Equals
@@ -142,14 +140,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            var handle = _handle;
-            if (UnsafeHelpers.IsNull(handle))
-                return;
-            handle->Dispose();
-            NativeMemoryAllocator.AlignedFree(handle);
-        }
+        public void Dispose() => Box.Drop(_handle);
 
         /// <summary>
         ///     Clear
@@ -427,7 +418,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeList<T> Empty => new();
+        public static NativeList<T> Empty => default;
 
         /// <summary>
         ///     Get enumerator

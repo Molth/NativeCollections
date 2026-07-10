@@ -44,7 +44,7 @@ namespace NativeCollections
             if (Environment.Is64BitProcess)
             {
                 bytes = (nuint)TLSF64.align_up(TLSF64.tlsf_size() + TLSF64.tlsf_pool_overhead() + blocks * TLSF64.tlsf_alloc_overhead() + size, 8);
-                buffer = NativeMemoryAllocator.AlignedAlloc((uint)bytes, (uint)NativeMemoryAllocator.AlignOf<TLSF32.control_t>());
+                buffer = NativeMemoryAllocator.AlignedAlloc((uint)bytes, NativeMemoryAllocator.AlignOf<TLSF32.control_t>());
                 handle = TLSF64.tlsf_create_with_pool(buffer, bytes);
                 if (UnsafeHelpers.IsNull(handle))
                 {
@@ -55,7 +55,7 @@ namespace NativeCollections
             else
             {
                 bytes = TLSF32.align_up((uint)(TLSF32.tlsf_size() + TLSF32.tlsf_pool_overhead() + blocks * TLSF32.tlsf_alloc_overhead() + size), 4);
-                buffer = NativeMemoryAllocator.AlignedAlloc((uint)bytes, (uint)NativeMemoryAllocator.AlignOf<TLSF64.control_t>());
+                buffer = NativeMemoryAllocator.AlignedAlloc((uint)bytes, NativeMemoryAllocator.AlignOf<TLSF64.control_t>());
                 handle = TLSF32.tlsf_create_with_pool(buffer, (uint)bytes);
                 if (UnsafeHelpers.IsNull(handle))
                 {
@@ -130,13 +130,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            var handle = _handle;
-            if (UnsafeHelpers.IsNull(handle))
-                return;
-            NativeMemoryAllocator.AlignedFree(handle);
-        }
+        public void Dispose() => Box.Free(_handle);
 
         /// <summary>
         ///     Reset
@@ -216,6 +210,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeDynamicMemoryPool Empty => new();
+        public static NativeDynamicMemoryPool Empty => default;
     }
 }

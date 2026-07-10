@@ -31,6 +31,7 @@ namespace NativeCollections
                 if (FreeList.TryDequeue(out var handle))
                 {
                     var ptr = (long*)handle;
+                    Interlocked.Increment(ref Unsafe.AsRef<long>(ptr));
                     return ptr;
                 }
 
@@ -40,6 +41,8 @@ namespace NativeCollections
                     AllocatedList.Enqueue(newHandles);
                     for (var i = 0; i < PER_CHUNK_SIZE; ++i)
                         FreeList.Enqueue((nint)newHandles[i]);
+
+                    SyncRoot.Exit();
                 }
 
                 spinWait.SpinOnce();

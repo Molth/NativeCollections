@@ -190,66 +190,65 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Pointer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator T*(NativeSlice<T> nativeSlice) => nativeSlice._buffer;
+        public static implicit operator T*(NativeSlice<T> value) => value._buffer;
 
         /// <summary>
         ///     As span
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<T>(NativeSlice<T> nativeSlice) => nativeSlice.AsSpan();
+        public static implicit operator Span<T>(NativeSlice<T> value) => value.AsSpan();
 
         /// <summary>
         ///     As native slice
         /// </summary>
-        /// <param name="span">Span</param>
         /// <returns>NativeSlice</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [MustBePinned(nameof(span))]
-        public static implicit operator NativeSlice<T>([MustBePinned] Span<T> span) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(span)), 0, span.Length);
+        [MustBePinned(nameof(value))]
+        public static implicit operator NativeSlice<T>([MustBePinned] Span<T> value) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(value)), 0, value.Length);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<T>(NativeSlice<T> nativeSlice) => nativeSlice.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<T>(NativeSlice<T> value) => value.AsReadOnlySpan();
 
         /// <summary>
         ///     As native slice
         /// </summary>
         /// <returns>NativeSlice</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [MustBePinned(nameof(readOnlySpan))]
-        public static implicit operator NativeSlice<T>([MustBePinned] ReadOnlySpan<T> readOnlySpan) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(readOnlySpan)), 0, readOnlySpan.Length);
+        [MustBePinned(nameof(value))]
+        public static implicit operator NativeSlice<T>([MustBePinned] ReadOnlySpan<T> value) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(value)), 0, value.Length);
 
         /// <summary>
         ///     As native array
         /// </summary>
         /// <returns>NativeArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeArray<T>(NativeSlice<T> nativeSlice) => new(nativeSlice._buffer, nativeSlice._offset + nativeSlice._count);
+        public static implicit operator NativeArray<T>(NativeSlice<T> value) => new(value._buffer, value._offset + value._count);
 
         /// <summary>
         ///     As native slice
         /// </summary>
         /// <returns>NativeSlice</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeSlice<T>(NativeArray<T> nativeArray) => new(nativeArray);
+        public static implicit operator NativeSlice<T>(NativeArray<T> value) => new(value);
 
         /// <summary>
         ///     As native memory array
         /// </summary>
         /// <returns>NativeMemoryArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeMemoryArray<T>(NativeSlice<T> nativeSlice) => new(nativeSlice._buffer, nativeSlice._offset + nativeSlice._count);
+        public static implicit operator NativeMemoryArray<T>(NativeSlice<T> value) => new(value._buffer, value._offset + value._count);
 
         /// <summary>
         ///     As native slice
         /// </summary>
         /// <returns>NativeSlice</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeSlice<T>(NativeMemoryArray<T> nativeMemoryArray) => new(nativeMemoryArray);
+        public static implicit operator NativeSlice<T>(NativeMemoryArray<T> value) => new(value);
 
         /// <summary>
         ///     Equals
@@ -271,13 +270,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            var buffer = _buffer;
-            if (UnsafeHelpers.IsNull(buffer))
-                return;
-            NativeMemoryAllocator.AlignedFree(buffer);
-        }
+        public void Dispose() => Box.Free(_buffer);
 
         /// <summary>
         ///     As span
@@ -347,7 +340,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeSlice<T> Empty => new();
+        public static NativeSlice<T> Empty => default;
 
         /// <summary>
         ///     Get enumerator

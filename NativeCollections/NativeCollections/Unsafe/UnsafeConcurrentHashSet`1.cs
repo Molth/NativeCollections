@@ -164,7 +164,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeConcurrentHashSet<T> Empty => new();
+        public static UnsafeConcurrentHashSet<T> Empty => default;
 
         /// <summary>
         ///     Initializes a new instance of this

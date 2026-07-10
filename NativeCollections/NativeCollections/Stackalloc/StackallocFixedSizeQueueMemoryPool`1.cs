@@ -73,7 +73,7 @@ namespace NativeCollections
         public static int GetByteCount(int capacity)
         {
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
-            var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<T>(), NativeMemoryAllocator.AlignOf<int>());
+            var alignment = Math.Max(NativeMemoryAllocator.AlignOf<T>(), NativeMemoryAllocator.AlignOf<int>());
             var bufferByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * Unsafe.SizeOf<T>()), alignment);
             return (int)(bufferByteCount + capacity * Unsafe.SizeOf<int>() + alignment - 1);
         }
@@ -88,7 +88,7 @@ namespace NativeCollections
         public StackallocFixedSizeQueueMemoryPool([MustBePinned] Span<byte> buffer, int capacity)
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, GetByteCount(capacity), ExceptionArgument.capacity);
-            var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<T>(), NativeMemoryAllocator.AlignOf<int>());
+            var alignment = Math.Max(NativeMemoryAllocator.AlignOf<T>(), NativeMemoryAllocator.AlignOf<int>());
             var bufferByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * Unsafe.SizeOf<T>()), alignment);
             _buffer = (T*)NativeArray<byte>.Create(buffer, alignment).Buffer;
             _index = UnsafeHelpers.AddByteOffset<int>(_buffer, (nint)bufferByteCount);
@@ -202,6 +202,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static StackallocFixedSizeQueueMemoryPool<T> Empty => new();
+        public static StackallocFixedSizeQueueMemoryPool<T> Empty => default;
     }
 }

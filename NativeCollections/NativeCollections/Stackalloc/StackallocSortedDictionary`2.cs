@@ -856,7 +856,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static StackallocSortedDictionary<TKey, TValue> Empty => new();
+        public static StackallocSortedDictionary<TKey, TValue> Empty => default;
 
         /// <summary>
         ///     Get enumerator

@@ -41,7 +41,7 @@ namespace NativeCollections
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => _nodePool.IsCreated;
+        public readonly bool IsCreated => _nodePool.IsCreated;
 
         /// <summary>
         ///     Is empty
@@ -636,7 +636,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeSortedSet<T> Empty => new();
+        public static UnsafeSortedSet<T> Empty => default;
 
         /// <summary>
         ///     Get enumerator

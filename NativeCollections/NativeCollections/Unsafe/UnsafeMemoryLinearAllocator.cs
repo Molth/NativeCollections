@@ -46,13 +46,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly void Dispose()
-        {
-            var buffer = Buffer;
-            if (UnsafeHelpers.IsNull(buffer))
-                return;
-            NativeMemoryAllocator.AlignedFree(buffer);
-        }
+        public readonly void Dispose() => Box.Free(Buffer);
 
         /// <summary>
         ///     Is created
@@ -189,7 +183,7 @@ namespace NativeCollections
         public bool TryAlignedAlloc<T>(uint elementCount, out T* ptr) where T : unmanaged
         {
             var byteCount = elementCount * (uint)Unsafe.SizeOf<T>();
-            var alignment = (uint)NativeMemoryAllocator.AlignOf<T>();
+            var alignment = NativeMemoryAllocator.AlignOf<T>();
             if (TryAlignedAlloc(byteCount, alignment, out var voidPtr))
             {
                 ptr = (T*)voidPtr;
@@ -206,7 +200,7 @@ namespace NativeCollections
         public bool TryAlignedAllocZeroed<T>(uint elementCount, out T* ptr) where T : unmanaged
         {
             var byteCount = elementCount * (uint)Unsafe.SizeOf<T>();
-            var alignment = (uint)NativeMemoryAllocator.AlignOf<T>();
+            var alignment = NativeMemoryAllocator.AlignOf<T>();
             if (TryAlignedAllocZeroed(byteCount, alignment, out var voidPtr))
             {
                 ptr = (T*)voidPtr;
@@ -242,7 +236,7 @@ namespace NativeCollections
         {
             if (!TryAlignedAlloc(byteCount, alignment, out ptr))
                 return false;
-            Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(ptr), 0, byteCount);
+            SpanHelpers.Set(ref Unsafe.AsRef<byte>(ptr), 0, byteCount);
             return true;
         }
 
@@ -299,41 +293,41 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Pointer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator byte*(UnsafeMemoryLinearAllocator nativeMemoryLinearAllocator) => nativeMemoryLinearAllocator.Buffer;
+        public static implicit operator byte*(UnsafeMemoryLinearAllocator value) => value.Buffer;
 
         /// <summary>
         ///     As native memory linear allocator
         /// </summary>
         /// <returns>NativeMemoryLinearAllocator</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [MustBePinned(nameof(span))]
-        public static implicit operator UnsafeMemoryLinearAllocator([MustBePinned] Span<byte> span) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(span)), span.Length);
+        [MustBePinned(nameof(value))]
+        public static implicit operator UnsafeMemoryLinearAllocator([MustBePinned] Span<byte> value) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(value)), value.Length);
 
         /// <summary>
         ///     As span
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<byte>(UnsafeMemoryLinearAllocator nativeMemoryLinearAllocator) => nativeMemoryLinearAllocator.AsSpan();
+        public static implicit operator Span<byte>(UnsafeMemoryLinearAllocator value) => value.AsSpan();
 
         /// <summary>
         ///     As native memory linear allocator
         /// </summary>
         /// <returns>NativeMemoryLinearAllocator</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [MustBePinned(nameof(readOnlySpan))]
-        public static implicit operator UnsafeMemoryLinearAllocator([MustBePinned] ReadOnlySpan<byte> readOnlySpan) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(readOnlySpan)), readOnlySpan.Length);
+        [MustBePinned(nameof(value))]
+        public static implicit operator UnsafeMemoryLinearAllocator([MustBePinned] ReadOnlySpan<byte> value) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(value)), value.Length);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<byte>(UnsafeMemoryLinearAllocator nativeMemoryLinearAllocator) => nativeMemoryLinearAllocator.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<byte>(UnsafeMemoryLinearAllocator value) => value.AsReadOnlySpan();
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeMemoryLinearAllocator Empty => new();
+        public static UnsafeMemoryLinearAllocator Empty => default;
     }
 }

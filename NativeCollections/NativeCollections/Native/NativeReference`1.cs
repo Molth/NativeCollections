@@ -148,37 +148,37 @@ namespace NativeCollections
         ///     As reference
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeReference<T>(T* handle) => new(handle);
+        public static implicit operator NativeReference<T>(T* value) => new(value);
 
         /// <summary>
         ///     As handle
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator T*(NativeReference<T> nativeReference) => nativeReference._handle;
+        public static implicit operator T*(NativeReference<T> value) => value._handle;
 
         /// <summary>
         ///     As reference
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeReference<T>(nint handle) => new((T*)handle);
+        public static implicit operator NativeReference<T>(nint value) => new((T*)value);
 
         /// <summary>
         ///     As handle
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator nint(NativeReference<T> nativeReference) => (nint)nativeReference._handle;
+        public static implicit operator nint(NativeReference<T> value) => (nint)value._handle;
 
         /// <summary>
         ///     As span
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<T>(NativeReference<T> nativeReference) => nativeReference.AsSpan();
+        public static implicit operator Span<T>(NativeReference<T> value) => value.AsSpan();
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<T>(NativeReference<T> nativeReference) => nativeReference.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<T>(NativeReference<T> value) => value.AsReadOnlySpan();
 
         /// <summary>
         ///     Equals
@@ -200,13 +200,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            var handle = _handle;
-            if (UnsafeHelpers.IsNull(handle))
-                return;
-            NativeMemoryAllocator.AlignedFree(handle);
-        }
+        public void Dispose() => Box.Free(_handle);
 
         /// <summary>
         ///     Create
@@ -235,6 +229,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeReference<T> Empty => new();
+        public static NativeReference<T> Empty => default;
     }
 }

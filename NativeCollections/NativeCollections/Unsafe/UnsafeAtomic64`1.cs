@@ -33,25 +33,7 @@ namespace NativeCollections
         public UnsafeAtomic64(T value)
         {
             CheckType();
-            if (Unsafe.SizeOf<T>() == 1)
-            {
-                _value = UnsafeHelpers.BitCast<T, byte>(value);
-                return;
-            }
-
-            if (Unsafe.SizeOf<T>() == 2)
-            {
-                _value = UnsafeHelpers.BitCast<T, short>(value);
-                return;
-            }
-
-            if (Unsafe.SizeOf<T>() == 4)
-            {
-                _value = UnsafeHelpers.BitCast<T, int>(value);
-                return;
-            }
-
-            _value = UnsafeHelpers.BitCast<T, long>(value);
+            _value = AtomicHelpers.CastToInt64(value);
         }
 
         /// <summary>
@@ -72,17 +54,8 @@ namespace NativeCollections
             if (typeof(T) == typeof(float) || typeof(T) == typeof(double))
                 ThrowHelpers.ThrowNotSupportedException();
 
-            if (Unsafe.SizeOf<T>() == 1)
-            {
-                var newInt64 = InterlockedHelpers.AndInt64(ref _value, UnsafeHelpers.BitCast<T, byte>(value));
-                return typeof(T) == typeof(bool) ? UnsafeHelpers.BitCast<bool, T>((newInt64 & 1) != 0) : UnsafeHelpers.BitCast<byte, T>((byte)newInt64);
-            }
-
-            if (Unsafe.SizeOf<T>() == 2)
-                return UnsafeHelpers.BitCast<short, T>((short)InterlockedHelpers.AndInt64(ref _value, UnsafeHelpers.BitCast<T, short>(value)));
-            if (Unsafe.SizeOf<T>() == 4)
-                return UnsafeHelpers.BitCast<int, T>((int)InterlockedHelpers.AndInt64(ref _value, UnsafeHelpers.BitCast<T, int>(value)));
-            return UnsafeHelpers.BitCast<long, T>(InterlockedHelpers.AndInt64(ref _value, UnsafeHelpers.BitCast<T, long>(value)));
+            var newInt64 = InterlockedHelpers.AndInt64(ref _value, AtomicHelpers.CastToInt64(value));
+            return AtomicHelpers.CastFromInt64<T>(newInt64);
         }
 
         /// <summary>
@@ -96,17 +69,23 @@ namespace NativeCollections
             if (typeof(T) == typeof(float) || typeof(T) == typeof(double))
                 ThrowHelpers.ThrowNotSupportedException();
 
-            if (Unsafe.SizeOf<T>() == 1)
-            {
-                var newInt64 = InterlockedHelpers.OrInt64(ref _value, UnsafeHelpers.BitCast<T, byte>(value));
-                return typeof(T) == typeof(bool) ? UnsafeHelpers.BitCast<bool, T>((newInt64 & 1) != 0) : UnsafeHelpers.BitCast<byte, T>((byte)newInt64);
-            }
+            var newInt64 = InterlockedHelpers.OrInt64(ref _value, AtomicHelpers.CastToInt64(value));
+            return AtomicHelpers.CastFromInt64<T>(newInt64);
+        }
 
-            if (Unsafe.SizeOf<T>() == 2)
-                return UnsafeHelpers.BitCast<short, T>((short)InterlockedHelpers.OrInt64(ref _value, UnsafeHelpers.BitCast<T, short>(value)));
-            if (Unsafe.SizeOf<T>() == 4)
-                return UnsafeHelpers.BitCast<int, T>((int)InterlockedHelpers.OrInt64(ref _value, UnsafeHelpers.BitCast<T, int>(value)));
-            return UnsafeHelpers.BitCast<long, T>(InterlockedHelpers.OrInt64(ref _value, UnsafeHelpers.BitCast<T, long>(value)));
+        /// <summary>
+        ///     Bitwise "xors" two 64-bit signed integers and replaces the first integer with the result, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T Xor(T value)
+        {
+            CheckType();
+            if (typeof(T) == typeof(float) || typeof(T) == typeof(double))
+                ThrowHelpers.ThrowNotSupportedException();
+
+            var newInt64 = InterlockedHelpers.XorInt64(ref _value, AtomicHelpers.CastToInt64(value));
+            return AtomicHelpers.CastFromInt64<T>(newInt64);
         }
 
         /// <summary>
@@ -117,14 +96,8 @@ namespace NativeCollections
         public T Read()
         {
             CheckType();
-            var obj = Interlocked.CompareExchange(ref _value, 0L, 0L);
-            if (Unsafe.SizeOf<T>() == 1)
-                return typeof(T) == typeof(bool) ? UnsafeHelpers.BitCast<bool, T>((obj & 1) != 0) : UnsafeHelpers.BitCast<byte, T>((byte)obj);
-            if (Unsafe.SizeOf<T>() == 2)
-                return UnsafeHelpers.BitCast<short, T>((short)obj);
-            if (Unsafe.SizeOf<T>() == 4)
-                return UnsafeHelpers.BitCast<int, T>((int)obj);
-            return UnsafeHelpers.BitCast<long, T>(obj);
+            var newInt64 = Interlocked.CompareExchange(ref _value, 0L, 0L);
+            return AtomicHelpers.CastFromInt64<T>(newInt64);
         }
 
         /// <summary>
@@ -135,17 +108,8 @@ namespace NativeCollections
         public T Exchange(T value)
         {
             CheckType();
-            if (Unsafe.SizeOf<T>() == 1)
-            {
-                var newInt64 = Interlocked.Exchange(ref _value, UnsafeHelpers.BitCast<T, byte>(value));
-                return typeof(T) == typeof(bool) ? UnsafeHelpers.BitCast<bool, T>((newInt64 & 1) != 0) : UnsafeHelpers.BitCast<byte, T>((byte)newInt64);
-            }
-
-            if (Unsafe.SizeOf<T>() == 2)
-                return UnsafeHelpers.BitCast<short, T>((short)Interlocked.Exchange(ref _value, UnsafeHelpers.BitCast<T, short>(value)));
-            if (Unsafe.SizeOf<T>() == 4)
-                return UnsafeHelpers.BitCast<int, T>((int)Interlocked.Exchange(ref _value, UnsafeHelpers.BitCast<T, int>(value)));
-            return UnsafeHelpers.BitCast<long, T>(Interlocked.Exchange(ref _value, UnsafeHelpers.BitCast<T, long>(value)));
+            var newInt64 = Interlocked.Exchange(ref _value, AtomicHelpers.CastToInt64(value));
+            return AtomicHelpers.CastFromInt64<T>(newInt64);
         }
 
         /// <summary>
@@ -156,17 +120,8 @@ namespace NativeCollections
         public T CompareExchange(T value, T comparand)
         {
             CheckType();
-            if (Unsafe.SizeOf<T>() == 1)
-            {
-                var newInt64 = Interlocked.CompareExchange(ref _value, UnsafeHelpers.BitCast<T, byte>(value), UnsafeHelpers.BitCast<T, byte>(comparand));
-                return typeof(T) == typeof(bool) ? UnsafeHelpers.BitCast<bool, T>((newInt64 & 1) != 0) : UnsafeHelpers.BitCast<byte, T>((byte)newInt64);
-            }
-
-            if (Unsafe.SizeOf<T>() == 2)
-                return UnsafeHelpers.BitCast<short, T>((short)Interlocked.CompareExchange(ref _value, UnsafeHelpers.BitCast<T, short>(value), UnsafeHelpers.BitCast<T, short>(comparand)));
-            if (Unsafe.SizeOf<T>() == 4)
-                return UnsafeHelpers.BitCast<int, T>((int)Interlocked.CompareExchange(ref _value, UnsafeHelpers.BitCast<T, int>(value), UnsafeHelpers.BitCast<T, int>(comparand)));
-            return UnsafeHelpers.BitCast<long, T>(Interlocked.CompareExchange(ref _value, UnsafeHelpers.BitCast<T, long>(value), UnsafeHelpers.BitCast<T, long>(comparand)));
+            var newInt64 = Interlocked.CompareExchange(ref _value, AtomicHelpers.CastToInt64(value), AtomicHelpers.CastToInt64(comparand));
+            return AtomicHelpers.CastFromInt64<T>(newInt64);
         }
 
         /// <summary>
@@ -179,49 +134,12 @@ namespace NativeCollections
             CheckType();
             if (typeof(T) == typeof(float))
             {
-                var spinWait = new UnsafeSpinWait();
-                float newFloat32;
-                while (true)
-                {
-                    var currentInt32 = (int)Interlocked.CompareExchange(ref _value, 0L, 0L);
-                    newFloat32 = UnsafeHelpers.BitCast<int, float>(currentInt32) + Unsafe.As<T, float>(ref value);
-                    if (Interlocked.CompareExchange(ref _value, UnsafeHelpers.BitCast<float, int>(newFloat32), currentInt32) != currentInt32)
-                        spinWait.SpinOnce(-1);
-                    else
-                        break;
-                }
-
-                return Unsafe.As<float, T>(ref newFloat32);
+                var newInt32 = AtomicHelpers.AddFloat32(ref _value, Unsafe.As<T, float>(ref value));
+                return AtomicHelpers.CastFromInt32<T>(newInt32);
             }
 
-            if (typeof(T) == typeof(double))
-            {
-                var spinWait = new UnsafeSpinWait();
-                double newFloat64;
-                while (true)
-                {
-                    var currentInt64 = Interlocked.CompareExchange(ref _value, 0L, 0L);
-                    newFloat64 = UnsafeHelpers.BitCast<long, double>(currentInt64) + Unsafe.As<T, double>(ref value);
-                    if (Interlocked.CompareExchange(ref _value, UnsafeHelpers.BitCast<double, long>(newFloat64), currentInt64) != currentInt64)
-                        spinWait.SpinOnce(-1);
-                    else
-                        break;
-                }
-
-                return Unsafe.As<double, T>(ref newFloat64);
-            }
-
-            if (Unsafe.SizeOf<T>() == 1)
-            {
-                var newInt64 = Interlocked.Add(ref _value, UnsafeHelpers.BitCast<T, byte>(value));
-                return typeof(T) == typeof(bool) ? UnsafeHelpers.BitCast<bool, T>((newInt64 & 1) != 0) : UnsafeHelpers.BitCast<byte, T>((byte)newInt64);
-            }
-
-            if (Unsafe.SizeOf<T>() == 2)
-                return UnsafeHelpers.BitCast<short, T>((short)Interlocked.Add(ref _value, UnsafeHelpers.BitCast<T, short>(value)));
-            if (Unsafe.SizeOf<T>() == 4)
-                return UnsafeHelpers.BitCast<int, T>((int)Interlocked.Add(ref _value, UnsafeHelpers.BitCast<T, int>(value)));
-            return UnsafeHelpers.BitCast<long, T>(Interlocked.Add(ref _value, UnsafeHelpers.BitCast<T, long>(value)));
+            var newInt64 = typeof(T) == typeof(double) ? AtomicHelpers.AddFloat64(ref _value, Unsafe.As<T, double>(ref value)) : Interlocked.Add(ref _value, AtomicHelpers.CastToInt64(value));
+            return AtomicHelpers.CastFromInt64<T>(newInt64);
         }
 
         /// <summary>
@@ -234,49 +152,12 @@ namespace NativeCollections
             CheckType();
             if (typeof(T) == typeof(float))
             {
-                var spinWait = new UnsafeSpinWait();
-                float newFloat32;
-                while (true)
-                {
-                    var currentInt32 = (int)Interlocked.CompareExchange(ref _value, 0L, 0L);
-                    newFloat32 = UnsafeHelpers.BitCast<int, float>(currentInt32) - Unsafe.As<T, float>(ref value);
-                    if (Interlocked.CompareExchange(ref _value, UnsafeHelpers.BitCast<float, int>(newFloat32), currentInt32) != currentInt32)
-                        spinWait.SpinOnce(-1);
-                    else
-                        break;
-                }
-
-                return Unsafe.As<float, T>(ref newFloat32);
+                var newInt32 = AtomicHelpers.AddFloat32(ref _value, -Unsafe.As<T, float>(ref value));
+                return AtomicHelpers.CastFromInt32<T>(newInt32);
             }
 
-            if (typeof(T) == typeof(double))
-            {
-                var spinWait = new UnsafeSpinWait();
-                double newFloat64;
-                while (true)
-                {
-                    var currentInt64 = Interlocked.CompareExchange(ref _value, 0L, 0L);
-                    newFloat64 = UnsafeHelpers.BitCast<long, double>(currentInt64) - Unsafe.As<T, double>(ref value);
-                    if (Interlocked.CompareExchange(ref _value, UnsafeHelpers.BitCast<double, long>(newFloat64), currentInt64) != currentInt64)
-                        spinWait.SpinOnce(-1);
-                    else
-                        break;
-                }
-
-                return Unsafe.As<double, T>(ref newFloat64);
-            }
-
-            if (Unsafe.SizeOf<T>() == 1)
-            {
-                var newInt64 = Interlocked.Add(ref _value, -(long)UnsafeHelpers.BitCast<T, byte>(value));
-                return typeof(T) == typeof(bool) ? UnsafeHelpers.BitCast<bool, T>((newInt64 & 1) != 0) : UnsafeHelpers.BitCast<byte, T>((byte)newInt64);
-            }
-
-            if (Unsafe.SizeOf<T>() == 2)
-                return UnsafeHelpers.BitCast<short, T>((short)Interlocked.Add(ref _value, -(long)UnsafeHelpers.BitCast<T, short>(value)));
-            if (Unsafe.SizeOf<T>() == 4)
-                return UnsafeHelpers.BitCast<int, T>((int)Interlocked.Add(ref _value, -(long)UnsafeHelpers.BitCast<T, int>(value)));
-            return UnsafeHelpers.BitCast<long, T>(Interlocked.Add(ref _value, -UnsafeHelpers.BitCast<T, long>(value)));
+            var newInt64 = typeof(T) == typeof(double) ? AtomicHelpers.AddFloat64(ref _value, -Unsafe.As<T, double>(ref value)) : Interlocked.Add(ref _value, -AtomicHelpers.CastToInt64(value));
+            return AtomicHelpers.CastFromInt64<T>(newInt64);
         }
 
         /// <summary>
@@ -289,49 +170,12 @@ namespace NativeCollections
             CheckType();
             if (typeof(T) == typeof(float))
             {
-                var spinWait = new UnsafeSpinWait();
-                float newFloat32;
-                while (true)
-                {
-                    var currentInt32 = (int)Interlocked.CompareExchange(ref _value, 0L, 0L);
-                    newFloat32 = UnsafeHelpers.BitCast<int, float>(currentInt32) + 1f;
-                    if (Interlocked.CompareExchange(ref _value, UnsafeHelpers.BitCast<float, int>(newFloat32), currentInt32) != currentInt32)
-                        spinWait.SpinOnce(-1);
-                    else
-                        break;
-                }
-
-                return Unsafe.As<float, T>(ref newFloat32);
+                var newInt32 = AtomicHelpers.AddFloat32(ref _value, 1.0f);
+                return AtomicHelpers.CastFromInt32<T>(newInt32);
             }
 
-            if (typeof(T) == typeof(double))
-            {
-                var spinWait = new UnsafeSpinWait();
-                double newFloat64;
-                while (true)
-                {
-                    var currentInt64 = Interlocked.CompareExchange(ref _value, 0L, 0L);
-                    newFloat64 = UnsafeHelpers.BitCast<long, double>(currentInt64) + 1.0;
-                    if (Interlocked.CompareExchange(ref _value, UnsafeHelpers.BitCast<double, long>(newFloat64), currentInt64) != currentInt64)
-                        spinWait.SpinOnce(-1);
-                    else
-                        break;
-                }
-
-                return Unsafe.As<double, T>(ref newFloat64);
-            }
-
-            if (Unsafe.SizeOf<T>() == 1)
-            {
-                var newInt64 = Interlocked.Increment(ref _value);
-                return typeof(T) == typeof(bool) ? UnsafeHelpers.BitCast<bool, T>((newInt64 & 1) != 0) : UnsafeHelpers.BitCast<byte, T>((byte)newInt64);
-            }
-
-            if (Unsafe.SizeOf<T>() == 2)
-                return UnsafeHelpers.BitCast<short, T>((short)Interlocked.Increment(ref _value));
-            if (Unsafe.SizeOf<T>() == 4)
-                return UnsafeHelpers.BitCast<int, T>((int)Interlocked.Increment(ref _value));
-            return UnsafeHelpers.BitCast<long, T>(Interlocked.Increment(ref _value));
+            var newInt64 = typeof(T) == typeof(double) ? AtomicHelpers.AddFloat64(ref _value, 1.0) : Interlocked.Increment(ref _value);
+            return AtomicHelpers.CastFromInt64<T>(newInt64);
         }
 
         /// <summary>
@@ -344,49 +188,12 @@ namespace NativeCollections
             CheckType();
             if (typeof(T) == typeof(float))
             {
-                var spinWait = new UnsafeSpinWait();
-                float newFloat32;
-                while (true)
-                {
-                    var currentInt32 = (int)Interlocked.CompareExchange(ref _value, 0L, 0L);
-                    newFloat32 = UnsafeHelpers.BitCast<int, float>(currentInt32) - 1f;
-                    if (Interlocked.CompareExchange(ref _value, UnsafeHelpers.BitCast<float, int>(newFloat32), currentInt32) != currentInt32)
-                        spinWait.SpinOnce(-1);
-                    else
-                        break;
-                }
-
-                return Unsafe.As<float, T>(ref newFloat32);
+                var newInt32 = AtomicHelpers.AddFloat32(ref _value, -1.0f);
+                return AtomicHelpers.CastFromInt32<T>(newInt32);
             }
 
-            if (typeof(T) == typeof(double))
-            {
-                var spinWait = new UnsafeSpinWait();
-                double newFloat64;
-                while (true)
-                {
-                    var currentInt64 = Interlocked.CompareExchange(ref _value, 0L, 0L);
-                    newFloat64 = UnsafeHelpers.BitCast<long, double>(currentInt64) - 1.0;
-                    if (Interlocked.CompareExchange(ref _value, UnsafeHelpers.BitCast<double, long>(newFloat64), currentInt64) != currentInt64)
-                        spinWait.SpinOnce(-1);
-                    else
-                        break;
-                }
-
-                return Unsafe.As<double, T>(ref newFloat64);
-            }
-
-            if (Unsafe.SizeOf<T>() == 1)
-            {
-                var newInt64 = Interlocked.Decrement(ref _value);
-                return typeof(T) == typeof(bool) ? UnsafeHelpers.BitCast<bool, T>((newInt64 & 1) != 0) : UnsafeHelpers.BitCast<byte, T>((byte)newInt64);
-            }
-
-            if (Unsafe.SizeOf<T>() == 2)
-                return UnsafeHelpers.BitCast<short, T>((short)Interlocked.Decrement(ref _value));
-            if (Unsafe.SizeOf<T>() == 4)
-                return UnsafeHelpers.BitCast<int, T>((int)Interlocked.Decrement(ref _value));
-            return UnsafeHelpers.BitCast<long, T>(Interlocked.Decrement(ref _value));
+            var newInt64 = typeof(T) == typeof(double) ? AtomicHelpers.AddFloat64(ref _value, -1.0) : Interlocked.Decrement(ref _value);
+            return AtomicHelpers.CastFromInt64<T>(newInt64);
         }
 
         /// <summary>
@@ -395,7 +202,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void CheckType()
         {
-            if (TypeHelpers<T>.IsSupported64)
+            if (AtomicHelpers.IsSupported64<T>())
                 return;
             ThrowHelpers.ThrowNotSupportedException();
         }
@@ -430,6 +237,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeAtomic64<T> Empty => new();
+        public static UnsafeAtomic64<T> Empty => default;
     }
 }

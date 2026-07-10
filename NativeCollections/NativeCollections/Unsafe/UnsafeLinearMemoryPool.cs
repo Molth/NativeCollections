@@ -245,7 +245,7 @@ namespace NativeCollections
             }
 
             var endAddress = (nint)slab + Unsafe.SizeOf<MemorySlab>() + slab->Length;
-            var result = (void*)(nint)NativeMemoryAllocator.AlignUp((nuint)(endAddress + Unsafe.SizeOf<nint>()), (nuint)alignment);
+            var result = (void*)(nint)NativeMemoryAllocator.AlignUp((nuint)(endAddress + Unsafe.SizeOf<nint>()), (uint)alignment);
             var byteOffset = UnsafeHelpers.ByteOffset(slab, result);
             Unsafe.Subtract(ref Unsafe.AsRef<nint>(result), 1) = byteOffset;
             slab->Count++;
@@ -346,7 +346,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static MemorySlab* Create(int size)
         {
-            var slab = (MemorySlab*)NativeMemoryAllocator.AlignedAlloc((uint)(Unsafe.SizeOf<MemorySlab>() + size), (uint)NativeMemoryAllocator.AlignOf<nint>());
+            var slab = (MemorySlab*)NativeMemoryAllocator.AlignedAlloc((uint)(Unsafe.SizeOf<MemorySlab>() + size), NativeMemoryAllocator.AlignOf<nint>());
             Initialize(slab);
             return slab;
         }
@@ -391,6 +391,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeLinearMemoryPool Empty => new();
+        public static UnsafeLinearMemoryPool Empty => default;
     }
 }

@@ -115,9 +115,9 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             capacity = Math.Max(capacity, 4);
-            var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<TKey>(), NativeMemoryAllocator.AlignOf<TValue>());
+            var alignment = Math.Max(NativeMemoryAllocator.AlignOf<TKey>(), NativeMemoryAllocator.AlignOf<TValue>());
             var keysByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * Unsafe.SizeOf<TKey>()), alignment);
-            _keys = (TKey*)NativeMemoryAllocator.AlignedAlloc((uint)(keysByteCount + capacity * Unsafe.SizeOf<TValue>()), alignment);
+            _keys = (TKey*)NativeMemoryAllocator.AlignedAlloc(keysByteCount + (uint)capacity * (uint)Unsafe.SizeOf<TValue>(), alignment);
             _values = UnsafeHelpers.AddByteOffset<TValue>(_keys, (nint)keysByteCount);
             _size = 0;
             _version = 0;
@@ -238,8 +238,8 @@ namespace NativeCollections
                 --_size;
                 if (index < _size)
                 {
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TKey>()));
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TValue>()));
+                    SpanHelpers.Copy(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TKey>()));
+                    SpanHelpers.Copy(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TValue>()));
                 }
 
                 ++_version;
@@ -265,8 +265,8 @@ namespace NativeCollections
                 --_size;
                 if (index < _size)
                 {
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TKey>()));
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TValue>()));
+                    SpanHelpers.Copy(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TKey>()));
+                    SpanHelpers.Copy(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TValue>()));
                 }
 
                 ++_version;
@@ -289,8 +289,8 @@ namespace NativeCollections
             --_size;
             if (index < _size)
             {
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TKey>()));
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TValue>()));
+                SpanHelpers.Copy(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TKey>()));
+                SpanHelpers.Copy(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TValue>()));
             }
 
             ++_version;
@@ -310,8 +310,8 @@ namespace NativeCollections
             --_size;
             if (index < _size)
             {
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TKey>()));
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TValue>()));
+                SpanHelpers.Copy(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TKey>()));
+                SpanHelpers.Copy(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TValue>()));
             }
 
             ++_version;
@@ -330,8 +330,8 @@ namespace NativeCollections
             --_size;
             if (index < _size)
             {
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TKey>()));
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TValue>()));
+                SpanHelpers.Copy(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TKey>()));
+                SpanHelpers.Copy(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TValue>()));
             }
 
             ++_version;
@@ -356,8 +356,8 @@ namespace NativeCollections
             --_size;
             if (index < _size)
             {
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TKey>()));
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TValue>()));
+                SpanHelpers.Copy(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TKey>()));
+                SpanHelpers.Copy(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<TValue>()));
             }
 
             ++_version;
@@ -380,8 +380,8 @@ namespace NativeCollections
             _size -= count;
             if (index < _size)
             {
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + count))), (uint)((_size - index) * Unsafe.SizeOf<TKey>()));
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + count))), (uint)((_size - index) * Unsafe.SizeOf<TValue>()));
+                SpanHelpers.Copy(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + count))), (uint)((_size - index) * Unsafe.SizeOf<TKey>()));
+                SpanHelpers.Copy(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + count))), (uint)((_size - index) * Unsafe.SizeOf<TValue>()));
             }
 
             ++_version;
@@ -656,14 +656,14 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfLessThan(capacity, _size, ExceptionArgument.capacity);
             if (capacity != _capacity)
             {
-                var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<TKey>(), NativeMemoryAllocator.AlignOf<TValue>());
+                var alignment = Math.Max(NativeMemoryAllocator.AlignOf<TKey>(), NativeMemoryAllocator.AlignOf<TValue>());
                 var keysByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * Unsafe.SizeOf<TKey>()), alignment);
                 var keys = (TKey*)NativeMemoryAllocator.AlignedAlloc((uint)(capacity * Unsafe.SizeOf<TValue>()), alignment);
                 var values = UnsafeHelpers.AddByteOffset<TValue>(keys, (nint)keysByteCount);
                 if (_size > 0)
                 {
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(keys), ref Unsafe.AsRef<byte>(_keys), (uint)(_size * Unsafe.SizeOf<TKey>()));
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(values), ref Unsafe.AsRef<byte>(_values), (uint)(_size * Unsafe.SizeOf<TValue>()));
+                    SpanHelpers.Copy(ref Unsafe.AsRef<byte>(keys), ref Unsafe.AsRef<byte>(_keys), (uint)(_size * Unsafe.SizeOf<TKey>()));
+                    SpanHelpers.Copy(ref Unsafe.AsRef<byte>(values), ref Unsafe.AsRef<byte>(_values), (uint)(_size * Unsafe.SizeOf<TValue>()));
                 }
 
                 NativeMemoryAllocator.AlignedFree(_keys);
@@ -686,8 +686,8 @@ namespace NativeCollections
                 EnsureCapacity(_size + 1);
             if (index < _size)
             {
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + 1))), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), (uint)((_size - index) * Unsafe.SizeOf<TKey>()));
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + 1))), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), (uint)((_size - index) * Unsafe.SizeOf<TValue>()));
+                SpanHelpers.Move(ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)(index + 1))), ref Unsafe.As<TKey, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index)), (uint)((_size - index) * Unsafe.SizeOf<TKey>()));
+                SpanHelpers.Move(ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)(index + 1))), ref Unsafe.As<TValue, byte>(ref Unsafe.Add(ref Unsafe.AsRef<TValue>(_values), (nint)index)), (uint)((_size - index) * Unsafe.SizeOf<TValue>()));
             }
 
             Unsafe.Add(ref Unsafe.AsRef<TKey>(_keys), (nint)index) = key;
@@ -699,7 +699,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeSortedList<TKey, TValue> Empty => new();
+        public static UnsafeSortedList<TKey, TValue> Empty => default;
 
         /// <summary>
         ///     Get enumerator
@@ -873,7 +873,7 @@ namespace NativeCollections
             /// </summary>
             /// <returns>ReadOnlySpan</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static implicit operator ReadOnlySpan<TKey>(KeyCollection keyCollection) => keyCollection.AsReadOnlySpan();
+            public static implicit operator ReadOnlySpan<TKey>(KeyCollection value) => value.AsReadOnlySpan();
 
             /// <summary>
             ///     Get enumerator
@@ -1080,14 +1080,14 @@ namespace NativeCollections
             /// </summary>
             /// <returns>Span</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static implicit operator Span<TValue>(ValueCollection valueCollection) => valueCollection.AsSpan();
+            public static implicit operator Span<TValue>(ValueCollection value) => value.AsSpan();
 
             /// <summary>
             ///     As readOnlySpan
             /// </summary>
             /// <returns>ReadOnlySpan</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static implicit operator ReadOnlySpan<TValue>(ValueCollection valueCollection) => valueCollection.AsReadOnlySpan();
+            public static implicit operator ReadOnlySpan<TValue>(ValueCollection value) => value.AsReadOnlySpan();
 
             /// <summary>
             ///     Get enumerator

@@ -66,8 +66,7 @@ namespace NativeCollections
         ///     <list type="bullet">
         ///         <item>
         ///             To avoid use-after-free bugs,
-        ///             introducing hazard pointers (HP) or
-        ///             epoch-based reclamation (EBR) would likely be impractical.
+        ///             introducing dynamic memory reclamation would likely be impractical.
         ///         </item>
         ///         <item>
         ///             To keep consistent with the latest behavior of .NET Standard.

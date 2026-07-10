@@ -183,7 +183,7 @@ namespace NativeCollections
             {
                 --_size;
                 if (index < _size)
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<T>()));
+                    SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<T>()));
                 ++_version;
                 return true;
             }
@@ -202,7 +202,7 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, ExceptionArgument.index);
             --_size;
             if (index < _size)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<T>()));
+                SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<T>()));
             ++_version;
         }
 
@@ -219,7 +219,7 @@ namespace NativeCollections
             item = Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index);
             --_size;
             if (index < _size)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<T>()));
+                SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<T>()));
             ++_version;
         }
 
@@ -234,7 +234,7 @@ namespace NativeCollections
                 return false;
             --_size;
             if (index < _size)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<T>()));
+                SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<T>()));
             ++_version;
             return true;
         }
@@ -256,7 +256,7 @@ namespace NativeCollections
             item = Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index);
             --_size;
             if (index < _size)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<T>()));
+                SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<T>()));
             ++_version;
             return true;
         }
@@ -276,7 +276,7 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfGreaterThan(index + count, _size, ExceptionArgument.count);
             _size -= count;
             if (index < _size)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + count))), (uint)((_size - index) * Unsafe.SizeOf<T>()));
+                SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + count))), (uint)((_size - index) * Unsafe.SizeOf<T>()));
             ++_version;
         }
 
@@ -381,7 +381,7 @@ namespace NativeCollections
             {
                 var items = NativeMemoryAllocator.AlignedAlloc<T>((uint)capacity);
                 if (_size > 0)
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(items), ref Unsafe.AsRef<byte>(_items), (uint)(_size * Unsafe.SizeOf<T>()));
+                    SpanHelpers.Copy(ref Unsafe.AsRef<byte>(items), ref Unsafe.AsRef<byte>(_items), (uint)(_size * Unsafe.SizeOf<T>()));
                 NativeMemoryAllocator.AlignedFree(_items);
                 _items = items;
                 _capacity = capacity;
@@ -414,7 +414,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<T>(UnsafeSortedList<T> unsafeSortedList) => unsafeSortedList.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<T>(UnsafeSortedList<T> value) => value.AsReadOnlySpan();
 
         /// <summary>
         ///     Insert
@@ -427,7 +427,7 @@ namespace NativeCollections
             if (_size == _capacity)
                 EnsureCapacity(_size + 1);
             if (index < _size)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), (uint)((_size - index) * Unsafe.SizeOf<T>()));
+                SpanHelpers.Move(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), (uint)((_size - index) * Unsafe.SizeOf<T>()));
             Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index) = item;
             ++_size;
             ++_version;
@@ -436,7 +436,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeSortedList<T> Empty => new();
+        public static UnsafeSortedList<T> Empty => default;
 
         /// <summary>
         ///     Get enumerator

@@ -12,7 +12,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.None)]
-    public unsafe struct UnsafeConcurrentSpinLock : IDisposable, IEquatable<UnsafeConcurrentSpinLock>
+    public unsafe struct UnsafeConcurrentSpinLock : IEquatable<UnsafeConcurrentSpinLock>
     {
         /// <summary>
         ///     Sequence number
@@ -35,12 +35,6 @@ namespace NativeCollections
         public readonly int NextSequenceNumber => _nextSequenceNumber;
 
         /// <summary>
-        ///     Dispose
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => Exit();
-
-        /// <summary>
         ///     Reset
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -55,10 +49,10 @@ namespace NativeCollections
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
-        public UnsafeDisposable<UnsafeConcurrentSpinLock> EnterLock()
+        public NativeConcurrentSpinLockRef EnterLock()
         {
             Enter();
-            return new UnsafeDisposable<UnsafeConcurrentSpinLock>(UnsafeHelpers.AsPointer(ref this));
+            return new NativeConcurrentSpinLockRef(UnsafeHelpers.AsPointer(ref this));
         }
 
         /// <summary>
@@ -66,10 +60,10 @@ namespace NativeCollections
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
-        public UnsafeDisposable<UnsafeConcurrentSpinLock> EnterLock(int sequenceNumber)
+        public NativeConcurrentSpinLockRef EnterLock(int sequenceNumber)
         {
             Enter(sequenceNumber);
-            return new UnsafeDisposable<UnsafeConcurrentSpinLock>(UnsafeHelpers.AsPointer(ref this));
+            return new NativeConcurrentSpinLockRef(UnsafeHelpers.AsPointer(ref this));
         }
 
         /// <summary>
@@ -192,6 +186,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeConcurrentSpinLock Empty => new();
+        public static UnsafeConcurrentSpinLock Empty => default;
     }
 }

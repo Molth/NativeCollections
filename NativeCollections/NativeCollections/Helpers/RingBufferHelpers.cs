@@ -20,10 +20,10 @@ namespace NativeCollections
                 return;
             var length1 = length - head;
             var length2 = Math.Min(length1, size);
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref destination), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref source, (nint)head)), (uint)(length2 * Unsafe.SizeOf<T>()));
+            SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref destination), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref source, (nint)head)), (uint)(length2 * Unsafe.SizeOf<T>()));
             var length3 = size - length2;
             if (length3 > 0)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref destination, (nint)length1)), ref Unsafe.As<T, byte>(ref source), (uint)(length3 * Unsafe.SizeOf<T>()));
+                SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref destination, (nint)length1)), ref Unsafe.As<T, byte>(ref source), (uint)(length3 * Unsafe.SizeOf<T>()));
         }
 
         /// <summary>

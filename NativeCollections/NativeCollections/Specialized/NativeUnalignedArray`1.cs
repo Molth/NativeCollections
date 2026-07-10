@@ -62,7 +62,7 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
             ThrowHelpers.ThrowIfNegative(alignment, ExceptionArgument.alignment);
-            ThrowHelpers.ThrowIfLessThan((uint)alignment, (uint)NativeMemoryAllocator.AlignOf<T>(), ExceptionArgument.alignment);
+            ThrowHelpers.ThrowIfLessThan((uint)alignment, NativeMemoryAllocator.AlignOf<T>(), ExceptionArgument.alignment);
             _buffer = (T*)NativeMemoryAllocator.AlignedAlloc((uint)(length * Unsafe.SizeOf<T>()), (uint)alignment);
             _length = length;
         }
@@ -78,7 +78,7 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
             ThrowHelpers.ThrowIfNegative(alignment, ExceptionArgument.alignment);
-            ThrowHelpers.ThrowIfLessThan((uint)alignment, (uint)NativeMemoryAllocator.AlignOf<T>(), ExceptionArgument.alignment);
+            ThrowHelpers.ThrowIfLessThan((uint)alignment, NativeMemoryAllocator.AlignOf<T>(), ExceptionArgument.alignment);
             _buffer = zeroed ? (T*)NativeMemoryAllocator.AlignedAllocZeroed((uint)(length * Unsafe.SizeOf<T>()), (uint)alignment) : (T*)NativeMemoryAllocator.AlignedAlloc((uint)(length * Unsafe.SizeOf<T>()), (uint)alignment);
             _length = length;
         }
@@ -176,37 +176,37 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Pointer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator T*(NativeUnalignedArray<T> nativeUnalignedArray) => nativeUnalignedArray._buffer;
+        public static implicit operator T*(NativeUnalignedArray<T> value) => value._buffer;
 
         /// <summary>
         ///     As span
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<T>(NativeUnalignedArray<T> nativeUnalignedArray) => nativeUnalignedArray.AsSpan();
+        public static implicit operator Span<T>(NativeUnalignedArray<T> value) => value.AsSpan();
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<T>(NativeUnalignedArray<T> nativeUnalignedArray) => nativeUnalignedArray.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<T>(NativeUnalignedArray<T> value) => value.AsReadOnlySpan();
 
         /// <summary>
         ///     As native array
         /// </summary>
         /// <returns>NativeUnalignedArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [MustBePinned(nameof(buffer))]
-        public static implicit operator NativeUnalignedArray<T>([MustBePinned] Span<T> buffer) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(buffer)), buffer.Length);
+        [MustBePinned(nameof(value))]
+        public static implicit operator NativeUnalignedArray<T>([MustBePinned] Span<T> value) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(value)), value.Length);
 
         /// <summary>
         ///     As native array
         /// </summary>
         /// <returns>NativeUnalignedArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [MustBePinned(nameof(buffer))]
-        public static implicit operator NativeUnalignedArray<T>([MustBePinned] ReadOnlySpan<T> buffer) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(buffer)), buffer.Length);
+        [MustBePinned(nameof(value))]
+        public static implicit operator NativeUnalignedArray<T>([MustBePinned] ReadOnlySpan<T> value) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(value)), value.Length);
 
         /// <summary>
         ///     Equals
@@ -228,19 +228,13 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            var buffer = _buffer;
-            if (UnsafeHelpers.IsNull(buffer))
-                return;
-            NativeMemoryAllocator.AlignedFree(buffer);
-        }
+        public void Dispose() => Box.Free(_buffer);
 
         /// <summary>
         ///     Clear
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Clear() => Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(_buffer), 0, (uint)(_length * Unsafe.SizeOf<T>()));
+        public void Clear() => SpanHelpers.Set(ref Unsafe.AsRef<byte>(_buffer), 0, (uint)(_length * Unsafe.SizeOf<T>()));
 
         /// <summary>
         ///     Cast
@@ -316,7 +310,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeUnalignedArray<T> Empty => new();
+        public static NativeUnalignedArray<T> Empty => default;
 
         /// <summary>
         ///     Get enumerator

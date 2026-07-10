@@ -104,35 +104,35 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<T>(NativeMemory<T> nativeMemory) => nativeMemory.Memory.Span;
+        public static implicit operator Span<T>(NativeMemory<T> value) => value.Memory.Span;
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<T>(NativeMemory<T> nativeMemory) => nativeMemory.Memory.Span;
+        public static implicit operator ReadOnlySpan<T>(NativeMemory<T> value) => value.Memory.Span;
 
         /// <summary>
         ///     As memory
         /// </summary>
         /// <returns>Memory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Memory<T>(NativeMemory<T> nativeMemory) => nativeMemory.Memory;
+        public static implicit operator Memory<T>(NativeMemory<T> value) => value.Memory;
 
         /// <summary>
         ///     As readOnly memory
         /// </summary>
         /// <returns>ReadOnlyMemory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlyMemory<T>(NativeMemory<T> nativeMemory) => nativeMemory.Memory;
+        public static implicit operator ReadOnlyMemory<T>(NativeMemory<T> value) => value.Memory;
 
         /// <summary>
         ///     As native array
         /// </summary>
         /// <returns>NativeArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeArray<T>(NativeMemory<T> nativeMemory) => nativeMemory.Manager.Buffer;
+        public static implicit operator NativeArray<T>(NativeMemory<T> value) => value.Manager.Buffer;
 
         /// <summary>
         ///     Dispose
@@ -164,6 +164,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeMemory<T> Empty => new();
+        public static NativeMemory<T> Empty => default;
     }
 }

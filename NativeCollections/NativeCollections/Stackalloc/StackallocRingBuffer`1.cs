@@ -447,7 +447,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static StackallocRingBuffer<T> Empty => new();
+        public static StackallocRingBuffer<T> Empty => default;
 
         /// <summary>
         ///     Get enumerator

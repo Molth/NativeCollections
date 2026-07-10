@@ -311,7 +311,7 @@ namespace NativeCollections
         {
             var newBuffer = NativeMemoryAllocator.AlignedAlloc<T>((uint)capacity);
             if (_size > 0)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(newBuffer), ref Unsafe.AsRef<byte>(_buffer), (uint)(_size * Unsafe.SizeOf<T>()));
+                SpanHelpers.Copy(ref Unsafe.AsRef<byte>(newBuffer), ref Unsafe.AsRef<byte>(_buffer), (uint)(_size * Unsafe.SizeOf<T>()));
             NativeMemoryAllocator.AlignedFree(_buffer);
             _buffer = newBuffer;
             _length = capacity;
@@ -344,8 +344,7 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
             ref var reference = ref MemoryMarshal.GetReference(buffer);
             var size = Math.Min(buffer.Length, Math.Min(count, _size));
-            for (var i = 0; i < size; ++i)
-                UnsafeHelpers.WriteUnaligned(ref Unsafe.Add(ref reference, (nint)i), Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(_size - 1 - i)));
+            StackHelpers.Copy(ref reference, ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(_size - size)), size);
             return size;
         }
 
@@ -379,7 +378,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeStack<T> Empty => new();
+        public static UnsafeStack<T> Empty => default;
 
         /// <summary>
         ///     Get enumerator

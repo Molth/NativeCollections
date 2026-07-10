@@ -141,7 +141,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeConcurrentStack<T> Empty => new();
+        public static UnsafeConcurrentStack<T> Empty => default;
 
         /// <summary>
         ///     Initializes a new instance of this class.

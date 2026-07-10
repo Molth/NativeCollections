@@ -196,7 +196,7 @@ namespace NativeCollections
             if (length > Capacity)
                 return false;
             if (length > _length)
-                Unsafe.InitBlockUnaligned(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), new IntPtr(_length)), 0, (uint)(length - _length));
+                SpanHelpers.Set(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), new IntPtr(_length)), 0, (uint)(length - _length));
             _length = length;
             _position = Math.Min(_position, length);
             return true;
@@ -227,7 +227,7 @@ namespace NativeCollections
             var n = size < buffer.Length ? size : buffer.Length;
             if (n <= 0)
                 return 0;
-            Unsafe.CopyBlockUnaligned(ref MemoryMarshal.GetReference(buffer), ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), new IntPtr(_position)), (uint)n);
+            SpanHelpers.Copy(ref MemoryMarshal.GetReference(buffer), ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), new IntPtr(_position)), (uint)n);
             _position += n;
             return n;
         }
@@ -266,11 +266,11 @@ namespace NativeCollections
                     return false;
                 var mustZero = _position > _length;
                 if (mustZero)
-                    Unsafe.InitBlockUnaligned(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), new IntPtr(_length)), 0, (uint)(i - _length));
+                    SpanHelpers.Set(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), new IntPtr(_length)), 0, (uint)(i - _length));
                 _length = i;
             }
 
-            Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), new IntPtr(_position)), ref MemoryMarshal.GetReference(buffer), (uint)buffer.Length);
+            SpanHelpers.Copy(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), new IntPtr(_position)), ref MemoryMarshal.GetReference(buffer), (uint)buffer.Length);
             _position = i;
             return true;
         }
@@ -289,7 +289,7 @@ namespace NativeCollections
                     return false;
                 var mustZero = _position > _length;
                 if (mustZero)
-                    Unsafe.InitBlockUnaligned(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), new IntPtr(_length)), 0, (uint)(_position - _length));
+                    SpanHelpers.Set(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), new IntPtr(_length)), 0, (uint)(_position - _length));
                 _length = newLength;
             }
 
@@ -350,18 +350,18 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<byte>(StackallocMemoryStream stackallocMemoryStream) => stackallocMemoryStream.AsSpan();
+        public static implicit operator Span<byte>(StackallocMemoryStream value) => value.AsSpan();
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<byte>(StackallocMemoryStream stackallocMemoryStream) => stackallocMemoryStream.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<byte>(StackallocMemoryStream value) => value.AsReadOnlySpan();
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static StackallocMemoryStream Empty => new();
+        public static StackallocMemoryStream Empty => default;
     }
 }

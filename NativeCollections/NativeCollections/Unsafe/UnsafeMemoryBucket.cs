@@ -194,6 +194,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeMemoryBucket Empty => new();
+        public static UnsafeMemoryBucket Empty => default;
     }
 }

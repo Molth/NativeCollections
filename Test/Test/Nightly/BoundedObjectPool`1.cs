@@ -3,7 +3,7 @@ using System.Threading;
 
 namespace Examples
 {
-    public sealed class BoundedObjectPool<T> where T : class
+    public sealed class BoundedObjectPool<T> where T : class?
     {
         private object? _fastItem;
         private readonly RingBufferNotPow2<T>? _buffer;

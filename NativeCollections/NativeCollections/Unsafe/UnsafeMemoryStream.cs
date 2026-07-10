@@ -217,7 +217,7 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfGreaterThan((uint)length, (uint)int.MaxValue, ExceptionArgument.length);
             var allocatedNewArray = EnsureCapacity(length);
             if (!allocatedNewArray && length > _length)
-                Unsafe.InitBlockUnaligned(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), new IntPtr(_length)), 0, (uint)(length - _length));
+                SpanHelpers.Set(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), new IntPtr(_length)), 0, (uint)(length - _length));
             _length = length;
             _position = Math.Min(_position, length);
         }
@@ -247,7 +247,7 @@ namespace NativeCollections
             var n = size < buffer.Length ? size : buffer.Length;
             if (n <= 0)
                 return 0;
-            Unsafe.CopyBlockUnaligned(ref MemoryMarshal.GetReference(buffer), ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), new IntPtr(_position)), (uint)n);
+            SpanHelpers.Copy(ref MemoryMarshal.GetReference(buffer), ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), new IntPtr(_position)), (uint)n);
             _position += n;
             return n;
         }
@@ -290,11 +290,11 @@ namespace NativeCollections
                 }
 
                 if (mustZero)
-                    Unsafe.InitBlockUnaligned(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), new IntPtr(_length)), 0, (uint)(i - _length));
+                    SpanHelpers.Set(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), new IntPtr(_length)), 0, (uint)(i - _length));
                 _length = i;
             }
 
-            Unsafe.CopyBlockUnaligned(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), new IntPtr(_position)), ref MemoryMarshal.GetReference(buffer), (uint)buffer.Length);
+            SpanHelpers.Copy(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), new IntPtr(_position)), ref MemoryMarshal.GetReference(buffer), (uint)buffer.Length);
             _position = i;
         }
 
@@ -316,7 +316,7 @@ namespace NativeCollections
                 }
 
                 if (mustZero)
-                    Unsafe.InitBlockUnaligned(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), new IntPtr(_length)), 0, (uint)(_position - _length));
+                    SpanHelpers.Set(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), new IntPtr(_length)), 0, (uint)(_position - _length));
                 _length = newLength;
             }
 
@@ -335,7 +335,7 @@ namespace NativeCollections
             {
                 var newBuffer = NativeMemoryAllocator.AlignedAlloc<byte>((uint)capacity);
                 if (_length > 0)
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(newBuffer), ref Unsafe.AsRef<byte>(_buffer), (uint)_length);
+                    SpanHelpers.Copy(ref Unsafe.AsRef<byte>(newBuffer), ref Unsafe.AsRef<byte>(_buffer), (uint)_length);
                 NativeMemoryAllocator.AlignedFree(_buffer);
                 _buffer = newBuffer;
                 _capacity = capacity;
@@ -418,18 +418,18 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<byte>(UnsafeMemoryStream unsafeMemoryStream) => unsafeMemoryStream.AsSpan();
+        public static implicit operator Span<byte>(UnsafeMemoryStream value) => value.AsSpan();
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<byte>(UnsafeMemoryStream unsafeMemoryStream) => unsafeMemoryStream.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<byte>(UnsafeMemoryStream value) => value.AsReadOnlySpan();
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeMemoryStream Empty => new();
+        public static UnsafeMemoryStream Empty => default;
     }
 }

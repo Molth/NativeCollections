@@ -48,9 +48,7 @@ namespace NativeCollections
         public NativeFixedSizeStackMemoryPool(int capacity)
         {
             var value = new UnsafeFixedSizeStackMemoryPool<T>(capacity);
-            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeFixedSizeStackMemoryPool<T>>(1);
-            Unsafe.AsRef<UnsafeFixedSizeStackMemoryPool<T>>(handle) = value;
-            _handle = handle;
+            _handle = Box.New(ref value);
         }
 
         /// <summary>
@@ -99,14 +97,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            var handle = _handle;
-            if (UnsafeHelpers.IsNull(handle))
-                return;
-            handle->Dispose();
-            NativeMemoryAllocator.AlignedFree(handle);
-        }
+        public void Dispose() => Box.Drop(_handle);
 
         /// <summary>
         ///     Reset
@@ -130,6 +121,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeFixedSizeStackMemoryPool<T> Empty => new();
+        public static NativeFixedSizeStackMemoryPool<T> Empty => default;
     }
 }

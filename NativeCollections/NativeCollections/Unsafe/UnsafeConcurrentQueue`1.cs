@@ -147,7 +147,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeConcurrentQueue<T> Empty => new();
+        public static UnsafeConcurrentQueue<T> Empty => default;
 
         /// <summary>
         ///     Initializes a new instance of this class.

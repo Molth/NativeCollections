@@ -262,7 +262,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeFrozenSet<T> Empty => new();
+        public static UnsafeFrozenSet<T> Empty => default;
 
         /// <summary>
         ///     Get enumerator

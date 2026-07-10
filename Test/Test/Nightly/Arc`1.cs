@@ -32,7 +32,7 @@ namespace Examples
 
         public static Arc<T> Create(in T value)
         {
-            var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<int>(), NativeMemoryAllocator.AlignOf<T>());
+            var alignment = Math.Max(NativeMemoryAllocator.AlignOf<int>(), NativeMemoryAllocator.AlignOf<T>());
             var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)Unsafe.SizeOf<int>(), alignment);
             var buckets = (int*)NativeMemoryAllocator.AlignedAllocZeroed((uint)(bucketsByteCount + Unsafe.SizeOf<T>()), alignment);
             var entries = (T*)((nint)buckets + (nint)bucketsByteCount);

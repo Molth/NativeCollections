@@ -28,9 +28,7 @@ namespace NativeCollections
         public NativeMemoryStream(int capacity)
         {
             var value = new UnsafeMemoryStream(capacity);
-            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeMemoryStream>(1);
-            Unsafe.AsRef<UnsafeMemoryStream>(handle) = value;
-            _handle = handle;
+            _handle = Box.New(ref value);
         }
 
         /// <summary>
@@ -136,14 +134,14 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<byte>(NativeMemoryStream nativeMemoryStream) => nativeMemoryStream.AsSpan();
+        public static implicit operator Span<byte>(NativeMemoryStream value) => value.AsSpan();
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<byte>(NativeMemoryStream nativeMemoryStream) => nativeMemoryStream.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<byte>(NativeMemoryStream value) => value.AsReadOnlySpan();
 
         /// <summary>
         ///     Equals
@@ -165,14 +163,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            var handle = _handle;
-            if (UnsafeHelpers.IsNull(handle))
-                return;
-            handle->Dispose();
-            NativeMemoryAllocator.AlignedFree(handle);
-        }
+        public void Dispose() => Box.Drop(_handle);
 
         /// <summary>
         ///     Get buffer
@@ -301,6 +292,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeMemoryStream Empty => new();
+        public static NativeMemoryStream Empty => default;
     }
 }

@@ -99,14 +99,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            var handle = _handle;
-            if (UnsafeHelpers.IsNull(handle))
-                return;
-            handle->Dispose();
-            NativeMemoryAllocator.AlignedFree(handle);
-        }
+        public void Dispose() => Box.Drop(_handle);
 
         /// <summary>
         ///     Removes all keys from this.
@@ -151,7 +144,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeConcurrentHashSet<T> Empty => new();
+        public static NativeConcurrentHashSet<T> Empty => default;
 
         /// <summary>
         ///     Initializes a new instance of this
@@ -162,9 +155,7 @@ namespace NativeCollections
         public static NativeConcurrentHashSet<T> Create()
         {
             var value = UnsafeConcurrentHashSet<T>.Create();
-            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeConcurrentHashSet<T>>(1);
-            Unsafe.AsRef<UnsafeConcurrentHashSet<T>>(handle) = value;
-            return new NativeConcurrentHashSet<T>(handle);
+            return new NativeConcurrentHashSet<T>(Box.New(ref value));
         }
 
         /// <summary>
@@ -184,9 +175,7 @@ namespace NativeCollections
         public static NativeConcurrentHashSet<T> Create(int concurrencyLevel, int capacity)
         {
             var value = UnsafeConcurrentHashSet<T>.Create(concurrencyLevel, capacity);
-            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeConcurrentHashSet<T>>(1);
-            Unsafe.AsRef<UnsafeConcurrentHashSet<T>>(handle) = value;
-            return new NativeConcurrentHashSet<T>(handle);
+            return new NativeConcurrentHashSet<T>(Box.New(ref value));
         }
 
         /// <summary>

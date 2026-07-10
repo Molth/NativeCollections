@@ -300,7 +300,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeFrozenDictionary<TKey, TValue> Empty => new();
+        public static UnsafeFrozenDictionary<TKey, TValue> Empty => default;
 
         /// <summary>
         ///     Get enumerator

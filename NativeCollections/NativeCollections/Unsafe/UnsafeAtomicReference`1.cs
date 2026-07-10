@@ -42,7 +42,7 @@ namespace NativeCollections
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
-        public ref nint AsRef() => ref _handle;
+        public ref T* AsRef() => ref Unsafe.As<nint, UnsafeReference<T>>(ref _handle).Handle;
 
         /// <summary>
         ///     Returns a value, loaded as an atomic operation.
@@ -111,6 +111,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeAtomicReference<T> Empty => new();
+        public static UnsafeAtomicReference<T> Empty => default;
     }
 }

@@ -174,6 +174,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeUInt32MemoryPool<T> Empty => new();
+        public static UnsafeUInt32MemoryPool<T> Empty => default;
     }
 }

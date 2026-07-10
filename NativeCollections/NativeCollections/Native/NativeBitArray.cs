@@ -27,9 +27,7 @@ namespace NativeCollections
         public NativeBitArray(int length)
         {
             var value = new UnsafeBitArray(length);
-            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeBitArray>(1);
-            Unsafe.AsRef<UnsafeBitArray>(handle) = value;
-            _handle = handle;
+            _handle = Box.New(ref value);
         }
 
         /// <summary>
@@ -41,9 +39,7 @@ namespace NativeCollections
         public NativeBitArray(int length, bool defaultValue)
         {
             var value = new UnsafeBitArray(length, defaultValue);
-            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeBitArray>(1);
-            Unsafe.AsRef<UnsafeBitArray>(handle) = value;
-            _handle = handle;
+            _handle = Box.New(ref value);
         }
 
         /// <summary>
@@ -56,9 +52,7 @@ namespace NativeCollections
         public NativeBitArray([MustBePinned] Span<int> buffer, int length)
         {
             var value = new UnsafeBitArray(buffer, length);
-            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeBitArray>(1);
-            Unsafe.AsRef<UnsafeBitArray>(handle) = value;
-            _handle = handle;
+            _handle = Box.New(ref value);
         }
 
         /// <summary>
@@ -72,9 +66,7 @@ namespace NativeCollections
         public NativeBitArray([MustBePinned] Span<int> buffer, int length, bool defaultValue)
         {
             var value = new UnsafeBitArray(buffer, length, defaultValue);
-            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeBitArray>(1);
-            Unsafe.AsRef<UnsafeBitArray>(handle) = value;
-            _handle = handle;
+            _handle = Box.New(ref value);
         }
 
         /// <summary>
@@ -168,14 +160,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            var handle = _handle;
-            if (UnsafeHelpers.IsNull(handle))
-                return;
-            handle->Dispose();
-            NativeMemoryAllocator.AlignedFree(handle);
-        }
+        public void Dispose() => Box.Drop(_handle);
 
         /// <summary>
         ///     As bytes
@@ -397,6 +382,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeBitArray Empty => new();
+        public static NativeBitArray Empty => default;
     }
 }

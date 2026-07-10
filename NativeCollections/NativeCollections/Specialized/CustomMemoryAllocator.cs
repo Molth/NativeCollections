@@ -102,7 +102,7 @@ namespace NativeCollections
         public T* AlignedAlloc<T>(uint elementCount) where T : unmanaged
         {
             var byteCount = elementCount * (uint)Unsafe.SizeOf<T>();
-            var alignment = (uint)NativeMemoryAllocator.AlignOf<T>();
+            var alignment = NativeMemoryAllocator.AlignOf<T>();
             return (T*)AlignedAlloc(byteCount, alignment);
         }
 
@@ -113,7 +113,7 @@ namespace NativeCollections
         public T* AlignedAllocZeroed<T>(uint elementCount) where T : unmanaged
         {
             var byteCount = elementCount * (uint)Unsafe.SizeOf<T>();
-            var alignment = (uint)NativeMemoryAllocator.AlignOf<T>();
+            var alignment = NativeMemoryAllocator.AlignOf<T>();
             return (T*)AlignedAllocZeroed(byteCount, alignment);
         }
 
@@ -155,6 +155,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static CustomMemoryAllocator Empty => new();
+        public static CustomMemoryAllocator Empty => default;
     }
 }

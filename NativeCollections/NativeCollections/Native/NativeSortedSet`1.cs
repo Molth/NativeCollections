@@ -31,9 +31,7 @@ namespace NativeCollections
         public NativeSortedSet(int size, int maxFreeSlabs)
         {
             var value = new UnsafeSortedSet<T>(size, maxFreeSlabs);
-            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeSortedSet<T>>(1);
-            Unsafe.AsRef<UnsafeSortedSet<T>>(handle) = value;
-            _handle = handle;
+            _handle = Box.New(ref value);
         }
 
         /// <summary>
@@ -107,14 +105,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            var handle = _handle;
-            if (UnsafeHelpers.IsNull(handle))
-                return;
-            handle->Dispose();
-            NativeMemoryAllocator.AlignedFree(handle);
-        }
+        public void Dispose() => Box.Drop(_handle);
 
         /// <summary>
         ///     Clear
@@ -214,7 +205,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeSortedSet<T> Empty => new();
+        public static NativeSortedSet<T> Empty => default;
 
         /// <summary>
         ///     Get enumerator

@@ -31,9 +31,7 @@ namespace NativeCollections
         public NativeStack(int capacity)
         {
             var value = new UnsafeStack<T>(capacity);
-            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeStack<T>>(1);
-            Unsafe.AsRef<UnsafeStack<T>>(handle) = value;
-            _handle = handle;
+            _handle = Box.New(ref value);
         }
 
         /// <summary>
@@ -122,14 +120,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            var handle = _handle;
-            if (UnsafeHelpers.IsNull(handle))
-                return;
-            handle->Dispose();
-            NativeMemoryAllocator.AlignedFree(handle);
-        }
+        public void Dispose() => Box.Drop(_handle);
 
         /// <summary>
         ///     Clear
@@ -238,7 +229,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeStack<T> Empty => new();
+        public static NativeStack<T> Empty => default;
 
         /// <summary>
         ///     Get enumerator

@@ -160,7 +160,7 @@ namespace NativeCollections
         public static int GetByteCount(int capacity)
         {
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
-            var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<Entry>(), NativeMemoryAllocator.AlignOf<int>());
+            var alignment = Math.Max(NativeMemoryAllocator.AlignOf<Entry>(), NativeMemoryAllocator.AlignOf<int>());
             var denseByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * Unsafe.SizeOf<Entry>()), alignment);
             return (int)(denseByteCount + capacity * Unsafe.SizeOf<int>() + alignment - 1);
         }
@@ -175,7 +175,7 @@ namespace NativeCollections
         public StackallocSparseSet([MustBePinned] Span<byte> buffer, int capacity)
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, GetByteCount(capacity), ExceptionArgument.capacity);
-            var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<Entry>(), NativeMemoryAllocator.AlignOf<int>());
+            var alignment = Math.Max(NativeMemoryAllocator.AlignOf<Entry>(), NativeMemoryAllocator.AlignOf<int>());
             var denseByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * Unsafe.SizeOf<Entry>()), alignment);
             _dense = (Entry*)NativeArray<byte>.Create(buffer, alignment).Buffer;
             _sparse = UnsafeHelpers.AddByteOffset<int>(_dense, (nint)denseByteCount);
@@ -718,7 +718,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<KeyValuePair<int, TValue>>(StackallocSparseSet<TValue> stackallocSparseSet) => stackallocSparseSet.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<KeyValuePair<int, TValue>>(StackallocSparseSet<TValue> value) => value.AsReadOnlySpan();
 
         /// <summary>
         ///     Entry
@@ -740,7 +740,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static StackallocSparseSet<TValue> Empty => new();
+        public static StackallocSparseSet<TValue> Empty => default;
 
         /// <summary>
         ///     Get enumerator

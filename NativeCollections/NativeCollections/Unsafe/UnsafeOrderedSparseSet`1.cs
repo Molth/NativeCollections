@@ -189,9 +189,9 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             capacity = Math.Max(capacity, 4);
-            var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<Entry>(), NativeMemoryAllocator.AlignOf<int>());
+            var alignment = Math.Max(NativeMemoryAllocator.AlignOf<Entry>(), NativeMemoryAllocator.AlignOf<int>());
             var denseByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * Unsafe.SizeOf<Entry>()), alignment);
-            _dense = (Entry*)NativeMemoryAllocator.AlignedAlloc((uint)(denseByteCount + capacity * Unsafe.SizeOf<int>()), alignment);
+            _dense = (Entry*)NativeMemoryAllocator.AlignedAlloc(denseByteCount + (uint)capacity * (uint)Unsafe.SizeOf<int>(), alignment);
             _sparse = UnsafeHelpers.AddByteOffset<int>(_dense, (nint)denseByteCount);
             MemoryMarshal.CreateSpan(ref Unsafe.AsRef<int>(_sparse), capacity).Fill(-1);
             _length = capacity;
@@ -274,12 +274,12 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfLessThan(capacity, maxKey, ExceptionArgument.capacity);
             if (capacity != _length)
             {
-                var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<Entry>(), NativeMemoryAllocator.AlignOf<int>());
+                var alignment = Math.Max(NativeMemoryAllocator.AlignOf<Entry>(), NativeMemoryAllocator.AlignOf<int>());
                 var denseByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * Unsafe.SizeOf<Entry>()), alignment);
-                var dense = (Entry*)NativeMemoryAllocator.AlignedAlloc((uint)(denseByteCount + capacity * Unsafe.SizeOf<int>()), alignment);
+                var dense = (Entry*)NativeMemoryAllocator.AlignedAlloc(denseByteCount + (uint)capacity * (uint)Unsafe.SizeOf<int>(), alignment);
                 var sparse = UnsafeHelpers.AddByteOffset<int>(dense, (nint)denseByteCount);
-                Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(dense), ref Unsafe.AsRef<byte>(_dense), (uint)(_count * Unsafe.SizeOf<Entry>()));
-                Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(sparse), ref Unsafe.AsRef<byte>(_sparse), (uint)(maxKey * Unsafe.SizeOf<int>()));
+                SpanHelpers.Copy(ref Unsafe.AsRef<byte>(dense), ref Unsafe.AsRef<byte>(_dense), (uint)(_count * Unsafe.SizeOf<Entry>()));
+                SpanHelpers.Copy(ref Unsafe.AsRef<byte>(sparse), ref Unsafe.AsRef<byte>(_sparse), (uint)(maxKey * Unsafe.SizeOf<int>()));
                 if (capacity > maxKey)
                     MemoryMarshal.CreateSpan(ref Unsafe.Add(ref Unsafe.AsRef<int>(sparse), (nint)maxKey), capacity - maxKey).Fill(-1);
                 NativeMemoryAllocator.AlignedFree(_dense);
@@ -827,7 +827,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<KeyValuePair<int, TValue>>(UnsafeOrderedSparseSet<TValue> unsafeOrderedSparseSet) => unsafeOrderedSparseSet.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<KeyValuePair<int, TValue>>(UnsafeOrderedSparseSet<TValue> value) => value.AsReadOnlySpan();
 
         /// <summary>
         ///     Entry
@@ -859,7 +859,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeOrderedSparseSet<TValue> Empty => new();
+        public static UnsafeOrderedSparseSet<TValue> Empty => default;
 
         /// <summary>
         ///     Get enumerator

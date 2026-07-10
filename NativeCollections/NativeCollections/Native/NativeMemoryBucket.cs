@@ -29,9 +29,7 @@ namespace NativeCollections
         public NativeMemoryBucket(int capacity, int length, int alignment)
         {
             var value = new UnsafeMemoryBucket(capacity, length, alignment);
-            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeMemoryBucket>(1);
-            Unsafe.AsRef<UnsafeMemoryBucket>(handle) = value;
-            _handle = handle;
+            _handle = Box.New(ref value);
         }
 
         /// <summary>
@@ -45,9 +43,7 @@ namespace NativeCollections
         public NativeMemoryBucket(int capacity, int length, int alignment, CustomMemoryAllocator allocator)
         {
             var value = new UnsafeMemoryBucket(capacity, length, alignment, allocator);
-            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeMemoryBucket>(1);
-            Unsafe.AsRef<UnsafeMemoryBucket>(handle) = value;
-            _handle = handle;
+            _handle = Box.New(ref value);
         }
 
         /// <summary>
@@ -116,14 +112,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            var handle = _handle;
-            if (UnsafeHelpers.IsNull(handle))
-                return;
-            handle->Dispose();
-            NativeMemoryAllocator.AlignedFree(handle);
-        }
+        public void Dispose() => Box.Drop(_handle);
 
         /// <summary>
         ///     Rent buffer
@@ -142,6 +131,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeMemoryBucket Empty => new();
+        public static NativeMemoryBucket Empty => default;
     }
 }

@@ -154,59 +154,56 @@ namespace NativeCollections
         ///     As reference
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativePointer<T>(nint handle) => new(handle);
+        public static implicit operator NativePointer<T>(nint value) => new(value);
 
         /// <summary>
         ///     As handle
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator nint(NativePointer<T> nativePointer) => nativePointer._handle;
+        public static implicit operator nint(NativePointer<T> value) => value._handle;
 
         /// <summary>
         ///     As span
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<T>(NativePointer<T> nativePointer) => nativePointer.AsSpan();
+        public static implicit operator Span<T>(NativePointer<T> value) => value.AsSpan();
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<T>(NativePointer<T> nativePointer) => nativePointer.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<T>(NativePointer<T> value) => value.AsReadOnlySpan();
 
         /// <summary>
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            var handle = _handle;
-            if (handle == 0)
-                return;
-            NativeMemoryAllocator.AlignedFree((void*)handle);
-        }
+        public void Dispose() => Box.Free((void*)_handle);
 
         /// <summary>
         ///     Create
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativePointer<T> Create<TFrom>(ref TFrom reference) => new(Unsafe.ByteOffset(ref Unsafe.NullRef<TFrom>(), ref reference));
+        [MustBePinned(nameof(reference))]
+        public static NativePointer<T> Create<TFrom>([MustBePinned] ref TFrom reference) => new(Unsafe.ByteOffset(ref Unsafe.NullRef<TFrom>(), ref reference));
 
         /// <summary>
         ///     Create
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativePointer<T> Create<TFrom>(Span<TFrom> buffer) => new(Unsafe.ByteOffset(ref Unsafe.NullRef<TFrom>(), ref MemoryMarshal.GetReference(buffer)));
+        [MustBePinned(nameof(buffer))]
+        public static NativePointer<T> Create<TFrom>([MustBePinned] Span<TFrom> buffer) => new(Unsafe.ByteOffset(ref Unsafe.NullRef<TFrom>(), ref MemoryMarshal.GetReference(buffer)));
 
         /// <summary>
         ///     Create
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativePointer<T> Create<TFrom>(ReadOnlySpan<TFrom> buffer) => new(Unsafe.ByteOffset(ref Unsafe.NullRef<TFrom>(), ref MemoryMarshal.GetReference(buffer)));
+        [MustBePinned(nameof(buffer))]
+        public static NativePointer<T> Create<TFrom>([MustBePinned] ReadOnlySpan<TFrom> buffer) => new(Unsafe.ByteOffset(ref Unsafe.NullRef<TFrom>(), ref MemoryMarshal.GetReference(buffer)));
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativePointer<T> Empty => new();
+        public static NativePointer<T> Empty => default;
     }
 }

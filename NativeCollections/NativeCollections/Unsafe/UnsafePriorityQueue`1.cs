@@ -420,7 +420,7 @@ namespace NativeCollections
             if (_size >= (int)(_length * 0.9))
                 return _length;
             var nodes = NativeMemoryAllocator.AlignedAlloc<TPriority>((uint)_size);
-            Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(nodes), ref Unsafe.AsRef<byte>(_nodes), (uint)(_size * Unsafe.SizeOf<TPriority>()));
+            SpanHelpers.Copy(ref Unsafe.AsRef<byte>(nodes), ref Unsafe.AsRef<byte>(_nodes), (uint)(_size * Unsafe.SizeOf<TPriority>()));
             NativeMemoryAllocator.AlignedFree(_nodes);
             _nodes = nodes;
             _length = _size;
@@ -439,7 +439,7 @@ namespace NativeCollections
             if (capacity < _size || capacity >= _length)
                 return _length;
             var nodes = NativeMemoryAllocator.AlignedAlloc<TPriority>((uint)_size);
-            Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(nodes), ref Unsafe.AsRef<byte>(_nodes), (uint)(_size * Unsafe.SizeOf<TPriority>()));
+            SpanHelpers.Copy(ref Unsafe.AsRef<byte>(nodes), ref Unsafe.AsRef<byte>(_nodes), (uint)(_size * Unsafe.SizeOf<TPriority>()));
             NativeMemoryAllocator.AlignedFree(_nodes);
             _nodes = nodes;
             _length = _size;
@@ -482,7 +482,7 @@ namespace NativeCollections
             newCapacity = Math.Max(newCapacity, expected);
             newCapacity = Math.Max(newCapacity, capacity);
             var nodes = NativeMemoryAllocator.AlignedAlloc<TPriority>((uint)newCapacity);
-            Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(nodes), ref Unsafe.AsRef<byte>(_nodes), (uint)(_size * Unsafe.SizeOf<TPriority>()));
+            SpanHelpers.Copy(ref Unsafe.AsRef<byte>(nodes), ref Unsafe.AsRef<byte>(_nodes), (uint)(_size * Unsafe.SizeOf<TPriority>()));
             NativeMemoryAllocator.AlignedFree(_nodes);
             _nodes = nodes;
             _length = newCapacity;
@@ -565,7 +565,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafePriorityQueue<TPriority> Empty => new();
+        public static UnsafePriorityQueue<TPriority> Empty => default;
 
         /// <summary>
         ///     Unordered items collection

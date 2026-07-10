@@ -31,9 +31,7 @@ namespace NativeCollections
         public NativeQueue(int capacity)
         {
             var value = new UnsafeQueue<T>(capacity);
-            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeQueue<T>>(1);
-            Unsafe.AsRef<UnsafeQueue<T>>(handle) = value;
-            _handle = handle;
+            _handle = Box.New(ref value);
         }
 
         /// <summary>
@@ -122,14 +120,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            var handle = _handle;
-            if (UnsafeHelpers.IsNull(handle))
-                return;
-            handle->Dispose();
-            NativeMemoryAllocator.AlignedFree(handle);
-        }
+        public void Dispose() => Box.Drop(_handle);
 
         /// <summary>
         ///     Clear
@@ -238,7 +229,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeQueue<T> Empty => new();
+        public static NativeQueue<T> Empty => default;
 
         /// <summary>
         ///     Get enumerator

@@ -122,14 +122,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            var handle = _handle;
-            if (UnsafeHelpers.IsNull(handle))
-                return;
-            handle->Dispose();
-            NativeMemoryAllocator.AlignedFree(handle);
-        }
+        public void Dispose() => Box.Drop(_handle);
 
         /// <summary>
         ///     Removes all keys and values from this.
@@ -378,7 +371,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeConcurrentDictionary<TKey, TValue> Empty => new();
+        public static NativeConcurrentDictionary<TKey, TValue> Empty => default;
 
         /// <summary>
         ///     Initializes a new instance of this
@@ -389,9 +382,7 @@ namespace NativeCollections
         public static NativeConcurrentDictionary<TKey, TValue> Create()
         {
             var value = UnsafeConcurrentDictionary<TKey, TValue>.Create();
-            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeConcurrentDictionary<TKey, TValue>>(1);
-            Unsafe.AsRef<UnsafeConcurrentDictionary<TKey, TValue>>(handle) = value;
-            return new NativeConcurrentDictionary<TKey, TValue>(handle);
+            return new NativeConcurrentDictionary<TKey, TValue>(Box.New(ref value));
         }
 
         /// <summary>
@@ -411,9 +402,7 @@ namespace NativeCollections
         public static NativeConcurrentDictionary<TKey, TValue> Create(int concurrencyLevel, int capacity)
         {
             var value = UnsafeConcurrentDictionary<TKey, TValue>.Create(concurrencyLevel, capacity);
-            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeConcurrentDictionary<TKey, TValue>>(1);
-            Unsafe.AsRef<UnsafeConcurrentDictionary<TKey, TValue>>(handle) = value;
-            return new NativeConcurrentDictionary<TKey, TValue>(handle);
+            return new NativeConcurrentDictionary<TKey, TValue>(Box.New(ref value));
         }
 
         /// <summary>

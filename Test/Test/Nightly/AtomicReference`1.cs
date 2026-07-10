@@ -47,7 +47,7 @@ namespace Examples
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T? Exchange(T value) => (T?)Interlocked.Exchange(ref _handle, (object?)value);
+        public T? Exchange(T? value) => (T?)Interlocked.Exchange(ref _handle, (object?)value);
 
         /// <summary>
         ///     Compares two values for equality and, if they are equal, replaces the first value.

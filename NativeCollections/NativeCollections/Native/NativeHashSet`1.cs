@@ -31,9 +31,7 @@ namespace NativeCollections
         public NativeHashSet(int capacity)
         {
             var value = new UnsafeHashSet<T>(capacity);
-            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeHashSet<T>>(1);
-            Unsafe.AsRef<UnsafeHashSet<T>>(handle) = value;
-            _handle = handle;
+            _handle = Box.New(ref value);
         }
 
         /// <summary>
@@ -102,14 +100,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            var handle = _handle;
-            if (UnsafeHelpers.IsNull(handle))
-                return;
-            handle->Dispose();
-            NativeMemoryAllocator.AlignedFree(handle);
-        }
+        public void Dispose() => Box.Drop(_handle);
 
         /// <summary>
         ///     Clear
@@ -216,7 +207,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeHashSet<T> Empty => new();
+        public static NativeHashSet<T> Empty => default;
 
         /// <summary>
         ///     Get enumerator

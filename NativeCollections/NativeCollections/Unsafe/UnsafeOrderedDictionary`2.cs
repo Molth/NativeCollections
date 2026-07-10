@@ -172,8 +172,8 @@ namespace NativeCollections
             var count = _count;
             if (count > 0)
             {
-                Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(_buckets), 0, (uint)(count * Unsafe.SizeOf<int>()));
-                Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(_entries), 0, (uint)(count * Unsafe.SizeOf<Entry>()));
+                SpanHelpers.Set(ref Unsafe.AsRef<byte>(_buckets), 0, (uint)(count * Unsafe.SizeOf<int>()));
+                SpanHelpers.Set(ref Unsafe.AsRef<byte>(_entries), 0, (uint)(count * Unsafe.SizeOf<Entry>()));
                 _count = 0;
                 ++_version;
             }
@@ -904,9 +904,9 @@ namespace NativeCollections
         private void Initialize(int capacity)
         {
             var size = HashHelpers.GetPrime(capacity);
-            var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<int>(), NativeMemoryAllocator.AlignOf<Entry>());
+            var alignment = Math.Max(NativeMemoryAllocator.AlignOf<int>(), NativeMemoryAllocator.AlignOf<Entry>());
             var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(size * Unsafe.SizeOf<int>()), alignment);
-            _buckets = (int*)NativeMemoryAllocator.AlignedAllocZeroed((uint)(bucketsByteCount + size * Unsafe.SizeOf<Entry>()), alignment);
+            _buckets = (int*)NativeMemoryAllocator.AlignedAllocZeroed(bucketsByteCount + (uint)size * (uint)Unsafe.SizeOf<Entry>(), alignment);
             _entries = UnsafeHelpers.AddByteOffset<Entry>(_buckets, (nint)bucketsByteCount);
             _bucketsLength = size;
             _entriesLength = size;
@@ -920,12 +920,12 @@ namespace NativeCollections
         private void Resize(int newSize)
         {
             var oldBuckets = _buckets;
-            var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<int>(), NativeMemoryAllocator.AlignOf<Entry>());
+            var alignment = Math.Max(NativeMemoryAllocator.AlignOf<int>(), NativeMemoryAllocator.AlignOf<Entry>());
             var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(newSize * Unsafe.SizeOf<int>()), alignment);
-            var buckets = (int*)NativeMemoryAllocator.AlignedAllocZeroed((uint)(bucketsByteCount + newSize * Unsafe.SizeOf<Entry>()), alignment);
+            var buckets = (int*)NativeMemoryAllocator.AlignedAllocZeroed(bucketsByteCount + (uint)newSize * (uint)Unsafe.SizeOf<Entry>(), alignment);
             var entries = UnsafeHelpers.AddByteOffset<Entry>(buckets, (nint)bucketsByteCount);
             var count = _count;
-            Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(entries), ref Unsafe.AsRef<byte>(_entries), (uint)(count * Unsafe.SizeOf<Entry>()));
+            SpanHelpers.Copy(ref Unsafe.AsRef<byte>(entries), ref Unsafe.AsRef<byte>(_entries), (uint)(count * Unsafe.SizeOf<Entry>()));
             _buckets = buckets;
             _bucketsLength = newSize;
             _fastModMultiplier = Environment.Is64BitProcess ? HashHelpers.GetFastModMultiplier((uint)newSize) : 0;
@@ -1142,7 +1142,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeOrderedDictionary<TKey, TValue> Empty => new();
+        public static UnsafeOrderedDictionary<TKey, TValue> Empty => default;
 
         /// <summary>
         ///     Get enumerator

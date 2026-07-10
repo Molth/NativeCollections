@@ -118,10 +118,7 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfNegativeOrZero(size, ExceptionArgument.size);
             ThrowHelpers.ThrowIfNegative(maxFreeChunks, ExceptionArgument.maxFreeChunks);
-            var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<MemoryChunk>(), NativeMemoryAllocator.AlignOf<T>());
-            var chunkByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)Unsafe.SizeOf<MemoryChunk>(), alignment);
-            var chunk = (MemoryChunk*)NativeMemoryAllocator.AlignedAlloc((uint)(chunkByteCount + size * Unsafe.SizeOf<T>()), alignment);
-            chunk->Buffer = UnsafeHelpers.AddByteOffset<T>(chunk, (nint)chunkByteCount);
+            var chunk = Create(size);
             _head = chunk;
             _tail = chunk;
             _freeList = null;
@@ -240,10 +237,7 @@ namespace NativeCollections
                     MemoryChunk* chunk;
                     if (_freeChunks == 0)
                     {
-                        var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<MemoryChunk>(), NativeMemoryAllocator.AlignOf<T>());
-                        var chunkByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)Unsafe.SizeOf<MemoryChunk>(), alignment);
-                        chunk = (MemoryChunk*)NativeMemoryAllocator.AlignedAlloc((uint)(chunkByteCount + _size * Unsafe.SizeOf<T>()), alignment);
-                        chunk->Buffer = UnsafeHelpers.AddByteOffset<T>(chunk, (nint)chunkByteCount);
+                        chunk = Create(_size);
                     }
                     else
                     {
@@ -281,10 +275,7 @@ namespace NativeCollections
                 MemoryChunk* chunk;
                 if (_freeChunks == 0)
                 {
-                    var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<MemoryChunk>(), NativeMemoryAllocator.AlignOf<T>());
-                    var chunkByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)Unsafe.SizeOf<MemoryChunk>(), alignment);
-                    chunk = (MemoryChunk*)NativeMemoryAllocator.AlignedAlloc((uint)(chunkByteCount + _size * Unsafe.SizeOf<T>()), alignment);
-                    chunk->Buffer = UnsafeHelpers.AddByteOffset<T>(chunk, (nint)chunkByteCount);
+                    chunk = Create(_size);
                 }
                 else
                 {
@@ -438,10 +429,7 @@ namespace NativeCollections
             while (_freeChunks < capacity)
             {
                 _freeChunks++;
-                var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<MemoryChunk>(), NativeMemoryAllocator.AlignOf<T>());
-                var chunkByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)Unsafe.SizeOf<MemoryChunk>(), alignment);
-                var chunk = (MemoryChunk*)NativeMemoryAllocator.AlignedAlloc((uint)(chunkByteCount + _size * Unsafe.SizeOf<T>()), alignment);
-                chunk->Buffer = UnsafeHelpers.AddByteOffset<T>(chunk, (nint)chunkByteCount);
+                var chunk = Create(_size);
                 chunk->Next = _freeList;
                 _freeList = chunk;
             }
@@ -505,7 +493,7 @@ namespace NativeCollections
             var elementCount = Math.Min(_size - _readOffset, count);
             if (elementCount > 0)
             {
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(node->Buffer), (nint)_readOffset)), (uint)(elementCount * Unsafe.SizeOf<T>()));
+                SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(node->Buffer), (nint)_readOffset)), (uint)(elementCount * Unsafe.SizeOf<T>()));
                 count -= elementCount;
             }
 
@@ -517,7 +505,7 @@ namespace NativeCollections
             for (var i = 0; i < chunks; ++i)
             {
                 node = node->Next;
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.AsRef<byte>(node->Buffer), (uint)(elementCount * Unsafe.SizeOf<T>()));
+                SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.AsRef<byte>(node->Buffer), (uint)(elementCount * Unsafe.SizeOf<T>()));
                 reference = ref Unsafe.Add(ref reference, (nint)elementCount);
             }
 
@@ -525,7 +513,7 @@ namespace NativeCollections
             {
                 elementCount = remaining;
                 node = node->Next;
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.AsRef<byte>(node->Buffer), (uint)(elementCount * Unsafe.SizeOf<T>()));
+                SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.AsRef<byte>(node->Buffer), (uint)(elementCount * Unsafe.SizeOf<T>()));
             }
 
             return result;
@@ -555,7 +543,7 @@ namespace NativeCollections
             var elementCount = Math.Min(_size - _readOffset, count);
             if (elementCount > 0)
             {
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(node->Buffer), (nint)_readOffset)), (uint)(elementCount * Unsafe.SizeOf<T>()));
+                SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(node->Buffer), (nint)_readOffset)), (uint)(elementCount * Unsafe.SizeOf<T>()));
                 count -= elementCount;
             }
 
@@ -567,7 +555,7 @@ namespace NativeCollections
             for (var i = 0; i < chunks; ++i)
             {
                 node = node->Next;
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.AsRef<byte>(node->Buffer), (uint)(elementCount * Unsafe.SizeOf<T>()));
+                SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.AsRef<byte>(node->Buffer), (uint)(elementCount * Unsafe.SizeOf<T>()));
                 reference = ref Unsafe.Add(ref reference, (nint)elementCount);
             }
 
@@ -575,7 +563,7 @@ namespace NativeCollections
             {
                 elementCount = remaining;
                 node = node->Next;
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.AsRef<byte>(node->Buffer), (uint)(elementCount * Unsafe.SizeOf<T>()));
+                SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref reference), ref Unsafe.AsRef<byte>(node->Buffer), (uint)(elementCount * Unsafe.SizeOf<T>()));
             }
         }
 
@@ -585,6 +573,19 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, T>(buffer));
+
+        /// <summary>
+        ///     Create
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static MemoryChunk* Create(int size)
+        {
+            var alignment = Math.Max(NativeMemoryAllocator.AlignOf<MemoryChunk>(), NativeMemoryAllocator.AlignOf<T>());
+            var chunkByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)Unsafe.SizeOf<MemoryChunk>(), alignment);
+            var chunk = (MemoryChunk*)NativeMemoryAllocator.AlignedAlloc(chunkByteCount + (uint)size * (uint)Unsafe.SizeOf<T>(), alignment);
+            chunk->Buffer = UnsafeHelpers.AddByteOffset<T>(chunk, (nint)chunkByteCount);
+            return chunk;
+        }
 
         /// <summary>
         ///     Chunk
@@ -611,7 +612,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeChunkedDeque<T> Empty => new();
+        public static UnsafeChunkedDeque<T> Empty => default;
 
         /// <summary>
         ///     Get enumerator

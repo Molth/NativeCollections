@@ -92,7 +92,7 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             var size = HashHelpers.GetPrime(capacity);
-            var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<int>(), NativeMemoryAllocator.AlignOf<Entry>());
+            var alignment = Math.Max(NativeMemoryAllocator.AlignOf<int>(), NativeMemoryAllocator.AlignOf<Entry>());
             var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(size * Unsafe.SizeOf<int>()), alignment);
             return (int)(bucketsByteCount + size * Unsafe.SizeOf<Entry>() + alignment - 1);
         }
@@ -110,7 +110,7 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfLessThan(buffer.Length, GetByteCount(capacity), ExceptionArgument.capacity);
             var size = HashHelpers.GetPrime(capacity);
             _freeList = -1;
-            var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<int>(), NativeMemoryAllocator.AlignOf<Entry>());
+            var alignment = Math.Max(NativeMemoryAllocator.AlignOf<int>(), NativeMemoryAllocator.AlignOf<Entry>());
             var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(size * Unsafe.SizeOf<int>()), alignment);
             _buckets = (int*)NativeArray<byte>.Create(buffer, alignment).Buffer;
             _entries = UnsafeHelpers.AddByteOffset<Entry>(_buckets, (nint)bucketsByteCount);
@@ -173,8 +173,8 @@ namespace NativeCollections
             var count = _count;
             if (count > 0)
             {
-                Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(_buckets), 0, (uint)(count * Unsafe.SizeOf<int>()));
-                Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(_entries), 0, (uint)(count * Unsafe.SizeOf<Entry>()));
+                SpanHelpers.Set(ref Unsafe.AsRef<byte>(_buckets), 0, (uint)(count * Unsafe.SizeOf<int>()));
+                SpanHelpers.Set(ref Unsafe.AsRef<byte>(_entries), 0, (uint)(count * Unsafe.SizeOf<Entry>()));
                 _count = 0;
                 _freeList = -1;
                 _freeCount = 0;
@@ -478,7 +478,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static StackallocHashSet<T> Empty => new();
+        public static StackallocHashSet<T> Empty => default;
 
         /// <summary>
         ///     Get enumerator

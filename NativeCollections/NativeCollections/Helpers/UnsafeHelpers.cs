@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 
 #pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
 
@@ -39,25 +38,6 @@ namespace NativeCollections
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteUnaligned<T>(ref T destination, in T value) where T : unmanaged => Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref destination), value);
-
-        /// <summary>
-        ///     Reinterprets the given value of type <typeparamref name="TFrom" /> as a value of type <typeparamref name="TTo" />.
-        /// </summary>
-        /// <exception cref="NotSupportedException">
-        ///     The sizes of <typeparamref name="TFrom" /> and <typeparamref name="TTo" /> are not the same
-        ///     or the type parameters are not <see langword="struct" />s.
-        /// </exception>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TTo BitCast<TFrom, TTo>(TFrom source) where TFrom : unmanaged where TTo : unmanaged
-        {
-#if NET8_0_OR_GREATER
-            return Unsafe.BitCast<TFrom, TTo>(source);
-#else
-            if (Unsafe.SizeOf<TFrom>() != Unsafe.SizeOf<TTo>())
-                ThrowHelpers.ThrowNotSupportedException();
-            return Unsafe.ReadUnaligned<TTo>(ref Unsafe.As<TFrom, byte>(ref source));
-#endif
-        }
 
         /// <summary>
         ///     Adds an element offset to the given pointer.

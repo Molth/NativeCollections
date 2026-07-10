@@ -28,9 +28,7 @@ namespace NativeCollections
         public NativeLinearMemoryPool(int maxLength, int maxFreeSlabs)
         {
             var value = new UnsafeLinearMemoryPool(maxLength, maxFreeSlabs);
-            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeLinearMemoryPool>(1);
-            Unsafe.AsRef<UnsafeLinearMemoryPool>(handle) = value;
-            _handle = handle;
+            _handle = Box.New(ref value);
         }
 
         /// <summary>
@@ -104,14 +102,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            var handle = _handle;
-            if (UnsafeHelpers.IsNull(handle))
-                return;
-            handle->Dispose();
-            NativeMemoryAllocator.AlignedFree(handle);
-        }
+        public void Dispose() => Box.Drop(_handle);
 
         /// <summary>
         ///     Rent buffer
@@ -150,6 +141,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeLinearMemoryPool Empty => new();
+        public static NativeLinearMemoryPool Empty => default;
     }
 }

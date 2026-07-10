@@ -52,22 +52,24 @@ namespace NativeCollections
         /// <summary>Allocates an aligned block of memory of the specified size and alignment, in bytes.</summary>
         /// <param name="elementCount">The count, in elements, of the block to allocate.</param>
         /// <returns>A pointer to the allocated aligned block of memory.</returns>
+        /// <exception cref="OutOfMemoryException">Allocating memory failed.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T* AlignedAlloc<T>(uint elementCount) where T : unmanaged
         {
-            var byteCount = elementCount * (uint)Unsafe.SizeOf<T>();
-            var alignment = (uint)AlignOf<T>();
+            var byteCount = checked(elementCount * (uint)Unsafe.SizeOf<T>());
+            var alignment = AlignOf<T>();
             return (T*)AlignedAlloc(byteCount, alignment);
         }
 
         /// <summary>Allocates and zeroes an aligned block of memory of the specified size and alignment, in bytes.</summary>
         /// <param name="elementCount">The count, in elements, of the block to allocate.</param>
         /// <returns>A pointer to the allocated and zeroed aligned block of memory.</returns>
+        /// <exception cref="OutOfMemoryException">Allocating memory failed.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T* AlignedAllocZeroed<T>(uint elementCount) where T : unmanaged
         {
-            var byteCount = elementCount * (uint)Unsafe.SizeOf<T>();
-            var alignment = (uint)AlignOf<T>();
+            var byteCount = checked(elementCount * (uint)Unsafe.SizeOf<T>());
+            var alignment = AlignOf<T>();
             return (T*)AlignedAllocZeroed(byteCount, alignment);
         }
 
@@ -75,6 +77,8 @@ namespace NativeCollections
         /// <param name="byteCount">The size, in bytes, of the block to allocate.</param>
         /// <param name="alignment">The alignment, in bytes, of the block to allocate. This must be a power of <c>2</c>.</param>
         /// <returns>A pointer to the allocated aligned block of memory.</returns>
+        /// <exception cref="ArgumentException"><paramref name="alignment" /> is not a power of <c>2</c>.</exception>
+        /// <exception cref="OutOfMemoryException">Allocating memory failed.</exception>
         [Customizable]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void* AlignedAlloc(uint byteCount, uint alignment)
@@ -118,10 +122,10 @@ namespace NativeCollections
             }
 #else
             ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, ExceptionArgument.alignment);
-            var byteOffset = (nuint)alignment - 1 + (nuint)Unsafe.SizeOf<nint>();
+            var byteOffset = alignment - 1 + (uint)Unsafe.SizeOf<nint>();
             try
             {
-                ptr = (void*)Marshal.AllocHGlobal((nint)(byteCount + (uint)byteOffset));
+                ptr = (void*)Marshal.AllocHGlobal((nint)(byteCount + byteOffset));
             }
             catch
             {
@@ -145,6 +149,8 @@ namespace NativeCollections
         /// <param name="byteCount">The size, in bytes, of the block to allocate.</param>
         /// <param name="alignment">The alignment, in bytes, of the block to allocate. This must be a power of <c>2</c>.</param>
         /// <returns>A pointer to the allocated and zeroed aligned block of memory.</returns>
+        /// <exception cref="ArgumentException"><paramref name="alignment" /> is not a power of <c>2</c>.</exception>
+        /// <exception cref="OutOfMemoryException">Allocating memory failed.</exception>
         [Customizable]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void* AlignedAllocZeroed(uint byteCount, uint alignment)
@@ -207,14 +213,14 @@ namespace NativeCollections
                 throw;
             }
 
-            Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(ptr), 0, byteCount);
+            SpanHelpers.Set(ref Unsafe.AsRef<byte>(ptr), 0, byteCount);
             return ptr;
 #else
             ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, ExceptionArgument.alignment);
-            var byteOffset = (nuint)alignment - 1 + (nuint)Unsafe.SizeOf<nint>();
+            var byteOffset = alignment - 1 + (uint)Unsafe.SizeOf<nint>();
             try
             {
-                ptr = (void*)Marshal.AllocHGlobal((nint)(byteCount + (uint)byteOffset));
+                ptr = (void*)Marshal.AllocHGlobal((nint)(byteCount + byteOffset));
             }
             catch
             {
@@ -230,7 +236,7 @@ namespace NativeCollections
 
             var result = (void*)(((nint)ptr + (nint)byteOffset) & ~((nint)alignment - 1));
             Unsafe.Subtract(ref Unsafe.AsRef<nint>(result), 1) = (nint)ptr;
-            Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(result), 0, byteCount);
+            SpanHelpers.Set(ref Unsafe.AsRef<byte>(result), 0, byteCount);
             return result;
 #endif
         }
@@ -262,62 +268,49 @@ namespace NativeCollections
         ///     of the addresses.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Copy(void* destination, void* source, uint byteCount) => Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(destination), ref Unsafe.AsRef<byte>(source), byteCount);
+        public static void Copy(void* destination, void* source, uint byteCount) => SpanHelpers.Copy(ref Unsafe.AsRef<byte>(destination), ref Unsafe.AsRef<byte>(source), byteCount);
 
         /// <summary>
         ///     Copies bytes from the source address to the destination address without assuming architecture dependent alignment
         ///     of the addresses.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Copy(ref byte destination, ref byte source, uint byteCount) => Unsafe.CopyBlockUnaligned(ref destination, ref source, byteCount);
+        public static void Copy(ref byte destination, ref byte source, uint byteCount) => SpanHelpers.Copy(ref destination, ref source, byteCount);
 
         /// <summary>
         ///     Copies a block of memory from memory location <paramref name="source" />
         ///     to memory location <paramref name="destination" />.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Move(void* destination, void* source, uint byteCount)
-        {
-#if NET7_0_OR_GREATER
-            NativeMemory.Copy(source, destination, byteCount);
-#else
-            Buffer.MemoryCopy(source, destination, byteCount, byteCount);
-#endif
-        }
+        public static void Move(void* destination, void* source, uint byteCount) => SpanHelpers.Move(destination, source, byteCount);
 
         /// <summary>
         ///     Copies a block of memory from memory location <paramref name="source" />
         ///     to memory location <paramref name="destination" />.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Move(ref byte destination, ref byte source, uint byteCount)
-        {
-            fixed (void* pinnedDestination = &destination)
-            {
-                fixed (void* pinnedSource = &source)
-                {
-                    Move(pinnedDestination, pinnedSource, byteCount);
-                }
-            }
-        }
+        public static void Move(ref byte destination, ref byte source, uint byteCount) => SpanHelpers.Move(ref destination, ref source, byteCount);
 
         /// <summary>
         ///     Initializes a block of memory at the given location with a given initial value
         ///     without assuming architecture dependent alignment of the address.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Set(void* startAddress, byte value, uint byteCount) => Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(startAddress), value, byteCount);
+        public static void Set(void* startAddress, byte value, uint byteCount) => SpanHelpers.Set(ref Unsafe.AsRef<byte>(startAddress), value, byteCount);
 
         /// <summary>
         ///     Initializes a block of memory at the given location with a given initial value
         ///     without assuming architecture dependent alignment of the address.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Set(ref byte startAddress, byte value, uint byteCount) => Unsafe.InitBlockUnaligned(ref startAddress, value, byteCount);
+        public static void Set(ref byte startAddress, byte value, uint byteCount) => SpanHelpers.Set(ref startAddress, value, byteCount);
 
         /// <summary>
         ///     Determines whether two sequences are equal.
         /// </summary>
+        /// <exception cref="ArgumentNullException">
+        ///     <paramref name="left" /> or <paramref name="right" /> is null and the other is not null.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool Equals(void* left, void* right, uint byteCount)
         {
@@ -331,6 +324,9 @@ namespace NativeCollections
         /// <summary>
         ///     Determines whether two sequences are equal.
         /// </summary>
+        /// <exception cref="ArgumentNullException">
+        ///     <paramref name="left" /> or <paramref name="right" /> is null and the other is not null.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool Equals(ref byte left, ref byte right, uint byteCount)
         {
@@ -344,6 +340,9 @@ namespace NativeCollections
         /// <summary>
         ///     Determines the relative order of the sequences.
         /// </summary>
+        /// <exception cref="ArgumentNullException">
+        ///     <paramref name="left" /> or <paramref name="right" /> is null and the other is not null.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Compare(void* left, void* right, uint byteCount)
         {
@@ -357,6 +356,9 @@ namespace NativeCollections
         /// <summary>
         ///     Determines the relative order of the sequences.
         /// </summary>
+        /// <exception cref="ArgumentNullException">
+        ///     <paramref name="left" /> or <paramref name="right" /> is null and the other is not null.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Compare(ref byte left, ref byte right, uint byteCount)
         {
@@ -379,19 +381,19 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Fill<T>(ref byte startAddress, uint elementCount, T value) where T : unmanaged => SpanHelpers.Fill(ref Unsafe.As<byte, T>(ref startAddress), elementCount, value);
 
-        /// <summary>Rounds a size up to the specified alignment boundary.</summary>
-        /// <param name="size">The size, in bytes, to align.</param>
-        /// <param name="alignment">The alignment boundary.</param>
-        /// <returns>The aligned size.</returns>
+        /// <summary>Rounds a value up to the specified alignment boundary.</summary>
+        /// <param name="value">The value, in bytes, to align.</param>
+        /// <param name="alignment">The alignment, in bytes. This must be a power of <c>2</c>.</param>
+        /// <returns>A value at or after value that is a multiple of alignment.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static nuint AlignUp(nuint size, nuint alignment) => (size + (alignment - 1)) & ~(alignment - 1);
+        public static nuint AlignUp(nuint value, uint alignment) => (value + (alignment - 1)) & ~(alignment - 1);
 
-        /// <summary>Rounds a size down to the specified alignment boundary.</summary>
-        /// <param name="size">The size, in bytes, to align.</param>
-        /// <param name="alignment">The alignment boundary.</param>
-        /// <returns>The aligned size.</returns>
+        /// <summary>Rounds a value down to the specified alignment boundary.</summary>
+        /// <param name="value">The value, in bytes, to align.</param>
+        /// <param name="alignment">The alignment, in bytes. This must be a power of <c>2</c>.</param>
+        /// <returns>A value at or before value that is a multiple of alignment.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static nuint AlignDown(nuint size, nuint alignment) => size - (size & (alignment - 1));
+        public static nuint AlignDown(nuint value, uint alignment) => value - (value & (alignment - 1));
 
         /// <summary>
         ///     Gets the alignment, in bytes, of the specified unmanaged type.
@@ -399,7 +401,7 @@ namespace NativeCollections
         /// <typeparam name="T">The unmanaged type whose alignment is to be determined.</typeparam>
         /// <returns>The alignment, in bytes, of type <typeparamref name="T" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static nuint AlignOf<T>() where T : unmanaged => (nuint)Unsafe.SizeOf<AlignOfHelper<T>>() - (nuint)Unsafe.SizeOf<T>();
+        public static uint AlignOf<T>() where T : unmanaged => (uint)(Unsafe.SizeOf<AlignOfHelper<T>>() - Unsafe.SizeOf<T>());
 
         /// <summary>
         ///     Determines whether the specified unmanaged type <typeparamref name="T" /> is naturally aligned,
@@ -408,27 +410,19 @@ namespace NativeCollections
         /// <typeparam name="T">The unmanaged type to check for alignment.</typeparam>
         /// <returns><c>true</c> if the size of <typeparamref name="T" /> is a multiple of its alignment; otherwise, <c>false</c>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsAligned<T>() where T : unmanaged => ((nuint)Unsafe.SizeOf<T>() & (AlignOf<T>() - 1)) == 0;
+        public static bool IsAligned<T>() where T : unmanaged => (Unsafe.SizeOf<T>() & (AlignOf<T>() - 1)) == 0;
 
         /// <summary>
         ///     Determines whether the specified memory pointer is aligned to the given alignment boundary.
         /// </summary>
         /// <param name="ptr">The pointer to the memory address to check for alignment.</param>
-        /// <param name="alignment">The alignment boundary, which must be a power of two.</param>
+        /// <param name="alignment">The alignment, in bytes. This must be a power of <c>2</c>.</param>
         /// <returns>
         ///     <c>true</c> if the address of <paramref name="ptr" /> is a multiple of <paramref name="alignment" />;
         ///     otherwise, <c>false</c>.
         /// </returns>
-        /// <exception cref="ArgumentException">
-        ///     Throws an <see cref="ArgumentException" /> if <paramref name="alignment" /> is not
-        ///     a power of two.
-        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsAligned(void* ptr, nuint alignment)
-        {
-            ThrowHelpers.ThrowIfAlignmentNotBePow2((uint)alignment, ExceptionArgument.alignment);
-            return ((nuint)ptr & (alignment - 1)) == 0;
-        }
+        public static bool IsAligned(void* ptr, uint alignment) => ((nint)ptr & (alignment - 1)) == 0;
 
         /// <summary>
         ///     Returns an address of the given by-ref parameter.

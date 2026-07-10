@@ -153,6 +153,18 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeBitwise<T> Empty => new();
+        public static UnsafeBitwise<T> Empty => default;
+
+        /// <summary>
+        ///     Determines whether two values are equal.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool Equals(ref T left, ref T right) => SpanHelpers.Equals(ref left, ref right);
+
+        /// <summary>
+        ///     Determines the relative order of the values.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Compare(ref T left, ref T right) => SpanHelpers.Compare(ref left, ref right);
     }
 }

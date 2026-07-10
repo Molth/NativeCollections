@@ -417,9 +417,9 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public SmallFrozenDictionary(ReadOnlySpan<KeyValuePair<TKey, TValue>> source)
             {
-                var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<TKey>(), NativeMemoryAllocator.AlignOf<TValue>());
+                var alignment = Math.Max(NativeMemoryAllocator.AlignOf<TKey>(), NativeMemoryAllocator.AlignOf<TValue>());
                 var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(source.Length * Unsafe.SizeOf<TKey>()), alignment);
-                var buckets = (TKey*)NativeMemoryAllocator.AlignedAlloc((uint)(bucketsByteCount + source.Length * Unsafe.SizeOf<TValue>()), alignment);
+                var buckets = (TKey*)NativeMemoryAllocator.AlignedAlloc(bucketsByteCount + (uint)source.Length * (uint)Unsafe.SizeOf<TValue>(), alignment);
                 var entries = UnsafeHelpers.AddByteOffset<TValue>(buckets, (nint)bucketsByteCount);
                 var keys = new NativeArray<TKey>(buckets, source.Length);
                 var values = new NativeArray<TValue>(entries, source.Length);
@@ -522,7 +522,7 @@ namespace NativeCollections
             public SmallComparableFrozenDictionary(ReadOnlySpan<KeyValuePair<TKey, TValue>> source)
             {
                 var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(source.Length * Unsafe.SizeOf<TKey>()), CACHE_LINE_SIZE);
-                var keysPtr = (TKey*)NativeMemoryAllocator.AlignedAlloc((uint)(bucketsByteCount + source.Length * Unsafe.SizeOf<TValue>()), CACHE_LINE_SIZE);
+                var keysPtr = (TKey*)NativeMemoryAllocator.AlignedAlloc(bucketsByteCount + (uint)source.Length * (uint)Unsafe.SizeOf<TValue>(), CACHE_LINE_SIZE);
                 var valuesPtr = UnsafeHelpers.AddByteOffset<TValue>(keysPtr, (nint)bucketsByteCount);
                 var keys = new NativeArray<TKey>(keysPtr, source.Length);
                 var values = new NativeArray<TValue>(valuesPtr, source.Length);
@@ -751,7 +751,7 @@ namespace NativeCollections
             {
                 var keysAreHashCodes = KeysAreHashCodes<TKey>();
                 var bucketsByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(source.Length * Unsafe.SizeOf<TKey>()), CACHE_LINE_SIZE);
-                var keysPtr = (TKey*)NativeMemoryAllocator.AlignedAlloc((uint)(bucketsByteCount + source.Length * Unsafe.SizeOf<TValue>()), CACHE_LINE_SIZE);
+                var keysPtr = (TKey*)NativeMemoryAllocator.AlignedAlloc(bucketsByteCount + (uint)source.Length * (uint)Unsafe.SizeOf<TValue>(), CACHE_LINE_SIZE);
                 var valuesPtr = UnsafeHelpers.AddByteOffset<TValue>(keysPtr, (nint)bucketsByteCount);
                 _keys = new NativeArray<TKey>(keysPtr, source.Length);
                 _values = new NativeArray<TValue>(valuesPtr, source.Length);

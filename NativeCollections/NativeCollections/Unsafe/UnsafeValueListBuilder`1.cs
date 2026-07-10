@@ -265,7 +265,7 @@ namespace NativeCollections
             {
                 if ((uint)(_length + source.Length) > (uint)_buffer.Length)
                     Grow(_buffer.Length - _length + source.Length);
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref MemoryMarshal.GetReference(_buffer), (nint)_length)), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(source)), (uint)(source.Length * Unsafe.SizeOf<T>()));
+                SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref MemoryMarshal.GetReference(_buffer), (nint)_length)), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(source)), (uint)(source.Length * Unsafe.SizeOf<T>()));
                 _length += source.Length;
             }
         }
@@ -358,7 +358,7 @@ namespace NativeCollections
             {
                 var destination = ArrayPool<T>.Shared.Rent(capacity);
                 if (_length > 0)
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference((Span<T>)destination)), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(_buffer)), (uint)(_length * Unsafe.SizeOf<T>()));
+                    SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference((Span<T>)destination)), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(_buffer)), (uint)(_length * Unsafe.SizeOf<T>()));
                 var array = _array;
                 _buffer = (Span<T>)(_array = destination);
                 if (array == null)
@@ -386,7 +386,7 @@ namespace NativeCollections
         public static UnsafeValueListBuilder<T> Create(ReadOnlySpan<T> buffer)
         {
             var temp = new UnsafeValueListBuilder<T>(buffer.Length, buffer.Length);
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(temp.AsSpan())), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(buffer.Length * Unsafe.SizeOf<T>()));
+            SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(temp.AsSpan())), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(buffer.Length * Unsafe.SizeOf<T>()));
             return temp;
         }
 
@@ -705,7 +705,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeValueListBuilder<T> Empty => new();
+        public static UnsafeValueListBuilder<T> Empty => default;
 
         /// <summary>
         ///     Get enumerator

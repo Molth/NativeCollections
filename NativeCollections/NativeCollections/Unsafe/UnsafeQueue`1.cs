@@ -314,19 +314,7 @@ namespace NativeCollections
         private void SetCapacity(int capacity)
         {
             var newBuffer = NativeMemoryAllocator.AlignedAlloc<T>((uint)capacity);
-            if (_size > 0)
-            {
-                if (_head < _tail)
-                {
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(newBuffer), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_head)), (uint)(_size * Unsafe.SizeOf<T>()));
-                }
-                else
-                {
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(newBuffer), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_head)), (uint)((_length - _head) * Unsafe.SizeOf<T>()));
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(newBuffer), (nint)(_length - _head))), ref Unsafe.AsRef<byte>(_buffer), (uint)(_tail * Unsafe.SizeOf<T>()));
-                }
-            }
-
+            RingBufferHelpers.Copy(ref Unsafe.AsRef<T>(newBuffer), ref Unsafe.AsRef<T>(_buffer), _size, _length, _head);
             NativeMemoryAllocator.AlignedFree(_buffer);
             _buffer = newBuffer;
             _length = capacity;
@@ -409,7 +397,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeQueue<T> Empty => new();
+        public static UnsafeQueue<T> Empty => default;
 
         /// <summary>
         ///     Get enumerator

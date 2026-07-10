@@ -642,7 +642,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static StackallocSortedSet<T> Empty => new();
+        public static StackallocSortedSet<T> Empty => default;
 
         /// <summary>
         ///     Get enumerator

@@ -91,7 +91,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Boolean</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator bool(NativeBitArraySlot unsafeBitArraySlot) => unsafeBitArraySlot.Get();
+        public static implicit operator bool(NativeBitArraySlot value) => value.Get();
 
         /// <summary>
         ///     Equals
@@ -112,6 +112,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeBitArraySlot Empty => new();
+        public static NativeBitArraySlot Empty => default;
     }
 }

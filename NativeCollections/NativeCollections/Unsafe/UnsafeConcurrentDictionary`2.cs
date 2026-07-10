@@ -396,7 +396,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeConcurrentDictionary<TKey, TValue> Empty => new();
+        public static UnsafeConcurrentDictionary<TKey, TValue> Empty => default;
 
         /// <summary>
         ///     Initializes a new instance of this

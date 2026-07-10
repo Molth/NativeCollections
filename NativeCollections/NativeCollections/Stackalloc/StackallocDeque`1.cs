@@ -333,7 +333,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static StackallocDeque<T> Empty => new();
+        public static StackallocDeque<T> Empty => default;
 
         /// <summary>
         ///     Get enumerator

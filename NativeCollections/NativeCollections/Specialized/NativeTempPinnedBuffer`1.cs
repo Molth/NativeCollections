@@ -74,7 +74,7 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
             ThrowHelpers.ThrowIfNegative(alignment, ExceptionArgument.alignment);
-            ThrowHelpers.ThrowIfLessThan((uint)alignment, (uint)NativeMemoryAllocator.AlignOf<T>(), ExceptionArgument.alignment);
+            ThrowHelpers.ThrowIfLessThan((uint)alignment, NativeMemoryAllocator.AlignOf<T>(), ExceptionArgument.alignment);
             _buffer = (T*)ManagedMemoryAllocator.AlignedAlloc((uint)(length * Unsafe.SizeOf<T>()), (uint)alignment);
             _length = length;
         }
@@ -90,7 +90,7 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
             ThrowHelpers.ThrowIfNegative(alignment, ExceptionArgument.alignment);
-            ThrowHelpers.ThrowIfLessThan((uint)alignment, (uint)NativeMemoryAllocator.AlignOf<T>(), ExceptionArgument.alignment);
+            ThrowHelpers.ThrowIfLessThan((uint)alignment, NativeMemoryAllocator.AlignOf<T>(), ExceptionArgument.alignment);
             _buffer = zeroed ? ManagedMemoryAllocator.AlignedAllocZeroed<T>((uint)(length * Unsafe.SizeOf<T>())) : ManagedMemoryAllocator.AlignedAlloc<T>((uint)(length * Unsafe.SizeOf<T>()));
             _length = length;
         }
@@ -156,7 +156,7 @@ namespace NativeCollections
         public static NativeTempPinnedBuffer<T> Create(ReadOnlySpan<T> buffer)
         {
             var temp = new NativeTempPinnedBuffer<T>(buffer.Length);
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(temp.AsSpan())), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(buffer.Length * Unsafe.SizeOf<T>()));
+            SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(temp.AsSpan())), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(buffer.Length * Unsafe.SizeOf<T>()));
             return temp;
         }
 
@@ -475,6 +475,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeTempPinnedBuffer<T> Empty => new();
+        public static NativeTempPinnedBuffer<T> Empty => default;
     }
 }

@@ -12,7 +12,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.None)]
-    public unsafe struct UnsafeConcurrentReaderWriterLock : IDisposable, IEquatable<UnsafeConcurrentReaderWriterLock>
+    public unsafe struct UnsafeConcurrentReaderWriterLock : IEquatable<UnsafeConcurrentReaderWriterLock>
     {
         /// <summary>
         ///     Spin lock
@@ -40,12 +40,6 @@ namespace NativeCollections
         private uint _nextSequenceNumber;
 
         /// <summary>
-        ///     Dispose
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => Exit();
-
-        /// <summary>
         ///     Reset
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -63,10 +57,10 @@ namespace NativeCollections
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
-        public UnsafeDisposable<UnsafeConcurrentReaderWriterLock> ReadLock()
+        public NativeConcurrentReaderWriterLockRef ReadLock()
         {
             Read();
-            return new UnsafeDisposable<UnsafeConcurrentReaderWriterLock>(UnsafeHelpers.AsPointer(ref this));
+            return new NativeConcurrentReaderWriterLockRef(UnsafeHelpers.AsPointer(ref this));
         }
 
         /// <summary>
@@ -81,10 +75,10 @@ namespace NativeCollections
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
-        public UnsafeDisposable<UnsafeConcurrentReaderWriterLock> ReadLock(int sleep1Threshold)
+        public NativeConcurrentReaderWriterLockRef ReadLock(int sleep1Threshold)
         {
             Read(sleep1Threshold);
-            return new UnsafeDisposable<UnsafeConcurrentReaderWriterLock>(UnsafeHelpers.AsPointer(ref this));
+            return new NativeConcurrentReaderWriterLockRef(UnsafeHelpers.AsPointer(ref this));
         }
 
         /// <summary>
@@ -92,10 +86,10 @@ namespace NativeCollections
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
-        public UnsafeDisposable<UnsafeConcurrentReaderWriterLock> WriteLock()
+        public NativeConcurrentReaderWriterLockRef WriteLock()
         {
             Write();
-            return new UnsafeDisposable<UnsafeConcurrentReaderWriterLock>(UnsafeHelpers.AsPointer(ref this));
+            return new NativeConcurrentReaderWriterLockRef(UnsafeHelpers.AsPointer(ref this));
         }
 
         /// <summary>
@@ -110,10 +104,10 @@ namespace NativeCollections
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
-        public UnsafeDisposable<UnsafeConcurrentReaderWriterLock> WriteLock(int sleep1Threshold)
+        public NativeConcurrentReaderWriterLockRef WriteLock(int sleep1Threshold)
         {
             Write(sleep1Threshold);
-            return new UnsafeDisposable<UnsafeConcurrentReaderWriterLock>(UnsafeHelpers.AsPointer(ref this));
+            return new NativeConcurrentReaderWriterLockRef(UnsafeHelpers.AsPointer(ref this));
         }
 
         /// <summary>
@@ -251,6 +245,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeConcurrentReaderWriterLock Empty => new();
+        public static UnsafeConcurrentReaderWriterLock Empty => default;
     }
 }

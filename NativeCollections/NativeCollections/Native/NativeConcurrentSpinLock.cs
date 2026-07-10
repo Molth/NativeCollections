@@ -30,13 +30,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            var handle = _handle;
-            if (UnsafeHelpers.IsNull(handle))
-                return;
-            NativeMemoryAllocator.AlignedFree(handle);
-        }
+        public void Dispose() => Box.Free(_handle);
 
         /// <summary>
         ///     Is created
@@ -105,22 +99,22 @@ namespace NativeCollections
         ///     Enter
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeDisposable<UnsafeConcurrentSpinLock> EnterLock()
+        public NativeConcurrentSpinLockRef EnterLock()
         {
             var handle = _handle;
             handle->Enter();
-            return new UnsafeDisposable<UnsafeConcurrentSpinLock>(handle);
+            return new NativeConcurrentSpinLockRef(handle);
         }
 
         /// <summary>
         ///     Enter
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeDisposable<UnsafeConcurrentSpinLock> EnterLock(int sequenceNumber)
+        public NativeConcurrentSpinLockRef EnterLock(int sequenceNumber)
         {
             var handle = _handle;
             handle->Enter(sequenceNumber);
-            return new UnsafeDisposable<UnsafeConcurrentSpinLock>(handle);
+            return new NativeConcurrentSpinLockRef(handle);
         }
 
         /// <summary>
@@ -185,6 +179,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeConcurrentSpinLock Empty => new();
+        public static NativeConcurrentSpinLock Empty => default;
     }
 }

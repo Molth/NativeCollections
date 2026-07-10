@@ -57,13 +57,13 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfNegative(maxLength, ExceptionArgument.maxLength);
             maxLength = Math.Clamp(maxLength, 16, 1073741824);
             var length = SelectBucketIndex(maxLength) + 1;
-            var alignment = Math.Max((uint)NativeMemoryAllocator.AlignOf<NativeArrayPoolBucket>(), (uint)NativeMemoryAllocator.AlignOf<nint>());
+            var alignment = Math.Max(NativeMemoryAllocator.AlignOf<NativeArrayPoolBucket>(), NativeMemoryAllocator.AlignOf<nint>());
             var bucketsLength = (uint)NativeMemoryAllocator.AlignUp((nuint)(length * Unsafe.SizeOf<NativeArrayPoolBucket>()), alignment);
             var extremeLength = capacity * Unsafe.SizeOf<nint>();
-            var buffer = NativeMemoryAllocator.AlignedAlloc((uint)(bucketsLength + length * extremeLength), alignment);
+            var buffer = NativeMemoryAllocator.AlignedAlloc(bucketsLength + (uint)length * (uint)extremeLength, alignment);
             var buckets = (NativeArrayPoolBucket*)buffer;
             buffer = UnsafeHelpers.AddByteOffset(buffer, (nint)bucketsLength);
-            Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(buffer), 0, (uint)(length * extremeLength));
+            SpanHelpers.Set(ref Unsafe.AsRef<byte>(buffer), 0, (uint)(length * extremeLength));
             for (var i = 0; i < length; ++i)
             {
                 ref var bucket = ref Unsafe.Add(ref Unsafe.AsRef<NativeArrayPoolBucket>(buckets), (nint)i);
@@ -247,7 +247,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeArrayPool<T> Empty => new();
+        public static NativeArrayPool<T> Empty => default;
 
         /// <summary>
         ///     NativeArrayPool bucket
@@ -320,7 +320,7 @@ namespace NativeCollections
                     }
 
                     if (UnsafeHelpers.IsNull(ptr))
-                        ptr = allocator.AlignedAlloc((uint)_length, (uint)NativeMemoryAllocator.AlignOf<T>());
+                        ptr = allocator.AlignedAlloc((uint)_length, NativeMemoryAllocator.AlignOf<T>());
                 }
                 finally
                 {

@@ -12,6 +12,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
+    [BindingType(typeof(Monitor))]
     public readonly struct NativeMonitorLock : IIsCreated, IDisposable, IEquatable<NativeMonitorLock>
     {
         /// <summary>
@@ -190,6 +191,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeMonitorLock Empty => new();
+        public static NativeMonitorLock Empty => default;
     }
 }

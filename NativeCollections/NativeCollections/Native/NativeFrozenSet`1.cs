@@ -270,7 +270,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeFrozenSet<T> Empty => new();
+        public static NativeFrozenSet<T> Empty => default;
 
         /// <summary>
         ///     Enumerator

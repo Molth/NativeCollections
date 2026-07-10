@@ -29,9 +29,7 @@ namespace NativeCollections
         public NativeUInt64MemoryPool(int length, int maxFreeSlabs, int alignment)
         {
             var value = new UnsafeUInt64MemoryPool(length, maxFreeSlabs, alignment);
-            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeUInt64MemoryPool>(1);
-            Unsafe.AsRef<UnsafeUInt64MemoryPool>(handle) = value;
-            _handle = handle;
+            _handle = Box.New(ref value);
         }
 
         /// <summary>
@@ -115,14 +113,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            var handle = _handle;
-            if (UnsafeHelpers.IsNull(handle))
-                return;
-            handle->Dispose();
-            NativeMemoryAllocator.AlignedFree(handle);
-        }
+        public void Dispose() => Box.Drop(_handle);
 
         /// <summary>
         ///     Clear
@@ -175,6 +166,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeUInt64MemoryPool Empty => new();
+        public static NativeUInt64MemoryPool Empty => default;
     }
 }

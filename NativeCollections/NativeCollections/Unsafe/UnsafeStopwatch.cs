@@ -221,6 +221,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeStopwatch Empty => new();
+        public static UnsafeStopwatch Empty => default;
     }
 }

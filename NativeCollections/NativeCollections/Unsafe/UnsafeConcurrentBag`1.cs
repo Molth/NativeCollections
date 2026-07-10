@@ -147,7 +147,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeConcurrentBag<T> Empty => new();
+        public static UnsafeConcurrentBag<T> Empty => default;
 
         /// <summary>
         ///     Initializes a new instance of this class.

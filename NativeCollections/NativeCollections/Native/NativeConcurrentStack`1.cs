@@ -101,14 +101,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            var handle = _handle;
-            if (UnsafeHelpers.IsNull(handle))
-                return;
-            handle->Dispose();
-            NativeMemoryAllocator.AlignedFree(handle);
-        }
+        public void Dispose() => Box.Drop(_handle);
 
         /// <summary>
         ///     Removes all objects from this.
@@ -142,7 +135,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeConcurrentStack<T> Empty => new();
+        public static NativeConcurrentStack<T> Empty => default;
 
         /// <summary>
         ///     Initializes a new instance of this class.
@@ -151,9 +144,7 @@ namespace NativeCollections
         public static NativeConcurrentStack<T> Create()
         {
             var value = UnsafeConcurrentStack<T>.Create();
-            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeConcurrentStack<T>>(1);
-            Unsafe.AsRef<UnsafeConcurrentStack<T>>(handle) = value;
-            return new NativeConcurrentStack<T>(handle);
+            return new NativeConcurrentStack<T>(Box.New(ref value));
         }
     }
 }

@@ -303,7 +303,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeFrozenDictionary<TKey, TValue> Empty => new();
+        public static NativeFrozenDictionary<TKey, TValue> Empty => default;
 
         /// <summary>
         ///     Enumerator

@@ -39,35 +39,35 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<T>(NativeMemoryManager<T> nativeMemoryManager) => nativeMemoryManager.Memory.Span;
+        public static implicit operator Span<T>(NativeMemoryManager<T> value) => value.Memory.Span;
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<T>(NativeMemoryManager<T> nativeMemoryManager) => nativeMemoryManager.Memory.Span;
+        public static implicit operator ReadOnlySpan<T>(NativeMemoryManager<T> value) => value.Memory.Span;
 
         /// <summary>
         ///     As memory
         /// </summary>
         /// <returns>Memory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Memory<T>(NativeMemoryManager<T> nativeMemoryManager) => nativeMemoryManager.Memory;
+        public static implicit operator Memory<T>(NativeMemoryManager<T> value) => value.Memory;
 
         /// <summary>
         ///     As readOnly memory
         /// </summary>
         /// <returns>ReadOnlyMemory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlyMemory<T>(NativeMemoryManager<T> nativeMemoryManager) => nativeMemoryManager.Memory;
+        public static implicit operator ReadOnlyMemory<T>(NativeMemoryManager<T> value) => value.Memory;
 
         /// <summary>
         ///     As native array
         /// </summary>
         /// <returns>NativeArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeArray<T>(NativeMemoryManager<T> nativeMemoryManager) => nativeMemoryManager._buffer;
+        public static implicit operator NativeArray<T>(NativeMemoryManager<T> value) => value._buffer;
 
         /// <summary>
         ///     To string

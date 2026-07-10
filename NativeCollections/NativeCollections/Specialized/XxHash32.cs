@@ -56,7 +56,7 @@ namespace NativeCollections
         /// <param name="seed">The seed value for this hash computation. The default is zero.</param>
         /// <returns>The computed XxHash32 hash.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int HashToInt32(ref byte startAddress, nuint byteCount, uint seed)
+        public static int HashToInt32(ref byte startAddress, uint byteCount, uint seed)
         {
             const nint byteOffset1 = 16;
             const nint byteOffset2 = 4;

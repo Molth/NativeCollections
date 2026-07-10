@@ -42,9 +42,7 @@ namespace NativeCollections
         public NativeSortedDictionary(int size, int maxFreeSlabs)
         {
             var value = new UnsafeSortedDictionary<TKey, TValue>(size, maxFreeSlabs);
-            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeSortedDictionary<TKey, TValue>>(1);
-            Unsafe.AsRef<UnsafeSortedDictionary<TKey, TValue>>(handle) = value;
-            _handle = handle;
+            _handle = Box.New(ref value);
         }
 
         /// <summary>
@@ -130,14 +128,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            var handle = _handle;
-            if (UnsafeHelpers.IsNull(handle))
-                return;
-            handle->Dispose();
-            NativeMemoryAllocator.AlignedFree(handle);
-        }
+        public void Dispose() => Box.Drop(_handle);
 
         /// <summary>
         ///     Clear
@@ -264,7 +255,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeSortedDictionary<TKey, TValue> Empty => new();
+        public static NativeSortedDictionary<TKey, TValue> Empty => default;
 
         /// <summary>
         ///     Get enumerator

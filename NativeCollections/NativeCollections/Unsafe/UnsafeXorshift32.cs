@@ -259,7 +259,7 @@ namespace NativeCollections
             var num2 = (uint)num1;
             if (num2 < maxValue)
             {
-                for (var index = (uint)-(int)maxValue % maxValue; num2 < index; num2 = (uint)num1)
+                for (var num3 = unchecked(0U - maxValue); num2 < num3; num2 = (uint)num1)
                     num1 = maxValue * (ulong)Next32();
             }
 
@@ -279,19 +279,7 @@ namespace NativeCollections
         ///     is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public uint NextUInt32(uint minValue, uint maxValue)
-        {
-            var num1 = maxValue - minValue;
-            var num2 = num1 * (ulong)Next32();
-            var num3 = (uint)num2;
-            if (num3 < num1)
-            {
-                for (var index = (uint)-(int)num1 % num1; num3 < index; num3 = (uint)num2)
-                    num2 = num1 * (ulong)Next32();
-            }
-
-            return (uint)(num2 >> 32) + minValue;
-        }
+        public uint NextUInt32(uint minValue, uint maxValue) => NextUInt32(maxValue - minValue) + maxValue;
 
         /// <summary>Returns a non-negative random integer.</summary>
         /// <returns>A 64-bit unsigned integer that is greater than or equal to 0 and less than <see cref="ulong.MaxValue" />.</returns>
@@ -321,13 +309,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ulong NextUInt64(ulong maxValue)
         {
-            ulong low;
-            var num1 = MathHelpers.BigMul(maxValue, Next64(), out low);
-            if (low < maxValue)
+            var num1 = MathHelpers.BigMul(maxValue, Next64(), out var num2);
+            if (num2 < maxValue)
             {
-                var num2 = unchecked(0UL - maxValue) % maxValue;
-                while (low < num2)
-                    num1 = MathHelpers.BigMul(maxValue, Next64(), out low);
+                var num3 = unchecked(0UL - maxValue) % maxValue;
+                while (num2 < num3)
+                    num1 = MathHelpers.BigMul(maxValue, Next64(), out num2);
             }
 
             return num1;
@@ -346,20 +333,7 @@ namespace NativeCollections
         ///     is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ulong NextUInt64(ulong minValue, ulong maxValue)
-        {
-            var a = maxValue - minValue;
-            ulong low;
-            var num1 = MathHelpers.BigMul(a, Next64(), out low);
-            if (low < a)
-            {
-                var num2 = unchecked(0UL - a) % a;
-                while (low < num2)
-                    num1 = MathHelpers.BigMul(a, Next64(), out low);
-            }
-
-            return num1 + minValue;
-        }
+        public ulong NextUInt64(ulong minValue, ulong maxValue) => NextUInt64(maxValue - minValue) + minValue;
 
         /// <summary>Returns a non-negative random integer.</summary>
         /// <returns>A 32-bit signed integer that is greater than or equal to 0 and less than <see cref="int.MaxValue" />.</returns>
@@ -430,21 +404,7 @@ namespace NativeCollections
         ///     <paramref name="maxValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public long NextInt64(long maxValue)
-        {
-            if (maxValue <= int.MaxValue)
-                return NextInt32((int)maxValue);
-            if (maxValue <= 1L)
-                return 0;
-            var num1 = BitOperationsHelpers.Log2Ceiling((ulong)maxValue);
-            ulong num2;
-            do
-            {
-                num2 = Next64() >> (64 - num1);
-            } while (num2 >= (ulong)maxValue);
-
-            return (long)num2;
-        }
+        public long NextInt64(long maxValue) => (long)NextUInt64((ulong)maxValue);
 
         /// <summary>Returns a random integer that is within a specified range.</summary>
         /// <param name="minValue">The inclusive lower bound of the random number returned.</param>
@@ -459,22 +419,7 @@ namespace NativeCollections
         ///     is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public long NextInt64(long minValue, long maxValue)
-        {
-            var maxValue1 = (ulong)(maxValue - minValue);
-            if (maxValue1 <= int.MaxValue)
-                return NextInt32((int)maxValue1) + minValue;
-            if (maxValue1 <= 1UL)
-                return minValue;
-            var num1 = BitOperationsHelpers.Log2Ceiling(maxValue1);
-            ulong num2;
-            do
-            {
-                num2 = Next64() >> (64 - num1);
-            } while (num2 >= maxValue1);
-
-            return (long)num2 + minValue;
-        }
+        public long NextInt64(long minValue, long maxValue) => (long)NextUInt64((ulong)(maxValue - minValue)) + minValue;
 
         /// <summary>Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.</summary>
         /// <returns>A double-precision floating point number that is greater than or equal to 0.0, and less than 1.0.</returns>
@@ -502,7 +447,7 @@ namespace NativeCollections
 
             if (!buffer.IsEmpty)
             {
-                Unsafe.CopyBlockUnaligned(ref MemoryMarshal.GetReference(buffer), ref Unsafe.As<uint, byte>(ref num1), (uint)buffer.Length);
+                SpanHelpers.Copy(ref MemoryMarshal.GetReference(buffer), ref Unsafe.As<uint, byte>(ref num1), (uint)buffer.Length);
                 num1 ^= num1 << 13;
                 num1 ^= num1 >> 17;
                 num1 ^= num1 << 5;
@@ -567,7 +512,7 @@ namespace NativeCollections
         /// <typeparam name="T">The blittable type.</typeparam>
         /// <returns>The randomly generated value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Next<T>(ref T destination) => NextBytes(MemoryMarshal.CreateSpan(ref Unsafe.As<T, byte>(ref destination), Unsafe.SizeOf<T>()));
+        public void Next<T>(ref T destination) where T : unmanaged => NextBytes(MemoryMarshal.CreateSpan(ref Unsafe.As<T, byte>(ref destination), Unsafe.SizeOf<T>()));
 
         /// <summary>
         ///     Create
@@ -584,6 +529,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeXorshift32 Empty => new();
+        public static UnsafeXorshift32 Empty => default;
     }
 }

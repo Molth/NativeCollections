@@ -82,51 +82,6 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Log2 ceiling
-        /// </summary>
-        /// <param name="value">Value</param>
-        /// <returns>Log2 ceiling</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int Log2Ceiling(ulong value)
-        {
-            var num = Log2(value);
-            if (PopCount(value) != 1)
-                ++num;
-            return num;
-        }
-
-        /// <summary>
-        ///     Returns the population count (number of bits set) of an unsigned 64-bit integer mask
-        /// </summary>
-        /// <param name="value">The mask</param>
-        /// <returns>The population count of the mask</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int PopCount(ulong value)
-        {
-#if NET5_0_OR_GREATER
-            return BitOperations.PopCount(value);
-#else
-            if (Environment.Is64BitProcess)
-            {
-                value -= (value >> 1) & 6148914691236517205UL;
-                value = (ulong)(((long)value & 3689348814741910323L) + ((long)(value >> 2) & 3689348814741910323L));
-                value = (ulong)(long)((ulong)((((long)value + (long)(value >> 4)) & 1085102592571150095L) * 72340172838076673L) >> 56);
-                return (int)value;
-            }
-
-            var value1 = (uint)value;
-            value1 -= (value1 >> 1) & 0x_55555555u;
-            value1 = (value1 & 0x_33333333u) + ((value1 >> 2) & 0x_33333333u);
-            value1 = (((value1 + (value1 >> 4)) & 0x_0F0F0F0Fu) * 0x_01010101u) >> 24;
-            var value2 = (uint)(value >> 32);
-            value2 -= (value2 >> 1) & 0x_55555555u;
-            value2 = (value2 & 0x_33333333u) + ((value2 >> 2) & 0x_33333333u);
-            value2 = (((value2 + (value2 >> 4)) & 0x_0F0F0F0Fu) * 0x_01010101u) >> 24;
-            return (int)value1 + (int)value2;
-#endif
-        }
-
-        /// <summary>
         ///     Count the number of leading zero bits in a mask
         ///     Similar in behavior to the x86 instruction LZCNT
         /// </summary>
@@ -189,23 +144,6 @@ namespace NativeCollections
             return BitOperations.TrailingZeroCount(value);
 #else
             return value == 0 ? 32 : Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(TrailingZeroCountDeBruijn), (nint)(int)(((value & (uint)-(int)value) * 125613361U) >> 27));
-#endif
-        }
-
-        /// <summary>
-        ///     Log2
-        /// </summary>
-        /// <param name="value">Value</param>
-        /// <returns>Log2</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int Log2(ulong value)
-        {
-#if NET5_0_OR_GREATER
-            return BitOperations.Log2(value);
-#else
-            value |= 1UL;
-            var num = (uint)(value >> 32);
-            return num == 0U ? Log2((uint)value) : 32 + Log2(num);
 #endif
         }
 

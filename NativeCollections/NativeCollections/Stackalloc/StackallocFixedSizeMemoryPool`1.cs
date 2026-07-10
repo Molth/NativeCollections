@@ -74,7 +74,7 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             var extremeLength = UnsafeBitArray.GetInt32ArrayLengthFromBitLength(capacity);
-            var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<T>(), NativeMemoryAllocator.AlignOf<int>());
+            var alignment = Math.Max(NativeMemoryAllocator.AlignOf<T>(), NativeMemoryAllocator.AlignOf<int>());
             var bufferByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * Unsafe.SizeOf<T>()), alignment);
             return (int)(bufferByteCount + (capacity + extremeLength) * Unsafe.SizeOf<int>() + alignment - 1);
         }
@@ -90,12 +90,12 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, GetByteCount(capacity), ExceptionArgument.capacity);
             var extremeLength = UnsafeBitArray.GetInt32ArrayLengthFromBitLength(capacity);
-            var alignment = (uint)Math.Max(NativeMemoryAllocator.AlignOf<T>(), NativeMemoryAllocator.AlignOf<int>());
+            var alignment = Math.Max(NativeMemoryAllocator.AlignOf<T>(), NativeMemoryAllocator.AlignOf<int>());
             var bufferByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * Unsafe.SizeOf<T>()), alignment);
             _buffer = (T*)NativeArray<byte>.Create(buffer, alignment).Buffer;
             _index = UnsafeHelpers.AddByteOffset<int>(_buffer, (nint)bufferByteCount);
             _bitArray = UnsafeHelpers.AddByteOffset<int>(_index, capacity * Unsafe.SizeOf<int>());
-            Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(_bitArray), 0, (uint)(extremeLength * Unsafe.SizeOf<int>()));
+            SpanHelpers.Set(ref Unsafe.AsRef<byte>(_bitArray), 0, (uint)(extremeLength * Unsafe.SizeOf<int>()));
             _capacity = capacity;
             _bitArrayLength = extremeLength;
             _size = capacity;
@@ -151,7 +151,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reset()
         {
-            Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(_bitArray), 0, (uint)(_bitArrayLength * Unsafe.SizeOf<int>()));
+            SpanHelpers.Set(ref Unsafe.AsRef<byte>(_bitArray), 0, (uint)(_bitArrayLength * Unsafe.SizeOf<int>()));
             _size = _capacity;
             for (var i = 0; i < _capacity; ++i)
                 Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)i) = i;
@@ -221,6 +221,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static StackallocFixedSizeMemoryPool<T> Empty => new();
+        public static StackallocFixedSizeMemoryPool<T> Empty => default;
     }
 }

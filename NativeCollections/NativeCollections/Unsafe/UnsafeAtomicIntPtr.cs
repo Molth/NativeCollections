@@ -38,18 +38,28 @@ namespace NativeCollections
         public ref nint AsRef() => ref _value;
 
         /// <summary>
-        ///     Bitwise "ands" two 64-bit signed integers and replaces the first integer with the result, as an atomic operation.
+        ///     Bitwise "ands" two native-sized signed integers and replaces the first integer with the result, as an atomic
+        ///     operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public nint And(nint value) => InterlockedHelpers.And(ref _value, value);
 
         /// <summary>
-        ///     Bitwise "ors" two 64-bit signed integers and replaces the first integer with the result, as an atomic operation.
+        ///     Bitwise "ors" two native-sized signed integers and replaces the first integer with the result, as an atomic
+        ///     operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public nint Or(nint value) => InterlockedHelpers.Or(ref _value, value);
+
+        /// <summary>
+        ///     Bitwise "xors" two native-sized signed integers and replaces the first integer with the result, as an atomic
+        ///     operation.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public nint Xor(nint value) => InterlockedHelpers.Xor(ref _value, value);
 
         /// <summary>
         ///     Returns a value, loaded as an atomic operation.
@@ -130,6 +140,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeAtomicIntPtr Empty => new();
+        public static UnsafeAtomicIntPtr Empty => default;
     }
 }

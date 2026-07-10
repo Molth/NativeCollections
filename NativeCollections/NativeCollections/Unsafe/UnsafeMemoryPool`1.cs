@@ -181,6 +181,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeMemoryPool<T> Empty => new();
+        public static UnsafeMemoryPool<T> Empty => default;
     }
 }

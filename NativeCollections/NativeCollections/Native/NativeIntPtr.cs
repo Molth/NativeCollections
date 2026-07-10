@@ -86,28 +86,28 @@ namespace NativeCollections
         /// </summary>
         /// <returns>NativeIntPtr</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeIntPtr(void* handle) => new(handle);
+        public static implicit operator NativeIntPtr(void* value) => new(value);
 
         /// <summary>
         ///     As handle
         /// </summary>
         /// <returns>Handle</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator void*(NativeIntPtr nativeIntPtr) => nativeIntPtr._handle;
+        public static implicit operator void*(NativeIntPtr value) => value._handle;
 
         /// <summary>
         ///     As reference
         /// </summary>
         /// <returns>NativeIntPtr</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeIntPtr(nint handle) => new(handle);
+        public static implicit operator NativeIntPtr(nint value) => new(value);
 
         /// <summary>
         ///     As handle
         /// </summary>
         /// <returns>Handle</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator nint(NativeIntPtr nativeIntPtr) => (nint)nativeIntPtr._handle;
+        public static implicit operator nint(NativeIntPtr value) => (nint)value._handle;
 
         /// <summary>
         ///     Equals
@@ -129,13 +129,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            var handle = _handle;
-            if (UnsafeHelpers.IsNull(handle))
-                return;
-            NativeMemoryAllocator.AlignedFree(handle);
-        }
+        public void Dispose() => Box.Free(_handle);
 
         /// <summary>
         ///     Create
@@ -150,6 +144,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeIntPtr Empty => new();
+        public static NativeIntPtr Empty => default;
     }
 }

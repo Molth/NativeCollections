@@ -440,7 +440,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeRingBuffer<T> Empty => new();
+        public static UnsafeRingBuffer<T> Empty => default;
 
         /// <summary>
         ///     Get enumerator

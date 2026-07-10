@@ -77,6 +77,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static CustomMemoryCallbacks Empty => new();
+        public static CustomMemoryCallbacks Empty => default;
     }
 }

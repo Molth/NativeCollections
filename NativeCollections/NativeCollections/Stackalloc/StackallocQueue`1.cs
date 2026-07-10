@@ -314,7 +314,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static StackallocQueue<T> Empty => new();
+        public static StackallocQueue<T> Empty => default;
 
         /// <summary>
         ///     Get enumerator

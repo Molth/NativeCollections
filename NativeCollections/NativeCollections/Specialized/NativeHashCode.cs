@@ -62,7 +62,7 @@ namespace NativeCollections
             if (getHashCode != null)
                 return getHashCode(buffer);
 
-            return XxHash32.HashToInt32(ref MemoryMarshal.GetReference(buffer), (nuint)buffer.Length, DefaultSeed);
+            return XxHash32.HashToInt32(ref MemoryMarshal.GetReference(buffer), (uint)buffer.Length, DefaultSeed);
         }
     }
 }

@@ -88,7 +88,7 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfNegative(y, ExceptionArgument.y);
             ThrowHelpers.ThrowIfNegative(z, ExceptionArgument.z);
             ThrowHelpers.ThrowIfNegative(alignment, ExceptionArgument.alignment);
-            ThrowHelpers.ThrowIfLessThan((uint)alignment, (uint)NativeMemoryAllocator.AlignOf<T>(), ExceptionArgument.alignment);
+            ThrowHelpers.ThrowIfLessThan((uint)alignment, NativeMemoryAllocator.AlignOf<T>(), ExceptionArgument.alignment);
             _buffer = (T*)NativeMemoryAllocator.AlignedAlloc((uint)(x * y * z * Unsafe.SizeOf<T>()), (uint)alignment);
             _x = x;
             _y = y;
@@ -110,7 +110,7 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfNegative(y, ExceptionArgument.y);
             ThrowHelpers.ThrowIfNegative(z, ExceptionArgument.z);
             ThrowHelpers.ThrowIfNegative(alignment, ExceptionArgument.alignment);
-            ThrowHelpers.ThrowIfLessThan((uint)alignment, (uint)NativeMemoryAllocator.AlignOf<T>(), ExceptionArgument.alignment);
+            ThrowHelpers.ThrowIfLessThan((uint)alignment, NativeMemoryAllocator.AlignOf<T>(), ExceptionArgument.alignment);
             _buffer = zeroed ? (T*)NativeMemoryAllocator.AlignedAllocZeroed((uint)(x * y * z * Unsafe.SizeOf<T>()), (uint)alignment) : (T*)NativeMemoryAllocator.AlignedAlloc((uint)(x * y * z * Unsafe.SizeOf<T>()), (uint)alignment);
             _x = x;
             _y = y;
@@ -283,13 +283,7 @@ namespace NativeCollections
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            var buffer = _buffer;
-            if (UnsafeHelpers.IsNull(buffer))
-                return;
-            NativeMemoryAllocator.AlignedFree(buffer);
-        }
+        public void Dispose() => Box.Free(_buffer);
 
         /// <summary>
         ///     As span
@@ -344,47 +338,47 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Pointer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator T*(NativeArray3<T> nativeArray3) => nativeArray3._buffer;
+        public static implicit operator T*(NativeArray3<T> value) => value._buffer;
 
         /// <summary>
         ///     As span
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<T>(NativeArray3<T> nativeArray3) => nativeArray3.AsSpan();
+        public static implicit operator Span<T>(NativeArray3<T> value) => value.AsSpan();
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<T>(NativeArray3<T> nativeArray3) => nativeArray3.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<T>(NativeArray3<T> value) => value.AsReadOnlySpan();
 
         /// <summary>
         ///     As native array
         /// </summary>
         /// <returns>NativeArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeArray<T>(NativeArray3<T> nativeArray3) => new(nativeArray3._buffer, nativeArray3._x * nativeArray3._y * nativeArray3._z);
+        public static implicit operator NativeArray<T>(NativeArray3<T> value) => new(value._buffer, value._x * value._y * value._z);
 
         /// <summary>
         ///     As native memory array
         /// </summary>
         /// <returns>NativeMemoryArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeMemoryArray<T>(NativeArray3<T> nativeArray3) => new(nativeArray3._buffer, nativeArray3._x * nativeArray3._y * nativeArray3._z);
+        public static implicit operator NativeMemoryArray<T>(NativeArray3<T> value) => new(value._buffer, value._x * value._y * value._z);
 
         /// <summary>
         ///     As native slice
         /// </summary>
         /// <returns>NativeSlice</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeSlice<T>(NativeArray3<T> nativeArray3) => new(nativeArray3._buffer, nativeArray3._x * nativeArray3._y * nativeArray3._z);
+        public static implicit operator NativeSlice<T>(NativeArray3<T> value) => new(value._buffer, value._x * value._y * value._z);
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeArray3<T> Empty => new();
+        public static NativeArray3<T> Empty => default;
 
         /// <summary>
         ///     Get enumerator

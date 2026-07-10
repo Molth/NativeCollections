@@ -19,7 +19,7 @@ namespace NativeCollections
         public static T* AlignedAlloc<T>(uint elementCount) where T : unmanaged
         {
             var byteCount = elementCount * (uint)Unsafe.SizeOf<T>();
-            var alignment = (uint)NativeMemoryAllocator.AlignOf<T>();
+            var alignment = NativeMemoryAllocator.AlignOf<T>();
             return (T*)AlignedAlloc(byteCount, alignment);
         }
 
@@ -30,7 +30,7 @@ namespace NativeCollections
         public static T* AlignedAllocZeroed<T>(uint elementCount) where T : unmanaged
         {
             var byteCount = elementCount * (uint)Unsafe.SizeOf<T>();
-            var alignment = (uint)NativeMemoryAllocator.AlignOf<T>();
+            var alignment = NativeMemoryAllocator.AlignOf<T>();
             return (T*)AlignedAllocZeroed(byteCount, alignment);
         }
 
@@ -67,7 +67,7 @@ namespace NativeCollections
             var ptr = Unsafe.AsPointer(ref reference);
             var result = (void*)(((nint)ptr + (nint)byteOffset) & ~((nint)alignment - 1));
             Unsafe.WriteUnaligned(UnsafeHelpers.SubtractByteOffset(result, Unsafe.SizeOf<GCHandle>()), gcHandle);
-            Unsafe.InitBlockUnaligned(ref Unsafe.AsRef<byte>(result), 0, byteCount);
+            SpanHelpers.Set(ref Unsafe.AsRef<byte>(result), 0, byteCount);
             return result;
         }
 

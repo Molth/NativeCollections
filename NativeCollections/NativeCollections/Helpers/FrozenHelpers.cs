@@ -103,7 +103,7 @@ namespace NativeCollections
                 }
 
                 var hashCodesByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(hashCodes.Length * Unsafe.SizeOf<int>()), CACHE_LINE_SIZE);
-                var hashCodes1Ptr = (int*)NativeMemoryAllocator.AlignedAllocZeroed((uint)(hashCodesByteCount + span1.Length * Unsafe.SizeOf<Bucket>()), CACHE_LINE_SIZE);
+                var hashCodes1Ptr = (int*)NativeMemoryAllocator.AlignedAllocZeroed(hashCodesByteCount + (uint)span1.Length * (uint)Unsafe.SizeOf<Bucket>(), CACHE_LINE_SIZE);
                 var bucketsPtr = UnsafeHelpers.AddByteOffset<Bucket>(hashCodes1Ptr, (nint)hashCodesByteCount);
                 var hashCodes1 = new NativeArray<int>(hashCodes1Ptr, hashCodes.Length);
                 var buckets = new NativeArray<Bucket>(bucketsPtr, span1.Length);

@@ -222,8 +222,8 @@ namespace NativeCollections
             if (newLength > _buffer.Length || newLength + 256 < _buffer.Length)
             {
                 var buffer = new NativeArray<int>(newLength);
-                Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(buffer.Buffer), ref Unsafe.AsRef<byte>(_buffer.Buffer), (uint)(_buffer.Length * Unsafe.SizeOf<int>()));
-                Unsafe.InitBlockUnaligned(ref Unsafe.As<int, byte>(ref Unsafe.Add(ref Unsafe.AsRef<int>(buffer.Buffer), (nint)buffer.Length)), 0, (uint)(newLength - _buffer.Length));
+                SpanHelpers.Copy(ref Unsafe.AsRef<byte>(buffer.Buffer), ref Unsafe.AsRef<byte>(_buffer.Buffer), (uint)(_buffer.Length * Unsafe.SizeOf<int>()));
+                SpanHelpers.Set(ref Unsafe.As<int, byte>(ref Unsafe.Add(ref Unsafe.AsRef<int>(buffer.Buffer), (nint)buffer.Length)), 0, (uint)(newLength - _buffer.Length));
                 _buffer.Dispose();
                 _buffer = buffer;
             }
@@ -427,7 +427,7 @@ namespace NativeCollections
                         _buffer[length - 1] &= (int)mask;
                     }
 
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(_buffer.Buffer), ref Unsafe.As<int, byte>(ref Unsafe.Add(ref Unsafe.AsRef<int>(_buffer.Buffer), (nint)fromIndex)), (uint)((length - fromIndex) * Unsafe.SizeOf<int>()));
+                    SpanHelpers.Copy(ref Unsafe.AsRef<byte>(_buffer.Buffer), ref Unsafe.As<int, byte>(ref Unsafe.Add(ref Unsafe.AsRef<int>(_buffer.Buffer), (nint)fromIndex)), (uint)((length - fromIndex) * Unsafe.SizeOf<int>()));
                     toIndex = length - fromIndex;
                 }
                 else
@@ -470,7 +470,7 @@ namespace NativeCollections
                 lengthToClear = Div32Rem(count, out var shiftCount);
                 if (shiftCount == 0)
                 {
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<int, byte>(ref Unsafe.Add(ref Unsafe.AsRef<int>(_buffer.Buffer), (nint)lengthToClear)), ref Unsafe.AsRef<byte>(_buffer.Buffer), (uint)((lastIndex + 1 - lengthToClear) * Unsafe.SizeOf<int>()));
+                    SpanHelpers.Copy(ref Unsafe.As<int, byte>(ref Unsafe.Add(ref Unsafe.AsRef<int>(_buffer.Buffer), (nint)lengthToClear)), ref Unsafe.AsRef<byte>(_buffer.Buffer), (uint)((lastIndex + 1 - lengthToClear) * Unsafe.SizeOf<int>()));
                 }
                 else
                 {
@@ -637,6 +637,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeBitArray Empty => new();
+        public static UnsafeBitArray Empty => default;
     }
 }

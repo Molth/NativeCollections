@@ -306,6 +306,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeConcurrentChunkedStream Empty => new();
+        public static UnsafeConcurrentChunkedStream Empty => default;
     }
 }

@@ -23,7 +23,6 @@ namespace NativeCollections
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard)]
     [IsReferenceOrContainsReferences]
-    [BindingType(typeof(ArrayPool<char>))]
     [IsAssignableTo(typeof(IIsCreated), typeof(IEquatable<>), typeof(IEquatable<>), typeof(IReadOnlyCollection<char>))]
     [Customizable("public static int GetHashCode(ReadOnlySpan<char> buffer)")]
     public unsafe ref struct UnsafeString
@@ -131,7 +130,7 @@ namespace NativeCollections
         {
             if (_length + buffer.Length > Capacity)
                 return false;
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref MemoryMarshal.GetReference(_buffer), (nint)_length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(buffer.Length * Unsafe.SizeOf<char>()));
+            SpanHelpers.Copy(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref MemoryMarshal.GetReference(_buffer), (nint)_length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(buffer.Length * Unsafe.SizeOf<char>()));
             _length += buffer.Length;
             return true;
         }
@@ -147,7 +146,7 @@ namespace NativeCollections
             if (_length + newLine.Length > Capacity)
                 return false;
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)_length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(newLine)), (uint)(newLine.Length * Unsafe.SizeOf<char>()));
+            SpanHelpers.Copy(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)_length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(newLine)), (uint)(newLine.Length * Unsafe.SizeOf<char>()));
             _length += newLine.Length;
             return true;
         }
@@ -164,9 +163,9 @@ namespace NativeCollections
             if (_length + buffer.Length + newLine.Length > Capacity)
                 return false;
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)_length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(buffer.Length * Unsafe.SizeOf<char>()));
+            SpanHelpers.Copy(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)_length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(buffer.Length * Unsafe.SizeOf<char>()));
             _length += buffer.Length;
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)_length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(newLine)), (uint)(newLine.Length * Unsafe.SizeOf<char>()));
+            SpanHelpers.Copy(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)_length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(newLine)), (uint)(newLine.Length * Unsafe.SizeOf<char>()));
             _length += newLine.Length;
             return true;
         }
@@ -233,8 +232,8 @@ namespace NativeCollections
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
             var count = _length - startIndex;
             if (count > 0)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)(startIndex + buffer.Length))), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)startIndex)), (uint)(count * Unsafe.SizeOf<char>()));
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)startIndex)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(buffer.Length * Unsafe.SizeOf<char>()));
+                SpanHelpers.Move(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)(startIndex + buffer.Length))), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)startIndex)), (uint)(count * Unsafe.SizeOf<char>()));
+            SpanHelpers.Copy(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)startIndex)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(buffer.Length * Unsafe.SizeOf<char>()));
             _length += buffer.Length;
             return true;
         }
@@ -319,17 +318,17 @@ namespace NativeCollections
                 var num2 = num1 - elementOffset2;
                 if (num2 != 0)
                 {
-                    Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref local2, (nint)elementOffset3)), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref local1, (nint)elementOffset2)), (uint)(num2 * 2));
+                    SpanHelpers.Copy(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref local2, (nint)elementOffset3)), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref local1, (nint)elementOffset2)), (uint)(num2 * 2));
                     elementOffset3 += num2;
                 }
 
                 elementOffset2 = num1 + oldValue.Length;
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref local2, (nint)elementOffset3)), ref Unsafe.As<char, byte>(ref local3), (uint)(newValue.Length * 2));
+                SpanHelpers.Copy(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref local2, (nint)elementOffset3)), ref Unsafe.As<char, byte>(ref local3), (uint)(newValue.Length * 2));
                 elementOffset3 += newValue.Length;
             }
 
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref local2, (nint)elementOffset3)), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref local1, (nint)elementOffset2)), (uint)((_length - elementOffset2) * 2));
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref local1), ref Unsafe.As<char, byte>(ref local2), (uint)(minimumLength * 2));
+            SpanHelpers.Copy(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref local2, (nint)elementOffset3)), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref local1, (nint)elementOffset2)), (uint)((_length - elementOffset2) * 2));
+            SpanHelpers.Copy(ref Unsafe.As<char, byte>(ref local1), ref Unsafe.As<char, byte>(ref local2), (uint)(minimumLength * 2));
             _length = minimumLength;
             valueListBuilder.Dispose();
             if (array != null)
@@ -398,7 +397,7 @@ namespace NativeCollections
                 return false;
             _buffer[_length++] = value;
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
-            Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)_length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(newLine)), (uint)(newLine.Length * Unsafe.SizeOf<char>()));
+            SpanHelpers.Copy(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)_length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(newLine)), (uint)(newLine.Length * Unsafe.SizeOf<char>()));
             _length += newLine.Length;
             return true;
         }
@@ -461,7 +460,7 @@ namespace NativeCollections
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
             var count = _length - startIndex;
             if (count > 0)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)(startIndex + 1))), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)startIndex)), (uint)(count * Unsafe.SizeOf<char>()));
+                SpanHelpers.Move(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)(startIndex + 1))), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)startIndex)), (uint)(count * Unsafe.SizeOf<char>()));
             _buffer[startIndex] = value;
             ++_length;
             return true;
@@ -517,7 +516,7 @@ namespace NativeCollections
             if (length > 0)
             {
                 ref var reference = ref MemoryMarshal.GetReference(_buffer);
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)startIndex)), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)(startIndex + length))), (uint)((_length - startIndex - length) * Unsafe.SizeOf<char>()));
+                SpanHelpers.Copy(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)startIndex)), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)(startIndex + length))), (uint)((_length - startIndex - length) * Unsafe.SizeOf<char>()));
                 _length -= length;
             }
 
@@ -552,7 +551,7 @@ namespace NativeCollections
             if (start > 0 && start < _length)
             {
                 var count = _length - start;
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref reference), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(count * Unsafe.SizeOf<char>()));
+                SpanHelpers.Copy(ref Unsafe.As<char, byte>(ref reference), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(count * Unsafe.SizeOf<char>()));
                 _length = count;
             }
             else if (start >= _length)
@@ -599,7 +598,7 @@ namespace NativeCollections
             }
 
             if (start > 0)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref reference), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(newLength * Unsafe.SizeOf<char>()));
+                SpanHelpers.Copy(ref Unsafe.As<char, byte>(ref reference), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(newLength * Unsafe.SizeOf<char>()));
             _length = newLength;
         }
 
@@ -618,7 +617,7 @@ namespace NativeCollections
             if (start > 0 && start < _length)
             {
                 var count = _length - start;
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref reference), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(count * Unsafe.SizeOf<char>()));
+                SpanHelpers.Copy(ref Unsafe.As<char, byte>(ref reference), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(count * Unsafe.SizeOf<char>()));
                 _length = count;
             }
             else if (start >= _length)
@@ -665,7 +664,7 @@ namespace NativeCollections
             }
 
             if (start > 0)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref reference), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(newLength * Unsafe.SizeOf<char>()));
+                SpanHelpers.Copy(ref Unsafe.As<char, byte>(ref reference), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(newLength * Unsafe.SizeOf<char>()));
             _length = newLength;
         }
 
@@ -684,7 +683,7 @@ namespace NativeCollections
             if (start > 0 && start < _length)
             {
                 var count = _length - start;
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref reference), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(count * Unsafe.SizeOf<char>()));
+                SpanHelpers.Copy(ref Unsafe.As<char, byte>(ref reference), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(count * Unsafe.SizeOf<char>()));
                 _length = count;
             }
             else if (start >= _length)
@@ -731,7 +730,7 @@ namespace NativeCollections
             }
 
             if (start > 0)
-                Unsafe.CopyBlockUnaligned(ref Unsafe.As<char, byte>(ref reference), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(newLength * Unsafe.SizeOf<char>()));
+                SpanHelpers.Copy(ref Unsafe.As<char, byte>(ref reference), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)start)), (uint)(newLength * Unsafe.SizeOf<char>()));
             _length = newLength;
         }
 
@@ -1128,21 +1127,21 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<char>(UnsafeString unsafeString) => unsafeString.AsSpan();
+        public static implicit operator Span<char>(UnsafeString value) => value.AsSpan();
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<char>(UnsafeString unsafeString) => unsafeString.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<char>(UnsafeString value) => value.AsReadOnlySpan();
 
         /// <summary>
         ///     As unsafe string
         /// </summary>
         /// <returns>UnsafeString</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator UnsafeString(Span<char> buffer) => new(buffer);
+        public static implicit operator UnsafeString(Span<char> value) => new(value);
 
         /// <summary>
         ///     Equals
@@ -1262,7 +1261,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeString Empty => new();
+        public static UnsafeString Empty => default;
 
         /// <summary>
         ///     Get enumerator

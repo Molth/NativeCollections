@@ -42,9 +42,7 @@ namespace NativeCollections
         public NativeSparseSet(int capacity)
         {
             var value = new UnsafeSparseSet<TValue>(capacity);
-            var handle = NativeMemoryAllocator.AlignedAlloc<UnsafeSparseSet<TValue>>(1);
-            Unsafe.AsRef<UnsafeSparseSet<TValue>>(handle) = value;
-            _handle = handle;
+            _handle = Box.New(ref value);
         }
 
         /// <summary>
@@ -136,20 +134,13 @@ namespace NativeCollections
         /// </summary>
         /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<KeyValuePair<int, TValue>>(NativeSparseSet<TValue> nativeSparseSet) => nativeSparseSet.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<KeyValuePair<int, TValue>>(NativeSparseSet<TValue> value) => value.AsReadOnlySpan();
 
         /// <summary>
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            var handle = _handle;
-            if (UnsafeHelpers.IsNull(handle))
-                return;
-            handle->Dispose();
-            NativeMemoryAllocator.AlignedFree(handle);
-        }
+        public void Dispose() => Box.Drop(_handle);
 
         /// <summary>
         ///     Set capacity
@@ -373,7 +364,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeSparseSet<TValue> Empty => new();
+        public static NativeSparseSet<TValue> Empty => default;
 
         /// <summary>
         ///     Get enumerator

@@ -129,9 +129,9 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfNegative(alignment, ExceptionArgument.alignment);
             ThrowHelpers.ThrowIfAlignmentNotBePow2((uint)alignment, ExceptionArgument.alignment);
             alignment = Math.Max(alignment, Math.Max((int)NativeMemoryAllocator.AlignOf<MemorySlab>(), (int)NativeMemoryAllocator.AlignOf<MemoryNode>()));
-            var alignedSlabSize = (int)NativeMemoryAllocator.AlignUp((nuint)Unsafe.SizeOf<MemorySlab>(), (nuint)alignment);
-            var alignedNodeSize = (int)NativeMemoryAllocator.AlignUp((nuint)Unsafe.SizeOf<MemoryNode>(), (nuint)alignment);
-            var alignedLength = (int)NativeMemoryAllocator.AlignUp((nuint)length, (nuint)alignment);
+            var alignedSlabSize = (int)NativeMemoryAllocator.AlignUp((nuint)Unsafe.SizeOf<MemorySlab>(), (uint)alignment);
+            var alignedNodeSize = (int)NativeMemoryAllocator.AlignUp((nuint)Unsafe.SizeOf<MemoryNode>(), (uint)alignment);
+            var alignedLength = (int)NativeMemoryAllocator.AlignUp((nuint)length, (uint)alignment);
             var fullNodeSize = alignedNodeSize + alignedLength;
             var slab = Create(alignedSlabSize, size, fullNodeSize, alignment);
             slab->Next = slab;
@@ -492,6 +492,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeMemoryPool Empty => new();
+        public static UnsafeMemoryPool Empty => default;
     }
 }
