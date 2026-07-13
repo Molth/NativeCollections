@@ -386,14 +386,14 @@ namespace NativeCollections
         /// <param name="alignment">The alignment, in bytes. This must be a power of <c>2</c>.</param>
         /// <returns>A value at or after value that is a multiple of alignment.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static nuint AlignUp(nuint value, uint alignment) => (value + (alignment - 1)) & ~(alignment - 1);
+        public static nuint AlignUp(nuint value, uint alignment) => UnsafeUtility.AlignUp(value, alignment);
 
         /// <summary>Rounds a value down to the specified alignment boundary.</summary>
         /// <param name="value">The value, in bytes, to align.</param>
         /// <param name="alignment">The alignment, in bytes. This must be a power of <c>2</c>.</param>
         /// <returns>A value at or before value that is a multiple of alignment.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static nuint AlignDown(nuint value, uint alignment) => value - (value & (alignment - 1));
+        public static nuint AlignDown(nuint value, uint alignment) => UnsafeUtility.AlignDown(value, alignment);
 
         /// <summary>
         ///     Gets the alignment, in bytes, of the specified unmanaged type.
@@ -410,7 +410,7 @@ namespace NativeCollections
         /// <typeparam name="T">The unmanaged type to check for alignment.</typeparam>
         /// <returns><c>true</c> if the size of <typeparamref name="T" /> is a multiple of its alignment; otherwise, <c>false</c>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsAligned<T>() where T : unmanaged => (Unsafe.SizeOf<T>() & (AlignOf<T>() - 1)) == 0;
+        public static bool IsAligned<T>() where T : unmanaged => (Unsafe.SizeOf<T>() & ((int)AlignOf<T>() - 1)) == 0;
 
         /// <summary>
         ///     Determines whether the specified memory pointer is aligned to the given alignment boundary.
@@ -422,7 +422,7 @@ namespace NativeCollections
         ///     otherwise, <c>false</c>.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsAligned(void* ptr, uint alignment) => ((nint)ptr & (alignment - 1)) == 0;
+        public static bool IsAligned(void* ptr, uint alignment) => UnsafeUtility.IsAligned((nuint)(nint)ptr, alignment);
 
         /// <summary>
         ///     Returns an address of the given by-ref parameter.

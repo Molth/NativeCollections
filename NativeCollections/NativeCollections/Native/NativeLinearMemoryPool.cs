@@ -105,10 +105,37 @@ namespace NativeCollections
         public void Dispose() => Box.Drop(_handle);
 
         /// <summary>
+        ///     Gets the maximum user data length that can be allocated with the specified alignment.
+        /// </summary>
+        /// <param name="alignment">The alignment, in bytes. This must be a power of <c>2</c>.</param>
+        /// <returns>The maximum length in bytes, or 0 if even a zero‑length allocation is not possible.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetMaxLength(int alignment) => _handle->GetMaxLength(alignment);
+
+        /// <summary>
+        ///     Clear
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Clear() => _handle->Clear();
+
+        /// <summary>
+        ///     Clear
+        /// </summary>
+        /// <param name="capacity">Remaining free slabs</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int Clear(int capacity) => _handle->Clear(capacity);
+
+        /// <summary>
         ///     Rent buffer
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void* Rent(int length, int alignment) => _handle->Rent(length, alignment);
+
+        /// <summary>
+        ///     Rent buffer
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T* Rent<T>(int elementCount) where T : unmanaged => _handle->Rent<T>(elementCount);
 
         /// <summary>
         ///     Return buffer

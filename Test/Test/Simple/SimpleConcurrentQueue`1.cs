@@ -3,7 +3,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using NativeCollections;
 using static Examples.SimpleConcurrentQueue;
-using static Examples.PaddingHelpers;
 
 #pragma warning disable CS9084 // Struct member returns 'this' or other instance members by reference
 
@@ -11,19 +10,6 @@ using static Examples.PaddingHelpers;
 
 namespace Examples
 {
-    [StructLayout(LayoutKind.Explicit, Size = 2 * CACHE_LINE_SIZE)]
-    internal struct CachePaddedAtomicReference
-    {
-        [FieldOffset(1 * CACHE_LINE_SIZE)] public nuint AtomicReference;
-    }
-
-    internal unsafe struct CachePaddedAtomicReference<T> where T : unmanaged
-    {
-        private CachePaddedAtomicReference _data;
-
-        public ref UnsafeAtomicReference<Segment<T>> Segment => ref Unsafe.As<nuint, UnsafeAtomicReference<Segment<T>>>(ref _data.AtomicReference);
-    }
-
     /// <summary>
     ///     Unsafe concurrentQueue
     ///     (Slower than ConcurrentQueue, disable Enumerator, try peek either)
@@ -33,6 +19,8 @@ namespace Examples
     [UnsafeCollection(FromType.Standard)]
     public unsafe struct SimpleConcurrentQueue<T> : IDisposable where T : unmanaged
     {
+        private Padding _padding0;
+
         /// <summary>
         ///     Cross segment lock
         /// </summary>
@@ -41,14 +29,23 @@ namespace Examples
         /// <summary>
         ///     Tail
         /// </summary>
-        private CachePaddedAtomicReference<T> _tail;
+        private CachePaddedAtomicSegment _tail;
 
         /// <summary>
         ///     Head
         /// </summary>
-        private CachePaddedAtomicReference<T> _head;
+        private CachePaddedAtomicSegment _head;
 
+        /// <summary>
+        ///     Hazard pointers
+        /// </summary>
         private HazardPointers _hp;
+
+        private Padding _padding1;
+
+        private SimpleTidManager2 _tidManager;
+
+        private Padding _padding2;
 
         /// <summary>
         ///     Structure
@@ -59,8 +56,9 @@ namespace Examples
             _crossSegmentLock = GCHandle.Alloc(new object(), GCHandleType.Normal);
             var segment = NativeMemoryAllocator.AlignedAlloc<Segment<T>>(1);
             segment->Initialize();
-            _tail = _head = new CachePaddedAtomicReference<T>() { Segment = new UnsafeAtomicReference<Segment<T>>(segment) };
+            _tail = _head = new CachePaddedAtomicSegment() { Segment = new UnsafeAtomicReference<Segment<T>>(segment) };
             _hp = new HazardPointers(1, maxThreads);
+            _tidManager = new SimpleTidManager2(maxThreads);
         }
 
         /// <summary>
@@ -79,6 +77,7 @@ namespace Examples
 
             _crossSegmentLock.Free();
             _hp.Dispose();
+            _tidManager.Dispose();
         }
 
         /// <summary>
@@ -88,8 +87,23 @@ namespace Examples
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Enqueue(T item)
         {
-            using var tid = SimpleTidManager.Guard();
+            var tid = _tidManager.Rent();
+            try
+            {
+                Enqueue(item, tid);
+            }
+            finally
+            {
+                _tidManager.Return(tid);
+            }
+        }
 
+        /// <summary>
+        ///     Enqueue
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void Enqueue(T item, int tid)
+        {
             var tail = _hp.protect(0, ref _tail.Segment, tid);
             if (tail->TryEnqueue(item))
             {
@@ -131,8 +145,23 @@ namespace Examples
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDequeue(out T result)
         {
-            using var tid = SimpleTidManager.Guard();
+            var tid = _tidManager.Rent();
+            try
+            {
+                return TryDequeue(out result, tid);
+            }
+            finally
+            {
+                _tidManager.Return(tid);
+            }
+        }
 
+        /// <summary>
+        ///     Try dequeue
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool TryDequeue(out T result, int tid)
+        {
             var head = _hp.protect(0, ref _head.Segment, tid);
             if (head->TryDequeue(out result))
             {
@@ -190,5 +219,12 @@ namespace Examples
         ///     Empty
         /// </summary>
         public static SimpleConcurrentQueue<T> Empty => new();
+
+        private unsafe struct CachePaddedAtomicSegment
+        {
+            private CachePaddedAtomicReference _data;
+
+            public ref UnsafeAtomicReference<SimpleConcurrentQueue.Segment<T>> Segment => ref Unsafe.As<nuint, UnsafeAtomicReference<SimpleConcurrentQueue.Segment<T>>>(ref _data.AtomicReference);
+        }
     }
 }

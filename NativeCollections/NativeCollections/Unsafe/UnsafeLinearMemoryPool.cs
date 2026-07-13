@@ -158,6 +158,21 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Gets the maximum user data length that can be allocated with the specified alignment.
+        /// </summary>
+        /// <param name="alignment">The alignment, in bytes. This must be a power of <c>2</c>.</param>
+        /// <returns>The maximum length in bytes, or 0 if even a zero‑length allocation is not possible.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetMaxLength(int alignment)
+        {
+            ThrowHelpers.ThrowIfNegative(alignment, ExceptionArgument.alignment);
+            ThrowHelpers.ThrowIfAlignmentNotBePow2((uint)alignment, ExceptionArgument.alignment);
+            alignment = Math.Max(alignment, (int)NativeMemoryAllocator.AlignOf<nint>());
+            var byteOffset = alignment - 1 + Unsafe.SizeOf<nint>();
+            return Math.Max(0, _size - byteOffset);
+        }
+
+        /// <summary>
         ///     Clear
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -219,11 +234,12 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfNegative(alignment, ExceptionArgument.alignment);
             ThrowHelpers.ThrowIfAlignmentNotBePow2((uint)alignment, ExceptionArgument.alignment);
             alignment = Math.Max(alignment, (int)NativeMemoryAllocator.AlignOf<nint>());
-            var byteCount = Unsafe.SizeOf<nint>() + (alignment - 1) + length;
-            if (byteCount > _size)
+            var byteOffset = alignment - 1 + Unsafe.SizeOf<nint>();
+            var bytes = length + byteOffset;
+            if ((uint)bytes > (uint)_size)
                 ThrowHelpers.ThrowMustBeLessOrEqualException(length, ExceptionArgument.length);
             var slab = _sentinel;
-            if (slab->Length + byteCount > _size)
+            if ((ulong)slab->Length + (ulong)bytes > (ulong)_size)
             {
                 if (_freeSlabs == 0)
                 {
@@ -244,14 +260,19 @@ namespace NativeCollections
                 _slabs++;
             }
 
-            var endAddress = (nint)slab + Unsafe.SizeOf<MemorySlab>() + slab->Length;
-            var result = (void*)(nint)NativeMemoryAllocator.AlignUp((nuint)(endAddress + Unsafe.SizeOf<nint>()), (uint)alignment);
-            var byteOffset = UnsafeHelpers.ByteOffset(slab, result);
-            Unsafe.Subtract(ref Unsafe.AsRef<nint>(result), 1) = byteOffset;
+            var startAddress = (nint)slab + Unsafe.SizeOf<MemorySlab>() + slab->Length;
+            var result = (void*)NativeMemoryAllocator.AlignUp((nuint)(startAddress + Unsafe.SizeOf<nint>()), (uint)alignment);
+            Unsafe.Subtract(ref Unsafe.AsRef<nint>(result), 1) = (nint)slab;
             slab->Count++;
-            slab->Length = (int)((nint)result - (nint)slab) - Unsafe.SizeOf<MemorySlab>() + length;
+            slab->Length += bytes;
             return result;
         }
+
+        /// <summary>
+        ///     Rent buffer
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T* Rent<T>(int elementCount) where T : unmanaged => (T*)Rent(elementCount * Unsafe.SizeOf<T>(), (int)NativeMemoryAllocator.AlignOf<T>());
 
         /// <summary>
         ///     Return buffer
@@ -260,26 +281,28 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Return(void* ptr)
         {
-            var byteOffset = Unsafe.Subtract(ref Unsafe.AsRef<nint>(ptr), 1);
-            var slab = UnsafeHelpers.SubtractByteOffset<MemorySlab>(ptr, byteOffset);
+            var slab = (MemorySlab*)Unsafe.Subtract(ref Unsafe.AsRef<nint>(ptr), 1);
             slab->Count--;
-            if (slab->Count == 0 && slab != _sentinel)
+            if (slab->Count == 0)
             {
-                slab->Previous->Next = slab->Next;
-                slab->Next->Previous = slab->Previous;
-                if (_freeSlabs == _maxFreeSlabs)
+                slab->Length = 0;
+                if (slab != _sentinel)
                 {
-                    NativeMemoryAllocator.AlignedFree(slab);
-                }
-                else
-                {
-                    slab->Length = 0;
-                    slab->Next = _freeList;
-                    _freeList = slab;
-                    _freeSlabs++;
-                }
+                    slab->Previous->Next = slab->Next;
+                    slab->Next->Previous = slab->Previous;
+                    if (_freeSlabs == _maxFreeSlabs)
+                    {
+                        NativeMemoryAllocator.AlignedFree(slab);
+                    }
+                    else
+                    {
+                        slab->Next = _freeList;
+                        _freeList = slab;
+                        _freeSlabs++;
+                    }
 
-                _slabs--;
+                    _slabs--;
+                }
             }
         }
 
