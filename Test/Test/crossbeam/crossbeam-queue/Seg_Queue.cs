@@ -2,18 +2,18 @@
 using System.Runtime.InteropServices;
 using System.Threading;
 using NativeCollections;
-using static Examples.PaddingHelpers;
+using static crossbeam.PaddingHelpers;
 
 #pragma warning disable CS9084 // Struct member returns 'this' or other instance members by reference
 
 // ReSharper disable ALL
 
-namespace Examples
+namespace crossbeam
 {
     /// <summary>
     ///     https://github.com/crossbeam-rs/crossbeam
     /// </summary>
-    public static unsafe class ConcurrentQueue
+    public static unsafe class Seg_Queue
     {
         // Bits indicating the state of a slot:
         // * If a value has been written into the slot, `WRITE` is set.
@@ -49,7 +49,7 @@ namespace Examples
             public void wait_write()
             {
                 var backoff = new UnsafeSpinWait();
-                while ((this.state.Read() & WRITE) == 0)
+                while ((this.state.load(Ordering.Acquire) & WRITE) == 0)
                 {
                     backoff.SpinOnce();
                 }
@@ -61,13 +61,15 @@ namespace Examples
         {
             public Slot<T> slot;
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public Slot<T>* get_unchecked(nuint index) => (Slot<T>*)Unsafe.AsPointer(ref Unsafe.Add(ref slot, index));
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public Slot<T>* get_unchecked_mut(nuint index) => get_unchecked(index);
         }
 
         /// A block in a linked list.
-        /// 
+        /// <br />
         /// Each block in the list can hold up to `BLOCK_CAP` values.
         public struct Block<T> where T : unmanaged
         {
@@ -83,7 +85,7 @@ namespace Examples
                 var backoff = new UnsafeSpinWait();
                 while (true)
                 {
-                    var next = this.next.Read();
+                    var next = this.next.load(Ordering.Acquire);
                     if (next != null)
                     {
                         return next;
@@ -103,7 +105,7 @@ namespace Examples
                     var slot = block->slots.get_unchecked(i);
 
                     // Mark the `DESTROY` bit if a thread is still using the slot.
-                    if ((slot->state.Read() & READ) == 0
+                    if ((slot->state.load(Ordering.Acquire) & READ) == 0
                         && (slot->state.Or(DESTROY) & READ) == 0)
                     {
                         // If a thread is still using the slot, it will continue destruction of the block.
@@ -116,30 +118,21 @@ namespace Examples
             }
         }
 
-        [StructLayout(LayoutKind.Explicit, Size = 3 * CACHE_LINE_SIZE)]
-        public struct CachePaddedPosition
-        {
-            /// The index in the queue.
-            [FieldOffset(1 * CACHE_LINE_SIZE)] public nuint index;
-
-            /// The block in the linked list.
-            [FieldOffset(2 * CACHE_LINE_SIZE)] public nuint block;
-        }
-
         /// A position in a queue.
+        [StructLayout(LayoutKind.Sequential, Size = 2 * CACHE_LINE_SIZE)]
         public struct CachePaddedPosition<T> where T : unmanaged
         {
-            public CachePaddedPosition data;
+            private CachePadding padding;
 
             /// The index in the queue.
-            public ref UnsafeAtomicUIntPtr index => ref Unsafe.As<nuint, UnsafeAtomicUIntPtr>(ref data.index);
+            public UnsafeAtomicUIntPtr index;
 
             /// The block in the linked list.
-            public ref UnsafeAtomicReference<Block<T>> block => ref Unsafe.As<nuint, UnsafeAtomicReference<Block<T>>>(ref data.block);
+            public UnsafeAtomicReference<Block<T>> block;
         }
 
         /// An unbounded multi-producer multi-consumer queue.
-        /// 
+        /// <br />
         /// This queue is implemented as a linked list of segments, where each segment is a small buffer
         /// that can hold a handful of elements. There is no limit to how many elements can be in the queue
         /// at a time. However, since segments need to be dynamically allocated as elements get pushed,
@@ -155,8 +148,8 @@ namespace Examples
             public void push(T value)
             {
                 var backoff = new UnsafeSpinWait();
-                var tail = this.tail.index.Read();
-                var block = this.tail.block.Read();
+                var tail = this.tail.index.load(Ordering.Acquire);
+                var block = this.tail.block.load(Ordering.Acquire);
                 Block<T>* next_block = null;
 
                 try
@@ -170,8 +163,8 @@ namespace Examples
                         if (offset == BLOCK_CAP)
                         {
                             backoff.SpinOnce();
-                            tail = this.tail.index.Read();
-                            block = this.tail.block.Read();
+                            tail = this.tail.index.load(Ordering.Acquire);
+                            block = this.tail.block.load(Ordering.Acquire);
                             continue;
                         }
 
@@ -193,14 +186,14 @@ namespace Examples
                                     .CompareExchange(@new, block)
                                 == block)
                             {
-                                this.head.block.Exchange(@new);
+                                this.head.block.store(@new, Ordering.Release);
                                 block = @new;
                             }
                             else
                             {
                                 next_block = @new;
-                                tail = this.tail.index.Read();
-                                block = this.tail.block.Read();
+                                tail = this.tail.index.load(Ordering.Acquire);
+                                block = this.tail.block.load(Ordering.Acquire);
                                 continue;
                             }
                         }
@@ -221,11 +214,11 @@ namespace Examples
                                 var next_block_unwarp = next_block;
                                 next_block = null;
 
-                                var next_index = unchecked(new_tail + (1 << (int)SHIFT));
+                                var next_index = new_tail.wrapping_add(1 << (int)SHIFT);
 
-                                this.tail.block.Exchange(next_block_unwarp);
-                                this.tail.index.Exchange(next_index);
-                                block->next.Exchange(next_block_unwarp);
+                                this.tail.block.store(next_block_unwarp, Ordering.Release);
+                                this.tail.index.store(next_index, Ordering.Release);
+                                block->next.store(next_block_unwarp, Ordering.Release);
                             }
 
                             // Write the value into the slot.
@@ -238,7 +231,7 @@ namespace Examples
                         else
                         {
                             tail = t;
-                            block = this.tail.block.Read();
+                            block = this.tail.block.load(Ordering.Acquire);
                             backoff.SpinOnce(-1);
                         }
                     }
@@ -251,7 +244,7 @@ namespace Examples
             }
 
             /// Pushes an element to the queue with exclusive mutable access.
-            /// 
+            /// <br />
             /// Avoids atomic operations and synchronization, assuming
             /// no other threads access the queue concurrently.
             public void push_mut(T value)
@@ -282,7 +275,7 @@ namespace Examples
                     if (offset + 1 == BLOCK_CAP)
                     {
                         var next_block = NativeMemoryAllocator.AlignedAllocZeroed<Block<T>>(1);
-                        var next_index = unchecked(new_tail + (1 << (int)SHIFT));
+                        var next_index = new_tail.wrapping_add(1 << (int)SHIFT);
 
                         this.tail.block.AsRef() = next_block;
                         this.tail.index.AsRef() = next_index;
@@ -300,8 +293,8 @@ namespace Examples
             public bool pop(out T result)
             {
                 var backoff = new UnsafeSpinWait();
-                var head = this.head.index.Read();
-                var block = this.head.block.Read();
+                var head = this.head.index.load(Ordering.Acquire);
+                var block = this.head.block.load(Ordering.Acquire);
 
                 while (true)
                 {
@@ -312,8 +305,8 @@ namespace Examples
                     if (offset == BLOCK_CAP)
                     {
                         backoff.SpinOnce();
-                        head = this.head.index.Read();
-                        block = this.head.block.Read();
+                        head = this.head.index.load(Ordering.Acquire);
+                        block = this.head.block.load(Ordering.Acquire);
                         continue;
                     }
 
@@ -322,7 +315,7 @@ namespace Examples
                     if ((new_head & HAS_NEXT) == 0)
                     {
                         Interlocked.MemoryBarrier();
-                        var tail = this.tail.index.Read();
+                        var tail = this.tail.index.load(Ordering.Relaxed);
 
                         // If the tail equals the head, that means the queue is empty.
                         if ((head >> (int)SHIFT) == (tail >> (int)SHIFT))
@@ -343,8 +336,8 @@ namespace Examples
                     if (block == null)
                     {
                         backoff.SpinOnce();
-                        head = this.head.index.Read();
-                        block = this.head.block.Read();
+                        head = this.head.index.load(Ordering.Acquire);
+                        block = this.head.block.load(Ordering.Acquire);
                         continue;
                     }
 
@@ -361,13 +354,13 @@ namespace Examples
                         {
                             var next = block->wait_next();
                             var next_index = (new_head & ~HAS_NEXT) + (1 << (int)SHIFT);
-                            if (next->next.Read() != null)
+                            if (next->next.load(Ordering.Relaxed) != null)
                             {
                                 next_index |= HAS_NEXT;
                             }
 
-                            this.head.block.Exchange(next);
-                            this.head.index.Exchange(next_index);
+                            this.head.block.store(next, Ordering.Release);
+                            this.head.index.store(next_index, Ordering.Release);
                         }
 
                         // Read the value.
@@ -392,14 +385,14 @@ namespace Examples
                     else
                     {
                         head = h;
-                        block = this.head.block.Read();
+                        block = this.head.block.load(Ordering.Acquire);
                         backoff.SpinOnce(-1);
                     }
                 }
             }
 
             /// Pops the head element from the queue using an exclusive reference.
-            /// 
+            /// <br />
             /// Avoids atomic operations and synchronization, assuming
             /// no other threads access the queue concurrently.
             public bool pop_mut(out T result)
@@ -438,7 +431,7 @@ namespace Examples
                     if (offset + 1 == BLOCK_CAP)
                     {
                         var next = block->next.AsRef();
-                        var next_index = unchecked((new_head & ~HAS_NEXT) + (1 << (int)SHIFT));
+                        var next_index = (new_head & ~HAS_NEXT).wrapping_add(1 << (int)SHIFT);
                         if (next->next.AsRef() != null)
                         {
                             next_index |= HAS_NEXT;
@@ -475,8 +468,8 @@ namespace Examples
             /// Returns `true` if the queue is empty.
             public bool is_empty()
             {
-                var head = this.head.index.Read();
-                var tail = this.tail.index.Read();
+                var head = this.head.index.load(Ordering.SeqCst);
+                var tail = this.tail.index.load(Ordering.SeqCst);
                 return head >> (int)SHIFT == tail >> (int)SHIFT;
             }
 
@@ -486,11 +479,11 @@ namespace Examples
                 while (true)
                 {
                     // Load the tail index, then load the head index.
-                    var tail = this.tail.index.Read();
-                    var head = this.head.index.Read();
+                    var tail = this.tail.index.load(Ordering.SeqCst);
+                    var head = this.head.index.load(Ordering.SeqCst);
 
                     // If the tail index didn't change, we've got consistent indices to work with.
-                    if (this.tail.index.Read() == tail)
+                    if (this.tail.index.load(Ordering.SeqCst) == tail)
                     {
                         // Erase the lower bits.
                         tail &= unchecked((nuint)~((1 << (int)SHIFT) - 1));
@@ -499,18 +492,18 @@ namespace Examples
                         // Fix up indices if they fall onto block ends.
                         if (((tail >> (int)SHIFT) & (LAP - 1)) == LAP - 1)
                         {
-                            tail = unchecked(tail + (1 << (int)SHIFT));
+                            tail = tail.wrapping_add(1 << (int)SHIFT);
                         }
 
                         if (((head >> (int)SHIFT) & (LAP - 1)) == LAP - 1)
                         {
-                            head = unchecked(head + (1 << (int)SHIFT));
+                            head = head.wrapping_add(1 << (int)SHIFT);
                         }
 
                         // Rotate indices so that head falls into the first block.
                         var lap = (head >> (int)SHIFT) / LAP;
-                        tail = unchecked(tail + ((lap * LAP) << (int)SHIFT));
-                        head = unchecked(head + ((lap * LAP) << (int)SHIFT));
+                        tail = tail.wrapping_add((lap * LAP) << (int)SHIFT);
+                        head = head.wrapping_add((lap * LAP) << (int)SHIFT);
 
                         // Remove the lower bits.
                         tail >>= (int)SHIFT;
@@ -552,7 +545,7 @@ namespace Examples
                             block = next;
                         }
 
-                        head = unchecked(head + (1 << (int)SHIFT));
+                        head = head.wrapping_add(1 << (int)SHIFT);
                     }
 
                     // Deallocate the last remaining block.

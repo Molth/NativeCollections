@@ -261,28 +261,28 @@ namespace NativeCollections
         /// <param name="value">The key value that was not found.</param>
         /// <typeparam name="T">The type of the key value.</typeparam>
         [DoesNotReturn]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ThrowKeyNotFoundException<T>(T value) where T : unmanaged => throw new KeyNotFoundException(value.ToString());
 
         /// <summary>Throws an <see cref="ArgumentException" /> for duplicate key addition.</summary>
         /// <param name="value">The duplicate key value.</param>
         /// <typeparam name="T">The type of the key value.</typeparam>
         [DoesNotReturn]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ThrowAddingDuplicateWithKeyException<T>(T value) where T : unmanaged => throw new ArgumentException(SR.Format(SR.Argument_AddingDuplicateWithKey, value));
 
         /// <summary>
         ///     Throws an <see cref="ArgumentException" /> for invalid seek origin.
         /// </summary>
         [DoesNotReturn]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ThrowInvalidSeekOriginException() => throw new ArgumentException(SR.Argument_InvalidSeekOrigin);
 
         /// <summary>
         ///     Throws an <see cref="ArgumentException" /> for differing array lengths.
         /// </summary>
         [DoesNotReturn]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ThrowArrayLengthsDifferException() => throw new ArgumentException(SR.Argument_ArrayLengthsDiffer);
 
         /// <summary>Throws an <see cref="ArgumentOutOfRangeException" /> for values exceeding allowed range.</summary>
@@ -290,48 +290,48 @@ namespace NativeCollections
         /// <param name="paramName">The name of the parameter with the invalid value.</param>
         /// <typeparam name="T">The type of the argument value.</typeparam>
         [DoesNotReturn]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ThrowMustBeLessOrEqualException<T>(T value, ExceptionArgument paramName) where T : unmanaged, IComparable<T> => throw new ArgumentOutOfRangeException(GetArgumentName(paramName), value, SR.Argument_MustBeLessOrEqual);
 
         /// <summary>
         ///     Throws an <see cref="OutOfMemoryException" />.
         /// </summary>
         [DoesNotReturn]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ThrowOutOfMemoryException() => throw new OutOfMemoryException();
 
         /// <summary>Throws an <see cref="ArgumentNullException" /> for null arguments.</summary>
         /// <param name="paramName">The name of the parameter that is null.</param>
         [DoesNotReturn]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ThrowArgumentNullException(ExceptionArgument paramName) => throw new ArgumentNullException(GetArgumentName(paramName));
 
         /// <summary>
         ///     Throws an <see cref="InvalidOperationException" /> for concurrent operations not supported.
         /// </summary>
         [DoesNotReturn]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ThrowConcurrentOperationsNotSupportedException() => throw new InvalidOperationException(SR.InvalidOperation_ConcurrentOperationsNotSupported);
 
         /// <summary>
         ///     Throws an <see cref="InvalidOperationException" /> for mismatch errors.
         /// </summary>
         [DoesNotReturn]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ThrowMismatchException() => throw new InvalidOperationException(SR.InvalidOperation_Mismatch);
 
         /// <summary>
         ///     Throws an <see cref="InvalidOperationException" /> for duplicate items.
         /// </summary>
         [DoesNotReturn]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ThrowDuplicateException() => throw new InvalidOperationException(SR.InvalidOperation_Duplicate);
 
         /// <summary>
         ///     Throws an <see cref="InvalidDataException" /> for entirely zero values.
         /// </summary>
         [DoesNotReturn]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ThrowMustBeNonEntirelyZeroException() => throw new InvalidDataException(SR.InvalidData_MustBeNonEntirelyZero);
 
         /// <summary>Throws an <see cref="ArgumentOutOfRangeException" /> for unaligned memory.</summary>
@@ -339,7 +339,7 @@ namespace NativeCollections
         /// <param name="paramName">The name of the parameter with unaligned memory.</param>
         /// <typeparam name="T">The type of the alignment value.</typeparam>
         [DoesNotReturn]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ThrowMustBeAlignedToException<T>(T value, ExceptionArgument paramName) where T : unmanaged => throw new ArgumentOutOfRangeException(GetArgumentName(paramName), SR.Format(SR.Argument_MustBeAlignedTo, value));
 
         /// <summary>
@@ -347,7 +347,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="paramName">The name of the parameter with the invalid buffer.</param>
         [DoesNotReturn]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ThrowBufferNotFromPoolException(ExceptionArgument paramName) => throw new ArgumentException(SR.Argument_BufferNotFromPool, GetArgumentName(paramName));
 
         /// <summary>
@@ -355,14 +355,14 @@ namespace NativeCollections
         ///     context.
         /// </summary>
         [DoesNotReturn]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ThrowCannotCallGetEnumeratorException() => throw new NotSupportedException(SR.NotSupported_CannotCallGetEnumerator);
 
         /// <summary>
         ///     Throws a <see cref="NotSupportedException" /> indicating that the Equals method cannot be called in this context.
         /// </summary>
         [DoesNotReturn]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ThrowCannotCallEqualsException() => throw new NotSupportedException(SR.NotSupported_CannotCallEquals);
 
         /// <summary>
@@ -370,14 +370,14 @@ namespace NativeCollections
         ///     context.
         /// </summary>
         [DoesNotReturn]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ThrowCannotCallGetHashCodeException() => throw new NotSupportedException(SR.NotSupported_CannotCallGetHashCode);
 
         /// <summary>
         ///     Throws a <see cref="NotSupportedException" />.
         /// </summary>
         [DoesNotReturn]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ThrowNotSupportedException() => throw new NotSupportedException();
 
 #if !NET5_0_OR_GREATER
@@ -385,7 +385,7 @@ namespace NativeCollections
         ///     Throws a <see cref="NullReferenceException" />.
         /// </summary>
         [DoesNotReturn]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ThrowNullReferenceException() => throw new NullReferenceException();
 #endif
 
@@ -395,21 +395,21 @@ namespace NativeCollections
         /// <param name="offset">The offset where the format is invalid.</param>
         /// <param name="reason">The reason why the format is invalid.</param>
         [DoesNotReturn]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ThrowFormatInvalidString(int offset, ExceptionResource reason) => throw new FormatException(SR.Format(SR.Format_InvalidStringWithOffsetAndReason, offset, GetResourceString(reason)));
 
         /// <summary>
         ///     Throws a <see cref="FormatException" /> indicating that the index is out of range for the format.
         /// </summary>
         [DoesNotReturn]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ThrowFormatIndexOutOfRange() => throw new FormatException(SR.Format_IndexOutOfRange);
 
         /// <summary>
         ///     Throws a <see cref="InvalidOperationException" />.
         /// </summary>
         [DoesNotReturn]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ThrowInvalidOperationException() => throw new InvalidOperationException();
 
         /// <summary>
@@ -417,58 +417,52 @@ namespace NativeCollections
         /// </summary>
         /// <param name="argument">The <see cref="ExceptionArgument" /> value to convert.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static string? GetArgumentName(ExceptionArgument argument)
+        private static string? GetArgumentName(ExceptionArgument argument) => argument switch
         {
-            return argument switch
-            {
-                ExceptionArgument.addValueFactory => "addValueFactory",
-                ExceptionArgument.alignment => "alignment",
-                ExceptionArgument.buffer => "buffer",
-                ExceptionArgument.byteCount => "byteCount",
-                ExceptionArgument.capacity => "capacity",
-                ExceptionArgument.charCount => "charCount",
-                ExceptionArgument.count => "count",
-                ExceptionArgument.format => "format",
-                ExceptionArgument.index => "index",
-                ExceptionArgument.key => "key",
-                ExceptionArgument.left => "left",
-                ExceptionArgument.length => "length",
-                ExceptionArgument.maxFreeChunks => "maxFreeChunks",
-                ExceptionArgument.maxFreeSlabs => "maxFreeSlabs",
-                ExceptionArgument.maxLength => "maxLength",
-                ExceptionArgument.minimumLength => "minimumLength",
-                ExceptionArgument.obj => "obj",
-                ExceptionArgument.offset => "offset",
-                ExceptionArgument.position => "position",
-                ExceptionArgument.right => "right",
-                ExceptionArgument.size => "size",
-                ExceptionArgument.sleep1Threshold => "sleep1Threshold",
-                ExceptionArgument.source => "source",
-                ExceptionArgument.trueProbability => "trueProbability",
-                ExceptionArgument.updateValueFactory => "updateValueFactory",
-                ExceptionArgument.value => "value",
-                ExceptionArgument.valueFactory => "valueFactory",
-                ExceptionArgument.x => "x",
-                ExceptionArgument.y => "y",
-                ExceptionArgument.z => "z",
-                _ => null
-            };
-        }
+            ExceptionArgument.addValueFactory => "addValueFactory",
+            ExceptionArgument.alignment => "alignment",
+            ExceptionArgument.buffer => "buffer",
+            ExceptionArgument.byteCount => "byteCount",
+            ExceptionArgument.capacity => "capacity",
+            ExceptionArgument.charCount => "charCount",
+            ExceptionArgument.count => "count",
+            ExceptionArgument.format => "format",
+            ExceptionArgument.index => "index",
+            ExceptionArgument.key => "key",
+            ExceptionArgument.left => "left",
+            ExceptionArgument.length => "length",
+            ExceptionArgument.maxFreeChunks => "maxFreeChunks",
+            ExceptionArgument.maxFreeSlabs => "maxFreeSlabs",
+            ExceptionArgument.maxLength => "maxLength",
+            ExceptionArgument.minimumLength => "minimumLength",
+            ExceptionArgument.obj => "obj",
+            ExceptionArgument.offset => "offset",
+            ExceptionArgument.position => "position",
+            ExceptionArgument.right => "right",
+            ExceptionArgument.size => "size",
+            ExceptionArgument.sleep1Threshold => "sleep1Threshold",
+            ExceptionArgument.source => "source",
+            ExceptionArgument.trueProbability => "trueProbability",
+            ExceptionArgument.updateValueFactory => "updateValueFactory",
+            ExceptionArgument.value => "value",
+            ExceptionArgument.valueFactory => "valueFactory",
+            ExceptionArgument.x => "x",
+            ExceptionArgument.y => "y",
+            ExceptionArgument.z => "z",
+            _ => null
+        };
 
         /// <summary>
         ///     Returns the resource string associated with the specified <see cref="ExceptionResource" /> value.
         /// </summary>
         /// <param name="resource">The <see cref="ExceptionResource" /> value to convert.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static string? GetResourceString(ExceptionResource resource)
+        private static string? GetResourceString(ExceptionResource resource) => resource switch
         {
-            return resource switch
-            {
-                ExceptionResource.Format_ExpectedAsciiDigit => SR.Format_ExpectedAsciiDigit,
-                ExceptionResource.Format_UnclosedFormatItem => SR.Format_UnclosedFormatItem,
-                ExceptionResource.Format_UnexpectedClosingBrace => SR.Format_UnexpectedClosingBrace,
-                _ => null
-            };
-        }
+            ExceptionResource.Format_ExpectedAsciiDigit => SR.Format_ExpectedAsciiDigit,
+            ExceptionResource.Format_UnclosedFormatItem => SR.Format_UnclosedFormatItem,
+            ExceptionResource.Format_UnexpectedClosingBrace => SR.Format_UnexpectedClosingBrace,
+            _ => null
+        };
     }
 }

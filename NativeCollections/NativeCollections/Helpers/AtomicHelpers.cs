@@ -12,6 +12,262 @@ namespace NativeCollections
     internal static class AtomicHelpers
     {
         /// <summary>
+        ///     Returns a value, loaded as an atomic operation.
+        /// </summary>
+        /// <returns>The loaded value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static nint LoadIntPtr(ref nint location, Ordering order)
+        {
+            switch (order)
+            {
+                case Ordering.Relaxed:
+                    return location;
+
+                case Ordering.Acquire:
+                case Ordering.AcqRel:
+                    return Volatile.Read(ref location);
+
+                case Ordering.SeqCst:
+                    return InterlockedHelpers.Read(ref location);
+
+                case Ordering.Release:
+                default:
+                    ThrowHelpers.ThrowNotSupportedException();
+                    return default;
+            }
+        }
+
+        /// <summary>
+        ///     Sets a value to a specified value, as an atomic operation.
+        /// </summary>
+        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void StoreIntPtr(ref nint location, nint value, Ordering order)
+        {
+            switch (order)
+            {
+                case Ordering.Relaxed:
+                    location = value;
+                    return;
+
+                case Ordering.Release:
+                case Ordering.AcqRel:
+                    Volatile.Write(ref location, value);
+                    return;
+
+                case Ordering.SeqCst:
+                    Interlocked.Exchange(ref location, value);
+                    return;
+
+                case Ordering.Acquire:
+                default:
+                    ThrowHelpers.ThrowNotSupportedException();
+                    return;
+            }
+        }
+
+        /// <summary>
+        ///     Returns a value, loaded as an atomic operation.
+        /// </summary>
+        /// <returns>The loaded value.</returns>
+        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static nuint LoadUIntPtr(ref nuint location, Ordering order)
+        {
+            switch (order)
+            {
+                case Ordering.Relaxed:
+                    return location;
+
+                case Ordering.Acquire:
+                case Ordering.AcqRel:
+                    return Volatile.Read(ref location);
+
+                case Ordering.SeqCst:
+                    return InterlockedHelpers.Read(ref location);
+
+                case Ordering.Release:
+                default:
+                    ThrowHelpers.ThrowNotSupportedException();
+                    return default;
+            }
+        }
+
+        /// <summary>
+        ///     Sets a value to a specified value, as an atomic operation.
+        /// </summary>
+        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void StoreUIntPtr(ref nuint location, nuint value, Ordering order)
+        {
+            switch (order)
+            {
+                case Ordering.Relaxed:
+                    location = value;
+                    return;
+
+                case Ordering.Release:
+                case Ordering.AcqRel:
+                    Volatile.Write(ref location, value);
+                    return;
+
+                case Ordering.SeqCst:
+                    InterlockedHelpers.Exchange(ref location, value);
+                    return;
+
+                case Ordering.Acquire:
+                default:
+                    ThrowHelpers.ThrowNotSupportedException();
+                    return;
+            }
+        }
+
+        /// <summary>
+        ///     Returns a value, loaded as an atomic operation.
+        /// </summary>
+        /// <returns>The loaded value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static long LoadInt64(ref long location, Ordering order)
+        {
+            if (Environment.Is64BitProcess)
+            {
+                switch (order)
+                {
+                    case Ordering.Relaxed:
+                        return location;
+
+                    case Ordering.Acquire:
+                    case Ordering.AcqRel:
+                        return Volatile.Read(ref location);
+
+                    case Ordering.SeqCst:
+                        return Interlocked.Read(ref location);
+
+                    case Ordering.Release:
+                    default:
+                        ThrowHelpers.ThrowNotSupportedException();
+                        return default;
+                }
+            }
+
+            switch (order)
+            {
+                case Ordering.Relaxed:
+                case Ordering.Acquire:
+                case Ordering.AcqRel:
+                case Ordering.SeqCst:
+                    return Interlocked.Read(ref location);
+
+                case Ordering.Release:
+                default:
+                    ThrowHelpers.ThrowNotSupportedException();
+                    return default;
+            }
+        }
+
+        /// <summary>
+        ///     Sets a value to a specified value, as an atomic operation.
+        /// </summary>
+        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void StoreInt64(ref long location, long value, Ordering order)
+        {
+            if (Environment.Is64BitProcess)
+            {
+                switch (order)
+                {
+                    case Ordering.Relaxed:
+                        location = value;
+                        return;
+
+                    case Ordering.Release:
+                    case Ordering.AcqRel:
+                        Volatile.Write(ref location, value);
+                        return;
+
+                    case Ordering.SeqCst:
+                        Interlocked.Exchange(ref location, value);
+                        return;
+
+                    case Ordering.Acquire:
+                    default:
+                        ThrowHelpers.ThrowNotSupportedException();
+                        return;
+                }
+            }
+
+            switch (order)
+            {
+                case Ordering.Relaxed:
+                case Ordering.Release:
+                case Ordering.AcqRel:
+                case Ordering.SeqCst:
+                    Interlocked.Exchange(ref location, value);
+                    return;
+
+                case Ordering.Acquire:
+                default:
+                    ThrowHelpers.ThrowNotSupportedException();
+                    return;
+            }
+        }
+
+        /// <summary>
+        ///     Returns a value, loaded as an atomic operation.
+        /// </summary>
+        /// <returns>The loaded value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int LoadInt32(ref int location, Ordering order)
+        {
+            switch (order)
+            {
+                case Ordering.Relaxed:
+                    return location;
+
+                case Ordering.Acquire:
+                case Ordering.AcqRel:
+                    return Volatile.Read(ref location);
+
+                case Ordering.SeqCst:
+                    return InterlockedHelpers.Read(ref location);
+
+                case Ordering.Release:
+                default:
+                    ThrowHelpers.ThrowNotSupportedException();
+                    return default;
+            }
+        }
+
+        /// <summary>
+        ///     Sets a value to a specified value, as an atomic operation.
+        /// </summary>
+        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void StoreInt32(ref int location, int value, Ordering order)
+        {
+            switch (order)
+            {
+                case Ordering.Relaxed:
+                    location = value;
+                    return;
+
+                case Ordering.Release:
+                case Ordering.AcqRel:
+                    Volatile.Write(ref location, value);
+                    return;
+
+                case Ordering.SeqCst:
+                    Interlocked.Exchange(ref location, value);
+                    return;
+
+                case Ordering.Acquire:
+                default:
+                    ThrowHelpers.ThrowNotSupportedException();
+                    return;
+            }
+        }
+
+        /// <summary>
         ///     Adds two 64-bit signed integers and replaces the first integer with the sum, as an atomic operation.
         /// </summary>
         /// <returns>The new value stored at <paramref name="location" />.</returns>

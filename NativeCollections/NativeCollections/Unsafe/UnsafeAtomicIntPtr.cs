@@ -38,6 +38,21 @@ namespace NativeCollections
         public ref nint AsRef() => ref _value;
 
         /// <summary>
+        ///     Returns a value, loaded as an atomic operation.
+        /// </summary>
+        /// <returns>The loaded value.</returns>
+        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public nint Load(Ordering order) => AtomicHelpers.LoadIntPtr(ref _value, order);
+
+        /// <summary>
+        ///     Sets a value to a specified value, as an atomic operation.
+        /// </summary>
+        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Store(nint value, Ordering order) => AtomicHelpers.StoreIntPtr(ref _value, value, order);
+
+        /// <summary>
         ///     Bitwise "ands" two native-sized signed integers and replaces the first integer with the result, as an atomic
         ///     operation.
         /// </summary>
@@ -66,7 +81,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The loaded value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nint Read() => Interlocked.CompareExchange(ref _value, new IntPtr(0), new IntPtr(0));
+        public nint Read() => InterlockedHelpers.Read(ref _value);
 
         /// <summary>
         ///     Sets a value to a specified value and returns the original value, as an atomic operation.

@@ -26,26 +26,32 @@ namespace Examples
         /// </summary>
         private GCHandle _crossSegmentLock;
 
+        private Padding _padding1;
+
         /// <summary>
         ///     Tail
         /// </summary>
-        private CachePaddedAtomicSegment _tail;
+        private UnsafeAtomicReference<Segment<T>> _tail;
+
+        private Padding _padding2;
 
         /// <summary>
         ///     Head
         /// </summary>
-        private CachePaddedAtomicSegment _head;
+        private UnsafeAtomicReference<Segment<T>> _head;
+
+        private Padding _padding3;
 
         /// <summary>
         ///     Hazard pointers
         /// </summary>
         private HazardPointers _hp;
 
-        private Padding _padding1;
+        private Padding _padding4;
 
         private SimpleTidManager2 _tidManager;
 
-        private Padding _padding2;
+        private Padding _padding5;
 
         /// <summary>
         ///     Structure
@@ -56,7 +62,7 @@ namespace Examples
             _crossSegmentLock = GCHandle.Alloc(new object(), GCHandleType.Normal);
             var segment = NativeMemoryAllocator.AlignedAlloc<Segment<T>>(1);
             segment->Initialize();
-            _tail = _head = new CachePaddedAtomicSegment() { Segment = new UnsafeAtomicReference<Segment<T>>(segment) };
+            _tail = _head = new UnsafeAtomicReference<Segment<T>>(segment);
             _hp = new HazardPointers(1, maxThreads);
             _tidManager = new SimpleTidManager2(maxThreads);
         }
@@ -67,7 +73,7 @@ namespace Examples
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            var node = _head.Segment.AsRef();
+            var node = _head.AsRef();
             while (node != null)
             {
                 var temp = node;
@@ -104,7 +110,7 @@ namespace Examples
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Enqueue(T item, int tid)
         {
-            var tail = _hp.protect(0, ref _tail.Segment, tid);
+            var tail = _hp.protect(0, ref _tail, tid);
             if (tail->TryEnqueue(item))
             {
                 _hp.clear(tid);
@@ -114,7 +120,7 @@ namespace Examples
             _hp.clear(tid);
             while (true)
             {
-                tail = _hp.protect(0, ref _tail.Segment, tid);
+                tail = _hp.protect(0, ref _tail, tid);
                 if (tail->TryEnqueue(item))
                 {
                     _hp.clear(tid);
@@ -123,13 +129,13 @@ namespace Examples
 
                 lock (_crossSegmentLock.Target!)
                 {
-                    if (tail == _tail.Segment.Read())
+                    if (tail == _tail.Read())
                     {
                         tail->EnsureFrozenForEnqueues();
                         var newTail = NativeMemoryAllocator.AlignedAlloc<Segment<T>>(1);
                         newTail->Initialize();
                         tail->NextSegment = (nint)newTail;
-                        _tail.Segment.Exchange(newTail);
+                        _tail.Exchange(newTail);
                     }
                 }
 
@@ -162,7 +168,7 @@ namespace Examples
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool TryDequeue(out T result, int tid)
         {
-            var head = _hp.protect(0, ref _head.Segment, tid);
+            var head = _hp.protect(0, ref _head, tid);
             if (head->TryDequeue(out result))
             {
                 _hp.clear(tid);
@@ -179,7 +185,7 @@ namespace Examples
             _hp.clear(tid);
             while (true)
             {
-                head = _hp.protect(0, ref _head.Segment, tid);
+                head = _hp.protect(0, ref _head, tid);
                 if (head->TryDequeue(out result))
                 {
                     _hp.clear(tid);
@@ -201,9 +207,9 @@ namespace Examples
 
                 lock (_crossSegmentLock.Target!)
                 {
-                    if (head == _head.Segment.Read())
+                    if (head == _head.Read())
                     {
-                        _head.Segment.Exchange((Segment<T>*)head->NextSegment);
+                        _head.Exchange((Segment<T>*)head->NextSegment);
                         _hp.clear(tid);
                         _hp.retire(head, tid);
                     }
@@ -219,12 +225,5 @@ namespace Examples
         ///     Empty
         /// </summary>
         public static SimpleConcurrentQueue<T> Empty => new();
-
-        private unsafe struct CachePaddedAtomicSegment
-        {
-            private CachePaddedAtomicReference _data;
-
-            public ref UnsafeAtomicReference<SimpleConcurrentQueue.Segment<T>> Segment => ref Unsafe.As<nuint, UnsafeAtomicReference<SimpleConcurrentQueue.Segment<T>>>(ref _data.AtomicReference);
-        }
     }
 }

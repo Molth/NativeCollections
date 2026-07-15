@@ -1,4 +1,4 @@
-﻿namespace Examples
+﻿namespace crossbeam
 {
     internal static class PaddingHelpers
     {

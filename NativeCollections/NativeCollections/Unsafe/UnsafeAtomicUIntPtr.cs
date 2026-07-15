@@ -37,6 +37,21 @@ namespace NativeCollections
         public ref nuint AsRef() => ref _value;
 
         /// <summary>
+        ///     Returns a value, loaded as an atomic operation.
+        /// </summary>
+        /// <returns>The loaded value.</returns>
+        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public nuint Load(Ordering order) => AtomicHelpers.LoadUIntPtr(ref _value, order);
+
+        /// <summary>
+        ///     Sets a value to a specified value, as an atomic operation.
+        /// </summary>
+        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Store(nuint value, Ordering order) => AtomicHelpers.StoreUIntPtr(ref _value, value, order);
+
+        /// <summary>
         ///     Bitwise "ands" two native-sized unsigned integers and replaces the first integer with the result, as an atomic
         ///     operation.
         /// </summary>
@@ -65,7 +80,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The loaded value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint Read() => InterlockedHelpers.CompareExchange(ref _value, new UIntPtr(0), new UIntPtr(0));
+        public nuint Read() => InterlockedHelpers.Read(ref _value);
 
         /// <summary>
         ///     Sets a value to a specified value and returns the original value, as an atomic operation.

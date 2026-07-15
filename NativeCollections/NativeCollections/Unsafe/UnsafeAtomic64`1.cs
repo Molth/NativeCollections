@@ -44,6 +44,30 @@ namespace NativeCollections
         public ref long AsRef() => ref _value;
 
         /// <summary>
+        ///     Returns a value, loaded as an atomic operation.
+        /// </summary>
+        /// <returns>The loaded value.</returns>
+        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T Load(Ordering order)
+        {
+            CheckType();
+            var newInt64 = AtomicHelpers.LoadInt64(ref _value, order);
+            return AtomicHelpers.CastFromInt64<T>(newInt64);
+        }
+
+        /// <summary>
+        ///     Sets a value to a specified value, as an atomic operation.
+        /// </summary>
+        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Store(T value, Ordering order)
+        {
+            CheckType();
+            AtomicHelpers.StoreInt64(ref _value, AtomicHelpers.CastToInt64(value), order);
+        }
+
+        /// <summary>
         ///     Bitwise "ands" two 64-bit signed integers and replaces the first integer with the result, as an atomic operation.
         /// </summary>
         /// <returns>The original value.</returns>
@@ -96,7 +120,7 @@ namespace NativeCollections
         public T Read()
         {
             CheckType();
-            var newInt64 = Interlocked.CompareExchange(ref _value, 0L, 0L);
+            var newInt64 = Interlocked.Read(ref _value);
             return AtomicHelpers.CastFromInt64<T>(newInt64);
         }
 

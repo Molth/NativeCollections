@@ -120,7 +120,7 @@ namespace Examples
         {
             for (int ihp = 0; ihp < maxHPs; ihp++)
             {
-                hp[tid][ihp].Exchange(0);
+                hp[tid][ihp].Store(0, Ordering.Release);
             }
         }
 
@@ -129,7 +129,7 @@ namespace Examples
         /// </summary>
         public void clearOne(int ihp, int tid)
         {
-            hp[tid][ihp].Exchange(0);
+            hp[tid][ihp].Store(0, Ordering.Release);
         }
 
         /// <summary>
@@ -139,9 +139,9 @@ namespace Examples
         {
             T* n = null;
             T* ret;
-            while ((ret = atom.Read()) != n)
+            while ((ret = atom.Load(Ordering.SeqCst)) != n)
             {
-                hp[tid][index].Exchange((nint)ret);
+                hp[tid][index].Store((nint)ret, Ordering.Release);
                 n = ret;
             }
 
@@ -150,7 +150,7 @@ namespace Examples
 
         public void* get(int index, int tid)
         {
-            return (void*)hp[tid][index].Read();
+            return (void*)hp[tid][index].Load(Ordering.SeqCst);
         }
 
         /// <summary>
@@ -159,7 +159,7 @@ namespace Examples
         /// </summary>
         public T* protectPtr<T>(int index, T* ptr, int tid) where T : unmanaged
         {
-            hp[tid][index].Exchange((nint)ptr);
+            hp[tid][index].Store((nint)ptr, Ordering.SeqCst);
             return ptr;
         }
 
@@ -169,7 +169,7 @@ namespace Examples
         /// </summary>
         public T* protectPtrRelease<T>(int index, T* ptr, int tid) where T : unmanaged
         {
-            hp[tid][index].Exchange((nint)ptr);
+            hp[tid][index].Store((nint)ptr, Ordering.Release);
             return ptr;
         }
 
@@ -188,7 +188,7 @@ namespace Examples
                 {
                     for (int ihp = maxHPs - 1; ihp >= 0; ihp--)
                     {
-                        if (hp[tid2][ihp].Read() == obj)
+                        if (hp[tid2][ihp].Load(Ordering.SeqCst) == obj)
                         {
                             canDelete = false;
                             break;

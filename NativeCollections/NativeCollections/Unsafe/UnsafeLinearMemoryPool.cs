@@ -163,7 +163,7 @@ namespace NativeCollections
         /// <param name="alignment">The alignment, in bytes. This must be a power of <c>2</c>.</param>
         /// <returns>The maximum length in bytes, or 0 if even a zero‑length allocation is not possible.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int GetMaxLength(int alignment)
+        public readonly int GetMaxLength(int alignment)
         {
             ThrowHelpers.ThrowIfNegative(alignment, ExceptionArgument.alignment);
             ThrowHelpers.ThrowIfAlignmentNotBePow2((uint)alignment, ExceptionArgument.alignment);

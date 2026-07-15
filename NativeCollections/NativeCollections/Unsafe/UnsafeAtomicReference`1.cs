@@ -48,8 +48,23 @@ namespace NativeCollections
         ///     Returns a value, loaded as an atomic operation.
         /// </summary>
         /// <returns>The loaded value.</returns>
+        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T* Read() => (T*)Interlocked.CompareExchange(ref _handle, new IntPtr(0), new IntPtr(0));
+        public T* Load(Ordering order) => (T*)AtomicHelpers.LoadIntPtr(ref _handle, order);
+
+        /// <summary>
+        ///     Sets a value to a specified value, as an atomic operation.
+        /// </summary>
+        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Store(T* value, Ordering order) => AtomicHelpers.StoreIntPtr(ref _handle, (nint)value, order);
+
+        /// <summary>
+        ///     Returns a value, loaded as an atomic operation.
+        /// </summary>
+        /// <returns>The loaded value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T* Read() => (T*)InterlockedHelpers.Read(ref _handle);
 
         /// <summary>
         ///     Sets a value to a specified value and returns the original value, as an atomic operation.

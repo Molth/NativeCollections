@@ -160,7 +160,7 @@ namespace NativeCollections
 
             location = ref buffer;
             id = Interlocked.Increment(ref location) - 1;
-            if (id >= _length)
+            if ((uint)id >= (uint)_length)
             {
                 Interlocked.Decrement(ref location);
                 index = -1;

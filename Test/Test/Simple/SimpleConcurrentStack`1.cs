@@ -18,21 +18,25 @@ namespace Examples
     [UnsafeCollection(FromType.Standard)]
     public unsafe struct SimpleConcurrentStack<T> : IDisposable where T : unmanaged
     {
+        private Padding _padding0;
+
         /// <summary>
         ///     Head
         /// </summary>
-        private CachePaddedAtomicNode _head;
+        private UnsafeAtomicReference<Node> _head;
+
+        private Padding _padding1;
 
         /// <summary>
         ///     Hazard pointers
         /// </summary>
         private HazardPointers _hp;
 
-        private Padding _padding1;
+        private Padding _padding2;
 
         private SimpleTidManager2 _tidManager;
 
-        private Padding _padding2;
+        private Padding _padding3;
 
         /// <summary>
         ///     Structure
@@ -40,7 +44,7 @@ namespace Examples
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public SimpleConcurrentStack(int maxThreads)
         {
-            _head = new CachePaddedAtomicNode();
+            _head = new UnsafeAtomicReference<Node>();
             _hp = new HazardPointers(1, maxThreads);
             _tidManager = new SimpleTidManager2(maxThreads);
         }
@@ -51,7 +55,7 @@ namespace Examples
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            NativeMemoryAllocator.AlignedFree(_head.Node.AsRef());
+            NativeMemoryAllocator.AlignedFree(_head.AsRef());
             _hp.Dispose();
             _tidManager.Dispose();
         }
@@ -65,15 +69,15 @@ namespace Examples
         {
             Node* newNode = NativeMemoryAllocator.AlignedAlloc<Node>(1);
             newNode->Value = item;
-            newNode->Next = _head.Node.AsRef();
-            if (_head.Node.CompareExchange(newNode, newNode->Next) == newNode->Next)
+            newNode->Next = _head.AsRef();
+            if (_head.CompareExchange(newNode, newNode->Next) == newNode->Next)
                 return;
             var spinWait = new UnsafeSpinWait();
             do
             {
                 spinWait.SpinOnce(-1);
-                newNode->Next = _head.Node.AsRef();
-            } while (_head.Node.CompareExchange(newNode, newNode->Next) != newNode->Next);
+                newNode->Next = _head.AsRef();
+            } while (_head.CompareExchange(newNode, newNode->Next) != newNode->Next);
         }
 
         /// <summary>
@@ -84,7 +88,7 @@ namespace Examples
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryPop(out T result)
         {
-            var head = _head.Node.AsRef();
+            var head = _head.AsRef();
             if (head == null)
             {
                 result = default;
@@ -108,9 +112,9 @@ namespace Examples
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool TryPop(out T result, int tid)
         {
-            var head = _hp.protect(0, ref _head.Node, tid);
+            var head = _hp.protect(0, ref _head, tid);
 
-            if (_head.Node.CompareExchange(head->Next, head) == head)
+            if (_head.CompareExchange(head->Next, head) == head)
             {
                 result = head->Value;
                 _hp.clear(tid);
@@ -122,16 +126,16 @@ namespace Examples
             var backoff = 1;
             while (true)
             {
-                head = _head.Node.AsRef();
+                head = _head.AsRef();
                 if (head == null)
                 {
                     result = default;
                     return false;
                 }
 
-                head = _hp.protect(0, ref _head.Node, tid);
+                head = _hp.protect(0, ref _head, tid);
 
-                if (_head.Node.CompareExchange(head->Next, head) == head)
+                if (_head.CompareExchange(head->Next, head) == head)
                 {
                     result = head->Value;
                     _hp.clear(tid);
@@ -169,12 +173,5 @@ namespace Examples
         ///     Empty
         /// </summary>
         public static SimpleConcurrentStack<T> Empty => new();
-
-        private unsafe struct CachePaddedAtomicNode
-        {
-            private CachePaddedAtomicReference _data;
-
-            public ref UnsafeAtomicReference<Node> Node => ref Unsafe.As<nuint, UnsafeAtomicReference<Node>>(ref _data.AtomicReference);
-        }
     }
 }
