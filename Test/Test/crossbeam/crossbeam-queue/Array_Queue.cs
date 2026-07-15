@@ -30,7 +30,7 @@ namespace crossbeam
             /// <br />
             /// If the stamp equals the tail, this node will be next written to. If it equals head + 1,
             /// this node will be next read from.
-            public UnsafeAtomicUIntPtr stamp;
+            public UnsafeAtomicUsize stamp;
 
             /// The value in this slot.
             public T value;
@@ -41,7 +41,7 @@ namespace crossbeam
         {
             private CachePadding padding;
 
-            public UnsafeAtomicUIntPtr data;
+            public UnsafeAtomicUsize data;
         }
 
         /// A bounded multi-producer multi-consumer queue.
@@ -61,7 +61,7 @@ namespace crossbeam
             /// Elements are popped from the head of the queue.
             private CachePaddedUsize _head;
 
-            public ref UnsafeAtomicUIntPtr head => ref _head.data;
+            public ref UnsafeAtomicUsize head => ref _head.data;
 
             /// The tail of the queue.
             /// <br />
@@ -71,7 +71,7 @@ namespace crossbeam
             /// Elements are pushed into the tail of the queue.
             private CachePaddedUsize _tail;
 
-            public ref UnsafeAtomicUIntPtr tail => ref _tail.data;
+            public ref UnsafeAtomicUsize tail => ref _tail.data;
 
             /// The buffer holding slots.
             public NativeMemoryArray<Slot<T>> buffer;
@@ -85,7 +85,7 @@ namespace crossbeam
                 _tail = new CachePaddedUsize();
                 buffer = new NativeMemoryArray<Slot<T>>((int)cap);
                 for (nuint i = 0; i < cap; i++)
-                    buffer[(int)i]->stamp = new UnsafeAtomicUIntPtr(i);
+                    buffer[(int)i]->stamp = new UnsafeAtomicUsize(i);
 
                 // One lap is the smallest power of two greater than `cap`.
                 one_lap = BitOperations.RoundUpToPowerOf2(cap + 1);
@@ -236,8 +236,8 @@ namespace crossbeam
 
                 static Result<T> f(ref ArrayQueue<T> self, T v, nuint tail, nuint new_tail, Slot<T>* slot)
                 {
-                    var head = tail.wrapping_add(self.one_lap);
-                    var new_head = new_tail.wrapping_add(self.one_lap);
+                    var head = tail.wrapping_sub(self.one_lap);
+                    var new_head = new_tail.wrapping_sub(self.one_lap);
 
                     // Try moving the head.
                     if (self

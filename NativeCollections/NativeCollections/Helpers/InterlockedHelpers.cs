@@ -11,6 +11,12 @@ namespace NativeCollections
     /// </summary>
     internal static class InterlockedHelpers
     {
+        /// <summary>Returns a reference value, loaded as an atomic operation.</summary>
+        /// <param name="location">The reference value to be loaded.</param>
+        /// <returns>The loaded value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static object? Read(ref object? location) => Interlocked.CompareExchange(ref location, default, default);
+
         /// <summary>Returns a native-sized signed value, loaded as an atomic operation.</summary>
         /// <param name="location">The native-sized signed value to be loaded.</param>
         /// <returns>The loaded value.</returns>

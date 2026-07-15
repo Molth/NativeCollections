@@ -226,7 +226,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueReference(int key, out NativeReference<TValue> value) => _handle->TryGetValueReference(key, out value);
+        public bool TryGetValueReference(int key, out NativePtr<TValue> value) => _handle->TryGetValueReference(key, out value);
 
         /// <summary>
         ///     Index of
@@ -277,7 +277,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueReferenceAt(int index, out NativeReference<TValue> value) => _handle->TryGetValueReferenceAt(index, out value);
+        public bool TryGetValueReferenceAt(int index, out NativePtr<TValue> value) => _handle->TryGetValueReferenceAt(index, out value);
 
         /// <summary>
         ///     Get at
@@ -293,7 +293,7 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>KeyValuePair</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public KeyValuePair<int, NativeReference<TValue>> GetReferenceAt(int index) => _handle->GetReferenceAt(index);
+        public KeyValuePair<int, NativePtr<TValue>> GetReferenceAt(int index) => _handle->GetReferenceAt(index);
 
         /// <summary>
         ///     Get at
@@ -311,7 +311,7 @@ namespace NativeCollections
         /// <param name="keyValuePair">KeyValuePair</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetReferenceAt(int index, out KeyValuePair<int, NativeReference<TValue>> keyValuePair) => _handle->TryGetReferenceAt(index, out keyValuePair);
+        public bool TryGetReferenceAt(int index, out KeyValuePair<int, NativePtr<TValue>> keyValuePair) => _handle->TryGetReferenceAt(index, out keyValuePair);
 
         /// <summary>
         ///     Set at

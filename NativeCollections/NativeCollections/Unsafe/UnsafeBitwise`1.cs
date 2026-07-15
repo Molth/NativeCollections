@@ -72,6 +72,7 @@ namespace NativeCollections
         /// <summary>
         ///     To string
         /// </summary>
+        /// <returns>String</returns>
         public readonly override string ToString() => SR.Format("UnsafeBitwise<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>

@@ -18,7 +18,8 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard | FromType.Rust)]
-    [SupportedTypes(typeof(Enum), typeof(IntPtr), typeof(UIntPtr), typeof(bool), typeof(byte), typeof(sbyte), typeof(char), typeof(short), typeof(ushort), typeof(int), typeof(float), typeof(uint), typeof(double), typeof(long), typeof(ulong))]
+    [SupportedTypes(typeof(IntPtr), typeof(UIntPtr), typeof(bool), typeof(byte), typeof(sbyte), typeof(char), typeof(short), typeof(ushort), typeof(int), typeof(float), typeof(uint), typeof(double), typeof(long), typeof(ulong))]
+    [MaybeSupportedTypes(typeof(Enum))]
     public unsafe struct UnsafeAtomic64<T> where T : unmanaged
     {
         /// <summary>
@@ -256,6 +257,7 @@ namespace NativeCollections
         /// <summary>
         ///     To string
         /// </summary>
+        /// <returns>String</returns>
         public readonly override string ToString() => SR.Format("UnsafeAtomic64<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>

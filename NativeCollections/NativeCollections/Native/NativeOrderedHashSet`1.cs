@@ -187,7 +187,7 @@ namespace NativeCollections
         /// <param name="actualValue">Actual value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueReference(in T equalValue, out NativeReference<T> actualValue) => _handle->TryGetValueReference(equalValue, out actualValue);
+        public bool TryGetValueReference(in T equalValue, out NativePtr<T> actualValue) => _handle->TryGetValueReference(equalValue, out actualValue);
 
         /// <summary>
         ///     Get at

@@ -16,6 +16,61 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The loaded value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static object? LoadReference(ref object? location, Ordering order)
+        {
+            switch (order)
+            {
+                case Ordering.Relaxed:
+                    return location;
+
+                case Ordering.Acquire:
+                case Ordering.AcqRel:
+                    return Volatile.Read(ref location);
+
+                case Ordering.SeqCst:
+                    return Interlocked.CompareExchange(ref location, default, default);
+
+                case Ordering.Release:
+                default:
+                    ThrowHelpers.ThrowNotSupportedException();
+                    return default;
+            }
+        }
+
+        /// <summary>
+        ///     Sets a value to a specified value, as an atomic operation.
+        /// </summary>
+        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void StoreReference(ref object? location, object? value, Ordering order)
+        {
+            switch (order)
+            {
+                case Ordering.Relaxed:
+                    location = value;
+                    return;
+
+                case Ordering.Release:
+                case Ordering.AcqRel:
+                    Volatile.Write(ref location, value);
+                    return;
+
+                case Ordering.SeqCst:
+                    Interlocked.Exchange(ref location, value);
+                    return;
+
+                case Ordering.Acquire:
+                default:
+                    ThrowHelpers.ThrowNotSupportedException();
+                    return;
+            }
+        }
+
+        /// <summary>
+        ///     Returns a value, loaded as an atomic operation.
+        /// </summary>
+        /// <returns>The loaded value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static nint LoadIntPtr(ref nint location, Ordering order)
         {
             switch (order)

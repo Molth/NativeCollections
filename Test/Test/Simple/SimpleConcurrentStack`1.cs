@@ -23,7 +23,7 @@ namespace Examples
         /// <summary>
         ///     Head
         /// </summary>
-        private UnsafeAtomicReference<Node> _head;
+        private UnsafeAtomicPtr<Node> _head;
 
         private Padding _padding1;
 
@@ -44,7 +44,7 @@ namespace Examples
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public SimpleConcurrentStack(int maxThreads)
         {
-            _head = new UnsafeAtomicReference<Node>();
+            _head = new UnsafeAtomicPtr<Node>();
             _hp = new HazardPointers(1, maxThreads);
             _tidManager = new SimpleTidManager2(maxThreads);
         }

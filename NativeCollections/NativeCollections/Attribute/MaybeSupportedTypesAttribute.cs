@@ -5,10 +5,10 @@
 namespace NativeCollections
 {
     /// <summary>
-    ///     Supported types attribute
+    ///     Maybe supported types attribute
     /// </summary>
     [AttributeUsage(AttributeTargets.Struct)]
-    public sealed class SupportedTypesAttribute : Attribute
+    public sealed class MaybeSupportedTypesAttribute : Attribute
     {
         /// <summary>
         ///     Types
@@ -19,6 +19,6 @@ namespace NativeCollections
         ///     Structure
         /// </summary>
         /// <param name="types">Types</param>
-        public SupportedTypesAttribute(params Type[]? types) => Types = types;
+        public MaybeSupportedTypesAttribute(params Type[]? types) => Types = types;
     }
 }

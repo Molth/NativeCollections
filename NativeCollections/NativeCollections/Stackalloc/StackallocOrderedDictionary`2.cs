@@ -387,12 +387,12 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly bool TryGetValueReference(in TKey key, out NativeReference<TValue> value)
+        public readonly bool TryGetValueReference(in TKey key, out NativePtr<TValue> value)
         {
             var index = IndexOf(key);
             if (index >= 0)
             {
-                value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index).Value));
+                value = new NativePtr<TValue>(UnsafeHelpers.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index).Value));
                 return true;
             }
 
@@ -439,14 +439,14 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Value ref</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueRefOrAddDefault(in TKey key, out NativeReference<TValue> value)
+        public bool TryGetValueRefOrAddDefault(in TKey key, out NativePtr<TValue> value)
         {
             uint outHashCode = 0;
             uint outCollisionCount = 0;
             var index1 = IndexOf(key, ref outHashCode, ref outCollisionCount);
             if (index1 >= 0)
             {
-                value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index1).Value));
+                value = new NativePtr<TValue>(UnsafeHelpers.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index1).Value));
                 return true;
             }
 
@@ -471,7 +471,7 @@ namespace NativeCollections
             PushEntryIntoBucket(ref local, index);
             ++_count;
             ++_version;
-            value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref local.Value));
+            value = new NativePtr<TValue>(UnsafeHelpers.AsPointer(ref local.Value));
             return true;
         }
 
@@ -483,14 +483,14 @@ namespace NativeCollections
         /// <param name="exists">Exists</param>
         /// <returns>Value ref</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueRefOrAddDefault(in TKey key, out NativeReference<TValue> value, out bool exists)
+        public bool TryGetValueRefOrAddDefault(in TKey key, out NativePtr<TValue> value, out bool exists)
         {
             uint outHashCode = 0;
             uint outCollisionCount = 0;
             var index1 = IndexOf(key, ref outHashCode, ref outCollisionCount);
             if (index1 >= 0)
             {
-                value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index1).Value));
+                value = new NativePtr<TValue>(UnsafeHelpers.AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index1).Value));
                 exists = true;
                 return true;
             }
@@ -517,7 +517,7 @@ namespace NativeCollections
             PushEntryIntoBucket(ref local, index);
             ++_count;
             ++_version;
-            value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref local.Value));
+            value = new NativePtr<TValue>(UnsafeHelpers.AsPointer(ref local.Value));
             exists = false;
             return true;
         }
@@ -595,7 +595,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly bool TryGetValueReferenceAt(int index, out NativeReference<TValue> value)
+        public readonly bool TryGetValueReferenceAt(int index, out NativePtr<TValue> value)
         {
             if ((uint)index >= (uint)_count)
             {
@@ -604,7 +604,7 @@ namespace NativeCollections
             }
 
             ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
-            value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref local.Value));
+            value = new NativePtr<TValue>(UnsafeHelpers.AsPointer(ref local.Value));
             return true;
         }
 
@@ -627,11 +627,11 @@ namespace NativeCollections
         /// <param name="index">Index</param>
         /// <returns>KeyValuePair</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly KeyValuePair<TKey, NativeReference<TValue>> GetReferenceAt(int index)
+        public readonly KeyValuePair<TKey, NativePtr<TValue>> GetReferenceAt(int index)
         {
             ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_count, ExceptionArgument.index);
             ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
-            return new KeyValuePair<TKey, NativeReference<TValue>>(local.Key, new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref local.Value)));
+            return new KeyValuePair<TKey, NativePtr<TValue>>(local.Key, new NativePtr<TValue>(UnsafeHelpers.AsPointer(ref local.Value)));
         }
 
         /// <summary>
@@ -661,7 +661,7 @@ namespace NativeCollections
         /// <param name="keyValuePair">KeyValuePair</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly bool TryGetReferenceAt(int index, out KeyValuePair<TKey, NativeReference<TValue>> keyValuePair)
+        public readonly bool TryGetReferenceAt(int index, out KeyValuePair<TKey, NativePtr<TValue>> keyValuePair)
         {
             if ((uint)index >= (uint)_count)
             {
@@ -670,7 +670,7 @@ namespace NativeCollections
             }
 
             ref var local = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)index);
-            keyValuePair = new KeyValuePair<TKey, NativeReference<TValue>>(local.Key, new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref local.Value)));
+            keyValuePair = new KeyValuePair<TKey, NativePtr<TValue>>(local.Key, new NativePtr<TValue>(UnsafeHelpers.AsPointer(ref local.Value)));
             return true;
         }
 

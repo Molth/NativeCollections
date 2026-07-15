@@ -61,7 +61,7 @@ namespace Examples
         private readonly int maxThreads;
         private readonly int hpThreshold;
 
-        private readonly NativeArray<NativeArray<UnsafeAtomicIntPtr>> hp;
+        private readonly NativeArray<NativeArray<UnsafeAtomicIsize>> hp;
         private readonly NativeArray<CachePaddedList> retiredList;
 
         private static void defdeleter(void* t, int tid) => NativeMemoryAllocator.AlignedFree(t);
@@ -87,11 +87,11 @@ namespace Examples
             this.maxThreads = maxThreads;
             this.hpThreshold = hpThreshold;
             this.deleter = deleter;
-            this.hp = new NativeArray<NativeArray<UnsafeAtomicIntPtr>>(maxThreads, CACHE_LINE_SIZE);
+            this.hp = new NativeArray<NativeArray<UnsafeAtomicIsize>>(maxThreads, CACHE_LINE_SIZE);
             this.retiredList = new NativeArray<CachePaddedList>(maxThreads, CACHE_LINE_SIZE, true);
             for (int ithread = 0; ithread < maxThreads; ithread++)
             {
-                hp[ithread] = new NativeArray<UnsafeAtomicIntPtr>(maxHPs, true);
+                hp[ithread] = new NativeArray<UnsafeAtomicIsize>(maxHPs, true);
             }
         }
 
@@ -135,7 +135,7 @@ namespace Examples
         /// <summary>
         ///     Progress Condition: lock-free
         /// </summary>
-        public T* protect<T>(int index, ref UnsafeAtomicReference<T> atom, int tid) where T : unmanaged
+        public T* protect<T>(int index, ref UnsafeAtomicPtr<T> atom, int tid) where T : unmanaged
         {
             T* n = null;
             T* ret;

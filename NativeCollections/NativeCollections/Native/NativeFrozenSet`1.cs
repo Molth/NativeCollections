@@ -253,13 +253,13 @@ namespace NativeCollections
         /// <param name="actualValue">Actual value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueReference(in T equalValue, out NativeReference<T> actualValue)
+        public bool TryGetValueReference(in T equalValue, out NativePtr<T> actualValue)
         {
             var handle = _handle;
             var index = handle->FindItemIndex(UnsafeHelpers.AddByteOffset(handle, CACHE_LINE_SIZE), equalValue);
             if (index >= 0)
             {
-                actualValue = new NativeReference<T>(UnsafeHelpers.AsPointer(ref handle->Items(UnsafeHelpers.AddByteOffset(handle, CACHE_LINE_SIZE))[index]));
+                actualValue = new NativePtr<T>(UnsafeHelpers.AsPointer(ref handle->Items(UnsafeHelpers.AddByteOffset(handle, CACHE_LINE_SIZE))[index]));
                 return true;
             }
 

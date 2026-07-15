@@ -7,11 +7,11 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe ulong bitmap memory pool
+    ///     Unsafe uint bitmap memory pool
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.None)]
-    public unsafe struct UnsafeUInt64MemoryPool : IIsCreated, IDisposable, IEquatable<UnsafeUInt64MemoryPool>
+    public unsafe struct UnsafeU32MemoryPool : IIsCreated, IDisposable, IEquatable<UnsafeU32MemoryPool>
     {
         /// <summary>
         ///     Sentinel
@@ -110,7 +110,7 @@ namespace NativeCollections
         /// <param name="maxFreeSlabs">Max free slabs</param>
         /// <param name="alignment">Alignment</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeUInt64MemoryPool(int length, int maxFreeSlabs, int alignment)
+        public UnsafeU32MemoryPool(int length, int maxFreeSlabs, int alignment)
         {
             ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
             ThrowHelpers.ThrowIfNegative(maxFreeSlabs, ExceptionArgument.maxFreeSlabs);
@@ -142,14 +142,14 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public readonly bool Equals(UnsafeUInt64MemoryPool other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
+        public readonly bool Equals(UnsafeU32MemoryPool other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public readonly override bool Equals(object? obj) => obj is UnsafeUInt64MemoryPool other && other.Equals(this);
+        public readonly override bool Equals(object? obj) => obj is UnsafeU32MemoryPool other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
@@ -161,7 +161,7 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public readonly override string ToString() => "UnsafeUInt64MemoryPool";
+        public readonly override string ToString() => "UnsafeUInt32MemoryPool";
 
         /// <summary>
         ///     Equals
@@ -169,7 +169,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(UnsafeUInt64MemoryPool left, UnsafeUInt64MemoryPool right) => left.Equals(right);
+        public static bool operator ==(UnsafeU32MemoryPool left, UnsafeU32MemoryPool right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -177,7 +177,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(UnsafeUInt64MemoryPool left, UnsafeUInt64MemoryPool right) => !left.Equals(right);
+        public static bool operator !=(UnsafeU32MemoryPool left, UnsafeU32MemoryPool right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
@@ -262,11 +262,11 @@ namespace NativeCollections
         public void* Rent()
         {
             var slab = _sentinel;
-            if (slab->Bitmap == ulong.MaxValue)
+            if (slab->Bitmap == uint.MaxValue)
             {
                 _sentinel = slab->Next;
                 slab = _sentinel;
-                if (slab->Bitmap == ulong.MaxValue)
+                if (slab->Bitmap == uint.MaxValue)
                 {
                     if (_freeSlabs == 0)
                     {
@@ -290,7 +290,7 @@ namespace NativeCollections
 
             ref var segment = ref slab->Bitmap;
             var bitMask = BitOperationsHelpers.TrailingZeroCount(~segment);
-            segment |= 1UL << bitMask;
+            segment |= 1U << bitMask;
             return UnsafeHelpers.AddByteOffset(slab, _alignedSlabSize + bitMask * _fullNodeSize + _alignedNodeSize);
         }
 
@@ -304,7 +304,7 @@ namespace NativeCollections
             var bitMask = (int)Unsafe.AsRef<nint>(UnsafeHelpers.SubtractByteOffset(ptr, _alignedNodeSize));
             var slab = (MemorySlab*)UnsafeHelpers.SubtractByteOffset(ptr, _alignedSlabSize + bitMask * _fullNodeSize + _alignedNodeSize);
             ref var segment = ref slab->Bitmap;
-            segment &= ~(1UL << bitMask);
+            segment &= ~(1U << bitMask);
             if (slab != _sentinel)
             {
                 if (segment == 0)
@@ -326,7 +326,7 @@ namespace NativeCollections
                     return;
                 }
 
-                if ((segment | (1UL << bitMask)) == ulong.MaxValue)
+                if ((segment | (1U << bitMask)) == uint.MaxValue)
                 {
                     slab->Previous->Next = slab->Next;
                     slab->Next->Previous = slab->Previous;
@@ -401,7 +401,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static MemorySlab* Create(int alignedSlabSize, int fullNodeSize, int alignment)
         {
-            var slab = (MemorySlab*)NativeMemoryAllocator.AlignedAlloc((uint)(alignedSlabSize + 64 * fullNodeSize), (uint)alignment);
+            var slab = (MemorySlab*)NativeMemoryAllocator.AlignedAlloc((uint)(alignedSlabSize + 32 * fullNodeSize), (uint)alignment);
             Initialize(slab, alignedSlabSize, fullNodeSize);
             return slab;
         }
@@ -413,9 +413,9 @@ namespace NativeCollections
         private static void Initialize(MemorySlab* slab, int alignedSlabSize, int fullNodeSize)
         {
             var buffer = UnsafeHelpers.AddByteOffset(slab, alignedSlabSize);
-            for (var i = 0; i < 64; ++i)
+            for (var i = 0; i < 32; ++i)
                 Unsafe.AsRef<nint>(UnsafeHelpers.AddByteOffset(buffer, i * fullNodeSize)) = i;
-            slab->Bitmap = 0UL;
+            slab->Bitmap = 0U;
         }
 
         /// <summary>
@@ -437,12 +437,12 @@ namespace NativeCollections
             /// <summary>
             ///     Bitmap
             /// </summary>
-            public ulong Bitmap;
+            public uint Bitmap;
         }
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeUInt64MemoryPool Empty => default;
+        public static UnsafeU32MemoryPool Empty => default;
     }
 }

@@ -43,7 +43,7 @@ namespace crossbeam
             public T value;
 
             /// The state of the slot.
-            public UnsafeAtomicUIntPtr state;
+            public UnsafeAtomicUsize state;
 
             /// Waits until a value is written into the slot.
             public void wait_write()
@@ -74,7 +74,7 @@ namespace crossbeam
         public struct Block<T> where T : unmanaged
         {
             /// The next block in the linked list.
-            public UnsafeAtomicReference<Block<T>> next;
+            public UnsafeAtomicPtr<Block<T>> next;
 
             /// Slots for values.
             public Slots<T> slots;
@@ -125,10 +125,10 @@ namespace crossbeam
             private CachePadding padding;
 
             /// The index in the queue.
-            public UnsafeAtomicUIntPtr index;
+            public UnsafeAtomicUsize index;
 
             /// The block in the linked list.
-            public UnsafeAtomicReference<Block<T>> block;
+            public UnsafeAtomicPtr<Block<T>> block;
         }
 
         /// An unbounded multi-producer multi-consumer queue.
@@ -502,8 +502,8 @@ namespace crossbeam
 
                         // Rotate indices so that head falls into the first block.
                         var lap = (head >> (int)SHIFT) / LAP;
-                        tail = tail.wrapping_add((lap * LAP) << (int)SHIFT);
-                        head = head.wrapping_add((lap * LAP) << (int)SHIFT);
+                        tail = tail.wrapping_sub((lap * LAP) << (int)SHIFT);
+                        head = head.wrapping_sub((lap * LAP) << (int)SHIFT);
 
                         // Remove the lower bits.
                         tail >>= (int)SHIFT;

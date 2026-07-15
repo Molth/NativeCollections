@@ -10,9 +10,9 @@ namespace NativeCollections
     ///     Two-Level Segregated Fit memory allocator
     ///     https://github.com/mattconte/tlsf
     /// </summary>
-    internal static unsafe class TLSF
+    internal static unsafe class Tlsf
     {
-        public static class TLSF32
+        public static class Tlsf32
         {
             public const int SL_INDEX_COUNT_LOG2 = 5;
             public const int ALIGN_SIZE_LOG2 = 2;
@@ -616,7 +616,7 @@ namespace NativeCollections
             }
         }
 
-        public static class TLSF64
+        public static class Tlsf64
         {
             public const int SL_INDEX_COUNT_LOG2 = 5;
             public const int ALIGN_SIZE_LOG2 = 3;

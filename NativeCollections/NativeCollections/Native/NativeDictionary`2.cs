@@ -189,7 +189,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueReference(in TKey key, out NativeReference<TValue> value) => _handle->TryGetValueReference(key, out value);
+        public bool TryGetValueReference(in TKey key, out NativePtr<TValue> value) => _handle->TryGetValueReference(key, out value);
 
         /// <summary>
         ///     Get value ref

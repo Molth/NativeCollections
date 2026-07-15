@@ -7,59 +7,50 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native reference
+    ///     Unsafe ptr
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection(FromType.None)]
-    public readonly unsafe struct NativeReference<T> : IIsCreated, IDisposable, IEquatable<NativeReference<T>> where T : unmanaged
+    [UnsafeCollection(FromType.None)]
+    internal unsafe struct UnsafePtr<T> : IIsCreated, IDisposable, IEquatable<UnsafePtr<T>> where T : unmanaged
     {
         /// <summary>
         ///     Handle
         /// </summary>
-        private readonly T* _handle;
+        public T* Handle;
 
         /// <summary>
         ///     Is created
         /// </summary>
-        public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
-
-        /// <summary>
-        ///     Handle
-        /// </summary>
-        public T* Handle
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _handle;
-        }
+        public readonly bool IsCreated => !UnsafeHelpers.IsNull(Handle);
 
         /// <summary>
         ///     Value
         /// </summary>
-        public ref T Value
+        public readonly ref T Value
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Unsafe.AsRef<T>(_handle);
+            get => ref Unsafe.AsRef<T>(Handle);
         }
 
         /// <summary>
         ///     Get reference
         /// </summary>
         /// <param name="index">Index</param>
-        public ref T this[int index]
+        public readonly ref T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_handle), (nint)index);
+            get => ref Unsafe.Add(ref Unsafe.AsRef<T>(Handle), (nint)index);
         }
 
         /// <summary>
         ///     Get reference
         /// </summary>
         /// <param name="index">Index</param>
-        public ref T this[uint index]
+        public readonly ref T this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_handle), (nint)index);
+            get => ref Unsafe.Add(ref Unsafe.AsRef<T>(Handle), (nint)index);
         }
 
         /// <summary>
@@ -67,118 +58,118 @@ namespace NativeCollections
         /// </summary>
         /// <param name="handle">Handle</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeReference(T* handle) => _handle = handle;
+        public UnsafePtr(T* handle) => Handle = handle;
 
         /// <summary>
         ///     Structure
         /// </summary>
         /// <param name="handle">Handle</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeReference(nint handle) => _handle = (T*)handle;
+        public UnsafePtr(nint handle) => Handle = (T*)handle;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeReference<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
+        public readonly bool Equals(UnsafePtr<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeReference<T> other && other.Equals(this);
+        public readonly override bool Equals(object? obj) => obj is UnsafePtr<T> other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
+        public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => SR.Format("NativeReference<{0}>", SR.GetTypeName(typeof(T)));
+        public readonly override string ToString() => SR.Format("UnsafePtr<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
         ///     Reinterprets the given location as a reference to a value of type <typeparamref name="T" />.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref T AsRef() => ref Unsafe.AsRef<T>(_handle);
+        public readonly ref T AsRef() => ref Unsafe.AsRef<T>(Handle);
 
         /// <summary>
         ///     Cast
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeReference<TTo> Cast<TTo>() where TTo : unmanaged => new((TTo*)_handle);
+        public readonly UnsafePtr<TTo> Cast<TTo>() where TTo : unmanaged => new((TTo*)Handle);
 
         /// <summary>
         ///     Slice
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeReference<T> Slice(int start) => new(UnsafeHelpers.Add<T>(_handle, start));
+        public readonly UnsafePtr<T> Slice(int start) => new(UnsafeHelpers.Add<T>(Handle, start));
 
         /// <summary>
         ///     As span
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<T> AsSpan() => MemoryMarshal.CreateSpan(ref Unsafe.AsRef<T>(_handle), 1);
+        public readonly Span<T> AsSpan() => MemoryMarshal.CreateSpan(ref Unsafe.AsRef<T>(Handle), 1);
 
         /// <summary>
         ///     As span
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<T> AsSpan(int start, int length) => MemoryMarshal.CreateSpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_handle), (nint)start), length);
+        public readonly Span<T> AsSpan(int start, int length) => MemoryMarshal.CreateSpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(Handle), (nint)start), length);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<T>(_handle), 1);
+        public readonly ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<T>(Handle), 1);
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<T> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_handle), (nint)start), length);
+        public readonly ReadOnlySpan<T> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(Handle), (nint)start), length);
 
         /// <summary>
         ///     As reference
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeReference<T>(T* value) => new(value);
+        public static implicit operator UnsafePtr<T>(T* value) => new(value);
 
         /// <summary>
         ///     As handle
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator T*(NativeReference<T> value) => value._handle;
+        public static implicit operator T*(UnsafePtr<T> value) => value.Handle;
 
         /// <summary>
         ///     As reference
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator NativeReference<T>(nint value) => new((T*)value);
+        public static implicit operator UnsafePtr<T>(nint value) => new((T*)value);
 
         /// <summary>
         ///     As handle
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator nint(NativeReference<T> value) => (nint)value._handle;
+        public static implicit operator nint(UnsafePtr<T> value) => (nint)value.Handle;
 
         /// <summary>
         ///     As span
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Span<T>(NativeReference<T> value) => value.AsSpan();
+        public static implicit operator Span<T>(UnsafePtr<T> value) => value.AsSpan();
 
         /// <summary>
         ///     As readOnly span
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlySpan<T>(NativeReference<T> value) => value.AsReadOnlySpan();
+        public static implicit operator ReadOnlySpan<T>(UnsafePtr<T> value) => value.AsReadOnlySpan();
 
         /// <summary>
         ///     Equals
@@ -186,7 +177,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeReference<T> left, NativeReference<T> right) => left.Equals(right);
+        public static bool operator ==(UnsafePtr<T> left, UnsafePtr<T> right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -194,13 +185,13 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeReference<T> left, NativeReference<T> right) => !left.Equals(right);
+        public static bool operator !=(UnsafePtr<T> left, UnsafePtr<T> right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => Box.Free(_handle);
+        public readonly void Dispose() => Box.Free(Handle);
 
         /// <summary>
         ///     Create
@@ -208,7 +199,7 @@ namespace NativeCollections
         /// <param name="reference">Reference</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(nameof(reference))]
-        public static NativeReference<T> Create<TFrom>([MustBePinned] ref TFrom reference) => new((T*)Unsafe.AsPointer(ref reference));
+        public static UnsafePtr<T> Create<TFrom>([MustBePinned] ref TFrom reference) => new((T*)Unsafe.AsPointer(ref reference));
 
         /// <summary>
         ///     Create
@@ -216,7 +207,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(nameof(buffer))]
-        public static NativeReference<T> Create<TFrom>([MustBePinned] Span<TFrom> buffer) => new((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)));
+        public static UnsafePtr<T> Create<TFrom>([MustBePinned] Span<TFrom> buffer) => new((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)));
 
         /// <summary>
         ///     Create
@@ -224,11 +215,11 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(nameof(buffer))]
-        public static NativeReference<T> Create<TFrom>([MustBePinned] ReadOnlySpan<TFrom> buffer) => new((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)));
+        public static UnsafePtr<T> Create<TFrom>([MustBePinned] ReadOnlySpan<TFrom> buffer) => new((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)));
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeReference<T> Empty => default;
+        public static UnsafePtr<T> Empty => default;
     }
 }

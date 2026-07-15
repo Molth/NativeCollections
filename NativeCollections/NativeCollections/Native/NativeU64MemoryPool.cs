@@ -11,24 +11,13 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    [BindingType(typeof(UnsafeUInt64MemoryPool<>))]
-    public readonly unsafe struct NativeUInt64MemoryPool<T> : IIsCreated, IDisposable, IEquatable<NativeUInt64MemoryPool<T>> where T : unmanaged
+    [BindingType(typeof(UnsafeU64MemoryPool))]
+    public readonly unsafe struct NativeU64MemoryPool : IIsCreated, IDisposable, IEquatable<NativeU64MemoryPool>
     {
         /// <summary>
         ///     Handle
         /// </summary>
-        private readonly UnsafeUInt64MemoryPool<T>* _handle;
-
-        /// <summary>
-        ///     Structure
-        /// </summary>
-        /// <param name="maxFreeSlabs">Max free slabs</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeUInt64MemoryPool(int maxFreeSlabs)
-        {
-            var value = new UnsafeUInt64MemoryPool<T>(maxFreeSlabs);
-            _handle = Box.New(ref value);
-        }
+        private readonly UnsafeU64MemoryPool* _handle;
 
         /// <summary>
         ///     Structure
@@ -37,9 +26,9 @@ namespace NativeCollections
         /// <param name="maxFreeSlabs">Max free slabs</param>
         /// <param name="alignment">Alignment</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeUInt64MemoryPool(int length, int maxFreeSlabs, int alignment)
+        public NativeU64MemoryPool(int length, int maxFreeSlabs, int alignment)
         {
-            var value = new UnsafeUInt64MemoryPool<T>(length, maxFreeSlabs, alignment);
+            var value = new UnsafeU64MemoryPool(length, maxFreeSlabs, alignment);
             _handle = Box.New(ref value);
         }
 
@@ -83,14 +72,14 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeUInt64MemoryPool<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
+        public bool Equals(NativeU64MemoryPool other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeUInt64MemoryPool<T> other && other.Equals(this);
+        public override bool Equals(object? obj) => obj is NativeU64MemoryPool other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
@@ -102,7 +91,7 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => SR.Format("NativeUInt64MemoryPool<{0}>", SR.GetTypeName(typeof(T)));
+        public override string ToString() => "NativeUInt64MemoryPool";
 
         /// <summary>
         ///     Equals
@@ -110,7 +99,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeUInt64MemoryPool<T> left, NativeUInt64MemoryPool<T> right) => left.Equals(right);
+        public static bool operator ==(NativeU64MemoryPool left, NativeU64MemoryPool right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -118,7 +107,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeUInt64MemoryPool<T> left, NativeUInt64MemoryPool<T> right) => !left.Equals(right);
+        public static bool operator !=(NativeU64MemoryPool left, NativeU64MemoryPool right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
@@ -144,14 +133,14 @@ namespace NativeCollections
         /// </summary>
         /// <returns>Buffer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T* Rent() => _handle->Rent();
+        public void* Rent() => _handle->Rent();
 
         /// <summary>
         ///     Return buffer
         /// </summary>
         /// <param name="ptr">Pointer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Return(T* ptr) => _handle->Return(ptr);
+        public void Return(void* ptr) => _handle->Return(ptr);
 
         /// <summary>
         ///     Ensure capacity
@@ -177,6 +166,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeUInt64MemoryPool<T> Empty => default;
+        public static NativeU64MemoryPool Empty => default;
     }
 }

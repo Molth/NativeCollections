@@ -483,12 +483,12 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly bool TryGetValueReference(in TKey key, out NativeReference<TValue> value)
+        public readonly bool TryGetValueReference(in TKey key, out NativePtr<TValue> value)
         {
             var node = FindNode(key);
             if (!UnsafeHelpers.IsNull(node))
             {
-                value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref node->Value));
+                value = new NativePtr<TValue>(UnsafeHelpers.AsPointer(ref node->Value));
                 return true;
             }
 
@@ -767,7 +767,7 @@ namespace NativeCollections
                 return 0;
             count = Math.Min(buffer.Length, Math.Min(count, _count));
             var index = 0;
-            using (var nodeStack = new UnsafeStack<NativeReference<Node<TKey, TValue>>>(2 * BitOperationsHelpers.Log2((uint)(_count + 1))))
+            using (var nodeStack = new UnsafeStack<NativePtr<Node<TKey, TValue>>>(2 * BitOperationsHelpers.Log2((uint)(_count + 1))))
             {
                 for (var node = _root; !UnsafeHelpers.IsNull(node); node = node->Left)
                     nodeStack.Push(node);
@@ -805,7 +805,7 @@ namespace NativeCollections
             if (UnsafeHelpers.IsNull(_root))
                 return;
             var index = 0;
-            using (var nodeStack = new UnsafeStack<NativeReference<Node<TKey, TValue>>>(2 * BitOperationsHelpers.Log2((uint)(_count + 1))))
+            using (var nodeStack = new UnsafeStack<NativePtr<Node<TKey, TValue>>>(2 * BitOperationsHelpers.Log2((uint)(_count + 1))))
             {
                 for (var node = _root; !UnsafeHelpers.IsNull(node); node = node->Left)
                     nodeStack.Push(node);
@@ -879,7 +879,7 @@ namespace NativeCollections
             /// <summary>
             ///     Node stack
             /// </summary>
-            private readonly NativeStack<NativeReference<Node<TKey, TValue>>> _nodeStack;
+            private readonly NativeStack<NativePtr<Node<TKey, TValue>>> _nodeStack;
 
             /// <summary>
             ///     Current
@@ -899,7 +899,7 @@ namespace NativeCollections
             {
                 _handle = handle;
                 _version = handle->_version;
-                _nodeStack = new NativeStack<NativeReference<Node<TKey, TValue>>>(2 * BitOperationsHelpers.Log2((uint)(handle->_count + 1)));
+                _nodeStack = new NativeStack<NativePtr<Node<TKey, TValue>>>(2 * BitOperationsHelpers.Log2((uint)(handle->_count + 1)));
                 _currentNode = null;
                 _current = default;
                 var node = handle->_root;
@@ -1014,7 +1014,7 @@ namespace NativeCollections
                     return 0;
                 count = Math.Min(buffer.Length, Math.Min(count, _handle->_count));
                 var index = 0;
-                using (var nodeStack = new UnsafeStack<NativeReference<Node<TKey, TValue>>>(2 * BitOperationsHelpers.Log2((uint)(_handle->_count + 1))))
+                using (var nodeStack = new UnsafeStack<NativePtr<Node<TKey, TValue>>>(2 * BitOperationsHelpers.Log2((uint)(_handle->_count + 1))))
                 {
                     for (var node = _handle->_root; !UnsafeHelpers.IsNull(node); node = node->Left)
                         nodeStack.Push(node);
@@ -1052,7 +1052,7 @@ namespace NativeCollections
                 if (UnsafeHelpers.IsNull(_handle->_root))
                     return;
                 var index = 0;
-                using (var nodeStack = new UnsafeStack<NativeReference<Node<TKey, TValue>>>(2 * BitOperationsHelpers.Log2((uint)(_handle->_count + 1))))
+                using (var nodeStack = new UnsafeStack<NativePtr<Node<TKey, TValue>>>(2 * BitOperationsHelpers.Log2((uint)(_handle->_count + 1))))
                 {
                     for (var node = _handle->_root; !UnsafeHelpers.IsNull(node); node = node->Left)
                         nodeStack.Push(node);
@@ -1120,7 +1120,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     Node stack
                 /// </summary>
-                private readonly NativeStack<NativeReference<Node<TKey, TValue>>> _nodeStack;
+                private readonly NativeStack<NativePtr<Node<TKey, TValue>>> _nodeStack;
 
                 /// <summary>
                 ///     Current
@@ -1140,7 +1140,7 @@ namespace NativeCollections
                 {
                     _handle = handle;
                     _version = handle->_version;
-                    _nodeStack = new NativeStack<NativeReference<Node<TKey, TValue>>>(2 * BitOperationsHelpers.Log2((uint)(handle->_count + 1)));
+                    _nodeStack = new NativeStack<NativePtr<Node<TKey, TValue>>>(2 * BitOperationsHelpers.Log2((uint)(handle->_count + 1)));
                     _currentNode = null;
                     _current = default;
                     var node = handle->_root;
@@ -1256,7 +1256,7 @@ namespace NativeCollections
                     return 0;
                 count = Math.Min(buffer.Length, Math.Min(count, _handle->_count));
                 var index = 0;
-                using (var nodeStack = new UnsafeStack<NativeReference<Node<TKey, TValue>>>(2 * BitOperationsHelpers.Log2((uint)(_handle->_count + 1))))
+                using (var nodeStack = new UnsafeStack<NativePtr<Node<TKey, TValue>>>(2 * BitOperationsHelpers.Log2((uint)(_handle->_count + 1))))
                 {
                     for (var node = _handle->_root; !UnsafeHelpers.IsNull(node); node = node->Left)
                         nodeStack.Push(node);
@@ -1294,7 +1294,7 @@ namespace NativeCollections
                 if (UnsafeHelpers.IsNull(_handle->_root))
                     return;
                 var index = 0;
-                using (var nodeStack = new UnsafeStack<NativeReference<Node<TKey, TValue>>>(2 * BitOperationsHelpers.Log2((uint)(_handle->_count + 1))))
+                using (var nodeStack = new UnsafeStack<NativePtr<Node<TKey, TValue>>>(2 * BitOperationsHelpers.Log2((uint)(_handle->_count + 1))))
                 {
                     for (var node = _handle->_root; !UnsafeHelpers.IsNull(node); node = node->Left)
                         nodeStack.Push(node);
@@ -1362,7 +1362,7 @@ namespace NativeCollections
                 /// <summary>
                 ///     Node stack
                 /// </summary>
-                private readonly NativeStack<NativeReference<Node<TKey, TValue>>> _nodeStack;
+                private readonly NativeStack<NativePtr<Node<TKey, TValue>>> _nodeStack;
 
                 /// <summary>
                 ///     Current
@@ -1382,7 +1382,7 @@ namespace NativeCollections
                 {
                     _handle = handle;
                     _version = handle->_version;
-                    _nodeStack = new NativeStack<NativeReference<Node<TKey, TValue>>>(2 * BitOperationsHelpers.Log2((uint)(handle->_count + 1)));
+                    _nodeStack = new NativeStack<NativePtr<Node<TKey, TValue>>>(2 * BitOperationsHelpers.Log2((uint)(handle->_count + 1)));
                     _currentNode = null;
                     _current = default;
                     var node = handle->_root;

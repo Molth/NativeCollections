@@ -464,12 +464,12 @@ namespace NativeCollections
         /// <param name="actualValue">Actual value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly bool TryGetValueReference(in T equalValue, out NativeReference<T> actualValue)
+        public readonly bool TryGetValueReference(in T equalValue, out NativePtr<T> actualValue)
         {
             var node = FindNode(equalValue);
             if (!UnsafeHelpers.IsNull(node))
             {
-                actualValue = new NativeReference<T>(UnsafeHelpers.AsPointer(ref node->Item));
+                actualValue = new NativePtr<T>(UnsafeHelpers.AsPointer(ref node->Item));
                 return true;
             }
 
@@ -580,7 +580,7 @@ namespace NativeCollections
                 return 0;
             count = Math.Min(buffer.Length, Math.Min(count, _count));
             var index = 0;
-            using (var nodeStack = new UnsafeStack<NativeReference<Node<T>>>(2 * BitOperationsHelpers.Log2((uint)(_count + 1))))
+            using (var nodeStack = new UnsafeStack<NativePtr<Node<T>>>(2 * BitOperationsHelpers.Log2((uint)(_count + 1))))
             {
                 for (var node = _root; !UnsafeHelpers.IsNull(node); node = node->Left)
                     nodeStack.Push(node);
@@ -618,7 +618,7 @@ namespace NativeCollections
             if (UnsafeHelpers.IsNull(_root))
                 return;
             var index = 0;
-            using (var nodeStack = new UnsafeStack<NativeReference<Node<T>>>(2 * BitOperationsHelpers.Log2((uint)(_count + 1))))
+            using (var nodeStack = new UnsafeStack<NativePtr<Node<T>>>(2 * BitOperationsHelpers.Log2((uint)(_count + 1))))
             {
                 for (var node = _root; !UnsafeHelpers.IsNull(node); node = node->Left)
                     nodeStack.Push(node);
@@ -692,7 +692,7 @@ namespace NativeCollections
             /// <summary>
             ///     Node stack
             /// </summary>
-            private readonly NativeStack<NativeReference<Node<T>>> _nodeStack;
+            private readonly NativeStack<NativePtr<Node<T>>> _nodeStack;
 
             /// <summary>
             ///     Current
@@ -712,7 +712,7 @@ namespace NativeCollections
             {
                 _handle = handle;
                 _version = handle->_version;
-                _nodeStack = new NativeStack<NativeReference<Node<T>>>(2 * BitOperationsHelpers.Log2((uint)(handle->_count + 1)));
+                _nodeStack = new NativeStack<NativePtr<Node<T>>>(2 * BitOperationsHelpers.Log2((uint)(handle->_count + 1)));
                 _currentNode = null;
                 _current = default;
                 var node = handle->_root;

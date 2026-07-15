@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using static NativeCollections.TLSF;
+using static NativeCollections.Tlsf;
 
 // ReSharper disable ALL
 
@@ -43,9 +43,9 @@ namespace NativeCollections
             void* handle;
             if (Environment.Is64BitProcess)
             {
-                bytes = (nuint)TLSF64.align_up(TLSF64.tlsf_size() + TLSF64.tlsf_pool_overhead() + blocks * TLSF64.tlsf_alloc_overhead() + size, 8);
-                buffer = NativeMemoryAllocator.AlignedAlloc((uint)bytes, NativeMemoryAllocator.AlignOf<TLSF32.control_t>());
-                handle = TLSF64.tlsf_create_with_pool(buffer, bytes);
+                bytes = (nuint)Tlsf64.align_up(Tlsf64.tlsf_size() + Tlsf64.tlsf_pool_overhead() + blocks * Tlsf64.tlsf_alloc_overhead() + size, 8);
+                buffer = NativeMemoryAllocator.AlignedAlloc((uint)bytes, NativeMemoryAllocator.AlignOf<Tlsf32.control_t>());
+                handle = Tlsf64.tlsf_create_with_pool(buffer, bytes);
                 if (UnsafeHelpers.IsNull(handle))
                 {
                     NativeMemoryAllocator.AlignedFree(buffer);
@@ -54,9 +54,9 @@ namespace NativeCollections
             }
             else
             {
-                bytes = TLSF32.align_up((uint)(TLSF32.tlsf_size() + TLSF32.tlsf_pool_overhead() + blocks * TLSF32.tlsf_alloc_overhead() + size), 4);
-                buffer = NativeMemoryAllocator.AlignedAlloc((uint)bytes, NativeMemoryAllocator.AlignOf<TLSF64.control_t>());
-                handle = TLSF32.tlsf_create_with_pool(buffer, (uint)bytes);
+                bytes = Tlsf32.align_up((uint)(Tlsf32.tlsf_size() + Tlsf32.tlsf_pool_overhead() + blocks * Tlsf32.tlsf_alloc_overhead() + size), 4);
+                buffer = NativeMemoryAllocator.AlignedAlloc((uint)bytes, NativeMemoryAllocator.AlignOf<Tlsf64.control_t>());
+                handle = Tlsf32.tlsf_create_with_pool(buffer, (uint)bytes);
                 if (UnsafeHelpers.IsNull(handle))
                 {
                     NativeMemoryAllocator.AlignedFree(buffer);
@@ -144,13 +144,13 @@ namespace NativeCollections
             var buffer = _handle;
             if (Environment.Is64BitProcess)
             {
-                bytes = (nuint)TLSF64.align_up(TLSF64.tlsf_size() + TLSF64.tlsf_pool_overhead() + blocks * TLSF64.tlsf_alloc_overhead() + size, 8);
-                TLSF64.tlsf_create_with_pool(buffer, bytes);
+                bytes = (nuint)Tlsf64.align_up(Tlsf64.tlsf_size() + Tlsf64.tlsf_pool_overhead() + blocks * Tlsf64.tlsf_alloc_overhead() + size, 8);
+                Tlsf64.tlsf_create_with_pool(buffer, bytes);
             }
             else
             {
-                bytes = TLSF32.align_up((uint)(TLSF32.tlsf_size() + TLSF32.tlsf_pool_overhead() + blocks * TLSF32.tlsf_alloc_overhead() + size), 4);
-                TLSF32.tlsf_create_with_pool(buffer, (uint)bytes);
+                bytes = Tlsf32.align_up((uint)(Tlsf32.tlsf_size() + Tlsf32.tlsf_pool_overhead() + blocks * Tlsf32.tlsf_alloc_overhead() + size), 4);
+                Tlsf32.tlsf_create_with_pool(buffer, (uint)bytes);
             }
         }
 
@@ -160,7 +160,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryRent(nuint size, nuint alignment, out void* ptr)
         {
-            ptr = Environment.Is64BitProcess ? TLSF64.tlsf_memalign(_handle, alignment, size) : TLSF32.tlsf_memalign(_handle, (uint)alignment, (uint)size);
+            ptr = Environment.Is64BitProcess ? Tlsf64.tlsf_memalign(_handle, alignment, size) : Tlsf32.tlsf_memalign(_handle, (uint)alignment, (uint)size);
             return !UnsafeHelpers.IsNull(ptr);
         }
 
@@ -172,10 +172,10 @@ namespace NativeCollections
         {
             if (Environment.Is64BitProcess)
             {
-                ptr = TLSF64.tlsf_memalign(_handle, alignment, size);
+                ptr = Tlsf64.tlsf_memalign(_handle, alignment, size);
                 if (!UnsafeHelpers.IsNull(ptr))
                 {
-                    bytes = (nuint)TLSF64.tlsf_block_size(ptr);
+                    bytes = (nuint)Tlsf64.tlsf_block_size(ptr);
                     return true;
                 }
 
@@ -183,10 +183,10 @@ namespace NativeCollections
                 return false;
             }
 
-            ptr = TLSF32.tlsf_memalign(_handle, (uint)alignment, (uint)size);
+            ptr = Tlsf32.tlsf_memalign(_handle, (uint)alignment, (uint)size);
             if (!UnsafeHelpers.IsNull(ptr))
             {
-                bytes = TLSF32.tlsf_block_size(ptr);
+                bytes = Tlsf32.tlsf_block_size(ptr);
                 return true;
             }
 
@@ -202,9 +202,9 @@ namespace NativeCollections
         public void Return(void* ptr)
         {
             if (Environment.Is64BitProcess)
-                TLSF64.tlsf_free(_handle, ptr);
+                Tlsf64.tlsf_free(_handle, ptr);
             else
-                TLSF32.tlsf_free(_handle, ptr);
+                Tlsf32.tlsf_free(_handle, ptr);
         }
 
         /// <summary>

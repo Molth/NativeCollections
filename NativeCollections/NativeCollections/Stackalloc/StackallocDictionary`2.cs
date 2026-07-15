@@ -324,12 +324,12 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly bool TryGetValueReference(in TKey key, out NativeReference<TValue> value)
+        public readonly bool TryGetValueReference(in TKey key, out NativePtr<TValue> value)
         {
             ref var valRef = ref FindValue(key);
             if (!Unsafe.IsNullRef(ref Unsafe.AsRef(in valRef)))
             {
-                value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref valRef));
+                value = new NativePtr<TValue>(UnsafeHelpers.AsPointer(ref valRef));
                 return true;
             }
 
@@ -366,7 +366,7 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueRefOrAddDefault(in TKey key, out NativeReference<TValue> value)
+        public bool TryGetValueRefOrAddDefault(in TKey key, out NativePtr<TValue> value)
         {
             var hashCode = (uint)key.GetHashCode();
             uint collisionCount = 0;
@@ -379,7 +379,7 @@ namespace NativeCollections
                 ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)i);
                 if (entry.HashCode == hashCode && entry.Key.Equals(key))
                 {
-                    value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref entry.Value));
+                    value = new NativePtr<TValue>(UnsafeHelpers.AsPointer(ref entry.Value));
                     return true;
                 }
 
@@ -416,7 +416,7 @@ namespace NativeCollections
             newEntry.Value = default;
             bucket = index + 1;
             _version++;
-            value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref newEntry.Value));
+            value = new NativePtr<TValue>(UnsafeHelpers.AsPointer(ref newEntry.Value));
             return true;
         }
 
@@ -428,7 +428,7 @@ namespace NativeCollections
         /// <param name="exists">Exists</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryGetValueRefOrAddDefault(in TKey key, out NativeReference<TValue> value, out bool exists)
+        public bool TryGetValueRefOrAddDefault(in TKey key, out NativePtr<TValue> value, out bool exists)
         {
             var hashCode = (uint)key.GetHashCode();
             uint collisionCount = 0;
@@ -441,7 +441,7 @@ namespace NativeCollections
                 ref var entry = ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), (nint)i);
                 if (entry.HashCode == hashCode && entry.Key.Equals(key))
                 {
-                    value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref entry.Value));
+                    value = new NativePtr<TValue>(UnsafeHelpers.AsPointer(ref entry.Value));
                     exists = true;
                     return true;
                 }
@@ -480,7 +480,7 @@ namespace NativeCollections
             newEntry.Value = default;
             bucket = index + 1;
             _version++;
-            value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref newEntry.Value));
+            value = new NativePtr<TValue>(UnsafeHelpers.AsPointer(ref newEntry.Value));
             exists = false;
             return true;
         }

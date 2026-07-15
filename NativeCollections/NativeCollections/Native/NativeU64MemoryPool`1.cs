@@ -11,22 +11,22 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    [BindingType(typeof(UnsafeUInt32MemoryPool<>))]
-    public readonly unsafe struct NativeUInt32MemoryPool<T> : IIsCreated, IDisposable, IEquatable<NativeUInt32MemoryPool<T>> where T : unmanaged
+    [BindingType(typeof(UnsafeU64MemoryPool<>))]
+    public readonly unsafe struct NativeU64MemoryPool<T> : IIsCreated, IDisposable, IEquatable<NativeU64MemoryPool<T>> where T : unmanaged
     {
         /// <summary>
         ///     Handle
         /// </summary>
-        private readonly UnsafeUInt32MemoryPool<T>* _handle;
+        private readonly UnsafeU64MemoryPool<T>* _handle;
 
         /// <summary>
         ///     Structure
         /// </summary>
         /// <param name="maxFreeSlabs">Max free slabs</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeUInt32MemoryPool(int maxFreeSlabs)
+        public NativeU64MemoryPool(int maxFreeSlabs)
         {
-            var value = new UnsafeUInt32MemoryPool<T>(maxFreeSlabs);
+            var value = new UnsafeU64MemoryPool<T>(maxFreeSlabs);
             _handle = Box.New(ref value);
         }
 
@@ -37,9 +37,9 @@ namespace NativeCollections
         /// <param name="maxFreeSlabs">Max free slabs</param>
         /// <param name="alignment">Alignment</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeUInt32MemoryPool(int length, int maxFreeSlabs, int alignment)
+        public NativeU64MemoryPool(int length, int maxFreeSlabs, int alignment)
         {
-            var value = new UnsafeUInt32MemoryPool<T>(length, maxFreeSlabs, alignment);
+            var value = new UnsafeU64MemoryPool<T>(length, maxFreeSlabs, alignment);
             _handle = Box.New(ref value);
         }
 
@@ -83,14 +83,14 @@ namespace NativeCollections
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeUInt32MemoryPool<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
+        public bool Equals(NativeU64MemoryPool<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeUInt32MemoryPool<T> other && other.Equals(this);
+        public override bool Equals(object? obj) => obj is NativeU64MemoryPool<T> other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
@@ -102,7 +102,7 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => SR.Format("NativeUInt32MemoryPool<{0}>", SR.GetTypeName(typeof(T)));
+        public override string ToString() => SR.Format("NativeUInt64MemoryPool<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
         ///     Equals
@@ -110,7 +110,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeUInt32MemoryPool<T> left, NativeUInt32MemoryPool<T> right) => left.Equals(right);
+        public static bool operator ==(NativeU64MemoryPool<T> left, NativeU64MemoryPool<T> right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -118,7 +118,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeUInt32MemoryPool<T> left, NativeUInt32MemoryPool<T> right) => !left.Equals(right);
+        public static bool operator !=(NativeU64MemoryPool<T> left, NativeU64MemoryPool<T> right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
@@ -177,6 +177,6 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeUInt32MemoryPool<T> Empty => default;
+        public static NativeU64MemoryPool<T> Empty => default;
     }
 }

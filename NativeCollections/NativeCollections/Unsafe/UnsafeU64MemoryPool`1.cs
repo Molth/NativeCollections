@@ -7,17 +7,59 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native uint bitmap memory pool
+    ///     Unsafe ulong bitmap memory pool
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection(FromType.None)]
-    [BindingType(typeof(UnsafeUInt32MemoryPool))]
-    public readonly unsafe struct NativeUInt32MemoryPool : IIsCreated, IDisposable, IEquatable<NativeUInt32MemoryPool>
+    [UnsafeCollection(FromType.None)]
+    [BindingType(typeof(UnsafeU64MemoryPool))]
+    public unsafe struct UnsafeU64MemoryPool<T> : IIsCreated, IDisposable, IEquatable<UnsafeU64MemoryPool<T>> where T : unmanaged
     {
         /// <summary>
         ///     Handle
         /// </summary>
-        private readonly UnsafeUInt32MemoryPool* _handle;
+        private UnsafeU64MemoryPool _handle;
+
+        /// <summary>
+        ///     Is created
+        /// </summary>
+        public readonly bool IsCreated => _handle.IsCreated;
+
+        /// <summary>
+        ///     Slabs
+        /// </summary>
+        public readonly int Slabs => _handle.Slabs;
+
+        /// <summary>
+        ///     Free slabs
+        /// </summary>
+        public readonly int FreeSlabs => _handle.FreeSlabs;
+
+        /// <summary>
+        ///     Max free slabs
+        /// </summary>
+        public readonly int MaxFreeSlabs => _handle.MaxFreeSlabs;
+
+        /// <summary>
+        ///     Length
+        /// </summary>
+        public readonly int Length => _handle.Length;
+
+        /// <summary>
+        ///     Alignment
+        /// </summary>
+        public readonly int Alignment => _handle.Alignment;
+
+        /// <summary>
+        ///     Aligned length
+        /// </summary>
+        public readonly int AlignedLength => _handle.AlignedLength;
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        /// <param name="maxFreeSlabs">Max free slabs</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public UnsafeU64MemoryPool(int maxFreeSlabs) => _handle = new UnsafeU64MemoryPool(Unsafe.SizeOf<T>(), maxFreeSlabs, (int)NativeMemoryAllocator.AlignOf<T>());
 
         /// <summary>
         ///     Structure
@@ -26,72 +68,38 @@ namespace NativeCollections
         /// <param name="maxFreeSlabs">Max free slabs</param>
         /// <param name="alignment">Alignment</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeUInt32MemoryPool(int length, int maxFreeSlabs, int alignment)
+        public UnsafeU64MemoryPool(int length, int maxFreeSlabs, int alignment)
         {
-            var value = new UnsafeUInt32MemoryPool(length, maxFreeSlabs, alignment);
-            _handle = Box.New(ref value);
+            ThrowHelpers.ThrowIfLessThan(length, Unsafe.SizeOf<T>(), ExceptionArgument.length);
+            ThrowHelpers.ThrowIfLessThan(alignment, (int)NativeMemoryAllocator.AlignOf<T>(), ExceptionArgument.alignment);
+            _handle = new UnsafeU64MemoryPool(length, maxFreeSlabs, alignment);
         }
-
-        /// <summary>
-        ///     Is created
-        /// </summary>
-        public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
-
-        /// <summary>
-        ///     Slabs
-        /// </summary>
-        public int Slabs => _handle->Slabs;
-
-        /// <summary>
-        ///     Free slabs
-        /// </summary>
-        public int FreeSlabs => _handle->FreeSlabs;
-
-        /// <summary>
-        ///     Max free slabs
-        /// </summary>
-        public int MaxFreeSlabs => _handle->MaxFreeSlabs;
-
-        /// <summary>
-        ///     Length
-        /// </summary>
-        public int Length => _handle->Length;
-
-        /// <summary>
-        ///     Alignment
-        /// </summary>
-        public int Alignment => _handle->Alignment;
-
-        /// <summary>
-        ///     Aligned length
-        /// </summary>
-        public int AlignedLength => _handle->AlignedLength;
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="other">Other</param>
         /// <returns>Equals</returns>
-        public bool Equals(NativeUInt32MemoryPool other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
+        public readonly bool Equals(UnsafeU64MemoryPool<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Equals
         /// </summary>
         /// <param name="obj">object</param>
         /// <returns>Equals</returns>
-        public override bool Equals(object? obj) => obj is NativeUInt32MemoryPool other && other.Equals(this);
+        public readonly override bool Equals(object? obj) => obj is UnsafeU64MemoryPool<T> other && other.Equals(this);
 
         /// <summary>
         ///     Get hashCode
         /// </summary>
         /// <returns>HashCode</returns>
-        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
+        public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => "NativeUInt32MemoryPool";
+        public readonly override string ToString() => SR.Format("UnsafeUInt64MemoryPool<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
         ///     Equals
@@ -99,7 +107,7 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Equals</returns>
-        public static bool operator ==(NativeUInt32MemoryPool left, NativeUInt32MemoryPool right) => left.Equals(right);
+        public static bool operator ==(UnsafeU64MemoryPool<T> left, UnsafeU64MemoryPool<T> right) => left.Equals(right);
 
         /// <summary>
         ///     Not equals
@@ -107,40 +115,40 @@ namespace NativeCollections
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Not equals</returns>
-        public static bool operator !=(NativeUInt32MemoryPool left, NativeUInt32MemoryPool right) => !left.Equals(right);
+        public static bool operator !=(UnsafeU64MemoryPool<T> left, UnsafeU64MemoryPool<T> right) => !left.Equals(right);
 
         /// <summary>
         ///     Dispose
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => Box.Drop(_handle);
+        public void Dispose() => _handle.Dispose();
 
         /// <summary>
         ///     Clear
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Clear() => _handle->Clear();
+        public void Clear() => _handle.Clear();
 
         /// <summary>
         ///     Clear
         /// </summary>
         /// <param name="capacity">Remaining free slabs</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int Clear(int capacity) => _handle->Clear(capacity);
+        public int Clear(int capacity) => _handle.Clear(capacity);
 
         /// <summary>
         ///     Rent buffer
         /// </summary>
         /// <returns>Buffer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void* Rent() => _handle->Rent();
+        public T* Rent() => (T*)_handle.Rent();
 
         /// <summary>
         ///     Return buffer
         /// </summary>
         /// <param name="ptr">Pointer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Return(void* ptr) => _handle->Return(ptr);
+        public void Return(T* ptr) => _handle.Return(ptr);
 
         /// <summary>
         ///     Ensure capacity
@@ -148,24 +156,24 @@ namespace NativeCollections
         /// <param name="capacity">Capacity</param>
         /// <returns>New capacity</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int EnsureCapacity(int capacity) => _handle->EnsureCapacity(capacity);
+        public int EnsureCapacity(int capacity) => _handle.EnsureCapacity(capacity);
 
         /// <summary>
         ///     Trim excess
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void TrimExcess() => _handle->TrimExcess();
+        public void TrimExcess() => _handle.TrimExcess();
 
         /// <summary>
         ///     Trim excess
         /// </summary>
         /// <param name="capacity">Remaining free slabs</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int TrimExcess(int capacity) => _handle->TrimExcess(capacity);
+        public int TrimExcess(int capacity) => _handle.TrimExcess(capacity);
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeUInt32MemoryPool Empty => default;
+        public static UnsafeU64MemoryPool<T> Empty => default;
     }
 }

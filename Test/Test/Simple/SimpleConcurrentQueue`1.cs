@@ -31,14 +31,14 @@ namespace Examples
         /// <summary>
         ///     Tail
         /// </summary>
-        private UnsafeAtomicReference<Segment<T>> _tail;
+        private UnsafeAtomicPtr<Segment<T>> _tail;
 
         private Padding _padding2;
 
         /// <summary>
         ///     Head
         /// </summary>
-        private UnsafeAtomicReference<Segment<T>> _head;
+        private UnsafeAtomicPtr<Segment<T>> _head;
 
         private Padding _padding3;
 
@@ -62,7 +62,7 @@ namespace Examples
             _crossSegmentLock = GCHandle.Alloc(new object(), GCHandleType.Normal);
             var segment = NativeMemoryAllocator.AlignedAlloc<Segment<T>>(1);
             segment->Initialize();
-            _tail = _head = new UnsafeAtomicReference<Segment<T>>(segment);
+            _tail = _head = new UnsafeAtomicPtr<Segment<T>>(segment);
             _hp = new HazardPointers(1, maxThreads);
             _tidManager = new SimpleTidManager2(maxThreads);
         }

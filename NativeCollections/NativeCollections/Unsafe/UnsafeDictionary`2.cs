@@ -323,12 +323,12 @@ namespace NativeCollections
         /// <param name="value">Value</param>
         /// <returns>Got</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly bool TryGetValueReference(in TKey key, out NativeReference<TValue> value)
+        public readonly bool TryGetValueReference(in TKey key, out NativePtr<TValue> value)
         {
             ref var valRef = ref FindValue(key);
             if (!Unsafe.IsNullRef(ref Unsafe.AsRef(in valRef)))
             {
-                value = new NativeReference<TValue>(UnsafeHelpers.AsPointer(ref valRef));
+                value = new NativePtr<TValue>(UnsafeHelpers.AsPointer(ref valRef));
                 return true;
             }
 
