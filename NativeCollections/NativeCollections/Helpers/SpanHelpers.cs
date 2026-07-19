@@ -61,7 +61,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Fill<T>(ref T refData, uint numElements, T value) where T : unmanaged
         {
-            if (Environment.Is64BitProcess || NativeMemoryAllocator.AlignOf<T>() == 1)
+            if (Environment.Is64BitProcess || NativeMemoryAllocator.AlignOf<T>() == 1 || NativeMemoryAllocator.IsAligned(Unsafe.AsPointer(ref refData), NativeMemoryAllocator.AlignOf<T>()))
             {
                 for (uint count; numElements > 0; numElements -= count, refData = ref Unsafe.Add(ref refData, (nint)count))
                 {

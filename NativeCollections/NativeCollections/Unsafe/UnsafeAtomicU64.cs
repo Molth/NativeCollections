@@ -34,22 +34,14 @@ namespace NativeCollections
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
-        public ref ulong AsRef() => ref Unsafe.As<long, ulong>(ref _value.AsRef());
+        public ref ulong AsRef() => ref Unsafe.As<UnsafeAtomicI64, ulong>(ref _value);
 
         /// <summary>
-        ///     Returns a value, loaded as an atomic operation.
+        ///     Bitwise "nands" two 64-bit signed integers and replaces the first integer with the result, as an atomic operation.
         /// </summary>
-        /// <returns>The loaded value.</returns>
-        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
+        /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ulong Load(Ordering order) => (ulong)_value.Load(order);
-
-        /// <summary>
-        ///     Sets a value to a specified value, as an atomic operation.
-        /// </summary>
-        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Store(ulong value, Ordering order) => _value.Store((long)value, order);
+        public ulong Nand(ulong value) => (ulong)_value.Nand((long)value);
 
         /// <summary>
         ///     Bitwise "ands" two 64-bit signed integers and replaces the first integer with the result, as an atomic operation.
@@ -73,18 +65,54 @@ namespace NativeCollections
         public ulong Xor(ulong value) => (ulong)_value.Xor((long)value);
 
         /// <summary>
+        ///     Adds two values and replaces the first integer with the sum, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ulong Add(ulong value) => (ulong)_value.Add((long)value);
+
+        /// <summary>
+        ///     Subtracts two values and replaces the first integer with the difference, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ulong Sub(ulong value) => (ulong)_value.Sub((long)value);
+
+        /// <summary>
+        ///     Finds the maximum of the current value and the argument, and sets the new value to the result.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ulong Max(ulong value) => (ulong)AtomicHelpers.Update(ref _value.AsRef(), value, &Math.Max);
+
+        /// <summary>
+        ///     Finds the minimum of the current value and the argument, and sets the new value to the result.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ulong Min(ulong value) => (ulong)AtomicHelpers.Update(ref _value.AsRef(), value, &Math.Min);
+
+        /// <summary>
         ///     Returns a value, loaded as an atomic operation.
         /// </summary>
         /// <returns>The loaded value.</returns>
+        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ulong Read() => (ulong)_value.Read();
+        public ulong Load(Ordering order) => (ulong)_value.Load(order);
+
+        /// <summary>
+        ///     Sets a value to a specified value, as an atomic operation.
+        /// </summary>
+        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Store(ulong value, Ordering order) => _value.Store((long)value, order);
 
         /// <summary>
         ///     Sets a value to a specified value and returns the original value, as an atomic operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ulong Exchange(ulong value) => (ulong)_value.Exchange((long)value);
+        public ulong Swap(ulong value) => (ulong)_value.Swap((long)value);
 
         /// <summary>
         ///     Compares two values for equality and, if they are equal, replaces the first value.
@@ -92,34 +120,6 @@ namespace NativeCollections
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ulong CompareExchange(ulong value, ulong comparand) => (ulong)_value.CompareExchange((long)value, (long)comparand);
-
-        /// <summary>
-        ///     Adds two values and replaces the first integer with the sum, as an atomic operation.
-        /// </summary>
-        /// <returns>The new value stored.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ulong Add(ulong value) => (ulong)_value.Add((long)value);
-
-        /// <summary>
-        ///     Subtracts two values and replaces the first integer with the difference, as an atomic operation.
-        /// </summary>
-        /// <returns>The new value stored.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ulong Subtract(ulong value) => (ulong)_value.Subtract((long)value);
-
-        /// <summary>
-        ///     Increments a specified variable and stores the result, as an atomic operation.
-        /// </summary>
-        /// <returns>The incremented value.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ulong Increment() => (ulong)_value.Increment();
-
-        /// <summary>
-        ///     Decrements a specified variable and stores the result, as an atomic operation.
-        /// </summary>
-        /// <returns>The decremented value.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ulong Decrement() => (ulong)_value.Decrement();
 
         /// <summary>
         ///     Equals

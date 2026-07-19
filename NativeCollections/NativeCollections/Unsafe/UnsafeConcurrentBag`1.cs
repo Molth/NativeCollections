@@ -153,6 +153,6 @@ namespace NativeCollections
         ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeConcurrentBag<T> Create() => new(NativeObject<ConcurrentBag<T>>.Alloc(new ConcurrentBag<T>()));
+        public static UnsafeConcurrentBag<T> Create() => new(NativeObject<ConcurrentBag<T>>.Create(new ConcurrentBag<T>()));
     }
 }

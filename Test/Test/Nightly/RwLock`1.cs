@@ -7,37 +7,27 @@ namespace Examples
     public unsafe struct RwLock<T> where T : unmanaged
     {
         private T _value;
-        private int _state;
+        private RwLock _state;
 
-        private RwLock(T value, int state)
+        private RwLock(T value)
         {
             _value = value;
-            _state = state;
+            _state = new RwLock();
         }
 
-        public static RwLock<T> Create(in T value) => new(value, 0);
+        public static RwLock<T> Create(in T value) => new(value);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public RwLockRef<T> BorrowMutable()
         {
-            var spinWait = new SpinWait();
-            while (Interlocked.CompareExchange(ref _state, -1, 0) != 0)
-                spinWait.SpinOnce();
+            _state.Read();
             return new RwLockRef<T>(Unsafe.AsPointer(ref _value), Unsafe.AsPointer(ref _state));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public RwLockReadOnlyRef<T> Borrow()
         {
-            var spinWait = new SpinWait();
-            while (true)
-            {
-                var snapshot = Volatile.Read(ref _state);
-                if (snapshot >= 0 && Interlocked.CompareExchange(ref _state, snapshot + 1, snapshot) == snapshot)
-                    break;
-                spinWait.SpinOnce();
-            }
-
+            _state.Write();
             return new RwLockReadOnlyRef<T>(Unsafe.AsPointer(ref _value), Unsafe.AsPointer(ref _state));
         }
     }

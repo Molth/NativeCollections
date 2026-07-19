@@ -147,6 +147,6 @@ namespace NativeCollections
         ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeConcurrentStack<T> Create() => new(NativeObject<ConcurrentStack<T>>.Alloc(new ConcurrentStack<T>()));
+        public static UnsafeConcurrentStack<T> Create() => new(NativeObject<ConcurrentStack<T>>.Create(new ConcurrentStack<T>()));
     }
 }

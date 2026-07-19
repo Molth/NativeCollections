@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Threading;
 
 #pragma warning disable CA2231 // Overload operator equals on overriding ValueType.Equals
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
@@ -21,28 +20,28 @@ namespace NativeCollections
     public unsafe struct UnsafeAtomicPtr<T> where T : unmanaged
     {
         /// <summary>
-        ///     Handle
+        ///     Value
         /// </summary>
-        private nint _handle;
+        private UnsafeAtomicIsize _value;
 
         /// <summary>
         ///     Structure
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeAtomicPtr(T* handle) => _handle = (nint)handle;
+        public UnsafeAtomicPtr(T* handle) => _value = new UnsafeAtomicIsize((nint)handle);
 
         /// <summary>
         ///     Structure
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeAtomicPtr(nint handle) => _handle = handle;
+        public UnsafeAtomicPtr(nint handle) => _value = new UnsafeAtomicIsize(handle);
 
         /// <summary>
         ///     Reinterprets the given location as a reference to this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
-        public ref T* AsRef() => ref Unsafe.As<nint, UnsafePtr<T>>(ref _handle).Handle;
+        public ref T* AsRef() => ref Unsafe.As<UnsafeAtomicIsize, UnsafePtr<T>>(ref _value).Handle;
 
         /// <summary>
         ///     Returns a value, loaded as an atomic operation.
@@ -50,35 +49,28 @@ namespace NativeCollections
         /// <returns>The loaded value.</returns>
         /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T* Load(Ordering order) => (T*)AtomicHelpers.Load(ref _handle, order);
+        public T* Load(Ordering order) => (T*)_value.Load(order);
 
         /// <summary>
         ///     Sets a value to a specified value, as an atomic operation.
         /// </summary>
         /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Store(T* value, Ordering order) => AtomicHelpers.Store(ref _handle, (nint)value, order);
-
-        /// <summary>
-        ///     Returns a value, loaded as an atomic operation.
-        /// </summary>
-        /// <returns>The loaded value.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T* Read() => (T*)InterlockedHelpers.Read(ref _handle);
+        public void Store(T* value, Ordering order) => _value.Store((nint)value, order);
 
         /// <summary>
         ///     Sets a value to a specified value and returns the original value, as an atomic operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T* Exchange(T* value) => (T*)Interlocked.Exchange(ref _handle, (nint)value);
+        public T* Swap(T* value) => (T*)_value.Swap((nint)value);
 
         /// <summary>
         ///     Compares two values for equality and, if they are equal, replaces the first value.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T* CompareExchange(T* value, T* comparand) => (T*)Interlocked.CompareExchange(ref _handle, (nint)value, (nint)comparand);
+        public T* CompareExchange(T* value, T* comparand) => (T*)_value.CompareExchange((nint)value, (nint)comparand);
 
         /// <summary>
         ///     Equals

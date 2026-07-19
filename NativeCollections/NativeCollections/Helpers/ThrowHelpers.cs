@@ -257,6 +257,17 @@ namespace NativeCollections
                 throw new InvalidOperationException(SR.InvalidOperation_HashtableCapacityOverflow);
         }
 
+        /// <summary>
+        ///     Throws an <see cref="NotSupportedException" /> if the sizes of <typeparamref name="TFrom" /> and
+        ///     <typeparamref name="TTo" /> are not the same.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ThrowIfNotSameSizes<TFrom, TTo>() where TFrom : unmanaged where TTo : unmanaged
+        {
+            if (Unsafe.SizeOf<TFrom>() != Unsafe.SizeOf<TTo>())
+                ThrowNotSupportedException();
+        }
+
         /// <summary>Throws a <see cref="KeyNotFoundException" /> with the specified key value.</summary>
         /// <param name="value">The key value that was not found.</param>
         /// <typeparam name="T">The type of the key value.</typeparam>

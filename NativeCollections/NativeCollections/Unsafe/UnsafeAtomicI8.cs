@@ -34,22 +34,14 @@ namespace NativeCollections
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
-        public ref sbyte AsRef() => ref Unsafe.As<byte, sbyte>(ref _value.AsRef());
+        public ref sbyte AsRef() => ref Unsafe.As<UnsafeAtomicU8, sbyte>(ref _value);
 
         /// <summary>
-        ///     Returns a value, loaded as an atomic operation.
+        ///     Bitwise "nands" two 8-bit signed integers and replaces the first integer with the result, as an atomic operation.
         /// </summary>
-        /// <returns>The loaded value.</returns>
-        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
+        /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public sbyte Load(Ordering order) => (sbyte)_value.Load(order);
-
-        /// <summary>
-        ///     Sets a value to a specified value, as an atomic operation.
-        /// </summary>
-        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Store(sbyte value, Ordering order) => _value.Store((byte)value, order);
+        public sbyte Nand(sbyte value) => (sbyte)_value.Nand((byte)value);
 
         /// <summary>
         ///     Bitwise "ands" two 8-bit signed integers and replaces the first integer with the result, as an atomic operation.
@@ -73,18 +65,54 @@ namespace NativeCollections
         public sbyte Xor(sbyte value) => (sbyte)_value.Xor((byte)value);
 
         /// <summary>
+        ///     Adds two values and replaces the first integer with the sum, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public sbyte Add(sbyte value) => (sbyte)_value.Add((byte)value);
+
+        /// <summary>
+        ///     Subtracts two values and replaces the first integer with the difference, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public sbyte Sub(sbyte value) => (sbyte)_value.Sub((byte)value);
+
+        /// <summary>
+        ///     Finds the maximum of the current value and the argument, and sets the new value to the result.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public sbyte Max(sbyte value) => (sbyte)AtomicHelpers.Update(ref _value.AsRef(), value, &Math.Max);
+
+        /// <summary>
+        ///     Finds the minimum of the current value and the argument, and sets the new value to the result.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public sbyte Min(sbyte value) => (sbyte)AtomicHelpers.Update(ref _value.AsRef(), value, &Math.Min);
+
+        /// <summary>
         ///     Returns a value, loaded as an atomic operation.
         /// </summary>
         /// <returns>The loaded value.</returns>
+        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public sbyte Read() => (sbyte)_value.Read();
+        public sbyte Load(Ordering order) => (sbyte)_value.Load(order);
+
+        /// <summary>
+        ///     Sets a value to a specified value, as an atomic operation.
+        /// </summary>
+        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Store(sbyte value, Ordering order) => _value.Store((byte)value, order);
 
         /// <summary>
         ///     Sets a value to a specified value and returns the original value, as an atomic operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public sbyte Exchange(sbyte value) => (sbyte)_value.Exchange((byte)value);
+        public sbyte Swap(sbyte value) => (sbyte)_value.Swap((byte)value);
 
         /// <summary>
         ///     Compares two values for equality and, if they are equal, replaces the first value.
@@ -92,34 +120,6 @@ namespace NativeCollections
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public sbyte CompareExchange(sbyte value, sbyte comparand) => (sbyte)_value.CompareExchange((byte)value, (byte)comparand);
-
-        /// <summary>
-        ///     Adds two values and replaces the first integer with the sum, as an atomic operation.
-        /// </summary>
-        /// <returns>The new value stored.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public sbyte Add(sbyte value) => (sbyte)_value.Add((byte)value);
-
-        /// <summary>
-        ///     Subtracts two values and replaces the first integer with the difference, as an atomic operation.
-        /// </summary>
-        /// <returns>The new value stored.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public sbyte Subtract(sbyte value) => (sbyte)_value.Subtract((byte)value);
-
-        /// <summary>
-        ///     Increments a specified variable and stores the result, as an atomic operation.
-        /// </summary>
-        /// <returns>The incremented value.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public sbyte Increment() => (sbyte)_value.Increment();
-
-        /// <summary>
-        ///     Decrements a specified variable and stores the result, as an atomic operation.
-        /// </summary>
-        /// <returns>The decremented value.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public sbyte Decrement() => (sbyte)_value.Decrement();
 
         /// <summary>
         ///     Equals

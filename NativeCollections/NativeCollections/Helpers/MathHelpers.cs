@@ -1,7 +1,5 @@
-﻿using System.Runtime.CompilerServices;
-#if NET5_0_OR_GREATER
-using System;
-#endif
+﻿using System;
+using System.Runtime.CompilerServices;
 
 // ReSharper disable ALL
 
@@ -12,6 +10,62 @@ namespace NativeCollections
     /// </summary>
     internal static class MathHelpers
     {
+        /// <summary>Returns the larger of two native signed integers.</summary>
+        /// <param name="val1">The first of two native signed integers to compare.</param>
+        /// <param name="val2">The second of two native signed integers to compare.</param>
+        /// <returns>Parameter <paramref name="val1" /> or <paramref name="val2" />, whichever is larger.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static nint Max(nint val1, nint val2)
+        {
+#if NET6_0_OR_GREATER
+            return Math.Max(val1, val2);
+#else
+            return val1 >= val2 ? val1 : val2;
+#endif
+        }
+
+        /// <summary>Returns the smaller of two native signed integers.</summary>
+        /// <param name="val1">The first of two native signed integers to compare.</param>
+        /// <param name="val2">The second of two native signed integers to compare.</param>
+        /// <returns>Parameter <paramref name="val1" /> or <paramref name="val2" />, whichever is smaller.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static nint Min(nint val1, nint val2)
+        {
+#if NET6_0_OR_GREATER
+            return Math.Min(val1, val2);
+#else
+            return val1 <= val2 ? val1 : val2;
+#endif
+        }
+
+        /// <summary>Returns the larger of two native unsigned integers.</summary>
+        /// <param name="val1">The first of two native unsigned integers to compare.</param>
+        /// <param name="val2">The second of two native unsigned integers to compare.</param>
+        /// <returns>Parameter <paramref name="val1" /> or <paramref name="val2" />, whichever is larger.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static nuint Max(nuint val1, nuint val2)
+        {
+#if NET6_0_OR_GREATER
+            return Math.Max(val1, val2);
+#else
+            return val1 >= val2 ? val1 : val2;
+#endif
+        }
+
+        /// <summary>Returns the smaller of two native unsigned integers.</summary>
+        /// <param name="val1">The first of two native unsigned integers to compare.</param>
+        /// <param name="val2">The second of two native unsigned integers to compare.</param>
+        /// <returns>Parameter <paramref name="val1" /> or <paramref name="val2" />, whichever is smaller.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static nuint Min(nuint val1, nuint val2)
+        {
+#if NET6_0_OR_GREATER
+            return Math.Min(val1, val2);
+#else
+            return val1 <= val2 ? val1 : val2;
+#endif
+        }
+
         /// <summary>Produces the full product of two unsigned 64-bit numbers.</summary>
         /// <param name="a">The first number to multiply.</param>
         /// <param name="b">The second number to multiply.</param>

@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 
 #pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
 
@@ -11,6 +12,24 @@ namespace NativeCollections
     /// </summary>
     internal static unsafe class UnsafeHelpers
     {
+        /// <summary>
+        ///     Reinterprets the given value of type <typeparamref name="TFrom" /> as a value of type <typeparamref name="TTo" />.
+        /// </summary>
+        /// <exception cref="NotSupportedException">
+        ///     The sizes of <typeparamref name="TFrom" /> and <typeparamref name="TTo" /> are not the same
+        ///     or the type parameters are not <see langword="struct" />s.
+        /// </exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static TTo BitCast<TFrom, TTo>(TFrom source) where TFrom : unmanaged where TTo : unmanaged
+        {
+#if NET8_0_OR_GREATER
+            return Unsafe.BitCast<TFrom, TTo>(source);
+#else
+            ThrowHelpers.ThrowIfNotSameSizes<TFrom, TTo>();
+            return Unsafe.ReadUnaligned<TTo>(ref Unsafe.As<TFrom, byte>(ref source));
+#endif
+        }
+
         // Determines the misalignment of the address with respect to the specified `alignment`.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static nuint OpportunisticMisalignment<T>(ref T address, nuint alignment) => (nuint)(nint)Unsafe.AsPointer(ref address) & (alignment - 1);

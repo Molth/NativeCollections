@@ -38,19 +38,11 @@ namespace NativeCollections
         public ref long AsRef() => ref _value;
 
         /// <summary>
-        ///     Returns a value, loaded as an atomic operation.
+        ///     Bitwise "nands" two 64-bit signed integers and replaces the first integer with the result, as an atomic operation.
         /// </summary>
-        /// <returns>The loaded value.</returns>
-        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
+        /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public long Load(Ordering order) => AtomicHelpers.Load(ref _value, order);
-
-        /// <summary>
-        ///     Sets a value to a specified value, as an atomic operation.
-        /// </summary>
-        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Store(long value, Ordering order) => AtomicHelpers.Store(ref _value, value, order);
+        public long Nand(long value) => InterlockedHelpers.Nand(ref _value, value);
 
         /// <summary>
         ///     Bitwise "ands" two 64-bit signed integers and replaces the first integer with the result, as an atomic operation.
@@ -74,18 +66,54 @@ namespace NativeCollections
         public long Xor(long value) => InterlockedHelpers.Xor(ref _value, value);
 
         /// <summary>
+        ///     Adds two values and replaces the first integer with the sum, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public long Add(long value) => InterlockedHelpers.Add(ref _value, value);
+
+        /// <summary>
+        ///     Subtracts two values and replaces the first integer with the difference, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public long Sub(long value) => Add(-value);
+
+        /// <summary>
+        ///     Finds the maximum of the current value and the argument, and sets the new value to the result.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public long Max(long value) => AtomicHelpers.Update(ref _value, value, &Math.Max);
+
+        /// <summary>
+        ///     Finds the minimum of the current value and the argument, and sets the new value to the result.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public long Min(long value) => AtomicHelpers.Update(ref _value, value, &Math.Min);
+
+        /// <summary>
         ///     Returns a value, loaded as an atomic operation.
         /// </summary>
         /// <returns>The loaded value.</returns>
+        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public long Read() => Interlocked.Read(ref _value);
+        public long Load(Ordering order) => AtomicHelpers.Load(ref _value, order);
+
+        /// <summary>
+        ///     Sets a value to a specified value, as an atomic operation.
+        /// </summary>
+        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Store(long value, Ordering order) => AtomicHelpers.Store(ref _value, value, order);
 
         /// <summary>
         ///     Sets a value to a specified value and returns the original value, as an atomic operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public long Exchange(long value) => Interlocked.Exchange(ref _value, value);
+        public long Swap(long value) => Interlocked.Exchange(ref _value, value);
 
         /// <summary>
         ///     Compares two values for equality and, if they are equal, replaces the first value.
@@ -93,34 +121,6 @@ namespace NativeCollections
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public long CompareExchange(long value, long comparand) => Interlocked.CompareExchange(ref _value, value, comparand);
-
-        /// <summary>
-        ///     Adds two values and replaces the first integer with the sum, as an atomic operation.
-        /// </summary>
-        /// <returns>The new value stored.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public long Add(long value) => Interlocked.Add(ref _value, value);
-
-        /// <summary>
-        ///     Subtracts two values and replaces the first integer with the difference, as an atomic operation.
-        /// </summary>
-        /// <returns>The new value stored.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public long Subtract(long value) => Interlocked.Add(ref _value, -value);
-
-        /// <summary>
-        ///     Increments a specified variable and stores the result, as an atomic operation.
-        /// </summary>
-        /// <returns>The incremented value.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public long Increment() => Interlocked.Increment(ref _value);
-
-        /// <summary>
-        ///     Decrements a specified variable and stores the result, as an atomic operation.
-        /// </summary>
-        /// <returns>The decremented value.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public long Decrement() => Interlocked.Decrement(ref _value);
 
         /// <summary>
         ///     Equals

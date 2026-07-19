@@ -48,10 +48,10 @@ namespace crossbeam
             /// Waits until a value is written into the slot.
             public void wait_write()
             {
-                var backoff = new UnsafeSpinWait();
+                var backoff = new Backoff();
                 while ((this.state.load(Ordering.Acquire) & WRITE) == 0)
                 {
-                    backoff.SpinOnce();
+                    backoff.snooze();
                 }
             }
         }
@@ -82,7 +82,7 @@ namespace crossbeam
             /// Waits until the next pointer is set.
             public Block<T>* wait_next()
             {
-                var backoff = new UnsafeSpinWait();
+                var backoff = new Backoff();
                 while (true)
                 {
                     var next = this.next.load(Ordering.Acquire);
@@ -91,7 +91,7 @@ namespace crossbeam
                         return next;
                     }
 
-                    backoff.SpinOnce();
+                    backoff.snooze();
                 }
             }
 
@@ -147,7 +147,7 @@ namespace crossbeam
             /// Pushes back an element to the tail.
             public void push(T value)
             {
-                var backoff = new UnsafeSpinWait();
+                var backoff = new Backoff();
                 var tail = this.tail.index.load(Ordering.Acquire);
                 var block = this.tail.block.load(Ordering.Acquire);
                 Block<T>* next_block = null;
@@ -162,7 +162,7 @@ namespace crossbeam
                         // If we reached the end of the block, wait until the next one is installed.
                         if (offset == BLOCK_CAP)
                         {
-                            backoff.SpinOnce();
+                            backoff.snooze();
                             tail = this.tail.index.load(Ordering.Acquire);
                             block = this.tail.block.load(Ordering.Acquire);
                             continue;
@@ -232,7 +232,7 @@ namespace crossbeam
                         {
                             tail = t;
                             block = this.tail.block.load(Ordering.Acquire);
-                            backoff.SpinOnce(-1);
+                            backoff.spin();
                         }
                     }
                 }
@@ -292,7 +292,7 @@ namespace crossbeam
             /// Pops the head element from the queue.
             public bool pop(out T result)
             {
-                var backoff = new UnsafeSpinWait();
+                var backoff = new Backoff();
                 var head = this.head.index.load(Ordering.Acquire);
                 var block = this.head.block.load(Ordering.Acquire);
 
@@ -304,7 +304,7 @@ namespace crossbeam
                     // If we reached the end of the block, wait until the next one is installed.
                     if (offset == BLOCK_CAP)
                     {
-                        backoff.SpinOnce();
+                        backoff.snooze();
                         head = this.head.index.load(Ordering.Acquire);
                         block = this.head.block.load(Ordering.Acquire);
                         continue;
@@ -335,7 +335,7 @@ namespace crossbeam
                     // case, just wait until it gets initialized.
                     if (block == null)
                     {
-                        backoff.SpinOnce();
+                        backoff.snooze();
                         head = this.head.index.load(Ordering.Acquire);
                         block = this.head.block.load(Ordering.Acquire);
                         continue;
@@ -386,7 +386,7 @@ namespace crossbeam
                     {
                         head = h;
                         block = this.head.block.load(Ordering.Acquire);
-                        backoff.SpinOnce(-1);
+                        backoff.spin();
                     }
                 }
             }

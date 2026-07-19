@@ -109,11 +109,18 @@ namespace NativeCollections
         /// <summary>
         ///     Enter
         /// </summary>
+        /// <param name="sleep1Threshold">
+        ///     A minimum spin count after which <see langword="Thread.Sleep(1)" /> may be used. A value
+        ///     of -1 disables the use of <see langword="Thread.Sleep(1)" />.
+        /// </param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="sleep1Threshold" /> is less than -1.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeConcurrentSpinLockRef EnterLock(int sequenceNumber)
+        public NativeConcurrentSpinLockRef EnterLock(int sleep1Threshold)
         {
             var handle = _handle;
-            handle->Enter(sequenceNumber);
+            handle->Enter(sleep1Threshold);
             return new NativeConcurrentSpinLockRef(handle);
         }
 

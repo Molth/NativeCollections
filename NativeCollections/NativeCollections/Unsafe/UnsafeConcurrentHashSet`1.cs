@@ -174,7 +174,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeConcurrentHashSet<T> Create()
         {
-            var handle = NativeObject<ConcurrentDictionary<T, bool>>.Alloc(new ConcurrentDictionary<T, bool>());
+            var handle = NativeObject<ConcurrentDictionary<T, bool>>.Create(new ConcurrentDictionary<T, bool>());
             return new UnsafeConcurrentHashSet<T>(handle);
         }
 
@@ -194,7 +194,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeConcurrentHashSet<T> Create(int concurrencyLevel, int capacity)
         {
-            var handle = NativeObject<ConcurrentDictionary<T, bool>>.Alloc(new ConcurrentDictionary<T, bool>(concurrencyLevel, capacity));
+            var handle = NativeObject<ConcurrentDictionary<T, bool>>.Create(new ConcurrentDictionary<T, bool>(concurrencyLevel, capacity));
             return new UnsafeConcurrentHashSet<T>(handle);
         }
 
@@ -207,7 +207,7 @@ namespace NativeCollections
         /// <summary>
         ///     Alloc enumerator
         /// </summary>
-        private static NativeObject<IEnumerator<KeyValuePair<T, bool>>> AllocEnumerator(ConcurrentDictionary<T, bool> handle) => NativeObject<IEnumerator<KeyValuePair<T, bool>>>.Alloc(BoxEnumerator(handle));
+        private static NativeObject<IEnumerator<KeyValuePair<T, bool>>> AllocEnumerator(ConcurrentDictionary<T, bool> handle) => NativeObject<IEnumerator<KeyValuePair<T, bool>>>.Create(BoxEnumerator(handle));
 
         /// <summary>
         ///     Box enumerator

@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Threading;
 
 #pragma warning disable CA2231 // Overload operator equals on overriding ValueType.Equals
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
@@ -22,20 +21,52 @@ namespace NativeCollections
         /// <summary>
         ///     Value
         /// </summary>
-        private long _value;
+        private UnsafeAtomicI64 _value;
 
         /// <summary>
         ///     Structure
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeAtomicF64(double value) => _value = AtomicHelpers.CastToInt64(value);
+        public UnsafeAtomicF64(double value) => _value = new UnsafeAtomicI64(BitConverter.DoubleToInt64Bits(value));
 
         /// <summary>
         ///     Reinterprets the given location as a reference to this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
-        public ref double AsRef() => ref Unsafe.As<long, double>(ref _value);
+        public ref double AsRef() => ref Unsafe.As<UnsafeAtomicI64, double>(ref _value);
+
+        /// <summary>
+        ///     Adds two values and replaces the first value with the sum, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public double Add(double value)
+        {
+            var newInt64 = AtomicHelpers.AddFloat64(ref _value.AsRef(), value);
+            return BitConverter.Int64BitsToDouble(newInt64);
+        }
+
+        /// <summary>
+        ///     Subtracts two values and replaces the first value with the difference, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public double Sub(double value) => Add(-value);
+
+        /// <summary>
+        ///     Finds the maximum of the current value and the argument, and sets the new value to the result.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public double Max(double value) => BitConverter.Int64BitsToDouble(AtomicHelpers.Update(ref _value.AsRef(), value, &Math.Max));
+
+        /// <summary>
+        ///     Finds the minimum of the current value and the argument, and sets the new value to the result.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public double Min(double value) => BitConverter.Int64BitsToDouble(AtomicHelpers.Update(ref _value.AsRef(), value, &Math.Min));
 
         /// <summary>
         ///     Returns a value, loaded as an atomic operation.
@@ -45,8 +76,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public double Load(Ordering order)
         {
-            var newInt64 = AtomicHelpers.Load(ref _value, order);
-            return AtomicHelpers.CastFromInt64<double>(newInt64);
+            var newInt64 = _value.Load(order);
+            return BitConverter.Int64BitsToDouble(newInt64);
         }
 
         /// <summary>
@@ -54,28 +85,17 @@ namespace NativeCollections
         /// </summary>
         /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Store(double value, Ordering order) => AtomicHelpers.Store(ref _value, AtomicHelpers.CastToInt64(value), order);
-
-        /// <summary>
-        ///     Returns a value, loaded as an atomic operation.
-        /// </summary>
-        /// <returns>The loaded value.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public double Read()
-        {
-            var newInt64 = Interlocked.Read(ref _value);
-            return AtomicHelpers.CastFromInt64<double>(newInt64);
-        }
+        public void Store(double value, Ordering order) => _value.Store(BitConverter.DoubleToInt64Bits(value), order);
 
         /// <summary>
         ///     Sets a value to a specified value and returns the original value, as an atomic operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public double Exchange(double value)
+        public double Swap(double value)
         {
-            var newInt64 = Interlocked.Exchange(ref _value, AtomicHelpers.CastToInt64(value));
-            return AtomicHelpers.CastFromInt64<double>(newInt64);
+            var newInt64 = _value.Swap(BitConverter.DoubleToInt64Bits(value));
+            return BitConverter.Int64BitsToDouble(newInt64);
         }
 
         /// <summary>
@@ -85,52 +105,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public double CompareExchange(double value, double comparand)
         {
-            var newInt64 = Interlocked.CompareExchange(ref _value, AtomicHelpers.CastToInt64(value), AtomicHelpers.CastToInt64(comparand));
-            return AtomicHelpers.CastFromInt64<double>(newInt64);
-        }
-
-        /// <summary>
-        ///     Adds two values and replaces the first integer with the sum, as an atomic operation.
-        /// </summary>
-        /// <returns>The new value stored.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public double Add(double value)
-        {
-            var newInt64 = AtomicHelpers.AddFloat64(ref _value, Unsafe.As<double, double>(ref value));
-            return AtomicHelpers.CastFromInt64<double>(newInt64);
-        }
-
-        /// <summary>
-        ///     Subtracts two values and replaces the first integer with the difference, as an atomic operation.
-        /// </summary>
-        /// <returns>The new value stored.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public double Subtract(double value)
-        {
-            var newInt64 = AtomicHelpers.AddFloat64(ref _value, -Unsafe.As<double, double>(ref value));
-            return AtomicHelpers.CastFromInt64<double>(newInt64);
-        }
-
-        /// <summary>
-        ///     Increments a specified variable and stores the result, as an atomic operation.
-        /// </summary>
-        /// <returns>The incremented value.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public double Increment()
-        {
-            var newInt64 = AtomicHelpers.AddFloat64(ref _value, 1.0);
-            return AtomicHelpers.CastFromInt64<double>(newInt64);
-        }
-
-        /// <summary>
-        ///     Decrements a specified variable and stores the result, as an atomic operation.
-        /// </summary>
-        /// <returns>The decremented value.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public double Decrement()
-        {
-            var newInt64 = AtomicHelpers.AddFloat64(ref _value, -1.0);
-            return AtomicHelpers.CastFromInt64<double>(newInt64);
+            var newInt64 = _value.CompareExchange(BitConverter.DoubleToInt64Bits(value), BitConverter.DoubleToInt64Bits(comparand));
+            return BitConverter.Int64BitsToDouble(newInt64);
         }
 
         /// <summary>

@@ -35,7 +35,35 @@ namespace NativeCollections
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
-        public ref bool AsRef() => ref Unsafe.As<byte, bool>(ref _value.AsRef());
+        public ref bool AsRef() => ref Unsafe.As<UnsafeAtomicU8, bool>(ref _value);
+
+        /// <summary>
+        ///     Bitwise "nands" two integers and replaces the first integer with the result, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Nand(bool value) => FromU8(_value.Nand(IntoU8(value)));
+
+        /// <summary>
+        ///     Bitwise "ands" two integers and replaces the first integer with the result, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool And(bool value) => FromU8(_value.And(IntoU8(value)));
+
+        /// <summary>
+        ///     Bitwise "ors" two integers and replaces the first integer with the result, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Or(bool value) => FromU8(_value.Or(IntoU8(value)));
+
+        /// <summary>
+        ///     Bitwise "xors" two integers and replaces the first integer with the result, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Xor(bool value) => FromU8(_value.Xor(IntoU8(value)));
 
         /// <summary>
         ///     Returns a value, loaded as an atomic operation.
@@ -53,46 +81,11 @@ namespace NativeCollections
         public void Store(bool value, Ordering order) => _value.Store(IntoU8(value), order);
 
         /// <summary>
-        ///     Bitwise "nands" two booleans and replaces the first integer with the result, as an atomic operation.
-        /// </summary>
-        /// <returns>The original value.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Nand(bool value) => value ? Xor(true) : Exchange(true);
-
-        /// <summary>
-        ///     Bitwise "ands" two booleans and replaces the first integer with the result, as an atomic operation.
-        /// </summary>
-        /// <returns>The original value.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool And(bool value) => FromU8(_value.And(IntoU8(value)));
-
-        /// <summary>
-        ///     Bitwise "ors" two booleans and replaces the first integer with the result, as an atomic operation.
-        /// </summary>
-        /// <returns>The original value.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Or(bool value) => FromU8(_value.Or(IntoU8(value)));
-
-        /// <summary>
-        ///     Bitwise "xors" two booleans and replaces the first integer with the result, as an atomic operation.
-        /// </summary>
-        /// <returns>The original value.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Xor(bool value) => FromU8(_value.Xor(IntoU8(value)));
-
-        /// <summary>
-        ///     Returns a value, loaded as an atomic operation.
-        /// </summary>
-        /// <returns>The loaded value.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Read() => FromU8(_value.Read());
-
-        /// <summary>
         ///     Sets a value to a specified value and returns the original value, as an atomic operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Exchange(bool value) => FromU8(_value.Exchange(IntoU8(value)));
+        public bool Swap(bool value) => FromU8(_value.Swap(IntoU8(value)));
 
         /// <summary>
         ///     Compares two values for equality and, if they are equal, replaces the first value.
@@ -127,7 +120,7 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public readonly override string ToString() => "UnsafeAtomicBoolean";
+        public readonly override string ToString() => "UnsafeAtomicBool";
 
         /// <summary>
         ///     Empty

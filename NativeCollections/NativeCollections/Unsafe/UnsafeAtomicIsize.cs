@@ -38,19 +38,12 @@ namespace NativeCollections
         public ref nint AsRef() => ref _value;
 
         /// <summary>
-        ///     Returns a value, loaded as an atomic operation.
+        ///     Bitwise "nands" two native-sized signed integers and replaces the first integer with the result, as an atomic
+        ///     operation.
         /// </summary>
-        /// <returns>The loaded value.</returns>
-        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
+        /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nint Load(Ordering order) => AtomicHelpers.Load(ref _value, order);
-
-        /// <summary>
-        ///     Sets a value to a specified value, as an atomic operation.
-        /// </summary>
-        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Store(nint value, Ordering order) => AtomicHelpers.Store(ref _value, value, order);
+        public nint Nand(nint value) => InterlockedHelpers.Nand(ref _value, value);
 
         /// <summary>
         ///     Bitwise "ands" two native-sized signed integers and replaces the first integer with the result, as an atomic
@@ -77,18 +70,54 @@ namespace NativeCollections
         public nint Xor(nint value) => InterlockedHelpers.Xor(ref _value, value);
 
         /// <summary>
+        ///     Adds two values and replaces the first integer with the sum, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public nint Add(nint value) => InterlockedHelpers.Add(ref _value, value);
+
+        /// <summary>
+        ///     Subtracts two values and replaces the first integer with the difference, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public nint Sub(nint value) => Add(-value);
+
+        /// <summary>
+        ///     Finds the maximum of the current value and the argument, and sets the new value to the result.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public nint Max(nint value) => AtomicHelpers.Update(ref _value, value, &MathHelpers.Max);
+
+        /// <summary>
+        ///     Finds the minimum of the current value and the argument, and sets the new value to the result.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public nint Min(nint value) => AtomicHelpers.Update(ref _value, value, &MathHelpers.Min);
+
+        /// <summary>
         ///     Returns a value, loaded as an atomic operation.
         /// </summary>
         /// <returns>The loaded value.</returns>
+        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nint Read() => InterlockedHelpers.Read(ref _value);
+        public nint Load(Ordering order) => AtomicHelpers.Load(ref _value, order);
+
+        /// <summary>
+        ///     Sets a value to a specified value, as an atomic operation.
+        /// </summary>
+        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Store(nint value, Ordering order) => AtomicHelpers.Store(ref _value, value, order);
 
         /// <summary>
         ///     Sets a value to a specified value and returns the original value, as an atomic operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nint Exchange(nint value) => Interlocked.Exchange(ref _value, value);
+        public nint Swap(nint value) => Interlocked.Exchange(ref _value, value);
 
         /// <summary>
         ///     Compares two values for equality and, if they are equal, replaces the first value.
@@ -96,34 +125,6 @@ namespace NativeCollections
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public nint CompareExchange(nint value, nint comparand) => Interlocked.CompareExchange(ref _value, value, comparand);
-
-        /// <summary>
-        ///     Adds two values and replaces the first integer with the sum, as an atomic operation.
-        /// </summary>
-        /// <returns>The new value stored.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nint Add(nint value) => InterlockedHelpers.Add(ref _value, value);
-
-        /// <summary>
-        ///     Subtracts two values and replaces the first integer with the difference, as an atomic operation.
-        /// </summary>
-        /// <returns>The new value stored.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nint Subtract(nint value) => InterlockedHelpers.Add(ref _value, -value);
-
-        /// <summary>
-        ///     Increments a specified variable and stores the result, as an atomic operation.
-        /// </summary>
-        /// <returns>The incremented value.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nint Increment() => InterlockedHelpers.Increment(ref _value);
-
-        /// <summary>
-        ///     Decrements a specified variable and stores the result, as an atomic operation.
-        /// </summary>
-        /// <returns>The decremented value.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nint Decrement() => InterlockedHelpers.Decrement(ref _value);
 
         /// <summary>
         ///     Equals

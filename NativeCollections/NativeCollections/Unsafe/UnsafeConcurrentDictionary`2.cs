@@ -406,7 +406,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeConcurrentDictionary<TKey, TValue> Create()
         {
-            var handle = NativeObject<ConcurrentDictionary<TKey, TValue>>.Alloc(new ConcurrentDictionary<TKey, TValue>());
+            var handle = NativeObject<ConcurrentDictionary<TKey, TValue>>.Create(new ConcurrentDictionary<TKey, TValue>());
             return new UnsafeConcurrentDictionary<TKey, TValue>(handle);
         }
 
@@ -426,7 +426,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeConcurrentDictionary<TKey, TValue> Create(int concurrencyLevel, int capacity)
         {
-            var handle = NativeObject<ConcurrentDictionary<TKey, TValue>>.Alloc(new ConcurrentDictionary<TKey, TValue>(concurrencyLevel, capacity));
+            var handle = NativeObject<ConcurrentDictionary<TKey, TValue>>.Create(new ConcurrentDictionary<TKey, TValue>(concurrencyLevel, capacity));
             return new UnsafeConcurrentDictionary<TKey, TValue>(handle);
         }
 
@@ -439,7 +439,7 @@ namespace NativeCollections
         /// <summary>
         ///     Alloc enumerator
         /// </summary>
-        private static NativeObject<IEnumerator<KeyValuePair<TKey, TValue>>> AllocEnumerator(ConcurrentDictionary<TKey, TValue> handle) => NativeObject<IEnumerator<KeyValuePair<TKey, TValue>>>.Alloc(BoxEnumerator(handle));
+        private static NativeObject<IEnumerator<KeyValuePair<TKey, TValue>>> AllocEnumerator(ConcurrentDictionary<TKey, TValue> handle) => NativeObject<IEnumerator<KeyValuePair<TKey, TValue>>>.Create(BoxEnumerator(handle));
 
         /// <summary>
         ///     Box enumerator

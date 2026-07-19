@@ -129,13 +129,13 @@ namespace Examples
 
                 lock (_crossSegmentLock.Target!)
                 {
-                    if (tail == _tail.Read())
+                    if (tail == _tail.Load(Ordering.Acquire))
                     {
                         tail->EnsureFrozenForEnqueues();
                         var newTail = NativeMemoryAllocator.AlignedAlloc<Segment<T>>(1);
                         newTail->Initialize();
                         tail->NextSegment = (nint)newTail;
-                        _tail.Exchange(newTail);
+                        _tail.Store(newTail, Ordering.Release);
                     }
                 }
 
@@ -207,9 +207,9 @@ namespace Examples
 
                 lock (_crossSegmentLock.Target!)
                 {
-                    if (head == _head.Read())
+                    if (head == _head.Load(Ordering.Acquire))
                     {
-                        _head.Exchange((Segment<T>*)head->NextSegment);
+                        _head.Store((Segment<T>*)head->NextSegment, Ordering.Release);
                         _hp.clear(tid);
                         _hp.retire(head, tid);
                     }

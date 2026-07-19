@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Threading;
 
 #pragma warning disable CA2231 // Overload operator equals on overriding ValueType.Equals
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
@@ -22,20 +21,52 @@ namespace NativeCollections
         /// <summary>
         ///     Value
         /// </summary>
-        private int _value;
+        private UnsafeAtomicI32 _value;
 
         /// <summary>
         ///     Structure
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeAtomicF32(float value) => _value = AtomicHelpers.CastToInt32(value);
+        public UnsafeAtomicF32(float value) => _value = new UnsafeAtomicI32(BitConverter.SingleToInt32Bits(value));
 
         /// <summary>
         ///     Reinterprets the given location as a reference to this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
-        public ref float AsRef() => ref Unsafe.As<int, float>(ref _value);
+        public ref float AsRef() => ref Unsafe.As<UnsafeAtomicI32, float>(ref _value);
+
+        /// <summary>
+        ///     Adds two values and replaces the first value with the sum, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public float Add(float value)
+        {
+            var newInt32 = AtomicHelpers.AddFloat32(ref _value.AsRef(), value);
+            return BitConverter.Int32BitsToSingle(newInt32);
+        }
+
+        /// <summary>
+        ///     Subtracts two values and replaces the first value with the difference, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public float Sub(float value) => Add(-value);
+
+        /// <summary>
+        ///     Finds the maximum of the current value and the argument, and sets the new value to the result.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public float Max(float value) => BitConverter.Int32BitsToSingle(AtomicHelpers.Update(ref _value.AsRef(), value, &Math.Max));
+
+        /// <summary>
+        ///     Finds the minimum of the current value and the argument, and sets the new value to the result.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public float Min(float value) => BitConverter.Int32BitsToSingle(AtomicHelpers.Update(ref _value.AsRef(), value, &Math.Min));
 
         /// <summary>
         ///     Returns a value, loaded as an atomic operation.
@@ -45,8 +76,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public float Load(Ordering order)
         {
-            var newInt32 = AtomicHelpers.Load(ref _value, order);
-            return AtomicHelpers.CastFromInt32<float>(newInt32);
+            var newInt32 = _value.Load(order);
+            return BitConverter.Int32BitsToSingle(newInt32);
         }
 
         /// <summary>
@@ -54,28 +85,17 @@ namespace NativeCollections
         /// </summary>
         /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Store(float value, Ordering order) => AtomicHelpers.Store(ref _value, AtomicHelpers.CastToInt32(value), order);
-
-        /// <summary>
-        ///     Returns a value, loaded as an atomic operation.
-        /// </summary>
-        /// <returns>The loaded value.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float Read()
-        {
-            var newInt32 = InterlockedHelpers.Read(ref _value);
-            return AtomicHelpers.CastFromInt32<float>(newInt32);
-        }
+        public void Store(float value, Ordering order) => _value.Store(BitConverter.SingleToInt32Bits(value), order);
 
         /// <summary>
         ///     Sets a value to a specified value and returns the original value, as an atomic operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float Exchange(float value)
+        public float Swap(float value)
         {
-            var newInt32 = Interlocked.Exchange(ref _value, AtomicHelpers.CastToInt32(value));
-            return AtomicHelpers.CastFromInt32<float>(newInt32);
+            var newInt32 = _value.Swap(BitConverter.SingleToInt32Bits(value));
+            return BitConverter.Int32BitsToSingle(newInt32);
         }
 
         /// <summary>
@@ -85,52 +105,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public float CompareExchange(float value, float comparand)
         {
-            var newInt32 = Interlocked.CompareExchange(ref _value, AtomicHelpers.CastToInt32(value), AtomicHelpers.CastToInt32(comparand));
-            return AtomicHelpers.CastFromInt32<float>(newInt32);
-        }
-
-        /// <summary>
-        ///     Adds two values and replaces the first integer with the sum, as an atomic operation.
-        /// </summary>
-        /// <returns>The new value stored.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float Add(float value)
-        {
-            var newInt32 = AtomicHelpers.AddFloat32(ref _value, Unsafe.As<float, float>(ref value));
-            return AtomicHelpers.CastFromInt32<float>(newInt32);
-        }
-
-        /// <summary>
-        ///     Subtracts two values and replaces the first integer with the difference, as an atomic operation.
-        /// </summary>
-        /// <returns>The new value stored.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float Subtract(float value)
-        {
-            var newInt32 = AtomicHelpers.AddFloat32(ref _value, -Unsafe.As<float, float>(ref value));
-            return AtomicHelpers.CastFromInt32<float>(newInt32);
-        }
-
-        /// <summary>
-        ///     Increments a specified variable and stores the result, as an atomic operation.
-        /// </summary>
-        /// <returns>The incremented value.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float Increment()
-        {
-            var newInt32 = AtomicHelpers.AddFloat32(ref _value, 1.0f);
-            return AtomicHelpers.CastFromInt32<float>(newInt32);
-        }
-
-        /// <summary>
-        ///     Decrements a specified variable and stores the result, as an atomic operation.
-        /// </summary>
-        /// <returns>The decremented value.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float Decrement()
-        {
-            var newInt32 = AtomicHelpers.AddFloat32(ref _value, -1.0f);
-            return AtomicHelpers.CastFromInt32<float>(newInt32);
+            var newInt32 = _value.CompareExchange(BitConverter.SingleToInt32Bits(value), BitConverter.SingleToInt32Bits(comparand));
+            return BitConverter.Int32BitsToSingle(newInt32);
         }
 
         /// <summary>

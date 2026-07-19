@@ -93,7 +93,7 @@ namespace crossbeam
 
             public Result<T> push_or_else(T value, delegate* managed<ref ArrayQueue<T>, T, nuint, nuint, Slot<T>*, Result<T>> f)
             {
-                var backoff = new UnsafeSpinWait();
+                var backoff = new Backoff();
                 var tail = this.tail.load(Ordering.Relaxed);
 
                 while (true)
@@ -142,23 +142,23 @@ namespace crossbeam
                         else
                         {
                             tail = t;
-                            backoff.SpinOnce();
+                            backoff.spin();
                         }
                     }
                     else if (stamp.wrapping_add(this.one_lap) == tail + 1)
                     {
                         Interlocked.MemoryBarrier();
                         var result = f(ref this, value, tail, new_tail, slot);
-                        if (!result.Ok)
+                        if (result.is_err())
                             return result;
-                        value = result.Value;
-                        backoff.SpinOnce();
+                        value = result.unwrap_unchecked();
+                        backoff.spin();
                         tail = this.tail.load(Ordering.Relaxed);
                     }
                     else
                     {
                         // Snooze because we need to wait for the stamp to get updated.
-                        backoff.SpinOnce(-1);
+                        backoff.snooze();
                         tail = this.tail.load(Ordering.Relaxed);
                     }
                 }
@@ -169,7 +169,7 @@ namespace crossbeam
             /// If the queue is full, the element is returned back as an error.
             public bool push(T value)
             {
-                return this.push_or_else(value, &f).Ok;
+                return this.push_or_else(value, &f).is_ok();
 
                 static Result<T> f(ref ArrayQueue<T> self, T v, nuint tail, nuint _, Slot<T>* __)
                 {
@@ -231,8 +231,8 @@ namespace crossbeam
             {
                 var result = this.push_or_else(value, &f);
 
-                old_value = result.Value;
-                return result.Ok;
+                old_value = result.unwrap_unchecked();
+                return result.is_ok();
 
                 static Result<T> f(ref ArrayQueue<T> self, T v, nuint tail, nuint new_tail, Slot<T>* slot)
                 {
@@ -269,7 +269,7 @@ namespace crossbeam
             /// If the queue is empty, `None` is returned.
             public bool pop(out T result)
             {
-                var backoff = new UnsafeSpinWait();
+                var backoff = new Backoff();
                 var head = this.head.load(Ordering.Relaxed);
 
                 while (true)
@@ -315,7 +315,7 @@ namespace crossbeam
                         else
                         {
                             head = h;
-                            backoff.SpinOnce();
+                            backoff.spin();
                         }
                     }
                     else if (stamp == head)
@@ -330,13 +330,13 @@ namespace crossbeam
                             return false;
                         }
 
-                        backoff.SpinOnce();
+                        backoff.spin();
                         head = this.head.load(Ordering.Relaxed);
                     }
                     else
                     {
                         // Snooze because we need to wait for the stamp to get updated.
-                        backoff.SpinOnce(-1);
+                        backoff.snooze();
                         head = this.head.load(Ordering.Relaxed);
                     }
                 }

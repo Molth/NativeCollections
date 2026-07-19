@@ -39,10 +39,18 @@ namespace Examples
 
         private static void Main()
         {
-            SimpleAllocator.Custom();
-            TestConcurrent3();
-            TestConcurrent4();
-            Console.WriteLine(SimpleAllocator.AllocCount == 0 ? "Success" : "Error");
+            var a = new UnsafeAtomicUsize();
+            var b = 0;
+            a.fetch_update(ref b, &F);
+
+            Console.WriteLine(b);
+            Console.WriteLine(a.load(Ordering.Relaxed));
+
+            static nuint F(ref int closure, nuint current)
+            {
+                closure += 1;
+                return current;
+            }
         }
 
         private static void TestParallelHashMap()

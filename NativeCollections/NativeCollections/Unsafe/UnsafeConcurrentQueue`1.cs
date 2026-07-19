@@ -153,6 +153,6 @@ namespace NativeCollections
         ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeConcurrentQueue<T> Create() => new(NativeObject<ConcurrentQueue<T>>.Alloc(new ConcurrentQueue<T>()));
+        public static UnsafeConcurrentQueue<T> Create() => new(NativeObject<ConcurrentQueue<T>>.Create(new ConcurrentQueue<T>()));
     }
 }

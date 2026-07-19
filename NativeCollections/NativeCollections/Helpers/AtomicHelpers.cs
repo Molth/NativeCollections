@@ -9,7 +9,7 @@ namespace NativeCollections
     /// <summary>
     ///     Atomic helpers
     /// </summary>
-    internal static class AtomicHelpers
+    internal static unsafe class AtomicHelpers
     {
         /// <summary>
         ///     Returns a value, loaded as an atomic operation.
@@ -21,14 +21,12 @@ namespace NativeCollections
             switch (order)
             {
                 case Ordering.Relaxed:
-                    return location;
-
                 case Ordering.Acquire:
                 case Ordering.AcqRel:
                     return Volatile.Read(ref location);
 
                 case Ordering.SeqCst:
-                    return Interlocked.CompareExchange(ref location, default, default);
+                    return InterlockedHelpers.Read(ref location);
 
                 case Ordering.Release:
                 default:
@@ -47,9 +45,6 @@ namespace NativeCollections
             switch (order)
             {
                 case Ordering.Relaxed:
-                    location = value;
-                    return;
-
                 case Ordering.Release:
                 case Ordering.AcqRel:
                     Volatile.Write(ref location, value);
@@ -76,8 +71,6 @@ namespace NativeCollections
             switch (order)
             {
                 case Ordering.Relaxed:
-                    return location;
-
                 case Ordering.Acquire:
                 case Ordering.AcqRel:
                     return Volatile.Read(ref location);
@@ -102,9 +95,6 @@ namespace NativeCollections
             switch (order)
             {
                 case Ordering.Relaxed:
-                    location = value;
-                    return;
-
                 case Ordering.Release:
                 case Ordering.AcqRel:
                     Volatile.Write(ref location, value);
@@ -132,8 +122,6 @@ namespace NativeCollections
             switch (order)
             {
                 case Ordering.Relaxed:
-                    return location;
-
                 case Ordering.Acquire:
                 case Ordering.AcqRel:
                     return Volatile.Read(ref location);
@@ -158,9 +146,6 @@ namespace NativeCollections
             switch (order)
             {
                 case Ordering.Relaxed:
-                    location = value;
-                    return;
-
                 case Ordering.Release:
                 case Ordering.AcqRel:
                     Volatile.Write(ref location, value);
@@ -189,8 +174,6 @@ namespace NativeCollections
                 switch (order)
                 {
                     case Ordering.Relaxed:
-                        return location;
-
                     case Ordering.Acquire:
                     case Ordering.AcqRel:
                         return Volatile.Read(ref location);
@@ -232,9 +215,6 @@ namespace NativeCollections
                 switch (order)
                 {
                     case Ordering.Relaxed:
-                        location = value;
-                        return;
-
                     case Ordering.Release:
                     case Ordering.AcqRel:
                         Volatile.Write(ref location, value);
@@ -277,8 +257,6 @@ namespace NativeCollections
             switch (order)
             {
                 case Ordering.Relaxed:
-                    return location;
-
                 case Ordering.Acquire:
                 case Ordering.AcqRel:
                     return Volatile.Read(ref location);
@@ -303,9 +281,6 @@ namespace NativeCollections
             switch (order)
             {
                 case Ordering.Relaxed:
-                    location = value;
-                    return;
-
                 case Ordering.Release:
                 case Ordering.AcqRel:
                     Volatile.Write(ref location, value);
@@ -332,8 +307,6 @@ namespace NativeCollections
             switch (order)
             {
                 case Ordering.Relaxed:
-                    return location;
-
                 case Ordering.Acquire:
                 case Ordering.AcqRel:
                     return Volatile.Read(ref location);
@@ -358,9 +331,6 @@ namespace NativeCollections
             switch (order)
             {
                 case Ordering.Relaxed:
-                    location = value;
-                    return;
-
                 case Ordering.Release:
                 case Ordering.AcqRel:
                     Volatile.Write(ref location, value);
@@ -387,8 +357,6 @@ namespace NativeCollections
             switch (order)
             {
                 case Ordering.Relaxed:
-                    return location;
-
                 case Ordering.Acquire:
                 case Ordering.AcqRel:
                     return Volatile.Read(ref location);
@@ -413,9 +381,6 @@ namespace NativeCollections
             switch (order)
             {
                 case Ordering.Relaxed:
-                    location = value;
-                    return;
-
                 case Ordering.Release:
                 case Ordering.AcqRel:
                     Volatile.Write(ref location, value);
@@ -435,7 +400,7 @@ namespace NativeCollections
         /// <summary>
         ///     Adds two 64-bit signed integers and replaces the first integer with the sum, as an atomic operation.
         /// </summary>
-        /// <returns>The new value stored at <paramref name="location" />.</returns>
+        /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long AddFloat64(ref long location, double value)
         {
@@ -455,28 +420,7 @@ namespace NativeCollections
         /// <summary>
         ///     Adds two 32-bit signed integers and replaces the first integer with the sum, as an atomic operation.
         /// </summary>
-        /// <returns>The new value stored at <paramref name="location" />.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int AddFloat32(ref long location, float value)
-        {
-            var spinWait = new UnsafeSpinWait();
-            var currentInt64 = location;
-            while (true)
-            {
-                var currentInt32 = (int)currentInt64;
-                var newFloat32 = Unsafe.As<int, float>(ref currentInt32) + value;
-                var oldInt64 = Interlocked.CompareExchange(ref location, Unsafe.As<float, int>(ref newFloat32), currentInt64);
-                if (oldInt64 == currentInt64)
-                    return (int)oldInt64;
-                currentInt64 = oldInt64;
-                spinWait.SpinOnce(-1);
-            }
-        }
-
-        /// <summary>
-        ///     Adds two 32-bit signed integers and replaces the first integer with the sum, as an atomic operation.
-        /// </summary>
-        /// <returns>The new value stored at <paramref name="location" />.</returns>
+        /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int AddFloat32(ref int location, float value)
         {
@@ -494,100 +438,93 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Cast to Int64
+        ///     Fetches the value, and applies a function to it that returns an optional new value.
         /// </summary>
+        /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long CastToInt64<T>(T value) where T : unmanaged
+        public static nint Update(ref nint location, nint value, delegate* managed<nint, nint, nint> func) => Environment.Is64BitProcess ? (nint)Update(ref Unsafe.As<nint, long>(ref location), value, func) : Update(ref Unsafe.As<nint, int>(ref location), value, func);
+
+        /// <summary>
+        ///     Fetches the value, and applies a function to it that returns an optional new value.
+        /// </summary>
+        /// <returns>The original value in <paramref name="location" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static nuint Update(ref nuint location, nuint value, delegate* managed<nuint, nuint, nuint> func) => Environment.Is64BitProcess ? (nuint)Update(ref Unsafe.As<nuint, long>(ref location), value, func) : (nuint)Update(ref Unsafe.As<nuint, int>(ref location), value, func);
+
+        /// <summary>
+        ///     Fetches the value, and applies a function to it that returns an optional new value.
+        /// </summary>
+        /// <returns>The original value in <paramref name="location" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte Update<T>(ref byte location, T value, delegate* managed<T, T, T> func) where T : unmanaged
         {
-            if (Unsafe.SizeOf<T>() == 1)
-                return Unsafe.As<T, byte>(ref value);
-
-            if (Unsafe.SizeOf<T>() == 2)
-                return Unsafe.As<T, short>(ref value);
-
-            if (Unsafe.SizeOf<T>() == 4)
-                return Unsafe.As<T, int>(ref value);
-
-            if (Unsafe.SizeOf<T>() == 8)
-                return Unsafe.As<T, long>(ref value);
-
-            ThrowHelpers.ThrowNotSupportedException();
-            return default;
+            ThrowHelpers.ThrowIfNotSameSizes<byte, T>();
+            var current = location;
+            while (true)
+            {
+                var newValue = func(Unsafe.As<byte, T>(ref current), value);
+                var oldValue = InterlockedHelpers.CompareExchange(ref location, Unsafe.As<T, byte>(ref newValue), current);
+                if (oldValue == current)
+                    return oldValue;
+                current = oldValue;
+            }
         }
 
         /// <summary>
-        ///     Cast to 32
+        ///     Fetches the value, and applies a function to it that returns an optional new value.
         /// </summary>
+        /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int CastToInt32<T>(T value) where T : unmanaged
+        public static ushort Update<T>(ref ushort location, T value, delegate* managed<T, T, T> func) where T : unmanaged
         {
-            if (Unsafe.SizeOf<T>() == 1)
-                return Unsafe.As<T, byte>(ref value);
-
-            if (Unsafe.SizeOf<T>() == 2)
-                return Unsafe.As<T, short>(ref value);
-
-            if (Unsafe.SizeOf<T>() == 4)
-                return Unsafe.As<T, int>(ref value);
-
-            ThrowHelpers.ThrowNotSupportedException();
-            return default;
+            ThrowHelpers.ThrowIfNotSameSizes<ushort, T>();
+            var current = location;
+            while (true)
+            {
+                var newValue = func(Unsafe.As<ushort, T>(ref current), value);
+                var oldValue = InterlockedHelpers.CompareExchange(ref location, Unsafe.As<T, ushort>(ref newValue), current);
+                if (oldValue == current)
+                    return oldValue;
+                current = oldValue;
+            }
         }
 
         /// <summary>
-        ///     Cast from Int64
+        ///     Fetches the value, and applies a function to it that returns an optional new value.
         /// </summary>
+        /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T CastFromInt64<T>(long value) where T : unmanaged
+        public static int Update<T>(ref int location, T value, delegate* managed<T, T, T> func) where T : unmanaged
         {
-            if (Unsafe.SizeOf<T>() == 1)
+            ThrowHelpers.ThrowIfNotSameSizes<int, T>();
+            var current = location;
+            while (true)
             {
-                var source = (byte)value;
-                return Unsafe.As<byte, T>(ref source);
+                var newValue = func(Unsafe.As<int, T>(ref current), value);
+                var oldValue = Interlocked.CompareExchange(ref location, Unsafe.As<T, int>(ref newValue), current);
+                if (oldValue == current)
+                    return oldValue;
+                current = oldValue;
             }
-
-            if (Unsafe.SizeOf<T>() == 2)
-            {
-                var source = (short)value;
-                return Unsafe.As<short, T>(ref source);
-            }
-
-            if (Unsafe.SizeOf<T>() == 4)
-            {
-                var source = (int)value;
-                return Unsafe.As<int, T>(ref source);
-            }
-
-            if (Unsafe.SizeOf<T>() == 8)
-                return Unsafe.As<long, T>(ref value);
-
-            ThrowHelpers.ThrowNotSupportedException();
-            return default;
         }
 
         /// <summary>
-        ///     Cast from Int32
+        ///     Fetches the value, and applies a function to it that returns an optional new value.
         /// </summary>
+        /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T CastFromInt32<T>(int value) where T : unmanaged
+        public static long Update<T>(ref long location, T value, delegate* managed<T, T, T> func) where T : unmanaged
         {
-            if (Unsafe.SizeOf<T>() == 1)
+            ThrowHelpers.ThrowIfNotSameSizes<long, T>();
+            var current = location;
+            while (true)
             {
-                var source = (byte)value;
-                return Unsafe.As<byte, T>(ref source);
+                var newValue = func(Unsafe.As<long, T>(ref current), value);
+                var oldValue = Interlocked.CompareExchange(ref location, Unsafe.As<T, long>(ref newValue), current);
+                if (oldValue == current)
+                    return oldValue;
+                current = oldValue;
             }
-
-            if (Unsafe.SizeOf<T>() == 2)
-            {
-                var source = (short)value;
-                return Unsafe.As<short, T>(ref source);
-            }
-
-            if (Unsafe.SizeOf<T>() == 4)
-                return Unsafe.As<int, T>(ref value);
-
-            ThrowHelpers.ThrowNotSupportedException();
-            return default;
         }
     }
 }

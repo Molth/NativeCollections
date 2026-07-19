@@ -26,23 +26,17 @@ namespace NativeCollections
         /// <summary>
         ///     Adds two native-sized signed integers and replaces the first integer with the sum, as an atomic operation.
         /// </summary>
-        /// <returns>The new value stored at <paramref name="location" />.</returns>
+        /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static nint Add(ref nint location, nint value) => Environment.Is64BitProcess ? (nint)Interlocked.Add(ref Unsafe.As<nint, long>(ref location), value) : Interlocked.Add(ref Unsafe.As<nint, int>(ref location), (int)value);
+        public static nint Add(ref nint location, nint value) => Environment.Is64BitProcess ? (nint)Add(ref Unsafe.As<nint, long>(ref location), value) : Add(ref Unsafe.As<nint, int>(ref location), (int)value);
 
         /// <summary>
-        ///     Increments a specified variable and stores the result, as an atomic operation.
+        ///     Bitwise "nands" two native-sized signed integers and replaces the first integer with the result, as an atomic
+        ///     operation.
         /// </summary>
-        /// <returns>The incremented value.</returns>
+        /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static nint Increment(ref nint location) => Environment.Is64BitProcess ? (nint)Interlocked.Increment(ref Unsafe.As<nint, long>(ref location)) : Interlocked.Increment(ref Unsafe.As<nint, int>(ref location));
-
-        /// <summary>
-        ///     Decrements a specified variable and stores the result, as an atomic operation.
-        /// </summary>
-        /// <returns>The decremented value.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static nint Decrement(ref nint location) => Environment.Is64BitProcess ? (nint)Interlocked.Decrement(ref Unsafe.As<nint, long>(ref location)) : Interlocked.Decrement(ref Unsafe.As<nint, int>(ref location));
+        public static nint Nand(ref nint location, nint value) => Environment.Is64BitProcess ? (nint)Nand(ref Unsafe.As<nint, long>(ref location), value) : Nand(ref Unsafe.As<nint, int>(ref location), (int)value);
 
         /// <summary>
         ///     Bitwise "ands" two native-sized signed integers and replaces the first integer with the result, as an atomic
@@ -106,23 +100,17 @@ namespace NativeCollections
         /// <summary>
         ///     Adds two native-sized unsigned integers and replaces the first integer with the sum, as an atomic operation.
         /// </summary>
-        /// <returns>The new value stored at <paramref name="location" />.</returns>
+        /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static nuint Add(ref nuint location, nuint value) => Environment.Is64BitProcess ? (nuint)Interlocked.Add(ref Unsafe.As<nuint, long>(ref location), (long)value) : (nuint)Interlocked.Add(ref Unsafe.As<nuint, int>(ref location), (int)value);
+        public static nuint Add(ref nuint location, nuint value) => Environment.Is64BitProcess ? (nuint)Add(ref Unsafe.As<nuint, long>(ref location), (long)value) : (nuint)Add(ref Unsafe.As<nuint, int>(ref location), (int)value);
 
         /// <summary>
-        ///     Increments a specified variable and stores the result, as an atomic operation.
+        ///     Bitwise "nands" two native-sized unsigned integers and replaces the first integer with the result, as an atomic
+        ///     operation.
         /// </summary>
-        /// <returns>The incremented value.</returns>
+        /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static nuint Increment(ref nuint location) => Environment.Is64BitProcess ? (nuint)Interlocked.Increment(ref Unsafe.As<nuint, long>(ref location)) : (nuint)Interlocked.Increment(ref Unsafe.As<nuint, int>(ref location));
-
-        /// <summary>
-        ///     Decrements a specified variable and stores the result, as an atomic operation.
-        /// </summary>
-        /// <returns>The decremented value.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static nuint Decrement(ref nuint location) => Environment.Is64BitProcess ? (nuint)Interlocked.Decrement(ref Unsafe.As<nuint, long>(ref location)) : (nuint)Interlocked.Decrement(ref Unsafe.As<nuint, int>(ref location));
+        public static nuint Nand(ref nuint location, nuint value) => Environment.Is64BitProcess ? (nuint)Nand(ref Unsafe.As<nuint, long>(ref location), (long)value) : (nuint)Nand(ref Unsafe.As<nuint, int>(ref location), (int)value);
 
         /// <summary>
         ///     Bitwise "ands" two native-sized unsigned integers and replaces the first integer with the result, as an atomic
@@ -213,8 +201,7 @@ namespace NativeCollections
         ///     <paramref name="location" />.
         /// </param>
         /// <param name="value">The value to be added to the integer at <paramref name="location" />.</param>
-        /// <returns>The new value stored at <paramref name="location" />.</returns>
-        /// <exception cref="NullReferenceException">The address of <paramref name="location" /> is a null pointer.</exception>
+        /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte Add(ref byte location, byte value)
         {
@@ -234,6 +221,24 @@ namespace NativeCollections
         /// <returns>The loaded value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte Read(ref byte location) => CompareExchange(ref location, default, default);
+
+        /// <summary>
+        ///     Bitwise "nands" two 8-bit unsigned integers and replaces the first integer with the result, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value in <paramref name="location" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte Nand(ref byte location, byte value)
+        {
+            var current = location;
+            while (true)
+            {
+                var newValue = ~(current & value);
+                var oldValue = CompareExchange(ref location, (byte)newValue, current);
+                if (oldValue == current)
+                    return oldValue;
+                current = oldValue;
+            }
+        }
 
         /// <summary>
         ///     Bitwise "ands" two 8-bit unsigned integers and replaces the first integer with the result, as an atomic operation.
@@ -354,8 +359,7 @@ namespace NativeCollections
         ///     <paramref name="location" />.
         /// </param>
         /// <param name="value">The value to be added to the integer at <paramref name="location" />.</param>
-        /// <returns>The new value stored at <paramref name="location" />.</returns>
-        /// <exception cref="NullReferenceException">The address of <paramref name="location" /> is a null pointer.</exception>
+        /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ushort Add(ref ushort location, ushort value)
         {
@@ -375,6 +379,25 @@ namespace NativeCollections
         /// <returns>The loaded value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ushort Read(ref ushort location) => CompareExchange(ref location, default, default);
+
+        /// <summary>
+        ///     Bitwise "nands" two 16-bit unsigned integers and replaces the first integer with the result, as an atomic
+        ///     operation.
+        /// </summary>
+        /// <returns>The original value in <paramref name="location" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ushort Nand(ref ushort location, ushort value)
+        {
+            var current = location;
+            while (true)
+            {
+                var newValue = ~(current & value);
+                var oldValue = CompareExchange(ref location, (ushort)newValue, current);
+                if (oldValue == current)
+                    return oldValue;
+                current = oldValue;
+            }
+        }
 
         /// <summary>
         ///     Bitwise "ands" two 16-bit unsigned integers and replaces the first integer with the result, as an atomic operation.
@@ -435,6 +458,31 @@ namespace NativeCollections
         /// <returns>The loaded value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Read(ref int location) => Interlocked.CompareExchange(ref location, default, default);
+
+        /// <summary>
+        ///     Adds two 32-bit signed integers and replaces the first integer with the sum, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value in <paramref name="location" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Add(ref int location, int value) => Interlocked.Add(ref location, value) - value;
+
+        /// <summary>
+        ///     Bitwise "nands" two 32-bit signed integers and replaces the first integer with the result, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value in <paramref name="location" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Nand(ref int location, int value)
+        {
+            var current = location;
+            while (true)
+            {
+                var newValue = ~(current & value);
+                var oldValue = Interlocked.CompareExchange(ref location, newValue, current);
+                if (oldValue == current)
+                    return oldValue;
+                current = oldValue;
+            }
+        }
 
         /// <summary>
         ///     Bitwise "ands" two 32-bit signed integers and replaces the first integer with the result, as an atomic operation.
@@ -511,6 +559,31 @@ namespace NativeCollections
 #else
             return (uint)Interlocked.CompareExchange(ref Unsafe.As<uint, int>(ref location), (int)value, (int)comparand);
 #endif
+        }
+
+        /// <summary>
+        ///     Adds two 64-bit signed integers and replaces the first integer with the sum, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value in <paramref name="location" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static long Add(ref long location, long value) => Interlocked.Add(ref location, value) - value;
+
+        /// <summary>
+        ///     Bitwise "nands" two 64-bit signed integers and replaces the first integer with the result, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value in <paramref name="location" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static long Nand(ref long location, long value)
+        {
+            var current = location;
+            while (true)
+            {
+                var newValue = ~(current & value);
+                var oldValue = Interlocked.CompareExchange(ref location, newValue, current);
+                if (oldValue == current)
+                    return oldValue;
+                current = oldValue;
+            }
         }
 
         /// <summary>

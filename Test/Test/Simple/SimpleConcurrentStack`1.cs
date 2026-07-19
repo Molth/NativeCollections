@@ -65,18 +65,18 @@ namespace Examples
         /// </summary>
         /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Push(in T item)
+        public void Push(T item)
         {
             Node* newNode = NativeMemoryAllocator.AlignedAlloc<Node>(1);
             newNode->Value = item;
-            newNode->Next = _head.AsRef();
+            newNode->Next = _head.Load(Ordering.Relaxed);
             if (_head.CompareExchange(newNode, newNode->Next) == newNode->Next)
                 return;
             var spinWait = new UnsafeSpinWait();
             do
             {
                 spinWait.SpinOnce(-1);
-                newNode->Next = _head.AsRef();
+                newNode->Next = _head.Load(Ordering.Relaxed);
             } while (_head.CompareExchange(newNode, newNode->Next) != newNode->Next);
         }
 
@@ -88,7 +88,7 @@ namespace Examples
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryPop(out T result)
         {
-            var head = _head.AsRef();
+            var head = _head.Load(Ordering.Relaxed);
             if (head == null)
             {
                 result = default;
@@ -126,7 +126,7 @@ namespace Examples
             var backoff = 1;
             while (true)
             {
-                head = _head.AsRef();
+                head = _head.Load(Ordering.Relaxed);
                 if (head == null)
                 {
                     result = default;

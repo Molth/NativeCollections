@@ -111,21 +111,21 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Alloc
+        ///     Create
         /// </summary>
         /// <param name="value">Value</param>
         /// <returns>NativeObject</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeObject<T> Alloc(T value) => new(GCHandle.Alloc(value));
+        public static NativeObject<T> Create(T value) => new(GCHandle.Alloc(value));
 
         /// <summary>
-        ///     Alloc
+        ///     Create
         /// </summary>
         /// <param name="value">Value</param>
         /// <param name="type">Type</param>
         /// <returns>NativeObject</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeObject<T> Alloc(T value, GCHandleType type) => new(GCHandle.Alloc(value, type));
+        public static NativeObject<T> Create(T value, GCHandleType type) => new(GCHandle.Alloc(value, type));
 
         /// <summary>
         ///     Empty
