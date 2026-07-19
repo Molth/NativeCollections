@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Threading;
+using static NativeCollections.BooleanHelpers;
 
 #pragma warning disable CA2231 // Overload operator equals on overriding ValueType.Equals
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
@@ -13,31 +13,29 @@ using System.Threading;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe atomic reference
+    ///     Unsafe atomic 8
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard | FromType.Rust)]
-    [IsReferenceOrContainsReferences]
-    public unsafe struct UnsafeAtomicReference<T> where T : class?
+    public unsafe struct UnsafeAtomicBool
     {
         /// <summary>
-        ///     Handle
+        ///     Value
         /// </summary>
-        private object? _handle;
+        private UnsafeAtomicU8 _value;
 
         /// <summary>
         ///     Structure
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeAtomicReference(T? handle) => _handle = handle;
+        public UnsafeAtomicBool(bool value) => _value = new UnsafeAtomicU8(IntoU8(value));
 
         /// <summary>
         ///     Reinterprets the given location as a reference to this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
-        public ref T? AsRef() => ref Unsafe.As<object?, T?>(ref _handle);
+        public ref bool AsRef() => ref Unsafe.As<byte, bool>(ref _value.AsRef());
 
         /// <summary>
         ///     Returns a value, loaded as an atomic operation.
@@ -45,35 +43,63 @@ namespace NativeCollections
         /// <returns>The loaded value.</returns>
         /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T? Load(Ordering order) => (T?)AtomicHelpers.LoadReference(ref _handle, order);
+        public bool Load(Ordering order) => FromU8(_value.Load(order));
 
         /// <summary>
         ///     Sets a value to a specified value, as an atomic operation.
         /// </summary>
         /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Store(T? value, Ordering order) => AtomicHelpers.StoreReference(ref _handle, value, order);
+        public void Store(bool value, Ordering order) => _value.Store(IntoU8(value), order);
+
+        /// <summary>
+        ///     Bitwise "nands" two booleans and replaces the first integer with the result, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Nand(bool value) => value ? Xor(true) : Exchange(true);
+
+        /// <summary>
+        ///     Bitwise "ands" two booleans and replaces the first integer with the result, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool And(bool value) => FromU8(_value.And(IntoU8(value)));
+
+        /// <summary>
+        ///     Bitwise "ors" two booleans and replaces the first integer with the result, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Or(bool value) => FromU8(_value.Or(IntoU8(value)));
+
+        /// <summary>
+        ///     Bitwise "xors" two booleans and replaces the first integer with the result, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Xor(bool value) => FromU8(_value.Xor(IntoU8(value)));
 
         /// <summary>
         ///     Returns a value, loaded as an atomic operation.
         /// </summary>
         /// <returns>The loaded value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T? Read() => (T?)InterlockedHelpers.Read(ref _handle);
+        public bool Read() => FromU8(_value.Read());
 
         /// <summary>
         ///     Sets a value to a specified value and returns the original value, as an atomic operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T? Exchange(T? value) => (T?)Interlocked.Exchange(ref _handle, value);
+        public bool Exchange(bool value) => FromU8(_value.Exchange(IntoU8(value)));
 
         /// <summary>
         ///     Compares two values for equality and, if they are equal, replaces the first value.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T? CompareExchange(T? value, T? comparand) => (T?)Interlocked.CompareExchange(ref _handle, value, comparand);
+        public bool CompareExchange(bool value, bool comparand) => FromU8(_value.CompareExchange(IntoU8(value), IntoU8(comparand)));
 
         /// <summary>
         ///     Equals
@@ -101,25 +127,11 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public readonly override string ToString() => SR.Format("UnsafeAtomicReference<{0}>", SR.GetTypeName(typeof(T)));
-
-        /// <summary>
-        ///     Create
-        /// </summary>
-        /// <param name="reference">Reference</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeAtomicReference<T> Create([MustBePinned] T? reference) => new(reference);
-
-        /// <summary>
-        ///     Create
-        /// </summary>
-        /// <param name="buffer">Buffer</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeAtomicReference<T> Create([MustBePinned] Span<T> buffer) => new(MemoryMarshal.GetReference(buffer));
+        public readonly override string ToString() => "UnsafeAtomicBoolean";
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeAtomicReference<T> Empty => default;
+        public static UnsafeAtomicBool Empty => default;
     }
 }

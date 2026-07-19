@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Threading;
 
 #pragma warning disable CA2231 // Overload operator equals on overriding ValueType.Equals
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
@@ -15,34 +14,27 @@ namespace NativeCollections
     /// <summary>
     ///     Unsafe atomic 32
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard | FromType.Rust)]
-    [SupportedTypes(typeof(bool), typeof(byte), typeof(sbyte), typeof(char), typeof(short), typeof(ushort), typeof(int), typeof(float), typeof(uint))]
-    [MaybeSupportedTypes(typeof(Enum), typeof(IntPtr), typeof(UIntPtr))]
-    public unsafe struct UnsafeAtomic32<T> where T : unmanaged
+    public unsafe struct UnsafeAtomicU32
     {
         /// <summary>
         ///     Value
         /// </summary>
-        private int _value;
+        private UnsafeAtomicI32 _value;
 
         /// <summary>
         ///     Structure
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeAtomic32(T value)
-        {
-            CheckType();
-            _value = AtomicHelpers.CastToInt32(value);
-        }
+        public UnsafeAtomicU32(uint value) => _value = new UnsafeAtomicI32((int)value);
 
         /// <summary>
         ///     Reinterprets the given location as a reference to this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
-        public ref int AsRef() => ref _value;
+        public ref uint AsRef() => ref Unsafe.As<int, uint>(ref _value.AsRef());
 
         /// <summary>
         ///     Returns a value, loaded as an atomic operation.
@@ -50,160 +42,84 @@ namespace NativeCollections
         /// <returns>The loaded value.</returns>
         /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T Load(Ordering order)
-        {
-            CheckType();
-            var newInt32 = AtomicHelpers.LoadInt32(ref _value, order);
-            return AtomicHelpers.CastFromInt32<T>(newInt32);
-        }
+        public uint Load(Ordering order) => (uint)_value.Load(order);
 
         /// <summary>
         ///     Sets a value to a specified value, as an atomic operation.
         /// </summary>
         /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Store(T value, Ordering order)
-        {
-            CheckType();
-            AtomicHelpers.StoreInt32(ref _value, AtomicHelpers.CastToInt32(value), order);
-        }
+        public void Store(uint value, Ordering order) => _value.Store((int)value, order);
 
         /// <summary>
         ///     Bitwise "ands" two 32-bit signed integers and replaces the first integer with the result, as an atomic operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T And(T value)
-        {
-            CheckType();
-            if (typeof(T) == typeof(float))
-                ThrowHelpers.ThrowNotSupportedException();
-            var newInt32 = InterlockedHelpers.AndInt32(ref _value, AtomicHelpers.CastToInt32(value));
-            return AtomicHelpers.CastFromInt32<T>(newInt32);
-        }
+        public uint And(uint value) => (uint)_value.And((int)value);
 
         /// <summary>
         ///     Bitwise "ors" two 32-bit signed integers and replaces the first integer with the result, as an atomic operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T Or(T value)
-        {
-            CheckType();
-            if (typeof(T) == typeof(float))
-                ThrowHelpers.ThrowNotSupportedException();
-            var newInt32 = InterlockedHelpers.OrInt32(ref _value, AtomicHelpers.CastToInt32(value));
-            return AtomicHelpers.CastFromInt32<T>(newInt32);
-        }
+        public uint Or(uint value) => (uint)_value.Or((int)value);
 
         /// <summary>
         ///     Bitwise "xors" two 32-bit signed integers and replaces the first integer with the result, as an atomic operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T Xor(T value)
-        {
-            CheckType();
-            if (typeof(T) == typeof(float))
-                ThrowHelpers.ThrowNotSupportedException();
-            var newInt32 = InterlockedHelpers.XorInt32(ref _value, AtomicHelpers.CastToInt32(value));
-            return AtomicHelpers.CastFromInt32<T>(newInt32);
-        }
+        public uint Xor(uint value) => (uint)_value.Xor((int)value);
 
         /// <summary>
         ///     Returns a value, loaded as an atomic operation.
         /// </summary>
         /// <returns>The loaded value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T Read()
-        {
-            CheckType();
-            var newInt32 = InterlockedHelpers.Read(ref _value);
-            return AtomicHelpers.CastFromInt32<T>(newInt32);
-        }
+        public uint Read() => (uint)_value.Read();
 
         /// <summary>
         ///     Sets a value to a specified value and returns the original value, as an atomic operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T Exchange(T value)
-        {
-            CheckType();
-            var newInt32 = Interlocked.Exchange(ref _value, AtomicHelpers.CastToInt32(value));
-            return AtomicHelpers.CastFromInt32<T>(newInt32);
-        }
+        public uint Exchange(uint value) => (uint)_value.Exchange((int)value);
 
         /// <summary>
         ///     Compares two values for equality and, if they are equal, replaces the first value.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T CompareExchange(T value, T comparand)
-        {
-            CheckType();
-            var newInt32 = Interlocked.CompareExchange(ref _value, AtomicHelpers.CastToInt32(value), AtomicHelpers.CastToInt32(comparand));
-            return AtomicHelpers.CastFromInt32<T>(newInt32);
-        }
+        public uint CompareExchange(uint value, uint comparand) => (uint)_value.CompareExchange((int)value, (int)comparand);
 
         /// <summary>
         ///     Adds two values and replaces the first integer with the sum, as an atomic operation.
         /// </summary>
         /// <returns>The new value stored.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T Add(T value)
-        {
-            CheckType();
-            var newInt32 = typeof(T) == typeof(float) ? AtomicHelpers.AddFloat(ref _value, Unsafe.As<T, float>(ref value)) : Interlocked.Add(ref _value, AtomicHelpers.CastToInt32(value));
-            return AtomicHelpers.CastFromInt32<T>(newInt32);
-        }
+        public uint Add(uint value) => (uint)_value.Add((int)value);
 
         /// <summary>
         ///     Subtracts two values and replaces the first integer with the difference, as an atomic operation.
         /// </summary>
         /// <returns>The new value stored.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T Subtract(T value)
-        {
-            CheckType();
-            var newInt32 = typeof(T) == typeof(float) ? AtomicHelpers.AddFloat(ref _value, -Unsafe.As<T, float>(ref value)) : Interlocked.Add(ref _value, -AtomicHelpers.CastToInt32(value));
-            return AtomicHelpers.CastFromInt32<T>(newInt32);
-        }
+        public uint Subtract(uint value) => (uint)_value.Subtract((int)value);
 
         /// <summary>
         ///     Increments a specified variable and stores the result, as an atomic operation.
         /// </summary>
         /// <returns>The incremented value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T Increment()
-        {
-            CheckType();
-            var newInt32 = typeof(T) == typeof(float) ? AtomicHelpers.AddFloat(ref _value, 1.0f) : Interlocked.Increment(ref _value);
-            return AtomicHelpers.CastFromInt32<T>(newInt32);
-        }
+        public uint Increment() => (uint)_value.Increment();
 
         /// <summary>
         ///     Decrements a specified variable and stores the result, as an atomic operation.
         /// </summary>
         /// <returns>The decremented value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T Decrement()
-        {
-            CheckType();
-            var newInt32 = typeof(T) == typeof(float) ? AtomicHelpers.AddFloat(ref _value, -1.0f) : Interlocked.Decrement(ref _value);
-            return AtomicHelpers.CastFromInt32<T>(newInt32);
-        }
-
-        /// <summary>
-        ///     Check type
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void CheckType()
-        {
-            if (AtomicHelpers.IsSupported32<T>())
-                return;
-            ThrowHelpers.ThrowNotSupportedException();
-        }
+        public uint Decrement() => (uint)_value.Decrement();
 
         /// <summary>
         ///     Equals
@@ -231,11 +147,11 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public readonly override string ToString() => SR.Format("UnsafeAtomic32<{0}>", SR.GetTypeName(typeof(T)));
+        public readonly override string ToString() => "UnsafeAtomicU32";
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeAtomic32<T> Empty => default;
+        public static UnsafeAtomicU32 Empty => default;
     }
 }

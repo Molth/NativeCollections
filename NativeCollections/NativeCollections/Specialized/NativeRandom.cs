@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using static NativeCollections.BinaryNumberHelpers;
 
 #pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type
 
@@ -373,7 +374,7 @@ namespace NativeCollections
         /// <summary>Returns a boolean.</summary>
         /// <returns>True, or false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool NextBoolean() => (Next8() & 1) == 0;
+        public static bool NextBoolean() => IsOdd(Next8());
 
         /// <summary>
         ///     Generates a random boolean value.

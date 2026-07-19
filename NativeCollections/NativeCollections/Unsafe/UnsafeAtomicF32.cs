@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 #pragma warning disable CA2231 // Overload operator equals on overriding ValueType.Equals
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
@@ -12,29 +13,29 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe atomic UIntPtr
+    ///     Unsafe atomic 32
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(FromType.Standard | FromType.Rust)]
-    public unsafe struct UnsafeAtomicUsize
+    [UnsafeCollection(FromType.Standard)]
+    public unsafe struct UnsafeAtomicF32
     {
         /// <summary>
         ///     Value
         /// </summary>
-        private nuint _value;
+        private int _value;
 
         /// <summary>
         ///     Structure
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeAtomicUsize(nuint value) => _value = value;
+        public UnsafeAtomicF32(float value) => _value = AtomicHelpers.CastToInt32(value);
 
         /// <summary>
         ///     Reinterprets the given location as a reference to this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
-        public ref nuint AsRef() => ref _value;
+        public ref float AsRef() => ref Unsafe.As<int, float>(ref _value);
 
         /// <summary>
         ///     Returns a value, loaded as an atomic operation.
@@ -42,87 +43,95 @@ namespace NativeCollections
         /// <returns>The loaded value.</returns>
         /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint Load(Ordering order) => AtomicHelpers.Load(ref _value, order);
+        public float Load(Ordering order)
+        {
+            var newInt32 = AtomicHelpers.Load(ref _value, order);
+            return AtomicHelpers.CastFromInt32<float>(newInt32);
+        }
 
         /// <summary>
         ///     Sets a value to a specified value, as an atomic operation.
         /// </summary>
         /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Store(nuint value, Ordering order) => AtomicHelpers.Store(ref _value, value, order);
-
-        /// <summary>
-        ///     Bitwise "ands" two native-sized unsigned integers and replaces the first integer with the result, as an atomic
-        ///     operation.
-        /// </summary>
-        /// <returns>The original value.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint And(nuint value) => InterlockedHelpers.And(ref _value, value);
-
-        /// <summary>
-        ///     Bitwise "ors" two native-sized unsigned integers and replaces the first integer with the result, as an atomic
-        ///     operation.
-        /// </summary>
-        /// <returns>The original value.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint Or(nuint value) => InterlockedHelpers.Or(ref _value, value);
-
-        /// <summary>
-        ///     Bitwise "xors" two native-sized unsigned integers and replaces the first integer with the result, as an atomic
-        ///     operation.
-        /// </summary>
-        /// <returns>The original value.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint Xor(nuint value) => InterlockedHelpers.Xor(ref _value, value);
+        public void Store(float value, Ordering order) => AtomicHelpers.Store(ref _value, AtomicHelpers.CastToInt32(value), order);
 
         /// <summary>
         ///     Returns a value, loaded as an atomic operation.
         /// </summary>
         /// <returns>The loaded value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint Read() => InterlockedHelpers.Read(ref _value);
+        public float Read()
+        {
+            var newInt32 = InterlockedHelpers.Read(ref _value);
+            return AtomicHelpers.CastFromInt32<float>(newInt32);
+        }
 
         /// <summary>
         ///     Sets a value to a specified value and returns the original value, as an atomic operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint Exchange(nuint value) => InterlockedHelpers.Exchange(ref _value, value);
+        public float Exchange(float value)
+        {
+            var newInt32 = Interlocked.Exchange(ref _value, AtomicHelpers.CastToInt32(value));
+            return AtomicHelpers.CastFromInt32<float>(newInt32);
+        }
 
         /// <summary>
         ///     Compares two values for equality and, if they are equal, replaces the first value.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint CompareExchange(nuint value, nuint comparand) => InterlockedHelpers.CompareExchange(ref _value, value, comparand);
+        public float CompareExchange(float value, float comparand)
+        {
+            var newInt32 = Interlocked.CompareExchange(ref _value, AtomicHelpers.CastToInt32(value), AtomicHelpers.CastToInt32(comparand));
+            return AtomicHelpers.CastFromInt32<float>(newInt32);
+        }
 
         /// <summary>
         ///     Adds two values and replaces the first integer with the sum, as an atomic operation.
         /// </summary>
         /// <returns>The new value stored.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint Add(nuint value) => InterlockedHelpers.Add(ref _value, value);
+        public float Add(float value)
+        {
+            var newInt32 = AtomicHelpers.AddFloat32(ref _value, Unsafe.As<float, float>(ref value));
+            return AtomicHelpers.CastFromInt32<float>(newInt32);
+        }
 
         /// <summary>
         ///     Subtracts two values and replaces the first integer with the difference, as an atomic operation.
         /// </summary>
         /// <returns>The new value stored.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint Subtract(nuint value) => InterlockedHelpers.Add(ref _value, unchecked((nuint)(-(nint)value)));
+        public float Subtract(float value)
+        {
+            var newInt32 = AtomicHelpers.AddFloat32(ref _value, -Unsafe.As<float, float>(ref value));
+            return AtomicHelpers.CastFromInt32<float>(newInt32);
+        }
 
         /// <summary>
         ///     Increments a specified variable and stores the result, as an atomic operation.
         /// </summary>
         /// <returns>The incremented value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint Increment() => InterlockedHelpers.Increment(ref _value);
+        public float Increment()
+        {
+            var newInt32 = AtomicHelpers.AddFloat32(ref _value, 1.0f);
+            return AtomicHelpers.CastFromInt32<float>(newInt32);
+        }
 
         /// <summary>
         ///     Decrements a specified variable and stores the result, as an atomic operation.
         /// </summary>
         /// <returns>The decremented value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint Decrement() => InterlockedHelpers.Decrement(ref _value);
+        public float Decrement()
+        {
+            var newInt32 = AtomicHelpers.AddFloat32(ref _value, -1.0f);
+            return AtomicHelpers.CastFromInt32<float>(newInt32);
+        }
 
         /// <summary>
         ///     Equals
@@ -150,11 +159,11 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public readonly override string ToString() => "UnsafeAtomicUsize";
+        public readonly override string ToString() => "UnsafeAtomicF32";
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeAtomicUsize Empty => default;
+        public static UnsafeAtomicF32 Empty => default;
     }
 }

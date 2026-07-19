@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 #pragma warning disable CA2231 // Overload operator equals on overriding ValueType.Equals
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
@@ -12,29 +13,29 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe atomic UIntPtr
+    ///     Unsafe atomic 32
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard | FromType.Rust)]
-    public unsafe struct UnsafeAtomicUsize
+    public unsafe struct UnsafeAtomicI32
     {
         /// <summary>
         ///     Value
         /// </summary>
-        private nuint _value;
+        private int _value;
 
         /// <summary>
         ///     Structure
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeAtomicUsize(nuint value) => _value = value;
+        public UnsafeAtomicI32(int value) => _value = value;
 
         /// <summary>
         ///     Reinterprets the given location as a reference to this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
-        public ref nuint AsRef() => ref _value;
+        public ref int AsRef() => ref _value;
 
         /// <summary>
         ///     Returns a value, loaded as an atomic operation.
@@ -42,87 +43,84 @@ namespace NativeCollections
         /// <returns>The loaded value.</returns>
         /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint Load(Ordering order) => AtomicHelpers.Load(ref _value, order);
+        public int Load(Ordering order) => AtomicHelpers.Load(ref _value, order);
 
         /// <summary>
         ///     Sets a value to a specified value, as an atomic operation.
         /// </summary>
         /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Store(nuint value, Ordering order) => AtomicHelpers.Store(ref _value, value, order);
+        public void Store(int value, Ordering order) => AtomicHelpers.Store(ref _value, value, order);
 
         /// <summary>
-        ///     Bitwise "ands" two native-sized unsigned integers and replaces the first integer with the result, as an atomic
-        ///     operation.
+        ///     Bitwise "ands" two 32-bit signed integers and replaces the first integer with the result, as an atomic operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint And(nuint value) => InterlockedHelpers.And(ref _value, value);
+        public int And(int value) => InterlockedHelpers.And(ref _value, value);
 
         /// <summary>
-        ///     Bitwise "ors" two native-sized unsigned integers and replaces the first integer with the result, as an atomic
-        ///     operation.
+        ///     Bitwise "ors" two 32-bit signed integers and replaces the first integer with the result, as an atomic operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint Or(nuint value) => InterlockedHelpers.Or(ref _value, value);
+        public int Or(int value) => InterlockedHelpers.Or(ref _value, value);
 
         /// <summary>
-        ///     Bitwise "xors" two native-sized unsigned integers and replaces the first integer with the result, as an atomic
-        ///     operation.
+        ///     Bitwise "xors" two 32-bit signed integers and replaces the first integer with the result, as an atomic operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint Xor(nuint value) => InterlockedHelpers.Xor(ref _value, value);
+        public int Xor(int value) => InterlockedHelpers.Xor(ref _value, value);
 
         /// <summary>
         ///     Returns a value, loaded as an atomic operation.
         /// </summary>
         /// <returns>The loaded value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint Read() => InterlockedHelpers.Read(ref _value);
+        public int Read() => InterlockedHelpers.Read(ref _value);
 
         /// <summary>
         ///     Sets a value to a specified value and returns the original value, as an atomic operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint Exchange(nuint value) => InterlockedHelpers.Exchange(ref _value, value);
+        public int Exchange(int value) => Interlocked.Exchange(ref _value, value);
 
         /// <summary>
         ///     Compares two values for equality and, if they are equal, replaces the first value.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint CompareExchange(nuint value, nuint comparand) => InterlockedHelpers.CompareExchange(ref _value, value, comparand);
+        public int CompareExchange(int value, int comparand) => Interlocked.CompareExchange(ref _value, value, comparand);
 
         /// <summary>
         ///     Adds two values and replaces the first integer with the sum, as an atomic operation.
         /// </summary>
         /// <returns>The new value stored.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint Add(nuint value) => InterlockedHelpers.Add(ref _value, value);
+        public int Add(int value) => Interlocked.Add(ref _value, value);
 
         /// <summary>
         ///     Subtracts two values and replaces the first integer with the difference, as an atomic operation.
         /// </summary>
         /// <returns>The new value stored.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint Subtract(nuint value) => InterlockedHelpers.Add(ref _value, unchecked((nuint)(-(nint)value)));
+        public int Subtract(int value) => Interlocked.Add(ref _value, -value);
 
         /// <summary>
         ///     Increments a specified variable and stores the result, as an atomic operation.
         /// </summary>
         /// <returns>The incremented value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint Increment() => InterlockedHelpers.Increment(ref _value);
+        public int Increment() => Interlocked.Increment(ref _value);
 
         /// <summary>
         ///     Decrements a specified variable and stores the result, as an atomic operation.
         /// </summary>
         /// <returns>The decremented value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint Decrement() => InterlockedHelpers.Decrement(ref _value);
+        public int Decrement() => Interlocked.Decrement(ref _value);
 
         /// <summary>
         ///     Equals
@@ -150,11 +148,11 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public readonly override string ToString() => "UnsafeAtomicUsize";
+        public readonly override string ToString() => "UnsafeAtomicI32";
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeAtomicUsize Empty => default;
+        public static UnsafeAtomicI32 Empty => default;
     }
 }

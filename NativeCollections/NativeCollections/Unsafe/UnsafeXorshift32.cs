@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using static NativeCollections.BinaryNumberHelpers;
 
 #pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type
 
@@ -478,7 +479,7 @@ namespace NativeCollections
         /// <summary>Returns a boolean.</summary>
         /// <returns>True, or false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool NextBoolean() => (Next32() & 1) == 0;
+        public bool NextBoolean() => IsOdd(Next32());
 
         /// <summary>
         ///     Generates a random boolean value.

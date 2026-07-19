@@ -43,14 +43,14 @@ namespace NativeCollections
         /// <returns>The loaded value.</returns>
         /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nint Load(Ordering order) => AtomicHelpers.LoadIntPtr(ref _value, order);
+        public nint Load(Ordering order) => AtomicHelpers.Load(ref _value, order);
 
         /// <summary>
         ///     Sets a value to a specified value, as an atomic operation.
         /// </summary>
         /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Store(nint value, Ordering order) => AtomicHelpers.StoreIntPtr(ref _value, value, order);
+        public void Store(nint value, Ordering order) => AtomicHelpers.Store(ref _value, value, order);
 
         /// <summary>
         ///     Bitwise "ands" two native-sized signed integers and replaces the first integer with the result, as an atomic

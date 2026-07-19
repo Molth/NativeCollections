@@ -139,7 +139,7 @@ namespace Examples
         {
             T* n = null;
             T* ret;
-            while ((ret = atom.Load(Ordering.SeqCst)) != n)
+            while ((ret = atom.Load(Ordering.Acquire)) != n)
             {
                 hp[tid][index].Store((nint)ret, Ordering.Release);
                 n = ret;
@@ -150,7 +150,7 @@ namespace Examples
 
         public void* get(int index, int tid)
         {
-            return (void*)hp[tid][index].Load(Ordering.SeqCst);
+            return (void*)hp[tid][index].Load(Ordering.Acquire);
         }
 
         /// <summary>
@@ -158,16 +158,6 @@ namespace Examples
         ///     Progress Condition: wait-free population oblivious
         /// </summary>
         public T* protectPtr<T>(int index, T* ptr, int tid) where T : unmanaged
-        {
-            hp[tid][index].Store((nint)ptr, Ordering.SeqCst);
-            return ptr;
-        }
-
-        /// <summary>
-        ///     This returns the same value that is passed as ptr, which is sometimes useful
-        ///     Progress Condition: wait-free population oblivious
-        /// </summary>
-        public T* protectPtrRelease<T>(int index, T* ptr, int tid) where T : unmanaged
         {
             hp[tid][index].Store((nint)ptr, Ordering.Release);
             return ptr;
@@ -188,7 +178,7 @@ namespace Examples
                 {
                     for (int ihp = maxHPs - 1; ihp >= 0; ihp--)
                     {
-                        if (hp[tid2][ihp].Load(Ordering.SeqCst) == obj)
+                        if (hp[tid2][ihp].Load(Ordering.Acquire) == obj)
                         {
                             canDelete = false;
                             break;

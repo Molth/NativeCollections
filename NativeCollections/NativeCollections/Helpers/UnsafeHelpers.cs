@@ -11,6 +11,10 @@ namespace NativeCollections
     /// </summary>
     internal static unsafe class UnsafeHelpers
     {
+        // Determines the misalignment of the address with respect to the specified `alignment`.
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static nuint OpportunisticMisalignment<T>(ref T address, nuint alignment) => (nuint)(nint)Unsafe.AsPointer(ref address) & (alignment - 1);
+
         /// <summary>
         ///     Returns if a given pointer is a null reference.
         /// </summary>

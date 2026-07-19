@@ -16,7 +16,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The loaded value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static object? LoadReference(ref object? location, Ordering order)
+        public static object? Load(ref object? location, Ordering order)
         {
             switch (order)
             {
@@ -42,7 +42,7 @@ namespace NativeCollections
         /// </summary>
         /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void StoreReference(ref object? location, object? value, Ordering order)
+        public static void Store(ref object? location, object? value, Ordering order)
         {
             switch (order)
             {
@@ -71,7 +71,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The loaded value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static nint LoadIntPtr(ref nint location, Ordering order)
+        public static nint Load(ref nint location, Ordering order)
         {
             switch (order)
             {
@@ -97,7 +97,7 @@ namespace NativeCollections
         /// </summary>
         /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void StoreIntPtr(ref nint location, nint value, Ordering order)
+        public static void Store(ref nint location, nint value, Ordering order)
         {
             switch (order)
             {
@@ -127,7 +127,7 @@ namespace NativeCollections
         /// <returns>The loaded value.</returns>
         /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static nuint LoadUIntPtr(ref nuint location, Ordering order)
+        public static nuint Load(ref nuint location, Ordering order)
         {
             switch (order)
             {
@@ -153,7 +153,7 @@ namespace NativeCollections
         /// </summary>
         /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void StoreUIntPtr(ref nuint location, nuint value, Ordering order)
+        public static void Store(ref nuint location, nuint value, Ordering order)
         {
             switch (order)
             {
@@ -182,7 +182,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The loaded value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long LoadInt64(ref long location, Ordering order)
+        public static long Load(ref long location, Ordering order)
         {
             if (Environment.Is64BitProcess)
             {
@@ -225,7 +225,7 @@ namespace NativeCollections
         /// </summary>
         /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void StoreInt64(ref long location, long value, Ordering order)
+        public static void Store(ref long location, long value, Ordering order)
         {
             if (Environment.Is64BitProcess)
             {
@@ -272,7 +272,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The loaded value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int LoadInt32(ref int location, Ordering order)
+        public static int Load(ref int location, Ordering order)
         {
             switch (order)
             {
@@ -298,7 +298,7 @@ namespace NativeCollections
         /// </summary>
         /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void StoreInt32(ref int location, int value, Ordering order)
+        public static void Store(ref int location, int value, Ordering order)
         {
             switch (order)
             {
@@ -313,6 +313,116 @@ namespace NativeCollections
 
                 case Ordering.SeqCst:
                     Interlocked.Exchange(ref location, value);
+                    return;
+
+                case Ordering.Acquire:
+                default:
+                    ThrowHelpers.ThrowNotSupportedException();
+                    return;
+            }
+        }
+
+        /// <summary>
+        ///     Returns a value, loaded as an atomic operation.
+        /// </summary>
+        /// <returns>The loaded value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ushort Load(ref ushort location, Ordering order)
+        {
+            switch (order)
+            {
+                case Ordering.Relaxed:
+                    return location;
+
+                case Ordering.Acquire:
+                case Ordering.AcqRel:
+                    return Volatile.Read(ref location);
+
+                case Ordering.SeqCst:
+                    return InterlockedHelpers.Read(ref location);
+
+                case Ordering.Release:
+                default:
+                    ThrowHelpers.ThrowNotSupportedException();
+                    return default;
+            }
+        }
+
+        /// <summary>
+        ///     Sets a value to a specified value, as an atomic operation.
+        /// </summary>
+        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Store(ref ushort location, ushort value, Ordering order)
+        {
+            switch (order)
+            {
+                case Ordering.Relaxed:
+                    location = value;
+                    return;
+
+                case Ordering.Release:
+                case Ordering.AcqRel:
+                    Volatile.Write(ref location, value);
+                    return;
+
+                case Ordering.SeqCst:
+                    InterlockedHelpers.Exchange(ref location, value);
+                    return;
+
+                case Ordering.Acquire:
+                default:
+                    ThrowHelpers.ThrowNotSupportedException();
+                    return;
+            }
+        }
+
+        /// <summary>
+        ///     Returns a value, loaded as an atomic operation.
+        /// </summary>
+        /// <returns>The loaded value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte Load(ref byte location, Ordering order)
+        {
+            switch (order)
+            {
+                case Ordering.Relaxed:
+                    return location;
+
+                case Ordering.Acquire:
+                case Ordering.AcqRel:
+                    return Volatile.Read(ref location);
+
+                case Ordering.SeqCst:
+                    return InterlockedHelpers.Read(ref location);
+
+                case Ordering.Release:
+                default:
+                    ThrowHelpers.ThrowNotSupportedException();
+                    return default;
+            }
+        }
+
+        /// <summary>
+        ///     Sets a value to a specified value, as an atomic operation.
+        /// </summary>
+        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Store(ref byte location, byte value, Ordering order)
+        {
+            switch (order)
+            {
+                case Ordering.Relaxed:
+                    location = value;
+                    return;
+
+                case Ordering.Release:
+                case Ordering.AcqRel:
+                    Volatile.Write(ref location, value);
+                    return;
+
+                case Ordering.SeqCst:
+                    InterlockedHelpers.Exchange(ref location, value);
                     return;
 
                 case Ordering.Acquire:
@@ -368,7 +478,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The new value stored at <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int AddFloat(ref int location, float value)
+        public static int AddFloat32(ref int location, float value)
         {
             var spinWait = new UnsafeSpinWait();
             var currentInt32 = location;
@@ -432,16 +542,8 @@ namespace NativeCollections
         {
             if (Unsafe.SizeOf<T>() == 1)
             {
-                if (typeof(T) == typeof(bool))
-                {
-                    var source = (value & 1) != 0;
-                    return Unsafe.As<bool, T>(ref source);
-                }
-                else
-                {
-                    var source = (byte)value;
-                    return Unsafe.As<byte, T>(ref source);
-                }
+                var source = (byte)value;
+                return Unsafe.As<byte, T>(ref source);
             }
 
             if (Unsafe.SizeOf<T>() == 2)
@@ -471,16 +573,8 @@ namespace NativeCollections
         {
             if (Unsafe.SizeOf<T>() == 1)
             {
-                if (typeof(T) == typeof(bool))
-                {
-                    var source = (value & 1) != 0;
-                    return Unsafe.As<bool, T>(ref source);
-                }
-                else
-                {
-                    var source = (byte)value;
-                    return Unsafe.As<byte, T>(ref source);
-                }
+                var source = (byte)value;
+                return Unsafe.As<byte, T>(ref source);
             }
 
             if (Unsafe.SizeOf<T>() == 2)
@@ -494,95 +588,6 @@ namespace NativeCollections
 
             ThrowHelpers.ThrowNotSupportedException();
             return default;
-        }
-
-        /// <summary>
-        ///     Is supported for target-64
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsSupported64<T>() where T : unmanaged => Atomic64Helpers<T>.IsSupported;
-
-        /// <summary>
-        ///     Is supported for target-32
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsSupported32<T>() where T : unmanaged => Atomic32Helpers<T>.IsSupported;
-
-        /// <summary>
-        ///     Atomic helpers
-        /// </summary>
-        /// <typeparam name="T">Type</typeparam>
-        private static class Atomic64Helpers<T> where T : unmanaged
-        {
-            /// <summary>
-            ///     Is supported for target-64
-            /// </summary>
-            public static readonly bool IsSupported = IsSupportedPrivate();
-
-            /// <summary>
-            ///     Is supported for target-64
-            /// </summary>
-            private static bool IsSupportedPrivate()
-            {
-                if (typeof(T) == typeof(IntPtr) || typeof(T) == typeof(UIntPtr))
-                    return true;
-
-                switch (Type.GetTypeCode(typeof(T)))
-                {
-                    case TypeCode.Boolean:
-                    case TypeCode.Byte:
-                    case TypeCode.SByte:
-                    case TypeCode.Char:
-                    case TypeCode.Int16:
-                    case TypeCode.UInt16:
-                    case TypeCode.Int32:
-                    case TypeCode.Single:
-                    case TypeCode.UInt32:
-                    case TypeCode.Double:
-                    case TypeCode.Int64:
-                    case TypeCode.UInt64:
-                        return true;
-                    default:
-                        return false;
-                }
-            }
-        }
-
-        /// <summary>
-        ///     Atomic helpers
-        /// </summary>
-        /// <typeparam name="T">Type</typeparam>
-        private static class Atomic32Helpers<T> where T : unmanaged
-        {
-            /// <summary>
-            ///     Is supported for target-32
-            /// </summary>
-            public static readonly bool IsSupported = IsSupportedPrivate();
-
-            /// <summary>
-            ///     Is supported for target-32
-            /// </summary>
-            private static bool IsSupportedPrivate()
-            {
-                if (typeof(T) == typeof(IntPtr) || typeof(T) == typeof(UIntPtr))
-                    return !Environment.Is64BitProcess;
-
-                switch (Type.GetTypeCode(typeof(T)))
-                {
-                    case TypeCode.Boolean:
-                    case TypeCode.Byte:
-                    case TypeCode.SByte:
-                    case TypeCode.Char:
-                    case TypeCode.Int16:
-                    case TypeCode.UInt16:
-                    case TypeCode.Int32:
-                    case TypeCode.Single:
-                    case TypeCode.UInt32:
-                        return true;
-                    default:
-                        return false;
-                }
-            }
         }
     }
 }

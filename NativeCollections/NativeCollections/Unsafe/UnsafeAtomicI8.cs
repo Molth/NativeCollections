@@ -12,29 +12,29 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe atomic UIntPtr
+    ///     Unsafe atomic 8
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard | FromType.Rust)]
-    public unsafe struct UnsafeAtomicUsize
+    public unsafe struct UnsafeAtomicI8
     {
         /// <summary>
         ///     Value
         /// </summary>
-        private nuint _value;
+        private UnsafeAtomicU8 _value;
 
         /// <summary>
         ///     Structure
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeAtomicUsize(nuint value) => _value = value;
+        public UnsafeAtomicI8(sbyte value) => _value = new UnsafeAtomicU8((byte)value);
 
         /// <summary>
         ///     Reinterprets the given location as a reference to this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
-        public ref nuint AsRef() => ref _value;
+        public ref sbyte AsRef() => ref Unsafe.As<byte, sbyte>(ref _value.AsRef());
 
         /// <summary>
         ///     Returns a value, loaded as an atomic operation.
@@ -42,87 +42,84 @@ namespace NativeCollections
         /// <returns>The loaded value.</returns>
         /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint Load(Ordering order) => AtomicHelpers.Load(ref _value, order);
+        public sbyte Load(Ordering order) => (sbyte)_value.Load(order);
 
         /// <summary>
         ///     Sets a value to a specified value, as an atomic operation.
         /// </summary>
         /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Store(nuint value, Ordering order) => AtomicHelpers.Store(ref _value, value, order);
+        public void Store(sbyte value, Ordering order) => _value.Store((byte)value, order);
 
         /// <summary>
-        ///     Bitwise "ands" two native-sized unsigned integers and replaces the first integer with the result, as an atomic
-        ///     operation.
+        ///     Bitwise "ands" two 8-bit signed integers and replaces the first integer with the result, as an atomic operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint And(nuint value) => InterlockedHelpers.And(ref _value, value);
+        public sbyte And(sbyte value) => (sbyte)_value.And((byte)value);
 
         /// <summary>
-        ///     Bitwise "ors" two native-sized unsigned integers and replaces the first integer with the result, as an atomic
-        ///     operation.
+        ///     Bitwise "ors" two 8-bit signed integers and replaces the first integer with the result, as an atomic operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint Or(nuint value) => InterlockedHelpers.Or(ref _value, value);
+        public sbyte Or(sbyte value) => (sbyte)_value.Or((byte)value);
 
         /// <summary>
-        ///     Bitwise "xors" two native-sized unsigned integers and replaces the first integer with the result, as an atomic
-        ///     operation.
+        ///     Bitwise "xors" two 8-bit signed integers and replaces the first integer with the result, as an atomic operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint Xor(nuint value) => InterlockedHelpers.Xor(ref _value, value);
+        public sbyte Xor(sbyte value) => (sbyte)_value.Xor((byte)value);
 
         /// <summary>
         ///     Returns a value, loaded as an atomic operation.
         /// </summary>
         /// <returns>The loaded value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint Read() => InterlockedHelpers.Read(ref _value);
+        public sbyte Read() => (sbyte)_value.Read();
 
         /// <summary>
         ///     Sets a value to a specified value and returns the original value, as an atomic operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint Exchange(nuint value) => InterlockedHelpers.Exchange(ref _value, value);
+        public sbyte Exchange(sbyte value) => (sbyte)_value.Exchange((byte)value);
 
         /// <summary>
         ///     Compares two values for equality and, if they are equal, replaces the first value.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint CompareExchange(nuint value, nuint comparand) => InterlockedHelpers.CompareExchange(ref _value, value, comparand);
+        public sbyte CompareExchange(sbyte value, sbyte comparand) => (sbyte)_value.CompareExchange((byte)value, (byte)comparand);
 
         /// <summary>
         ///     Adds two values and replaces the first integer with the sum, as an atomic operation.
         /// </summary>
         /// <returns>The new value stored.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint Add(nuint value) => InterlockedHelpers.Add(ref _value, value);
+        public sbyte Add(sbyte value) => (sbyte)_value.Add((byte)value);
 
         /// <summary>
         ///     Subtracts two values and replaces the first integer with the difference, as an atomic operation.
         /// </summary>
         /// <returns>The new value stored.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint Subtract(nuint value) => InterlockedHelpers.Add(ref _value, unchecked((nuint)(-(nint)value)));
+        public sbyte Subtract(sbyte value) => (sbyte)_value.Subtract((byte)value);
 
         /// <summary>
         ///     Increments a specified variable and stores the result, as an atomic operation.
         /// </summary>
         /// <returns>The incremented value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint Increment() => InterlockedHelpers.Increment(ref _value);
+        public sbyte Increment() => (sbyte)_value.Increment();
 
         /// <summary>
         ///     Decrements a specified variable and stores the result, as an atomic operation.
         /// </summary>
         /// <returns>The decremented value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint Decrement() => InterlockedHelpers.Decrement(ref _value);
+        public sbyte Decrement() => (sbyte)_value.Decrement();
 
         /// <summary>
         ///     Equals
@@ -150,11 +147,11 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public readonly override string ToString() => "UnsafeAtomicUsize";
+        public readonly override string ToString() => "UnsafeAtomicI8";
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeAtomicUsize Empty => default;
+        public static UnsafeAtomicI8 Empty => default;
     }
 }

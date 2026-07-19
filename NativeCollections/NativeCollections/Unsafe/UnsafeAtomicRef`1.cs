@@ -13,36 +13,31 @@ using System.Threading;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe atomic ptr
+    ///     Unsafe atomic reference
     /// </summary>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(FromType.Standard | FromType.Rust)]
-    public unsafe struct UnsafeAtomicPtr<T> where T : unmanaged
+    [UnsafeCollection(FromType.Standard)]
+    [IsReferenceOrContainsReferences]
+    public unsafe struct UnsafeAtomicRef<T> where T : class?
     {
         /// <summary>
         ///     Handle
         /// </summary>
-        private nint _handle;
+        private object? _handle;
 
         /// <summary>
         ///     Structure
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeAtomicPtr(T* handle) => _handle = (nint)handle;
-
-        /// <summary>
-        ///     Structure
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeAtomicPtr(nint handle) => _handle = handle;
+        public UnsafeAtomicRef(T? handle) => _handle = handle;
 
         /// <summary>
         ///     Reinterprets the given location as a reference to this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
-        public ref T* AsRef() => ref Unsafe.As<nint, UnsafePtr<T>>(ref _handle).Handle;
+        public ref T? AsRef() => ref Unsafe.As<object?, T?>(ref _handle);
 
         /// <summary>
         ///     Returns a value, loaded as an atomic operation.
@@ -50,35 +45,35 @@ namespace NativeCollections
         /// <returns>The loaded value.</returns>
         /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T* Load(Ordering order) => (T*)AtomicHelpers.Load(ref _handle, order);
+        public T? Load(Ordering order) => (T?)AtomicHelpers.Load(ref _handle, order);
 
         /// <summary>
         ///     Sets a value to a specified value, as an atomic operation.
         /// </summary>
         /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Store(T* value, Ordering order) => AtomicHelpers.Store(ref _handle, (nint)value, order);
+        public void Store(T? value, Ordering order) => AtomicHelpers.Store(ref _handle, value, order);
 
         /// <summary>
         ///     Returns a value, loaded as an atomic operation.
         /// </summary>
         /// <returns>The loaded value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T* Read() => (T*)InterlockedHelpers.Read(ref _handle);
+        public T? Read() => (T?)InterlockedHelpers.Read(ref _handle);
 
         /// <summary>
         ///     Sets a value to a specified value and returns the original value, as an atomic operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T* Exchange(T* value) => (T*)Interlocked.Exchange(ref _handle, (nint)value);
+        public T? Exchange(T? value) => (T?)Interlocked.Exchange(ref _handle, value);
 
         /// <summary>
         ///     Compares two values for equality and, if they are equal, replaces the first value.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T* CompareExchange(T* value, T* comparand) => (T*)Interlocked.CompareExchange(ref _handle, (nint)value, (nint)comparand);
+        public T? CompareExchange(T? value, T? comparand) => (T?)Interlocked.CompareExchange(ref _handle, value, comparand);
 
         /// <summary>
         ///     Equals
@@ -106,27 +101,25 @@ namespace NativeCollections
         ///     To string
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString() => SR.Format("UnsafeAtomicPtr<{0}>", SR.GetTypeName(typeof(T)));
+        public readonly override string ToString() => SR.Format("UnsafeAtomicReference<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
         ///     Create
         /// </summary>
         /// <param name="reference">Reference</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [MustBePinned(nameof(reference))]
-        public static UnsafeAtomicPtr<T> Create([MustBePinned] ref T reference) => new(UnsafeHelpers.AsPointer(ref reference));
+        public static UnsafeAtomicRef<T> Create([MustBePinned] T? reference) => new(reference);
 
         /// <summary>
         ///     Create
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [MustBePinned(nameof(buffer))]
-        public static UnsafeAtomicPtr<T> Create([MustBePinned] Span<T> buffer) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(buffer)));
+        public static UnsafeAtomicRef<T> Create([MustBePinned] Span<T> buffer) => new(MemoryMarshal.GetReference(buffer));
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static UnsafeAtomicPtr<T> Empty => default;
+        public static UnsafeAtomicRef<T> Empty => default;
     }
 }

@@ -12,7 +12,7 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.None)]
-    internal unsafe struct UnsafePtr<T> : IIsCreated, IDisposable, IEquatable<UnsafePtr<T>> where T : unmanaged
+    public unsafe struct UnsafePtr<T> : IIsCreated, IDisposable, IEquatable<UnsafePtr<T>> where T : unmanaged
     {
         /// <summary>
         ///     Handle

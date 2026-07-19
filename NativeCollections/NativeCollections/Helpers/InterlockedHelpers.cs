@@ -50,7 +50,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static nint And(ref nint location, nint value) => Environment.Is64BitProcess ? (nint)AndInt64(ref Unsafe.As<nint, long>(ref location), value) : AndInt32(ref Unsafe.As<nint, int>(ref location), (int)value);
+        public static nint And(ref nint location, nint value) => Environment.Is64BitProcess ? (nint)And(ref Unsafe.As<nint, long>(ref location), value) : And(ref Unsafe.As<nint, int>(ref location), (int)value);
 
         /// <summary>
         ///     Bitwise "ors" two native-sized signed integers and replaces the first integer with the result, as an atomic
@@ -58,7 +58,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static nint Or(ref nint location, nint value) => Environment.Is64BitProcess ? (nint)OrInt64(ref Unsafe.As<nint, long>(ref location), value) : OrInt32(ref Unsafe.As<nint, int>(ref location), (int)value);
+        public static nint Or(ref nint location, nint value) => Environment.Is64BitProcess ? (nint)Or(ref Unsafe.As<nint, long>(ref location), value) : Or(ref Unsafe.As<nint, int>(ref location), (int)value);
 
         /// <summary>
         ///     Bitwise "xors" two native-sized signed integers and replaces the first integer with the result, as an atomic
@@ -66,7 +66,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static nint Xor(ref nint location, nint value) => Environment.Is64BitProcess ? (nint)XorInt64(ref Unsafe.As<nint, long>(ref location), value) : XorInt32(ref Unsafe.As<nint, int>(ref location), (int)value);
+        public static nint Xor(ref nint location, nint value) => Environment.Is64BitProcess ? (nint)Xor(ref Unsafe.As<nint, long>(ref location), value) : Xor(ref Unsafe.As<nint, int>(ref location), (int)value);
 
         /// <summary>Returns a native-sized unsigned value, loaded as an atomic operation.</summary>
         /// <param name="location">The native-sized unsigned value to be loaded.</param>
@@ -130,7 +130,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static nuint And(ref nuint location, nuint value) => Environment.Is64BitProcess ? (nuint)AndInt64(ref Unsafe.As<nuint, long>(ref location), (long)value) : (nuint)AndInt32(ref Unsafe.As<nuint, int>(ref location), (int)value);
+        public static nuint And(ref nuint location, nuint value) => Environment.Is64BitProcess ? (nuint)And(ref Unsafe.As<nuint, long>(ref location), (long)value) : (nuint)And(ref Unsafe.As<nuint, int>(ref location), (int)value);
 
         /// <summary>
         ///     Bitwise "ors" two native-sized unsigned integers and replaces the first integer with the result, as an atomic
@@ -138,7 +138,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static nuint Or(ref nuint location, nuint value) => Environment.Is64BitProcess ? (nuint)OrInt64(ref Unsafe.As<nuint, long>(ref location), (long)value) : (nuint)OrInt32(ref Unsafe.As<nuint, int>(ref location), (int)value);
+        public static nuint Or(ref nuint location, nuint value) => Environment.Is64BitProcess ? (nuint)Or(ref Unsafe.As<nuint, long>(ref location), (long)value) : (nuint)Or(ref Unsafe.As<nuint, int>(ref location), (int)value);
 
         /// <summary>
         ///     Bitwise "xors" two native-sized unsigned integers and replaces the first integer with the result, as an atomic
@@ -146,7 +146,289 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static nuint Xor(ref nuint location, nuint value) => Environment.Is64BitProcess ? (nuint)XorInt64(ref Unsafe.As<nuint, long>(ref location), (long)value) : (nuint)XorInt32(ref Unsafe.As<nuint, int>(ref location), (int)value);
+        public static nuint Xor(ref nuint location, nuint value) => Environment.Is64BitProcess ? (nuint)Xor(ref Unsafe.As<nuint, long>(ref location), (long)value) : (nuint)Xor(ref Unsafe.As<nuint, int>(ref location), (int)value);
+
+        /// <summary>Sets a 8-bit unsigned integer to a specified value and returns the original value, as an atomic operation.</summary>
+        /// <param name="location">The variable to set to the specified value.</param>
+        /// <param name="value">The value to which the <paramref name="location" /> parameter is set.</param>
+        /// <returns>The original value of <paramref name="location" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte Exchange(ref byte location, byte value)
+        {
+#if NET9_0_OR_GREATER
+            return Interlocked.Exchange(ref location, value);
+#else
+            var offset = UnsafeHelpers.OpportunisticMisalignment(ref location, 4);
+            ref var alignedRef = ref Unsafe.As<byte, uint>(ref Unsafe.SubtractByteOffset(ref location, (nint)offset));
+            var bitOffset = (int)((BitConverter.IsLittleEndian ? offset : 3 - offset) * 8);
+            var mask = ~((uint)byte.MaxValue << bitOffset);
+            var shiftedValue = (uint)value << bitOffset;
+            var originalValue = alignedRef;
+            uint newValue;
+            do
+            {
+                newValue = (originalValue & mask) | shiftedValue;
+            } while (originalValue != (originalValue = CompareExchange(ref alignedRef, newValue, originalValue)));
+
+            return (byte)(originalValue >> bitOffset);
+#endif
+        }
+
+        /// <summary>Compares two 8-bit unsigned integers for equality and, if they are equal, replaces the first value.</summary>
+        /// <param name="location">
+        ///     The destination, whose value is compared with <paramref name="comparand" /> and possibly
+        ///     replaced.
+        /// </param>
+        /// <param name="value">The value that replaces the destination value if the comparison results in equality.</param>
+        /// <param name="comparand">The value that is compared to the value at <paramref name="location" />.</param>
+        /// <returns>The original value in <paramref name="location" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte CompareExchange(ref byte location, byte value, byte comparand)
+        {
+#if NET9_0_OR_GREATER
+            return Interlocked.CompareExchange(ref location, value, comparand);
+#else
+            var offset = UnsafeHelpers.OpportunisticMisalignment(ref location, 4);
+            ref var alignedRef = ref Unsafe.As<byte, uint>(ref Unsafe.SubtractByteOffset(ref location, (nint)offset));
+            var bitOffset = (int)((BitConverter.IsLittleEndian ? offset : 3 - offset) * 8);
+            var mask = ~((uint)byte.MaxValue << bitOffset);
+            var shiftedValue = (uint)value << bitOffset;
+            var shiftedComparand = (uint)comparand << bitOffset;
+            var originalValue = alignedRef;
+            uint fullComparand, newValue;
+            do
+            {
+                var otherMemory = originalValue & mask;
+                fullComparand = otherMemory | shiftedComparand;
+                newValue = otherMemory | shiftedValue;
+            } while (originalValue != (originalValue = CompareExchange(ref alignedRef, newValue, fullComparand)));
+
+            return (byte)(originalValue >> bitOffset);
+#endif
+        }
+
+        /// <summary>Adds two 8-bit unsigned integers and replaces the first integer with the sum, as an atomic operation.</summary>
+        /// <param name="location">
+        ///     A variable containing the first value to be added. The sum of the two values is stored in
+        ///     <paramref name="location" />.
+        /// </param>
+        /// <param name="value">The value to be added to the integer at <paramref name="location" />.</param>
+        /// <returns>The new value stored at <paramref name="location" />.</returns>
+        /// <exception cref="NullReferenceException">The address of <paramref name="location" /> is a null pointer.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte Add(ref byte location, byte value)
+        {
+            var current = location;
+            while (true)
+            {
+                var newValue = current + value;
+                var oldValue = CompareExchange(ref location, (byte)newValue, current);
+                if (oldValue == current)
+                    return oldValue;
+                current = oldValue;
+            }
+        }
+
+        /// <summary>Returns a 8-bit unsigned value, loaded as an atomic operation.</summary>
+        /// <param name="location">The native-sized signed value to be loaded.</param>
+        /// <returns>The loaded value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte Read(ref byte location) => CompareExchange(ref location, default, default);
+
+        /// <summary>
+        ///     Bitwise "ands" two 8-bit unsigned integers and replaces the first integer with the result, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value in <paramref name="location" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte And(ref byte location, byte value)
+        {
+            var current = location;
+            while (true)
+            {
+                var newValue = current & value;
+                var oldValue = CompareExchange(ref location, (byte)newValue, current);
+                if (oldValue == current)
+                    return oldValue;
+                current = oldValue;
+            }
+        }
+
+        /// <summary>
+        ///     Bitwise "ors" two 8-bit unsigned integers and replaces the first integer with the result, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value in <paramref name="location" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte Or(ref byte location, byte value)
+        {
+            var current = location;
+            while (true)
+            {
+                var newValue = current | value;
+                var oldValue = CompareExchange(ref location, (byte)newValue, current);
+                if (oldValue == current)
+                    return oldValue;
+                current = oldValue;
+            }
+        }
+
+        /// <summary>
+        ///     Bitwise "xors" two 8-bit unsigned integers and replaces the first integer with the result, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value in <paramref name="location" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte Xor(ref byte location, byte value)
+        {
+            var current = location;
+            while (true)
+            {
+                var newValue = current ^ value;
+                var oldValue = CompareExchange(ref location, (byte)newValue, current);
+                if (oldValue == current)
+                    return oldValue;
+                current = oldValue;
+            }
+        }
+
+        /// <summary>Sets a 16-bit signed integer to a specified value and returns the original value, as an atomic operation.</summary>
+        /// <param name="location">The variable to set to the specified value.</param>
+        /// <param name="value">The value to which the <paramref name="location" /> parameter is set.</param>
+        /// <returns>The original value of <paramref name="location" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ushort Exchange(ref ushort location, ushort value)
+        {
+#if NET9_0_OR_GREATER
+            return Interlocked.Exchange(ref location, value);
+#else
+            var offset = UnsafeHelpers.OpportunisticMisalignment(ref location, 4);
+            ref var alignedRef = ref Unsafe.As<ushort, uint>(ref Unsafe.SubtractByteOffset(ref location, (nint)offset));
+            var bitOffset = (int)((BitConverter.IsLittleEndian ? offset : 2 - offset) * 8);
+            var mask = ~((uint)ushort.MaxValue << bitOffset);
+            var shiftedValue = (uint)value << bitOffset;
+            var originalValue = alignedRef;
+            uint newValue;
+            do
+            {
+                newValue = (originalValue & mask) | shiftedValue;
+            } while (originalValue != (originalValue = CompareExchange(ref alignedRef, newValue, originalValue)));
+
+            return (ushort)(originalValue >> bitOffset);
+#endif
+        }
+
+        /// <summary>Compares two 16-bit signed integers for equality and, if they are equal, replaces the first value.</summary>
+        /// <param name="location">
+        ///     The destination, whose value is compared with <paramref name="comparand" /> and possibly
+        ///     replaced.
+        /// </param>
+        /// <param name="value">The value that replaces the destination value if the comparison results in equality.</param>
+        /// <param name="comparand">The value that is compared to the value at <paramref name="location" />.</param>
+        /// <returns>The original value in <paramref name="location" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ushort CompareExchange(ref ushort location, ushort value, ushort comparand)
+        {
+#if NET9_0_OR_GREATER
+            return Interlocked.CompareExchange(ref location, value, comparand);
+#else
+            var offset = UnsafeHelpers.OpportunisticMisalignment(ref location, 4);
+            ref var alignedRef = ref Unsafe.As<ushort, uint>(ref Unsafe.SubtractByteOffset(ref location, (nint)offset));
+            var bitOffset = (int)((BitConverter.IsLittleEndian ? offset : 2 - offset) * 8);
+            var mask = ~((uint)ushort.MaxValue << bitOffset);
+            var shiftedValue = (uint)value << bitOffset;
+            var shiftedComparand = (uint)comparand << bitOffset;
+            var originalValue = alignedRef;
+            uint fullComparand, newValue;
+            do
+            {
+                var otherMemory = originalValue & mask;
+                fullComparand = otherMemory | shiftedComparand;
+                newValue = otherMemory | shiftedValue;
+            } while (originalValue != (originalValue = CompareExchange(ref alignedRef, newValue, fullComparand)));
+
+            return (ushort)(originalValue >> bitOffset);
+#endif
+        }
+
+        /// <summary>Adds two 16-bit unsigned integers and replaces the first integer with the sum, as an atomic operation.</summary>
+        /// <param name="location">
+        ///     A variable containing the first value to be added. The sum of the two values is stored in
+        ///     <paramref name="location" />.
+        /// </param>
+        /// <param name="value">The value to be added to the integer at <paramref name="location" />.</param>
+        /// <returns>The new value stored at <paramref name="location" />.</returns>
+        /// <exception cref="NullReferenceException">The address of <paramref name="location" /> is a null pointer.</exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ushort Add(ref ushort location, ushort value)
+        {
+            var current = location;
+            while (true)
+            {
+                var newValue = current + value;
+                var oldValue = CompareExchange(ref location, (ushort)newValue, current);
+                if (oldValue == current)
+                    return oldValue;
+                current = oldValue;
+            }
+        }
+
+        /// <summary>Returns a 16-bit unsigned value, loaded as an atomic operation.</summary>
+        /// <param name="location">The native-sized signed value to be loaded.</param>
+        /// <returns>The loaded value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ushort Read(ref ushort location) => CompareExchange(ref location, default, default);
+
+        /// <summary>
+        ///     Bitwise "ands" two 16-bit unsigned integers and replaces the first integer with the result, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value in <paramref name="location" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ushort And(ref ushort location, ushort value)
+        {
+            var current = location;
+            while (true)
+            {
+                var newValue = current & value;
+                var oldValue = CompareExchange(ref location, (ushort)newValue, current);
+                if (oldValue == current)
+                    return oldValue;
+                current = oldValue;
+            }
+        }
+
+        /// <summary>
+        ///     Bitwise "ors" two 16-bit unsigned integers and replaces the first integer with the result, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value in <paramref name="location" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ushort Or(ref ushort location, ushort value)
+        {
+            var current = location;
+            while (true)
+            {
+                var newValue = current | value;
+                var oldValue = CompareExchange(ref location, (ushort)newValue, current);
+                if (oldValue == current)
+                    return oldValue;
+                current = oldValue;
+            }
+        }
+
+        /// <summary>
+        ///     Bitwise "xors" two 16-bit unsigned integers and replaces the first integer with the result, as an atomic operation.
+        /// </summary>
+        /// <returns>The original value in <paramref name="location" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ushort Xor(ref ushort location, ushort value)
+        {
+            var current = location;
+            while (true)
+            {
+                var newValue = current ^ value;
+                var oldValue = CompareExchange(ref location, (ushort)newValue, current);
+                if (oldValue == current)
+                    return oldValue;
+                current = oldValue;
+            }
+        }
 
         /// <summary>Returns a 32-bit signed value, loaded as an atomic operation.</summary>
         /// <param name="location">The 32-bit value to be loaded.</param>
@@ -159,7 +441,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int AndInt32(ref int location, int value)
+        public static int And(ref int location, int value)
         {
 #if NET5_0_OR_GREATER
             return Interlocked.And(ref location, value);
@@ -181,7 +463,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int OrInt32(ref int location, int value)
+        public static int Or(ref int location, int value)
         {
 #if NET5_0_OR_GREATER
             return Interlocked.Or(ref location, value);
@@ -203,7 +485,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int XorInt32(ref int location, int value)
+        public static int Xor(ref int location, int value)
         {
             var current = location;
             while (true)
@@ -217,11 +499,26 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Compares two 32-bit unsigned integers for equality and, if they are equal, replaces the first one, as an
+        ///     atomic operation.
+        /// </summary>
+        /// <returns>The original value in <paramref name="location" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static uint CompareExchange(ref uint location, uint value, uint comparand)
+        {
+#if NET5_0_OR_GREATER
+            return Interlocked.CompareExchange(ref location, value, comparand);
+#else
+            return (uint)Interlocked.CompareExchange(ref Unsafe.As<uint, int>(ref location), (int)value, (int)comparand);
+#endif
+        }
+
+        /// <summary>
         ///     Bitwise "ands" two 64-bit signed integers and replaces the first integer with the result, as an atomic operation.
         /// </summary>
         /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long AndInt64(ref long location, long value)
+        public static long And(ref long location, long value)
         {
 #if NET5_0_OR_GREATER
             return Interlocked.And(ref location, value);
@@ -243,7 +540,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long OrInt64(ref long location, long value)
+        public static long Or(ref long location, long value)
         {
 #if NET5_0_OR_GREATER
             return Interlocked.Or(ref location, value);
@@ -260,13 +557,12 @@ namespace NativeCollections
 #endif
         }
 
-
         /// <summary>
         ///     Bitwise "xors" two 64-bit signed integers and replaces the first integer with the result, as an atomic operation.
         /// </summary>
         /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long XorInt64(ref long location, long value)
+        public static long Xor(ref long location, long value)
         {
             var current = location;
             while (true)
