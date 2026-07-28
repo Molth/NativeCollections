@@ -27,13 +27,14 @@ namespace NativeCollections
         public NativeConcurrentSpinLock(UnsafeConcurrentSpinLock* buffer) => _handle = buffer;
 
         /// <summary>
-        ///     Dispose
+        ///     Performs application-defined tasks associated with freeing,
+        ///     releasing, or resetting unmanaged resources.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose() => Box.Free(_handle);
 
         /// <summary>
-        ///     Is created
+        ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
@@ -48,49 +49,37 @@ namespace NativeCollections
         public int NextSequenceNumber => _handle->NextSequenceNumber;
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="other">Other</param>
-        /// <returns>Equals</returns>
         public bool Equals(NativeConcurrentSpinLock other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <returns>Equals</returns>
         public override bool Equals(object? obj) => obj is NativeConcurrentSpinLock other && other.Equals(this);
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
-        /// <returns>HashCode</returns>
         public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public override string ToString() => "NativeConcurrentSpinLock";
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Equals</returns>
         public static bool operator ==(NativeConcurrentSpinLock left, NativeConcurrentSpinLock right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Not equals</returns>
         public static bool operator !=(NativeConcurrentSpinLock left, NativeConcurrentSpinLock right) => !left.Equals(right);
 
         /// <summary>
-        ///     Reset
+        ///     Sets this to its initial position.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reset() => _handle->Reset();
@@ -99,12 +88,7 @@ namespace NativeCollections
         ///     Enter
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeConcurrentSpinLockRef EnterLock()
-        {
-            var handle = _handle;
-            handle->Enter();
-            return new NativeConcurrentSpinLockRef(handle);
-        }
+        public NativeConcurrentSpinLockRef EnterLock() => _handle->EnterLock();
 
         /// <summary>
         ///     Enter
@@ -117,12 +101,7 @@ namespace NativeCollections
         ///     <paramref name="sleep1Threshold" /> is less than -1.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeConcurrentSpinLockRef EnterLock(int sleep1Threshold)
-        {
-            var handle = _handle;
-            handle->Enter(sleep1Threshold);
-            return new NativeConcurrentSpinLockRef(handle);
-        }
+        public NativeConcurrentSpinLockRef EnterLock(int sleep1Threshold) => _handle->EnterLock(sleep1Threshold);
 
         /// <summary>
         ///     Acquire

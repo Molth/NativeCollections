@@ -25,12 +25,12 @@ namespace NativeCollections
         private readonly UnsafeDictionary<TKey, TValue>* _handle;
 
         /// <summary>
-        ///     Keys
+        ///     Gets a collection containing the keys in the dictionary.
         /// </summary>
         public UnsafeDictionary<TKey, TValue>.KeyCollection Keys => _handle->Keys;
 
         /// <summary>
-        ///     Values
+        ///     Gets a collection containing the values in the dictionary.
         /// </summary>
         public UnsafeDictionary<TKey, TValue>.ValueCollection Values => _handle->Values;
 
@@ -46,14 +46,21 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Is created
+        ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
         /// <summary>
-        ///     Get or set value
+        ///     Gets or sets the value associated with the specified key.
         /// </summary>
-        /// <param name="key">Key</param>
+        /// <param name="key">The key of the value to get or set.</param>
+        /// <value>
+        ///     The value associated with the specified key. If the specified key is not found, a get operation throws a
+        ///     <see cref="KeyNotFoundException" />, and a set operation creates a new element with the specified key.
+        /// </value>
+        /// <exception cref="KeyNotFoundException">
+        ///     The property is retrieved and <paramref name="key" /> does not exist in the collection.
+        /// </exception>
         public TValue this[in TKey key]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -63,218 +70,263 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Is empty
+        ///     Gets a value that indicates whether this is empty.
         /// </summary>
+        /// <value>
+        ///     true if this is empty;
+        ///     otherwise, false.
+        /// </value>
         public bool IsEmpty => _handle->IsEmpty;
 
         /// <summary>
-        ///     Count
+        ///     Gets the number of elements contained in this.
         /// </summary>
         public int Count => _handle->Count;
 
         /// <summary>
-        ///     Capacity
+        ///     Gets the total numbers of elements the internal data structure can hold.
         /// </summary>
         public int Capacity => _handle->Capacity;
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="other">Other</param>
-        /// <returns>Equals</returns>
         public bool Equals(NativeDictionary<TKey, TValue> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <returns>Equals</returns>
         public override bool Equals(object? obj) => obj is NativeDictionary<TKey, TValue> other && other.Equals(this);
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
-        /// <returns>HashCode</returns>
         public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public override string ToString() => SR.Format("NativeDictionary<{0}, {1}>", SR.GetTypeName(typeof(TKey)), SR.GetTypeName(typeof(TValue)));
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Equals</returns>
         public static bool operator ==(NativeDictionary<TKey, TValue> left, NativeDictionary<TKey, TValue> right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Not equals</returns>
         public static bool operator !=(NativeDictionary<TKey, TValue> left, NativeDictionary<TKey, TValue> right) => !left.Equals(right);
 
         /// <summary>
-        ///     Dispose
+        ///     Performs application-defined tasks associated with freeing,
+        ///     releasing, or resetting unmanaged resources.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose() => Box.Drop(_handle);
 
         /// <summary>
-        ///     Clear
+        ///     Clears the contents of this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear() => _handle->Clear();
 
         /// <summary>
-        ///     Add
+        ///     Adds the specified key and value to this.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
+        /// <param name="key">The key of the element to add.</param>
+        /// <param name="value">The value of the element to add.</param>
+        /// <exception cref="T:System.ArgumentException">An element with the same key already exists in this.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Add(in TKey key, in TValue value) => _handle->Add(key, value);
 
         /// <summary>
-        ///     Try add
+        ///     Attempts to add the specified key and value to this.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
-        /// <returns>Added</returns>
+        /// <param name="key">The key of the element to add.</param>
+        /// <param name="value">The value of the element to add.</param>
+        /// <returns>
+        ///     <see langword="true" /> if the key/value pair was added to this successfully;
+        ///     otherwise, <see langword="false" />.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryAdd(in TKey key, in TValue value) => _handle->TryAdd(key, value);
 
         /// <summary>
-        ///     Remove
+        ///     Removes the value with the specified key from this.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <returns>Removed</returns>
+        /// <param name="key">The key of the element to remove.</param>
+        /// <returns>
+        ///     <see langword="true" /> if the element is successfully found and removed;
+        ///     otherwise, <see langword="false" />.  This method returns <see langword="false" /> if <paramref name="key" /> is
+        ///     not found in this.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(in TKey key) => _handle->Remove(key);
 
         /// <summary>
-        ///     Remove
+        ///     Removes the value with the specified key from this,
+        ///     and copies the element to the <paramref name="value" /> parameter.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
-        /// <returns>Removed</returns>
+        /// <param name="key">The key of the element to remove.</param>
+        /// <param name="value">The removed element.</param>
+        /// <returns>
+        ///     <see langword="true" /> if the element is successfully found and removed;
+        ///     otherwise, <see langword="false" />.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(in TKey key, out TValue value) => _handle->Remove(key, out value);
 
         /// <summary>
-        ///     Contains key
+        ///     Determines whether this contains the specified key.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <returns>Contains key</returns>
+        /// <param name="key">The key to locate in this.</param>
+        /// <returns>
+        ///     <see langword="true" /> if this contains an element with the specified key;
+        ///     otherwise, <see langword="false" />.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool ContainsKey(in TKey key) => _handle->ContainsKey(key);
 
         /// <summary>
-        ///     Try to get the value
+        ///     Gets the value associated with the specified key.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
-        /// <returns>Got</returns>
+        /// <param name="key">The key of the value to get.</param>
+        /// <param name="value">
+        ///     When this method returns, contains the value associated with the specified key, if the key is
+        ///     found; otherwise, the default value for the type of the <paramref name="value" /> parameter.
+        ///     This parameter is passed uninitialized.
+        /// </param>
+        /// <returns>
+        ///     <see langword="true" /> if this contains an element with the specified key; otherwise, <see langword="false" />.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetValue(in TKey key, out TValue value) => _handle->TryGetValue(key, out value);
 
         /// <summary>
-        ///     Try to get the value
+        ///     Gets the value associated with the specified key.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
-        /// <returns>Got</returns>
+        /// <param name="key">The key of the value to get.</param>
+        /// <param name="value">
+        ///     When this method returns, contains the value associated with the specified key, if the key is
+        ///     found; otherwise, the default value for the type of the <paramref name="value" /> parameter.
+        ///     This parameter is passed uninitialized.
+        /// </param>
+        /// <returns>
+        ///     <see langword="true" /> if this contains an element with the specified key; otherwise, <see langword="false" />.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetValueReference(in TKey key, out NativePtr<TValue> value) => _handle->TryGetValueReference(key, out value);
 
         /// <summary>
-        ///     Get value ref
+        ///     Gets either a ref to a <typeparamref name="TValue" /> in this or a ref null if it does not exist in this.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <returns>Value ref</returns>
+        /// <param name="key">The key used for lookup.</param>
+        /// <remarks>
+        ///     Items should not be added or removed from this while the ref <typeparamref name="TValue" /> is in use.
+        ///     The ref null can be detected using System.Runtime.CompilerServices.Unsafe.IsNullRef
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ref TValue GetValueRefOrNullRef(in TKey key) => ref _handle->GetValueRefOrNullRef(key);
 
         /// <summary>
-        ///     Get value ref
+        ///     Gets either a ref to a <typeparamref name="TValue" /> in this or a ref null if it does not exist in this.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="exists">Exists</param>
-        /// <returns>Value ref</returns>
+        /// <param name="key">The key used for lookup.</param>
+        /// <param name="exists">Whether or not a new entry for the given key was added to this.</param>
+        /// <remarks>
+        ///     Items should not be added or removed from this while the ref <typeparamref name="TValue" /> is in use.
+        ///     The ref null can be detected using System.Runtime.CompilerServices.Unsafe.IsNullRef
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ref TValue GetValueRefOrNullRef(in TKey key, out bool exists) => ref _handle->GetValueRefOrNullRef(key, out exists);
 
         /// <summary>
-        ///     Get value ref or add default
+        ///     Gets a ref to a <typeparamref name="TValue" /> in the this, adding a new entry with a default value
+        ///     if it does not exist in this.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <returns>Value ref</returns>
+        /// <param name="key">The key used for lookup.</param>
+        /// <remarks>Items should not be added to or removed from the this while the ref <typeparamref name="TValue" /> is in use.</remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ref TValue GetValueRefOrAddDefault(in TKey key) => ref _handle->GetValueRefOrAddDefault(key);
 
         /// <summary>
-        ///     Get value ref or add default
+        ///     Gets a ref to a <typeparamref name="TValue" /> in the this, adding a new entry with a default value
+        ///     if it does not exist in this.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="exists">Exists</param>
-        /// <returns>Value ref</returns>
+        /// <param name="key">The key used for lookup.</param>
+        /// <param name="exists">Whether or not a new entry for the given key was added to this.</param>
+        /// <remarks>Items should not be added to or removed from the this while the ref <typeparamref name="TValue" /> is in use.</remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ref TValue GetValueRefOrAddDefault(in TKey key, out bool exists) => ref _handle->GetValueRefOrAddDefault(key, out exists);
 
         /// <summary>
-        ///     Ensure capacity
+        ///     Ensures that the capacity of this is at least the specified <paramref name="capacity" />.
+        ///     If the current capacity of this is less than specified <paramref name="capacity" />,
+        ///     the capacity is increased to at least <paramref name="capacity" />.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>New capacity</returns>
+        /// <param name="capacity">The minimum capacity to ensure.</param>
+        /// <returns>The new capacity of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int EnsureCapacity(int capacity) => _handle->EnsureCapacity(capacity);
 
         /// <summary>
-        ///     Trim excess
+        ///     Trims the capacity of this to the specified number of entries.
         /// </summary>
-        /// <returns>New capacity</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess() => _handle->TrimExcess();
 
         /// <summary>
-        ///     Trim excess
+        ///     Trims the capacity of this to the specified number of entries.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>New capacity</returns>
+        /// <param name="capacity">The new capacity.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Passed capacity is lower than entries count.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity) => _handle->TrimExcess(capacity);
 
         /// <summary>
-        ///     Copy to
+        ///     Copies up to the specified number of elements from this.
+        ///     The actual number of copied elements is limited by the span's length, the specified count,
+        ///     and the current number of elements in this.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="count">Count</param>
+        /// <param name="buffer">The destination span to which elements are copied.</param>
+        /// <param name="count">The maximum number of elements to copy. Must be non-negative.</param>
+        /// <returns>The actual number of elements copied from the this.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="count" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int CopyTo(Span<KeyValuePair<TKey, TValue>> buffer, int count) => _handle->CopyTo(buffer, count);
 
         /// <summary>
-        ///     Copy to
+        ///     Copies up to the specified number of elements from this.
+        ///     The actual number of copied elements is limited by the span's length, the specified count,
+        ///     and the current number of elements in this.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="count">Count</param>
+        /// <param name="buffer">The destination span to which elements are copied.</param>
+        /// <param name="count">The maximum number of elements to copy. Must be non-negative.</param>
+        /// <returns>The actual number of elements copied from the this.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="count" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int CopyTo(Span<byte> buffer, int count) => _handle->CopyTo(buffer, count);
 
         /// <summary>
-        ///     Copy to
+        ///     Copies all elements from this into a destination span.
+        ///     The span must have a length at least equal to the current number of elements in this.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
+        /// <param name="buffer">The destination span to which all elements are copied.</param>
+        /// <exception cref="ArgumentException">
+        ///     Thrown when <paramref name="buffer" /> has insufficient length to hold all of this's elements.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void CopyTo(Span<KeyValuePair<TKey, TValue>> buffer) => _handle->CopyTo(buffer);
 
         /// <summary>
-        ///     Copy to
+        ///     Copies all elements from this into a destination span.
+        ///     The span must have a length at least equal to the current number of elements in this.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
+        /// <param name="buffer">The destination span to which all elements are copied.</param>
+        /// <exception cref="ArgumentException">
+        ///     Thrown when <paramref name="buffer" /> has insufficient length to hold all of this's elements.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void CopyTo(Span<byte> buffer) => _handle->CopyTo(buffer);
 
@@ -284,13 +336,12 @@ namespace NativeCollections
         public static NativeDictionary<TKey, TValue> Empty => default;
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
-        /// <returns>Enumerator</returns>
         public UnsafeDictionary<TKey, TValue>.Enumerator GetEnumerator() => _handle->GetEnumerator();
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -301,7 +352,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]

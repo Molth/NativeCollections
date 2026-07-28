@@ -27,7 +27,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="destination">Destination</param>
         /// <param name="source">Source</param>
-        /// <param name="count">Count</param>
+        /// <param name="count">The number of elements.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void And(Span<int> destination, Span<int> source, uint count)
         {
@@ -133,7 +133,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="destination">Destination</param>
         /// <param name="source">Source</param>
-        /// <param name="count">Count</param>
+        /// <param name="count">The number of elements.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Or(Span<int> destination, Span<int> source, uint count)
         {
@@ -239,7 +239,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="destination">Destination</param>
         /// <param name="source">Source</param>
-        /// <param name="count">Count</param>
+        /// <param name="count">The number of elements.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Xor(Span<int> destination, Span<int> source, uint count)
         {
@@ -344,7 +344,7 @@ namespace NativeCollections
         ///     Not
         /// </summary>
         /// <param name="destination">Destination</param>
-        /// <param name="count">Count</param>
+        /// <param name="count">The number of elements.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Not(Span<int> destination, uint count)
         {

@@ -25,17 +25,21 @@ namespace NativeCollections
         private readonly NativeFrozenSetHandle<T>* _handle;
 
         /// <summary>
-        ///     Is created
+        ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
         /// <summary>
-        ///     Is empty
+        ///     Gets a value that indicates whether this is empty.
         /// </summary>
+        /// <value>
+        ///     true if this is empty;
+        ///     otherwise, false.
+        /// </value>
         public bool IsEmpty => Count == 0;
 
         /// <summary>
-        ///     Items
+        ///     Gets a collection containing the values in this.
         /// </summary>
         public ReadOnlySpan<T> Items
         {
@@ -48,7 +52,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Count
+        ///     Gets the number of elements contained in this.
         /// </summary>
         public int Count
         {
@@ -159,49 +163,38 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="other">Other</param>
-        /// <returns>Equals</returns>
         public bool Equals(NativeFrozenSet<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <returns>Equals</returns>
         public override bool Equals(object? obj) => obj is NativeFrozenSet<T> other && other.Equals(this);
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
-        /// <returns>HashCode</returns>
         public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public override string ToString() => SR.Format("NativeFrozenSet<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Equals</returns>
         public static bool operator ==(NativeFrozenSet<T> left, NativeFrozenSet<T> right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Not equals</returns>
         public static bool operator !=(NativeFrozenSet<T> left, NativeFrozenSet<T> right) => !left.Equals(right);
 
         /// <summary>
-        ///     Dispose
+        ///     Performs application-defined tasks associated with freeing,
+        ///     releasing, or resetting unmanaged resources.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
@@ -214,10 +207,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Contains
+        ///     Determines whether this contains the specified element.
         /// </summary>
-        /// <param name="item">Item</param>
-        /// <returns>Contains</returns>
+        /// <param name="item">The element to locate in this.</param>
+        /// <returns>true if this contains the specified element; otherwise, false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Contains(in T item)
         {
@@ -226,11 +219,20 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try to get the actual value
+        ///     Searches the set for a given value and returns the equal value it finds, if any.
         /// </summary>
-        /// <param name="equalValue">Equal value</param>
-        /// <param name="actualValue">Actual value</param>
-        /// <returns>Got</returns>
+        /// <param name="equalValue">The value to search for.</param>
+        /// <param name="actualValue">
+        ///     The value from the set that the search found, or the default value of
+        ///     <typeparamref name="T" /> when the search yielded no match.
+        /// </param>
+        /// <returns>A value indicating whether the search was successful.</returns>
+        /// <remarks>
+        ///     This can be useful when you want to reuse a previously stored reference instead of
+        ///     a newly constructed one (so that more sharing of references can occur) or to look up
+        ///     a value that has more complete data than the value you currently have, although their
+        ///     comparer functions indicate they are equal.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetValue(in T equalValue, out T actualValue)
         {
@@ -247,11 +249,20 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try to get the actual value
+        ///     Searches the set for a given value and returns the equal value it finds, if any.
         /// </summary>
-        /// <param name="equalValue">Equal value</param>
-        /// <param name="actualValue">Actual value</param>
-        /// <returns>Got</returns>
+        /// <param name="equalValue">The value to search for.</param>
+        /// <param name="actualValue">
+        ///     The value from the set that the search found, or the default value of
+        ///     <typeparamref name="T" /> when the search yielded no match.
+        /// </param>
+        /// <returns>A value indicating whether the search was successful.</returns>
+        /// <remarks>
+        ///     This can be useful when you want to reuse a previously stored reference instead of
+        ///     a newly constructed one (so that more sharing of references can occur) or to look up
+        ///     a value that has more complete data than the value you currently have, although their
+        ///     comparer functions indicate they are equal.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetValueReference(in T equalValue, out NativePtr<T> actualValue)
         {
@@ -298,7 +309,9 @@ namespace NativeCollections
                 _index = -1;
             }
 
-            /// <summary>Advances the enumerator to the next element of the collection.</summary>
+            /// <summary>
+            ///     Advances the enumerator to the next element of the collection.
+            /// </summary>
             /// <returns>
             ///     <code data-dev-comment-type="langword">true</code> if the enumerator was successfully advanced to the next element;
             ///     <code data-dev-comment-type="langword">false</code> if the enumerator has passed the end of the collection.
@@ -314,12 +327,14 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Reset
+            ///     Sets the enumerator to its initial position, which is before the first element in the collection.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Reset() => _index = -1;
 
-            /// <summary>Gets the element in the collection at the current position of the enumerator.</summary>
+            /// <summary>
+            ///     Gets the element in the collection at the current position of the enumerator.
+            /// </summary>
             /// <returns>The element in the collection at the current position of the enumerator.</returns>
             public readonly T Current
             {
@@ -334,9 +349,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
-        /// <returns>Enumerator</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Enumerator GetEnumerator()
         {
@@ -345,7 +359,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -356,7 +370,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]

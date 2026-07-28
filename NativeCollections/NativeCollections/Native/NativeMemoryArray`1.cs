@@ -23,7 +23,7 @@ namespace NativeCollections
         private readonly T* _buffer;
 
         /// <summary>
-        ///     Length
+        ///     Gets the total numbers of elements the internal data structure can hold.
         /// </summary>
         private readonly int _length;
 
@@ -97,19 +97,22 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Is created
+        ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public bool IsCreated => !UnsafeHelpers.IsNull(_buffer);
 
         /// <summary>
-        ///     Is empty
+        ///     Gets a value that indicates whether this is empty.
         /// </summary>
+        /// <value>
+        ///     true if this is empty;
+        ///     otherwise, false.
+        /// </value>
         public bool IsEmpty => _length == 0;
 
         /// <summary>
-        ///     Get reference
+        ///     Reinterprets the given location as a reference to a value.
         /// </summary>
-        /// <param name="index">Index</param>
         public T* this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -117,9 +120,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get reference
+        ///     Reinterprets the given location as a reference to a value.
         /// </summary>
-        /// <param name="index">Index</param>
         public T* this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -132,171 +134,142 @@ namespace NativeCollections
         public T* Buffer => _buffer;
 
         /// <summary>
-        ///     Length
+        ///     Gets the total number of elements in all the dimensions of the instance.
         /// </summary>
         public int Length => _length;
 
         /// <summary>
-        ///     Count
+        ///     Gets the number of elements contained in this.
         /// </summary>
         public int Count => _length;
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="other">Other</param>
-        /// <returns>Equals</returns>
         public bool Equals(NativeMemoryArray<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <returns>Equals</returns>
         public override bool Equals(object? obj) => obj is NativeMemoryArray<T> other && other.Equals(this);
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
-        /// <returns>HashCode</returns>
         public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public override string ToString() => SR.Format("NativeMemoryArray<{0}>[{1}]", SR.GetTypeName(typeof(T)), _length);
 
         /// <summary>
-        ///     As pointer
+        ///     Returns a pointer to the given by-ref parameter.
         /// </summary>
         /// <returns>Pointer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator T*(NativeMemoryArray<T> value) => value._buffer;
 
         /// <summary>
-        ///     As span
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator Span<T>(NativeMemoryArray<T> value) => value.AsSpan();
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator ReadOnlySpan<T>(NativeMemoryArray<T> value) => value.AsReadOnlySpan();
 
         /// <summary>
-        ///     As native array
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>NativeArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator NativeArray<T>(NativeMemoryArray<T> value) => new(value._buffer, value._length);
 
         /// <summary>
-        ///     As native memory array
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>NativeMemoryArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator NativeMemoryArray<T>(NativeArray<T> value) => new(value.Buffer, value.Length);
 
         /// <summary>
-        ///     As native memory array
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>NativeMemoryArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(nameof(value))]
         public static implicit operator NativeMemoryArray<T>([MustBePinned] Span<T> value) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(value)), value.Length);
 
         /// <summary>
-        ///     As native memory array
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>NativeMemoryArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(nameof(value))]
         public static implicit operator NativeMemoryArray<T>([MustBePinned] ReadOnlySpan<T> value) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(value)), value.Length);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Equals</returns>
         public static bool operator ==(NativeMemoryArray<T> left, NativeMemoryArray<T> right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Not equals</returns>
         public static bool operator !=(NativeMemoryArray<T> left, NativeMemoryArray<T> right) => !left.Equals(right);
 
         /// <summary>
-        ///     Dispose
+        ///     Performs application-defined tasks associated with freeing,
+        ///     releasing, or resetting unmanaged resources.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose() => Box.Free(_buffer);
 
         /// <summary>
-        ///     Clear
+        ///     Clears the contents of this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear() => SpanHelpers.Set(ref Unsafe.AsRef<byte>(_buffer), 0, (uint)(_length * Unsafe.SizeOf<T>()));
 
         /// <summary>
-        ///     Cast
+        ///     Casts a instance of one primitive type to another primitive type.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeMemoryArray<TTo> Cast<TTo>() where TTo : unmanaged => MemoryMarshal.Cast<T, TTo>(this);
 
         /// <summary>
-        ///     As span
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Span<T> AsSpan() => MemoryMarshal.CreateSpan(ref Unsafe.AsRef<T>(_buffer), _length);
 
         /// <summary>
-        ///     As span
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <param name="start">Start</param>
-        /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Span<T> AsSpan(int start) => MemoryMarshal.CreateSpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)start), _length - start);
 
         /// <summary>
-        ///     As span
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <param name="start">Start</param>
-        /// <param name="length">Length</param>
-        /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Span<T> AsSpan(int start, int length) => MemoryMarshal.CreateSpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)start), length);
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<T>(_buffer), _length);
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <param name="start">Start</param>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ReadOnlySpan<T> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)start), _length - start);
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <param name="start">Start</param>
-        /// <param name="length">Length</param>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ReadOnlySpan<T> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)start), length);
 
@@ -306,13 +279,12 @@ namespace NativeCollections
         public static NativeMemoryArray<T> Empty => default;
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
-        /// <returns>Enumerator</returns>
         public Enumerator GetEnumerator() => new(this);
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -323,7 +295,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -360,9 +332,12 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Move next
+            ///     Advances the enumerator to the next element of the collection.
             /// </summary>
-            /// <returns>Moved</returns>
+            /// <returns>
+            ///     <see langword="true" /> if the enumerator was successfully advanced to the next element;
+            ///     <see langword="false" /> if the enumerator has passed the end of the collection.
+            /// </returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext()
             {
@@ -377,14 +352,15 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Reset
+            ///     Sets the enumerator to its initial position, which is before the first element in the collection.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Reset() => _index = -1;
 
             /// <summary>
-            ///     Current
+            ///     Gets the element in the collection at the current position of the enumerator.
             /// </summary>
+            /// <returns>The element in the collection at the current position of the enumerator.</returns>
             public readonly T* Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]

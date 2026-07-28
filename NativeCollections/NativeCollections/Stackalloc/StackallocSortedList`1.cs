@@ -18,50 +18,61 @@ namespace NativeCollections
     public unsafe struct StackallocSortedList<T> : IIsCreated, IEquatable<StackallocSortedList<T>>, IReadOnlyCollection<T> where T : unmanaged, IComparable<T>
     {
         /// <summary>
-        ///     Items
+        ///     Gets a collection containing the values in this.
         /// </summary>
         private readonly T* _items;
 
         /// <summary>
-        ///     Size
+        ///     Gets the number of elements.
         /// </summary>
         private int _size;
 
         /// <summary>
-        ///     Version
+        ///     Used to keep enumerator in sync w/ collection.
         /// </summary>
         private int _version;
 
         /// <summary>
-        ///     Capacity
+        ///     Gets the total numbers of elements the internal data structure can hold.
         /// </summary>
         private readonly int _capacity;
 
         /// <summary>
-        ///     Is created
+        ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public readonly bool IsCreated => !UnsafeHelpers.IsNull(_items);
 
         /// <summary>
-        ///     Is empty
+        ///     Gets a value that indicates whether this is empty.
         /// </summary>
+        /// <value>
+        ///     true if this is empty;
+        ///     otherwise, false.
+        /// </value>
         public readonly bool IsEmpty => _size == 0;
 
         /// <summary>
-        ///     Count
+        ///     Gets the number of elements contained in this.
         /// </summary>
         public readonly int Count => _size;
 
         /// <summary>
-        ///     Capacity
+        ///     Gets the total numbers of elements the internal data structure can hold.
         /// </summary>
         public readonly int Capacity => _capacity;
 
         /// <summary>
-        ///     Get byte count
+        ///     Calculates the minimum number of bytes required to store a specified number of elements,
+        ///     taking into account alignment requirements for the underlying buffer.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>Byte count</returns>
+        /// <param name="capacity">The number of elements to store. Must be non-negative.</param>
+        /// <returns>
+        ///     The minimum byte count needed to allocate a buffer capable of
+        ///     holding <paramref name="capacity" /> elements with proper alignment.
+        /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="capacity" /> is negative.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetByteCount(int capacity)
         {
@@ -86,49 +97,37 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="other">Other</param>
-        /// <returns>Equals</returns>
         public readonly bool Equals(StackallocSortedList<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <returns>Equals</returns>
         public readonly override bool Equals(object? obj) => obj is StackallocSortedList<T> other && other.Equals(this);
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
-        /// <returns>HashCode</returns>
         public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public readonly override string ToString() => SR.Format("StackallocSortedList<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Equals</returns>
         public static bool operator ==(StackallocSortedList<T> left, StackallocSortedList<T> right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Not equals</returns>
         public static bool operator !=(StackallocSortedList<T> left, StackallocSortedList<T> right) => !left.Equals(right);
 
         /// <summary>
-        ///     Clear
+        ///     Clears the contents of this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
@@ -138,10 +137,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Index of
+        ///     Determines the index of a specific key in this.
         /// </summary>
-        /// <param name="item">Item</param>
-        /// <returns>Index</returns>
+        /// <returns>The index of <paramref name="item" /> if found; otherwise, -1.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int IndexOf(in T item)
         {
@@ -161,10 +159,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Remove
+        ///     Removes the first occurrence of a specific object from this.
         /// </summary>
-        /// <param name="item">Item</param>
-        /// <returns>Removed</returns>
+        /// <param name="item">The object to remove from this.</param>
+        /// <returns>
+        ///     <see langword="true" /> if <paramref name="item" /> is successfully removed;
+        ///     otherwise, <see langword="false" />.
+        ///     This method also returns <see langword="false" /> if <paramref name="item" /> was not found in this.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(in T item)
         {
@@ -182,9 +184,12 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Remove at
+        ///     Removes the item at the specified index.
         /// </summary>
-        /// <param name="index">Index</param>
+        /// <param name="index">The zero-based index of the item to remove.</param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="index" /> is less than 0 or greater than or equal to <see cref="Count" />.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveAt(int index)
         {
@@ -197,10 +202,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Remove at
+        ///     Removes the item at the specified index.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="item">Item</param>
+        /// <param name="index">The zero-based index of the item to remove.</param>
+        /// <param name="item">The removed element.</param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="index" /> is less than 0 or greater than or equal to <see cref="Count" />.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveAt(int index, out T item)
         {
@@ -214,9 +222,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Remove at
+        ///     Removes the item at the specified index.
         /// </summary>
-        /// <param name="index">Index</param>
+        /// <param name="index">The zero-based index of the item to remove.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryRemoveAt(int index)
         {
@@ -230,10 +238,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Remove at
+        ///     Removes the item at the specified index.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="item">Item</param>
+        /// <param name="index">The zero-based index of the item to remove.</param>
+        /// <param name="item">The removed element.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryRemoveAt(int index, out T item)
         {
@@ -252,10 +260,17 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Remove range
+        ///     Removes a range of elements from this.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="count">Count</param>
+        /// <param name="index">The zero-based starting index of the range of elements to remove.</param>
+        /// <param name="count">The number of elements to remove.</param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="index" /> is less than 0. -or-
+        ///     <paramref name="count" /> is less than 0.
+        /// </exception>
+        /// <exception cref="T:System.ArgumentException">
+        ///     <paramref name="index" /> and <paramref name="count" /> do not denote a valid range of elements in this.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveRange(int index, int count)
         {
@@ -273,7 +288,7 @@ namespace NativeCollections
         /// <summary>
         ///     Get item at index
         /// </summary>
-        /// <param name="index">Index</param>
+        /// <param name="index">The zero-based starting index.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ref readonly T GetAt(int index)
         {
@@ -291,11 +306,17 @@ namespace NativeCollections
         public readonly bool Contains(in T item) => IndexOf(item) >= 0;
 
         /// <summary>
-        ///     Get at
+        ///     Gets the value associated with the specified index.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="item">Item</param>
-        /// <returns>Got</returns>
+        /// <param name="index">The zero-based index of the pair to get.</param>
+        /// <param name="item">
+        ///     When this method returns, contains the value associated with the specified key, if the key is
+        ///     found; otherwise, the default value for the type of the <paramref name="item" /> parameter.
+        ///     This parameter is passed uninitialized.
+        /// </param>
+        /// <returns>
+        ///     <see langword="true" /> if this contains an element with the specified key; otherwise, <see langword="false" />.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool TryGetAt(int index, out T item)
         {
@@ -310,37 +331,33 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<T>(_items), _size);
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<T> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)start), _size - start);
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<T> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)start), length);
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator ReadOnlySpan<T>(StackallocSortedList<T> value) => value.AsReadOnlySpan();
 
         /// <summary>
         ///     Insert
         /// </summary>
-        /// <param name="index">Index</param>
+        /// <param name="index">The zero-based starting index.</param>
         /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private InsertResult Insert(int index, in T item)
@@ -361,14 +378,13 @@ namespace NativeCollections
         public static StackallocSortedList<T> Empty => default;
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
-        /// <returns>Enumerator</returns>
         [MustBePinned(SR.parameter_this)]
         public Enumerator GetEnumerator() => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -379,7 +395,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -401,8 +417,9 @@ namespace NativeCollections
             private readonly StackallocSortedList<T>* _handle;
 
             /// <summary>
-            ///     Current
+            ///     Gets the element in the collection at the current position of the enumerator.
             /// </summary>
+            /// <returns>The element in the collection at the current position of the enumerator.</returns>
             private T _current;
 
             /// <summary>
@@ -411,7 +428,7 @@ namespace NativeCollections
             private int _index;
 
             /// <summary>
-            ///     Version
+            ///     Used to keep enumerator in sync w/ collection.
             /// </summary>
             private readonly int _version;
 
@@ -428,9 +445,12 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Move next
+            ///     Advances the enumerator to the next element of the collection.
             /// </summary>
-            /// <returns>Moved</returns>
+            /// <returns>
+            ///     <see langword="true" /> if the enumerator was successfully advanced to the next element;
+            ///     <see langword="false" /> if the enumerator has passed the end of the collection.
+            /// </returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext()
             {
@@ -448,7 +468,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Reset
+            ///     Sets the enumerator to its initial position, which is before the first element in the collection.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Reset()
@@ -458,8 +478,9 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Current
+            ///     Gets the element in the collection at the current position of the enumerator.
             /// </summary>
+            /// <returns>The element in the collection at the current position of the enumerator.</returns>
             public readonly T Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]

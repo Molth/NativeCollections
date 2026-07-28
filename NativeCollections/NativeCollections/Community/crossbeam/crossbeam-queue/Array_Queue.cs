@@ -1,15 +1,15 @@
 ﻿using System.Diagnostics;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using NativeCollections;
-using static crossbeam.PaddingHelpers;
+using static NativeCollections.PaddingHelpers;
 
 #pragma warning disable CS0162 // Unreachable code detected
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 #pragma warning disable CS9084 // Struct member returns 'this' or other instance members by reference
 
-// ReSharper disable ALL
+// ReSharper disable All
 
 namespace crossbeam
 {
@@ -19,11 +19,15 @@ namespace crossbeam
     //!   - <http://www.1024cores.net/home/lock-free-algorithms/queues/bounded-mpmc-queue>
 
     /// <summary>
-    ///     https://github.com/crossbeam-rs/crossbeam
+    ///     A bounded multi-producer multi-consumer queue.
     /// </summary>
-    public static unsafe class Array_Queue
+    /// <remarks>
+    ///     https://github.com/crossbeam-rs/crossbeam
+    /// </remarks>
+    internal static unsafe class Array_Queue
     {
         /// A slot in a queue.
+        [StructLayout(LayoutKind.Sequential)]
         public struct Slot<T> where T : unmanaged
         {
             /// The current stamp.
@@ -36,14 +40,6 @@ namespace crossbeam
             public T value;
         }
 
-        [StructLayout(LayoutKind.Sequential, Size = 2 * CACHE_LINE_SIZE)]
-        public struct CachePaddedUsize
-        {
-            private CachePadding padding;
-
-            public UnsafeAtomicUsize data;
-        }
-
         /// A bounded multi-producer multi-consumer queue.
         /// <br />
         /// This queue allocates a fixed-capacity buffer on construction, which is used to store pushed
@@ -51,17 +47,18 @@ namespace crossbeam
         /// element into a full queue will fail. Alternatively, [`force_push`] makes it possible for
         /// this queue to be used as a ring-buffer. Having a buffer allocated upfront makes this queue
         /// a bit faster than [`SegQueue`].`
+        [StructLayout(LayoutKind.Sequential, Size = 4 * CACHE_LINE_SIZE)]
         public struct ArrayQueue<T> where T : unmanaged
         {
+            private readonly Padding _padding;
+
             /// The head of the queue.
             /// <br />
             /// This value is a "stamp" consisting of an index into the buffer and a lap, but packed into a
             /// single `usize`. The lower bits represent the index, while the upper bits represent the lap.
             /// <br />
             /// Elements are popped from the head of the queue.
-            private CachePaddedUsize _head;
-
-            public ref UnsafeAtomicUsize head => ref _head.data;
+            public CachePaddedAtomicUsize head;
 
             /// The tail of the queue.
             /// <br />
@@ -69,9 +66,7 @@ namespace crossbeam
             /// single `usize`. The lower bits represent the index, while the upper bits represent the lap.
             /// <br />
             /// Elements are pushed into the tail of the queue.
-            private CachePaddedUsize _tail;
-
-            public ref UnsafeAtomicUsize tail => ref _tail.data;
+            public CachePaddedAtomicUsize tail;
 
             /// The buffer holding slots.
             public NativeMemoryArray<Slot<T>> buffer;
@@ -79,16 +74,28 @@ namespace crossbeam
             /// A stamp with the value of `{ lap: 1, index: 0 }`.
             public nuint one_lap;
 
+            /// Creates a new bounded queue with the given capacity.
             public ArrayQueue(nuint cap)
             {
-                _head = new CachePaddedUsize();
-                _tail = new CachePaddedUsize();
+                _padding = new Padding();
+
+                // Head is initialized to `{ lap: 0, index: 0 }`.
+                // Tail is initialized to `{ lap: 0, index: 0 }`.
+                head = new CachePaddedAtomicUsize();
+                tail = new CachePaddedAtomicUsize();
+
+                // Allocate a buffer of `cap` slots initialized
+                // with stamps.
+
                 buffer = new NativeMemoryArray<Slot<T>>((int)cap);
-                for (nuint i = 0; i < cap; i++)
+                for (nuint i = 0; i < cap; ++i)
+                {
+                    // Set the stamp to `{ lap: 0, index: i }`.
                     buffer[(int)i]->stamp = new UnsafeAtomicUsize(i);
+                }
 
                 // One lap is the smallest power of two greater than `cap`.
-                one_lap = BitOperations.RoundUpToPowerOf2(cap + 1);
+                one_lap = (nuint)BitOperationsHelpers.RoundUpToPowerOf2((uint)(cap + 1));
             }
 
             public Result<T> push_or_else(T value, delegate* managed<ref ArrayQueue<T>, T, nuint, nuint, Slot<T>*, Result<T>> f)
@@ -103,7 +110,6 @@ namespace crossbeam
                     var lap = tail & ~(this.one_lap - 1);
 
                     nuint new_tail;
-
                     if (index + 1 < this.capacity())
                     {
                         // Same lap, incremented index.
@@ -120,22 +126,17 @@ namespace crossbeam
                     // Inspect the corresponding slot.
                     Debug.Assert(index < (nuint)this.buffer.Length);
                     var slot = this.buffer[(int)index];
-
                     var stamp = slot->stamp.load(Ordering.Acquire);
 
                     // If the tail and the stamp match, we may attempt to push.
                     if (tail == stamp)
                     {
                         // Try moving the tail.
-                        var t = this.tail.CompareExchange(new_tail, tail);
+                        var t = this.tail.compare_exchange(tail, new_tail);
                         if (t == tail)
                         {
                             // Write the value into the slot and update the stamp.
-                            unsafe
-                            {
-                                slot->value = value;
-                            }
-
+                            slot->value = value;
                             slot->stamp.store(tail + 1, Ordering.Release);
                             return Result.Ok(default(T));
                         }
@@ -193,8 +194,8 @@ namespace crossbeam
             /// Atomic operations and checks are omitted
             public bool push_mut(T value)
             {
-                var tail = this.tail.AsRef();
-                var head = this.head.AsRef();
+                var tail = this.tail.get_mut();
+                var head = this.head.get_mut();
 
                 if (head.wrapping_add(this.one_lap) == tail)
                 {
@@ -204,7 +205,6 @@ namespace crossbeam
                 var index = tail & (this.one_lap - 1);
                 var lap = tail & ~(this.one_lap - 1);
                 nuint new_tail;
-
                 if (index + 1 < this.capacity())
                 {
                     new_tail = tail + 1;
@@ -214,7 +214,7 @@ namespace crossbeam
                     new_tail = lap.wrapping_add(this.one_lap);
                 }
 
-                this.tail.AsRef() = new_tail;
+                this.tail.get_mut() = new_tail;
 
                 var slot = this.buffer[(int)index];
                 slot->value = value;
@@ -227,12 +227,11 @@ namespace crossbeam
             /// <br />
             /// If the queue is full, the oldest element is replaced and returned,
             /// otherwise `None` is returned.
-            public bool force_push(T value, out T old_value)
+            public Option<T> force_push(T value)
             {
                 var result = this.push_or_else(value, &f);
 
-                old_value = result.unwrap_unchecked();
-                return result.is_ok();
+                return result.err();
 
                 static Result<T> f(ref ArrayQueue<T> self, T v, nuint tail, nuint new_tail, Slot<T>* slot)
                 {
@@ -242,7 +241,7 @@ namespace crossbeam
                     // Try moving the head.
                     if (self
                             .head
-                            .CompareExchange(new_head, head)
+                            .compare_exchange(head, new_head)
                         == head)
                     {
                         // Move the tail.
@@ -301,15 +300,13 @@ namespace crossbeam
                         }
 
                         // Try moving the head.
-                        var h = this.head.CompareExchange(@new, head);
+                        var h = this.head.compare_exchange(head, @new);
                         if (h == head)
                         {
                             // Read the value from the slot and update the stamp.
                             result = slot->value;
-
                             slot->stamp
                                 .store(head.wrapping_add(this.one_lap), Ordering.Release);
-
                             return true;
                         }
                         else
@@ -347,8 +344,8 @@ namespace crossbeam
             /// Due to having an exclusive reference, atomic operations and checks are omitted
             public bool pop_mut(out T result)
             {
-                var head = this.head.AsRef();
-                var tail = this.tail.AsRef();
+                var head = this.head.get_mut();
+                var tail = this.tail.get_mut();
 
                 // If the tail equals the head, that means the channel is empty.
                 if (tail == head)
@@ -381,9 +378,8 @@ namespace crossbeam
                 var slot = this.buffer[(int)index];
 
                 result = slot->value;
-
                 slot->stamp.AsRef() = head.wrapping_add(this.one_lap);
-                this.head.AsRef() = @new;
+                this.head.get_mut() = @new;
                 return true;
             }
 

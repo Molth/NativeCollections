@@ -4,7 +4,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using NativeCollections;
-using static Examples.PaddingHelpers;
 
 namespace Examples
 {
@@ -257,22 +256,5 @@ namespace Examples
         ///     The sequence number for this slot, used to synchronize between enqueuers and dequeuers.
         /// </summary>
         public int SequenceNumber;
-    }
-
-    /// <summary>
-    ///     Padded head and tail indices, to avoid false sharing between producers and consumers.
-    /// </summary>
-    [StructLayout(LayoutKind.Explicit, Size = 3 * CACHE_LINE_SIZE)]
-    internal struct PaddedHeadAndTail
-    {
-        /// <summary>
-        ///     Head
-        /// </summary>
-        [FieldOffset(1 * CACHE_LINE_SIZE)] public int Head;
-
-        /// <summary>
-        ///     Tail
-        /// </summary>
-        [FieldOffset(2 * CACHE_LINE_SIZE)] public int Tail;
     }
 }

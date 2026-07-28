@@ -44,25 +44,26 @@ namespace NativeCollections
         private static int FindItemIndex<T, TItem>(void* ptr, in TItem item) where T : unmanaged, IFrozenSet<TItem> where TItem : unmanaged, IEquatable<TItem> => Unsafe.AsRef<T>(ptr).FindItemIndex(item);
 
         /// <summary>
-        ///     Items
+        ///     Gets a collection containing the values in this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static NativeArray<TItem> Items<T, TItem>(void* ptr) where T : unmanaged, IFrozenSet<TItem> where TItem : unmanaged, IEquatable<TItem> => Unsafe.AsRef<T>(ptr).Items();
 
         /// <summary>
-        ///     Count
+        ///     Gets the number of elements contained in this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int Count<T, TItem>(void* ptr) where T : unmanaged, IFrozenSet<TItem> where TItem : unmanaged, IEquatable<TItem> => Unsafe.AsRef<T>(ptr).Count;
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static NativeFrozenSet<TItem>.Enumerator GetEnumerator<T, TItem>(void* ptr) where T : unmanaged, IFrozenSet<TItem> where TItem : unmanaged, IEquatable<TItem> => Unsafe.AsRef<T>(ptr).GetEnumerator();
 
         /// <summary>
-        ///     Dispose
+        ///     Performs application-defined tasks associated with freeing,
+        ///     releasing, or resetting unmanaged resources.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Dispose<T, TItem>(void* ptr) where T : unmanaged, IFrozenSet<TItem> where TItem : unmanaged, IEquatable<TItem> => Unsafe.AsRef<T>(ptr).Dispose();
@@ -80,25 +81,26 @@ namespace NativeCollections
         private static int FindItemIndex<T, TItem>(ref UnsafeFrozenSetValue ptr, in TItem item) where T : unmanaged, IFrozenSet<TItem> where TItem : unmanaged, IEquatable<TItem> => Unsafe.As<UnsafeFrozenSetValue, T>(ref ptr).FindItemIndex(item);
 
         /// <summary>
-        ///     Items
+        ///     Gets a collection containing the values in this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static NativeArray<TItem> Items<T, TItem>(ref UnsafeFrozenSetValue ptr) where T : unmanaged, IFrozenSet<TItem> where TItem : unmanaged, IEquatable<TItem> => Unsafe.As<UnsafeFrozenSetValue, T>(ref ptr).Items();
 
         /// <summary>
-        ///     Count
+        ///     Gets the number of elements contained in this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int Count<T, TItem>(ref UnsafeFrozenSetValue ptr) where T : unmanaged, IFrozenSet<TItem> where TItem : unmanaged, IEquatable<TItem> => Unsafe.As<UnsafeFrozenSetValue, T>(ref ptr).Count;
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static NativeFrozenSet<TItem>.Enumerator GetEnumerator<T, TItem>(ref UnsafeFrozenSetValue ptr) where T : unmanaged, IFrozenSet<TItem> where TItem : unmanaged, IEquatable<TItem> => Unsafe.As<UnsafeFrozenSetValue, T>(ref ptr).GetEnumerator();
 
         /// <summary>
-        ///     Dispose
+        ///     Performs application-defined tasks associated with freeing,
+        ///     releasing, or resetting unmanaged resources.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Dispose<T, TItem>(ref UnsafeFrozenSetValue ptr) where T : unmanaged, IFrozenSet<TItem> where TItem : unmanaged, IEquatable<TItem> => Unsafe.As<UnsafeFrozenSetValue, T>(ref ptr).Dispose();
@@ -115,7 +117,7 @@ namespace NativeCollections
         public interface IFrozenSet<T> : IDisposable where T : unmanaged, IEquatable<T>
         {
             /// <summary>
-            ///     Count
+            ///     Gets the number of elements contained in this.
             /// </summary>
             int Count { get; }
 
@@ -130,7 +132,7 @@ namespace NativeCollections
             NativeArray<T> Items();
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             NativeFrozenSet<T>.Enumerator GetEnumerator();
         }
@@ -152,17 +154,18 @@ namespace NativeCollections
             public readonly delegate* managed<void*, NativeArray<T>> Items;
 
             /// <summary>
-            ///     Count
+            ///     Gets the number of elements contained in this.
             /// </summary>
             public readonly delegate* managed<void*, int> Count;
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             public readonly delegate* managed<void*, NativeFrozenSet<T>.Enumerator> GetEnumerator;
 
             /// <summary>
-            ///     Dispose
+            ///     Performs application-defined tasks associated with freeing,
+            ///     releasing, or resetting unmanaged resources.
             /// </summary>
             public readonly delegate* managed<void*, void> Dispose;
 
@@ -187,7 +190,7 @@ namespace NativeCollections
         public struct UnsafeFrozenSetHandle<T> : IIsCreated where T : unmanaged, IEquatable<T>
         {
             /// <summary>
-            ///     Is created
+            ///     Gets a value that indicates whether this has been allocated or initialized.
             /// </summary>
             public readonly bool IsCreated => FindItemIndex != null;
 
@@ -202,17 +205,18 @@ namespace NativeCollections
             public readonly delegate* managed<ref UnsafeFrozenSetValue, NativeArray<T>> Items;
 
             /// <summary>
-            ///     Count
+            ///     Gets the number of elements contained in this.
             /// </summary>
             public readonly delegate* managed<ref UnsafeFrozenSetValue, int> Count;
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             public readonly delegate* managed<ref UnsafeFrozenSetValue, NativeFrozenSet<T>.Enumerator> GetEnumerator;
 
             /// <summary>
-            ///     Dispose
+            ///     Performs application-defined tasks associated with freeing,
+            ///     releasing, or resetting unmanaged resources.
             /// </summary>
             public readonly delegate* managed<ref UnsafeFrozenSetValue, void> Dispose;
 
@@ -287,13 +291,13 @@ namespace NativeCollections
             public NativeArray<T> Items() => NativeArray<T>.Empty;
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeFrozenSet<T>.Enumerator GetEnumerator() => new(NativeArray<T>.Empty);
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -304,7 +308,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -315,7 +319,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Count
+            ///     Gets the number of elements contained in this.
             /// </summary>
             public int Count
             {
@@ -324,7 +328,8 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Dispose
+            ///     Performs application-defined tasks associated with freeing,
+            ///     releasing, or resetting unmanaged resources.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Dispose()
@@ -367,13 +372,13 @@ namespace NativeCollections
             public NativeArray<T> Items() => _items;
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeFrozenSet<T>.Enumerator GetEnumerator() => new(_items);
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -384,7 +389,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -395,7 +400,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Count
+            ///     Gets the number of elements contained in this.
             /// </summary>
             public int Count
             {
@@ -404,7 +409,8 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Dispose
+            ///     Performs application-defined tasks associated with freeing,
+            ///     releasing, or resetting unmanaged resources.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Dispose() => _items.Dispose();
@@ -469,13 +475,13 @@ namespace NativeCollections
             public NativeArray<T> Items() => _items;
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeFrozenSet<T>.Enumerator GetEnumerator() => new(_items);
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -486,7 +492,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -497,7 +503,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Count
+            ///     Gets the number of elements contained in this.
             /// </summary>
             public int Count
             {
@@ -506,7 +512,8 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Dispose
+            ///     Performs application-defined tasks associated with freeing,
+            ///     releasing, or resetting unmanaged resources.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Dispose() => _items.Dispose();
@@ -560,13 +567,13 @@ namespace NativeCollections
             public NativeArray<int> Items() => _hashTable.HashCodes;
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeFrozenSet<int>.Enumerator GetEnumerator() => new(_hashTable.HashCodes);
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -577,7 +584,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -588,7 +595,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Count
+            ///     Gets the number of elements contained in this.
             /// </summary>
             public int Count
             {
@@ -597,7 +604,8 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Dispose
+            ///     Performs application-defined tasks associated with freeing,
+            ///     releasing, or resetting unmanaged resources.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Dispose() => _hashTable.Dispose();
@@ -665,13 +673,13 @@ namespace NativeCollections
             public NativeArray<T> Items() => _items;
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeFrozenSet<T>.Enumerator GetEnumerator() => new(_items);
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -682,7 +690,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -693,7 +701,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Count
+            ///     Gets the number of elements contained in this.
             /// </summary>
             public int Count
             {
@@ -702,7 +710,8 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Dispose
+            ///     Performs application-defined tasks associated with freeing,
+            ///     releasing, or resetting unmanaged resources.
             /// </summary>
             public void Dispose()
             {

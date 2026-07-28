@@ -23,24 +23,23 @@ namespace NativeCollections
         private readonly T* _buffer;
 
         /// <summary>
-        ///     Length
+        ///     Gets the total numbers of elements the internal data structure can hold.
         /// </summary>
         private readonly int _length;
 
         /// <summary>
-        ///     Size
+        ///     Gets the number of elements.
         /// </summary>
         private int _size;
 
         /// <summary>
-        ///     Version
+        ///     Used to keep enumerator in sync w/ collection.
         /// </summary>
         private int _version;
 
         /// <summary>
-        ///     Get or set value
+        ///     Reinterprets the given location as a reference to a value.
         /// </summary>
-        /// <param name="index">Index</param>
         public readonly ref T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -48,9 +47,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get or set value
+        ///     Reinterprets the given location as a reference to a value.
         /// </summary>
-        /// <param name="index">Index</param>
         public readonly ref T this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -58,30 +56,41 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Is created
+        ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public readonly bool IsCreated => !UnsafeHelpers.IsNull(_buffer);
 
         /// <summary>
-        ///     Is empty
+        ///     Gets a value that indicates whether this is empty.
         /// </summary>
+        /// <value>
+        ///     true if this is empty;
+        ///     otherwise, false.
+        /// </value>
         public readonly bool IsEmpty => _size == 0;
 
         /// <summary>
-        ///     Count
+        ///     Gets the number of elements contained in this.
         /// </summary>
         public readonly int Count => _size;
 
         /// <summary>
-        ///     Capacity
+        ///     Gets the total numbers of elements the internal data structure can hold.
         /// </summary>
         public readonly int Capacity => _length;
 
         /// <summary>
-        ///     Get byte count
+        ///     Calculates the minimum number of bytes required to store a specified number of elements,
+        ///     taking into account alignment requirements for the underlying buffer.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>Byte count</returns>
+        /// <param name="capacity">The number of elements to store. Must be non-negative.</param>
+        /// <returns>
+        ///     The minimum byte count needed to allocate a buffer capable of
+        ///     holding <paramref name="capacity" /> elements with proper alignment.
+        /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="capacity" /> is negative.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetByteCount(int capacity)
         {
@@ -106,49 +115,37 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="other">Other</param>
-        /// <returns>Equals</returns>
         public readonly bool Equals(StackallocList<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <returns>Equals</returns>
         public readonly override bool Equals(object? obj) => obj is StackallocList<T> other && other.Equals(this);
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
-        /// <returns>HashCode</returns>
         public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public readonly override string ToString() => SR.Format("StackallocList<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Equals</returns>
         public static bool operator ==(StackallocList<T> left, StackallocList<T> right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Not equals</returns>
         public static bool operator !=(StackallocList<T> left, StackallocList<T> right) => !left.Equals(right);
 
         /// <summary>
-        ///     Clear
+        ///     Clears the contents of this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
@@ -158,10 +155,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try add
+        ///     Attempts to add an object to the end of the list.
         /// </summary>
-        /// <param name="item">Item</param>
-        /// <returns>Added</returns>
+        /// <param name="item">The object to add.</param>
+        /// <returns>
+        ///     <see cref="InsertResult.Success" /> if the item was successfully added to the list;
+        ///     <see cref="InsertResult.InsufficientCapacity" /> if the list is already full and the item could not be added.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public InsertResult TryAdd(in T item)
         {
@@ -178,9 +178,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Add range
+        ///     Attempts to add the elements of the specified collection to the end of this.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
+        /// <param name="buffer">The collection whose elements should be added to the end of this.</param>
+        /// <returns>
+        ///     <see cref="InsertResult.Success" /> if the items were successfully added to the list;
+        ///     <see cref="InsertResult.InsufficientCapacity" /> if the list is already full and the items could not be added.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public InsertResult TryAddRange(ReadOnlySpan<T> buffer)
         {
@@ -198,10 +202,18 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Insert
+        ///     Attempts to insert an element into this at the specified index.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="item">Item</param>
+        /// <param name="index">The zero-based index at which <paramref name="item" /> should be inserted.</param>
+        /// <param name="item">The object to insert.</param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="index" /> is less than 0. -or-
+        ///     <paramref name="index" /> is greater than <see cref="Count" />.
+        /// </exception>
+        /// <returns>
+        ///     <see cref="InsertResult.Success" /> if the item was successfully added to the list;
+        ///     <see cref="InsertResult.InsufficientCapacity" /> if the list is already full and the item could not be added.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public InsertResult TryInsert(int index, in T item)
         {
@@ -217,10 +229,18 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Insert
+        ///     Attempts to insert the elements of a collection into this at the specified index.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="buffer">Buffer</param>
+        /// <param name="index">The zero-based index at which the new elements should be inserted.</param>
+        /// <param name="buffer">The collection whose elements should be inserted into this.</param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="index" /> is less than 0. -or-
+        ///     <paramref name="index" /> is greater than <see cref="Count" />.
+        /// </exception>
+        /// <returns>
+        ///     <see cref="InsertResult.Success" /> if the item was successfully added to the list;
+        ///     <see cref="InsertResult.InsufficientCapacity" /> if the list is already full and the item could not be added.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public InsertResult TryInsertRange(int index, ReadOnlySpan<T> buffer)
         {
@@ -241,10 +261,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Remove
+        ///     Removes the first occurrence of a specific object from this.
         /// </summary>
-        /// <param name="item">Item</param>
-        /// <returns>Removed</returns>
+        /// <param name="item">The object to remove from this.</param>
+        /// <returns>
+        ///     <see langword="true" /> if <paramref name="item" /> is successfully removed;
+        ///     otherwise, <see langword="false" />.
+        ///     This method also returns <see langword="false" /> if <paramref name="item" /> was not found in this.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(in T item)
         {
@@ -259,10 +283,16 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Swap remove
+        ///     Removes the first occurrence of a specific object from this using a swap-based removal,
+        ///     which maintains O(1) time complexity by moving the last element into the position of the removed element.
+        ///     This operation does not preserve the original order of elements.
         /// </summary>
-        /// <param name="item">Item</param>
-        /// <returns>Removed</returns>
+        /// <param name="item">The object to remove from this.</param>
+        /// <returns>
+        ///     <see langword="true" /> if <paramref name="item" /> is successfully removed;
+        ///     otherwise, <see langword="false" />. This method also returns <see langword="false" /> if
+        ///     <paramref name="item" /> was not found in this.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool SwapRemove(in T item)
         {
@@ -277,9 +307,12 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Remove at
+        ///     Removes the item at the specified index.
         /// </summary>
-        /// <param name="index">Index</param>
+        /// <param name="index">The zero-based index of the item to remove.</param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="index" /> is less than 0 or greater than or equal to <see cref="Count" />.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveAt(int index)
         {
@@ -291,9 +324,18 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Swap remove at
+        ///     Removes the element at the specified index using a swap-based removal,
+        ///     which is O(1) and does not preserve the order of elements.
+        ///     The last element of the list is moved to the position of the removed element.
         /// </summary>
-        /// <param name="index">Index</param>
+        /// <param name="index">The zero-based index of the element to remove.</param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     <paramref name="index" /> is less than 0 or greater than or equal to <see cref="Count" />.
+        /// </exception>
+        /// <remarks>
+        ///     This method is more efficient than <see cref="RemoveAt" /> when order is not important,
+        ///     as it avoids shifting subsequent elements.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SwapRemoveAt(int index)
         {
@@ -305,10 +347,17 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Remove range
+        ///     Removes a range of elements from this.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="count">Count</param>
+        /// <param name="index">The zero-based starting index of the range of elements to remove.</param>
+        /// <param name="count">The number of elements to remove.</param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="index" /> is less than 0. -or-
+        ///     <paramref name="count" /> is less than 0.
+        /// </exception>
+        /// <exception cref="T:System.ArgumentException">
+        ///     <paramref name="index" /> and <paramref name="count" /> do not denote a valid range of elements in this.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveRange(int index, int count)
         {
@@ -326,7 +375,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reverse
+        ///     Reverses the sequence of the elements in the specified span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reverse()
@@ -336,9 +385,12 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reverse
+        ///     Reverses the sequence of the elements in the specified span.
         /// </summary>
-        /// <param name="index">Index</param>
+        /// <param name="index">The zero-based starting index.</param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when the specified <paramref name="index" /> or end index is not in range (&lt;0 or &gt;Count).
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reverse(int index)
         {
@@ -347,10 +399,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reverse
+        ///     Reverses the sequence of the elements in the specified span.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="count">Count</param>
+        /// <param name="index">The zero-based starting index.</param>
+        /// <param name="count">The number of elements.</param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when the specified <paramref name="index" /> or end index is not in range (&lt;0 or &gt;Count).
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reverse(int index, int count)
         {
@@ -359,17 +414,23 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Contains
+        ///     Determines whether this contains the specified element.
         /// </summary>
-        /// <param name="item">Item</param>
-        /// <returns>Contains</returns>
+        /// <param name="item">The element to locate in this.</param>
+        /// <returns>true if this contains the specified element; otherwise, false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool Contains(in T item) => IndexOf(item) >= 0;
 
         /// <summary>
-        ///     Set count
+        ///     Sets the count of this to the specified value.
         /// </summary>
-        /// <param name="count">Count</param>
+        /// <param name="count">The value to set the list's count to.</param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     <paramref name="count" /> is negative.
+        /// </exception>
+        /// <remarks>
+        ///     When increasing the count, uninitialized data is being exposed.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public InsertResult TrySetCount(int count)
         {
@@ -382,118 +443,104 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Index of
+        ///     Determines the index of a specific key in this.
         /// </summary>
-        /// <param name="item">Item</param>
-        /// <returns>Index</returns>
+        /// <returns>The index of <paramref name="item" /> if found; otherwise, -1.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int IndexOf(in T item) => AsReadOnlySpan().IndexOf(item);
 
         /// <summary>
-        ///     Index of
+        ///     Determines the index of a specific key in this.
         /// </summary>
-        /// <param name="item">Item</param>
-        /// <param name="index">Index</param>
-        /// <returns>Index</returns>
+        /// <returns>The index of <paramref name="item" /> if found; otherwise, -1.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when the specified <paramref name="index" /> or end index is not in range (&lt;0 or &gt;Count).
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int IndexOf(in T item, int index) => AsReadOnlySpan().Slice(index).IndexOf(item);
 
         /// <summary>
-        ///     Index of
+        ///     Determines the index of a specific key in this.
         /// </summary>
-        /// <param name="item">Item</param>
-        /// <param name="index">Index</param>
-        /// <param name="count">Count</param>
-        /// <returns>Index</returns>
+        /// <returns>The index of <paramref name="item" /> if found; otherwise, -1.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when the specified <paramref name="index" /> or end index is not in range (&lt;0 or &gt;Count).
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int IndexOf(in T item, int index, int count) => AsReadOnlySpan().Slice(index, count).IndexOf(item);
 
         /// <summary>
-        ///     Last index of
+        ///     Determines the last index of a specific key in this.
         /// </summary>
-        /// <param name="item">Item</param>
-        /// <returns>Index</returns>
+        /// <returns>The index of <paramref name="item" /> if found; otherwise, -1.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int LastIndexOf(in T item) => AsReadOnlySpan().LastIndexOf(item);
 
         /// <summary>
-        ///     Last index of
+        ///     Determines the last index of a specific key in this.
         /// </summary>
-        /// <param name="item">Item</param>
-        /// <param name="index">Index</param>
-        /// <returns>Index</returns>
+        /// <returns>The index of <paramref name="item" /> if found; otherwise, -1.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when the specified <paramref name="index" /> or end index is not in range (&lt;0 or &gt;Count).
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int LastIndexOf(in T item, int index) => AsReadOnlySpan().Slice(index).LastIndexOf(item);
 
         /// <summary>
-        ///     Last index of
+        ///     Determines the last index of a specific key in this.
         /// </summary>
-        /// <param name="item">Item</param>
-        /// <param name="index">Index</param>
-        /// <param name="count">Count</param>
-        /// <returns>Index</returns>
+        /// <returns>The index of <paramref name="item" /> if found; otherwise, -1.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when the specified <paramref name="index" /> or end index is not in range (&lt;0 or &gt;Count).
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int LastIndexOf(in T item, int index, int count) => AsReadOnlySpan().Slice(index, count).LastIndexOf(item);
 
         /// <summary>
-        ///     As span
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<T> AsSpan() => MemoryMarshal.CreateSpan(ref Unsafe.AsRef<T>(_buffer), _size);
 
         /// <summary>
-        ///     As span
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <param name="start">Start</param>
-        /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<T> AsSpan(int start) => MemoryMarshal.CreateSpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)start), _size - start);
 
         /// <summary>
-        ///     As span
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <param name="start">Start</param>
-        /// <param name="length">Length</param>
-        /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<T> AsSpan(int start, int length) => MemoryMarshal.CreateSpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)start), length);
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<T>(_buffer), _size);
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <param name="start">Start</param>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<T> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)start), _size - start);
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <param name="start">Start</param>
-        /// <param name="length">Length</param>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<T> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)start), length);
 
         /// <summary>
-        ///     As span
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator Span<T>(StackallocList<T> value) => value.AsSpan();
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator ReadOnlySpan<T>(StackallocList<T> value) => value.AsReadOnlySpan();
 
@@ -503,14 +550,13 @@ namespace NativeCollections
         public static StackallocList<T> Empty => default;
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
-        /// <returns>Enumerator</returns>
         [MustBePinned(SR.parameter_this)]
         public Enumerator GetEnumerator() => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -521,7 +567,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -543,7 +589,7 @@ namespace NativeCollections
             private readonly StackallocList<T>* _handle;
 
             /// <summary>
-            ///     Version
+            ///     Used to keep enumerator in sync w/ collection.
             /// </summary>
             private readonly int _version;
 
@@ -553,8 +599,9 @@ namespace NativeCollections
             private int _index;
 
             /// <summary>
-            ///     Current
+            ///     Gets the element in the collection at the current position of the enumerator.
             /// </summary>
+            /// <returns>The element in the collection at the current position of the enumerator.</returns>
             private T _current;
 
             /// <summary>
@@ -570,9 +617,12 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Move next
+            ///     Advances the enumerator to the next element of the collection.
             /// </summary>
-            /// <returns>Moved</returns>
+            /// <returns>
+            ///     <see langword="true" /> if the enumerator was successfully advanced to the next element;
+            ///     <see langword="false" /> if the enumerator has passed the end of the collection.
+            /// </returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext()
             {
@@ -591,7 +641,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Reset
+            ///     Sets the enumerator to its initial position, which is before the first element in the collection.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Reset()
@@ -601,8 +651,9 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Current
+            ///     Gets the element in the collection at the current position of the enumerator.
             /// </summary>
+            /// <returns>The element in the collection at the current position of the enumerator.</returns>
             public readonly T Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]

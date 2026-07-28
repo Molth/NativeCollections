@@ -12,7 +12,9 @@ namespace NativeCollections
     [BindingType(typeof(ArrayPool<DummyByteHelper>))]
     public static unsafe class ManagedMemoryAllocator
     {
-        /// <summary>Allocates an aligned block of memory of the specified size and alignment, in bytes.</summary>
+        /// <summary>
+        ///     Allocates an aligned block of memory of the specified size and alignment, in bytes.
+        /// </summary>
         /// <param name="elementCount">The count, in elements, of the block to allocate.</param>
         /// <returns>A pointer to the allocated aligned block of memory.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -23,7 +25,9 @@ namespace NativeCollections
             return (T*)AlignedAlloc(byteCount, alignment);
         }
 
-        /// <summary>Allocates and zeroes an aligned block of memory of the specified size and alignment, in bytes.</summary>
+        /// <summary>
+        ///     Allocates and zeroes an aligned block of memory of the specified size and alignment, in bytes.
+        /// </summary>
         /// <param name="elementCount">The count, in elements, of the block to allocate.</param>
         /// <returns>A pointer to the allocated and zeroed aligned block of memory.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -34,7 +38,9 @@ namespace NativeCollections
             return (T*)AlignedAllocZeroed(byteCount, alignment);
         }
 
-        /// <summary>Allocates an aligned block of memory of the specified size and alignment, in bytes.</summary>
+        /// <summary>
+        ///     Allocates an aligned block of memory of the specified size and alignment, in bytes.
+        /// </summary>
         /// <param name="byteCount">The size, in bytes, of the block to allocate.</param>
         /// <param name="alignment">The alignment, in bytes, of the block to allocate. This must be a power of <c>2</c>.</param>
         /// <returns>A pointer to the allocated aligned block of memory.</returns>
@@ -52,7 +58,9 @@ namespace NativeCollections
             return result;
         }
 
-        /// <summary>Allocates and zeroes an aligned block of memory of the specified size and alignment, in bytes.</summary>
+        /// <summary>
+        ///     Allocates and zeroes an aligned block of memory of the specified size and alignment, in bytes.
+        /// </summary>
         /// <param name="byteCount">The size, in bytes, of the block to allocate.</param>
         /// <param name="alignment">The alignment, in bytes, of the block to allocate. This must be a power of <c>2</c>.</param>
         /// <returns>A pointer to the allocated and zeroed aligned block of memory.</returns>
@@ -71,7 +79,9 @@ namespace NativeCollections
             return result;
         }
 
-        /// <summary>Frees an aligned block of memory.</summary>
+        /// <summary>
+        ///     Frees an aligned block of memory.
+        /// </summary>
         /// <param name="ptr">A pointer to the aligned block of memory that should be freed.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AlignedFree(void* ptr)

@@ -19,7 +19,7 @@ namespace NativeCollections
         public readonly byte* Buffer;
 
         /// <summary>
-        ///     Length
+        ///     Gets the total number of elements in all the dimensions of the instance.
         /// </summary>
         public readonly int Length;
 
@@ -43,30 +43,30 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Dispose
+        ///     Performs application-defined tasks associated with freeing,
+        ///     releasing, or resetting unmanaged resources.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void Dispose() => Box.Free(Buffer);
 
         /// <summary>
-        ///     Is created
+        ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public readonly bool IsCreated => !UnsafeHelpers.IsNull(Buffer);
 
         /// <summary>
-        ///     Position
+        ///     Gets the current position within the stream.
         /// </summary>
         public readonly int Position => _position;
 
         /// <summary>
-        ///     Remaining
+        ///     Gets the number of remaining bytes available in the bucket.
         /// </summary>
         public readonly int Remaining => Length - _position;
 
         /// <summary>
-        ///     Get reference
+        ///     Reinterprets the given location as a reference to a value.
         /// </summary>
-        /// <param name="index">Index</param>
         public readonly byte* this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -74,9 +74,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get reference
+        ///     Reinterprets the given location as a reference to a value.
         /// </summary>
-        /// <param name="index">Index</param>
         public readonly byte* this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -84,51 +83,42 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="other">Other</param>
-        /// <returns>Equals</returns>
         public readonly bool Equals(UnsafeMemoryReader other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <returns>Equals</returns>
         public readonly override bool Equals(object? obj) => obj is UnsafeMemoryReader other && other.Equals(this);
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
-        /// <returns>HashCode</returns>
         public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public readonly override string ToString() => "UnsafeMemoryReader";
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Equals</returns>
         public static bool operator ==(UnsafeMemoryReader left, UnsafeMemoryReader right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Not equals</returns>
         public static bool operator !=(UnsafeMemoryReader left, UnsafeMemoryReader right) => !left.Equals(right);
 
         /// <summary>
-        ///     Advance
+        ///     Notifies this that <paramref name="count" /> data items were written to the output.
         /// </summary>
-        /// <param name="count">Count</param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     The position is set to a negative value or a value greater than
+        ///     <see cref="Length"></see>.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Advance(int count)
         {
@@ -138,10 +128,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try advance
+        ///     Notifies this that <paramref name="count" /> data items were written to the output.
         /// </summary>
-        /// <param name="count">Count</param>
-        /// <returns>Advanced</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryAdvance(int count)
         {
@@ -153,9 +141,12 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Set position
+        ///     Sets the current position within the stream.
         /// </summary>
-        /// <param name="position">Position</param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     The position is set to a negative value or a value greater than
+        ///     <see cref="Length"></see>.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetPosition(int position)
         {
@@ -164,10 +155,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try set position
+        ///     Sets the current position within the stream.
         /// </summary>
-        /// <param name="position">Position</param>
-        /// <returns>Set</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TrySetPosition(int position)
         {
@@ -178,10 +167,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Read
+        ///     Reads a sequence of bytes from the current memory stream,
+        ///     and advances the position within the memory stream by the number of bytes read.
         /// </summary>
-        /// <typeparam name="T">Type</typeparam>
-        /// <returns>object</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Read<T>() where T : unmanaged
         {
@@ -192,10 +180,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Read
+        ///     Reads a sequence of bytes from the current memory stream,
+        ///     and advances the position within the memory stream by the number of bytes read.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <typeparam name="T">Type</typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Read<T>(T* obj) where T : unmanaged
         {
@@ -205,11 +192,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try read
+        ///     Reads a sequence of bytes from the current memory stream,
+        ///     and advances the position within the memory stream by the number of bytes read.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <typeparam name="T">Type</typeparam>
-        /// <returns>Read</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryRead<T>(T* obj) where T : unmanaged
         {
@@ -221,11 +206,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Read
+        ///     Reads a sequence of bytes from the current memory stream,
+        ///     and advances the position within the memory stream by the number of bytes read.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <param name="count">Count</param>
-        /// <typeparam name="T">Type</typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Read<T>(T* obj, int count) where T : unmanaged
         {
@@ -234,12 +217,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try read
+        ///     Reads a sequence of bytes from the current memory stream,
+        ///     and advances the position within the memory stream by the number of bytes read.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <param name="count">Count</param>
-        /// <typeparam name="T">Type</typeparam>
-        /// <returns>Read</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryRead<T>(T* obj, int count) where T : unmanaged
         {
@@ -248,7 +228,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Read
+        ///     Reads a sequence of bytes from the current memory stream,
+        ///     and advances the position within the memory stream by the number of bytes read.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ReadSpan<T>(Span<T> buffer) where T : unmanaged
@@ -260,7 +241,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try read
+        ///     Reads a sequence of bytes from the current memory stream,
+        ///     and advances the position within the memory stream by the number of bytes read.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryReadSpan<T>(Span<T> buffer) where T : unmanaged
@@ -274,10 +256,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Read
+        ///     Reads a sequence of bytes from the current memory stream,
+        ///     and advances the position within the memory stream by the number of bytes read.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <typeparam name="T">Type</typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Read<T>(ref T obj) where T : unmanaged
         {
@@ -287,11 +268,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try read
+        ///     Reads a sequence of bytes from the current memory stream,
+        ///     and advances the position within the memory stream by the number of bytes read.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <typeparam name="T">Type</typeparam>
-        /// <returns>Read</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryRead<T>(ref T obj) where T : unmanaged
         {
@@ -303,10 +282,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Read bytes
+        ///     Reads a sequence of bytes from the current memory stream,
+        ///     and advances the position within the memory stream by the number of bytes read.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="length">Length</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ReadBytes(byte* buffer, int length)
         {
@@ -316,11 +294,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try read bytes
+        ///     Reads a sequence of bytes from the current memory stream,
+        ///     and advances the position within the memory stream by the number of bytes read.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="length">Length</param>
-        /// <returns>Read</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryReadBytes(byte* buffer, int length)
         {
@@ -332,9 +308,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Read bytes
+        ///     Reads a sequence of bytes from the current memory stream,
+        ///     and advances the position within the memory stream by the number of bytes read.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ReadBytes(Span<byte> buffer)
         {
@@ -344,10 +320,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try read bytes
+        ///     Reads a sequence of bytes from the current memory stream,
+        ///     and advances the position within the memory stream by the number of bytes read.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <returns>Read</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryReadBytes(Span<byte> buffer)
         {
@@ -359,101 +334,82 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     As span
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<byte> AsSpan() => MemoryMarshal.CreateSpan(ref Unsafe.AsRef<byte>(Buffer), Length);
 
         /// <summary>
-        ///     As span
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <param name="start">Start</param>
-        /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<byte> AsSpan(int start) => MemoryMarshal.CreateSpan(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(Buffer), new IntPtr(start)), Length - start);
 
         /// <summary>
-        ///     As span
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <param name="start">Start</param>
-        /// <param name="length">Length</param>
-        /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<byte> AsSpan(int start, int length) => MemoryMarshal.CreateSpan(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(Buffer), new IntPtr(start)), length);
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<byte> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<byte>(Buffer), Length);
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <param name="start">Start</param>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<byte> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(Buffer), new IntPtr(start)), Length - start);
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <param name="start">Start</param>
-        /// <param name="length">Length</param>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<byte> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(Buffer), new IntPtr(start)), length);
 
         /// <summary>
-        ///     As native memory reader
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>NativeMemoryReader</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(nameof(value))]
         public static implicit operator UnsafeMemoryReader([MustBePinned] Span<byte> value) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(value)), value.Length);
 
         /// <summary>
-        ///     As span
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator Span<byte>(UnsafeMemoryReader value) => value.AsSpan();
 
         /// <summary>
-        ///     As native memory reader
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>NativeMemoryReader</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(nameof(value))]
         public static implicit operator UnsafeMemoryReader([MustBePinned] ReadOnlySpan<byte> value) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(value)), value.Length);
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator ReadOnlySpan<byte>(UnsafeMemoryReader value) => value.AsReadOnlySpan();
 
         /// <summary>
-        ///     As native memory reader
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>NativeMemoryReader</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator UnsafeMemoryReader(NativeArray<byte> value) => new(value.Buffer, value.Length);
 
         /// <summary>
-        ///     As native memory reader
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>NativeMemoryReader</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator UnsafeMemoryReader(NativeMemoryArray<byte> value) => new(value.Buffer, value.Length);
 
         /// <summary>
-        ///     As native memory writer
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>NativeMemoryWriter</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator UnsafeMemoryReader(NativeSlice<byte> value) => new(UnsafeHelpers.AddByteOffset<byte>(value.Buffer, value.Offset), value.Count);
 

@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 #pragma warning disable CA2231 // Overload operator equals on overriding ValueType.Equals
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
@@ -16,6 +17,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard)]
+    [BindingType(typeof(Interlocked))]
     public unsafe struct UnsafeAtomicChar
     {
         /// <summary>
@@ -67,14 +69,14 @@ namespace NativeCollections
         /// <summary>
         ///     Adds two values and replaces the first integer with the sum, as an atomic operation.
         /// </summary>
-        /// <returns>The original value.</returns>
+        /// <returns>The new value stored.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public char Add(char value) => (char)_value.Add(value);
 
         /// <summary>
         ///     Subtracts two values and replaces the first integer with the difference, as an atomic operation.
         /// </summary>
-        /// <returns>The original value.</returns>
+        /// <returns>The new value stored.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public char Sub(char value) => (char)_value.Sub(value);
 
@@ -108,7 +110,7 @@ namespace NativeCollections
         public char CompareExchange(char value, char comparand) => (char)_value.CompareExchange(value, comparand);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -130,9 +132,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public readonly override string ToString() => "UnsafeAtomicChar";
 
         /// <summary>

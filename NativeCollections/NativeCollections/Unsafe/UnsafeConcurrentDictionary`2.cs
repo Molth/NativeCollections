@@ -19,7 +19,7 @@ namespace NativeCollections
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard | FromType.NotImplemented)]
     [BindingType(typeof(ConcurrentDictionary<,>))]
-    public readonly struct UnsafeConcurrentDictionary<TKey, TValue> : IIsCreated, IDisposable, IEquatable<UnsafeConcurrentDictionary<TKey, TValue>>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged, IEquatable<TValue>
+    public readonly struct UnsafeConcurrentDictionary<TKey, TValue> : IIsCreated, IDisposable, IEquatable<UnsafeConcurrentDictionary<TKey, TValue>>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
     {
         /// <summary>
         ///     Handle
@@ -31,7 +31,9 @@ namespace NativeCollections
         /// </summary>
         private ConcurrentDictionary<TKey, TValue> Handle => _handle.Value;
 
-        /// <summary>Gets or sets the value associated with the specified key.</summary>
+        /// <summary>
+        ///     Gets or sets the value associated with the specified key.
+        /// </summary>
         /// <param name="key">The key of the value to get or set.</param>
         /// <value>
         ///     The value associated with the specified key. If the specified key is not found, a get operation throws a
@@ -49,7 +51,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Is created
+        ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public bool IsCreated => _handle.IsCreated;
 
@@ -67,7 +69,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Gets the number of key/value pairs contained in this.
+        ///     Gets the number of elements contained in this.
         /// </summary>
         /// <exception cref="OverflowException">
         ///     The dictionary contains too many elements.
@@ -86,12 +88,12 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Keys
+        ///     Gets a collection containing the keys in the dictionary.
         /// </summary>
         public KeyCollection Keys => new(_handle);
 
         /// <summary>
-        ///     Values
+        ///     Gets a collection containing the values in the dictionary.
         /// </summary>
         public ValueCollection Values => new(_handle);
 
@@ -102,49 +104,38 @@ namespace NativeCollections
         private UnsafeConcurrentDictionary(NativeObject<ConcurrentDictionary<TKey, TValue>> handle) => _handle = handle;
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="other">Other</param>
-        /// <returns>Equals</returns>
         public bool Equals(UnsafeConcurrentDictionary<TKey, TValue> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <returns>Equals</returns>
         public override bool Equals(object? obj) => obj is UnsafeConcurrentDictionary<TKey, TValue> other && other.Equals(this);
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
-        /// <returns>HashCode</returns>
         public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public override string ToString() => SR.Format("UnsafeConcurrentDictionary<{0}, {1}>", SR.GetTypeName(typeof(TKey)), SR.GetTypeName(typeof(TValue)));
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Equals</returns>
         public static bool operator ==(UnsafeConcurrentDictionary<TKey, TValue> left, UnsafeConcurrentDictionary<TKey, TValue> right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Not equals</returns>
         public static bool operator !=(UnsafeConcurrentDictionary<TKey, TValue> left, UnsafeConcurrentDictionary<TKey, TValue> right) => !left.Equals(right);
 
         /// <summary>
-        ///     Dispose
+        ///     Performs application-defined tasks associated with freeing,
+        ///     releasing, or resetting unmanaged resources.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose() => _handle.Dispose();
@@ -186,14 +177,16 @@ namespace NativeCollections
         public bool TryRemove(TKey key, out TValue value) => Handle.TryRemove(key, out value);
 
 #if NET5_0_OR_GREATER
-        /// <summary>Removes a key and value from the dictionary.</summary>
+        /// <summary>
+        ///     Removes a key and value from this.
+        /// </summary>
         /// <param name="keyValuePair">The <see cref="KeyValuePair{TKey,TValue}" /> representing the key and value to remove.</param>
         /// <returns>
         ///     true if the key and value represented by <paramref name="keyValuePair" /> are successfully found and removed;
         ///     otherwise, false.
         /// </returns>
         /// <remarks>
-        ///     Both the specified key and value must match the entry in the dictionary for it to be removed.
+        ///     Both the specified key and value must match the entry in this for it to be removed.
         ///     The key is compared using the default comparer for <typeparamref name="TKey" />.
         ///     The value is compared using the default comparer for <typeparamref name="TValue" />.
         /// </remarks>
@@ -265,8 +258,8 @@ namespace NativeCollections
         /// <returns>
         ///     The value for the key.
         ///     This will be either the existing value for the key if the
-        ///     key is already in the dictionary, or the new value for the key as returned by valueFactory
-        ///     if the key was not in the dictionary.
+        ///     key is already in this, or the new value for the key as returned by valueFactory
+        ///     if the key was not in this.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TValue GetOrAdd(TKey key, Func<TKey, TValue> valueFactory) => Handle.GetOrAdd(key, valueFactory);
@@ -286,8 +279,8 @@ namespace NativeCollections
         /// <returns>
         ///     The value for the key.
         ///     This will be either the existing value for the key if the
-        ///     key is already in the dictionary, or the new value for the key as returned by valueFactory
-        ///     if the key was not in the dictionary.
+        ///     key is already in this, or the new value for the key as returned by valueFactory
+        ///     if the key was not in this.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TValue GetOrAdd<TArg>(TKey key, Func<TKey, TArg, TValue> valueFactory, TArg factoryArgument) => Handle.GetOrAdd(key, valueFactory, factoryArgument);
@@ -303,7 +296,7 @@ namespace NativeCollections
         /// <returns>
         ///     The value for the key.
         ///     This will be either the existing value for the key if the
-        ///     key is already in the dictionary, or the new value if the key was not in the dictionary.
+        ///     key is already in this, or the new value if the key was not in this.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TValue GetOrAdd(TKey key, TValue value) => Handle.GetOrAdd(key, value);
@@ -421,7 +414,7 @@ namespace NativeCollections
         /// <param name="capacity">
         ///     The initial number of elements that this can contain.
         /// </param>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="concurrencyLevel" /> is less than 1.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="concurrencyLevel" /> is less than -1.</exception>
         /// <exception cref="ArgumentOutOfRangeException"> <paramref name="capacity" /> is less than 0.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeConcurrentDictionary<TKey, TValue> Create(int concurrencyLevel, int capacity)
@@ -431,9 +424,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
-        /// <returns>Enumerator</returns>
         public Enumerator GetEnumerator() => new(AllocEnumerator(Handle));
 
         /// <summary>
@@ -448,7 +440,7 @@ namespace NativeCollections
         private static IEnumerator<KeyValuePair<TKey, TValue>> BoxEnumerator(ConcurrentDictionary<TKey, TValue> handle) => handle.GetEnumerator();
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -459,7 +451,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -492,25 +484,30 @@ namespace NativeCollections
             internal Enumerator(NativeObject<IEnumerator<KeyValuePair<TKey, TValue>>> handle) => _handle = handle;
 
             /// <summary>
-            ///     Move next
+            ///     Advances the enumerator to the next element of the collection.
             /// </summary>
-            /// <returns>Moved</returns>
+            /// <returns>
+            ///     <see langword="true" /> if the enumerator was successfully advanced to the next element;
+            ///     <see langword="false" /> if the enumerator has passed the end of the collection.
+            /// </returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext() => Handle.MoveNext();
 
             /// <summary>
-            ///     Reset
+            ///     Sets the enumerator to its initial position, which is before the first element in the collection.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Reset() => Handle.Reset();
 
             /// <summary>
-            ///     Current
+            ///     Gets the element in the collection at the current position of the enumerator.
             /// </summary>
+            /// <returns>The element in the collection at the current position of the enumerator.</returns>
             public KeyValuePair<TKey, TValue> Current => Handle.Current;
 
             /// <summary>
-            ///     Dispose
+            ///     Performs application-defined tasks associated with freeing,
+            ///     releasing, or resetting unmanaged resources.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Dispose()
@@ -521,7 +518,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Key collection
+        ///     Represents the collection of keys.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public readonly struct KeyCollection : IIsCreated, IReadOnlyCollection<TKey>
@@ -537,12 +534,12 @@ namespace NativeCollections
             private ConcurrentDictionary<TKey, TValue> Handle => _handle.Value;
 
             /// <summary>
-            ///     Is created
+            ///     Gets a value that indicates whether this has been allocated or initialized.
             /// </summary>
             public bool IsCreated => _handle.IsCreated;
 
             /// <summary>
-            ///     Count
+            ///     Gets the number of elements contained in this.
             /// </summary>
             public int Count => Handle.Count;
 
@@ -553,13 +550,12 @@ namespace NativeCollections
             internal KeyCollection(NativeObject<ConcurrentDictionary<TKey, TValue>> handle) => _handle = handle;
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
-            /// <returns>Enumerator</returns>
             public Enumerator GetEnumerator() => new(AllocEnumerator(Handle));
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -570,7 +566,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -603,25 +599,30 @@ namespace NativeCollections
                 internal Enumerator(NativeObject<IEnumerator<KeyValuePair<TKey, TValue>>> handle) => _handle = handle;
 
                 /// <summary>
-                ///     Move next
+                ///     Advances the enumerator to the next element of the collection.
                 /// </summary>
-                /// <returns>Moved</returns>
+                /// <returns>
+                ///     <see langword="true" /> if the enumerator was successfully advanced to the next element;
+                ///     <see langword="false" /> if the enumerator has passed the end of the collection.
+                /// </returns>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public bool MoveNext() => Handle.MoveNext();
 
                 /// <summary>
-                ///     Reset
+                ///     Sets the enumerator to its initial position, which is before the first element in the collection.
                 /// </summary>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public void Reset() => Handle.Reset();
 
                 /// <summary>
-                ///     Current
+                ///     Gets the element in the collection at the current position of the enumerator.
                 /// </summary>
+                /// <returns>The element in the collection at the current position of the enumerator.</returns>
                 public TKey Current => Handle.Current.Key;
 
                 /// <summary>
-                ///     Dispose
+                ///     Performs application-defined tasks associated with freeing,
+                ///     releasing, or resetting unmanaged resources.
                 /// </summary>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public void Dispose()
@@ -633,7 +634,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Value collection
+        ///     Represents the collection of values.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public readonly struct ValueCollection : IIsCreated, IReadOnlyCollection<TValue>
@@ -649,12 +650,12 @@ namespace NativeCollections
             private ConcurrentDictionary<TKey, TValue> Handle => _handle.Value;
 
             /// <summary>
-            ///     Is created
+            ///     Gets a value that indicates whether this has been allocated or initialized.
             /// </summary>
             public bool IsCreated => _handle.IsCreated;
 
             /// <summary>
-            ///     Count
+            ///     Gets the number of elements contained in this.
             /// </summary>
             public int Count => Handle.Count;
 
@@ -665,13 +666,12 @@ namespace NativeCollections
             internal ValueCollection(NativeObject<ConcurrentDictionary<TKey, TValue>> handle) => _handle = handle;
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
-            /// <returns>Enumerator</returns>
             public Enumerator GetEnumerator() => new(AllocEnumerator(Handle));
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -682,7 +682,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -715,25 +715,30 @@ namespace NativeCollections
                 internal Enumerator(NativeObject<IEnumerator<KeyValuePair<TKey, TValue>>> handle) => _handle = handle;
 
                 /// <summary>
-                ///     Move next
+                ///     Advances the enumerator to the next element of the collection.
                 /// </summary>
-                /// <returns>Moved</returns>
+                /// <returns>
+                ///     <see langword="true" /> if the enumerator was successfully advanced to the next element;
+                ///     <see langword="false" /> if the enumerator has passed the end of the collection.
+                /// </returns>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public bool MoveNext() => Handle.MoveNext();
 
                 /// <summary>
-                ///     Reset
+                ///     Sets the enumerator to its initial position, which is before the first element in the collection.
                 /// </summary>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public void Reset() => Handle.Reset();
 
                 /// <summary>
-                ///     Current
+                ///     Gets the element in the collection at the current position of the enumerator.
                 /// </summary>
+                /// <returns>The element in the collection at the current position of the enumerator.</returns>
                 public TValue Current => Handle.Current.Value;
 
                 /// <summary>
-                ///     Dispose
+                ///     Performs application-defined tasks associated with freeing,
+                ///     releasing, or resetting unmanaged resources.
                 /// </summary>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public void Dispose()

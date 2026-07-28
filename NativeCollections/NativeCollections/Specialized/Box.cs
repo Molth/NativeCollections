@@ -10,7 +10,9 @@ namespace NativeCollections
     /// </summary>
     internal static unsafe class Box
     {
-        /// <summary>Allocates an aligned block of memory of the specified value.</summary>
+        /// <summary>
+        ///     Allocates an aligned block of memory of the specified value.
+        /// </summary>
         /// <param name="value">The value to copy into the newly allocated memory.</param>
         /// <returns>A pointer to the allocated aligned block of memory.</returns>
         /// <exception cref="OutOfMemoryException">Allocating memory failed.</exception>
@@ -22,7 +24,9 @@ namespace NativeCollections
             return ptr;
         }
 
-        /// <summary>Frees an aligned block of memory.</summary>
+        /// <summary>
+        ///     Frees an aligned block of memory.
+        /// </summary>
         /// <param name="ptr">A pointer to the aligned block of memory that should be freed.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Drop<T>(T* ptr) where T : unmanaged, IDisposable
@@ -33,7 +37,9 @@ namespace NativeCollections
             NativeMemoryAllocator.AlignedFree(ptr);
         }
 
-        /// <summary>Frees an aligned block of memory.</summary>
+        /// <summary>
+        ///     Frees an aligned block of memory.
+        /// </summary>
         /// <param name="ptr">A pointer to the aligned block of memory that should be freed.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Free(void* ptr)

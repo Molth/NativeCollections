@@ -10,7 +10,9 @@ namespace NativeCollections
     /// </summary>
     internal static class MathHelpers
     {
-        /// <summary>Returns the larger of two native signed integers.</summary>
+        /// <summary>
+        ///     Returns the larger of two native signed integers.
+        /// </summary>
         /// <param name="val1">The first of two native signed integers to compare.</param>
         /// <param name="val2">The second of two native signed integers to compare.</param>
         /// <returns>Parameter <paramref name="val1" /> or <paramref name="val2" />, whichever is larger.</returns>
@@ -24,7 +26,9 @@ namespace NativeCollections
 #endif
         }
 
-        /// <summary>Returns the smaller of two native signed integers.</summary>
+        /// <summary>
+        ///     Returns the smaller of two native signed integers.
+        /// </summary>
         /// <param name="val1">The first of two native signed integers to compare.</param>
         /// <param name="val2">The second of two native signed integers to compare.</param>
         /// <returns>Parameter <paramref name="val1" /> or <paramref name="val2" />, whichever is smaller.</returns>
@@ -38,7 +42,9 @@ namespace NativeCollections
 #endif
         }
 
-        /// <summary>Returns the larger of two native unsigned integers.</summary>
+        /// <summary>
+        ///     Returns the larger of two native unsigned integers.
+        /// </summary>
         /// <param name="val1">The first of two native unsigned integers to compare.</param>
         /// <param name="val2">The second of two native unsigned integers to compare.</param>
         /// <returns>Parameter <paramref name="val1" /> or <paramref name="val2" />, whichever is larger.</returns>
@@ -52,7 +58,9 @@ namespace NativeCollections
 #endif
         }
 
-        /// <summary>Returns the smaller of two native unsigned integers.</summary>
+        /// <summary>
+        ///     Returns the smaller of two native unsigned integers.
+        /// </summary>
         /// <param name="val1">The first of two native unsigned integers to compare.</param>
         /// <param name="val2">The second of two native unsigned integers to compare.</param>
         /// <returns>Parameter <paramref name="val1" /> or <paramref name="val2" />, whichever is smaller.</returns>
@@ -66,7 +74,9 @@ namespace NativeCollections
 #endif
         }
 
-        /// <summary>Produces the full product of two unsigned 64-bit numbers.</summary>
+        /// <summary>
+        ///     Produces the full product of two unsigned 64-bit numbers.
+        /// </summary>
         /// <param name="a">The first number to multiply.</param>
         /// <param name="b">The second number to multiply.</param>
         /// <param name="low">The low 64-bit of the product of the specified numbers.</param>
@@ -89,7 +99,9 @@ namespace NativeCollections
 #endif
         }
 
-        /// <summary>Produces the quotient and the remainder of two signed native-size numbers.</summary>
+        /// <summary>
+        ///     Produces the quotient and the remainder of two signed native-size numbers.
+        /// </summary>
         /// <param name="left">The dividend.</param>
         /// <param name="right">The divisor.</param>
         /// <returns>The quotient and the remainder of the specified numbers.</returns>
@@ -104,7 +116,9 @@ namespace NativeCollections
 #endif
         }
 
-        /// <summary>Produces the quotient and the remainder of two signed native-size numbers.</summary>
+        /// <summary>
+        ///     Produces the quotient and the remainder of two signed native-size numbers.
+        /// </summary>
         /// <param name="left">The dividend.</param>
         /// <param name="right">The divisor.</param>
         /// <returns>The quotient and the remainder of the specified numbers.</returns>

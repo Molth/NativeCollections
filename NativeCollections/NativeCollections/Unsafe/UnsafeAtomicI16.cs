@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 #pragma warning disable CA2231 // Overload operator equals on overriding ValueType.Equals
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
@@ -16,6 +17,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard | FromType.Rust)]
+    [BindingType(typeof(Interlocked))]
     public unsafe struct UnsafeAtomicI16
     {
         /// <summary>
@@ -67,14 +69,14 @@ namespace NativeCollections
         /// <summary>
         ///     Adds two values and replaces the first integer with the sum, as an atomic operation.
         /// </summary>
-        /// <returns>The original value.</returns>
+        /// <returns>The new value stored.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public short Add(short value) => (short)_value.Add((ushort)value);
 
         /// <summary>
         ///     Subtracts two values and replaces the first integer with the difference, as an atomic operation.
         /// </summary>
-        /// <returns>The original value.</returns>
+        /// <returns>The new value stored.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public short Sub(short value) => (short)_value.Sub((ushort)value);
 
@@ -122,7 +124,7 @@ namespace NativeCollections
         public short CompareExchange(short value, short comparand) => (short)_value.CompareExchange((ushort)value, (ushort)comparand);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -144,9 +146,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public readonly override string ToString() => "UnsafeAtomicI16";
 
         /// <summary>

@@ -16,7 +16,9 @@ namespace NativeCollections
     /// </summary>
     internal static class ThrowHelpers
     {
-        /// <summary>Throws an <see cref="ArgumentOutOfRangeException" /> if <paramref name="value" /> is negative.</summary>
+        /// <summary>
+        ///     Throws an <see cref="ArgumentOutOfRangeException" /> if <paramref name="value" /> is negative.
+        /// </summary>
         /// <param name="value">The argument to validate as non-negative.</param>
         /// <param name="paramName">The name of the parameter with which <paramref name="value" /> corresponds.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -35,7 +37,9 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(GetArgumentName(paramName), value, SR.Argument_MustBeNonNegative);
         }
 
-        /// <summary>Throws an <see cref="ArgumentOutOfRangeException" /> if <paramref name="value" /> is negative or zero.</summary>
+        /// <summary>
+        ///     Throws an <see cref="ArgumentOutOfRangeException" /> if <paramref name="value" /> is negative or zero.
+        /// </summary>
         /// <param name="value">The argument to validate as non-zero or non-negative.</param>
         /// <param name="paramName">The name of the parameter with which <paramref name="value" /> corresponds.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -96,7 +100,9 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(GetArgumentName(paramName), value, SR.Argument_MustBeGreaterOrEqual);
         }
 
-        /// <summary>Throws an <see cref="ArgumentException" /> if <paramref name="value" /> is not a power of two.</summary>
+        /// <summary>
+        ///     Throws an <see cref="ArgumentException" /> if <paramref name="value" /> is not a power of two.
+        /// </summary>
         /// <param name="value">The alignment value to validate.</param>
         /// <param name="paramName">The name of the parameter with which <paramref name="value" /> corresponds.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -118,7 +124,9 @@ namespace NativeCollections
                 throw new ArgumentOutOfRangeException(GetArgumentName(paramName), value, SR.Argument_MustBeBetweenZeroAndOne);
         }
 
-        /// <summary>Throws an <see cref="ArgumentNullException" /> if <paramref name="argument" /> is null.</summary>
+        /// <summary>
+        ///     Throws an <see cref="ArgumentNullException" /> if <paramref name="argument" /> is null.
+        /// </summary>
         /// <param name="argument">The reference type argument to validate as non-null.</param>
         /// <param name="paramName">The name of the parameter with which <paramref name="argument" /> corresponds.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -128,7 +136,9 @@ namespace NativeCollections
                 throw new ArgumentNullException(GetArgumentName(paramName), SR.Argument_MustBeNotNull);
         }
 
-        /// <summary>Throws an <see cref="ArgumentException" /> if <paramref name="argument" /> is empty.</summary>
+        /// <summary>
+        ///     Throws an <see cref="ArgumentException" /> if <paramref name="argument" /> is empty.
+        /// </summary>
         /// <param name="argument">The buffer to validate.</param>
         /// <param name="paramName">The name of the parameter with which <paramref name="argument" /> corresponds.</param>
         /// <typeparam name="T">The type of the count value.</typeparam>
@@ -139,7 +149,9 @@ namespace NativeCollections
                 throw new ArgumentException(SR.Argument_Empty, GetArgumentName(paramName));
         }
 
-        /// <summary>Throws an <see cref="ArgumentException" /> if <paramref name="argument" /> is empty.</summary>
+        /// <summary>
+        ///     Throws an <see cref="ArgumentException" /> if <paramref name="argument" /> is empty.
+        /// </summary>
         /// <param name="argument">The buffer to validate.</param>
         /// <param name="paramName">The name of the parameter with which <paramref name="argument" /> corresponds.</param>
         /// <typeparam name="T">The type of the count value.</typeparam>
@@ -164,7 +176,9 @@ namespace NativeCollections
                 throw new InvalidOperationException(SR.InvalidOperation_EnumFailedVersion);
         }
 
-        /// <summary>Throws an <see cref="IOException" /> if <paramref name="value" /> is negative (seek before begin).</summary>
+        /// <summary>
+        ///     Throws an <see cref="IOException" /> if <paramref name="value" /> is negative (seek before begin).
+        /// </summary>
         /// <param name="value">The seek position to validate.</param>
         /// <typeparam name="T">The type of the position value.</typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -183,7 +197,9 @@ namespace NativeCollections
                 throw new IOException(SR.IO_SeekBeforeBegin);
         }
 
-        /// <summary>Throws an <see cref="IOException" /> if <paramref name="value" /> is negative (stream too long).</summary>
+        /// <summary>
+        ///     Throws an <see cref="IOException" /> if <paramref name="value" /> is negative (stream too long).
+        /// </summary>
         /// <param name="value">The stream length value to validate.</param>
         /// <typeparam name="T">The type of the length value.</typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -202,7 +218,9 @@ namespace NativeCollections
                 throw new IOException(SR.IO_StreamTooLong);
         }
 
-        /// <summary>Throws an <see cref="InvalidOperationException" /> if <paramref name="value" /> is zero (empty queue).</summary>
+        /// <summary>
+        ///     Throws an <see cref="InvalidOperationException" /> if <paramref name="value" /> is zero (empty queue).
+        /// </summary>
         /// <param name="value">The queue count to validate.</param>
         /// <typeparam name="T">The type of the count value.</typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -268,14 +286,18 @@ namespace NativeCollections
                 ThrowNotSupportedException();
         }
 
-        /// <summary>Throws a <see cref="KeyNotFoundException" /> with the specified key value.</summary>
+        /// <summary>
+        ///     Throws a <see cref="KeyNotFoundException" /> with the specified key value.
+        /// </summary>
         /// <param name="value">The key value that was not found.</param>
         /// <typeparam name="T">The type of the key value.</typeparam>
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ThrowKeyNotFoundException<T>(T value) where T : unmanaged => throw new KeyNotFoundException(value.ToString());
 
-        /// <summary>Throws an <see cref="ArgumentException" /> for duplicate key addition.</summary>
+        /// <summary>
+        ///     Throws an <see cref="ArgumentException" /> for duplicate key addition.
+        /// </summary>
         /// <param name="value">The duplicate key value.</param>
         /// <typeparam name="T">The type of the key value.</typeparam>
         [DoesNotReturn]
@@ -296,7 +318,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ThrowArrayLengthsDifferException() => throw new ArgumentException(SR.Argument_ArrayLengthsDiffer);
 
-        /// <summary>Throws an <see cref="ArgumentOutOfRangeException" /> for values exceeding allowed range.</summary>
+        /// <summary>
+        ///     Throws an <see cref="ArgumentOutOfRangeException" /> for values exceeding allowed range.
+        /// </summary>
         /// <param name="value">The argument value that is out of range.</param>
         /// <param name="paramName">The name of the parameter with the invalid value.</param>
         /// <typeparam name="T">The type of the argument value.</typeparam>
@@ -311,7 +335,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ThrowOutOfMemoryException() => throw new OutOfMemoryException();
 
-        /// <summary>Throws an <see cref="ArgumentNullException" /> for null arguments.</summary>
+        /// <summary>
+        ///     Throws an <see cref="ArgumentNullException" /> for null arguments.
+        /// </summary>
         /// <param name="paramName">The name of the parameter that is null.</param>
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -345,7 +371,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ThrowMustBeNonEntirelyZeroException() => throw new InvalidDataException(SR.InvalidData_MustBeNonEntirelyZero);
 
-        /// <summary>Throws an <see cref="ArgumentOutOfRangeException" /> for unaligned memory.</summary>
+        /// <summary>
+        ///     Throws an <see cref="ArgumentOutOfRangeException" /> for unaligned memory.
+        /// </summary>
         /// <param name="value">The required alignment value in bytes.</param>
         /// <param name="paramName">The name of the parameter with unaligned memory.</param>
         /// <typeparam name="T">The type of the alignment value.</typeparam>
@@ -391,15 +419,6 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ThrowNotSupportedException() => throw new NotSupportedException();
 
-#if !NET5_0_OR_GREATER
-        /// <summary>
-        ///     Throws a <see cref="NullReferenceException" />.
-        /// </summary>
-        [DoesNotReturn]
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void ThrowNullReferenceException() => throw new NullReferenceException();
-#endif
-
         /// <summary>
         ///     Throws a <see cref="FormatException" /> indicating that the string format is invalid at a specific offset.
         /// </summary>
@@ -432,10 +451,13 @@ namespace NativeCollections
         {
             ExceptionArgument.addValueFactory => "addValueFactory",
             ExceptionArgument.alignment => "alignment",
+            ExceptionArgument.array => "array",
             ExceptionArgument.buffer => "buffer",
             ExceptionArgument.byteCount => "byteCount",
+            ExceptionArgument.call => "call",
             ExceptionArgument.capacity => "capacity",
             ExceptionArgument.charCount => "charCount",
+            ExceptionArgument.concurrencyLevel => "concurrencyLevel",
             ExceptionArgument.count => "count",
             ExceptionArgument.format => "format",
             ExceptionArgument.index => "index",

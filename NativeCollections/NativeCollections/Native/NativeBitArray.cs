@@ -70,7 +70,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Is created
+        ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
@@ -80,8 +80,10 @@ namespace NativeCollections
         public NativeArray<int> Buffer => _handle->Buffer;
 
         /// <summary>
-        ///     Length
+        ///     Gets or sets the number of elements in this.
         /// </summary>
+        /// <value>The number of elements in this.</value>
+        /// <exception cref="ArgumentOutOfRangeException">The property is set to a value that is less than zero.</exception>
         public int Length
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -91,9 +93,18 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get or set value
+        ///     Gets the number of elements in this.
         /// </summary>
-        /// <param name="index">Index</param>
+        /// <value>The number of elements in this.</value>
+        public int Count
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _handle->Length;
+        }
+
+        /// <summary>
+        ///     Reinterprets the given location as a reference to a value.
+        /// </summary>
         public bool this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -103,9 +114,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get or set value
+        ///     Reinterprets the given location as a reference to a value.
         /// </summary>
-        /// <param name="index">Index</param>
         public bool this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -115,110 +125,124 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="other">Other</param>
-        /// <returns>Equals</returns>
         public bool Equals(NativeBitArray other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <returns>Equals</returns>
         public override bool Equals(object? obj) => obj is NativeBitArray other && other.Equals(this);
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
-        /// <returns>HashCode</returns>
         public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public override string ToString() => "NativeBitArray";
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Equals</returns>
         public static bool operator ==(NativeBitArray left, NativeBitArray right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Not equals</returns>
         public static bool operator !=(NativeBitArray left, NativeBitArray right) => !left.Equals(right);
 
         /// <summary>
-        ///     Dispose
+        ///     Performs application-defined tasks associated with freeing,
+        ///     releasing, or resetting unmanaged resources.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose() => Box.Drop(_handle);
 
         /// <summary>
-        ///     As bytes
+        ///     Casts to a ReadOnlySpan of byte.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Span<byte> AsBytes() => _handle->AsBytes();
 
         /// <summary>
-        ///     Set length
+        ///     Sets the number of elements in this.
         /// </summary>
-        /// <param name="length">Length</param>
+        /// <value>The number of elements in this.</value>
+        /// <exception cref="ArgumentOutOfRangeException">The property is set to a value that is less than zero.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetLength(int length) => _handle->SetLength(length);
 
         /// <summary>
-        ///     Get
+        ///     Gets the value of the bit at a specific position in this.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <returns>Value</returns>
+        /// <param name="index">The zero-based index of the value to get.</param>
+        /// <returns>The value of the bit at position <paramref name="index" />.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="index" /> is less than zero.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     <paramref name="index" /> is greater than or equal to
+        ///     <see cref="Count" />.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Get(int index) => _handle->Get(index);
 
         /// <summary>
-        ///     Set
+        ///     Sets the value of the bit at a specific position in this.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="value">Value</param>
+        /// <param name="index">The zero-based index of the value to get.</param>
+        /// <param name="value">The Boolean value to assign to the bit.</param>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="index" /> is less than zero.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     <paramref name="index" /> is greater than or equal to
+        ///     <see cref="Count" />.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Set(int index, bool value) => _handle->Set(index, value);
 
         /// <summary>
-        ///     Get
+        ///     Gets the value of the bit at a specific position in this.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <returns>Value</returns>
+        /// <param name="index">The zero-based index of the value to get.</param>
+        /// <returns>The value of the bit at position <paramref name="index" />.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="index" /> is less than zero.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     <paramref name="index" /> is greater than or equal to
+        ///     <see cref="Count" />.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Get(uint index) => _handle->Get(index);
 
         /// <summary>
-        ///     Set
+        ///     Sets the value of the bit at a specific position in this.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="value">Value</param>
+        /// <param name="index">The zero-based index of the value to get.</param>
+        /// <param name="value">The Boolean value to assign to the bit.</param>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="index" /> is less than zero.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     <paramref name="index" /> is greater than or equal to
+        ///     <see cref="Count" />.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Set(uint index, bool value) => _handle->Set(index, value);
 
         /// <summary>
-        ///     Set all
+        ///     Sets all bits in this to the specified value.
         /// </summary>
-        /// <param name="value">Value</param>
+        /// <param name="value">The Boolean value to assign to all bits.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetAll(bool value) => _handle->SetAll(value);
 
         /// <summary>
-        ///     And
+        ///     Performs the bitwise AND operation between the elements of the current object and the
+        ///     corresponding elements in the specified array. The current object will be modified to
+        ///     store the result of the bitwise AND operation.
         /// </summary>
-        /// <param name="value">Value</param>
-        /// <returns>NativeBitArray</returns>
+        /// <param name="value">The array with which to perform the bitwise AND operation.</param>
+        /// <returns>An array containing the result of the bitwise AND operation, which is a reference to the current object.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value" /> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="value" /> and the current do not have the same number of elements.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeBitArray And(NativeBitArray value)
         {
@@ -229,10 +253,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     And
+        ///     Performs the bitwise AND operation between the elements of the current object and the
+        ///     corresponding elements in the specified array. The current object will be modified to
+        ///     store the result of the bitwise AND operation.
         /// </summary>
-        /// <param name="value">Value</param>
-        /// <returns>NativeBitArray</returns>
+        /// <param name="value">The array with which to perform the bitwise AND operation.</param>
+        /// <returns>An array containing the result of the bitwise AND operation, which is a reference to the current object.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value" /> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="value" /> and the current do not have the same number of elements.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeBitArray And(UnsafeBitArray value)
         {
@@ -241,10 +269,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Or
+        ///     Performs the bitwise OR operation between the elements of the current object and the
+        ///     corresponding elements in the specified array. The current object will be modified to
+        ///     store the result of the bitwise OR operation.
         /// </summary>
-        /// <param name="value">Value</param>
-        /// <returns>NativeBitArray</returns>
+        /// <param name="value">The array with which to perform the bitwise OR operation.</param>
+        /// <returns>An array containing the result of the bitwise OR operation, which is a reference to the current object.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value" /> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="value" /> and the current do not have the same number of elements.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeBitArray Or(NativeBitArray value)
         {
@@ -255,10 +287,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Or
+        ///     Performs the bitwise OR operation between the elements of the current object and the
+        ///     corresponding elements in the specified array. The current object will be modified to
+        ///     store the result of the bitwise OR operation.
         /// </summary>
-        /// <param name="value">Value</param>
-        /// <returns>NativeBitArray</returns>
+        /// <param name="value">The array with which to perform the bitwise OR operation.</param>
+        /// <returns>An array containing the result of the bitwise OR operation, which is a reference to the current object.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value" /> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="value" /> and the current do not have the same number of elements.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeBitArray Or(UnsafeBitArray value)
         {
@@ -267,10 +303,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Xor
+        ///     Performs the bitwise XOR operation between the elements of the current object and the
+        ///     corresponding elements in the specified array. The current object will be modified to
+        ///     store the result of the bitwise XOR operation.
         /// </summary>
-        /// <param name="value">Value</param>
-        /// <returns>NativeBitArray</returns>
+        /// <param name="value">The array with which to perform the bitwise XOR operation.</param>
+        /// <returns>An array containing the result of the bitwise XOR operation, which is a reference to the current object.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value" /> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="value" /> and the current do not have the same number of elements.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeBitArray Xor(NativeBitArray value)
         {
@@ -281,10 +321,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Xor
+        ///     Performs the bitwise XOR operation between the elements of the current object and the
+        ///     corresponding elements in the specified array. The current object will be modified to
+        ///     store the result of the bitwise XOR operation.
         /// </summary>
-        /// <param name="value">Value</param>
-        /// <returns>NativeBitArray</returns>
+        /// <param name="value">The array with which to perform the bitwise XOR operation.</param>
+        /// <returns>An array containing the result of the bitwise XOR operation, which is a reference to the current object.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value" /> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="value" /> and the current do not have the same number of elements.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeBitArray Xor(UnsafeBitArray value)
         {
@@ -293,9 +337,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Not
+        ///     Inverts all the bit values in the current, so that elements set to true are changed to false,
+        ///     and elements set to false are changed to true.
         /// </summary>
-        /// <returns>NativeBitArray</returns>
+        /// <returns>The current instance with inverted bit values.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeBitArray Not()
         {
@@ -304,10 +349,11 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Right shift
+        ///     Shifts all the bit values of the current to the right on <paramref name="count" /> bits.
         /// </summary>
-        /// <param name="count">Count</param>
-        /// <returns>NativeBitArray</returns>
+        /// <param name="count">The number of shifts to make for each bit.</param>
+        /// <returns>The current.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="count" /> is less than zero.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeBitArray RightShift(int count)
         {
@@ -316,10 +362,11 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Left shift
+        ///     Shifts all the bit values of the current to the left on <paramref name="count" /> bits.
         /// </summary>
-        /// <param name="count">Count</param>
-        /// <returns>NativeBitArray</returns>
+        /// <param name="count">The number of shifts to make for each bit.</param>
+        /// <returns>The current.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="count" /> is less than zero.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeBitArray LeftShift(int count)
         {
@@ -328,47 +375,65 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Has all set
+        ///     Determines whether all bits in this are set to <c>true</c>.
         /// </summary>
-        /// <returns>All set</returns>
+        /// <returns>
+        ///     <c>true</c> if every bit in this is set to <c>true</c>,
+        ///     or if this is empty; otherwise, <c>false</c>.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool HasAllSet() => _handle->HasAllSet();
 
         /// <summary>
-        ///     Has any set
+        ///     Determines whether any bit in this is set to <c>true</c>.
         /// </summary>
-        /// <returns>Any set</returns>
+        /// <returns>
+        ///     <c>true</c> if this is not empty and at least one of its bit is set to <c>true</c>;
+        ///     otherwise, <c>false</c>.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool HasAnySet() => _handle->HasAnySet();
 
         /// <summary>
-        ///     Get
+        ///     Gets the value associated with the specified index.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <returns>Value</returns>
+        /// <param name="index">The zero-based index of the pair to get.</param>
+        /// <exception cref="ArgumentOutOfRangeException">The property is set to a value that is less than zero.</exception>
         public NativeBitArraySlot GetSlot(int index) => _handle->GetSlot(index);
 
         /// <summary>
-        ///     Try get
+        ///     Gets the value associated with the specified index.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="slot">Slot</param>
-        /// <returns>Got</returns>
+        /// <param name="index">The zero-based index of the pair to get.</param>
+        /// <param name="slot">
+        ///     When this method returns, contains the value associated with the specified key, if the key is
+        ///     found; otherwise, the default value for the type of the <paramref name="slot" /> parameter.
+        ///     This parameter is passed uninitialized.
+        /// </param>
+        /// <returns>
+        ///     <see langword="true" /> if this contains an element with the specified key; otherwise, <see langword="false" />.
+        /// </returns>
         public bool TryGetSlot(int index, out NativeBitArraySlot slot) => _handle->TryGetSlot(index, out slot);
 
         /// <summary>
-        ///     Get
+        ///     Gets the value associated with the specified index.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <returns>Value</returns>
+        /// <param name="index">The zero-based index of the pair to get.</param>
+        /// <exception cref="ArgumentOutOfRangeException">The property is set to a value that is less than zero.</exception>
         public NativeBitArraySlot GetSlot(uint index) => _handle->GetSlot(index);
 
         /// <summary>
-        ///     Try get
+        ///     Gets the value associated with the specified index.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="slot">Slot</param>
-        /// <returns>Got</returns>
+        /// <param name="index">The zero-based index of the pair to get.</param>
+        /// <param name="slot">
+        ///     When this method returns, contains the value associated with the specified key, if the key is
+        ///     found; otherwise, the default value for the type of the <paramref name="slot" /> parameter.
+        ///     This parameter is passed uninitialized.
+        /// </param>
+        /// <returns>
+        ///     <see langword="true" /> if this contains an element with the specified key; otherwise, <see langword="false" />.
+        /// </returns>
         public bool TryGetSlot(uint index, out NativeBitArraySlot slot) => _handle->TryGetSlot(index, out slot);
 
         /// <summary>

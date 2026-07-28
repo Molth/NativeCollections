@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 using static NativeCollections.BooleanHelpers;
 
 #pragma warning disable CA2231 // Overload operator equals on overriding ValueType.Equals
@@ -17,6 +18,7 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard | FromType.Rust)]
+    [BindingType(typeof(Interlocked))]
     public unsafe struct UnsafeAtomicBool
     {
         /// <summary>
@@ -95,7 +97,7 @@ namespace NativeCollections
         public bool CompareExchange(bool value, bool comparand) => FromU8(_value.CompareExchange(IntoU8(value), IntoU8(comparand)));
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -117,9 +119,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public readonly override string ToString() => "UnsafeAtomicBool";
 
         /// <summary>

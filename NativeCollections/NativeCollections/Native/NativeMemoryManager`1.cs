@@ -35,54 +35,50 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     As span
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator Span<T>(NativeMemoryManager<T> value) => value.Memory.Span;
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator ReadOnlySpan<T>(NativeMemoryManager<T> value) => value.Memory.Span;
 
         /// <summary>
-        ///     As memory
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>Memory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator Memory<T>(NativeMemoryManager<T> value) => value.Memory;
 
         /// <summary>
-        ///     As readOnly memory
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>ReadOnlyMemory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator ReadOnlyMemory<T>(NativeMemoryManager<T> value) => value.Memory;
 
         /// <summary>
-        ///     As native array
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>NativeArray</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator NativeArray<T>(NativeMemoryManager<T> value) => value._buffer;
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public override string ToString() => SR.Format("NativeMemoryManager<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
-        ///     Dispose
+        ///     Performs application-defined tasks associated with freeing,
+        ///     releasing, or resetting unmanaged resources.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose() => Dispose(true);
 
         /// <summary>
-        ///     Dispose
+        ///     Performs application-defined tasks associated with freeing,
+        ///     releasing, or resetting unmanaged resources.
         /// </summary>
         /// <param name="disposing">Disposing</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

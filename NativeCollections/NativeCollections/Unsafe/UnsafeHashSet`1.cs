@@ -43,7 +43,7 @@ namespace NativeCollections
         private ulong _fastModMultiplier;
 
         /// <summary>
-        ///     Count
+        ///     Gets the number of elements contained in this.
         /// </summary>
         private int _count;
 
@@ -58,27 +58,31 @@ namespace NativeCollections
         private int _freeCount;
 
         /// <summary>
-        ///     Version
+        ///     Used to keep enumerator in sync w/ collection.
         /// </summary>
         private int _version;
 
         /// <summary>
-        ///     Is created
+        ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public readonly bool IsCreated => !UnsafeHelpers.IsNull(_buckets);
 
         /// <summary>
-        ///     Is empty
+        ///     Gets a value that indicates whether this is empty.
         /// </summary>
+        /// <value>
+        ///     true if this is empty;
+        ///     otherwise, false.
+        /// </value>
         public readonly bool IsEmpty => Count == 0;
 
         /// <summary>
-        ///     Count
+        ///     Gets the number of elements contained in this.
         /// </summary>
         public readonly int Count => _count - _freeCount;
 
         /// <summary>
-        ///     Capacity
+        ///     Gets the total numbers of elements the internal data structure can hold.
         /// </summary>
         public readonly int Capacity => _entriesLength;
 
@@ -96,55 +100,44 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="other">Other</param>
-        /// <returns>Equals</returns>
         public readonly bool Equals(UnsafeHashSet<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <returns>Equals</returns>
         public readonly override bool Equals(object? obj) => obj is UnsafeHashSet<T> other && other.Equals(this);
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
-        /// <returns>HashCode</returns>
         public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public readonly override string ToString() => SR.Format("UnsafeHashSet<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Equals</returns>
         public static bool operator ==(UnsafeHashSet<T> left, UnsafeHashSet<T> right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Not equals</returns>
         public static bool operator !=(UnsafeHashSet<T> left, UnsafeHashSet<T> right) => !left.Equals(right);
 
         /// <summary>
-        ///     Dispose
+        ///     Performs application-defined tasks associated with freeing,
+        ///     releasing, or resetting unmanaged resources.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void Dispose() => NativeMemoryAllocator.AlignedFree(_buckets);
 
         /// <summary>
-        ///     Clear
+        ///     Clears the contents of this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
@@ -161,10 +154,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Add
+        ///     Adds the specified element to this.
         /// </summary>
-        /// <param name="item">Item</param>
-        /// <returns>Added</returns>
+        /// <param name="item">The element to add to the set.</param>
+        /// <returns>
+        ///     true if the element is added to the instance;
+        ///     false if the element is already present.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Add(in T item)
         {
@@ -213,10 +209,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Remove
+        ///     Removes the first occurrence of a specific object from this.
         /// </summary>
-        /// <param name="item">Item</param>
-        /// <returns>Removed</returns>
+        /// <param name="item">The object to remove from this.</param>
+        /// <returns>
+        ///     <see langword="true" /> if <paramref name="item" /> is successfully removed;
+        ///     otherwise, <see langword="false" />.
+        ///     This method also returns <see langword="false" /> if <paramref name="item" /> was not found in this.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(in T item)
         {
@@ -251,11 +251,18 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Remove
+        ///     Removes the first occurrence of a specific object and returns the equal value from this.
         /// </summary>
-        /// <param name="equalValue">Equal value</param>
-        /// <param name="actualValue">Actual value</param>
-        /// <returns>Removed</returns>
+        /// <param name="equalValue">The value to search for.</param>
+        /// <param name="actualValue">
+        ///     The value from the set that the search found, or the default value of
+        ///     <typeparamref name="T" /> when the search yielded no match.
+        /// </param>
+        /// <returns>
+        ///     <see langword="true" /> if <paramref name="equalValue" /> is successfully removed;
+        ///     otherwise, <see langword="false" />.
+        ///     This method also returns <see langword="false" /> if <paramref name="equalValue" /> was not found in this.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(in T equalValue, out T actualValue)
         {
@@ -292,19 +299,28 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Contains
+        ///     Determines whether this contains the specified element.
         /// </summary>
-        /// <param name="item">Item</param>
-        /// <returns>Contains</returns>
+        /// <param name="item">The element to locate in this.</param>
+        /// <returns>true if this contains the specified element; otherwise, false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool Contains(in T item) => FindItemIndex(item) >= 0;
 
         /// <summary>
-        ///     Try to get the actual value
+        ///     Searches the set for a given value and returns the equal value it finds, if any.
         /// </summary>
-        /// <param name="equalValue">Equal value</param>
-        /// <param name="actualValue">Actual value</param>
-        /// <returns>Got</returns>
+        /// <param name="equalValue">The value to search for.</param>
+        /// <param name="actualValue">
+        ///     The value from the set that the search found, or the default value of
+        ///     <typeparamref name="T" /> when the search yielded no match.
+        /// </param>
+        /// <returns>A value indicating whether the search was successful.</returns>
+        /// <remarks>
+        ///     This can be useful when you want to reuse a previously stored reference instead of
+        ///     a newly constructed one (so that more sharing of references can occur) or to look up
+        ///     a value that has more complete data than the value you currently have, although their
+        ///     comparer functions indicate they are equal.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool TryGetValue(in T equalValue, out T actualValue)
         {
@@ -320,11 +336,20 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try to get the actual value
+        ///     Searches the set for a given value and returns the equal value it finds, if any.
         /// </summary>
-        /// <param name="equalValue">Equal value</param>
-        /// <param name="actualValue">Actual value</param>
-        /// <returns>Got</returns>
+        /// <param name="equalValue">The value to search for.</param>
+        /// <param name="actualValue">
+        ///     The value from the set that the search found, or the default value of
+        ///     <typeparamref name="T" /> when the search yielded no match.
+        /// </param>
+        /// <returns>A value indicating whether the search was successful.</returns>
+        /// <remarks>
+        ///     This can be useful when you want to reuse a previously stored reference instead of
+        ///     a newly constructed one (so that more sharing of references can occur) or to look up
+        ///     a value that has more complete data than the value you currently have, although their
+        ///     comparer functions indicate they are equal.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool TryGetValueReference(in T equalValue, out NativePtr<T> actualValue)
         {
@@ -340,10 +365,12 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Ensure capacity
+        ///     Ensures that the capacity of this is at least the specified <paramref name="capacity" />.
+        ///     If the current capacity of this is less than specified <paramref name="capacity" />,
+        ///     the capacity is increased to at least <paramref name="capacity" />.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>New capacity</returns>
+        /// <param name="capacity">The minimum capacity to ensure.</param>
+        /// <returns>The new capacity of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int EnsureCapacity(int capacity)
         {
@@ -357,17 +384,16 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Trim excess
+        ///     Trims the capacity of this to the specified number of entries.
         /// </summary>
-        /// <returns>New capacity</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess() => TrimExcess(_count);
 
         /// <summary>
-        ///     Trim excess
+        ///     Trims the capacity of this to the specified number of entries.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>New capacity</returns>
+        /// <param name="capacity">The new capacity.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Passed capacity is lower than entries count.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity)
         {
@@ -516,10 +542,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Copy to
+        ///     Copies up to the specified number of elements from this.
+        ///     The actual number of copied elements is limited by the span's length, the specified count,
+        ///     and the current number of elements in this.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="count">Count</param>
+        /// <param name="buffer">The destination span to which elements are copied.</param>
+        /// <param name="count">The maximum number of elements to copy. Must be non-negative.</param>
+        /// <returns>The actual number of elements copied from the this.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="count" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int CopyTo(Span<T> buffer, int count)
         {
@@ -542,17 +572,25 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Copy to
+        ///     Copies up to the specified number of elements from this.
+        ///     The actual number of copied elements is limited by the span's length, the specified count,
+        ///     and the current number of elements in this.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="count">Count</param>
+        /// <param name="buffer">The destination span to which elements are copied.</param>
+        /// <param name="count">The maximum number of elements to copy. Must be non-negative.</param>
+        /// <returns>The actual number of elements copied from the this.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="count" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int CopyTo(Span<byte> buffer, int count) => CopyTo(MemoryMarshal.Cast<byte, T>(buffer), count);
 
         /// <summary>
-        ///     Copy to
+        ///     Copies all elements from this into a destination span.
+        ///     The span must have a length at least equal to the current number of elements in this.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
+        /// <param name="buffer">The destination span to which all elements are copied.</param>
+        /// <exception cref="ArgumentException">
+        ///     Thrown when <paramref name="buffer" /> has insufficient length to hold all of this's elements.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void CopyTo(Span<T> buffer)
         {
@@ -573,9 +611,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Copy to
+        ///     Copies all elements from this into a destination span.
+        ///     The span must have a length at least equal to the current number of elements in this.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
+        /// <param name="buffer">The destination span to which all elements are copied.</param>
+        /// <exception cref="ArgumentException">
+        ///     Thrown when <paramref name="buffer" /> has insufficient length to hold all of this's elements.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, T>(buffer));
 
@@ -585,14 +627,13 @@ namespace NativeCollections
         public static UnsafeHashSet<T> Empty => default;
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
-        /// <returns>Enumerator</returns>
         [MustBePinned(SR.parameter_this)]
         public Enumerator GetEnumerator() => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -603,7 +644,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -625,7 +666,7 @@ namespace NativeCollections
             private readonly UnsafeHashSet<T>* _handle;
 
             /// <summary>
-            ///     Version
+            ///     Used to keep enumerator in sync w/ collection.
             /// </summary>
             private readonly int _version;
 
@@ -635,8 +676,9 @@ namespace NativeCollections
             private int _index;
 
             /// <summary>
-            ///     Current
+            ///     Gets the element in the collection at the current position of the enumerator.
             /// </summary>
+            /// <returns>The element in the collection at the current position of the enumerator.</returns>
             private T _current;
 
             /// <summary>
@@ -652,9 +694,12 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Move next
+            ///     Advances the enumerator to the next element of the collection.
             /// </summary>
-            /// <returns>Moved</returns>
+            /// <returns>
+            ///     <see langword="true" /> if the enumerator was successfully advanced to the next element;
+            ///     <see langword="false" /> if the enumerator has passed the end of the collection.
+            /// </returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext()
             {
@@ -676,7 +721,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Reset
+            ///     Sets the enumerator to its initial position, which is before the first element in the collection.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Reset()
@@ -686,8 +731,9 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Current
+            ///     Gets the element in the collection at the current position of the enumerator.
             /// </summary>
+            /// <returns>The element in the collection at the current position of the enumerator.</returns>
             public readonly T Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]

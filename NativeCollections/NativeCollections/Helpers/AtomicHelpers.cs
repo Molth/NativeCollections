@@ -398,46 +398,6 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Adds two 64-bit signed integers and replaces the first integer with the sum, as an atomic operation.
-        /// </summary>
-        /// <returns>The original value in <paramref name="location" />.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long AddFloat64(ref long location, double value)
-        {
-            var spinWait = new UnsafeSpinWait();
-            var currentInt64 = location;
-            while (true)
-            {
-                var newFloat64 = Unsafe.As<long, double>(ref currentInt64) + value;
-                var oldInt64 = Interlocked.CompareExchange(ref location, Unsafe.As<double, long>(ref newFloat64), currentInt64);
-                if (oldInt64 == currentInt64)
-                    return oldInt64;
-                currentInt64 = oldInt64;
-                spinWait.SpinOnce(-1);
-            }
-        }
-
-        /// <summary>
-        ///     Adds two 32-bit signed integers and replaces the first integer with the sum, as an atomic operation.
-        /// </summary>
-        /// <returns>The original value in <paramref name="location" />.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int AddFloat32(ref int location, float value)
-        {
-            var spinWait = new UnsafeSpinWait();
-            var currentInt32 = location;
-            while (true)
-            {
-                var newFloat32 = Unsafe.As<int, float>(ref currentInt32) + value;
-                var oldInt32 = Interlocked.CompareExchange(ref location, Unsafe.As<float, int>(ref newFloat32), currentInt32);
-                if (oldInt32 == currentInt32)
-                    return oldInt32;
-                currentInt32 = oldInt32;
-                spinWait.SpinOnce(-1);
-            }
-        }
-
-        /// <summary>
         ///     Fetches the value, and applies a function to it that returns an optional new value.
         /// </summary>
         /// <returns>The original value in <paramref name="location" />.</returns>

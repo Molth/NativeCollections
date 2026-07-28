@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 #pragma warning disable CA2231 // Overload operator equals on overriding ValueType.Equals
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
@@ -15,7 +16,8 @@ namespace NativeCollections
     ///     Unsafe atomic 32
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(FromType.Standard)]
+    [UnsafeCollection(FromType.Standard | FromType.Rust)]
+    [BindingType(typeof(Interlocked))]
     public unsafe struct UnsafeAtomicF32
     {
         /// <summary>
@@ -39,18 +41,14 @@ namespace NativeCollections
         /// <summary>
         ///     Adds two values and replaces the first value with the sum, as an atomic operation.
         /// </summary>
-        /// <returns>The original value.</returns>
+        /// <returns>The new value stored.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float Add(float value)
-        {
-            var newInt32 = AtomicHelpers.AddFloat32(ref _value.AsRef(), value);
-            return BitConverter.Int32BitsToSingle(newInt32);
-        }
+        public float Add(float value) => InterlockedHelpers.AddFloat32(ref _value.AsRef(), value);
 
         /// <summary>
         ///     Subtracts two values and replaces the first value with the difference, as an atomic operation.
         /// </summary>
-        /// <returns>The original value.</returns>
+        /// <returns>The new value stored.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public float Sub(float value) => Add(-value);
 
@@ -59,14 +57,22 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float Max(float value) => BitConverter.Int32BitsToSingle(AtomicHelpers.Update(ref _value.AsRef(), value, &Math.Max));
+        public float Max(float value)
+        {
+            var newInt32 = AtomicHelpers.Update(ref _value.AsRef(), value, &Math.Max);
+            return BitConverter.Int32BitsToSingle(newInt32);
+        }
 
         /// <summary>
         ///     Finds the minimum of the current value and the argument, and sets the new value to the result.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float Min(float value) => BitConverter.Int32BitsToSingle(AtomicHelpers.Update(ref _value.AsRef(), value, &Math.Min));
+        public float Min(float value)
+        {
+            var newInt32 = AtomicHelpers.Update(ref _value.AsRef(), value, &Math.Min);
+            return BitConverter.Int32BitsToSingle(newInt32);
+        }
 
         /// <summary>
         ///     Returns a value, loaded as an atomic operation.
@@ -110,7 +116,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -132,9 +138,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public readonly override string ToString() => "UnsafeAtomicF32";
 
         /// <summary>

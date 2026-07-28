@@ -1,10 +1,12 @@
-﻿using System.Runtime.CompilerServices;
+﻿#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
-// ReSharper disable ALL
+using System.Runtime.CompilerServices;
+
+// ReSharper disable All
 
 namespace crossbeam
 {
-    public static class UsizeExtensions
+    internal static class UsizeExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static nuint wrapping_add(this nuint value, nuint other) => unchecked(value + other);

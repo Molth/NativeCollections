@@ -20,7 +20,7 @@ namespace NativeCollections
         public T* Handle;
 
         /// <summary>
-        ///     Is created
+        ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public readonly bool IsCreated => !UnsafeHelpers.IsNull(Handle);
 
@@ -34,9 +34,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get reference
+        ///     Reinterprets the given location as a reference to a value.
         /// </summary>
-        /// <param name="index">Index</param>
         public readonly ref T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -44,9 +43,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get reference
+        ///     Reinterprets the given location as a reference to a value.
         /// </summary>
-        /// <param name="index">Index</param>
         public readonly ref T this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -68,29 +66,23 @@ namespace NativeCollections
         public UnsafePtr(nint handle) => Handle = (T*)handle;
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="other">Other</param>
-        /// <returns>Equals</returns>
         public readonly bool Equals(UnsafePtr<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <returns>Equals</returns>
         public readonly override bool Equals(object? obj) => obj is UnsafePtr<T> other && other.Equals(this);
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
-        /// <returns>HashCode</returns>
         public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public readonly override string ToString() => SR.Format("UnsafePtr<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
@@ -100,95 +92,90 @@ namespace NativeCollections
         public readonly ref T AsRef() => ref Unsafe.AsRef<T>(Handle);
 
         /// <summary>
-        ///     Cast
+        ///     Casts a instance of one primitive type to another primitive type.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly UnsafePtr<TTo> Cast<TTo>() where TTo : unmanaged => new((TTo*)Handle);
 
         /// <summary>
-        ///     Slice
+        ///     Forms a slice out of the given span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly UnsafePtr<T> Slice(int start) => new(UnsafeHelpers.Add<T>(Handle, start));
 
         /// <summary>
-        ///     As span
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<T> AsSpan() => MemoryMarshal.CreateSpan(ref Unsafe.AsRef<T>(Handle), 1);
 
         /// <summary>
-        ///     As span
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<T> AsSpan(int start, int length) => MemoryMarshal.CreateSpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(Handle), (nint)start), length);
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<T>(Handle), 1);
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<T> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(Handle), (nint)start), length);
 
         /// <summary>
-        ///     As reference
+        ///     Reinterprets the given location as a reference to a value.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator UnsafePtr<T>(T* value) => new(value);
 
         /// <summary>
-        ///     As handle
+        ///     Returns a pointer to the given by-ref parameter.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator T*(UnsafePtr<T> value) => value.Handle;
 
         /// <summary>
-        ///     As reference
+        ///     Reinterprets the given location as a reference to a value.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator UnsafePtr<T>(nint value) => new((T*)value);
 
         /// <summary>
-        ///     As handle
+        ///     Returns a pointer to the given by-ref parameter.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator nint(UnsafePtr<T> value) => (nint)value.Handle;
 
         /// <summary>
-        ///     As span
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator Span<T>(UnsafePtr<T> value) => value.AsSpan();
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator ReadOnlySpan<T>(UnsafePtr<T> value) => value.AsReadOnlySpan();
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Equals</returns>
         public static bool operator ==(UnsafePtr<T> left, UnsafePtr<T> right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Not equals</returns>
         public static bool operator !=(UnsafePtr<T> left, UnsafePtr<T> right) => !left.Equals(right);
 
         /// <summary>
-        ///     Dispose
+        ///     Performs application-defined tasks associated with freeing,
+        ///     releasing, or resetting unmanaged resources.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void Dispose() => Box.Free(Handle);

@@ -14,10 +14,14 @@ namespace NativeCollections
     [UnsafeCollection(FromType.Standard)]
     public struct UnsafeStopwatch : IEquatable<UnsafeStopwatch>
     {
-        /// <summary>Gets the frequency of the timer as the number of ticks per second. This field is read-only.</summary>
+        /// <summary>
+        ///     Gets the frequency of the timer as the number of ticks per second. This field is read-only.
+        /// </summary>
         public static long Frequency => Stopwatch.Frequency;
 
-        /// <summary>Indicates whether the timer is based on a high-resolution performance counter. This field is read-only.</summary>
+        /// <summary>
+        ///     Indicates whether the timer is based on a high-resolution performance counter. This field is read-only.
+        /// </summary>
         public static bool IsHighResolution => Stopwatch.IsHighResolution;
 
         /// <summary>
@@ -40,29 +44,39 @@ namespace NativeCollections
         /// </summary>
         private bool _isRunning;
 
-        /// <summary>Gets a value indicating whether the <see cref="T:System.Diagnostics.Stopwatch" /> timer is running.</summary>
+        /// <summary>
+        ///     Gets a value indicating whether the <see cref="T:System.Diagnostics.Stopwatch" /> timer is running.
+        /// </summary>
         /// <returns>
         ///     <see langword="true" /> if the <see cref="T:System.Diagnostics.Stopwatch" /> instance is currently running and
         ///     measuring elapsed time for an interval; otherwise, false.
         /// </returns>
         public readonly bool IsRunning => _isRunning;
 
-        /// <summary>Gets the total elapsed time measured by the current instance.</summary>
+        /// <summary>
+        ///     Gets the total elapsed time measured by the current instance.
+        /// </summary>
         /// <returns>
         ///     A read-only <see cref="T:System.TimeSpan" /> representing the total elapsed time measured by the current
         ///     instance.
         /// </returns>
         public readonly TimeSpan Elapsed => new(GetElapsedDateTimeTicks());
 
-        /// <summary>Gets the total elapsed time measured by the current instance, in milliseconds.</summary>
+        /// <summary>
+        ///     Gets the total elapsed time measured by the current instance, in milliseconds.
+        /// </summary>
         /// <returns>A read-only long integer representing the total number of milliseconds measured by the current instance.</returns>
         public readonly long ElapsedMilliseconds => GetElapsedDateTimeTicks() / 10000L;
 
-        /// <summary>Gets the total elapsed time measured by the current instance, in timer ticks.</summary>
+        /// <summary>
+        ///     Gets the total elapsed time measured by the current instance, in timer ticks.
+        /// </summary>
         /// <returns>A read-only long integer representing the total number of timer ticks measured by the current instance.</returns>
         public readonly long ElapsedTicks => GetRawElapsedTicks();
 
-        /// <summary>Starts, or resumes, measuring elapsed time for an interval.</summary>
+        /// <summary>
+        ///     Starts, or resumes, measuring elapsed time for an interval.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Start()
         {
@@ -72,7 +86,9 @@ namespace NativeCollections
             _isRunning = true;
         }
 
-        /// <summary>Stops measuring elapsed time for an interval.</summary>
+        /// <summary>
+        ///     Stops measuring elapsed time for an interval.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Stop()
         {
@@ -85,7 +101,9 @@ namespace NativeCollections
             _elapsed = 0L;
         }
 
-        /// <summary>Stops time interval measurement and resets the elapsed time to zero.</summary>
+        /// <summary>
+        ///     Stops time interval measurement and resets the elapsed time to zero.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reset()
         {
@@ -94,7 +112,9 @@ namespace NativeCollections
             _startTimeStamp = 0L;
         }
 
-        /// <summary>Stops time interval measurement, resets the elapsed time to zero, and starts measuring elapsed time.</summary>
+        /// <summary>
+        ///     Stops time interval measurement, resets the elapsed time to zero, and starts measuring elapsed time.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Restart()
         {
@@ -104,46 +124,39 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="other">Other</param>
-        /// <returns>Equals</returns>
         public readonly bool Equals(UnsafeStopwatch other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <returns>Equals</returns>
         public readonly override bool Equals(object? obj) => obj is UnsafeStopwatch other && other.Equals(this);
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
-        /// <returns>HashCode</returns>
         public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
-        /// <summary>Returns the <see cref="P:System.Diagnostics.Stopwatch.Elapsed" /> time as a string.</summary>
+        /// <summary>
+        ///     Returns the <see cref="P:System.Diagnostics.Stopwatch.Elapsed" /> time as a string.
+        /// </summary>
         /// <returns>The elapsed time string in the same format used by <see cref="M:System.TimeSpan.ToString()" />.</returns>
         public readonly override string ToString() => Elapsed.ToString();
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Equals</returns>
         public static bool operator ==(UnsafeStopwatch left, UnsafeStopwatch right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Not equals</returns>
         public static bool operator !=(UnsafeStopwatch left, UnsafeStopwatch right) => !left.Equals(right);
 
-        /// <summary>Gets the current number of ticks in the timer mechanism.</summary>
+        /// <summary>
+        ///     Gets the current number of ticks in the timer mechanism.
+        /// </summary>
         /// <returns>A long integer representing the tick counter value of the underlying timer mechanism.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long GetTimestamp() => Stopwatch.GetTimestamp();

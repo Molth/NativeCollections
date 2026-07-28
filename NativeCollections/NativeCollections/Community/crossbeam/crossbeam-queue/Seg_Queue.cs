@@ -2,18 +2,22 @@
 using System.Runtime.InteropServices;
 using System.Threading;
 using NativeCollections;
-using static crossbeam.PaddingHelpers;
+using static NativeCollections.PaddingHelpers;
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 #pragma warning disable CS9084 // Struct member returns 'this' or other instance members by reference
 
-// ReSharper disable ALL
+// ReSharper disable All
 
 namespace crossbeam
 {
     /// <summary>
-    ///     https://github.com/crossbeam-rs/crossbeam
+    ///     An unbounded multi-producer multi-consumer queue.
     /// </summary>
-    public static unsafe class Seg_Queue
+    /// <remarks>
+    ///     https://github.com/crossbeam-rs/crossbeam
+    /// </remarks>
+    internal static unsafe class Seg_Queue
     {
         // Bits indicating the state of a slot:
         // * If a value has been written into the slot, `WRITE` is set.
@@ -37,6 +41,7 @@ namespace crossbeam
         public const nuint HAS_NEXT = 1;
 
         /// A slot in a block.
+        [StructLayout(LayoutKind.Sequential)]
         public struct Slot<T> where T : unmanaged
         {
             /// The value.
@@ -56,13 +61,44 @@ namespace crossbeam
             }
         }
 
-        [InlineArray((int)BLOCK_CAP)]
+        // [InlineArray((int)BLOCK_CAP)]
+        [StructLayout(LayoutKind.Sequential)]
         public struct Slots<T> where T : unmanaged
         {
-            public Slot<T> slot;
+            private Slot<T> slot0;
+            private Slot<T> slot1;
+            private Slot<T> slot2;
+            private Slot<T> slot3;
+            private Slot<T> slot4;
+            private Slot<T> slot5;
+            private Slot<T> slot6;
+            private Slot<T> slot7;
+            private Slot<T> slot8;
+            private Slot<T> slot9;
+            private Slot<T> slot10;
+            private Slot<T> slot11;
+            private Slot<T> slot12;
+            private Slot<T> slot13;
+            private Slot<T> slot14;
+            private Slot<T> slot15;
+            private Slot<T> slot16;
+            private Slot<T> slot17;
+            private Slot<T> slot18;
+            private Slot<T> slot19;
+            private Slot<T> slot20;
+            private Slot<T> slot21;
+            private Slot<T> slot22;
+            private Slot<T> slot23;
+            private Slot<T> slot24;
+            private Slot<T> slot25;
+            private Slot<T> slot26;
+            private Slot<T> slot27;
+            private Slot<T> slot28;
+            private Slot<T> slot29;
+            private Slot<T> slot30;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public Slot<T>* get_unchecked(nuint index) => (Slot<T>*)Unsafe.AsPointer(ref Unsafe.Add(ref slot, index));
+            public Slot<T>* get_unchecked(nuint index) => (Slot<T>*)Unsafe.AsPointer(ref Unsafe.Add(ref slot0, (nint)index));
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public Slot<T>* get_unchecked_mut(nuint index) => get_unchecked(index);
@@ -71,8 +107,14 @@ namespace crossbeam
         /// A block in a linked list.
         /// <br />
         /// Each block in the list can hold up to `BLOCK_CAP` values.
+        [StructLayout(LayoutKind.Sequential)]
         public struct Block<T> where T : unmanaged
         {
+            /// Creates an empty block.
+            public static Block<T>* allocate_zeroed() => NativeMemoryAllocator.AlignedAllocZeroed<Block<T>>(1);
+
+            public static void drop(Block<T>* block) => NativeMemoryAllocator.AlignedFree(block);
+
             /// The next block in the linked list.
             public UnsafeAtomicPtr<Block<T>> next;
 
@@ -106,7 +148,7 @@ namespace crossbeam
 
                     // Mark the `DESTROY` bit if a thread is still using the slot.
                     if ((slot->state.load(Ordering.Acquire) & READ) == 0
-                        && (slot->state.Or(DESTROY) & READ) == 0)
+                        && (slot->state.fetch_or(DESTROY) & READ) == 0)
                     {
                         // If a thread is still using the slot, it will continue destruction of the block.
                         return;
@@ -114,16 +156,17 @@ namespace crossbeam
                 }
 
                 // No thread is using the block, now it is safe to destroy it.
-                NativeMemoryAllocator.AlignedFree(block);
+                drop(block);
             }
+
+            /// Destroys the block. Only safe to call with exclusive access, when no other thread is using it.
+            public static void destroy_mut(Block<T>* block) => drop(block);
         }
 
         /// A position in a queue.
-        [StructLayout(LayoutKind.Sequential, Size = 2 * CACHE_LINE_SIZE)]
+        [StructLayout(LayoutKind.Sequential, Size = 1 * CACHE_LINE_SIZE)]
         public struct CachePaddedPosition<T> where T : unmanaged
         {
-            private CachePadding padding;
-
             /// The index in the queue.
             public UnsafeAtomicUsize index;
 
@@ -136,8 +179,11 @@ namespace crossbeam
         /// This queue is implemented as a linked list of segments, where each segment is a small buffer
         /// that can hold a handful of elements. There is no limit to how many elements can be in the queue
         /// at a time. However, since segments need to be dynamically allocated as elements get pushed,
+        [StructLayout(LayoutKind.Sequential)]
         public struct SegQueue<T> where T : unmanaged
         {
+            private readonly Padding _padding;
+
             /// The head of the queue.
             public CachePaddedPosition<T> head;
 
@@ -172,18 +218,18 @@ namespace crossbeam
                         // make the wait for other threads as short as possible.
                         if (offset + 1 == BLOCK_CAP && next_block == null)
                         {
-                            next_block = NativeMemoryAllocator.AlignedAllocZeroed<Block<T>>(1);
+                            next_block = Block<T>.allocate_zeroed();
                         }
 
                         // If this is the first push operation, we need to allocate the first block.
                         if (block == null)
                         {
-                            var @new = NativeMemoryAllocator.AlignedAllocZeroed<Block<T>>(1);
+                            var @new = Block<T>.allocate_zeroed();
 
                             if (this
                                     .tail
                                     .block
-                                    .CompareExchange(@new, block)
+                                    .compare_exchange(block, @new)
                                 == block)
                             {
                                 this.head.block.store(@new, Ordering.Release);
@@ -201,9 +247,9 @@ namespace crossbeam
                         var new_tail = tail + (1 << (int)SHIFT);
 
                         // Try advancing the tail forward.
-                        var t = this.tail.index.CompareExchange(
-                            new_tail,
-                            tail
+                        var t = this.tail.index.compare_exchange(
+                            tail,
+                            new_tail
                         );
 
                         if (t == tail)
@@ -211,20 +257,19 @@ namespace crossbeam
                             // If we've reached the end of the block, install the next one.
                             if (offset + 1 == BLOCK_CAP)
                             {
-                                var next_block_unwarp = next_block;
+                                var next_block_unwrap = next_block;
                                 next_block = null;
-
                                 var next_index = new_tail.wrapping_add(1 << (int)SHIFT);
 
-                                this.tail.block.store(next_block_unwarp, Ordering.Release);
+                                this.tail.block.store(next_block_unwrap, Ordering.Release);
                                 this.tail.index.store(next_index, Ordering.Release);
-                                block->next.store(next_block_unwarp, Ordering.Release);
+                                block->next.store(next_block_unwrap, Ordering.Release);
                             }
 
                             // Write the value into the slot.
                             var slot = block->slots.get_unchecked(offset);
                             slot->value = value;
-                            slot->state.Or(WRITE);
+                            slot->state.fetch_or(WRITE);
 
                             return;
                         }
@@ -239,7 +284,7 @@ namespace crossbeam
                 finally
                 {
                     if (next_block != null)
-                        NativeMemoryAllocator.AlignedFree(next_block);
+                        Block<T>.drop(next_block);
                 }
             }
 
@@ -249,8 +294,8 @@ namespace crossbeam
             /// no other threads access the queue concurrently.
             public void push_mut(T value)
             {
-                var tail = this.tail.index.AsRef();
-                var block = this.tail.block.AsRef();
+                var tail = this.tail.index.get_mut();
+                var block = this.tail.block.get_mut();
 
                 // Calculate the offset of the index into the block.
                 var offset = (tail >> (int)SHIFT) % LAP;
@@ -258,35 +303,32 @@ namespace crossbeam
                 // If this is the first push operation, we need to allocate the first block.
                 if (block == null)
                 {
-                    var @new = NativeMemoryAllocator.AlignedAllocZeroed<Block<T>>(1);
-                    this.head.block.AsRef() = @new;
-                    this.tail.block.AsRef() = @new;
+                    var @new = Block<T>.allocate_zeroed();
+                    this.head.block.get_mut() = @new;
+                    this.tail.block.get_mut() = @new;
 
                     block = @new;
                 }
 
                 var new_tail = tail + (1 << (int)SHIFT);
 
-                this.tail.index.AsRef() = new_tail;
+                this.tail.index.get_mut() = new_tail;
 
-                unsafe
+                // If we've reached the end of the block, install the next one.
+                if (offset + 1 == BLOCK_CAP)
                 {
-                    // If we've reached the end of the block, install the next one.
-                    if (offset + 1 == BLOCK_CAP)
-                    {
-                        var next_block = NativeMemoryAllocator.AlignedAllocZeroed<Block<T>>(1);
-                        var next_index = new_tail.wrapping_add(1 << (int)SHIFT);
+                    var next_block = Block<T>.allocate_zeroed();
+                    var next_index = new_tail.wrapping_add(1 << (int)SHIFT);
 
-                        this.tail.block.AsRef() = next_block;
-                        this.tail.index.AsRef() = next_index;
-                        block->next.AsRef() = next_block;
-                    }
-
-                    // Write the value into the slot.
-                    var slot = block->slots.get_unchecked(offset);
-                    slot->value = value;
-                    block->slots.get_unchecked_mut(offset)->state.AsRef() |= WRITE;
+                    this.tail.block.get_mut() = next_block;
+                    this.tail.index.get_mut() = next_index;
+                    block->next.get_mut() = next_block;
                 }
+
+                // Write the value into the slot.
+                var slot = block->slots.get_unchecked(offset);
+                slot->value = value;
+                block->slots.get_unchecked_mut(offset)->state.get_mut() |= WRITE;
             }
 
             /// Pops the head element from the queue.
@@ -342,9 +384,9 @@ namespace crossbeam
                     }
 
                     // Try moving the head index forward.
-                    var h = this.head.index.CompareExchange(
-                        new_head,
-                        head
+                    var h = this.head.index.compare_exchange(
+                        head,
+                        new_head
                     );
 
                     if (h == head)
@@ -353,7 +395,7 @@ namespace crossbeam
                         if (offset + 1 == BLOCK_CAP)
                         {
                             var next = block->wait_next();
-                            var next_index = (new_head & ~HAS_NEXT) + (1 << (int)SHIFT);
+                            var next_index = (new_head & ~HAS_NEXT).wrapping_add(1 << (int)SHIFT);
                             if (next->next.load(Ordering.Relaxed) != null)
                             {
                                 next_index |= HAS_NEXT;
@@ -374,7 +416,7 @@ namespace crossbeam
                         {
                             Block<T>.destroy(block, 0);
                         }
-                        else if ((slot->state.Or(READ) & DESTROY) != 0)
+                        else if ((slot->state.fetch_or(READ) & DESTROY) != 0)
                         {
                             Block<T>.destroy(block, offset + 1);
                         }
@@ -397,8 +439,8 @@ namespace crossbeam
             /// no other threads access the queue concurrently.
             public bool pop_mut(out T result)
             {
-                var head = this.head.index.AsRef();
-                var block = this.head.block.AsRef();
+                var head = this.head.index.get_mut();
+                var block = this.head.block.get_mut();
 
                 // Calculate the offset of the index into the block.
                 var offset = (head >> (int)SHIFT) % LAP;
@@ -407,7 +449,7 @@ namespace crossbeam
 
                 if ((new_head & HAS_NEXT) == 0)
                 {
-                    var tail = this.tail.index.AsRef();
+                    var tail = this.tail.index.get_mut();
 
                     // If the tail equals the head, that means the queue is empty.
                     if (head >> (int)SHIFT == tail >> (int)SHIFT)
@@ -423,46 +465,43 @@ namespace crossbeam
                     }
                 }
 
-                this.head.index.AsRef() = new_head;
+                this.head.index.get_mut() = new_head;
 
-                unsafe
+                // If we've reached the end of the block, move to the next one.
+                if (offset + 1 == BLOCK_CAP)
                 {
-                    // If we've reached the end of the block, move to the next one.
-                    if (offset + 1 == BLOCK_CAP)
+                    var next = block->next.get_mut();
+                    var next_index = (new_head & ~HAS_NEXT).wrapping_add(1 << (int)SHIFT);
+                    if (next->next.get_mut() != null)
                     {
-                        var next = block->next.AsRef();
-                        var next_index = (new_head & ~HAS_NEXT).wrapping_add(1 << (int)SHIFT);
-                        if (next->next.AsRef() != null)
-                        {
-                            next_index |= HAS_NEXT;
-                        }
-
-                        this.head.block.AsRef() = next;
-                        this.head.index.AsRef() = next_index;
+                        next_index |= HAS_NEXT;
                     }
 
-                    // Read the value.
-                    var slot = block->slots.get_unchecked(offset);
-                    var value = slot->value;
-
-                    // Destroy the block if we've reached the end
-                    if (offset + 1 == BLOCK_CAP)
-                    {
-                        NativeMemoryAllocator.AlignedFree(block);
-                    }
-                    else
-                    {
-                        var state = block->slots.get_unchecked_mut(offset)->state.AsRef();
-                        block->slots.get_unchecked_mut(offset)->state.AsRef() = state | READ;
-                        if ((state & DESTROY) != 0)
-                        {
-                            Block<T>.destroy(block, offset + 1);
-                        }
-                    }
-
-                    result = value;
-                    return true;
+                    this.head.block.get_mut() = next;
+                    this.head.index.get_mut() = next_index;
                 }
+
+                // Read the value.
+                var slot = block->slots.get_unchecked(offset);
+                var value = slot->value;
+
+                // Destroy the block if we've reached the end
+                if (offset + 1 == BLOCK_CAP)
+                {
+                    Block<T>.destroy_mut(block);
+                }
+                else
+                {
+                    var state = block->slots.get_unchecked_mut(offset)->state.get_mut();
+                    block->slots.get_unchecked_mut(offset)->state.get_mut() = state | READ;
+                    if ((state & DESTROY) != 0)
+                    {
+                        Block<T>.destroy(block, offset + 1);
+                    }
+                }
+
+                result = value;
+                return true;
             }
 
             /// Returns `true` if the queue is empty.
@@ -517,42 +556,38 @@ namespace crossbeam
 
             public void drop()
             {
-                ref var head = ref this.head.index.AsRef();
-                ref var tail = ref this.tail.index.AsRef();
-                ref var block = ref this.head.block.AsRef();
+                ref var head = ref this.head.index.get_mut();
+                ref var tail = ref this.tail.index.get_mut();
+                ref var block = ref this.head.block.get_mut();
 
                 // Erase the lower bits.
                 head &= unchecked((nuint)~((1 << (int)SHIFT) - 1));
                 tail &= unchecked((nuint)~((1 << (int)SHIFT) - 1));
 
-                unsafe
+                // Drop all values between `head` and `tail` and deallocate the heap-allocated blocks.
+                while (head != tail)
                 {
-                    // Drop all values between `head` and `tail` and deallocate the heap-allocated blocks.
-                    while (head != tail)
+                    var offset = (head >> (int)SHIFT) % LAP;
+
+                    if (offset < BLOCK_CAP)
                     {
-                        var offset = (head >> (int)SHIFT) % LAP;
-
-                        if (offset < BLOCK_CAP)
-                        {
-                            // Drop the value in the slot.
-                            // var slot = *block->slots.get_unchecked(offset);
-                        }
-                        else
-                        {
-                            // Deallocate the block and move to the next one.
-                            var next = block->next.AsRef();
-                            NativeMemoryAllocator.AlignedFree(block);
-                            block = next;
-                        }
-
-                        head = head.wrapping_add(1 << (int)SHIFT);
+                        // Drop the value in the slot.
+                    }
+                    else
+                    {
+                        // Deallocate the block and move to the next one.
+                        var next = block->next.get_mut();
+                        Block<T>.drop(block);
+                        block = next;
                     }
 
-                    // Deallocate the last remaining block.
-                    if (block != null)
-                    {
-                        NativeMemoryAllocator.AlignedFree(block);
-                    }
+                    head = head.wrapping_add(1 << (int)SHIFT);
+                }
+
+                // Deallocate the last remaining block.
+                if (block != null)
+                {
+                    Block<T>.drop(block);
                 }
             }
         }

@@ -24,44 +24,47 @@ namespace NativeCollections
         private readonly (TElement Element, TPriority Priority)* _nodes;
 
         /// <summary>
-        ///     Length
+        ///     Gets the total numbers of elements the internal data structure can hold.
         /// </summary>
         private readonly int _length;
 
         /// <summary>
-        ///     Size
+        ///     Gets the number of elements.
         /// </summary>
         private int _size;
 
         /// <summary>
-        ///     Version
+        ///     Used to keep enumerator in sync w/ collection.
         /// </summary>
         private int _version;
 
         /// <summary>
-        ///     Is created
+        ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public readonly bool IsCreated => !UnsafeHelpers.IsNull(_nodes);
 
         /// <summary>
-        ///     Is empty
+        ///     Gets a value that indicates whether this is empty.
         /// </summary>
+        /// <value>
+        ///     true if this is empty;
+        ///     otherwise, false.
+        /// </value>
         public readonly bool IsEmpty => _size == 0;
 
         /// <summary>
-        ///     Count
+        ///     Gets the number of elements contained in this.
         /// </summary>
         public readonly int Count => _size;
 
         /// <summary>
-        ///     Capacity
+        ///     Gets the total numbers of elements the internal data structure can hold.
         /// </summary>
         public readonly int Capacity => _length;
 
         /// <summary>
-        ///     Get reference
+        ///     Reinterprets the given location as a reference to a value.
         /// </summary>
-        /// <param name="index">Index</param>
         public readonly ref readonly (TElement Element, TPriority Priority) this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -69,9 +72,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get reference
+        ///     Reinterprets the given location as a reference to a value.
         /// </summary>
-        /// <param name="index">Index</param>
         public readonly ref readonly (TElement Element, TPriority Priority) this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -79,16 +81,23 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Unordered items
+        ///     Gets a collection that enumerates the elements of the queue in an unordered manner.
         /// </summary>
         [MustBePinned(SR.parameter_this)]
         public UnorderedItemsCollection UnorderedItems => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
-        ///     Get byte count
+        ///     Calculates the minimum number of bytes required to store a specified number of elements,
+        ///     taking into account alignment requirements for the underlying buffer.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>Byte count</returns>
+        /// <param name="capacity">The number of elements to store. Must be non-negative.</param>
+        /// <returns>
+        ///     The minimum byte count needed to allocate a buffer capable of
+        ///     holding <paramref name="capacity" /> elements with proper alignment.
+        /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="capacity" /> is negative.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetByteCount(int capacity)
         {
@@ -113,49 +122,37 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="other">Other</param>
-        /// <returns>Equals</returns>
         public readonly bool Equals(StackallocPriorityQueue<TElement, TPriority> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <returns>Equals</returns>
         public readonly override bool Equals(object? obj) => obj is StackallocPriorityQueue<TElement, TPriority> other && other.Equals(this);
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
-        /// <returns>HashCode</returns>
         public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public readonly override string ToString() => SR.Format("StackallocPriorityQueue<{0}, {1}>", SR.GetTypeName(typeof(TElement)), SR.GetTypeName(typeof(TPriority)));
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Equals</returns>
         public static bool operator ==(StackallocPriorityQueue<TElement, TPriority> left, StackallocPriorityQueue<TElement, TPriority> right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Not equals</returns>
         public static bool operator !=(StackallocPriorityQueue<TElement, TPriority> left, StackallocPriorityQueue<TElement, TPriority> right) => !left.Equals(right);
 
         /// <summary>
-        ///     Clear
+        ///     Clears the contents of this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
@@ -165,8 +162,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Remove at
+        ///     Removes the item at the specified index.
         /// </summary>
+        /// <param name="index">The zero-based index of the item to remove.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool RemoveAt(int index)
         {
@@ -189,8 +187,11 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Remove at
+        ///     Removes the item at the specified index.
         /// </summary>
+        /// <param name="index">The zero-based index of the item to remove.</param>
+        /// <param name="element">The actual element that got removed from the queue.</param>
+        /// <param name="priority">The priority value associated with the removed element.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool RemoveAt(int index, out TElement element, out TPriority priority)
         {
@@ -218,11 +219,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try enqueue
+        ///     Attempts to adds the specified element with associated priority to this.
         /// </summary>
-        /// <param name="element">Element</param>
-        /// <param name="priority">Priority</param>
-        /// <returns>Enqueued</returns>
+        /// <param name="element">The element to add to this.</param>
+        /// <param name="priority">The priority with which to associate the new element.</param>
+        /// <returns>
+        ///     <see langword="true" /> if the item was successfully added to this;
+        ///     <see langword="false" /> if the this is already full and the item could not be added.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryEnqueue(in TElement element, in TPriority priority)
         {
@@ -239,11 +243,12 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Enqueue dequeue
+        ///     Adds the specified element with associated priority to this,
+        ///     and immediately removes the minimal element, returning the result.
         /// </summary>
-        /// <param name="element">Element</param>
-        /// <param name="priority">Priority</param>
-        /// <returns>Element</returns>
+        /// <param name="element">The element to add to this.</param>
+        /// <param name="priority">The priority with which to associate the new element.</param>
+        /// <returns>The minimal element removed after the enqueue operation.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TElement EnqueueDequeue(in TElement element, in TPriority priority)
         {
@@ -262,12 +267,20 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try enqueue dequeue
+        ///     Attempts to adds the specified element with associated priority to this,
+        ///     and immediately removes the minimal element, returning the result.
         /// </summary>
-        /// <param name="element">Element</param>
-        /// <param name="priority">Priority</param>
-        /// <param name="result">Element</param>
-        /// <returns>Enqueued</returns>
+        /// <param name="element">The element to add to this.</param>
+        /// <param name="priority">The priority with which to associate the new element.</param>
+        /// <param name="result">
+        ///     When this method returns, the minimal element removed after the enqueue operation;
+        ///     otherwise, the default value for the type of the <paramref name="result" /> parameter.
+        ///     This parameter is passed uninitialized.
+        /// </param>
+        /// <returns>
+        ///     <see langword="true" /> if the item was successfully added to this;
+        ///     <see langword="false" /> if the this is already full and the item could not be added.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryEnqueueDequeue(in TElement element, in TPriority priority, out TElement result)
         {
@@ -288,9 +301,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Dequeue
+        ///     Removes and returns the object at the beginning of this.
         /// </summary>
-        /// <returns>Item</returns>
+        /// <exception cref="T:System.InvalidOperationException">this is empty.</exception>
+        /// <returns>The object that is removed from the beginning of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TElement Dequeue()
         {
@@ -301,10 +315,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try dequeue
+        ///     Removes the minimal element from this,
+        ///     and copies it and its associated priority to the <paramref name="element" />.
         /// </summary>
-        /// <param name="element">Element</param>
-        /// <returns>Dequeued</returns>
+        /// <param name="element">When this method returns, contains the removed element.</param>
+        /// <returns>
+        ///     <see langword="true" /> if the element is successfully removed; <see langword="false" /> if this is empty.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDequeue(out TElement element)
         {
@@ -320,11 +337,15 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try dequeue
+        ///     Removes the minimal element from this,
+        ///     and copies it and its associated priority to the <paramref name="element" />
+        ///     and <paramref name="priority" /> arguments.
         /// </summary>
-        /// <param name="element">Element</param>
-        /// <param name="priority">Priority</param>
-        /// <returns>Dequeued</returns>
+        /// <param name="element">When this method returns, contains the removed element.</param>
+        /// <param name="priority">When this method returns, contains the priority associated with the removed element.</param>
+        /// <returns>
+        ///     <see langword="true" /> if the element is successfully removed; <see langword="false" /> if this is empty.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDequeue(out TElement element, out TPriority priority)
         {
@@ -341,11 +362,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Dequeue enqueue
+        ///     Removes the minimal element and then immediately adds the specified element with associated priority to this.
         /// </summary>
-        /// <param name="element">Element</param>
-        /// <param name="priority">Priority</param>
-        /// <returns>Element</returns>
+        /// <param name="element">The element to add to this.</param>
+        /// <param name="priority">The priority with which to associate the new element.</param>
+        /// <exception cref="T:System.InvalidOperationException">The queue is empty.</exception>
+        /// <returns>The minimal element removed before performing the enqueue operation.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TElement DequeueEnqueue(in TElement element, in TPriority priority)
         {
             ThrowHelpers.ThrowIfEmptyQueue(_size);
@@ -359,12 +382,21 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try dequeue enqueue
+        ///     Removes the minimal element and then immediately adds the specified element with associated priority to this.
         /// </summary>
-        /// <param name="element">Element</param>
-        /// <param name="priority">Priority</param>
-        /// <param name="result">Element</param>
-        /// <returns>Dequeued</returns>
+        /// <param name="element">The element to add to this.</param>
+        /// <param name="priority">The priority with which to associate the new element.</param>
+        /// <param name="result">
+        ///     When this method returns, the minimal element removed after the enqueue operation;
+        ///     otherwise, the default value for the type of the <paramref name="result" /> parameter.
+        ///     This parameter is passed uninitialized.
+        /// </param>
+        /// <exception cref="T:System.InvalidOperationException">The queue is empty.</exception>
+        /// <returns>
+        ///     <see langword="true" /> if the item was successfully removed to this;
+        ///     <see langword="false" /> if the this is already empty and the item could not be removed.
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDequeueEnqueue(in TElement element, in TPriority priority, out TElement result)
         {
             if (_size == 0)
@@ -384,9 +416,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Peek
+        ///     Returns the object at the beginning of this without removing it.
         /// </summary>
-        /// <returns>Item</returns>
+        /// <exception cref="T:System.InvalidOperationException">this is empty.</exception>
+        /// <returns>The object at the beginning of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly TElement Peek()
         {
@@ -395,11 +428,17 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try peek
+        ///     Returns a value that indicates whether there is a minimal element in this,
+        ///     and if one is present, copies it and its associated priority to the <paramref name="element" /> and
+        ///     <paramref name="priority" /> arguments.
+        ///     The element is not removed from this.
         /// </summary>
-        /// <param name="element">Element</param>
-        /// <param name="priority">Priority</param>
-        /// <returns>Peeked</returns>
+        /// <param name="element">When this method returns, contains the minimal element in the queue.</param>
+        /// <param name="priority">When this method returns, contains the priority associated with the minimal element.</param>
+        /// <returns>
+        ///     <see langword="true" /> if there is a minimal element;
+        ///     <see langword="false" /> if this is empty.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool TryPeek(out TElement element, out TPriority priority)
         {
@@ -415,23 +454,20 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes), _size);
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes), (nint)start), _size - start);
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes), (nint)start), length);
 
@@ -515,7 +551,7 @@ namespace NativeCollections
         public static StackallocPriorityQueue<TElement, TPriority> Empty => default;
 
         /// <summary>
-        ///     Unordered items collection
+        ///     Represents the collection of items, without any ordering guarantees.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public readonly struct UnorderedItemsCollection : IIsCreated, IReadOnlyCollection<(TElement Element, TPriority Priority)>
@@ -526,12 +562,12 @@ namespace NativeCollections
             private readonly StackallocPriorityQueue<TElement, TPriority>* _handle;
 
             /// <summary>
-            ///     Is created
+            ///     Gets a value that indicates whether this has been allocated or initialized.
             /// </summary>
             public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
             /// <summary>
-            ///     Count
+            ///     Gets the number of elements contained in this.
             /// </summary>
             public int Count => _handle->Count;
 
@@ -542,34 +578,30 @@ namespace NativeCollections
             internal UnorderedItemsCollection(StackallocPriorityQueue<TElement, TPriority>* handle) => _handle = handle;
 
             /// <summary>
-            ///     As readOnly span
+            ///     Creates a new read-only span over a portion of a regular managed object.
             /// </summary>
-            /// <returns>ReadOnlySpan</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan() => _handle->AsReadOnlySpan();
 
             /// <summary>
-            ///     As readOnly span
+            ///     Creates a new read-only span over a portion of a regular managed object.
             /// </summary>
-            /// <returns>ReadOnlySpan</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan(int start) => _handle->AsReadOnlySpan(start);
 
             /// <summary>
-            ///     As readOnly span
+            ///     Creates a new read-only span over a portion of a regular managed object.
             /// </summary>
-            /// <returns>ReadOnlySpan</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan(int start, int length) => _handle->AsReadOnlySpan(start, length);
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
-            /// <returns>Enumerator</returns>
             public Enumerator GetEnumerator() => new(_handle);
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -580,7 +612,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -602,7 +634,7 @@ namespace NativeCollections
                 private readonly StackallocPriorityQueue<TElement, TPriority>* _handle;
 
                 /// <summary>
-                ///     Version
+                ///     Used to keep enumerator in sync w/ collection.
                 /// </summary>
                 private readonly int _version;
 
@@ -612,8 +644,9 @@ namespace NativeCollections
                 private int _index;
 
                 /// <summary>
-                ///     Current
+                ///     Gets the element in the collection at the current position of the enumerator.
                 /// </summary>
+                /// <returns>The element in the collection at the current position of the enumerator.</returns>
                 private (TElement Element, TPriority Priority) _current;
 
                 /// <summary>
@@ -629,9 +662,12 @@ namespace NativeCollections
                 }
 
                 /// <summary>
-                ///     Move next
+                ///     Advances the enumerator to the next element of the collection.
                 /// </summary>
-                /// <returns>Moved</returns>
+                /// <returns>
+                ///     <see langword="true" /> if the enumerator was successfully advanced to the next element;
+                ///     <see langword="false" /> if the enumerator has passed the end of the collection.
+                /// </returns>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public bool MoveNext()
                 {
@@ -650,7 +686,7 @@ namespace NativeCollections
                 }
 
                 /// <summary>
-                ///     Reset
+                ///     Sets the enumerator to its initial position, which is before the first element in the collection.
                 /// </summary>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public void Reset()
@@ -660,8 +696,9 @@ namespace NativeCollections
                 }
 
                 /// <summary>
-                ///     Current
+                ///     Gets the element in the collection at the current position of the enumerator.
                 /// </summary>
+                /// <returns>The element in the collection at the current position of the enumerator.</returns>
                 public readonly (TElement Element, TPriority Priority) Current
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]

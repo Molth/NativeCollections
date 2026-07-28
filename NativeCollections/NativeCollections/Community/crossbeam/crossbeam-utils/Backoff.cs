@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using System.Threading;
 
-// ReSharper disable ALL
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+
+// ReSharper disable All
 
 namespace crossbeam
 {
@@ -13,7 +16,8 @@ namespace crossbeam
     /// scheduler, and tell when is a good time to block the thread using a different synchronization
     /// mechanism. Each step of the back off procedure takes roughly twice as long as the previous
     /// step.
-    public struct Backoff
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct Backoff
     {
         private const uint SPIN_LIMIT = 6;
         private const uint YIELD_LIMIT = 10;

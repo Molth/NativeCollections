@@ -24,7 +24,7 @@ namespace NativeCollections
         private readonly int _bitMask;
 
         /// <summary>
-        ///     Is created
+        ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public bool IsCreated => !UnsafeHelpers.IsNull(_segment);
 
@@ -41,42 +41,35 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="other">Other</param>
-        /// <returns>Equals</returns>
         public bool Equals(NativeBitArraySlot other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <returns>Equals</returns>
         public override bool Equals(object? obj) => obj is NativeBitArraySlot other && other.Equals(this);
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
-        /// <returns>HashCode</returns>
         public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public override string ToString() => "NativeBitArraySlot";
 
         /// <summary>
-        ///     Get
+        ///     Gets the value of the bit at a specific position in this.
         /// </summary>
-        /// <returns>Value</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Get() => (Unsafe.AsRef<int>(_segment) & _bitMask) != 0;
 
         /// <summary>
-        ///     Set
+        ///     Sets the value of the bit at a specific position in this.
         /// </summary>
-        /// <param name="value">Value</param>
+        /// <param name="value">The Boolean value to assign to the bit.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Set(bool value)
         {
@@ -87,26 +80,19 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     As bool
+        ///     Copies the element of a regular managed object.
         /// </summary>
-        /// <returns>Boolean</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator bool(NativeBitArraySlot value) => value.Get();
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Equals</returns>
         public static bool operator ==(NativeBitArraySlot left, NativeBitArraySlot right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Not equals</returns>
         public static bool operator !=(NativeBitArraySlot left, NativeBitArraySlot right) => !left.Equals(right);
 
         /// <summary>

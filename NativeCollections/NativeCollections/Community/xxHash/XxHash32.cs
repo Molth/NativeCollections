@@ -42,7 +42,7 @@ https://raw.githubusercontent.com/Cyan4973/xxHash/5c174cfa4e45a42f94082dc0d4539b
 
 using System.Runtime.CompilerServices;
 
-// ReSharper disable ALL
+// ReSharper disable All
 
 namespace NativeCollections
 {
@@ -50,7 +50,9 @@ namespace NativeCollections
     // https://github.com/Cyan4973/xxHash
     internal static class XxHash32
     {
-        /// <summary>Computes the XxHash32 hash of the provided data.</summary>
+        /// <summary>
+        ///     Computes the XxHash32 hash of the provided data.
+        /// </summary>
         /// <param name="startAddress">The data to hash.</param>
         /// <param name="byteCount">The data's length to hash.</param>
         /// <param name="seed">The seed value for this hash computation. The default is zero.</param>

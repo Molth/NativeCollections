@@ -55,7 +55,9 @@ namespace NativeCollections
         public static string GetTypeName(Type type) => type.Name;
 
         /// <summary>
-        ///     Format
+        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
+        ///     this instance.
+        ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string Format<T0>([StringSyntax(StringSyntaxAttribute.CompositeFormat)] string format, T0 arg0)
@@ -66,7 +68,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Format
+        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
+        ///     this instance.
+        ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string Format<T0, T1>([StringSyntax(StringSyntaxAttribute.CompositeFormat)] string format, T0 arg0, T1 arg1)
@@ -77,7 +81,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Format
+        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
+        ///     this instance.
+        ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string Format<T0, T1, T2>([StringSyntax(StringSyntaxAttribute.CompositeFormat)] string format, T0 arg0, T1 arg1, T2 arg2)
@@ -88,7 +94,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Format
+        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
+        ///     this instance.
+        ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string Format<T0, T1, T2, T3>([StringSyntax(StringSyntaxAttribute.CompositeFormat)] string format, T0 arg0, T1 arg1, T2 arg2, T3 arg3)

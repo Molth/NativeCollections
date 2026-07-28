@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using static NativeCollections.Tlsf;
 
 // ReSharper disable ALL
 
@@ -9,8 +8,10 @@ namespace NativeCollections
 {
     /// <summary>
     ///     Native dynamic (Two-Level Segregated Fit) memory pool
-    ///     https://github.com/mattconte/tlsf
     /// </summary>
+    /// <remarks>
+    ///     https://github.com/mattconte/tlsf
+    /// </remarks>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Community | FromType.C)]
     public readonly unsafe struct NativeDynamicMemoryPool : IIsCreated, IDisposable, IEquatable<NativeDynamicMemoryPool>
@@ -21,7 +22,7 @@ namespace NativeCollections
         private readonly void* _handle;
 
         /// <summary>
-        ///     Size
+        ///     Gets the number of elements.
         /// </summary>
         private readonly nuint _size;
 
@@ -70,12 +71,12 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Is created
+        ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
         /// <summary>
-        ///     Size
+        ///     Gets the number of elements.
         /// </summary>
         public nuint Size => _size;
 
@@ -85,55 +86,44 @@ namespace NativeCollections
         public nuint Blocks => _blocks;
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="other">Other</param>
-        /// <returns>Equals</returns>
         public bool Equals(NativeDynamicMemoryPool other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <returns>Equals</returns>
         public override bool Equals(object? obj) => obj is NativeDynamicMemoryPool other && other.Equals(this);
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
-        /// <returns>HashCode</returns>
         public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public override string ToString() => "NativeDynamicMemoryPool";
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Equals</returns>
         public static bool operator ==(NativeDynamicMemoryPool left, NativeDynamicMemoryPool right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Not equals</returns>
         public static bool operator !=(NativeDynamicMemoryPool left, NativeDynamicMemoryPool right) => !left.Equals(right);
 
         /// <summary>
-        ///     Dispose
+        ///     Performs application-defined tasks associated with freeing,
+        ///     releasing, or resetting unmanaged resources.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose() => Box.Free(_handle);
 
         /// <summary>
-        ///     Reset
+        ///     Sets this to its initial position.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reset()
@@ -155,7 +145,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try rent
+        ///     Attempts to retrieve a buffer that is at least the requested length.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryRent(nuint size, nuint alignment, out void* ptr)
@@ -165,7 +155,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try rent
+        ///     Attempts to retrieve a buffer that is at least the requested length.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryRent(nuint size, nuint alignment, out void* ptr, out nuint bytes)
@@ -195,9 +185,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Return buffer
+        ///     Returns to the pool an object that was previously obtained via 'TryRent' on the same instance.
         /// </summary>
-        /// <param name="ptr">Pointer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Return(void* ptr)
         {

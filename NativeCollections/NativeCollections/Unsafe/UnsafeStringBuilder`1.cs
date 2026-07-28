@@ -43,32 +43,36 @@ namespace NativeCollections
         private T[]? _array;
 
         /// <summary>
-        ///     Length
+        ///     Gets the total number of elements in all the dimensions of the instance.
         /// </summary>
         private int _length;
 
         /// <summary>
-        ///     Is created
+        ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public readonly bool IsCreated => !Unsafe.IsNullRef(ref MemoryMarshal.GetReference(_buffer));
 
         /// <summary>
-        ///     Is empty
+        ///     Gets a value that indicates whether this is empty.
         /// </summary>
+        /// <value>
+        ///     true if this is empty;
+        ///     otherwise, false.
+        /// </value>
         public readonly bool IsEmpty => _length == 0;
 
         /// <summary>
-        ///     Length
+        ///     Gets the total number of elements in all the dimensions of the instance.
         /// </summary>
         public readonly int Length => _length;
 
         /// <summary>
-        ///     Count
+        ///     Gets the number of elements contained in this.
         /// </summary>
         public readonly int Count => _length;
 
         /// <summary>
-        ///     Capacity
+        ///     Gets the total numbers of elements the internal data structure can hold.
         /// </summary>
         public readonly int Capacity => _buffer.Length;
 
@@ -88,9 +92,8 @@ namespace NativeCollections
         public readonly Span<T> Space => _buffer.Slice(_length);
 
         /// <summary>
-        ///     Get reference
+        ///     Reinterprets the given location as a reference to a value.
         /// </summary>
-        /// <param name="index">Index</param>
         public ref T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -152,7 +155,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Dispose
+        ///     Performs application-defined tasks associated with freeing,
+        ///     releasing, or resetting unmanaged resources.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
@@ -167,7 +171,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append
+        ///     Appends the string representation of a specified read-only character span to this instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Append(ReadOnlySpan<T> buffer)
@@ -178,59 +182,54 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Index of
+        ///     Searches for the specified sequence and returns the index of its first occurrence.
+        ///     If not found, returns -1.
+        ///     Values are compared using IEquatable{T}.Equals(T).
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int IndexOf(ReadOnlySpan<T> buffer) => Text.IndexOf(buffer);
 
         /// <summary>
-        ///     Last index of
+        ///     Searches for the specified sequence and returns the index of its last occurrence.
+        ///     If not found, returns -1.
+        ///     Values are compared using IEquatable{T}.Equals(T).
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int LastIndexOf(ReadOnlySpan<T> buffer) => Text.LastIndexOf(buffer);
 
         /// <summary>
-        ///     Index of any
+        ///     Searches for the first index of any of the specified values similar to calling IndexOf several times with the
+        ///     logical OR operator.
+        ///     If not found, returns -1.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int IndexOfAny(ReadOnlySpan<T> buffer) => Text.IndexOfAny(buffer);
 
         /// <summary>
-        ///     Last index of any
+        ///     Searches for the last index of any of the specified values similar to calling LastIndexOf several times with the
+        ///     logical OR operator.
+        ///     If not found, returns -1.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int LastIndexOfAny(ReadOnlySpan<T> buffer) => Text.LastIndexOfAny(buffer);
 
         /// <summary>
-        ///     Contains
+        ///     Searches for the specified values and returns true if found.
+        ///     If not found, returns false.
+        ///     Values are compared using IEquatable{T}.Equals(T).
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <returns>Contains</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool Contains(ReadOnlySpan<T> buffer) => Text.IndexOf(buffer) >= 0;
 
         /// <summary>
-        ///     Remove
+        ///     Replaces all occurrences of a specified string in this instance with <see langword="null" />.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Remove(ReadOnlySpan<T> buffer) => Replace(buffer, (ReadOnlySpan<T>)Array.Empty<T>());
 
         /// <summary>
-        ///     Insert
+        ///     Inserts the sequence of characters into this instance at the specified character position.
         /// </summary>
-        /// <param name="startIndex">Start index</param>
-        /// <param name="buffer">Buffer</param>
-        /// <returns>Inserted</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Insert(int startIndex, ReadOnlySpan<T> buffer)
         {
@@ -247,11 +246,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Replace
+        ///     Replaces all occurrences of a specified string in this instance with another specified string.
         /// </summary>
-        /// <param name="oldValue">Old value</param>
-        /// <param name="newValue">New value</param>
-        /// <returns>Replaced</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Replace(ReadOnlySpan<T> oldValue, ReadOnlySpan<T> newValue)
         {
@@ -373,28 +369,26 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Starts with
+        ///     Determines whether the specified sequence appears at the start of the span.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool StartsWith(ReadOnlySpan<T> buffer) => Text.StartsWith(buffer);
 
         /// <summary>
-        ///     Ends with
+        ///     Determines whether the specified sequence appears at the end of the span.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool EndsWith(ReadOnlySpan<T> buffer) => Text.EndsWith(buffer);
 
         /// <summary>
-        ///     Compare
+        ///     Determines the relative order of the sequences being compared by comparing the elements using
+        ///     IComparable{T}.CompareTo(T).
         /// </summary>
-        /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int Compare(ReadOnlySpan<T> buffer) => Text.SequenceCompareTo(buffer);
 
         /// <summary>
-        ///     Append
+        ///     Appends the string representation of a specified object to this instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Append(in T value)
@@ -404,7 +398,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append
+        ///     Appends a specified number of copies of the string representation of a specified object to this instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Append(in T value, int repeatCount)
@@ -415,34 +409,32 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Index of
+        ///     Searches for the specified value and returns the index of its first occurrence.
+        ///     If not found, returns -1.
+        ///     Values are compared using IEquatable{T}.Equals(T).
         /// </summary>
-        /// <param name="value">Value</param>
-        /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int IndexOf(in T value) => Text.IndexOf(value);
 
         /// <summary>
-        ///     Last index of
+        ///     Searches for the specified value and returns the index of its last occurrence.
+        ///     If not found, returns -1.
+        ///     Values are compared using IEquatable{T}.Equals(T).
         /// </summary>
-        /// <param name="value">Value</param>
-        /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int LastIndexOf(in T value) => Text.LastIndexOf(value);
 
         /// <summary>
-        ///     Contains
+        ///     Searches for the specified value and returns true if found.
+        ///     If not found, returns false.
+        ///     Values are compared using IEquatable{T}.Equals(T).
         /// </summary>
-        /// <param name="value">Value</param>
-        /// <returns>Contains</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool Contains(in T value) => SpanHelpers.Contains(Text, value);
 
         /// <summary>
-        ///     Remove
+        ///     Replaces all occurrences of a specified string in this instance with <see langword="null" />.
         /// </summary>
-        /// <param name="value">Value</param>
-        /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Remove(in T value)
         {
@@ -459,11 +451,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Insert
+        ///     Inserts the string representation of a specified object into this instance at the specified character position.
         /// </summary>
-        /// <param name="startIndex">Start index</param>
-        /// <param name="value">Value</param>
-        /// <returns>Inserted</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Insert(int startIndex, in T value)
         {
@@ -480,11 +469,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Replace
+        ///     Replaces all occurrences of a specified string in this instance with another specified string.
         /// </summary>
-        /// <param name="oldValue">Old value</param>
-        /// <param name="newValue">New value</param>
-        /// <returns>Replaced</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void Replace(in T oldValue, in T newValue)
         {
@@ -502,25 +488,23 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Starts with
+        ///     Determines whether this string instance starts with the specified object.
         /// </summary>
-        /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool StartsWith(in T value) => _length > 1 && _buffer[0].Equals(value);
 
         /// <summary>
-        ///     Ends with
+        ///     Determines whether this string instance ends with the specified object.
         /// </summary>
-        /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool EndsWith(in T value) => _length > 1 && _buffer[_length - 1].Equals(value);
 
         /// <summary>
-        ///     Remove
+        ///     Removes a range of characters from this builder.
         /// </summary>
-        /// <param name="startIndex">Start index</param>
-        /// <param name="length">Length</param>
-        /// <returns>Removed</returns>
+        /// <remarks>
+        ///     This method does not reduce the capacity of this builder.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(int startIndex, int length)
         {
@@ -537,20 +521,19 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reverse
+        ///     Reverses the sequence of the elements in the specified span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void Reverse() => Text.Reverse();
 
         /// <summary>
-        ///     Fill
+        ///     Fills the contents of this span with the given value.
         /// </summary>
-        /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void Fill(in T value) => Text.Fill(value);
 
         /// <summary>
-        ///     Trim start
+        ///     Removes all leading occurrences of a specified element from the span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void TrimStart(in T value)
@@ -574,7 +557,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Trim end
+        ///     Removes all trailing white-space characters from the memory.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void TrimEnd(in T value)
@@ -589,7 +572,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Trim
+        ///     Removes all leading and trailing occurrences of a specified element from the span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Trim(in T value)
@@ -616,7 +599,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Trim start
+        ///     Removes all leading occurrences of a set of elements specified
+        ///     in a readonly span from the span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void TrimStart(ReadOnlySpan<T> buffer)
@@ -640,7 +624,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Trim end
+        ///     Removes all trailing occurrences of a set of elements specified
+        ///     in a readonly span from the span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void TrimEnd(ReadOnlySpan<T> buffer)
@@ -655,7 +640,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Trim
+        ///     Removes all leading and trailing occurrences of a set of characters specified
+        ///     in a readonly span from the span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Trim(ReadOnlySpan<T> buffer)
@@ -682,28 +668,25 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Slice
+        ///     Forms a slice out of the given span, beginning at 'start'.
         /// </summary>
-        /// <param name="start">Start</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<T> Substring(int start) => Text.Slice(start);
 
         /// <summary>
-        ///     Slice
+        ///     Forms a slice out of the given span, beginning at 'start', of given length
         /// </summary>
-        /// <param name="start">Start</param>
-        /// <param name="length">Length</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<T> Substring(int start, int length) => Text.Slice(start, length);
 
         /// <summary>
-        ///     Clear
+        ///     Clears the contents of this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear() => _length = 0;
 
         /// <summary>
-        ///     Clear
+        ///     Clears the contents of this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear(bool clear)
@@ -714,10 +697,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Set length
+        ///     Attempts to set the length of this builder.
         /// </summary>
-        /// <param name="length">Length</param>
-        /// <returns>Set</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool SetLength(int length)
         {
@@ -728,10 +709,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Skip
+        ///     Attempts to advance the length of this builder.
         /// </summary>
-        /// <param name="length">Length</param>
-        /// <returns>Skipped</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Skip(int length)
         {
@@ -743,37 +722,37 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Cast
+        ///     Casts a instance of one primitive type to another primitive type.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<TTo> Cast<TTo>() where TTo : unmanaged => MemoryMarshal.Cast<T, TTo>(AsSpan());
 
         /// <summary>
-        ///     Cast
+        ///     Casts a instance of one primitive type to another primitive type.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<TTo> Cast<TTo>(int start) where TTo : unmanaged => MemoryMarshal.Cast<T, TTo>(AsSpan(start));
 
         /// <summary>
-        ///     Cast
+        ///     Casts a instance of one primitive type to another primitive type.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<TTo> Cast<TTo>(int start, int length) where TTo : unmanaged => MemoryMarshal.Cast<T, TTo>(AsSpan(start, length));
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
         /// <returns>Equals</returns>
         public readonly bool Equals(UnsafeStringBuilder<T> other) => Text.SequenceEqual(other.Text);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
         /// <returns>Equals</returns>
         public readonly bool Equals(ReadOnlySpan<T> buffer) => Text.SequenceEqual(buffer);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
         /// <returns>Equals</returns>
         [Obsolete(SR.parameter_obsolete)]
@@ -785,9 +764,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
-        /// <returns>HashCode</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly override int GetHashCode()
         {
@@ -802,9 +780,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public readonly override string ToString()
         {
             if (typeof(T) == typeof(char))
@@ -815,9 +792,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Copy to
+        ///     Copies all elements from this into a destination span.
+        ///     The span must have a length at least equal to the current number of elements in this.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
+        /// <param name="buffer">The destination span to which all elements are copied.</param>
+        /// <exception cref="ArgumentException">
+        ///     Thrown when <paramref name="buffer" /> has insufficient length to hold all of this's elements.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void CopyTo(Span<T> buffer) => Text.CopyTo(buffer);
 
@@ -829,7 +810,7 @@ namespace NativeCollections
         public readonly bool TryCopyTo(Span<T> buffer) => Text.TryCopyTo(buffer);
 
         /// <summary>
-        ///     Advance
+        ///     Notifies this that <paramref name="count" /> data items were written to the output.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Advance(int count)
@@ -840,20 +821,37 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     GetSpan
+        ///     Returns a <see cref="T:System.Span`1" /> to write to that is at least the requested size (specified by
+        ///     <paramref name="sizeHint" />).
         /// </summary>
+        /// <param name="sizeHint">The desired length for the slice (exclusive).</param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when the specified <paramref name="sizeHint" /> out of range (&lt;0 or &gt;Length).
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<T> GetSpan(int sizeHint = 0) => _buffer.Slice(_length, sizeHint);
 
         /// <summary>
-        ///     GetMemory
+        ///     Returns a <see cref="T:System.Memory`1" /> to write to that is at least the requested size (specified by
+        ///     <paramref name="sizeHint" />).
         /// </summary>
+        /// <param name="sizeHint">The desired length for the slice (exclusive).</param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when the specified <paramref name="sizeHint" /> out of range (&lt;0 or &gt;Length).
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Memory<T> GetMemory(int sizeHint = 0) => new(_array, _length, sizeHint);
 
         /// <summary>
-        ///     Pad left
+        ///     Returns a new string that right-aligns the characters in this instance by padding them on the left with a specified
+        ///     character,
+        ///     for a specified total length.
         /// </summary>
+        /// <param name="totalWidth">
+        ///     The number of characters in the resulting string,
+        ///     equal to the number of original characters plus any additional padding characters.
+        /// </param>
+        /// <param name="padding">A padding character.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void PadLeft(int totalWidth, in T padding)
         {
@@ -867,8 +865,15 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Pad right
+        ///     Returns a new string that left-aligns the characters in this string by padding them on the right with a specified
+        ///     character,
+        ///     for a specified total length.
         /// </summary>
+        /// <param name="totalWidth">
+        ///     The number of characters in the resulting string,
+        ///     equal to the number of original characters plus any additional padding characters.
+        /// </param>
+        /// <param name="padding">A padding character.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void PadRight(int totalWidth, in T padding)
         {
@@ -881,49 +886,69 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Is null or empty
+        ///     Indicates whether the specified string is <see langword="null" /> or an empty string ("").
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool IsNullOrEmpty() => Unsafe.IsNullRef(ref MemoryMarshal.GetReference(_buffer)) || _length == 0;
 
         /// <summary>
-        ///     Split
+        ///     Splits the source span using a single element as the delimiter.
         /// </summary>
+        /// <param name="separator">The single element to use as the delimiter.</param>
+        /// <returns>An enumerator that enumerates the split segments as <see cref="ReadOnlySpan{T}" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly NativeSplit<T> Split(in T separator) => new(Text, separator);
 
         /// <summary>
-        ///     Split
+        ///     Splits the source span using a sequence of elements as the delimiter.
         /// </summary>
+        /// <param name="separator">The element sequence to use as the delimiter.</param>
+        /// <returns>An enumerator that enumerates the split segments as <see cref="ReadOnlySpan{T}" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly NativeSplit<T> Split(ReadOnlySpan<T> separator) => new(Text, separator);
 
         /// <summary>
-        ///     Split
+        ///     Splits the source span using any of the specified single elements as delimiters.
+        ///     The first occurrence of any element in the <paramref name="separator" /> set causes a split.
+        ///     The resulting enumerator yields <see cref="ReadOnlySpan{T}" /> segments.
         /// </summary>
+        /// <param name="separator">A set of single elements, any of which can act as a delimiter.</param>
+        /// <returns>An enumerator that enumerates the split segments as <see cref="ReadOnlySpan{T}" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly NativeSplitAny<T> SplitAny(ReadOnlySpan<T> separator) => new(Text, separator);
 
         /// <summary>
-        ///     Split
+        ///     Splits the source span using a single element as the delimiter, but returns the positional ranges
+        ///     (<see cref="Range" />) of each segment instead of the segment slices themselves.
+        ///     This is more lightweight when only positions are needed, allowing deferred slicing via <c>Text[range]</c>.
         /// </summary>
+        /// <param name="separator">The single element to use as the delimiter.</param>
+        /// <returns>An enumerator that enumerates the <see cref="Range" /> of each segment.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly NativeSplitRange<T> SplitRange(in T separator) => new(Text, separator);
 
         /// <summary>
-        ///     Split
+        ///     Splits the source span using a sequence of elements as the delimiter, but returns the positional ranges
+        ///     (<see cref="Range" />) of each segment instead of the segment slices themselves.
+        ///     The entire sequence must match for a split to occur.
         /// </summary>
+        /// <param name="separator">The element sequence to use as the delimiter.</param>
+        /// <returns>An enumerator that enumerates the <see cref="Range" /> of each segment.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly NativeSplitRange<T> SplitRange(ReadOnlySpan<T> separator) => new(Text, separator);
 
         /// <summary>
-        ///     Split
+        ///     Splits the source span using any of the specified single elements as delimiters, but returns the positional ranges
+        ///     (<see cref="Range" />) of each segment instead of the segment slices themselves.
+        ///     The first occurrence of any element in the <paramref name="separator" /> set causes a split.
         /// </summary>
+        /// <param name="separator">A set of single elements, any of which can act as a delimiter.</param>
+        /// <returns>An enumerator that enumerates the <see cref="Range" /> of each segment.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly NativeSplitAnyRange<T> SplitAnyRange(ReadOnlySpan<T> separator) => new(Text, separator);
 
         /// <summary>
-        ///     As ref
+        ///     Reinterprets the given location as a reference to a value.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ref UnsafeStringBuilder<T> AsRef()
@@ -939,7 +964,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     As pointer
+        ///     Returns a pointer to the given by-ref parameter.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly UnsafeStringBuilder<T>* AsPointer()
@@ -955,106 +980,84 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     As span
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<T> AsSpan() => Text;
 
         /// <summary>
-        ///     As span
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <param name="start">Start</param>
-        /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<T> AsSpan(int start) => _buffer.Slice(start, _length - start);
 
         /// <summary>
-        ///     As span
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <param name="start">Start</param>
-        /// <param name="length">Length</param>
-        /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<T> AsSpan(int start, int length) => _buffer.Slice(start, length);
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<T> AsReadOnlySpan() => Text;
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <param name="start">Start</param>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<T> AsReadOnlySpan(int start) => _buffer.Slice(start, _length - start);
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <param name="start">Start</param>
-        /// <param name="length">Length</param>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<T> AsReadOnlySpan(int start, int length) => _buffer.Slice(start, length);
 
         /// <summary>
-        ///     As memory
+        ///     Creates a new memory over the portion of the target array.
         /// </summary>
-        /// <returns>Memory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Memory<T> AsMemory() => new(_array, 0, _length);
 
         /// <summary>
-        ///     As memory
+        ///     Creates a new memory over the portion of the target array.
         /// </summary>
-        /// <param name="start">Start</param>
-        /// <returns>Memory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Memory<T> AsMemory(int start) => new(_array, start, _length - start);
 
         /// <summary>
-        ///     As memory
+        ///     Creates a new memory over the portion of the target array.
         /// </summary>
-        /// <param name="start">Start</param>
-        /// <param name="length">Length</param>
-        /// <returns>Memory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Memory<T> AsMemory(int start, int length) => new(_array, start, length);
 
         /// <summary>
-        ///     As readOnly memory
+        ///     Creates a new memory region over the portion of the target array.
         /// </summary>
-        /// <returns>ReadOnlyMemory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlyMemory<T> AsReadOnlyMemory() => new(_array, 0, _length);
 
         /// <summary>
-        ///     As readOnly memory
+        ///     Creates a new memory region over the portion of the target array.
         /// </summary>
-        /// <param name="start">Start</param>
-        /// <returns>ReadOnlyMemory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlyMemory<T> AsReadOnlyMemory(int start) => new(_array, start, _length - start);
 
         /// <summary>
-        ///     As readOnly memory
+        ///     Creates a new memory region over the portion of the target array.
         /// </summary>
-        /// <param name="start">Start</param>
-        /// <param name="length">Length</param>
-        /// <returns>ReadOnlyMemory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlyMemory<T> AsReadOnlyMemory(int start, int length) => new(_array, start, length);
 
         /// <summary>
-        ///     Ensure capacity
+        ///     Ensures that the capacity of this is at least the specified <paramref name="capacity" />.
+        ///     If the current capacity of this is less than specified <paramref name="capacity" />,
+        ///     the capacity is increased to at least <paramref name="capacity" />.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>New capacity</returns>
+        /// <param name="capacity">The minimum capacity to ensure.</param>
+        /// <returns>The new capacity of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int EnsureCapacity(int capacity)
         {
@@ -1065,9 +1068,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Trim excess
+        ///     Trims the capacity of this to the specified number of entries.
         /// </summary>
-        /// <returns>New capacity</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess()
         {
@@ -1078,10 +1080,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Trim excess
+        ///     Trims the capacity of this to the specified number of entries.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>New capacity</returns>
+        /// <param name="capacity">The new capacity.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Passed capacity is lower than entries count.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity)
         {
@@ -1093,9 +1095,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Set capacity
+        ///     Sets the capacity of this to the specified number of entries.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
+        /// <param name="capacity">The new capacity.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Passed capacity is lower than entries count.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetCapacity(int capacity)
         {
@@ -1126,60 +1129,56 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     As span
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator Span<T>(UnsafeStringBuilder<T> value) => value.AsSpan();
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator ReadOnlySpan<T>(UnsafeStringBuilder<T> value) => value.AsReadOnlySpan();
 
         /// <summary>
-        ///     As memory
+        ///     Creates a new memory over the portion of the target array.
         /// </summary>
-        /// <returns>Memory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator Memory<T>(UnsafeStringBuilder<T> value) => value.AsMemory();
 
         /// <summary>
-        ///     As readOnly memory
+        ///     Creates a new memory region over the portion of the target array.
         /// </summary>
-        /// <returns>ReadOnlyMemory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator ReadOnlyMemory<T>(UnsafeStringBuilder<T> value) => value.AsReadOnlyMemory();
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
         public static bool operator ==(UnsafeStringBuilder<T> left, UnsafeStringBuilder<T> right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
         public static bool operator !=(UnsafeStringBuilder<T> left, UnsafeStringBuilder<T> right) => !left.Equals(right);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
         public static bool operator ==(UnsafeStringBuilder<T> left, ReadOnlySpan<T> right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
         public static bool operator !=(UnsafeStringBuilder<T> left, ReadOnlySpan<T> right) => !left.Equals(right);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
         public static bool operator ==(ReadOnlySpan<T> left, UnsafeStringBuilder<T> right) => right.Equals(left);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
         public static bool operator !=(ReadOnlySpan<T> left, UnsafeStringBuilder<T> right) => !right.Equals(left);
 
@@ -1189,13 +1188,13 @@ namespace NativeCollections
         public static UnsafeStringBuilder<T> Empty => default;
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         public readonly Span<T>.Enumerator GetEnumerator() => Text.GetEnumerator();
 
 #if NET9_0_OR_GREATER
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -1206,7 +1205,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]

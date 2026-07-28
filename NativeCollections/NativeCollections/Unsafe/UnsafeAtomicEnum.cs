@@ -2,6 +2,8 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
+using static NativeCollections.EnumHelpers;
 
 #pragma warning disable CA2231 // Overload operator equals on overriding ValueType.Equals
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
@@ -17,6 +19,7 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard)]
+    [BindingType(typeof(Interlocked))]
     public unsafe struct UnsafeAtomicEnum<T> where T : unmanaged, Enum
     {
         /// <summary>
@@ -132,7 +135,7 @@ namespace NativeCollections
         /// <summary>
         ///     Adds two values and replaces the first integer with the sum, as an atomic operation.
         /// </summary>
-        /// <returns>The original value.</returns>
+        /// <returns>The new value stored.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Add(T value)
         {
@@ -155,7 +158,7 @@ namespace NativeCollections
         /// <summary>
         ///     Subtracts two values and replaces the first integer with the difference, as an atomic operation.
         /// </summary>
-        /// <returns>The original value.</returns>
+        /// <returns>The new value stored.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Sub(T value)
         {
@@ -184,7 +187,7 @@ namespace NativeCollections
         {
             if (Unsafe.SizeOf<T>() == 1)
             {
-                if (EnumHelpers.IsSigned<T>())
+                if (IsSigned<T>())
                     return CastFromOther(AsI8().Max(CastToOther<sbyte>(value)));
 
                 return CastFromOther(AsU8().Max(CastToOther<byte>(value)));
@@ -192,7 +195,7 @@ namespace NativeCollections
 
             if (Unsafe.SizeOf<T>() == 2)
             {
-                if (EnumHelpers.IsSigned<T>())
+                if (IsSigned<T>())
                     return CastFromOther(AsI16().Max(CastToOther<short>(value)));
 
                 return CastFromOther(AsU16().Max(CastToOther<ushort>(value)));
@@ -200,7 +203,7 @@ namespace NativeCollections
 
             if (Unsafe.SizeOf<T>() == 4)
             {
-                if (EnumHelpers.IsSigned<T>())
+                if (IsSigned<T>())
                     return CastFromOther(AsI32().Max(CastToOther<int>(value)));
 
                 return CastFromOther(AsU32().Max(CastToOther<uint>(value)));
@@ -208,7 +211,7 @@ namespace NativeCollections
 
             if (Unsafe.SizeOf<T>() == 8)
             {
-                if (EnumHelpers.IsSigned<T>())
+                if (IsSigned<T>())
                     return CastFromOther(AsI64().Max(CastToOther<long>(value)));
 
                 return CastFromOther(AsU64().Max(CastToOther<ulong>(value)));
@@ -227,7 +230,7 @@ namespace NativeCollections
         {
             if (Unsafe.SizeOf<T>() == 1)
             {
-                if (EnumHelpers.IsSigned<T>())
+                if (IsSigned<T>())
                     return CastFromOther(AsI8().Min(CastToOther<sbyte>(value)));
 
                 return CastFromOther(AsU8().Min(CastToOther<byte>(value)));
@@ -235,7 +238,7 @@ namespace NativeCollections
 
             if (Unsafe.SizeOf<T>() == 2)
             {
-                if (EnumHelpers.IsSigned<T>())
+                if (IsSigned<T>())
                     return CastFromOther(AsI16().Min(CastToOther<short>(value)));
 
                 return CastFromOther(AsU16().Min(CastToOther<ushort>(value)));
@@ -243,7 +246,7 @@ namespace NativeCollections
 
             if (Unsafe.SizeOf<T>() == 4)
             {
-                if (EnumHelpers.IsSigned<T>())
+                if (IsSigned<T>())
                     return CastFromOther(AsI32().Min(CastToOther<int>(value)));
 
                 return CastFromOther(AsU32().Min(CastToOther<uint>(value)));
@@ -251,7 +254,7 @@ namespace NativeCollections
 
             if (Unsafe.SizeOf<T>() == 8)
             {
-                if (EnumHelpers.IsSigned<T>())
+                if (IsSigned<T>())
                     return CastFromOther(AsI64().Min(CastToOther<long>(value)));
 
                 return CastFromOther(AsU64().Min(CastToOther<ulong>(value)));
@@ -366,7 +369,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -388,9 +391,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public readonly override string ToString() => SR.Format("UnsafeAtomicEnum<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>

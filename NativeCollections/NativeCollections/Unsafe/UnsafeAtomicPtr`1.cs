@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 #pragma warning disable CA2231 // Overload operator equals on overriding ValueType.Equals
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
@@ -17,6 +18,7 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard | FromType.Rust)]
+    [BindingType(typeof(Interlocked))]
     public unsafe struct UnsafeAtomicPtr<T> where T : unmanaged
     {
         /// <summary>
@@ -73,7 +75,7 @@ namespace NativeCollections
         public T* CompareExchange(T* value, T* comparand) => (T*)_value.CompareExchange((nint)value, (nint)comparand);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -95,10 +97,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
-        public override string ToString() => SR.Format("UnsafeAtomicPtr<{0}>", SR.GetTypeName(typeof(T)));
+        public readonly override string ToString() => SR.Format("UnsafeAtomicPtr<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
         ///     Create

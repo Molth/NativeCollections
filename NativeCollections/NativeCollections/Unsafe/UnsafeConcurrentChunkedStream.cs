@@ -25,37 +25,41 @@ namespace NativeCollections
         private UnsafeConcurrentSpinLock _spinLock;
 
         /// <summary>
-        ///     Is created
+        ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public readonly bool IsCreated => _handle.IsCreated;
 
         /// <summary>
-        ///     Is empty
+        ///     Gets a value that indicates whether this is empty.
         /// </summary>
+        /// <value>
+        ///     true if this is empty;
+        ///     otherwise, false.
+        /// </value>
         public readonly bool IsEmpty => _handle.IsEmpty;
 
         /// <summary>
-        ///     Chunks
+        ///     Gets the total number of chunks currently allocated in the stack.
         /// </summary>
         public readonly int Chunks => _handle.Chunks;
 
         /// <summary>
-        ///     Free chunks
+        ///     Gets the number of chunks that are currently free and available for reuse.
         /// </summary>
         public readonly int FreeChunks => _handle.FreeChunks;
 
         /// <summary>
-        ///     Max free chunks
+        ///     Gets the maximum number of free chunks that can be retained before excess chunks are freed.
         /// </summary>
         public readonly int MaxFreeChunks => _handle.MaxFreeChunks;
 
         /// <summary>
-        ///     Size
+        ///     Gets the number of elements.
         /// </summary>
         public readonly int Size => _handle.Size;
 
         /// <summary>
-        ///     Length
+        ///     Gets the total number of elements in all the dimensions of the instance.
         /// </summary>
         public readonly int Length => _handle.Length;
 
@@ -72,234 +76,158 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="other">Other</param>
-        /// <returns>Equals</returns>
         public readonly bool Equals(UnsafeConcurrentChunkedStream other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <returns>Equals</returns>
         public readonly override bool Equals(object? obj) => obj is UnsafeConcurrentChunkedStream other && other.Equals(this);
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
-        /// <returns>HashCode</returns>
         public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public readonly override string ToString() => "UnsafeConcurrentChunkedStream";
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Equals</returns>
         public static bool operator ==(UnsafeConcurrentChunkedStream left, UnsafeConcurrentChunkedStream right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Not equals</returns>
         public static bool operator !=(UnsafeConcurrentChunkedStream left, UnsafeConcurrentChunkedStream right) => !left.Equals(right);
 
         /// <summary>
-        ///     Dispose
+        ///     Performs application-defined tasks associated with freeing,
+        ///     releasing, or resetting unmanaged resources.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose() => _handle.Dispose();
 
         /// <summary>
-        ///     Read
+        ///     Reads a sequence of bytes from the current memory stream,
+        ///     and advances the position within the memory stream by the number of bytes read.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="length">Length</param>
-        /// <returns>Bytes</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Read(byte* buffer, int length)
         {
-            _spinLock.Enter();
-            try
+            using (_spinLock.EnterLock())
             {
                 return _handle.Read(buffer, length);
             }
-            finally
-            {
-                _spinLock.Exit();
-            }
         }
 
         /// <summary>
-        ///     Write
+        ///     Writes the sequence of bytes into the current memory stream,
+        ///     and advances the current position within this memory stream by the number of bytes written.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="length">Length</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(byte* buffer, int length)
         {
-            _spinLock.Enter();
-            try
+            using (_spinLock.EnterLock())
             {
                 _handle.Write(buffer, length);
             }
-            finally
-            {
-                _spinLock.Exit();
-            }
         }
 
         /// <summary>
-        ///     Read
+        ///     Reads a sequence of bytes from the current memory stream,
+        ///     and advances the position within the memory stream by the number of bytes read.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <returns>Bytes</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Read(Span<byte> buffer)
         {
-            _spinLock.Enter();
-            try
+            using (_spinLock.EnterLock())
             {
                 return _handle.Read(buffer);
             }
-            finally
-            {
-                _spinLock.Exit();
-            }
         }
 
         /// <summary>
-        ///     Write
+        ///     Writes the sequence of bytes into the current memory stream,
+        ///     and advances the current position within this memory stream by the number of bytes written.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(ReadOnlySpan<byte> buffer)
         {
-            _spinLock.Enter();
-            try
+            using (_spinLock.EnterLock())
             {
                 _handle.Write(buffer);
             }
-            finally
-            {
-                _spinLock.Exit();
-            }
         }
 
         /// <summary>
-        ///     Read
+        ///     Advances the position within the memory stream by the number of bytes read.
         /// </summary>
-        /// <param name="length">Length</param>
-        /// <returns>Bytes</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Read(int length)
         {
-            _spinLock.Enter();
-            try
+            using (_spinLock.EnterLock())
             {
                 return _handle.Read(length);
             }
-            finally
-            {
-                _spinLock.Exit();
-            }
         }
 
         /// <summary>
-        ///     Write
+        ///     Advances the current position within this memory stream by the number of bytes written.
         /// </summary>
-        /// <param name="length">Length</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(int length)
         {
-            _spinLock.Enter();
-            try
+            using (_spinLock.EnterLock())
             {
                 _handle.Write(length);
             }
-            finally
-            {
-                _spinLock.Exit();
-            }
         }
 
         /// <summary>
-        ///     Get first read buffer
+        ///     Ensures that the capacity of this is at least the specified <paramref name="capacity" />.
+        ///     If the current capacity of this is less than specified <paramref name="capacity" />,
+        ///     the capacity is increased to at least <paramref name="capacity" />.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<byte> GetBuffer()
-        {
-            _spinLock.Enter();
-            try
-            {
-                return _handle.GetBuffer();
-            }
-            finally
-            {
-                _spinLock.Exit();
-            }
-        }
-
-        /// <summary>
-        ///     Ensure capacity
-        /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>New capacity</returns>
+        /// <param name="capacity">The minimum capacity to ensure.</param>
+        /// <returns>The new capacity of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int EnsureCapacity(int capacity)
         {
-            _spinLock.Enter();
-            try
+            using (_spinLock.EnterLock())
             {
                 return _handle.EnsureCapacity(capacity);
             }
-            finally
-            {
-                _spinLock.Exit();
-            }
         }
 
         /// <summary>
-        ///     Trim excess
+        ///     Trims the capacity of this to the specified number of entries.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void TrimExcess()
+        public int TrimExcess()
         {
-            _spinLock.Enter();
-            try
+            using (_spinLock.EnterLock())
             {
                 _handle.TrimExcess();
-            }
-            finally
-            {
-                _spinLock.Exit();
+                return 0;
             }
         }
 
         /// <summary>
-        ///     Trim excess
+        ///     Trims the capacity of this to the specified number of entries.
         /// </summary>
-        /// <param name="capacity">Remaining free slabs</param>
+        /// <param name="capacity">The new capacity.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Passed capacity is lower than entries count.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity)
         {
-            _spinLock.Enter();
-            try
+            using (_spinLock.EnterLock())
             {
                 return _handle.TrimExcess(capacity);
-            }
-            finally
-            {
-                _spinLock.Exit();
             }
         }
 

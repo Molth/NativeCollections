@@ -41,12 +41,12 @@ namespace NativeCollections
         private T[]? _array;
 
         /// <summary>
-        ///     Length
+        ///     Gets the total number of elements in all the dimensions of the instance.
         /// </summary>
         private int _length;
 
         /// <summary>
-        ///     Length
+        ///     Gets the total number of elements in all the dimensions of the instance.
         /// </summary>
         public int Length
         {
@@ -55,12 +55,12 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Count
+        ///     Gets the number of elements contained in this.
         /// </summary>
         public readonly int Count => _length;
 
         /// <summary>
-        ///     Capacity
+        ///     Gets the total numbers of elements the internal data structure can hold.
         /// </summary>
         public int Capacity
         {
@@ -71,19 +71,22 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get reference
+        ///     Reinterprets the given location as a reference to a value.
         /// </summary>
-        /// <param name="index">Index</param>
         public ref T this[int index] => ref _buffer[index];
 
         /// <summary>
-        ///     Is created
+        ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public readonly bool IsCreated => !Unsafe.IsNullRef(ref MemoryMarshal.GetReference(_buffer));
 
         /// <summary>
-        ///     Is empty
+        ///     Gets a value that indicates whether this is empty.
         /// </summary>
+        /// <value>
+        ///     true if this is empty;
+        ///     otherwise, false.
+        /// </value>
         public readonly bool IsEmpty => _length == 0;
 
         /// <summary>
@@ -141,7 +144,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Dispose
+        ///     Performs application-defined tasks associated with freeing,
+        ///     releasing, or resetting unmanaged resources.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
@@ -154,7 +158,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     As ref
+        ///     Reinterprets the given location as a reference to a value.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ref UnsafeValueListBuilder<T> AsRef()
@@ -170,7 +174,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     As pointer
+        ///     Returns a pointer to the given by-ref parameter.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly UnsafeValueListBuilder<T>* AsPointer()
@@ -186,13 +190,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Clear
+        ///     Clears the contents of this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear() => _length = 0;
 
         /// <summary>
-        ///     Clear
+        ///     Clears the contents of this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear(bool clear)
@@ -203,7 +207,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
         /// <returns>Equals</returns>
         [Obsolete(SR.parameter_obsolete)]
@@ -215,20 +219,18 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
-        /// <returns>HashCode</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly override int GetHashCode() => NativeHashCode.GetHashCode(AsReadOnlySpan());
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public readonly override string ToString() => SR.Format("UnsafeValueListBuilder<{0}>[{1}]", SR.GetTypeName(typeof(T)), _length);
 
         /// <summary>
-        ///     Append
+        ///     Appends the specified object to this instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Append(in T item)
@@ -249,7 +251,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append
+        ///     Appends the string representation of a specified read-only object span to this instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Append(ReadOnlySpan<T> source)
@@ -271,44 +273,42 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     As span
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<T> AsSpan() => _buffer.Slice(0, _length);
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<T> AsReadOnlySpan() => _buffer.Slice(0, _length);
 
         /// <summary>
-        ///     As memory
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>Memory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Memory<T> AsMemory() => new(_array, 0, _length);
 
         /// <summary>
-        ///     As readOnly memory
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>ReadOnlyMemory</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlyMemory<T> AsReadOnlyMemory() => new(_array, 0, _length);
 
         /// <summary>
-        ///     Cast
+        ///     Casts a instance of one primitive type to another primitive type.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<TTo> Cast<TTo>() where TTo : unmanaged => MemoryMarshal.Cast<T, TTo>(AsSpan());
 
         /// <summary>
-        ///     Ensure capacity
+        ///     Ensures that the capacity of this is at least the specified <paramref name="capacity" />.
+        ///     If the current capacity of this is less than specified <paramref name="capacity" />,
+        ///     the capacity is increased to at least <paramref name="capacity" />.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>New capacity</returns>
+        /// <param name="capacity">The minimum capacity to ensure.</param>
+        /// <returns>The new capacity of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int EnsureCapacity(int capacity)
         {
@@ -319,9 +319,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Trim excess
+        ///     Trims the capacity of this to the specified number of entries.
         /// </summary>
-        /// <returns>New capacity</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess()
         {
@@ -332,10 +331,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Trim excess
+        ///     Trims the capacity of this to the specified number of entries.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>New capacity</returns>
+        /// <param name="capacity">The new capacity.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Passed capacity is lower than entries count.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity)
         {
@@ -347,9 +346,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Set capacity
+        ///     Sets the capacity of this to the specified number of entries.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
+        /// <param name="capacity">The new capacity.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Passed capacity is lower than entries count.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetCapacity(int capacity)
         {
@@ -708,13 +708,13 @@ namespace NativeCollections
         public static UnsafeValueListBuilder<T> Empty => default;
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         public readonly Span<T>.Enumerator GetEnumerator() => _buffer.GetEnumerator();
 
 #if NET9_0_OR_GREATER
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -725,7 +725,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]

@@ -35,174 +35,171 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Is created
+        ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
         /// <summary>
-        ///     Is empty
+        ///     Gets a value that indicates whether this is empty.
         /// </summary>
+        /// <value>
+        ///     true if this is empty;
+        ///     otherwise, false.
+        /// </value>
         public bool IsEmpty => _handle->Length == 0;
 
         /// <summary>
-        ///     Chunks
+        ///     Gets the total number of chunks currently allocated in the stack.
         /// </summary>
         public int Chunks => _handle->Chunks;
 
         /// <summary>
-        ///     Free chunks
+        ///     Gets the number of chunks that are currently free and available for reuse.
         /// </summary>
         public int FreeChunks => _handle->FreeChunks;
 
         /// <summary>
-        ///     Max free chunks
+        ///     Gets the maximum number of free chunks that can be retained before excess chunks are freed.
         /// </summary>
         public int MaxFreeChunks => _handle->MaxFreeChunks;
 
         /// <summary>
-        ///     Size
+        ///     Gets the number of elements.
         /// </summary>
         public int Size => _handle->Size;
 
         /// <summary>
-        ///     Length
+        ///     Gets the total number of elements in all the dimensions of the instance.
         /// </summary>
         public int Length => _handle->Length;
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="other">Other</param>
-        /// <returns>Equals</returns>
         public bool Equals(NativeChunkedStream other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <returns>Equals</returns>
         public override bool Equals(object? obj) => obj is NativeChunkedStream other && other.Equals(this);
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
-        /// <returns>HashCode</returns>
         public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public override string ToString() => "NativeChunkedStream";
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Equals</returns>
         public static bool operator ==(NativeChunkedStream left, NativeChunkedStream right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Not equals</returns>
         public static bool operator !=(NativeChunkedStream left, NativeChunkedStream right) => !left.Equals(right);
 
         /// <summary>
-        ///     Dispose
+        ///     Performs application-defined tasks associated with freeing,
+        ///     releasing, or resetting unmanaged resources.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose() => Box.Drop(_handle);
 
         /// <summary>
-        ///     Read
+        ///     Reads a sequence of bytes from the current memory stream,
+        ///     and advances the position within the memory stream by the number of bytes read.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="length">Length</param>
-        /// <returns>Bytes</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Read(byte* buffer, int length) => _handle->Read(buffer, length);
 
         /// <summary>
-        ///     Write
+        ///     Writes the sequence of bytes into the current memory stream,
+        ///     and advances the current position within this memory stream by the number of bytes written.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="length">Length</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(byte* buffer, int length) => _handle->Write(buffer, length);
 
         /// <summary>
-        ///     Read
+        ///     Reads a sequence of bytes from the current memory stream,
+        ///     and advances the position within the memory stream by the number of bytes read.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <returns>Bytes</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Read(Span<byte> buffer) => _handle->Read(buffer);
 
         /// <summary>
-        ///     Write
+        ///     Writes the sequence of bytes into the current memory stream,
+        ///     and advances the current position within this memory stream by the number of bytes written.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(ReadOnlySpan<byte> buffer) => _handle->Write(buffer);
 
         /// <summary>
-        ///     Read
+        ///     Advances the position within the memory stream by the number of bytes read.
         /// </summary>
-        /// <param name="length">Length</param>
-        /// <returns>Bytes</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Read(int length) => _handle->Read(length);
 
         /// <summary>
-        ///     Write
+        ///     Advances the current position within this memory stream by the number of bytes written.
         /// </summary>
-        /// <param name="length">Length</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(int length) => _handle->Write(length);
 
         /// <summary>
-        ///     Get first read buffer
+        ///     Returns the first array of unsigned bytes from which this stream was created.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Span<byte> GetBuffer() => _handle->GetBuffer();
 
         /// <summary>
-        ///     Ensure capacity
+        ///     Ensures that the capacity of this is at least the specified <paramref name="capacity" />.
+        ///     If the current capacity of this is less than specified <paramref name="capacity" />,
+        ///     the capacity is increased to at least <paramref name="capacity" />.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>New capacity</returns>
+        /// <param name="capacity">The minimum capacity to ensure.</param>
+        /// <returns>The new capacity of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int EnsureCapacity(int capacity) => _handle->EnsureCapacity(capacity);
 
         /// <summary>
-        ///     Trim excess
+        ///     Trims the capacity of this to the specified number of entries.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void TrimExcess() => _handle->TrimExcess();
+        public int TrimExcess() => _handle->TrimExcess();
 
         /// <summary>
-        ///     Trim excess
+        ///     Trims the capacity of this to the specified number of entries.
         /// </summary>
-        /// <param name="capacity">Remaining free slabs</param>
+        /// <param name="capacity">The new capacity.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Passed capacity is lower than entries count.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity) => _handle->TrimExcess(capacity);
 
         /// <summary>
-        ///     Copy to
+        ///     Copies up to the specified number of elements from this.
+        ///     The actual number of copied elements is limited by the span's length, the specified count,
+        ///     and the current number of elements in this.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="count">Count</param>
+        /// <param name="buffer">The destination span to which elements are copied.</param>
+        /// <param name="count">The maximum number of elements to copy. Must be non-negative.</param>
+        /// <returns>The actual number of elements copied from the this.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="count" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int CopyTo(Span<byte> buffer, int count) => _handle->CopyTo(buffer, count);
 
         /// <summary>
-        ///     Copy to
+        ///     Copies all elements from this into a destination span.
+        ///     The span must have a length at least equal to the current number of elements in this.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
+        /// <param name="buffer">The destination span to which all elements are copied.</param>
+        /// <exception cref="ArgumentException">
+        ///     Thrown when <paramref name="buffer" /> has insufficient length to hold all of this's elements.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void CopyTo(Span<byte> buffer) => _handle->CopyTo(buffer);
 
@@ -212,13 +209,12 @@ namespace NativeCollections
         public static NativeChunkedStream Empty => default;
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
-        /// <returns>Enumerator</returns>
         public UnsafeChunkedStream.Enumerator GetEnumerator() => new(_handle);
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -229,7 +225,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]

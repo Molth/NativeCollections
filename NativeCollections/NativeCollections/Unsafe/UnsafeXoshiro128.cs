@@ -37,7 +37,7 @@ namespace NativeCollections
         private uint _s3;
 
         /// <summary>
-        ///     Is created
+        ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public readonly bool IsCreated => !(((int)_s0 | (int)_s1 | (int)_s2 | (int)_s3) == 0);
 
@@ -55,45 +55,33 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="other">Other</param>
-        /// <returns>Equals</returns>
         public readonly bool Equals(UnsafeXoshiro128 other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <returns>Equals</returns>
         public readonly override bool Equals(object? obj) => obj is UnsafeXoshiro128 other && other.Equals(this);
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
-        /// <returns>HashCode</returns>
         public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public readonly override string ToString() => "UnsafeXoshiro128";
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Equals</returns>
         public static bool operator ==(UnsafeXoshiro128 left, UnsafeXoshiro128 right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Not equals</returns>
         public static bool operator !=(UnsafeXoshiro128 left, UnsafeXoshiro128 right) => !left.Equals(right);
 
         /// <summary>
@@ -109,7 +97,9 @@ namespace NativeCollections
             } while (!IsCreated);
         }
 
-        /// <summary>Returns a non-negative random integer.</summary>
+        /// <summary>
+        ///     Returns a non-negative random integer.
+        /// </summary>
         /// <returns>A 32-bit unsigned integer.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private uint Next32()
@@ -134,7 +124,9 @@ namespace NativeCollections
             return (uint)num2;
         }
 
-        /// <summary>Returns a non-negative random integer.</summary>
+        /// <summary>
+        ///     Returns a non-negative random integer.
+        /// </summary>
         /// <returns>A 64-bit unsigned integer.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ulong Next64() => ((ulong)Next32() << 32) | Next32();
@@ -160,7 +152,9 @@ namespace NativeCollections
             }
         }
 
-        /// <summary>Fills the elements of a specified buffer with items chosen at random from the provided set of choices.</summary>
+        /// <summary>
+        ///     Fills the elements of a specified buffer with items chosen at random from the provided set of choices.
+        /// </summary>
         /// <param name="source">The items to use to populate the buffer.</param>
         /// <param name="destination">The buffer to be filled with items.</param>
         /// <typeparam name="T">The type of buffer.</typeparam>
@@ -251,7 +245,9 @@ namespace NativeCollections
             return ref length == 1 ? ref reference : ref Unsafe.Add(ref reference, (nint)NextInt32(length));
         }
 
-        /// <summary>Returns a non-negative random integer.</summary>
+        /// <summary>
+        ///     Returns a non-negative random integer.
+        /// </summary>
         /// <returns>A 32-bit unsigned integer that is greater than or equal to 0 and less than <see cref="uint.MaxValue" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public uint NextUInt32()
@@ -265,7 +261,9 @@ namespace NativeCollections
             return num;
         }
 
-        /// <summary>Returns a non-negative random integer that is less than the specified maximum.</summary>
+        /// <summary>
+        ///     Returns a non-negative random integer that is less than the specified maximum.
+        /// </summary>
         /// <param name="maxValue">
         ///     The exclusive upper bound of the random number to be generated. <paramref name="maxValue" />
         ///     must be greater than or equal to 0.
@@ -290,7 +288,9 @@ namespace NativeCollections
             return (uint)(num1 >> 32);
         }
 
-        /// <summary>Returns a random integer that is within a specified range.</summary>
+        /// <summary>
+        ///     Returns a random integer that is within a specified range.
+        /// </summary>
         /// <param name="minValue">The inclusive lower bound of the random number returned.</param>
         /// <param name="maxValue">
         ///     The exclusive upper bound of the random number returned. <paramref name="maxValue" /> must be
@@ -305,7 +305,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public uint NextUInt32(uint minValue, uint maxValue) => NextUInt32(maxValue - minValue) + maxValue;
 
-        /// <summary>Returns a non-negative random integer.</summary>
+        /// <summary>
+        ///     Returns a non-negative random integer.
+        /// </summary>
         /// <returns>A 64-bit unsigned integer that is greater than or equal to 0 and less than <see cref="ulong.MaxValue" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ulong NextUInt64()
@@ -319,7 +321,9 @@ namespace NativeCollections
             return num;
         }
 
-        /// <summary>Returns a non-negative random integer that is less than the specified maximum.</summary>
+        /// <summary>
+        ///     Returns a non-negative random integer that is less than the specified maximum.
+        /// </summary>
         /// <param name="maxValue">
         ///     The exclusive upper bound of the random number to be generated. <paramref name="maxValue" />
         ///     must be greater than or equal to 0.
@@ -344,7 +348,9 @@ namespace NativeCollections
             return num1;
         }
 
-        /// <summary>Returns a random integer that is within a specified range.</summary>
+        /// <summary>
+        ///     Returns a random integer that is within a specified range.
+        /// </summary>
         /// <param name="minValue">The inclusive lower bound of the random number returned.</param>
         /// <param name="maxValue">
         ///     The exclusive upper bound of the random number returned. <paramref name="maxValue" /> must be
@@ -359,7 +365,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ulong NextUInt64(ulong minValue, ulong maxValue) => NextUInt64(maxValue - minValue) + minValue;
 
-        /// <summary>Returns a non-negative random integer.</summary>
+        /// <summary>
+        ///     Returns a non-negative random integer.
+        /// </summary>
         /// <returns>A 32-bit signed integer that is greater than or equal to 0 and less than <see cref="int.MaxValue" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int NextInt32()
@@ -373,7 +381,9 @@ namespace NativeCollections
             return (int)num;
         }
 
-        /// <summary>Returns a non-negative random integer that is less than the specified maximum.</summary>
+        /// <summary>
+        ///     Returns a non-negative random integer that is less than the specified maximum.
+        /// </summary>
         /// <param name="maxValue">
         ///     The exclusive upper bound of the random number to be generated. <paramref name="maxValue" />
         ///     must be greater than or equal to 0.
@@ -387,7 +397,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int NextInt32(int maxValue) => (int)NextUInt32((uint)maxValue);
 
-        /// <summary>Returns a random integer that is within a specified range.</summary>
+        /// <summary>
+        ///     Returns a random integer that is within a specified range.
+        /// </summary>
         /// <param name="minValue">The inclusive lower bound of the random number returned.</param>
         /// <param name="maxValue">
         ///     The exclusive upper bound of the random number returned. <paramref name="maxValue" /> must be
@@ -402,7 +414,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int NextInt32(int minValue, int maxValue) => (int)NextUInt32((uint)(maxValue - minValue)) + minValue;
 
-        /// <summary>Returns a non-negative random integer.</summary>
+        /// <summary>
+        ///     Returns a non-negative random integer.
+        /// </summary>
         /// <returns>A 64-bit signed integer that is greater than or equal to 0 and less than <see cref="long.MaxValue" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public long NextInt64()
@@ -416,7 +430,9 @@ namespace NativeCollections
             return (long)num;
         }
 
-        /// <summary>Returns a non-negative random integer that is less than the specified maximum.</summary>
+        /// <summary>
+        ///     Returns a non-negative random integer that is less than the specified maximum.
+        /// </summary>
         /// <param name="maxValue">
         ///     The exclusive upper bound of the random number to be generated. <paramref name="maxValue" />
         ///     must be greater than or equal to 0.
@@ -430,7 +446,9 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public long NextInt64(long maxValue) => (long)NextUInt64((ulong)maxValue);
 
-        /// <summary>Returns a random integer that is within a specified range.</summary>
+        /// <summary>
+        ///     Returns a random integer that is within a specified range.
+        /// </summary>
         /// <param name="minValue">The inclusive lower bound of the random number returned.</param>
         /// <param name="maxValue">
         ///     The exclusive upper bound of the random number returned. <paramref name="maxValue" /> must be
@@ -445,17 +463,23 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public long NextInt64(long minValue, long maxValue) => (long)NextUInt64((ulong)(maxValue - minValue)) + minValue;
 
-        /// <summary>Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.</summary>
+        /// <summary>
+        ///     Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.
+        /// </summary>
         /// <returns>A double-precision floating point number that is greater than or equal to 0.0, and less than 1.0.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public double NextDouble() => (Next64() >> 11) * 1.1102230246251565E-16;
 
-        /// <summary>Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.</summary>
+        /// <summary>
+        ///     Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.
+        /// </summary>
         /// <returns>A single-precision floating point number that is greater than or equal to 0.0, and less than 1.0.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public float NextSingle() => (Next32() >> 8) * 5.9604645E-08f;
 
-        /// <summary>Fills the elements of a specified buffer of bytes with random numbers.</summary>
+        /// <summary>
+        ///     Fills the elements of a specified buffer of bytes with random numbers.
+        /// </summary>
         /// <param name="buffer">The buffer to be filled with random numbers.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void NextBytes(Span<byte> buffer)
@@ -497,13 +521,17 @@ namespace NativeCollections
             _s3 = num2;
         }
 
-        /// <summary>Fills a specified memory block with random bytes.</summary>
+        /// <summary>
+        ///     Fills a specified memory block with random bytes.
+        /// </summary>
         /// <param name="startAddress">A pointer to the memory location where the random bytes will be written.</param>
         /// <param name="byteCount">The number of bytes to fill with random numbers.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void NextBytes(void* startAddress, uint byteCount) => NextBytes(ref Unsafe.AsRef<byte>(startAddress), byteCount);
 
-        /// <summary>Fills a specified memory block with random bytes.</summary>
+        /// <summary>
+        ///     Fills a specified memory block with random bytes.
+        /// </summary>
         /// <param name="startAddress">A pointer to the memory location where the random bytes will be written.</param>
         /// <param name="byteCount">The number of bytes to fill with random numbers.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -516,7 +544,9 @@ namespace NativeCollections
             }
         }
 
-        /// <summary>Returns a boolean.</summary>
+        /// <summary>
+        ///     Returns a boolean.
+        /// </summary>
         /// <returns>True, or false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool NextBoolean() => IsOdd(Next32());

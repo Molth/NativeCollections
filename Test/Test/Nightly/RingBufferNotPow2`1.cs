@@ -234,21 +234,4 @@ namespace Examples
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private nint GetSlotIndex(uint value) => (int)(Environment.Is64BitProcess ? HashHelpers.FastMod(value, (uint)_slotsLength, _fastModMultiplier) : value % _slotsLength);
     }
-
-    internal static class HashHelpers
-    {
-        /// <summary>
-        ///     Returns approximate reciprocal of the divisor: ceil(2**64 / divisor).
-        /// </summary>
-        /// <remarks>This should only be used on 64-bit.</remarks>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ulong GetFastModMultiplier(uint divisor) => ulong.MaxValue / divisor + 1;
-
-        /// <summary>
-        ///     Performs a mod operation using the multiplier pre-computed with <see cref="GetFastModMultiplier" />.
-        /// </summary>
-        /// <remarks>This should only be used on 64-bit.</remarks>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static uint FastMod(uint value, uint divisor, ulong multiplier) => (uint)(((((multiplier * value) >> 32) + 1) * divisor) >> 32);
-    }
 }

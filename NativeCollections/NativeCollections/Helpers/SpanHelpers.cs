@@ -76,7 +76,9 @@ namespace NativeCollections
                 UnsafeHelpers.WriteUnaligned(ref refData, value);
         }
 
-        /// <summary>Searches for any value other than the specified <paramref name="value" />.</summary>
+        /// <summary>
+        ///     Searches for any value other than the specified <paramref name="value" />.
+        /// </summary>
         /// <param name="buffer">The span to search.</param>
         /// <param name="value">The value to exclude from the search.</param>
         /// <typeparam name="T" />
@@ -104,8 +106,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Searches for the specified value and returns true if found. If not found, returns false. Values are compared using
-        ///     IEquatable{T}.Equals(T).
+        ///     Searches for the specified value and returns true if found.
+        ///     If not found, returns false.
+        ///     Values are compared using IEquatable{T}.Equals(T).
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="buffer">The span to search.</param>

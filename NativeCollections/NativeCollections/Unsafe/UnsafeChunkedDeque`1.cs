@@ -34,22 +34,22 @@ namespace NativeCollections
         private MemoryChunk* _freeList;
 
         /// <summary>
-        ///     Chunks
+        ///     Gets the total number of chunks currently allocated in the stack.
         /// </summary>
         private int _chunks;
 
         /// <summary>
-        ///     Free chunks
+        ///     Gets the number of chunks that are currently free and available for reuse.
         /// </summary>
         private int _freeChunks;
 
         /// <summary>
-        ///     Max free chunks
+        ///     Gets the maximum number of free chunks that can be retained before excess chunks are freed.
         /// </summary>
         private readonly int _maxFreeChunks;
 
         /// <summary>
-        ///     Size
+        ///     Gets the number of elements.
         /// </summary>
         private readonly int _size;
 
@@ -64,47 +64,51 @@ namespace NativeCollections
         private int _writeOffset;
 
         /// <summary>
-        ///     Count
+        ///     Gets the number of elements contained in this.
         /// </summary>
         private int _count;
 
         /// <summary>
-        ///     Version
+        ///     Used to keep enumerator in sync w/ collection.
         /// </summary>
         private int _version;
 
         /// <summary>
-        ///     Is created
+        ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public readonly bool IsCreated => !UnsafeHelpers.IsNull(_head);
 
         /// <summary>
-        ///     Is empty
+        ///     Gets a value that indicates whether this is empty.
         /// </summary>
+        /// <value>
+        ///     true if this is empty;
+        ///     otherwise, false.
+        /// </value>
         public readonly bool IsEmpty => _count == 0;
 
         /// <summary>
-        ///     Chunks
+        ///     Gets the total number of chunks currently allocated in the stack.
         /// </summary>
         public readonly int Chunks => _chunks;
 
         /// <summary>
-        ///     Free chunks
+        ///     Gets the number of chunks that are currently free and available for reuse.
         /// </summary>
         public readonly int FreeChunks => _freeChunks;
 
         /// <summary>
-        ///     Max free chunks
+        ///     Gets the maximum number of free chunks that can be retained before excess chunks are freed.
         /// </summary>
         public readonly int MaxFreeChunks => _maxFreeChunks;
 
         /// <summary>
-        ///     Size
+        ///     Gets the number of elements.
         /// </summary>
         public readonly int Size => _size;
 
         /// <summary>
-        ///     Count
+        ///     Gets the number of elements contained in this.
         /// </summary>
         public readonly int Count => _count;
 
@@ -133,49 +137,38 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="other">Other</param>
-        /// <returns>Equals</returns>
         public readonly bool Equals(UnsafeChunkedDeque<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <returns>Equals</returns>
         public readonly override bool Equals(object? obj) => obj is UnsafeChunkedDeque<T> other && other.Equals(this);
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
-        /// <returns>HashCode</returns>
         public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public readonly override string ToString() => SR.Format("UnsafeChunkedDeque<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Equals</returns>
         public static bool operator ==(UnsafeChunkedDeque<T> left, UnsafeChunkedDeque<T> right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Not equals</returns>
         public static bool operator !=(UnsafeChunkedDeque<T> left, UnsafeChunkedDeque<T> right) => !left.Equals(right);
 
         /// <summary>
-        ///     Dispose
+        ///     Performs application-defined tasks associated with freeing,
+        ///     releasing, or resetting unmanaged resources.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
@@ -200,7 +193,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Clear
+        ///     Clears the contents of this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
@@ -223,9 +216,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Enqueue head
+        ///     Adds item to the head of the queue.
         /// </summary>
-        /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void EnqueueHead(in T item)
         {
@@ -263,9 +255,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Enqueue tail
+        ///     Adds item to the tail of the queue.
         /// </summary>
-        /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void EnqueueTail(in T item)
         {
@@ -296,10 +287,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try dequeue
+        ///     Removes the object at the beginning of this, and copies it to the <paramref name="result" /> parameter.
         /// </summary>
-        /// <param name="result">Item</param>
-        /// <returns>Dequeued</returns>
+        /// <param name="result">The removed object.</param>
+        /// <returns>
+        ///     <see langword="true" /> if the object is successfully removed;
+        ///     <see langword="false" /> if this is empty.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDequeueHead(out T result)
         {
@@ -342,10 +336,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try dequeue
+        ///     Removes the object at the ending of this, and copies it to the <paramref name="result" /> parameter.
         /// </summary>
-        /// <param name="result">Item</param>
-        /// <returns>Dequeued</returns>
+        /// <param name="result">The removed object.</param>
+        /// <returns>
+        ///     <see langword="true" /> if the object is successfully removed;
+        ///     <see langword="false" /> if this is empty.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDequeueTail(out T result)
         {
@@ -381,10 +378,18 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try peek head
+        ///     Returns a value that indicates whether there is an object at the beginning of this,
+        ///     and if one is present, copies it to the <paramref name="result" /> parameter.
+        ///     The object is not removed from this.
         /// </summary>
-        /// <param name="result">Item</param>
-        /// <returns>Peeked</returns>
+        /// <param name="result">
+        ///     If present, the object at the beginning of this;
+        ///     otherwise, the default value of <typeparamref name="T" />.
+        /// </param>
+        /// <returns>
+        ///     <see langword="true" /> if there is an object at the beginning of this;
+        ///     <see langword="false" /> if this is empty.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryPeekHead(out T result)
         {
@@ -399,10 +404,18 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try peek tail
+        ///     Returns a value that indicates whether there is an object at the ending of this,
+        ///     and if one is present, copies it to the <paramref name="result" /> parameter.
+        ///     The object is not removed from this.
         /// </summary>
-        /// <param name="result">Item</param>
-        /// <returns>Peeked</returns>
+        /// <param name="result">
+        ///     If present, the object at the ending of this;
+        ///     otherwise, the default value of <typeparamref name="T" />.
+        /// </param>
+        /// <returns>
+        ///     <see langword="true" /> if there is an object at the ending of this;
+        ///     <see langword="false" /> if this is empty.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryPeekTail(out T result)
         {
@@ -417,10 +430,12 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Ensure capacity
+        ///     Ensures that the capacity of this is at least the specified <paramref name="capacity" />.
+        ///     If the current capacity of this is less than specified <paramref name="capacity" />,
+        ///     the capacity is increased to at least <paramref name="capacity" />.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>New capacity</returns>
+        /// <param name="capacity">The minimum capacity to ensure.</param>
+        /// <returns>The new capacity of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int EnsureCapacity(int capacity)
         {
@@ -438,10 +453,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Trim excess
+        ///     Trims the capacity of this to the specified number of entries.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void TrimExcess()
+        public int TrimExcess()
         {
             var node = _freeList;
             while (_freeChunks > 0)
@@ -453,12 +468,14 @@ namespace NativeCollections
             }
 
             _freeList = node;
+            return 0;
         }
 
         /// <summary>
-        ///     Trim excess
+        ///     Trims the capacity of this to the specified number of entries.
         /// </summary>
-        /// <param name="capacity">Remaining free slabs</param>
+        /// <param name="capacity">The new capacity.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Passed capacity is lower than entries count.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity)
         {
@@ -477,10 +494,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Copy to
+        ///     Copies up to the specified number of elements from this.
+        ///     The actual number of copied elements is limited by the span's length, the specified count,
+        ///     and the current number of elements in this.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="count">Count</param>
+        /// <param name="buffer">The destination span to which elements are copied.</param>
+        /// <param name="count">The maximum number of elements to copy. Must be non-negative.</param>
+        /// <returns>The actual number of elements copied from the this.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="count" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int CopyTo(Span<T> buffer, int count)
         {
@@ -520,17 +541,25 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Copy to
+        ///     Copies up to the specified number of elements from this.
+        ///     The actual number of copied elements is limited by the span's length, the specified count,
+        ///     and the current number of elements in this.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="count">Count</param>
+        /// <param name="buffer">The destination span to which elements are copied.</param>
+        /// <param name="count">The maximum number of elements to copy. Must be non-negative.</param>
+        /// <returns>The actual number of elements copied from the this.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="count" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int CopyTo(Span<byte> buffer, int count) => CopyTo(MemoryMarshal.Cast<byte, T>(buffer), count);
 
         /// <summary>
-        ///     Copy to
+        ///     Copies all elements from this into a destination span.
+        ///     The span must have a length at least equal to the current number of elements in this.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
+        /// <param name="buffer">The destination span to which all elements are copied.</param>
+        /// <exception cref="ArgumentException">
+        ///     Thrown when <paramref name="buffer" /> has insufficient length to hold all of this's elements.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void CopyTo(Span<T> buffer)
         {
@@ -568,9 +597,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Copy to
+        ///     Copies all elements from this into a destination span.
+        ///     The span must have a length at least equal to the current number of elements in this.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
+        /// <param name="buffer">The destination span to which all elements are copied.</param>
+        /// <exception cref="ArgumentException">
+        ///     Thrown when <paramref name="buffer" /> has insufficient length to hold all of this's elements.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, T>(buffer));
 
@@ -615,14 +648,13 @@ namespace NativeCollections
         public static UnsafeChunkedDeque<T> Empty => default;
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
-        /// <returns>Enumerator</returns>
         [MustBePinned(SR.parameter_this)]
         public Enumerator GetEnumerator() => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -633,7 +665,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -655,7 +687,7 @@ namespace NativeCollections
             private readonly UnsafeChunkedDeque<T>* _handle;
 
             /// <summary>
-            ///     Version
+            ///     Used to keep enumerator in sync w/ collection.
             /// </summary>
             private readonly int _version;
 
@@ -670,13 +702,14 @@ namespace NativeCollections
             private int _readOffset;
 
             /// <summary>
-            ///     Count
+            ///     Gets the number of elements contained in this.
             /// </summary>
             private int _count;
 
             /// <summary>
-            ///     Current
+            ///     Gets the element in the collection at the current position of the enumerator.
             /// </summary>
+            /// <returns>The element in the collection at the current position of the enumerator.</returns>
             private T _current;
 
             /// <summary>
@@ -694,9 +727,12 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Move next
+            ///     Advances the enumerator to the next element of the collection.
             /// </summary>
-            /// <returns>Moved</returns>
+            /// <returns>
+            ///     <see langword="true" /> if the enumerator was successfully advanced to the next element;
+            ///     <see langword="false" /> if the enumerator has passed the end of the collection.
+            /// </returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext()
             {
@@ -716,7 +752,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Reset
+            ///     Sets the enumerator to its initial position, which is before the first element in the collection.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Reset()
@@ -729,8 +765,9 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Current
+            ///     Gets the element in the collection at the current position of the enumerator.
             /// </summary>
+            /// <returns>The element in the collection at the current position of the enumerator.</returns>
             public readonly T Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]

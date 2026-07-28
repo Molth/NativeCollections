@@ -39,12 +39,12 @@ namespace NativeCollections
         private readonly int _entriesLength;
 
         /// <summary>
-        ///     Count
+        ///     Gets the number of elements contained in this.
         /// </summary>
         private int _count;
 
         /// <summary>
-        ///     Version
+        ///     Used to keep enumerator in sync w/ collection.
         /// </summary>
         private int _version;
 
@@ -54,42 +54,53 @@ namespace NativeCollections
         private readonly ulong _fastModMultiplier;
 
         /// <summary>
-        ///     Is created
+        ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public readonly bool IsCreated => !UnsafeHelpers.IsNull(_buckets);
 
         /// <summary>
-        ///     Is empty
+        ///     Gets a value that indicates whether this is empty.
         /// </summary>
+        /// <value>
+        ///     true if this is empty;
+        ///     otherwise, false.
+        /// </value>
         public readonly bool IsEmpty => _count == 0;
 
         /// <summary>
-        ///     Count
+        ///     Gets the number of elements contained in this.
         /// </summary>
         public readonly int Count => _count;
 
         /// <summary>
-        ///     Capacity
+        ///     Gets the total numbers of elements the internal data structure can hold.
         /// </summary>
         public readonly int Capacity => _entriesLength;
 
         /// <summary>
-        ///     Keys
+        ///     Gets a collection containing the keys in the dictionary.
         /// </summary>
         [MustBePinned(SR.parameter_this)]
         public KeyCollection Keys => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
-        ///     Values
+        ///     Gets a collection containing the values in the dictionary.
         /// </summary>
         [MustBePinned(SR.parameter_this)]
         public ValueCollection Values => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
-        ///     Get byte count
+        ///     Calculates the minimum number of bytes required to store a specified number of elements,
+        ///     taking into account alignment requirements for the underlying buffer.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>Byte count</returns>
+        /// <param name="capacity">The number of elements to store. Must be non-negative.</param>
+        /// <returns>
+        ///     The minimum byte count needed to allocate a buffer capable of
+        ///     holding <paramref name="capacity" /> elements with proper alignment.
+        /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="capacity" /> is negative.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetByteCount(int capacity)
         {
@@ -124,49 +135,37 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="other">Other</param>
-        /// <returns>Equals</returns>
         public readonly bool Equals(StackallocOrderedDictionary<TKey, TValue> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <returns>Equals</returns>
         public readonly override bool Equals(object? obj) => obj is StackallocOrderedDictionary<TKey, TValue> other && other.Equals(this);
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
-        /// <returns>HashCode</returns>
         public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public readonly override string ToString() => SR.Format("StackallocOrderedDictionary<{0}, {1}>", SR.GetTypeName(typeof(TKey)), SR.GetTypeName(typeof(TValue)));
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Equals</returns>
         public static bool operator ==(StackallocOrderedDictionary<TKey, TValue> left, StackallocOrderedDictionary<TKey, TValue> right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Not equals</returns>
         public static bool operator !=(StackallocOrderedDictionary<TKey, TValue> left, StackallocOrderedDictionary<TKey, TValue> right) => !left.Equals(right);
 
         /// <summary>
-        ///     Clear
+        ///     Clears the contents of this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
@@ -182,25 +181,39 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try add
+        ///     Attempts to add the specified key and value to this.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
+        /// <param name="key">The key of the element to add.</param>
+        /// <param name="value">The value of the element to add.</param>
+        /// <returns>
+        ///     <see cref="InsertResult.Success" /> if the key/value pair was added to this successfully;
+        ///     otherwise, <see langword="false" />.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public InsertResult TryAdd(in TKey key, in TValue value) => TryInsertIgnoreInsertion(-1, key, value);
 
         /// <summary>
-        ///     Try insert
+        ///     Attempts to add the specified key and value to this.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
+        /// <param name="key">The key of the value to get or set.</param>
+        /// <param name="value">The value of the element to add.</param>
+        /// <returns>
+        ///     <see cref="InsertResult.Success" /> if the key/value pair was added to this successfully;
+        ///     or if an existing element was overwritten <see cref="InsertResult.Overwritten" />
+        ///     otherwise, <see langword="false" />.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public InsertResult TryInsert(in TKey key, in TValue value) => TryInsertOverwriteExisting(-1, key, value);
+        public InsertResult TryAddOrUpdate(in TKey key, in TValue value) => TryInsertOverwriteExisting(-1, key, value);
 
         /// <summary>
-        ///     Remove
+        ///     Removes the value with the specified key from this.
         /// </summary>
-        /// <param name="key">Key</param>
+        /// <param name="key">The key of the element to remove.</param>
+        /// <returns>
+        ///     <see langword="true" /> if the element is successfully found and removed;
+        ///     otherwise, <see langword="false" />.  This method returns <see langword="false" /> if <paramref name="key" /> is
+        ///     not found in this.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(in TKey key)
         {
@@ -225,10 +238,15 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Remove
+        ///     Removes the value with the specified key from this,
+        ///     and copies the element to the <paramref name="value" /> parameter.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
+        /// <param name="key">The key of the element to remove.</param>
+        /// <param name="value">The removed element.</param>
+        /// <returns>
+        ///     <see langword="true" /> if the element is successfully found and removed;
+        ///     otherwise, <see langword="false" />.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(in TKey key, out TValue value)
         {
@@ -255,9 +273,12 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Remove at
+        ///     Removes the item at the specified index.
         /// </summary>
-        /// <param name="index">Index</param>
+        /// <param name="index">The zero-based index of the item to remove.</param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="index" /> is less than 0 or greater than or equal to <see cref="Count" />.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveAt(int index)
         {
@@ -276,10 +297,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Remove at
+        ///     Removes the item at the specified index.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="keyValuePair">Key value pair</param>
+        /// <param name="index">The zero-based index of the item to remove.</param>
+        /// <param name="keyValuePair">The removed element.</param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="index" /> is less than 0 or greater than or equal to <see cref="Count" />.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveAt(int index, out KeyValuePair<TKey, TValue> keyValuePair)
         {
@@ -300,9 +324,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Remove at
+        ///     Removes the item at the specified index.
         /// </summary>
-        /// <param name="index">Index</param>
+        /// <param name="index">The zero-based index of the item to remove.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryRemoveAt(int index)
         {
@@ -323,10 +347,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Remove at
+        ///     Removes the item at the specified index.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="keyValuePair">Key value pair</param>
+        /// <param name="index">The zero-based index of the item to remove.</param>
+        /// <param name="keyValuePair">The removed element.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryRemoveAt(int index, out KeyValuePair<TKey, TValue> keyValuePair)
         {
@@ -353,19 +377,28 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Contains key
+        ///     Determines whether this contains the specified key.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <returns>Contains key</returns>
+        /// <param name="key">The key to locate in this.</param>
+        /// <returns>
+        ///     <see langword="true" /> if this contains an element with the specified key;
+        ///     otherwise, <see langword="false" />.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool ContainsKey(in TKey key) => IndexOf(key) >= 0;
 
         /// <summary>
-        ///     Try to get the value
+        ///     Gets the value associated with the specified key.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
-        /// <returns>Got</returns>
+        /// <param name="key">The key of the value to get.</param>
+        /// <param name="value">
+        ///     When this method returns, contains the value associated with the specified key, if the key is
+        ///     found; otherwise, the default value for the type of the <paramref name="value" /> parameter.
+        ///     This parameter is passed uninitialized.
+        /// </param>
+        /// <returns>
+        ///     <see langword="true" /> if this contains an element with the specified key; otherwise, <see langword="false" />.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool TryGetValue(in TKey key, out TValue value)
         {
@@ -381,11 +414,17 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try to get the value
+        ///     Gets the value associated with the specified key.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
-        /// <returns>Got</returns>
+        /// <param name="key">The key of the value to get.</param>
+        /// <param name="value">
+        ///     When this method returns, contains the value associated with the specified key, if the key is
+        ///     found; otherwise, the default value for the type of the <paramref name="value" /> parameter.
+        ///     This parameter is passed uninitialized.
+        /// </param>
+        /// <returns>
+        ///     <see langword="true" /> if this contains an element with the specified key; otherwise, <see langword="false" />.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool TryGetValueReference(in TKey key, out NativePtr<TValue> value)
         {
@@ -401,10 +440,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get value ref
+        ///     Gets either a ref to a <typeparamref name="TValue" /> in this or a ref null if it does not exist in this.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <returns>Value ref</returns>
+        /// <param name="key">The key used for lookup.</param>
+        /// <remarks>
+        ///     Items should not be added or removed from this while the ref <typeparamref name="TValue" /> is in use.
+        ///     The ref null can be detected using System.Runtime.CompilerServices.Unsafe.IsNullRef
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ref TValue GetValueRefOrNullRef(in TKey key)
         {
@@ -413,11 +455,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get value ref
+        ///     Gets either a ref to a <typeparamref name="TValue" /> in this or a ref null if it does not exist in this.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="exists">Exists</param>
-        /// <returns>Value ref</returns>
+        /// <param name="key">The key used for lookup.</param>
+        /// <param name="exists">Whether or not a new entry for the given key was added to this.</param>
+        /// <remarks>
+        ///     Items should not be added or removed from this while the ref <typeparamref name="TValue" /> is in use.
+        ///     The ref null can be detected using System.Runtime.CompilerServices.Unsafe.IsNullRef
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ref TValue GetValueRefOrNullRef(in TKey key, out bool exists)
         {
@@ -433,11 +478,15 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get value ref or add default
+        ///     Gets a ref to a <typeparamref name="TValue" /> in the this, adding a new entry with a default value
+        ///     if it does not exist in this.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
-        /// <returns>Value ref</returns>
+        /// <param name="key">The key used for lookup.</param>
+        /// <param name="value">
+        ///     The value from the set that the search found, or the default value of
+        ///     <typeparamref name="TValue" /> when the search yielded no match.
+        /// </param>
+        /// <remarks>Items should not be added to or removed from the this while the ref <typeparamref name="TValue" /> is in use.</remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetValueRefOrAddDefault(in TKey key, out NativePtr<TValue> value)
         {
@@ -476,12 +525,16 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get value ref or add default
+        ///     Gets a ref to a <typeparamref name="TValue" /> in the this, adding a new entry with a default value
+        ///     if it does not exist in this.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
-        /// <param name="exists">Exists</param>
-        /// <returns>Value ref</returns>
+        /// <param name="key">The key used for lookup.</param>
+        /// <param name="value">
+        ///     The value from the set that the search found, or the default value of
+        ///     <typeparamref name="TValue" /> when the search yielded no match.
+        /// </param>
+        /// <param name="exists">Whether or not a new entry for the given key was added to this.</param>
+        /// <remarks>Items should not be added to or removed from the this while the ref <typeparamref name="TValue" /> is in use.</remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetValueRefOrAddDefault(in TKey key, out NativePtr<TValue> value, out bool exists)
         {
@@ -523,10 +576,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get key at index
+        ///     Gets the key at the specified index.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <returns>Key</returns>
+        /// <param name="index">The zero-based index of the pair to get.</param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="index" /> is less than 0 or greater than or equal to <see cref="Count" />.
+        /// </exception>
+        /// <returns>The element at the specified index.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly TKey GetKeyAt(int index)
         {
@@ -536,10 +592,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get value at index
+        ///     Gets the value at the specified index.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <returns>Value</returns>
+        /// <param name="index">The zero-based index of the pair to get.</param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="index" /> is less than 0 or greater than or equal to <see cref="Count" />.
+        /// </exception>
+        /// <returns>The element at the specified index.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ref TValue GetValueAt(int index)
         {
@@ -549,11 +608,17 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get key at index
+        ///     Gets the key associated with the specified index.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="key">Key</param>
-        /// <returns>Key</returns>
+        /// <param name="index">The zero-based index of the pair to get.</param>
+        /// <param name="key">
+        ///     When this method returns, contains the value associated with the specified key, if the key is
+        ///     found; otherwise, the default value for the type of the <paramref name="key" /> parameter.
+        ///     This parameter is passed uninitialized.
+        /// </param>
+        /// <returns>
+        ///     <see langword="true" /> if this contains an element with the specified key; otherwise, <see langword="false" />.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool TryGetKeyAt(int index, out TKey key)
         {
@@ -569,11 +634,17 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get value at index
+        ///     Gets the value associated with the specified index.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="value">Value</param>
-        /// <returns>Value</returns>
+        /// <param name="index">The zero-based index of the pair to get.</param>
+        /// <param name="value">
+        ///     When this method returns, contains the value associated with the specified key, if the key is
+        ///     found; otherwise, the default value for the type of the <paramref name="value" /> parameter.
+        ///     This parameter is passed uninitialized.
+        /// </param>
+        /// <returns>
+        ///     <see langword="true" /> if this contains an element with the specified key; otherwise, <see langword="false" />.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool TryGetValueAt(int index, out TValue value)
         {
@@ -589,11 +660,17 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get value at index
+        ///     Gets the value associated with the specified index.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="value">Value</param>
-        /// <returns>Value</returns>
+        /// <param name="index">The zero-based index of the pair to get.</param>
+        /// <param name="value">
+        ///     When this method returns, contains the value associated with the specified key, if the key is
+        ///     found; otherwise, the default value for the type of the <paramref name="value" /> parameter.
+        ///     This parameter is passed uninitialized.
+        /// </param>
+        /// <returns>
+        ///     <see langword="true" /> if this contains an element with the specified key; otherwise, <see langword="false" />.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool TryGetValueReferenceAt(int index, out NativePtr<TValue> value)
         {
@@ -609,10 +686,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get at
+        ///     Gets the key/value pair at the specified index.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <returns>KeyValuePair</returns>
+        /// <param name="index">The zero-based index of the pair to get.</param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="index" /> is less than 0 or greater than or equal to <see cref="Count" />.
+        /// </exception>
+        /// <returns>The element at the specified index.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly KeyValuePair<TKey, TValue> GetAt(int index)
         {
@@ -622,10 +702,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get at
+        ///     Gets the key/value pair at the specified index.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <returns>KeyValuePair</returns>
+        /// <param name="index">The zero-based index of the pair to get.</param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="index" /> is less than 0 or greater than or equal to <see cref="Count" />.
+        /// </exception>
+        /// <returns>The element at the specified index.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly KeyValuePair<TKey, NativePtr<TValue>> GetReferenceAt(int index)
         {
@@ -635,11 +718,17 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get at
+        ///     Gets the value associated with the specified index.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="keyValuePair">KeyValuePair</param>
-        /// <returns>Got</returns>
+        /// <param name="index">The zero-based index of the pair to get.</param>
+        /// <param name="keyValuePair">
+        ///     When this method returns, contains the value associated with the specified key, if the key is
+        ///     found; otherwise, the default value for the type of the <paramref name="keyValuePair" /> parameter.
+        ///     This parameter is passed uninitialized.
+        /// </param>
+        /// <returns>
+        ///     <see langword="true" /> if this contains an element with the specified key; otherwise, <see langword="false" />.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool TryGetAt(int index, out KeyValuePair<TKey, TValue> keyValuePair)
         {
@@ -655,11 +744,17 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get at
+        ///     Gets the value associated with the specified key.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="keyValuePair">KeyValuePair</param>
-        /// <returns>Got</returns>
+        /// <param name="index">The key of the value to get.</param>
+        /// <param name="keyValuePair">
+        ///     When this method returns, contains the value associated with the specified key, if the key is
+        ///     found; otherwise, the default value for the type of the <paramref name="keyValuePair" /> parameter.
+        ///     This parameter is passed uninitialized.
+        /// </param>
+        /// <returns>
+        ///     <see langword="true" /> if this contains an element with the specified key; otherwise, <see langword="false" />.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool TryGetReferenceAt(int index, out KeyValuePair<TKey, NativePtr<TValue>> keyValuePair)
         {
@@ -675,10 +770,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Index of
+        ///     Determines the index of a specific key in this.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <returns>Index</returns>
+        /// <returns>The index of <paramref name="key" /> if found; otherwise, -1.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int IndexOf(in TKey key)
         {
@@ -723,11 +817,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Insert
+        ///     Inserts an item into the collection at the specified index.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
+        /// <param name="index">The zero-based index at which item should be inserted.</param>
+        /// <param name="key">The key to insert.</param>
+        /// <param name="value">The value to insert.</param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="index" /> is less than 0 or greater than <see cref="Count" />.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public InsertResult TryAdd(int index, in TKey key, in TValue value)
         {
@@ -736,11 +833,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Insert
+        ///     Inserts an item into the collection at the specified index.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
+        /// <param name="index">The zero-based index at which item should be inserted.</param>
+        /// <param name="key">The key to insert.</param>
+        /// <param name="value">The value to insert.</param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="index" /> is less than 0 or greater than <see cref="Count" />.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public InsertResult TryInsert(int index, in TKey key, in TValue value)
         {
@@ -749,10 +849,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Set at
+        ///     Sets the key/value pair at the specified index.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="value">Value</param>
+        /// <param name="index">The zero-based index of the element to get or set.</param>
+        /// <param name="value">The value to store at the specified index.</param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="index" /> is less than 0 or greater than or equal to <see cref="Count" />.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void SetAt(int index, in TValue value)
         {
@@ -761,11 +864,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Set at
+        ///     Sets the key/value pair at the specified index.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
+        /// <param name="index">The zero-based index of the element to get or set.</param>
+        /// <param name="key">The key to store at the specified index.</param>
+        /// <param name="value">The value to store at the specified index.</param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="index" /> is less than 0 or greater than or equal to <see cref="Count" />.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetAt(int index, in TKey key, in TValue value)
         {
@@ -877,11 +983,11 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Insert
+        ///     Inserts an item into the collection at the specified index.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
+        /// <param name="index">The zero-based index at which item should be inserted.</param>
+        /// <param name="key">The key to insert.</param>
+        /// <param name="value">The value to insert.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private InsertResult TryInsertIgnoreInsertion(int index, in TKey key, in TValue value)
         {
@@ -912,11 +1018,11 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Insert
+        ///     Inserts an item into the collection at the specified index.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
+        /// <param name="index">The zero-based index at which item should be inserted.</param>
+        /// <param name="key">The key to insert.</param>
+        /// <param name="value">The value to insert.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private InsertResult TryInsertOverwriteExisting(int index, in TKey key, in TValue value)
         {
@@ -990,10 +1096,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Copy to
+        ///     Copies up to the specified number of elements from this.
+        ///     The actual number of copied elements is limited by the span's length, the specified count,
+        ///     and the current number of elements in this.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="count">Count</param>
+        /// <param name="buffer">The destination span to which elements are copied.</param>
+        /// <param name="count">The maximum number of elements to copy. Must be non-negative.</param>
+        /// <returns>The actual number of elements copied from the this.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="count" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int CopyTo(Span<KeyValuePair<TKey, TValue>> buffer, int count)
         {
@@ -1007,17 +1117,25 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Copy to
+        ///     Copies up to the specified number of elements from this.
+        ///     The actual number of copied elements is limited by the span's length, the specified count,
+        ///     and the current number of elements in this.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="count">Count</param>
+        /// <param name="buffer">The destination span to which elements are copied.</param>
+        /// <param name="count">The maximum number of elements to copy. Must be non-negative.</param>
+        /// <returns>The actual number of elements copied from the this.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="count" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int CopyTo(Span<byte> buffer, int count) => CopyTo(MemoryMarshal.Cast<byte, KeyValuePair<TKey, TValue>>(buffer), count);
 
         /// <summary>
-        ///     Copy to
+        ///     Copies all elements from this into a destination span.
+        ///     The span must have a length at least equal to the current number of elements in this.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
+        /// <param name="buffer">The destination span to which all elements are copied.</param>
+        /// <exception cref="ArgumentException">
+        ///     Thrown when <paramref name="buffer" /> has insufficient length to hold all of this's elements.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void CopyTo(Span<KeyValuePair<TKey, TValue>> buffer)
         {
@@ -1029,9 +1147,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Copy to
+        ///     Copies all elements from this into a destination span.
+        ///     The span must have a length at least equal to the current number of elements in this.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
+        /// <param name="buffer">The destination span to which all elements are copied.</param>
+        /// <exception cref="ArgumentException">
+        ///     Thrown when <paramref name="buffer" /> has insufficient length to hold all of this's elements.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, KeyValuePair<TKey, TValue>>(buffer));
 
@@ -1041,14 +1163,13 @@ namespace NativeCollections
         public static StackallocOrderedDictionary<TKey, TValue> Empty => default;
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
-        /// <returns>Enumerator</returns>
         [MustBePinned(SR.parameter_this)]
         public Enumerator GetEnumerator() => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -1059,7 +1180,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -1081,7 +1202,7 @@ namespace NativeCollections
             private readonly StackallocOrderedDictionary<TKey, TValue>* _handle;
 
             /// <summary>
-            ///     Version
+            ///     Used to keep enumerator in sync w/ collection.
             /// </summary>
             private readonly int _version;
 
@@ -1091,8 +1212,9 @@ namespace NativeCollections
             private int _index;
 
             /// <summary>
-            ///     Current
+            ///     Gets the element in the collection at the current position of the enumerator.
             /// </summary>
+            /// <returns>The element in the collection at the current position of the enumerator.</returns>
             private KeyValuePair<TKey, TValue> _current;
 
             /// <summary>
@@ -1108,9 +1230,12 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Move next
+            ///     Advances the enumerator to the next element of the collection.
             /// </summary>
-            /// <returns>Moved</returns>
+            /// <returns>
+            ///     <see langword="true" /> if the enumerator was successfully advanced to the next element;
+            ///     <see langword="false" /> if the enumerator has passed the end of the collection.
+            /// </returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext()
             {
@@ -1129,7 +1254,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Reset
+            ///     Sets the enumerator to its initial position, which is before the first element in the collection.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Reset()
@@ -1139,8 +1264,9 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Current
+            ///     Gets the element in the collection at the current position of the enumerator.
             /// </summary>
+            /// <returns>The element in the collection at the current position of the enumerator.</returns>
             public readonly KeyValuePair<TKey, TValue> Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1149,7 +1275,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Key collection
+        ///     Represents the collection of keys.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public readonly struct KeyCollection : IIsCreated, IReadOnlyCollection<TKey>
@@ -1160,12 +1286,12 @@ namespace NativeCollections
             private readonly StackallocOrderedDictionary<TKey, TValue>* _handle;
 
             /// <summary>
-            ///     Is created
+            ///     Gets a value that indicates whether this has been allocated or initialized.
             /// </summary>
             public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
             /// <summary>
-            ///     Count
+            ///     Gets the number of elements contained in this.
             /// </summary>
             public int Count => _handle->Count;
 
@@ -1176,10 +1302,14 @@ namespace NativeCollections
             internal KeyCollection(StackallocOrderedDictionary<TKey, TValue>* handle) => _handle = handle;
 
             /// <summary>
-            ///     Copy to
+            ///     Copies up to the specified number of elements from this.
+            ///     The actual number of copied elements is limited by the span's length, the specified count,
+            ///     and the current number of elements in this.
             /// </summary>
-            /// <param name="buffer">Buffer</param>
-            /// <param name="count">Count</param>
+            /// <param name="buffer">The destination span to which elements are copied.</param>
+            /// <param name="count">The maximum number of elements to copy. Must be non-negative.</param>
+            /// <returns>The actual number of elements copied from the this.</returns>
+            /// <exception cref="ArgumentOutOfRangeException"><paramref name="count" /> is negative.</exception>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int CopyTo(Span<TKey> buffer, int count)
             {
@@ -1193,17 +1323,25 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Copy to
+            ///     Copies up to the specified number of elements from this.
+            ///     The actual number of copied elements is limited by the span's length, the specified count,
+            ///     and the current number of elements in this.
             /// </summary>
-            /// <param name="buffer">Buffer</param>
-            /// <param name="count">Count</param>
+            /// <param name="buffer">The destination span to which elements are copied.</param>
+            /// <param name="count">The maximum number of elements to copy. Must be non-negative.</param>
+            /// <returns>The actual number of elements copied from the this.</returns>
+            /// <exception cref="ArgumentOutOfRangeException"><paramref name="count" /> is negative.</exception>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int CopyTo(Span<byte> buffer, int count) => CopyTo(MemoryMarshal.Cast<byte, TKey>(buffer), count);
 
             /// <summary>
-            ///     Copy to
+            ///     Copies all elements from this into a destination span.
+            ///     The span must have a length at least equal to the current number of elements in this.
             /// </summary>
-            /// <param name="buffer">Buffer</param>
+            /// <param name="buffer">The destination span to which all elements are copied.</param>
+            /// <exception cref="ArgumentException">
+            ///     Thrown when <paramref name="buffer" /> has insufficient length to hold all of this's elements.
+            /// </exception>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void CopyTo(Span<TKey> buffer)
             {
@@ -1215,20 +1353,23 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Copy to
+            ///     Copies all elements from this into a destination span.
+            ///     The span must have a length at least equal to the current number of elements in this.
             /// </summary>
-            /// <param name="buffer">Buffer</param>
+            /// <param name="buffer">The destination span to which all elements are copied.</param>
+            /// <exception cref="ArgumentException">
+            ///     Thrown when <paramref name="buffer" /> has insufficient length to hold all of this's elements.
+            /// </exception>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, TKey>(buffer));
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
-            /// <returns>Enumerator</returns>
             public Enumerator GetEnumerator() => new(_handle);
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -1239,7 +1380,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -1266,13 +1407,14 @@ namespace NativeCollections
                 private int _index;
 
                 /// <summary>
-                ///     Version
+                ///     Used to keep enumerator in sync w/ collection.
                 /// </summary>
                 private readonly int _version;
 
                 /// <summary>
-                ///     Current
+                ///     Gets the element in the collection at the current position of the enumerator.
                 /// </summary>
+                /// <returns>The element in the collection at the current position of the enumerator.</returns>
                 private TKey _currentKey;
 
                 /// <summary>
@@ -1288,9 +1430,12 @@ namespace NativeCollections
                 }
 
                 /// <summary>
-                ///     Move next
+                ///     Advances the enumerator to the next element of the collection.
                 /// </summary>
-                /// <returns>Moved</returns>
+                /// <returns>
+                ///     <see langword="true" /> if the enumerator was successfully advanced to the next element;
+                ///     <see langword="false" /> if the enumerator has passed the end of the collection.
+                /// </returns>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public bool MoveNext()
                 {
@@ -1309,7 +1454,7 @@ namespace NativeCollections
                 }
 
                 /// <summary>
-                ///     Reset
+                ///     Sets the enumerator to its initial position, which is before the first element in the collection.
                 /// </summary>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public void Reset()
@@ -1319,8 +1464,9 @@ namespace NativeCollections
                 }
 
                 /// <summary>
-                ///     Current
+                ///     Gets the element in the collection at the current position of the enumerator.
                 /// </summary>
+                /// <returns>The element in the collection at the current position of the enumerator.</returns>
                 public readonly TKey Current
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1330,7 +1476,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Value collection
+        ///     Represents the collection of values.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public readonly struct ValueCollection : IIsCreated, IReadOnlyCollection<TValue>
@@ -1341,12 +1487,12 @@ namespace NativeCollections
             private readonly StackallocOrderedDictionary<TKey, TValue>* _handle;
 
             /// <summary>
-            ///     Is created
+            ///     Gets a value that indicates whether this has been allocated or initialized.
             /// </summary>
             public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
             /// <summary>
-            ///     Count
+            ///     Gets the number of elements contained in this.
             /// </summary>
             public int Count => _handle->Count;
 
@@ -1357,10 +1503,14 @@ namespace NativeCollections
             internal ValueCollection(StackallocOrderedDictionary<TKey, TValue>* handle) => _handle = handle;
 
             /// <summary>
-            ///     Copy to
+            ///     Copies up to the specified number of elements from this.
+            ///     The actual number of copied elements is limited by the span's length, the specified count,
+            ///     and the current number of elements in this.
             /// </summary>
-            /// <param name="buffer">Buffer</param>
-            /// <param name="count">Count</param>
+            /// <param name="buffer">The destination span to which elements are copied.</param>
+            /// <param name="count">The maximum number of elements to copy. Must be non-negative.</param>
+            /// <returns>The actual number of elements copied from the this.</returns>
+            /// <exception cref="ArgumentOutOfRangeException"><paramref name="count" /> is negative.</exception>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int CopyTo(Span<TValue> buffer, int count)
             {
@@ -1374,17 +1524,25 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Copy to
+            ///     Copies up to the specified number of elements from this.
+            ///     The actual number of copied elements is limited by the span's length, the specified count,
+            ///     and the current number of elements in this.
             /// </summary>
-            /// <param name="buffer">Buffer</param>
-            /// <param name="count">Count</param>
+            /// <param name="buffer">The destination span to which elements are copied.</param>
+            /// <param name="count">The maximum number of elements to copy. Must be non-negative.</param>
+            /// <returns>The actual number of elements copied from the this.</returns>
+            /// <exception cref="ArgumentOutOfRangeException"><paramref name="count" /> is negative.</exception>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int CopyTo(Span<byte> buffer, int count) => CopyTo(MemoryMarshal.Cast<byte, TValue>(buffer), count);
 
             /// <summary>
-            ///     Copy to
+            ///     Copies all elements from this into a destination span.
+            ///     The span must have a length at least equal to the current number of elements in this.
             /// </summary>
-            /// <param name="buffer">Buffer</param>
+            /// <param name="buffer">The destination span to which all elements are copied.</param>
+            /// <exception cref="ArgumentException">
+            ///     Thrown when <paramref name="buffer" /> has insufficient length to hold all of this's elements.
+            /// </exception>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void CopyTo(Span<TValue> buffer)
             {
@@ -1396,20 +1554,23 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Copy to
+            ///     Copies all elements from this into a destination span.
+            ///     The span must have a length at least equal to the current number of elements in this.
             /// </summary>
-            /// <param name="buffer">Buffer</param>
+            /// <param name="buffer">The destination span to which all elements are copied.</param>
+            /// <exception cref="ArgumentException">
+            ///     Thrown when <paramref name="buffer" /> has insufficient length to hold all of this's elements.
+            /// </exception>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, TValue>(buffer));
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
-            /// <returns>Enumerator</returns>
             public Enumerator GetEnumerator() => new(_handle);
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -1420,7 +1581,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -1447,13 +1608,14 @@ namespace NativeCollections
                 private int _index;
 
                 /// <summary>
-                ///     Version
+                ///     Used to keep enumerator in sync w/ collection.
                 /// </summary>
                 private readonly int _version;
 
                 /// <summary>
-                ///     Current
+                ///     Gets the element in the collection at the current position of the enumerator.
                 /// </summary>
+                /// <returns>The element in the collection at the current position of the enumerator.</returns>
                 private TValue _currentValue;
 
                 /// <summary>
@@ -1469,9 +1631,12 @@ namespace NativeCollections
                 }
 
                 /// <summary>
-                ///     Move next
+                ///     Advances the enumerator to the next element of the collection.
                 /// </summary>
-                /// <returns>Moved</returns>
+                /// <returns>
+                ///     <see langword="true" /> if the enumerator was successfully advanced to the next element;
+                ///     <see langword="false" /> if the enumerator has passed the end of the collection.
+                /// </returns>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public bool MoveNext()
                 {
@@ -1490,7 +1655,7 @@ namespace NativeCollections
                 }
 
                 /// <summary>
-                ///     Reset
+                ///     Sets the enumerator to its initial position, which is before the first element in the collection.
                 /// </summary>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public void Reset()
@@ -1500,8 +1665,9 @@ namespace NativeCollections
                 }
 
                 /// <summary>
-                ///     Current
+                ///     Gets the element in the collection at the current position of the enumerator.
                 /// </summary>
+                /// <returns>The element in the collection at the current position of the enumerator.</returns>
                 public readonly TValue Current
                 {
                     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -19,6 +19,7 @@ namespace NativeCollections
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard)]
     [IsReferenceOrContainsReferences]
+    [BindingType(typeof(Interlocked))]
     public unsafe struct UnsafeAtomicRef<T> where T : class?
     {
         /// <summary>
@@ -69,7 +70,7 @@ namespace NativeCollections
         public T? CompareExchange(T? value, T? comparand) => (T?)Interlocked.CompareExchange(ref _value, value, comparand);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -91,9 +92,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public readonly override string ToString() => SR.Format("UnsafeAtomicRef<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>

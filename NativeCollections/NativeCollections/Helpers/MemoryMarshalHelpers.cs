@@ -12,12 +12,6 @@ namespace NativeCollections
     internal static class MemoryMarshalHelpers
     {
         /// <summary>
-        ///     Re-interprets a span of bytes as a reference to structure of type T.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ref T AsRef<T>(Span<byte> buffer) where T : unmanaged => ref Unsafe.As<byte, T>(ref MemoryMarshal.GetReference(buffer));
-
-        /// <summary>
         ///     Returns a reference to the 0th element of <paramref name="array" />. If the array is empty, returns a reference to
         ///     where the 0th element
         ///     would have been stored. Such a reference may be used for pinning but must never be dereferenced.
@@ -33,8 +27,7 @@ namespace NativeCollections
 #if NET5_0_OR_GREATER
             return ref MemoryMarshal.GetArrayDataReference(array);
 #else
-            if (array == null)
-                ThrowHelpers.ThrowNullReferenceException();
+            ThrowHelpers.ThrowIfNull(array, ExceptionArgument.array);
             return ref MemoryMarshal.GetReference(array.AsSpan());
 #endif
         }

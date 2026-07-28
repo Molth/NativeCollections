@@ -43,12 +43,12 @@ namespace NativeCollections
             public UnsafeStringBuilderHandle(in UnsafeStringBuilder<byte> builder) => _handle = builder.AsPointer();
 
             /// <summary>
-            ///     Is created
+            ///     Gets a value that indicates whether this has been allocated or initialized.
             /// </summary>
             public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
             /// <summary>
-            ///     As ref
+            ///     Reinterprets the given location as a reference to a value.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public ref UnsafeStringBuilder<byte> AsRef()
@@ -71,7 +71,9 @@ namespace NativeCollections
         /// </summary>
         private readonly IFormatProvider? _provider;
 
-        /// <summary>Whether <see cref="_provider" /> provides an ICustomFormatter.</summary>
+        /// <summary>
+        ///     Whether <see cref="_provider" /> provides an ICustomFormatter.
+        /// </summary>
         /// <remarks>
         ///     Custom formatters are very rare.  We want to support them, but it's ok if we make them more expensive
         ///     in order to make them as pay-for-play as possible.  So, we avoid adding another reference type field
@@ -81,7 +83,9 @@ namespace NativeCollections
         /// </remarks>
         private readonly bool _hasCustomFormatter;
 
-        /// <summary>Creates a handler used to append an interpolated string into a <see cref="UnsafeStringBuilder{T}" />.</summary>
+        /// <summary>
+        ///     Creates a handler used to append an interpolated string into a <see cref="UnsafeStringBuilder{T}" />.
+        /// </summary>
         /// <param name="literalLength">
         ///     The number of constant characters outside of interpolation expressions in the interpolated
         ///     string.
@@ -99,7 +103,9 @@ namespace NativeCollections
             _hasCustomFormatter = false;
         }
 
-        /// <summary>Creates a handler used to translate an interpolated string into a <see cref="string" />.</summary>
+        /// <summary>
+        ///     Creates a handler used to translate an interpolated string into a <see cref="string" />.
+        /// </summary>
         /// <param name="literalLength">
         ///     The number of constant characters outside of interpolation expressions in the interpolated
         ///     string.
@@ -119,7 +125,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -141,17 +147,18 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public override string ToString() => "UnsafeStringBuilderUtf8InterpolatedStringHandler";
 
         /// <summary>
-        ///     Is created
+        ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public bool IsCreated => _stringBuilder.IsCreated;
 
-        /// <summary>Writes the specified string to the handler.</summary>
+        /// <summary>
+        ///     Writes the specified string to the handler.
+        /// </summary>
         /// <param name="value">The string to write.</param>
         public void AppendLiteral(string value)
         {
@@ -159,7 +166,9 @@ namespace NativeCollections
             sbRef.Append(value);
         }
 
-        /// <summary>Writes the specified value to the handler.</summary>
+        /// <summary>
+        ///     Writes the specified value to the handler.
+        /// </summary>
         /// <param name="value">The value to write.</param>
         /// <typeparam name="T">The type of the value to write.</typeparam>
         public void AppendFormatted<T>(T? value) where T : struct
@@ -169,7 +178,9 @@ namespace NativeCollections
             AppendFormatted(value.GetValueOrDefault());
         }
 
-        /// <summary>Writes the specified value to the handler.</summary>
+        /// <summary>
+        ///     Writes the specified value to the handler.
+        /// </summary>
         /// <param name="value">The value to write.</param>
         /// <typeparam name="T">The type of the value to write.</typeparam>
         public void AppendFormatted<T>(T value)
@@ -186,7 +197,9 @@ namespace NativeCollections
             sbRef.AppendFormat(value, default, _provider);
         }
 
-        /// <summary>Writes the specified value to the handler.</summary>
+        /// <summary>
+        ///     Writes the specified value to the handler.
+        /// </summary>
         /// <param name="value">The value to write.</param>
         /// <param name="format">The format string.</param>
         /// <typeparam name="T">The type of the value to write.</typeparam>
@@ -197,7 +210,9 @@ namespace NativeCollections
             AppendFormatted(value.GetValueOrDefault(), format);
         }
 
-        /// <summary>Writes the specified value to the handler.</summary>
+        /// <summary>
+        ///     Writes the specified value to the handler.
+        /// </summary>
         /// <param name="value">The value to write.</param>
         /// <param name="format">The format string.</param>
         /// <typeparam name="T">The type of the value to write.</typeparam>
@@ -215,7 +230,9 @@ namespace NativeCollections
             sbRef.AppendFormat(value, format, _provider);
         }
 
-        /// <summary>Writes the specified value to the handler.</summary>
+        /// <summary>
+        ///     Writes the specified value to the handler.
+        /// </summary>
         /// <param name="value">The value to write.</param>
         /// <param name="alignment">
         ///     Minimum number of characters that should be written for this value.  If the value is negative,
@@ -229,7 +246,9 @@ namespace NativeCollections
             AppendFormatted(value.GetValueOrDefault(), alignment);
         }
 
-        /// <summary>Writes the specified value to the handler.</summary>
+        /// <summary>
+        ///     Writes the specified value to the handler.
+        /// </summary>
         /// <param name="value">The value to write.</param>
         /// <param name="alignment">
         ///     Minimum number of characters that should be written for this value.  If the value is negative,
@@ -238,7 +257,9 @@ namespace NativeCollections
         /// <typeparam name="T">The type of the value to write.</typeparam>
         public void AppendFormatted<T>(T value, int alignment) => AppendFormatted(value, alignment, null);
 
-        /// <summary>Writes the specified value to the handler.</summary>
+        /// <summary>
+        ///     Writes the specified value to the handler.
+        /// </summary>
         /// <param name="value">The value to write.</param>
         /// <param name="format">The format string.</param>
         /// <param name="alignment">
@@ -253,7 +274,9 @@ namespace NativeCollections
             AppendFormatted(value.GetValueOrDefault(), alignment, format);
         }
 
-        /// <summary>Writes the specified value to the handler.</summary>
+        /// <summary>
+        ///     Writes the specified value to the handler.
+        /// </summary>
         /// <param name="value">The value to write.</param>
         /// <param name="format">The format string.</param>
         /// <param name="alignment">
@@ -295,7 +318,9 @@ namespace NativeCollections
             AppendFormatted(MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(buffer), buffer.Length), alignment);
         }
 
-        /// <summary>Writes the specified character span to the handler.</summary>
+        /// <summary>
+        ///     Writes the specified character span to the handler.
+        /// </summary>
         /// <param name="value">The span to write.</param>
         public void AppendFormatted(ReadOnlySpan<char> value)
         {
@@ -303,7 +328,9 @@ namespace NativeCollections
             sbRef.Append(value);
         }
 
-        /// <summary>Writes the specified string of chars to the handler.</summary>
+        /// <summary>
+        ///     Writes the specified string of chars to the handler.
+        /// </summary>
         /// <param name="value">The span to write.</param>
         /// <param name="alignment">
         ///     Minimum number of characters that should be written for this value.  If the value is negative,
@@ -344,7 +371,9 @@ namespace NativeCollections
             }
         }
 
-        /// <summary>Writes the specified value to the handler.</summary>
+        /// <summary>
+        ///     Writes the specified value to the handler.
+        /// </summary>
         /// <param name="value">The value to write.</param>
         public void AppendFormatted(string? value)
         {
@@ -359,7 +388,9 @@ namespace NativeCollections
             }
         }
 
-        /// <summary>Writes the specified value to the handler.</summary>
+        /// <summary>
+        ///     Writes the specified value to the handler.
+        /// </summary>
         /// <param name="value">The value to write.</param>
         /// <param name="alignment">
         ///     Minimum number of characters that should be written for this value.  If the value is negative,
@@ -368,7 +399,9 @@ namespace NativeCollections
         /// <param name="format">The format string.</param>
         public void AppendFormatted(string? value, int alignment, string? format = null) => AppendFormatted<string?>(value, alignment, format);
 
-        /// <summary>Writes the specified value to the handler.</summary>
+        /// <summary>
+        ///     Writes the specified value to the handler.
+        /// </summary>
         /// <param name="value">The value to write.</param>
         /// <param name="alignment">
         ///     Minimum number of characters that should be written for this value.  If the value is negative,

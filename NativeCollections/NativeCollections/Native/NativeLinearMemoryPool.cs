@@ -32,22 +32,22 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Is created
+        ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
         /// <summary>
-        ///     Slabs
+        ///     Gets the total number of slabs currently allocated in the pool.
         /// </summary>
         public int Slabs => _handle->Slabs;
 
         /// <summary>
-        ///     Free slabs
+        ///     Gets the number of slabs that are currently free and available for reuse.
         /// </summary>
         public int FreeSlabs => _handle->FreeSlabs;
 
         /// <summary>
-        ///     Max free slabs
+        ///     Gets the maximum number of free slabs that can be retained before excess slabs are freed.
         /// </summary>
         public int MaxFreeSlabs => _handle->MaxFreeSlabs;
 
@@ -57,49 +57,38 @@ namespace NativeCollections
         public int MaxLength => _handle->MaxLength;
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="other">Other</param>
-        /// <returns>Equals</returns>
         public bool Equals(NativeLinearMemoryPool other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <returns>Equals</returns>
         public override bool Equals(object? obj) => obj is NativeLinearMemoryPool other && other.Equals(this);
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
-        /// <returns>HashCode</returns>
         public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public override string ToString() => "NativeLinearMemoryPool";
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Equals</returns>
         public static bool operator ==(NativeLinearMemoryPool left, NativeLinearMemoryPool right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Not equals</returns>
         public static bool operator !=(NativeLinearMemoryPool left, NativeLinearMemoryPool right) => !left.Equals(right);
 
         /// <summary>
-        ///     Dispose
+        ///     Performs application-defined tasks associated with freeing,
+        ///     releasing, or resetting unmanaged resources.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose() => Box.Drop(_handle);
@@ -113,15 +102,15 @@ namespace NativeCollections
         public int GetMaxLength(int alignment) => _handle->GetMaxLength(alignment);
 
         /// <summary>
-        ///     Clear
+        ///     Clears the contents of this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear() => _handle->Clear();
 
         /// <summary>
-        ///     Clear
+        ///     Clears the contents of this.
         /// </summary>
-        /// <param name="capacity">Remaining free slabs</param>
+        /// <param name="capacity">The minimum capacity to ensure.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Clear(int capacity) => _handle->Clear(capacity);
 
@@ -138,30 +127,32 @@ namespace NativeCollections
         public T* Rent<T>(int elementCount) where T : unmanaged => _handle->Rent<T>(elementCount);
 
         /// <summary>
-        ///     Return buffer
+        ///     Returns to the pool an object that was previously obtained via <see cref="Rent" /> on the same instance.
         /// </summary>
-        /// <param name="ptr">Pointer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Return(void* ptr) => _handle->Return(ptr);
 
         /// <summary>
-        ///     Ensure capacity
+        ///     Ensures that the capacity of this is at least the specified <paramref name="capacity" />.
+        ///     If the current capacity of this is less than specified <paramref name="capacity" />,
+        ///     the capacity is increased to at least <paramref name="capacity" />.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>New capacity</returns>
+        /// <param name="capacity">The minimum capacity to ensure.</param>
+        /// <returns>The new capacity of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int EnsureCapacity(int capacity) => _handle->EnsureCapacity(capacity);
 
         /// <summary>
-        ///     Trim excess
+        ///     Trims the capacity of this to the specified number of entries.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void TrimExcess() => _handle->TrimExcess();
+        public int TrimExcess() => _handle->TrimExcess();
 
         /// <summary>
-        ///     Trim excess
+        ///     Trims the capacity of this to the specified number of entries.
         /// </summary>
-        /// <param name="capacity">Remaining free slabs</param>
+        /// <param name="capacity">The new capacity.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Passed capacity is lower than entries count.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity) => _handle->TrimExcess(capacity);
 

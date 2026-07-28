@@ -15,7 +15,9 @@ namespace NativeCollections
     /// </summary>
     internal static class BitOperationsHelpers
     {
-        /// <summary>Round the given integral value up to a power of 2.</summary>
+        /// <summary>
+        ///     Round the given integral value up to a power of 2.
+        /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>
         ///     The smallest power of 2 which is greater than or equal to <paramref name="value" />.
@@ -65,7 +67,9 @@ namespace NativeCollections
 #endif
         }
 
-        /// <summary>Rotates the specified value left by the specified number of bits.</summary>
+        /// <summary>
+        ///     Rotates the specified value left by the specified number of bits.
+        /// </summary>
         /// <param name="value">The value to rotate.</param>
         /// <param name="offset">
         ///     The number of bits to rotate by. Any value outside the range [0..31] is treated as congruent mod 32.
@@ -127,7 +131,7 @@ namespace NativeCollections
             return BitOperations.TrailingZeroCount(value);
 #else
             var low = (uint)value;
-            return low == 0 ? 32 + TrailingZeroCount((uint)(value >> 32)) : Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(TrailingZeroCountDeBruijn), (nint)(int)(((low & (uint)-(int)low) * 125613361U) >> 27));
+            return low == 0 ? 32 + TrailingZeroCount((uint)(value >> 32)) : TrailingZeroCount(low);
 #endif
         }
 
@@ -143,7 +147,7 @@ namespace NativeCollections
 #if NET5_0_OR_GREATER
             return BitOperations.TrailingZeroCount(value);
 #else
-            return value == 0 ? 32 : Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(TrailingZeroCountDeBruijn), (nint)(int)(((value & (uint)-(int)value) * 125613361U) >> 27));
+            return value == 0 ? 32 : Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(TrailingZeroCountDeBruijn), (nint)(int)(((value & unchecked((uint)-(int)value)) * 125613361U) >> 27));
 #endif
         }
 

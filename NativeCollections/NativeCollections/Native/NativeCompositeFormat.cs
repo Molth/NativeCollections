@@ -14,7 +14,9 @@ namespace NativeCollections
     [IsReferenceOrContainsReferences]
     public sealed class NativeCompositeFormat
     {
-        /// <summary>The parsed segments that make up the composite format string.</summary>
+        /// <summary>
+        ///     The parsed segments that make up the composite format string.
+        /// </summary>
         /// <remarks>
         ///     Every segment represents either a literal or a format hole, based on whether Literal
         ///     is non-null or ArgIndex is non-negative.
@@ -31,11 +33,15 @@ namespace NativeCollections
         /// </summary>
         internal readonly int FormattedCount;
 
-        /// <summary>The number of args required to satisfy the format holes.</summary>
+        /// <summary>
+        ///     The number of args required to satisfy the format holes.
+        /// </summary>
         /// <remarks>This is equal to one more than the largest index required by any format hole.</remarks>
         internal readonly int ArgsRequired;
 
-        /// <summary>Initializes the instance.</summary>
+        /// <summary>
+        ///     Initializes the instance.
+        /// </summary>
         /// <param name="format">The composite format string that was parsed.</param>
         /// <param name="segments">The parsed segments.</param>
         private NativeCompositeFormat(string format, (string? Literal, int ArgIndex, int Alignment, string? Format)[] segments)
@@ -75,12 +81,13 @@ namespace NativeCollections
         public int MinimumArgumentCount => ArgsRequired;
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public override string ToString() => "NativeCompositeFormat";
 
-        /// <summary>Parse the composite format string <paramref name="format" />.</summary>
+        /// <summary>
+        ///     Parse the composite format string <paramref name="format" />.
+        /// </summary>
         /// <param name="format">The string to parse.</param>
         /// <returns>The parsed <see cref="NativeCompositeFormat" />.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="format" /> is null.</exception>
@@ -101,7 +108,9 @@ namespace NativeCollections
             return new NativeCompositeFormat(format, segmentsRef.AsSpan().ToArray());
         }
 
-        /// <summary>Throws an exception if the specified number of arguments is fewer than the number required.</summary>
+        /// <summary>
+        ///     Throws an exception if the specified number of arguments is fewer than the number required.
+        /// </summary>
         /// <param name="numArgs">The number of arguments provided by the caller.</param>
         /// <exception cref="FormatException">An insufficient number of arguments were provided.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -111,7 +120,9 @@ namespace NativeCollections
                 ThrowHelpers.ThrowFormatIndexOutOfRange();
         }
 
-        /// <summary>Parse the composite format string into segments.</summary>
+        /// <summary>
+        ///     Parse the composite format string into segments.
+        /// </summary>
         /// <param name="format">The format string.</param>
         /// <param name="segments">The list into which to store the segments.</param>
         /// <param name="failureOffset">The offset at which a parsing error occured if <see langword="false" /> is returned.</param>

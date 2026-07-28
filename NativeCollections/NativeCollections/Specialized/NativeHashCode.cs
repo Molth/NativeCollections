@@ -23,27 +23,27 @@ namespace NativeCollections
         private static delegate* managed<ReadOnlySpan<byte>, int> _getHashCode;
 
         /// <summary>
-        ///     Custom GetHashCode
+        ///     Configures custom get hash code handler.
         /// </summary>
-        /// <param name="getHashCode">GetHashCode</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Custom(delegate* managed<ReadOnlySpan<byte>, int> getHashCode) => _getHashCode = getHashCode;
 
         /// <summary>
-        ///     Compute hash 32
+        ///     Diffuses the hash code returned by the specified bytes.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetHashCode<T>(in T obj) where T : unmanaged => GetHashCode(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<T, byte>(ref Unsafe.AsRef(in obj)), Unsafe.SizeOf<T>()));
 
         /// <summary>
-        ///     Compute hash 32
+        ///     Diffuses the hash code returned by the specified bytes.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetHashCode<T>(ReadOnlySpan<T> buffer) where T : unmanaged => GetHashCode(MemoryMarshal.AsBytes(buffer));
 
         /// <summary>
-        ///     Compute hash 32
+        ///     Diffuses the hash code returned by the specified bytes.
         /// </summary>
+        /// <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="byteCount" /> is less than 0.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetHashCode(void* ptr, int byteCount)
         {
@@ -52,7 +52,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Compute hash 32
+        ///     Diffuses the hash code returned by the specified bytes.
         /// </summary>
         [Customizable]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

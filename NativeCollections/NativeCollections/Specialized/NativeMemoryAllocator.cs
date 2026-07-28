@@ -49,7 +49,9 @@ namespace NativeCollections
             _abort = abort;
         }
 
-        /// <summary>Allocates an aligned block of memory of the specified size and alignment, in bytes.</summary>
+        /// <summary>
+        ///     Allocates an aligned block of memory of the specified size and alignment, in bytes.
+        /// </summary>
         /// <param name="elementCount">The count, in elements, of the block to allocate.</param>
         /// <returns>A pointer to the allocated aligned block of memory.</returns>
         /// <exception cref="OutOfMemoryException">Allocating memory failed.</exception>
@@ -61,7 +63,9 @@ namespace NativeCollections
             return (T*)AlignedAlloc(byteCount, alignment);
         }
 
-        /// <summary>Allocates and zeroes an aligned block of memory of the specified size and alignment, in bytes.</summary>
+        /// <summary>
+        ///     Allocates and zeroes an aligned block of memory of the specified size and alignment, in bytes.
+        /// </summary>
         /// <param name="elementCount">The count, in elements, of the block to allocate.</param>
         /// <returns>A pointer to the allocated and zeroed aligned block of memory.</returns>
         /// <exception cref="OutOfMemoryException">Allocating memory failed.</exception>
@@ -73,7 +77,9 @@ namespace NativeCollections
             return (T*)AlignedAllocZeroed(byteCount, alignment);
         }
 
-        /// <summary>Allocates an aligned block of memory of the specified size and alignment, in bytes.</summary>
+        /// <summary>
+        ///     Allocates an aligned block of memory of the specified size and alignment, in bytes.
+        /// </summary>
         /// <param name="byteCount">The size, in bytes, of the block to allocate.</param>
         /// <param name="alignment">The alignment, in bytes, of the block to allocate. This must be a power of <c>2</c>.</param>
         /// <returns>A pointer to the allocated aligned block of memory.</returns>
@@ -145,7 +151,9 @@ namespace NativeCollections
 #endif
         }
 
-        /// <summary>Allocates and zeroes an aligned block of memory of the specified size and alignment, in bytes.</summary>
+        /// <summary>
+        ///     Allocates and zeroes an aligned block of memory of the specified size and alignment, in bytes.
+        /// </summary>
         /// <param name="byteCount">The size, in bytes, of the block to allocate.</param>
         /// <param name="alignment">The alignment, in bytes, of the block to allocate. This must be a power of <c>2</c>.</param>
         /// <returns>A pointer to the allocated and zeroed aligned block of memory.</returns>
@@ -241,7 +249,9 @@ namespace NativeCollections
 #endif
         }
 
-        /// <summary>Frees an aligned block of memory.</summary>
+        /// <summary>
+        ///     Frees an aligned block of memory.
+        /// </summary>
         /// <param name="ptr">A pointer to the aligned block of memory that should be freed.</param>
         [Customizable]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -381,14 +391,18 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Fill<T>(ref byte startAddress, uint elementCount, T value) where T : unmanaged => SpanHelpers.Fill(ref Unsafe.As<byte, T>(ref startAddress), elementCount, value);
 
-        /// <summary>Rounds a value up to the specified alignment boundary.</summary>
+        /// <summary>
+        ///     Rounds a value up to the specified alignment boundary.
+        /// </summary>
         /// <param name="value">The value, in bytes, to align.</param>
         /// <param name="alignment">The alignment, in bytes. This must be a power of <c>2</c>.</param>
         /// <returns>A value at or after value that is a multiple of alignment.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static nuint AlignUp(nuint value, uint alignment) => UnsafeUtility.AlignUp(value, alignment);
 
-        /// <summary>Rounds a value down to the specified alignment boundary.</summary>
+        /// <summary>
+        ///     Rounds a value down to the specified alignment boundary.
+        /// </summary>
         /// <param name="value">The value, in bytes, to align.</param>
         /// <param name="alignment">The alignment, in bytes. This must be a power of <c>2</c>.</param>
         /// <returns>A value at or before value that is a multiple of alignment.</returns>
@@ -434,7 +448,9 @@ namespace NativeCollections
         [MustBePinned(nameof(reference))]
         public static nint AddressOf<T>([MustBePinned] ref T reference) where T : unmanaged => (nint)Unsafe.AsPointer(ref reference);
 
-        /// <summary>Helper structure for calculating type alignment.</summary>
+        /// <summary>
+        ///     Helper structure for calculating type alignment.
+        /// </summary>
         /// <typeparam name="T">The unmanaged type being measured.</typeparam>
         [StructLayout(LayoutKind.Sequential)]
         private readonly struct AlignOfHelper<T> where T : unmanaged

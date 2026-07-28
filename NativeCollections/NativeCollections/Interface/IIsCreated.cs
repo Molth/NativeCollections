@@ -8,7 +8,7 @@ namespace NativeCollections
     public interface IIsCreated
     {
         /// <summary>
-        ///     Is created
+        ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         bool IsCreated { get; }
     }

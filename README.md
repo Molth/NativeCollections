@@ -84,3 +84,7 @@ This project is licensed under the MIT License.
 15. `Stack<T>`
 16. `String`
 17. `StringBuilder<T>`
+18. `ConcurrentDictionary<TKey, TValue>`
+19. `ConcurrentHashSet<T>`
+20. `ConcurrentQueue<T>`
+21. `ConcurrentStack<T>`

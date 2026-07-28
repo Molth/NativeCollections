@@ -35,7 +35,7 @@ namespace NativeCollections
         public readonly int NextSequenceNumber => _nextSequenceNumber;
 
         /// <summary>
-        ///     Reset
+        ///     Sets this to its initial position.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reset()
@@ -49,11 +49,7 @@ namespace NativeCollections
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
-        public NativeConcurrentSpinLockRef EnterLock()
-        {
-            Enter();
-            return new NativeConcurrentSpinLockRef(UnsafeHelpers.AsPointer(ref this));
-        }
+        public NativeConcurrentSpinLockRef EnterLock() => EnterLock(-1);
 
         /// <summary>
         ///     Enter
@@ -85,12 +81,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="sequenceNumber">Sequence number</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly void Wait(int sequenceNumber)
-        {
-            var spinWait = new UnsafeSpinWait();
-            while (sequenceNumber != _nextSequenceNumber)
-                spinWait.SpinOnce(-1);
-        }
+        public readonly void Wait(int sequenceNumber) => Wait(sequenceNumber, -1);
 
         /// <summary>
         ///     Wait
@@ -115,13 +106,7 @@ namespace NativeCollections
         ///     Enter
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Enter()
-        {
-            var spinWait = new UnsafeSpinWait();
-            var sequenceNumber = Interlocked.Increment(ref _sequenceNumber) - 1;
-            while (sequenceNumber != _nextSequenceNumber)
-                spinWait.SpinOnce(-1);
-        }
+        public void Enter() => Enter(-1);
 
         /// <summary>
         ///     Enter
@@ -134,13 +119,7 @@ namespace NativeCollections
         ///     <paramref name="sleep1Threshold" /> is less than -1.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Enter(int sleep1Threshold)
-        {
-            var spinWait = new UnsafeSpinWait();
-            var sequenceNumber = Interlocked.Increment(ref _sequenceNumber) - 1;
-            while (sequenceNumber != _nextSequenceNumber)
-                spinWait.SpinOnce(sleep1Threshold);
-        }
+        public void Enter(int sleep1Threshold) => Wait(Acquire(), sleep1Threshold);
 
         /// <summary>
         ///     Exit
@@ -149,45 +128,33 @@ namespace NativeCollections
         public void Exit() => Interlocked.Increment(ref _nextSequenceNumber);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="other">Other</param>
-        /// <returns>Equals</returns>
         public readonly bool Equals(UnsafeConcurrentSpinLock other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <returns>Equals</returns>
         public readonly override bool Equals(object? obj) => obj is UnsafeConcurrentSpinLock other && other.Equals(this);
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
-        /// <returns>HashCode</returns>
         public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public readonly override string ToString() => "UnsafeConcurrentSpinLock";
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Equals</returns>
         public static bool operator ==(UnsafeConcurrentSpinLock left, UnsafeConcurrentSpinLock right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Not equals</returns>
         public static bool operator !=(UnsafeConcurrentSpinLock left, UnsafeConcurrentSpinLock right) => !left.Equals(right);
 
         /// <summary>

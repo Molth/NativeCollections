@@ -66,37 +66,42 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get value ref or null ref
+        ///     Gets either a ref to a <typeparamref name="TValue" /> in this or a ref null if it does not exist in this.
         /// </summary>
+        /// <remarks>
+        ///     Items should not be added or removed from this while the ref <typeparamref name="TValue" /> is in use.
+        ///     The ref null can be detected using System.Runtime.CompilerServices.Unsafe.IsNullRef
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ref readonly TValue GetValueRefOrNullRef<T, TKey, TValue>(void* ptr, in TKey key) where T : unmanaged, IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged => ref Unsafe.AsRef<T>(ptr).GetValueRefOrNullRef(key);
 
         /// <summary>
-        ///     Keys
+        ///     Gets a collection containing the keys in the dictionary.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static NativeArray<TKey> Keys<T, TKey, TValue>(void* ptr) where T : unmanaged, IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged => Unsafe.AsRef<T>(ptr).Keys();
 
         /// <summary>
-        ///     Values
+        ///     Gets a collection containing the values in the dictionary.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static NativeArray<TValue> Values<T, TKey, TValue>(void* ptr) where T : unmanaged, IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged => Unsafe.AsRef<T>(ptr).Values();
 
         /// <summary>
-        ///     Count
+        ///     Gets the number of elements contained in this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int Count<T, TKey, TValue>(void* ptr) where T : unmanaged, IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged => Unsafe.AsRef<T>(ptr).Count;
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static NativeFrozenDictionary<TKey, TValue>.Enumerator GetEnumerator<T, TKey, TValue>(void* ptr) where T : unmanaged, IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged => Unsafe.AsRef<T>(ptr).GetEnumerator();
 
         /// <summary>
-        ///     Dispose
+        ///     Performs application-defined tasks associated with freeing,
+        ///     releasing, or resetting unmanaged resources.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Dispose<T, TKey, TValue>(void* ptr) where T : unmanaged, IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged => Unsafe.AsRef<T>(ptr).Dispose();
@@ -108,37 +113,42 @@ namespace NativeCollections
         public static NativeFrozenDictionaryHandle<TKey, TValue> GetNativeHandle<T, TKey, TValue>() where T : unmanaged, IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged => new(&GetValueRefOrNullRef<T, TKey, TValue>, &Keys<T, TKey, TValue>, &Values<T, TKey, TValue>, &Count<T, TKey, TValue>, &GetEnumerator<T, TKey, TValue>, &Dispose<T, TKey, TValue>);
 
         /// <summary>
-        ///     Get value ref or null ref
+        ///     Gets either a ref to a <typeparamref name="TValue" /> in this or a ref null if it does not exist in this.
         /// </summary>
+        /// <remarks>
+        ///     Items should not be added or removed from this while the ref <typeparamref name="TValue" /> is in use.
+        ///     The ref null can be detected using System.Runtime.CompilerServices.Unsafe.IsNullRef
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ref readonly TValue GetValueRefOrNullRef<T, TKey, TValue>(ref UnsafeFrozenDictionaryValue ptr, in TKey key) where T : unmanaged, IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged => ref Unsafe.As<UnsafeFrozenDictionaryValue, T>(ref ptr).GetValueRefOrNullRef(key);
 
         /// <summary>
-        ///     Keys
+        ///     Gets a collection containing the keys in the dictionary.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static NativeArray<TKey> Keys<T, TKey, TValue>(ref UnsafeFrozenDictionaryValue ptr) where T : unmanaged, IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged => Unsafe.As<UnsafeFrozenDictionaryValue, T>(ref ptr).Keys();
 
         /// <summary>
-        ///     Values
+        ///     Gets a collection containing the values in the dictionary.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static NativeArray<TValue> Values<T, TKey, TValue>(ref UnsafeFrozenDictionaryValue ptr) where T : unmanaged, IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged => Unsafe.As<UnsafeFrozenDictionaryValue, T>(ref ptr).Values();
 
         /// <summary>
-        ///     Count
+        ///     Gets the number of elements contained in this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int Count<T, TKey, TValue>(ref UnsafeFrozenDictionaryValue ptr) where T : unmanaged, IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged => Unsafe.As<UnsafeFrozenDictionaryValue, T>(ref ptr).Count;
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static NativeFrozenDictionary<TKey, TValue>.Enumerator GetEnumerator<T, TKey, TValue>(ref UnsafeFrozenDictionaryValue ptr) where T : unmanaged, IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged => Unsafe.As<UnsafeFrozenDictionaryValue, T>(ref ptr).GetEnumerator();
 
         /// <summary>
-        ///     Dispose
+        ///     Performs application-defined tasks associated with freeing,
+        ///     releasing, or resetting unmanaged resources.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Dispose<T, TKey, TValue>(ref UnsafeFrozenDictionaryValue ptr) where T : unmanaged, IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged => Unsafe.As<UnsafeFrozenDictionaryValue, T>(ref ptr).Dispose();
@@ -155,27 +165,31 @@ namespace NativeCollections
         public interface IFrozenDictionary<TKey, TValue> : IDisposable where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
         {
             /// <summary>
-            ///     Count
+            ///     Gets the number of elements contained in this.
             /// </summary>
             int Count { get; }
 
             /// <summary>
-            ///     Get value ref or null ref
+            ///     Gets either a ref to a <typeparamref name="TValue" /> in this or a ref null if it does not exist in this.
             /// </summary>
+            /// <remarks>
+            ///     Items should not be added or removed from this while the ref <typeparamref name="TValue" /> is in use.
+            ///     The ref null can be detected using System.Runtime.CompilerServices.Unsafe.IsNullRef
+            /// </remarks>
             ref readonly TValue GetValueRefOrNullRef(in TKey key);
 
             /// <summary>
-            ///     Keys
+            ///     Gets a collection containing the keys in the dictionary.
             /// </summary>
             NativeArray<TKey> Keys();
 
             /// <summary>
-            ///     Values
+            ///     Gets a collection containing the values in the dictionary.
             /// </summary>
             NativeArray<TValue> Values();
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             NativeFrozenDictionary<TKey, TValue>.Enumerator GetEnumerator();
         }
@@ -187,32 +201,37 @@ namespace NativeCollections
         public readonly struct NativeFrozenDictionaryHandle<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
         {
             /// <summary>
-            ///     Get value ref or null ref
+            ///     Gets either a ref to a <typeparamref name="TValue" /> in this or a ref null if it does not exist in this.
             /// </summary>
+            /// <remarks>
+            ///     Items should not be added or removed from this while the ref <typeparamref name="TValue" /> is in use.
+            ///     The ref null can be detected using System.Runtime.CompilerServices.Unsafe.IsNullRef
+            /// </remarks>
             public readonly delegate* managed<void*, in TKey, ref readonly TValue> GetValueRefOrNullRef;
 
             /// <summary>
-            ///     Keys
+            ///     Gets a collection containing the keys in the dictionary.
             /// </summary>
             public readonly delegate* managed<void*, NativeArray<TKey>> Keys;
 
             /// <summary>
-            ///     Values
+            ///     Gets a collection containing the values in the dictionary.
             /// </summary>
             public readonly delegate* managed<void*, NativeArray<TValue>> Values;
 
             /// <summary>
-            ///     Count
+            ///     Gets the number of elements contained in this.
             /// </summary>
             public readonly delegate* managed<void*, int> Count;
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             public readonly delegate* managed<void*, NativeFrozenDictionary<TKey, TValue>.Enumerator> GetEnumerator;
 
             /// <summary>
-            ///     Dispose
+            ///     Performs application-defined tasks associated with freeing,
+            ///     releasing, or resetting unmanaged resources.
             /// </summary>
             public readonly delegate* managed<void*, void> Dispose;
 
@@ -238,37 +257,42 @@ namespace NativeCollections
         public struct UnsafeFrozenDictionaryHandle<TKey, TValue> : IIsCreated where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
         {
             /// <summary>
-            ///     Is created
+            ///     Gets a value that indicates whether this has been allocated or initialized.
             /// </summary>
             public readonly bool IsCreated => GetValueRefOrNullRef != null;
 
             /// <summary>
-            ///     Get value ref or null ref
+            ///     Gets either a ref to a <typeparamref name="TValue" /> in this or a ref null if it does not exist in this.
             /// </summary>
+            /// <remarks>
+            ///     Items should not be added or removed from this while the ref <typeparamref name="TValue" /> is in use.
+            ///     The ref null can be detected using System.Runtime.CompilerServices.Unsafe.IsNullRef
+            /// </remarks>
             public readonly delegate* managed<ref UnsafeFrozenDictionaryValue, in TKey, ref readonly TValue> GetValueRefOrNullRef;
 
             /// <summary>
-            ///     Keys
+            ///     Gets a collection containing the keys in the dictionary.
             /// </summary>
             public readonly delegate* managed<ref UnsafeFrozenDictionaryValue, NativeArray<TKey>> Keys;
 
             /// <summary>
-            ///     Values
+            ///     Gets a collection containing the values in the dictionary.
             /// </summary>
             public readonly delegate* managed<ref UnsafeFrozenDictionaryValue, NativeArray<TValue>> Values;
 
             /// <summary>
-            ///     Count
+            ///     Gets the number of elements contained in this.
             /// </summary>
             public readonly delegate* managed<ref UnsafeFrozenDictionaryValue, int> Count;
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             public readonly delegate* managed<ref UnsafeFrozenDictionaryValue, NativeFrozenDictionary<TKey, TValue>.Enumerator> GetEnumerator;
 
             /// <summary>
-            ///     Dispose
+            ///     Performs application-defined tasks associated with freeing,
+            ///     releasing, or resetting unmanaged resources.
             /// </summary>
             public readonly delegate* managed<ref UnsafeFrozenDictionaryValue, void> Dispose;
 
@@ -332,31 +356,35 @@ namespace NativeCollections
         public readonly struct EmptyFrozenDictionary<TKey, TValue> : IFrozenDictionary<TKey, TValue>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
         {
             /// <summary>
-            ///     Get value ref or null ref
+            ///     Gets either a ref to a <typeparamref name="TValue" /> in this or a ref null if it does not exist in this.
             /// </summary>
+            /// <remarks>
+            ///     Items should not be added or removed from this while the ref <typeparamref name="TValue" /> is in use.
+            ///     The ref null can be detected using System.Runtime.CompilerServices.Unsafe.IsNullRef
+            /// </remarks>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public ref readonly TValue GetValueRefOrNullRef(in TKey key) => ref Unsafe.NullRef<TValue>();
 
             /// <summary>
-            ///     Keys
+            ///     Gets a collection containing the keys in the dictionary.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeArray<TKey> Keys() => NativeArray<TKey>.Empty;
 
             /// <summary>
-            ///     Values
+            ///     Gets a collection containing the values in the dictionary.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeArray<TValue> Values() => NativeArray<TValue>.Empty;
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeFrozenDictionary<TKey, TValue>.Enumerator GetEnumerator() => new(NativeArray<TKey>.Empty, NativeArray<TValue>.Empty);
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -367,7 +395,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -378,7 +406,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Count
+            ///     Gets the number of elements contained in this.
             /// </summary>
             public int Count
             {
@@ -387,7 +415,8 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Dispose
+            ///     Performs application-defined tasks associated with freeing,
+            ///     releasing, or resetting unmanaged resources.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Dispose()
@@ -402,12 +431,12 @@ namespace NativeCollections
         public readonly struct SmallFrozenDictionary<TKey, TValue> : IFrozenDictionary<TKey, TValue>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
         {
             /// <summary>
-            ///     Keys
+            ///     Gets a collection containing the keys in the dictionary.
             /// </summary>
             private readonly NativeArray<TKey> _keys;
 
             /// <summary>
-            ///     Values
+            ///     Gets a collection containing the values in the dictionary.
             /// </summary>
             private readonly NativeArray<TValue> _values;
 
@@ -429,8 +458,12 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Get value ref or null ref
+            ///     Gets either a ref to a <typeparamref name="TValue" /> in this or a ref null if it does not exist in this.
             /// </summary>
+            /// <remarks>
+            ///     Items should not be added or removed from this while the ref <typeparamref name="TValue" /> is in use.
+            ///     The ref null can be detected using System.Runtime.CompilerServices.Unsafe.IsNullRef
+            /// </remarks>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public ref readonly TValue GetValueRefOrNullRef(in TKey key)
             {
@@ -439,19 +472,19 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Keys
+            ///     Gets a collection containing the keys in the dictionary.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeArray<TKey> Keys() => _keys;
 
             /// <summary>
-            ///     Values
+            ///     Gets a collection containing the values in the dictionary.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeArray<TValue> Values() => _values;
 
             /// <summary>
-            ///     Count
+            ///     Gets the number of elements contained in this.
             /// </summary>
             public int Count
             {
@@ -460,13 +493,13 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeFrozenDictionary<TKey, TValue>.Enumerator GetEnumerator() => new(_keys, _values);
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -477,7 +510,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -488,7 +521,8 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Dispose
+            ///     Performs application-defined tasks associated with freeing,
+            ///     releasing, or resetting unmanaged resources.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Dispose() => _keys.Dispose();
@@ -501,12 +535,12 @@ namespace NativeCollections
         public readonly struct SmallComparableFrozenDictionary<TKey, TValue> : IFrozenDictionary<TKey, TValue>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
         {
             /// <summary>
-            ///     Keys
+            ///     Gets a collection containing the keys in the dictionary.
             /// </summary>
             private readonly NativeArray<TKey> _keys;
 
             /// <summary>
-            ///     Values
+            ///     Gets a collection containing the values in the dictionary.
             /// </summary>
             private readonly NativeArray<TValue> _values;
 
@@ -533,8 +567,12 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Get value ref or null ref
+            ///     Gets either a ref to a <typeparamref name="TValue" /> in this or a ref null if it does not exist in this.
             /// </summary>
+            /// <remarks>
+            ///     Items should not be added or removed from this while the ref <typeparamref name="TValue" /> is in use.
+            ///     The ref null can be detected using System.Runtime.CompilerServices.Unsafe.IsNullRef
+            /// </remarks>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public ref readonly TValue GetValueRefOrNullRef(in TKey key)
             {
@@ -557,19 +595,19 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Keys
+            ///     Gets a collection containing the keys in the dictionary.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeArray<TKey> Keys() => _keys;
 
             /// <summary>
-            ///     Values
+            ///     Gets a collection containing the values in the dictionary.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeArray<TValue> Values() => _values;
 
             /// <summary>
-            ///     Count
+            ///     Gets the number of elements contained in this.
             /// </summary>
             public int Count
             {
@@ -578,13 +616,13 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeFrozenDictionary<TKey, TValue>.Enumerator GetEnumerator() => new(_keys, _values);
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -595,7 +633,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -606,7 +644,8 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Dispose
+            ///     Performs application-defined tasks associated with freeing,
+            ///     releasing, or resetting unmanaged resources.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Dispose() => _keys.Dispose();
@@ -624,7 +663,7 @@ namespace NativeCollections
             private readonly FrozenHashTable _hashTable;
 
             /// <summary>
-            ///     Values
+            ///     Gets a collection containing the values in the dictionary.
             /// </summary>
             private readonly NativeArray<TValue> _values;
 
@@ -646,8 +685,12 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Get value ref or null ref
+            ///     Gets either a ref to a <typeparamref name="TValue" /> in this or a ref null if it does not exist in this.
             /// </summary>
+            /// <remarks>
+            ///     Items should not be added or removed from this while the ref <typeparamref name="TValue" /> is in use.
+            ///     The ref null can be detected using System.Runtime.CompilerServices.Unsafe.IsNullRef
+            /// </remarks>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public ref readonly TValue GetValueRefOrNullRef(in int key)
             {
@@ -663,19 +706,19 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Keys
+            ///     Gets a collection containing the keys in the dictionary.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeArray<int> Keys() => _hashTable.HashCodes;
 
             /// <summary>
-            ///     Values
+            ///     Gets a collection containing the values in the dictionary.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeArray<TValue> Values() => _values;
 
             /// <summary>
-            ///     Count
+            ///     Gets the number of elements contained in this.
             /// </summary>
             public int Count
             {
@@ -684,13 +727,13 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeFrozenDictionary<int, TValue>.Enumerator GetEnumerator() => new(_hashTable.HashCodes, _values);
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -701,7 +744,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -712,7 +755,8 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Dispose
+            ///     Performs application-defined tasks associated with freeing,
+            ///     releasing, or resetting unmanaged resources.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Dispose()
@@ -734,12 +778,12 @@ namespace NativeCollections
             private readonly FrozenHashTable _hashTable;
 
             /// <summary>
-            ///     Keys
+            ///     Gets a collection containing the keys in the dictionary.
             /// </summary>
             private readonly NativeArray<TKey> _keys;
 
             /// <summary>
-            ///     Values
+            ///     Gets a collection containing the values in the dictionary.
             /// </summary>
             private readonly NativeArray<TValue> _values;
 
@@ -771,8 +815,12 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Get value ref or null ref
+            ///     Gets either a ref to a <typeparamref name="TValue" /> in this or a ref null if it does not exist in this.
             /// </summary>
+            /// <remarks>
+            ///     Items should not be added or removed from this while the ref <typeparamref name="TValue" /> is in use.
+            ///     The ref null can be detected using System.Runtime.CompilerServices.Unsafe.IsNullRef
+            /// </remarks>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public ref readonly TValue GetValueRefOrNullRef(in TKey key)
             {
@@ -788,19 +836,19 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Keys
+            ///     Gets a collection containing the keys in the dictionary.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeArray<TKey> Keys() => _keys;
 
             /// <summary>
-            ///     Values
+            ///     Gets a collection containing the values in the dictionary.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeArray<TValue> Values() => _values;
 
             /// <summary>
-            ///     Count
+            ///     Gets the number of elements contained in this.
             /// </summary>
             public int Count
             {
@@ -809,13 +857,13 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeFrozenDictionary<TKey, TValue>.Enumerator GetEnumerator() => new(_keys, _values);
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -826,7 +874,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Get enumerator
+            ///     Returns an enumerator that iterates through the collection.
             /// </summary>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
@@ -837,7 +885,8 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Dispose
+            ///     Performs application-defined tasks associated with freeing,
+            ///     releasing, or resetting unmanaged resources.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Dispose()

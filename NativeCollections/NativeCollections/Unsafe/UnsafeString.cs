@@ -2,6 +2,7 @@
 using System.Buffers;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -41,32 +42,36 @@ namespace NativeCollections
         private readonly Span<char> _buffer;
 
         /// <summary>
-        ///     Length
+        ///     Gets the total number of elements in all the dimensions of the instance.
         /// </summary>
         private int _length;
 
         /// <summary>
-        ///     Is created
+        ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public readonly bool IsCreated => !Unsafe.IsNullRef(ref MemoryMarshal.GetReference(_buffer));
 
         /// <summary>
-        ///     Is empty
+        ///     Gets a value that indicates whether this is empty.
         /// </summary>
+        /// <value>
+        ///     true if this is empty;
+        ///     otherwise, false.
+        /// </value>
         public readonly bool IsEmpty => _length == 0;
 
         /// <summary>
-        ///     Length
+        ///     Gets the total number of elements in all the dimensions of the instance.
         /// </summary>
         public readonly int Length => _length;
 
         /// <summary>
-        ///     Count
+        ///     Gets the number of elements contained in this.
         /// </summary>
         public readonly int Count => _length;
 
         /// <summary>
-        ///     Capacity
+        ///     Gets the total numbers of elements the internal data structure can hold.
         /// </summary>
         public readonly int Capacity => _buffer.Length;
 
@@ -86,9 +91,8 @@ namespace NativeCollections
         public readonly Span<char> Space => _buffer.Slice(_length);
 
         /// <summary>
-        ///     Get reference
+        ///     Reinterprets the given location as a reference to a value.
         /// </summary>
-        /// <param name="index">Index</param>
         public readonly ref char this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -121,10 +125,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append
+        ///     Appends the string representation of a specified read-only character span to this instance.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <returns>Appended</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Append(ReadOnlySpan<char> buffer)
         {
@@ -136,9 +138,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append line
+        ///     Appends the default line terminator to the end of the current <see cref="T:System.Text.StringBuilder" /> object.
         /// </summary>
-        /// <returns>Appended</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendLine()
         {
@@ -152,10 +153,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append line
+        ///     Appends the specified interpolated string followed by the default line terminator to the end of the current.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <returns>Appended</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendLine(ReadOnlySpan<char> buffer)
         {
@@ -171,59 +170,54 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Index of
+        ///     Searches for the specified sequence and returns the index of its first occurrence.
+        ///     If not found, returns -1.
+        ///     Values are compared using IEquatable{T}.Equals(T).
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int IndexOf(ReadOnlySpan<char> buffer) => Text.IndexOf(buffer);
 
         /// <summary>
-        ///     Last index of
+        ///     Searches for the specified sequence and returns the index of its last occurrence.
+        ///     If not found, returns -1.
+        ///     Values are compared using IEquatable{T}.Equals(T).
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int LastIndexOf(ReadOnlySpan<char> buffer) => Text.LastIndexOf(buffer);
 
         /// <summary>
-        ///     Index of any
+        ///     Searches for the first index of any of the specified values similar to calling IndexOf several times with the
+        ///     logical OR operator.
+        ///     If not found, returns -1.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int IndexOfAny(ReadOnlySpan<char> buffer) => Text.IndexOfAny(buffer);
 
         /// <summary>
-        ///     Last index of any
+        ///     Searches for the last index of any of the specified values similar to calling LastIndexOf several times with the
+        ///     logical OR operator.
+        ///     If not found, returns -1.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int LastIndexOfAny(ReadOnlySpan<char> buffer) => Text.LastIndexOfAny(buffer);
 
         /// <summary>
-        ///     Contains
+        ///     Searches for the specified values and returns true if found.
+        ///     If not found, returns false.
+        ///     Values are compared using IEquatable{T}.Equals(T).
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <returns>Contains</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool Contains(ReadOnlySpan<char> buffer) => Text.IndexOf(buffer) >= 0;
 
         /// <summary>
-        ///     Remove
+        ///     Replaces all occurrences of a specified string in this instance with <see langword="null" />.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Remove(ReadOnlySpan<char> buffer) => Replace(buffer, "");
 
         /// <summary>
-        ///     Insert
+        ///     Inserts the sequence of characters into this instance at the specified character position.
         /// </summary>
-        /// <param name="startIndex">Start index</param>
-        /// <param name="buffer">Buffer</param>
-        /// <returns>Inserted</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Insert(int startIndex, ReadOnlySpan<char> buffer)
         {
@@ -239,11 +233,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Replace
+        ///     Replaces all occurrences of a specified string in this instance with another specified string.
         /// </summary>
-        /// <param name="oldValue">Old value</param>
-        /// <param name="newValue">New value</param>
-        /// <returns>Replaced</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Replace(ReadOnlySpan<char> oldValue, ReadOnlySpan<char> newValue)
         {
@@ -337,31 +328,27 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Starts with
+        ///     Determines whether the specified sequence appears at the start of the span.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool StartsWith(ReadOnlySpan<char> buffer) => Text.StartsWith(buffer);
 
         /// <summary>
-        ///     Ends with
+        ///     Determines whether the specified sequence appears at the end of the span.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool EndsWith(ReadOnlySpan<char> buffer) => Text.EndsWith(buffer);
 
         /// <summary>
-        ///     Compare
+        ///     Determines the relative order of the sequences being compared by comparing the elements using
+        ///     IComparable{T}.CompareTo(T).
         /// </summary>
-        /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int Compare(ReadOnlySpan<char> buffer) => Text.SequenceCompareTo(buffer);
 
         /// <summary>
-        ///     Append
+        ///     Appends the string representation of a specified object to this instance.
         /// </summary>
-        /// <param name="value">Value</param>
-        /// <returns>Appended</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Append(char value)
         {
@@ -372,7 +359,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append
+        ///     Appends a specified number of copies of the string representation of a specified object to this instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Append(char value, int repeatCount)
@@ -385,10 +372,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append line
+        ///     Appends the specified interpolated string followed by the default line terminator to the end of the current.
         /// </summary>
-        /// <param name="value">Value</param>
-        /// <returns>Appended</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendLine(char value)
         {
@@ -403,34 +388,32 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Index of
+        ///     Searches for the specified value and returns the index of its first occurrence.
+        ///     If not found, returns -1.
+        ///     Values are compared using IEquatable{T}.Equals(T).
         /// </summary>
-        /// <param name="value">Value</param>
-        /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int IndexOf(char value) => Text.IndexOf(value);
 
         /// <summary>
-        ///     Last index of
+        ///     Searches for the specified value and returns the index of its last occurrence.
+        ///     If not found, returns -1.
+        ///     Values are compared using IEquatable{T}.Equals(T).
         /// </summary>
-        /// <param name="value">Value</param>
-        /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int LastIndexOf(char value) => Text.LastIndexOf(value);
 
         /// <summary>
-        ///     Contains
+        ///     Searches for the specified value and returns true if found.
+        ///     If not found, returns false.
+        ///     Values are compared using IEquatable{T}.Equals(T).
         /// </summary>
-        /// <param name="value">Value</param>
-        /// <returns>Contains</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool Contains(char value) => SpanHelpers.Contains(Text, value);
 
         /// <summary>
-        ///     Remove
+        ///     Replaces all occurrences of a specified string in this instance with <see langword="null" />.
         /// </summary>
-        /// <param name="value">Value</param>
-        /// <returns>Removed</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Remove(char value)
         {
@@ -447,11 +430,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Insert
+        ///     Inserts the string representation of a specified object into this instance at the specified character position.
         /// </summary>
-        /// <param name="startIndex">Start index</param>
-        /// <param name="value">Value</param>
-        /// <returns>Inserted</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Insert(int startIndex, char value)
         {
@@ -467,11 +447,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Replace
+        ///     Replaces all occurrences of a specified string in this instance with another specified string.
         /// </summary>
-        /// <param name="oldValue">Old value</param>
-        /// <param name="newValue">New value</param>
-        /// <returns>Replaced</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void Replace(char oldValue, char newValue)
         {
@@ -489,25 +466,23 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Starts with
+        ///     Determines whether this string instance starts with the specified object.
         /// </summary>
-        /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool StartsWith(char value) => _length > 1 && _buffer[0] == value;
 
         /// <summary>
-        ///     Ends with
+        ///     Determines whether this string instance ends with the specified object.
         /// </summary>
-        /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool EndsWith(char value) => _length > 1 && _buffer[_length - 1] == value;
 
         /// <summary>
-        ///     Remove
+        ///     Removes a range of characters from this builder.
         /// </summary>
-        /// <param name="startIndex">Start index</param>
-        /// <param name="length">Length</param>
-        /// <returns>Removed</returns>
+        /// <remarks>
+        ///     This method does not reduce the capacity of this builder.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(int startIndex, int length)
         {
@@ -524,20 +499,19 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reverse
+        ///     Reverses the sequence of the elements in the specified span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void Reverse() => Text.Reverse();
 
         /// <summary>
-        ///     Fill
+        ///     Fills the contents of this span with the given value.
         /// </summary>
-        /// <param name="value">Value</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void Fill(char value) => Text.Fill(value);
 
         /// <summary>
-        ///     Trim start
+        ///     Removes all leading white-space characters from the span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void TrimStart()
@@ -561,7 +535,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Trim end
+        ///     Removes all trailing white-space characters from the memory.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void TrimEnd()
@@ -576,7 +550,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Trim
+        ///     Removes all leading and trailing white-space characters from the span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Trim()
@@ -603,7 +577,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Trim start
+        ///     Removes all leading occurrences of a specified element from the span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void TrimStart(char value)
@@ -627,7 +601,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Trim end
+        ///     Removes all trailing white-space characters from the memory.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void TrimEnd(char value)
@@ -642,7 +616,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Trim
+        ///     Removes all leading and trailing occurrences of a specified element from the span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Trim(char value)
@@ -669,7 +643,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Trim start
+        ///     Removes all leading occurrences of a set of elements specified
+        ///     in a readonly span from the span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void TrimStart(ReadOnlySpan<char> buffer)
@@ -693,7 +668,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Trim end
+        ///     Removes all trailing occurrences of a set of elements specified
+        ///     in a readonly span from the span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void TrimEnd(ReadOnlySpan<char> buffer)
@@ -708,7 +684,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Trim
+        ///     Removes all leading and trailing occurrences of a set of characters specified
+        ///     in a readonly span from the span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Trim(ReadOnlySpan<char> buffer)
@@ -735,28 +712,25 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Slice
+        ///     Forms a slice out of the given span, beginning at 'start'.
         /// </summary>
-        /// <param name="start">Start</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly UnsafeString Substring(int start) => new(Text.Slice(start));
 
         /// <summary>
-        ///     Slice
+        ///     Forms a slice out of the given span, beginning at 'start', of given length
         /// </summary>
-        /// <param name="start">Start</param>
-        /// <param name="length">Length</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly UnsafeString Substring(int start, int length) => new(Text.Slice(start, length));
 
         /// <summary>
-        ///     Clear
+        ///     Clears the contents of this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear() => _length = 0;
 
         /// <summary>
-        ///     Clear
+        ///     Clears the contents of this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear(bool clear)
@@ -767,10 +741,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Set length
+        ///     Attempts to set the length of this builder.
         /// </summary>
-        /// <param name="length">Length</param>
-        /// <returns>Set</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool SetLength(int length)
         {
@@ -781,10 +753,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Skip
+        ///     Attempts to advance the length of this builder.
         /// </summary>
-        /// <param name="length">Length</param>
-        /// <returns>Skipped</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Skip(int length)
         {
@@ -796,37 +766,37 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Cast
+        ///     Casts a instance of one primitive type to another primitive type.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<TTo> Cast<TTo>() where TTo : unmanaged => MemoryMarshal.Cast<char, TTo>(AsSpan());
 
         /// <summary>
-        ///     Cast
+        ///     Casts a instance of one primitive type to another primitive type.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<TTo> Cast<TTo>(int start) where TTo : unmanaged => MemoryMarshal.Cast<char, TTo>(AsSpan(start));
 
         /// <summary>
-        ///     Cast
+        ///     Casts a instance of one primitive type to another primitive type.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<TTo> Cast<TTo>(int start, int length) where TTo : unmanaged => MemoryMarshal.Cast<char, TTo>(AsSpan(start, length));
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
         /// <returns>Equals</returns>
         public readonly bool Equals(UnsafeString other) => Text.SequenceEqual(other.Text);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
         /// <returns>Equals</returns>
         public readonly bool Equals(ReadOnlySpan<char> buffer) => Text.SequenceEqual(buffer);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
         /// <returns>Equals</returns>
         [Obsolete(SR.parameter_obsolete)]
@@ -838,22 +808,24 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
-        /// <returns>HashCode</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly override int GetHashCode() => GetHashCode(Text);
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public readonly override string ToString() => Text.ToString();
 
         /// <summary>
-        ///     Copy to
+        ///     Copies all elements from this into a destination span.
+        ///     The span must have a length at least equal to the current number of elements in this.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
+        /// <param name="buffer">The destination span to which all elements are copied.</param>
+        /// <exception cref="ArgumentException">
+        ///     Thrown when <paramref name="buffer" /> has insufficient length to hold all of this's elements.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void CopyTo(Span<char> buffer) => Text.CopyTo(buffer);
 
@@ -865,7 +837,7 @@ namespace NativeCollections
         public readonly bool TryCopyTo(Span<char> buffer) => Text.TryCopyTo(buffer);
 
         /// <summary>
-        ///     Advance
+        ///     Notifies this that <paramref name="count" /> data items were written to the output.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Advance(int count)
@@ -876,27 +848,18 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     GetSpan
+        ///     Returns a <see cref="T:System.Span`1" /> to write to that is at least the requested size (specified by
+        ///     <paramref name="sizeHint" />).
         /// </summary>
+        /// <param name="sizeHint">The desired length for the slice (exclusive).</param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when the specified <paramref name="sizeHint" /> out of range (&lt;0 or &gt;Length).
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<char> GetSpan(int sizeHint = 0) => _buffer.Slice(_length, sizeHint);
 
         /// <summary>
-        ///     To upper
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly void ToUpper()
-        {
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
-            for (var index = 0; index < _length; ++index)
-            {
-                ref var value = ref Unsafe.Add(ref reference, (nint)index);
-                value = char.ToUpper(value);
-            }
-        }
-
-        /// <summary>
-        ///     To lower
+        ///     Returns a copy of this string converted to lowercase.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void ToLower()
@@ -910,21 +873,25 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     To upper
+        ///     Returns a copy of this string converted to lowercase, using the casing rules of the specified culture.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly void ToUpperInvariant()
+        /// <param name="culture">
+        ///     An object that supplies culture-specific casing rules.
+        ///     If <paramref name="culture" /> is <see langword="null" />, the current culture is used.
+        /// </param>
+        public readonly void ToLower(CultureInfo? culture)
         {
+            var textInfo = (culture ?? CultureInfo.CurrentCulture).TextInfo;
             ref var reference = ref MemoryMarshal.GetReference(_buffer);
             for (var index = 0; index < _length; ++index)
             {
                 ref var value = ref Unsafe.Add(ref reference, (nint)index);
-                value = char.ToUpperInvariant(value);
+                value = textInfo.ToLower(value);
             }
         }
 
         /// <summary>
-        ///     To lower
+        ///     Returns a copy of this string converted to lowercase using the casing rules of the invariant culture.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void ToLowerInvariant()
@@ -938,14 +905,72 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Pad left
+        ///     Returns a copy of this string converted to uppercase.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly void ToUpper()
+        {
+            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            for (var index = 0; index < _length; ++index)
+            {
+                ref var value = ref Unsafe.Add(ref reference, (nint)index);
+                value = char.ToUpper(value);
+            }
+        }
+
+        /// <summary>
+        ///     Returns a copy of this string converted to uppercase, using the casing rules of the specified culture.
+        /// </summary>
+        /// <param name="culture">
+        ///     An object that supplies culture-specific casing rules.
+        ///     If <paramref name="culture" /> is <see langword="null" />, the current culture is used.
+        /// </param>
+        public readonly void ToUpper(CultureInfo? culture)
+        {
+            var textInfo = (culture ?? CultureInfo.CurrentCulture).TextInfo;
+            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            for (var index = 0; index < _length; ++index)
+            {
+                ref var value = ref Unsafe.Add(ref reference, (nint)index);
+                value = textInfo.ToUpper(value);
+            }
+        }
+
+        /// <summary>
+        ///     Returns a copy of this string converted to uppercase using the casing rules of the invariant culture.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly void ToUpperInvariant()
+        {
+            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            for (var index = 0; index < _length; ++index)
+            {
+                ref var value = ref Unsafe.Add(ref reference, (nint)index);
+                value = char.ToUpperInvariant(value);
+            }
+        }
+
+        /// <summary>
+        ///     Returns a new string that right-aligns the characters in this instance by padding them with spaces on the left,
+        ///     for a specified total length.
+        /// </summary>
+        /// <param name="totalWidth">
+        ///     The number of characters in the resulting string,
+        ///     equal to the number of original characters plus any additional padding characters.
+        /// </param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool PadLeft(int totalWidth) => PadLeft(totalWidth, ' ');
 
         /// <summary>
-        ///     Pad left
+        ///     Returns a new string that right-aligns the characters in this instance by padding them on the left with a specified
+        ///     character,
+        ///     for a specified total length.
         /// </summary>
+        /// <param name="totalWidth">
+        ///     The number of characters in the resulting string,
+        ///     equal to the number of original characters plus any additional padding characters.
+        /// </param>
+        /// <param name="paddingChar">A padding character.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool PadLeft(int totalWidth, char paddingChar)
         {
@@ -961,14 +986,26 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Pad right
+        ///     Returns a new string that left-aligns the characters in this string by padding them with spaces on the right,
+        ///     for a specified total length.
         /// </summary>
+        /// <param name="totalWidth">
+        ///     The number of characters in the resulting string,
+        ///     equal to the number of original characters plus any additional padding characters.
+        /// </param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool PadRight(int totalWidth) => PadRight(totalWidth, ' ');
 
         /// <summary>
-        ///     Pad right
+        ///     Returns a new string that left-aligns the characters in this string by padding them on the right with a specified
+        ///     character,
+        ///     for a specified total length.
         /// </summary>
+        /// <param name="totalWidth">
+        ///     The number of characters in the resulting string,
+        ///     equal to the number of original characters plus any additional padding characters.
+        /// </param>
+        /// <param name="paddingChar">A padding character.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool PadRight(int totalWidth, char paddingChar)
         {
@@ -983,7 +1020,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Is null or white space
+        ///     Indicates whether a specified string is <see langword="null" />, empty, or consists only of white-space characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool IsNullOrWhiteSpace()
@@ -1001,49 +1038,69 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Is null or empty
+        ///     Indicates whether the specified string is <see langword="null" /> or an empty string ("").
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool IsNullOrEmpty() => Unsafe.IsNullRef(ref MemoryMarshal.GetReference(_buffer)) || _length == 0;
 
         /// <summary>
-        ///     Split
+        ///     Splits the source span using a single element as the delimiter.
         /// </summary>
+        /// <param name="separator">The single element to use as the delimiter.</param>
+        /// <returns>An enumerator that enumerates the split segments as <see cref="ReadOnlySpan{T}" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly NativeSplit<char> Split(in char separator) => new(Text, separator);
 
         /// <summary>
-        ///     Split
+        ///     Splits the source span using a sequence of elements as the delimiter.
         /// </summary>
+        /// <param name="separator">The element sequence to use as the delimiter.</param>
+        /// <returns>An enumerator that enumerates the split segments as <see cref="ReadOnlySpan{T}" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly NativeSplit<char> Split(ReadOnlySpan<char> separator) => new(Text, separator);
 
         /// <summary>
-        ///     Split
+        ///     Splits the source span using any of the specified single elements as delimiters.
+        ///     The first occurrence of any element in the <paramref name="separator" /> set causes a split.
+        ///     The resulting enumerator yields <see cref="ReadOnlySpan{T}" /> segments.
         /// </summary>
+        /// <param name="separator">A set of single elements, any of which can act as a delimiter.</param>
+        /// <returns>An enumerator that enumerates the split segments as <see cref="ReadOnlySpan{T}" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly NativeSplitAny<char> SplitAny(ReadOnlySpan<char> separator) => new(Text, separator);
 
         /// <summary>
-        ///     Split
+        ///     Splits the source span using a single element as the delimiter, but returns the positional ranges
+        ///     (<see cref="Range" />) of each segment instead of the segment slices themselves.
+        ///     This is more lightweight when only positions are needed, allowing deferred slicing via <c>Text[range]</c>.
         /// </summary>
+        /// <param name="separator">The single element to use as the delimiter.</param>
+        /// <returns>An enumerator that enumerates the <see cref="Range" /> of each segment.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly NativeSplitRange<char> SplitRange(in char separator) => new(Text, separator);
 
         /// <summary>
-        ///     Split
+        ///     Splits the source span using a sequence of elements as the delimiter, but returns the positional ranges
+        ///     (<see cref="Range" />) of each segment instead of the segment slices themselves.
+        ///     The entire sequence must match for a split to occur.
         /// </summary>
+        /// <param name="separator">The element sequence to use as the delimiter.</param>
+        /// <returns>An enumerator that enumerates the <see cref="Range" /> of each segment.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly NativeSplitRange<char> SplitRange(ReadOnlySpan<char> separator) => new(Text, separator);
 
         /// <summary>
-        ///     Split
+        ///     Splits the source span using any of the specified single elements as delimiters, but returns the positional ranges
+        ///     (<see cref="Range" />) of each segment instead of the segment slices themselves.
+        ///     The first occurrence of any element in the <paramref name="separator" /> set causes a split.
         /// </summary>
+        /// <param name="separator">A set of single elements, any of which can act as a delimiter.</param>
+        /// <returns>An enumerator that enumerates the <see cref="Range" /> of each segment.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly NativeSplitAnyRange<char> SplitAnyRange(ReadOnlySpan<char> separator) => new(Text, separator);
 
         /// <summary>
-        ///     As ref
+        ///     Reinterprets the given location as a reference to a value.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ref UnsafeString AsRef()
@@ -1059,7 +1116,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     As pointer
+        ///     Returns a pointer to the given by-ref parameter.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly UnsafeString* AsPointer()
@@ -1075,101 +1132,86 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     As span
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<char> AsSpan() => Text;
 
         /// <summary>
-        ///     As span
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <param name="start">Start</param>
-        /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<char> AsSpan(int start) => _buffer.Slice(start, _length - start);
 
         /// <summary>
-        ///     As span
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <param name="start">Start</param>
-        /// <param name="length">Length</param>
-        /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<char> AsSpan(int start, int length) => _buffer.Slice(start, length);
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<char> AsReadOnlySpan() => Text;
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <param name="start">Start</param>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<char> AsReadOnlySpan(int start) => _buffer.Slice(start, _length - start);
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <param name="start">Start</param>
-        /// <param name="length">Length</param>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<char> AsReadOnlySpan(int start, int length) => _buffer.Slice(start, length);
 
         /// <summary>
-        ///     As span
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator Span<char>(UnsafeString value) => value.AsSpan();
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator ReadOnlySpan<char>(UnsafeString value) => value.AsReadOnlySpan();
 
         /// <summary>
-        ///     As unsafe string
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>UnsafeString</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator UnsafeString(Span<char> value) => new(value);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
         public static bool operator ==(UnsafeString left, UnsafeString right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
         public static bool operator !=(UnsafeString left, UnsafeString right) => !left.Equals(right);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
         public static bool operator ==(UnsafeString left, ReadOnlySpan<char> right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
         public static bool operator !=(UnsafeString left, ReadOnlySpan<char> right) => !left.Equals(right);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
         public static bool operator ==(ReadOnlySpan<char> left, UnsafeString right) => right.Equals(left);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
         public static bool operator !=(ReadOnlySpan<char> left, UnsafeString right) => !right.Equals(left);
 
@@ -1194,36 +1236,34 @@ namespace NativeCollections
         private static readonly char[] _WhiteSpaceChars = "\t\n\v\f\r\u0020\u0085\u00a0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000".ToCharArray();
 
         /// <summary>
-        ///     New line
+        ///     Gets the newline string defined for this environment.
         /// </summary>
         public static ReadOnlySpan<char> NewLine => _NewLine;
 
         /// <summary>
-        ///     New line
+        ///     Gets the newline string defined for this environment.
         /// </summary>
         public static ReadOnlySpan<byte> NewLineUtf8 => _NewLineUtf8;
 
         /// <summary>
-        ///     New line chars
+        ///     Gets the all newline chars defined for this environment.
         /// </summary>
         public static ReadOnlySpan<char> NewLineChars => _NewLineChars;
 
         /// <summary>
-        ///     WhiteSpace chars
+        ///     Gets the all white space chars defined for this environment.
         /// </summary>
         public static ReadOnlySpan<char> WhiteSpaceChars => _WhiteSpaceChars;
 
         /// <summary>
-        ///     Custom GetHashCode
+        ///     Configures custom get hash code handler.
         /// </summary>
-        /// <param name="getHashCode">GetHashCode</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Custom(delegate* managed<ReadOnlySpan<char>, int> getHashCode) => _getHashCode = getHashCode;
 
         /// <summary>
-        ///     Get hashCode
+        ///     Diffuses the hash code returned by the specified chars.
         /// </summary>
-        /// <returns>HashCode</returns>
         [Customizable]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetHashCode(ReadOnlySpan<char> buffer)
@@ -1236,9 +1276,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get hashCode
+        ///     Diffuses the hash code returned by the specified chars.
         /// </summary>
-        /// <returns>HashCode</returns>
+        /// <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="charCount" /> is less than 0.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetHashCode(char* ptr, int charCount)
         {
@@ -1264,13 +1304,13 @@ namespace NativeCollections
         public static UnsafeString Empty => default;
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         public readonly Span<char>.Enumerator GetEnumerator() => Text.GetEnumerator();
 
 #if NET9_0_OR_GREATER
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -1281,7 +1321,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -1293,13 +1333,17 @@ namespace NativeCollections
 #endif
 
         /// <summary>
-        ///     Append format
+        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
+        ///     this instance.
+        ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormat<T>(T? obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) where T : struct => !obj.HasValue || AppendFormat(obj.GetValueOrDefault(), format, provider);
 
         /// <summary>
-        ///     Append format
+        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
+        ///     this instance.
+        ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormat<T>(T? obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1314,7 +1358,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormattable(bool obj, ReadOnlySpan<char> _ = default, IFormatProvider? __ = null)
@@ -1330,7 +1374,7 @@ namespace NativeCollections
 
 #if NET6_0_OR_GREATER
         /// <summary>
-        ///     Append formatted
+        ///     Appends the string representation of a specified read-only character span to this instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormatted(ref DefaultInterpolatedStringHandler handler, bool clear = true)
@@ -1347,7 +1391,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formatted
+        ///     Appends the string representation of a specified read-only character span to this instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormatted(IFormatProvider? provider, [InterpolatedStringHandlerArgument("provider")] ref DefaultInterpolatedStringHandler handler, bool clear = true)
@@ -1364,7 +1408,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormattable<T>(in T obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) where T : ISpanFormattable
@@ -1379,7 +1423,7 @@ namespace NativeCollections
         }
 #else
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormattable(decimal obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1394,7 +1438,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormattable(DateTime obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1409,7 +1453,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormattable(byte obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1424,7 +1468,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormattable(DateTimeOffset obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1439,7 +1483,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormattable(double obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1454,7 +1498,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormattable(Guid obj, ReadOnlySpan<char> format = default, IFormatProvider? _ = null)
@@ -1470,7 +1514,7 @@ namespace NativeCollections
 
 #if NET5_0_OR_GREATER
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormattable(Half obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1486,7 +1530,7 @@ namespace NativeCollections
 #endif
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormattable(short obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1501,7 +1545,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormattable(int obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1516,7 +1560,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormattable(long obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1531,7 +1575,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormattable(sbyte obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1546,7 +1590,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormattable(float obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1561,7 +1605,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormattable(TimeSpan obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1576,7 +1620,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormattable(ushort obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1591,7 +1635,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormattable(uint obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1606,7 +1650,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormattable(ulong obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1621,19 +1665,19 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormattable(nint obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) => Environment.Is64BitProcess ? AppendFormattable((long)obj, format, provider) : AppendFormattable((int)obj, format, provider);
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormattable(nuint obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) => Environment.Is64BitProcess ? AppendFormattable((ulong)obj, format, provider) : AppendFormattable((uint)obj, format, provider);
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormattable(Version obj, ReadOnlySpan<char> _ = default, IFormatProvider? __ = null)

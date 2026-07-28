@@ -24,82 +24,83 @@ namespace NativeCollections
         private MemorySlab* _freeList;
 
         /// <summary>
-        ///     Slabs
+        ///     Gets the total number of slabs currently allocated in the pool.
         /// </summary>
         private int _slabs;
 
         /// <summary>
-        ///     Free slabs
+        ///     Gets the number of slabs that are currently free and available for reuse.
         /// </summary>
         private int _freeSlabs;
 
         /// <summary>
-        ///     Max free slabs
+        ///     Gets the maximum number of free slabs that can be retained before excess slabs are freed.
         /// </summary>
         private readonly int _maxFreeSlabs;
 
         /// <summary>
-        ///     Length
+        ///     Gets the total numbers of elements the internal data structure can hold.
         /// </summary>
         private readonly int _length;
 
         /// <summary>
-        ///     Alignment
+        ///     Gets the alignment requirement (in bytes) for allocations managed by this pool.
         /// </summary>
         private readonly int _alignment;
 
         /// <summary>
-        ///     Aligned slab size
+        ///     The aligned size (in bytes) of the per-slab overhead, including alignment padding.
         /// </summary>
         private readonly int _alignedSlabSize;
 
         /// <summary>
-        ///     Aligned node size
+        ///     The aligned size (in bytes) of the per-node header, including alignment padding.
         /// </summary>
         private readonly int _alignedNodeSize;
 
         /// <summary>
-        ///     Aligned length
+        ///     Gets the aligned length (in bytes) of the data portion of each node after alignment.
         /// </summary>
         private readonly int _alignedLength;
 
         /// <summary>
-        ///     Full node size
+        ///     The total size (in bytes) of a single node, which includes the node header and the data region,
+        ///     with alignment taken into account. This value is used for offset calculations within a slab.
         /// </summary>
         private readonly int _fullNodeSize;
 
         /// <summary>
-        ///     Is created
+        ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public readonly bool IsCreated => !UnsafeHelpers.IsNull(_sentinel);
 
         /// <summary>
-        ///     Slabs
+        ///     Gets the total number of slabs currently allocated in the pool.
         /// </summary>
         public readonly int Slabs => _slabs;
 
         /// <summary>
-        ///     Free slabs
+        ///     Gets the number of slabs that are currently free and available for reuse.
         /// </summary>
         public readonly int FreeSlabs => _freeSlabs;
 
         /// <summary>
-        ///     Max free slabs
+        ///     Gets the maximum number of free slabs that can be retained before excess slabs are freed.
         /// </summary>
         public readonly int MaxFreeSlabs => _maxFreeSlabs;
 
         /// <summary>
-        ///     Length
+        ///     Gets the total number of elements in all the dimensions of the instance.
         /// </summary>
         public readonly int Length => _length;
 
         /// <summary>
-        ///     Alignment
+        ///     Gets the alignment requirement (in bytes) for allocations managed by this pool.
         /// </summary>
         public readonly int Alignment => _alignment;
 
         /// <summary>
-        ///     Aligned length
+        ///     Gets the aligned length (in bytes) of the data portion of each node after alignment.
         /// </summary>
         public readonly int AlignedLength => _alignedLength;
 
@@ -138,49 +139,38 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="other">Other</param>
-        /// <returns>Equals</returns>
         public readonly bool Equals(UnsafeU64MemoryPool other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <returns>Equals</returns>
         public readonly override bool Equals(object? obj) => obj is UnsafeU64MemoryPool other && other.Equals(this);
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
-        /// <returns>HashCode</returns>
         public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public readonly override string ToString() => "UnsafeUInt64MemoryPool";
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Equals</returns>
         public static bool operator ==(UnsafeU64MemoryPool left, UnsafeU64MemoryPool right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Not equals</returns>
         public static bool operator !=(UnsafeU64MemoryPool left, UnsafeU64MemoryPool right) => !left.Equals(right);
 
         /// <summary>
-        ///     Dispose
+        ///     Performs application-defined tasks associated with freeing,
+        ///     releasing, or resetting unmanaged resources.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
@@ -205,15 +195,15 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Clear
+        ///     Clears the contents of this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear() => ClearInternal(0);
 
         /// <summary>
-        ///     Clear
+        ///     Clears the contents of this.
         /// </summary>
-        /// <param name="capacity">Remaining free slabs</param>
+        /// <param name="capacity">The minimum capacity to ensure.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Clear(int capacity)
         {
@@ -224,9 +214,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Clear
+        ///     Clears the contents of this.
         /// </summary>
-        /// <param name="capacity">Remaining free slabs</param>
+        /// <param name="capacity">The minimum capacity to ensure.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ClearInternal(int capacity)
         {
@@ -255,9 +245,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Rent buffer
+        ///     Retrieves a buffer.
         /// </summary>
-        /// <returns>Buffer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void* Rent()
         {
@@ -295,9 +284,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Return buffer
+        ///     Returns to the pool an object that was previously obtained via <see cref="Rent" /> on the same instance.
         /// </summary>
-        /// <param name="ptr">Pointer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Return(void* ptr)
         {
@@ -339,10 +327,12 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Ensure capacity
+        ///     Ensures that the capacity of this is at least the specified <paramref name="capacity" />.
+        ///     If the current capacity of this is less than specified <paramref name="capacity" />,
+        ///     the capacity is increased to at least <paramref name="capacity" />.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>New capacity</returns>
+        /// <param name="capacity">The minimum capacity to ensure.</param>
+        /// <returns>The new capacity of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int EnsureCapacity(int capacity)
         {
@@ -360,15 +350,20 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Trim excess
+        ///     Trims the capacity of this to the specified number of entries.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void TrimExcess() => TrimExcessInternal(0);
+        public int TrimExcess()
+        {
+            TrimExcessInternal(0);
+            return 0;
+        }
 
         /// <summary>
-        ///     Trim excess
+        ///     Trims the capacity of this to the specified number of entries.
         /// </summary>
-        /// <param name="capacity">Remaining free slabs</param>
+        /// <param name="capacity">The new capacity.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Passed capacity is lower than entries count.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity)
         {
@@ -378,7 +373,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Trim excess
+        ///     Trims the capacity of this to the specified number of entries.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void TrimExcessInternal(int capacity)

@@ -9,7 +9,9 @@ namespace NativeCollections
     /// </summary>
     internal static class ArrayHelpers
     {
-        /// <summary>Gets the maximum number of elements that may be contained in an array.</summary>
+        /// <summary>
+        ///     Gets the maximum number of elements that may be contained in an array.
+        /// </summary>
         /// <returns>The maximum count of elements allowed in any array.</returns>
         /// <remarks>
         ///     <para>

@@ -30,9 +30,16 @@ namespace NativeCollections
         private readonly UnsafeFrozenDictionaryHandle<TKey, TValue> _handle;
 
         /// <summary>
-        ///     Get value
+        ///     Gets or sets the value associated with the specified key.
         /// </summary>
-        /// <param name="key">Key</param>
+        /// <param name="key">The key of the value to get or set.</param>
+        /// <value>
+        ///     The value associated with the specified key. If the specified key is not found, a get operation throws a
+        ///     <see cref="KeyNotFoundException" />, and a set operation creates a new element with the specified key.
+        /// </value>
+        /// <exception cref="KeyNotFoundException">
+        ///     The property is retrieved and <paramref name="key" /> does not exist in the collection.
+        /// </exception>
         public ref readonly TValue this[in TKey key]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -47,17 +54,21 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Is created
+        ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public bool IsCreated => _handle.IsCreated;
 
         /// <summary>
-        ///     Is empty
+        ///     Gets a value that indicates whether this is empty.
         /// </summary>
+        /// <value>
+        ///     true if this is empty;
+        ///     otherwise, false.
+        /// </value>
         public bool IsEmpty => Count == 0;
 
         /// <summary>
-        ///     Keys
+        ///     Gets a collection containing the keys in the dictionary.
         /// </summary>
         public ReadOnlySpan<TKey> Keys
         {
@@ -70,7 +81,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Values
+        ///     Gets a collection containing the values in the dictionary.
         /// </summary>
         public ReadOnlySpan<TValue> Values
         {
@@ -83,7 +94,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Count
+        ///     Gets the number of elements contained in this.
         /// </summary>
         public int Count
         {
@@ -149,45 +160,33 @@ namespace NativeCollections
         public UnsafeFrozenDictionary([MustBeDistinct] ReadOnlySpan<KeyValuePair<TKey, TValue>> source) => _handle = Initialize(source);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="other">Other</param>
-        /// <returns>Equals</returns>
         public bool Equals(UnsafeFrozenDictionary<TKey, TValue> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <returns>Equals</returns>
         public override bool Equals(object? obj) => obj is UnsafeFrozenDictionary<TKey, TValue> other && other.Equals(this);
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
-        /// <returns>HashCode</returns>
         public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public override string ToString() => SR.Format("UnsafeFrozenDictionary<{0}, {1}>", SR.GetTypeName(typeof(TKey)), SR.GetTypeName(typeof(TValue)));
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Equals</returns>
         public static bool operator ==(UnsafeFrozenDictionary<TKey, TValue> left, UnsafeFrozenDictionary<TKey, TValue> right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Not equals</returns>
         public static bool operator !=(UnsafeFrozenDictionary<TKey, TValue> left, UnsafeFrozenDictionary<TKey, TValue> right) => !left.Equals(right);
 
         /// <summary>
@@ -232,7 +231,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Dispose
+        ///     Performs application-defined tasks associated with freeing,
+        ///     releasing, or resetting unmanaged resources.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
@@ -242,19 +242,28 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Contains key
+        ///     Determines whether this contains the specified key.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <returns>Contains key</returns>
+        /// <param name="key">The key to locate in this.</param>
+        /// <returns>
+        ///     <see langword="true" /> if this contains an element with the specified key;
+        ///     otherwise, <see langword="false" />.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool ContainsKey(in TKey key) => !Unsafe.IsNullRef(ref Unsafe.AsRef(in GetValueRefOrNullRef(key)));
 
         /// <summary>
-        ///     Try to get the value
+        ///     Gets the value associated with the specified key.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
-        /// <returns>Got</returns>
+        /// <param name="key">The key of the value to get.</param>
+        /// <param name="value">
+        ///     When this method returns, contains the value associated with the specified key, if the key is
+        ///     found; otherwise, the default value for the type of the <paramref name="value" /> parameter.
+        ///     This parameter is passed uninitialized.
+        /// </param>
+        /// <returns>
+        ///     <see langword="true" /> if this contains an element with the specified key; otherwise, <see langword="false" />.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryGetValue(in TKey key, out TValue value)
         {
@@ -271,10 +280,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get value ref
+        ///     Gets either a ref to a <typeparamref name="TValue" /> in this or a ref null if it does not exist in this.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <returns>Value ref</returns>
+        /// <param name="key">The key used for lookup.</param>
+        /// <remarks>
+        ///     Items should not be added or removed from this while the ref <typeparamref name="TValue" /> is in use.
+        ///     The ref null can be detected using System.Runtime.CompilerServices.Unsafe.IsNullRef
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ref readonly TValue GetValueRefOrNullRef(in TKey key)
         {
@@ -283,11 +295,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get value ref
+        ///     Gets either a ref to a <typeparamref name="TValue" /> in this or a ref null if it does not exist in this.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="exists">Exists</param>
-        /// <returns>Value ref</returns>
+        /// <param name="key">The key used for lookup.</param>
+        /// <param name="exists">Whether or not a new entry for the given key was added to this.</param>
+        /// <remarks>
+        ///     Items should not be added or removed from this while the ref <typeparamref name="TValue" /> is in use.
+        ///     The ref null can be detected using System.Runtime.CompilerServices.Unsafe.IsNullRef
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ref readonly TValue GetValueRefOrNullRef(in TKey key, out bool exists)
         {
@@ -303,9 +318,8 @@ namespace NativeCollections
         public static UnsafeFrozenDictionary<TKey, TValue> Empty => default;
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
-        /// <returns>Enumerator</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeFrozenDictionary<TKey, TValue>.Enumerator GetEnumerator()
         {
@@ -314,7 +328,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -325,7 +339,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]

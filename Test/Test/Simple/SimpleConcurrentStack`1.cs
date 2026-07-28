@@ -50,7 +50,8 @@ namespace Examples
         }
 
         /// <summary>
-        ///     Dispose
+        ///     Performs application-defined tasks associated with freeing,
+        ///     releasing, or resetting unmanaged resources.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
@@ -112,28 +113,17 @@ namespace Examples
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool TryPop(out T result, int tid)
         {
-            var head = _hp.protect(0, ref _head, tid);
-
-            if (_head.CompareExchange(head->Next, head) == head)
-            {
-                result = head->Value;
-                _hp.clear(tid);
-                _hp.retire(head, tid);
-                return true;
-            }
-
             var spinWait = new UnsafeSpinWait();
             var backoff = 1;
             while (true)
             {
-                head = _head.Load(Ordering.Relaxed);
+                var head = _hp.protect(0, ref _head, tid);
                 if (head == null)
                 {
+                    _hp.clear(tid);
                     result = default;
                     return false;
                 }
-
-                head = _hp.protect(0, ref _head, tid);
 
                 if (_head.CompareExchange(head->Next, head) == head)
                 {

@@ -19,7 +19,7 @@ namespace NativeCollections
         public readonly byte* Buffer;
 
         /// <summary>
-        ///     Length
+        ///     Gets the total number of elements in all the dimensions of the instance.
         /// </summary>
         public readonly int Length;
 
@@ -43,30 +43,30 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Dispose
+        ///     Performs application-defined tasks associated with freeing,
+        ///     releasing, or resetting unmanaged resources.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void Dispose() => Box.Free(Buffer);
 
         /// <summary>
-        ///     Is created
+        ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public readonly bool IsCreated => !UnsafeHelpers.IsNull(Buffer);
 
         /// <summary>
-        ///     Position
+        ///     Gets the current position within the stream.
         /// </summary>
         public readonly int Position => _position;
 
         /// <summary>
-        ///     Remaining
+        ///     Gets the number of remaining bytes available in the bucket.
         /// </summary>
         public readonly int Remaining => Length - _position;
 
         /// <summary>
-        ///     Get reference
+        ///     Reinterprets the given location as a reference to a value.
         /// </summary>
-        /// <param name="index">Index</param>
         public readonly byte* this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -74,9 +74,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get reference
+        ///     Reinterprets the given location as a reference to a value.
         /// </summary>
-        /// <param name="index">Index</param>
         public readonly byte* this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -84,51 +83,42 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="other">Other</param>
-        /// <returns>Equals</returns>
         public readonly bool Equals(UnsafeMemoryLinearAllocator other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <returns>Equals</returns>
         public readonly override bool Equals(object? obj) => obj is UnsafeMemoryLinearAllocator other && other.Equals(this);
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
-        /// <returns>HashCode</returns>
         public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public readonly override string ToString() => "UnsafeMemoryLinearAllocator";
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Equals</returns>
         public static bool operator ==(UnsafeMemoryLinearAllocator left, UnsafeMemoryLinearAllocator right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Not equals</returns>
         public static bool operator !=(UnsafeMemoryLinearAllocator left, UnsafeMemoryLinearAllocator right) => !left.Equals(right);
 
         /// <summary>
-        ///     Advance
+        ///     Notifies this that <paramref name="count" /> data items were written to the output.
         /// </summary>
-        /// <param name="count">Count</param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     The position is set to a negative value or a value greater than
+        ///     <see cref="Length"></see>.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Advance(int count)
         {
@@ -138,10 +128,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try advance
+        ///     Notifies this that <paramref name="count" /> data items were written to the output.
         /// </summary>
-        /// <param name="count">Count</param>
-        /// <returns>Advanced</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryAdvance(int count)
         {
@@ -153,9 +141,12 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Set position
+        ///     Sets the current position within the stream.
         /// </summary>
-        /// <param name="position">Position</param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     The position is set to a negative value or a value greater than
+        ///     <see cref="Length"></see>.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetPosition(int position)
         {
@@ -164,10 +155,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try set position
+        ///     Sets the current position within the stream.
         /// </summary>
-        /// <param name="position">Position</param>
-        /// <returns>Set</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TrySetPosition(int position)
         {
@@ -177,7 +166,9 @@ namespace NativeCollections
             return true;
         }
 
-        /// <summary>Allocates an aligned block of memory of the specified size and alignment, in bytes.</summary>
+        /// <summary>
+        ///     Allocates an aligned block of memory of the specified size and alignment, in bytes.
+        /// </summary>
         /// <returns>A pointer to the allocated aligned block of memory.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryAlignedAlloc<T>(uint elementCount, out T* ptr) where T : unmanaged
@@ -194,7 +185,9 @@ namespace NativeCollections
             return false;
         }
 
-        /// <summary>Allocates and zeroes an aligned block of memory of the specified size and alignment, in bytes.</summary>
+        /// <summary>
+        ///     Allocates and zeroes an aligned block of memory of the specified size and alignment, in bytes.
+        /// </summary>
         /// <returns>A pointer to the allocated and zeroed aligned block of memory.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryAlignedAllocZeroed<T>(uint elementCount, out T* ptr) where T : unmanaged
@@ -211,7 +204,9 @@ namespace NativeCollections
             return false;
         }
 
-        /// <summary>Allocates an aligned block of memory of the specified size and alignment, in bytes.</summary>
+        /// <summary>
+        ///     Allocates an aligned block of memory of the specified size and alignment, in bytes.
+        /// </summary>
         /// <returns>A pointer to the allocated aligned block of memory.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryAlignedAlloc(uint byteCount, uint alignment, out void* ptr)
@@ -229,7 +224,9 @@ namespace NativeCollections
             return true;
         }
 
-        /// <summary>Allocates and zeroes an aligned block of memory of the specified size and alignment, in bytes.</summary>
+        /// <summary>
+        ///     Allocates and zeroes an aligned block of memory of the specified size and alignment, in bytes.
+        /// </summary>
         /// <returns>A pointer to the allocated and zeroed aligned block of memory.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryAlignedAllocZeroed(uint byteCount, uint alignment, out void* ptr)
@@ -241,87 +238,71 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     As span
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<byte> AsSpan() => MemoryMarshal.CreateSpan(ref Unsafe.AsRef<byte>(Buffer), Length);
 
         /// <summary>
-        ///     As span
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <param name="start">Start</param>
-        /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<byte> AsSpan(int start) => MemoryMarshal.CreateSpan(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(Buffer), new IntPtr(start)), Length - start);
 
         /// <summary>
-        ///     As span
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <param name="start">Start</param>
-        /// <param name="length">Length</param>
-        /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<byte> AsSpan(int start, int length) => MemoryMarshal.CreateSpan(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(Buffer), new IntPtr(start)), length);
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<byte> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<byte>(Buffer), Length);
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <param name="start">Start</param>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<byte> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(Buffer), new IntPtr(start)), Length - start);
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <param name="start">Start</param>
-        /// <param name="length">Length</param>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<byte> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(Buffer), new IntPtr(start)), length);
 
         /// <summary>
-        ///     As pointer
+        ///     Returns a pointer to the given by-ref parameter.
         /// </summary>
         /// <returns>Pointer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator byte*(UnsafeMemoryLinearAllocator value) => value.Buffer;
 
         /// <summary>
-        ///     As native memory linear allocator
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>NativeMemoryLinearAllocator</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(nameof(value))]
         public static implicit operator UnsafeMemoryLinearAllocator([MustBePinned] Span<byte> value) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(value)), value.Length);
 
         /// <summary>
-        ///     As span
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>Span</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator Span<byte>(UnsafeMemoryLinearAllocator value) => value.AsSpan();
 
         /// <summary>
-        ///     As native memory linear allocator
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>NativeMemoryLinearAllocator</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(nameof(value))]
         public static implicit operator UnsafeMemoryLinearAllocator([MustBePinned] ReadOnlySpan<byte> value) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(value)), value.Length);
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
-        /// <returns>ReadOnlySpan</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator ReadOnlySpan<byte>(UnsafeMemoryLinearAllocator value) => value.AsReadOnlySpan();
 

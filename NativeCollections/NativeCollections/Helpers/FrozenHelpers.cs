@@ -146,7 +146,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Count
+            ///     Gets the number of elements contained in this.
             /// </summary>
             public int Count
             {
@@ -288,7 +288,8 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Dispose
+            ///     Performs application-defined tasks associated with freeing,
+            ///     releasing, or resetting unmanaged resources.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Dispose() => _hashCodes.Dispose();

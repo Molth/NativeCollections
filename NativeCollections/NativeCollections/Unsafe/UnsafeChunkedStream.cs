@@ -32,22 +32,22 @@ namespace NativeCollections
         private MemoryChunk* _freeList;
 
         /// <summary>
-        ///     Chunks
+        ///     Gets the total number of chunks currently allocated in the stack.
         /// </summary>
         private int _chunks;
 
         /// <summary>
-        ///     Free chunks
+        ///     Gets the number of chunks that are currently free and available for reuse.
         /// </summary>
         private int _freeChunks;
 
         /// <summary>
-        ///     Max free chunks
+        ///     Gets the maximum number of free chunks that can be retained before excess chunks are freed.
         /// </summary>
         private readonly int _maxFreeChunks;
 
         /// <summary>
-        ///     Size
+        ///     Gets the number of elements.
         /// </summary>
         private readonly int _size;
 
@@ -62,47 +62,51 @@ namespace NativeCollections
         private int _writeOffset;
 
         /// <summary>
-        ///     Length
+        ///     Gets the total number of elements in all the dimensions of the instance.
         /// </summary>
         private int _length;
 
         /// <summary>
-        ///     Version
+        ///     Used to keep enumerator in sync w/ collection.
         /// </summary>
         private int _version;
 
         /// <summary>
-        ///     Is created
+        ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public readonly bool IsCreated => !UnsafeHelpers.IsNull(_head);
 
         /// <summary>
-        ///     Is empty
+        ///     Gets a value that indicates whether this is empty.
         /// </summary>
+        /// <value>
+        ///     true if this is empty;
+        ///     otherwise, false.
+        /// </value>
         public readonly bool IsEmpty => _length == 0;
 
         /// <summary>
-        ///     Chunks
+        ///     Gets the total number of chunks currently allocated in the stack.
         /// </summary>
         public readonly int Chunks => _chunks;
 
         /// <summary>
-        ///     Free chunks
+        ///     Gets the number of chunks that are currently free and available for reuse.
         /// </summary>
         public readonly int FreeChunks => _freeChunks;
 
         /// <summary>
-        ///     Max free chunks
+        ///     Gets the maximum number of free chunks that can be retained before excess chunks are freed.
         /// </summary>
         public readonly int MaxFreeChunks => _maxFreeChunks;
 
         /// <summary>
-        ///     Size
+        ///     Gets the number of elements.
         /// </summary>
         public readonly int Size => _size;
 
         /// <summary>
-        ///     Length
+        ///     Gets the total number of elements in all the dimensions of the instance.
         /// </summary>
         public readonly int Length => _length;
 
@@ -131,49 +135,38 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="other">Other</param>
-        /// <returns>Equals</returns>
         public readonly bool Equals(UnsafeChunkedStream other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="obj">object</param>
-        /// <returns>Equals</returns>
         public readonly override bool Equals(object? obj) => obj is UnsafeChunkedStream other && other.Equals(this);
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
-        /// <returns>HashCode</returns>
         public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public readonly override string ToString() => "UnsafeChunkedStream";
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Equals</returns>
         public static bool operator ==(UnsafeChunkedStream left, UnsafeChunkedStream right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Not equals</returns>
         public static bool operator !=(UnsafeChunkedStream left, UnsafeChunkedStream right) => !left.Equals(right);
 
         /// <summary>
-        ///     Dispose
+        ///     Performs application-defined tasks associated with freeing,
+        ///     releasing, or resetting unmanaged resources.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
@@ -198,11 +191,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Read
+        ///     Reads a sequence of bytes from the current memory stream,
+        ///     and advances the position within the memory stream by the number of bytes read.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="length">Length</param>
-        /// <returns>Bytes</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Read(byte* buffer, int length)
         {
@@ -211,10 +202,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Write
+        ///     Writes the sequence of bytes into the current memory stream,
+        ///     and advances the current position within this memory stream by the number of bytes written.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="length">Length</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(byte* buffer, int length)
         {
@@ -223,10 +213,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Read
+        ///     Reads a sequence of bytes from the current memory stream,
+        ///     and advances the position within the memory stream by the number of bytes read.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <returns>Bytes</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Read(Span<byte> buffer)
         {
@@ -363,9 +352,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Write
+        ///     Writes the sequence of bytes into the current memory stream,
+        ///     and advances the current position within this memory stream by the number of bytes written.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(ReadOnlySpan<byte> buffer)
         {
@@ -434,10 +423,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Read
+        ///     Advances the position within the memory stream by the number of bytes read.
         /// </summary>
-        /// <param name="length">Length</param>
-        /// <returns>Bytes</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Read(int length)
         {
@@ -560,9 +547,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Write
+        ///     Advances the current position within this memory stream by the number of bytes written.
         /// </summary>
-        /// <param name="length">Length</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(int length)
         {
@@ -625,7 +611,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get first read buffer
+        ///     Returns the first array of unsigned bytes from which this stream was created.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Span<byte> GetBuffer()
@@ -635,10 +621,12 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Ensure capacity
+        ///     Ensures that the capacity of this is at least the specified <paramref name="capacity" />.
+        ///     If the current capacity of this is less than specified <paramref name="capacity" />,
+        ///     the capacity is increased to at least <paramref name="capacity" />.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>New capacity</returns>
+        /// <param name="capacity">The minimum capacity to ensure.</param>
+        /// <returns>The new capacity of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int EnsureCapacity(int capacity)
         {
@@ -656,10 +644,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Trim excess
+        ///     Trims the capacity of this to the specified number of entries.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void TrimExcess()
+        public int TrimExcess()
         {
             var node = _freeList;
             while (_freeChunks > 0)
@@ -671,12 +659,14 @@ namespace NativeCollections
             }
 
             _freeList = node;
+            return 0;
         }
 
         /// <summary>
-        ///     Trim excess
+        ///     Trims the capacity of this to the specified number of entries.
         /// </summary>
-        /// <param name="capacity">Remaining free slabs</param>
+        /// <param name="capacity">The new capacity.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Passed capacity is lower than entries count.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity)
         {
@@ -695,10 +685,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Copy to
+        ///     Copies up to the specified number of elements from this.
+        ///     The actual number of copied elements is limited by the span's length, the specified count,
+        ///     and the current number of elements in this.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="count">Count</param>
+        /// <param name="buffer">The destination span to which elements are copied.</param>
+        /// <param name="count">The maximum number of elements to copy. Must be non-negative.</param>
+        /// <returns>The actual number of elements copied from the this.</returns>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="count" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int CopyTo(Span<byte> buffer, int count)
         {
@@ -738,9 +732,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Copy to
+        ///     Copies all elements from this into a destination span.
+        ///     The span must have a length at least equal to the current number of elements in this.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
+        /// <param name="buffer">The destination span to which all elements are copied.</param>
+        /// <exception cref="ArgumentException">
+        ///     Thrown when <paramref name="buffer" /> has insufficient length to hold all of this's elements.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void CopyTo(Span<byte> buffer)
         {
@@ -806,14 +804,13 @@ namespace NativeCollections
         public static UnsafeChunkedStream Empty => default;
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
-        /// <returns>Enumerator</returns>
         [MustBePinned(SR.parameter_this)]
         public Enumerator GetEnumerator() => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -824,7 +821,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get enumerator
+        ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -846,7 +843,7 @@ namespace NativeCollections
             private readonly UnsafeChunkedStream* _handle;
 
             /// <summary>
-            ///     Version
+            ///     Used to keep enumerator in sync w/ collection.
             /// </summary>
             private readonly int _version;
 
@@ -856,8 +853,9 @@ namespace NativeCollections
             private MemoryChunk* _currentChunk;
 
             /// <summary>
-            ///     Current
+            ///     Gets the element in the collection at the current position of the enumerator.
             /// </summary>
+            /// <returns>The element in the collection at the current position of the enumerator.</returns>
             private NativeArray<byte> _current;
 
             /// <summary>
@@ -885,9 +883,12 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Move next
+            ///     Advances the enumerator to the next element of the collection.
             /// </summary>
-            /// <returns>Moved</returns>
+            /// <returns>
+            ///     <see langword="true" /> if the enumerator was successfully advanced to the next element;
+            ///     <see langword="false" /> if the enumerator has passed the end of the collection.
+            /// </returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext()
             {
@@ -925,7 +926,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Reset
+            ///     Sets the enumerator to its initial position, which is before the first element in the collection.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Reset()
@@ -938,8 +939,9 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Current
+            ///     Gets the element in the collection at the current position of the enumerator.
             /// </summary>
+            /// <returns>The element in the collection at the current position of the enumerator.</returns>
             public readonly NativeArray<byte> Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]

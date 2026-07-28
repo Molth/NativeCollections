@@ -11,8 +11,10 @@ namespace NativeCollections
 {
     /// <summary>
     ///     Unsafe bitwise
-    ///     https://github.com/dotnet/dotNext/blob/master/src/DotNext/BitwiseComparer.cs
     /// </summary>
+    /// <remarks>
+    ///     https://github.com/dotnet/dotNext/blob/master/src/DotNext/BitwiseComparer.cs
+    /// </remarks>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Community)]
@@ -24,7 +26,7 @@ namespace NativeCollections
         public T Value;
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
         public readonly bool Equals(UnsafeBitwise<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
@@ -34,7 +36,7 @@ namespace NativeCollections
         public readonly int CompareTo(UnsafeBitwise<T> other) => SpanHelpers.Compare(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
         public readonly bool Equals(T other) => SpanHelpers.Equals(ref Unsafe.AsRef(in Value), ref other);
 
@@ -44,7 +46,7 @@ namespace NativeCollections
         public readonly int CompareTo(T other) => SpanHelpers.Compare(ref Unsafe.AsRef(in Value), ref other);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
         public readonly bool Equals(ReadOnlySpan<byte> other) => AsReadOnlySpan().SequenceEqual(other);
 
@@ -54,7 +56,7 @@ namespace NativeCollections
         public readonly int CompareTo(ReadOnlySpan<byte> other) => AsReadOnlySpan().SequenceCompareTo(other);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -70,84 +72,83 @@ namespace NativeCollections
         public readonly override int GetHashCode() => NativeHashCode.GetHashCode(AsReadOnlySpan());
 
         /// <summary>
-        ///     To string
+        ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        /// <returns>String</returns>
         public readonly override string ToString() => SR.Format("UnsafeBitwise<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
-        ///     As span
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
         public Span<byte> AsSpan() => MemoryMarshal.CreateSpan(ref Unsafe.As<T, byte>(ref Value), Unsafe.SizeOf<T>());
 
         /// <summary>
-        ///     As readOnly span
+        ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
         public readonly ReadOnlySpan<byte> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<T, byte>(ref Unsafe.AsRef(in Value)), Unsafe.SizeOf<T>());
 
         /// <summary>
-        ///     As value
+        ///     Copies the element of a regular managed object.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator T(UnsafeBitwise<T> value) => Unsafe.As<UnsafeBitwise<T>, T>(ref value);
 
         /// <summary>
-        ///     As native bitwise
+        ///     Creates a new span over a portion of a regular managed object.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator UnsafeBitwise<T>(T value) => Unsafe.As<T, UnsafeBitwise<T>>(ref value);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
         public static bool operator ==(UnsafeBitwise<T> left, UnsafeBitwise<T> right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
         public static bool operator !=(UnsafeBitwise<T> left, UnsafeBitwise<T> right) => !left.Equals(right);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
         public static bool operator ==(UnsafeBitwise<T> left, T right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
         public static bool operator !=(UnsafeBitwise<T> left, T right) => !left.Equals(right);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
         public static bool operator ==(T left, UnsafeBitwise<T> right) => right.Equals(left);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
         public static bool operator !=(T left, UnsafeBitwise<T> right) => !right.Equals(left);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
         public static bool operator ==(UnsafeBitwise<T> left, ReadOnlySpan<byte> right) => left.Equals(right);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
         public static bool operator !=(UnsafeBitwise<T> left, ReadOnlySpan<byte> right) => !left.Equals(right);
 
         /// <summary>
-        ///     Equals
+        ///     Indicates whether the current object is equal to another object.
         /// </summary>
         public static bool operator ==(ReadOnlySpan<byte> left, UnsafeBitwise<T> right) => right.Equals(left);
 
         /// <summary>
-        ///     Not equals
+        ///     Indicates whether the current object is not equal to another object.
         /// </summary>
         public static bool operator !=(ReadOnlySpan<byte> left, UnsafeBitwise<T> right) => !right.Equals(left);
 

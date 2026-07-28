@@ -17,7 +17,7 @@ namespace NativeCollections
     public static partial class UnsafeStringBuilderExtensions
     {
         /// <summary>
-        ///     Append line
+        ///     Appends the string representation of a specified read-only character span to this instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendLine(in this UnsafeStringBuilder<char> builder)
@@ -31,7 +31,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append line
+        ///     Appends the specified interpolated string followed by the default line terminator to the end of the current.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendLine(in this UnsafeStringBuilder<char> builder, ReadOnlySpan<char> buffer)
@@ -47,7 +47,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append line
+        ///     Appends the specified interpolated string followed by the default line terminator to the end of the current.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendLine(in this UnsafeStringBuilder<char> builder, char value)
@@ -63,7 +63,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append join
+        ///     Concatenates the strings of the provided span, using the specified separator between each string,
+        ///     then appends the result to the current instance of the string builder.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendJoin<T>(in this UnsafeStringBuilder<char> builder, char separator, ReadOnlySpan<T> values)
@@ -80,7 +81,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append join
+        ///     Concatenates the strings of the provided span, using the specified separator between each string,
+        ///     then appends the result to the current instance of the string builder.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendJoin<T>(in this UnsafeStringBuilder<char> builder, char separator, IEnumerable<T> values)
@@ -98,7 +100,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append join
+        ///     Concatenates the strings of the provided span, using the specified separator between each string,
+        ///     then appends the result to the current instance of the string builder.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendJoin<T>(in this UnsafeStringBuilder<char> builder, ReadOnlySpan<char> separator, ReadOnlySpan<T> values)
@@ -115,7 +118,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append join
+        ///     Concatenates the strings of the provided span, using the specified separator between each string,
+        ///     then appends the result to the current instance of the string builder.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendJoin<T>(in this UnsafeStringBuilder<char> builder, ReadOnlySpan<char> separator, IEnumerable<T> values)
@@ -133,7 +137,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Trim start
+        ///     Removes all leading white-space characters from the span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void TrimStart(in this UnsafeStringBuilder<char> builder)
@@ -158,7 +162,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Trim end
+        ///     Removes all trailing white-space characters from the memory.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void TrimEnd(in this UnsafeStringBuilder<char> builder)
@@ -174,7 +178,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Trim
+        ///     Removes all leading and trailing white-space characters from the span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Trim(in this UnsafeStringBuilder<char> builder)
@@ -202,7 +206,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Pad left
+        ///     Returns a new string that right-aligns the characters in this instance by padding them with spaces on the left,
+        ///     for a specified total length.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void PadLeft(in this UnsafeStringBuilder<char> builder, int totalWidth)
@@ -212,7 +217,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Pad right
+        ///     Returns a new string that left-aligns the characters in this string by padding them with spaces on the right,
+        ///     for a specified total length.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void PadRight(in this UnsafeStringBuilder<char> builder, int totalWidth)
@@ -222,7 +228,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Is null or white space
+        ///     Indicates whether a specified string is <see langword="null" />, empty, or consists only of white-space characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsNullOrWhiteSpace(in this UnsafeStringBuilder<char> builder)
@@ -232,7 +238,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append format
+        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
+        ///     this instance.
+        ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T>(in this UnsafeStringBuilder<char> builder, T? obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) where T : struct
@@ -243,7 +251,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append format
+        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
+        ///     this instance.
+        ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T>(in this UnsafeStringBuilder<char> builder, T? obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -256,7 +266,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<char> builder, bool obj, ReadOnlySpan<char> _ = default, IFormatProvider? __ = null)
@@ -270,7 +280,7 @@ namespace NativeCollections
 
 #if NET6_0_OR_GREATER
         /// <summary>
-        ///     Append formatted
+        ///     Appends the string representation of a specified read-only character span to this instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendInterpolated(in this UnsafeStringBuilder<char> builder, [InterpolatedStringHandlerArgument("builder")] ref UnsafeStringBuilderUtf16InterpolatedStringHandler handler)
@@ -278,7 +288,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formatted
+        ///     Appends the string representation of a specified read-only character span to this instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendInterpolated(in this UnsafeStringBuilder<char> builder, IFormatProvider? provider, [InterpolatedStringHandlerArgument("builder", "provider")] ref UnsafeStringBuilderUtf16InterpolatedStringHandler handler)
@@ -286,7 +296,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formatted
+        ///     Appends the string representation of a specified read-only character span to this instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormatted(in this UnsafeStringBuilder<char> builder, ref DefaultInterpolatedStringHandler handler, bool clear = true)
@@ -303,7 +313,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formatted
+        ///     Appends the string representation of a specified read-only character span to this instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormatted(in this UnsafeStringBuilder<char> builder, IFormatProvider? provider, [InterpolatedStringHandlerArgument("provider")] ref DefaultInterpolatedStringHandler handler, bool clear = true)
@@ -320,7 +330,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable<T>(in this UnsafeStringBuilder<char> builder, in T obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) where T : ISpanFormattable
@@ -333,7 +343,7 @@ namespace NativeCollections
         }
 #else
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<char> builder, decimal obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -346,7 +356,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<char> builder, DateTime obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -359,7 +369,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<char> builder, byte obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -372,7 +382,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<char> builder, DateTimeOffset obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -385,7 +395,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<char> builder, double obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -398,7 +408,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<char> builder, Guid obj, ReadOnlySpan<char> format = default, IFormatProvider? _ = null)
@@ -412,7 +422,7 @@ namespace NativeCollections
 
 #if NET5_0_OR_GREATER
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<char> builder, Half obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -426,7 +436,7 @@ namespace NativeCollections
 #endif
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<char> builder, short obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -439,7 +449,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<char> builder, int obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -452,7 +462,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<char> builder, long obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -465,7 +475,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<char> builder, sbyte obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -478,7 +488,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<char> builder, float obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -491,7 +501,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<char> builder, TimeSpan obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -504,7 +514,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<char> builder, ushort obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -517,7 +527,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<char> builder, uint obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -530,7 +540,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<char> builder, ulong obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -543,7 +553,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<char> builder, nint obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -555,7 +565,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<char> builder, nuint obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -567,7 +577,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<char> builder, Version obj, ReadOnlySpan<char> _ = default, IFormatProvider? __ = null)
@@ -581,7 +591,9 @@ namespace NativeCollections
 #endif
 
         /// <summary>
-        ///     Index of
+        ///     Searches for the specified sequence and returns the index of its first occurrence.
+        ///     If not found, returns -1.
+        ///     Values are compared using IEquatable{T}.Equals(T).
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int IndexOf(in this UnsafeStringBuilder<byte> builder, ReadOnlySpan<char> buffer)
@@ -603,7 +615,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Last index of
+        ///     Searches for the specified sequence and returns the index of its last occurrence.
+        ///     If not found, returns -1.
+        ///     Values are compared using IEquatable{T}.Equals(T).
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int LastIndexOf(in this UnsafeStringBuilder<byte> builder, ReadOnlySpan<char> buffer)
@@ -625,7 +639,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Index of any
+        ///     Searches for the first index of any of the specified values similar to calling IndexOf several times with the
+        ///     logical OR operator.
+        ///     If not found, returns -1.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int IndexOfAny(in this UnsafeStringBuilder<byte> builder, ReadOnlySpan<char> buffer)
@@ -647,7 +663,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Last index of any
+        ///     Searches for the last index of any of the specified values similar to calling LastIndexOf several times with the
+        ///     logical OR operator.
+        ///     If not found, returns -1.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int LastIndexOfAny(in this UnsafeStringBuilder<byte> builder, ReadOnlySpan<char> buffer)
@@ -669,7 +687,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Contains
+        ///     Searches for the specified values and returns true if found.
+        ///     If not found, returns false.
+        ///     Values are compared using IEquatable{T}.Equals(T).
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool Contains(in this UnsafeStringBuilder<byte> builder, ReadOnlySpan<char> buffer)
@@ -691,7 +711,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Remove
+        ///     Replaces all occurrences of a specified string in this instance with <see langword="null" />.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Remove(in this UnsafeStringBuilder<byte> builder, ReadOnlySpan<char> buffer)
@@ -714,7 +734,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Insert
+        ///     Inserts the sequence of characters into this instance at the specified character position.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool Insert(in this UnsafeStringBuilder<byte> builder, int startIndex, ReadOnlySpan<char> buffer)
@@ -737,7 +757,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Replace
+        ///     Replaces all occurrences of a specified string in this instance with another specified string.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool Replace(in this UnsafeStringBuilder<byte> builder, ReadOnlySpan<char> oldValue, ReadOnlySpan<char> newValue)
@@ -765,7 +785,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Starts with
+        ///     Determines whether the specified sequence appears at the start of the span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool StartsWith(in this UnsafeStringBuilder<byte> builder, ReadOnlySpan<char> buffer)
@@ -787,7 +807,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Ends with
+        ///     Determines whether the specified sequence appears at the end of the span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool EndsWith(in this UnsafeStringBuilder<byte> builder, ReadOnlySpan<char> buffer)
@@ -809,7 +829,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Compare
+        ///     Determines the relative order of the sequences being compared by comparing the elements using
+        ///     IComparable{T}.CompareTo(T).
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Compare(in this UnsafeStringBuilder<byte> builder, ReadOnlySpan<char> buffer)
@@ -831,7 +852,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append
+        ///     Appends a specified number of copies of the string representation of a specified object to this instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Append(in this UnsafeStringBuilder<byte> builder, char value, int repeatCount)
@@ -861,7 +882,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append
+        ///     Appends the string representation of a specified read-only character span to this instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Append(in this UnsafeStringBuilder<byte> builder, ReadOnlySpan<char> buffer)
@@ -875,7 +896,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append
+        ///     Appends the string representation of a specified object to this instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Append(in this UnsafeStringBuilder<byte> builder, char value)
@@ -885,7 +906,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append line
+        ///     Appends the string representation of a specified read-only character span to this instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendLine(in this UnsafeStringBuilder<byte> builder)
@@ -896,7 +917,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append line
+        ///     Appends the specified interpolated string followed by the default line terminator to the end of the current.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendLine(in this UnsafeStringBuilder<byte> builder, ReadOnlySpan<char> buffer)
@@ -913,7 +934,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append line
+        ///     Appends the specified interpolated string followed by the default line terminator to the end of the current.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendLine(in this UnsafeStringBuilder<byte> builder, char value)
@@ -923,7 +944,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append line
+        ///     Appends the specified interpolated string followed by the default line terminator to the end of the current.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendLine(in this UnsafeStringBuilder<byte> builder, ReadOnlySpan<byte> buffer)
@@ -939,7 +960,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append line
+        ///     Appends the specified interpolated string followed by the default line terminator to the end of the current.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendLine(in this UnsafeStringBuilder<byte> builder, byte value)
@@ -955,7 +976,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append join
+        ///     Concatenates the strings of the provided span, using the specified separator between each string,
+        ///     then appends the result to the current instance of the string builder.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendJoin<T>(in this UnsafeStringBuilder<byte> builder, char separator, ReadOnlySpan<T> values)
@@ -969,7 +991,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append join
+        ///     Concatenates the strings of the provided span, using the specified separator between each string,
+        ///     then appends the result to the current instance of the string builder.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendJoin<T>(in this UnsafeStringBuilder<byte> builder, char separator, IEnumerable<T> values)
@@ -983,7 +1006,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append join
+        ///     Concatenates the strings of the provided span, using the specified separator between each string,
+        ///     then appends the result to the current instance of the string builder.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendJoin<T>(in this UnsafeStringBuilder<byte> builder, ReadOnlySpan<char> separator, ReadOnlySpan<T> values)
@@ -997,7 +1021,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append join
+        ///     Concatenates the strings of the provided span, using the specified separator between each string,
+        ///     then appends the result to the current instance of the string builder.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendJoin<T>(in this UnsafeStringBuilder<byte> builder, ReadOnlySpan<char> separator, IEnumerable<T> values)
@@ -1012,7 +1037,7 @@ namespace NativeCollections
 
 #if NET6_0_OR_GREATER
         /// <summary>
-        ///     Append formatted
+        ///     Appends the string representation of a specified read-only character span to this instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Append(in this UnsafeStringBuilder<byte> builder, [InterpolatedStringHandlerArgument("builder")] ref UnsafeStringBuilderUtf8InterpolatedStringHandler handler)
@@ -1020,7 +1045,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formatted
+        ///     Appends the string representation of a specified read-only character span to this instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Append(in this UnsafeStringBuilder<byte> builder, IFormatProvider? provider, [InterpolatedStringHandlerArgument("builder", "provider")] ref UnsafeStringBuilderUtf8InterpolatedStringHandler handler)
@@ -1028,7 +1053,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formatted
+        ///     Appends the string representation of a specified read-only character span to this instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormatted(in this UnsafeStringBuilder<byte> builder, ref DefaultInterpolatedStringHandler handler, bool clear = true)
@@ -1045,7 +1070,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formatted
+        ///     Appends the string representation of a specified read-only character span to this instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormatted(in this UnsafeStringBuilder<byte> builder, IFormatProvider? provider, [InterpolatedStringHandlerArgument("provider")] ref DefaultInterpolatedStringHandler handler, bool clear = true)
@@ -1063,7 +1088,9 @@ namespace NativeCollections
 #endif
 
         /// <summary>
-        ///     Append format
+        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
+        ///     this instance.
+        ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T>(in this UnsafeStringBuilder<byte> builder, T? obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) where T : struct
@@ -1074,7 +1101,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append format
+        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
+        ///     this instance.
+        ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T>(in this UnsafeStringBuilder<byte> builder, T? obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1087,7 +1116,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<byte> builder, bool obj, ReadOnlySpan<char> _ = default, IFormatProvider? __ = null)
@@ -1100,7 +1129,7 @@ namespace NativeCollections
 
 #if NET8_0_OR_GREATER
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable<T>(in this UnsafeStringBuilder<byte> builder, in T obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) where T : IUtf8SpanFormattable
@@ -1113,7 +1142,7 @@ namespace NativeCollections
         }
 #elif NET6_0_OR_GREATER
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable<T>(in this UnsafeStringBuilder<byte> builder, in T obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) where T : ISpanFormattable
@@ -1127,7 +1156,7 @@ namespace NativeCollections
         }
 #else
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<byte> builder, decimal obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1141,7 +1170,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<byte> builder, DateTime obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1155,7 +1184,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<byte> builder, byte obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1169,7 +1198,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<byte> builder, DateTimeOffset obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1183,7 +1212,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<byte> builder, double obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1197,7 +1226,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<byte> builder, Guid obj, ReadOnlySpan<char> format = default, IFormatProvider? _ = null)
@@ -1212,7 +1241,7 @@ namespace NativeCollections
 
 #if NET5_0_OR_GREATER
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<byte> builder, Half obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1227,7 +1256,7 @@ namespace NativeCollections
 #endif
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<byte> builder, short obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1241,7 +1270,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<byte> builder, int obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1255,7 +1284,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<byte> builder, long obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1269,7 +1298,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<byte> builder, sbyte obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1283,7 +1312,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<byte> builder, float obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1297,7 +1326,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<byte> builder, TimeSpan obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1311,7 +1340,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<byte> builder, ushort obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1325,7 +1354,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<byte> builder, uint obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1339,7 +1368,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<byte> builder, ulong obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1353,7 +1382,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<byte> builder, nint obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1365,7 +1394,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<byte> builder, nuint obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
@@ -1377,7 +1406,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append formattable
+        ///     Format the value of the current instance into the provided span of characters.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormattable(in this UnsafeStringBuilder<byte> builder, Version obj, ReadOnlySpan<char> _ = default, IFormatProvider? __ = null)

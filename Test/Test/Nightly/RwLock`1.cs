@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
-using System.Threading;
 
 namespace Examples
 {
@@ -20,81 +19,53 @@ namespace Examples
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public RwLockRef<T> BorrowMutable()
         {
-            _state.Read();
-            return new RwLockRef<T>(Unsafe.AsPointer(ref _value), Unsafe.AsPointer(ref _state));
+            _state.Write();
+            return new RwLockRef<T>((T*)Unsafe.AsPointer(ref _value), (RwLock*)Unsafe.AsPointer(ref _state));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public RwLockReadOnlyRef<T> Borrow()
         {
-            _state.Write();
-            return new RwLockReadOnlyRef<T>(Unsafe.AsPointer(ref _value), Unsafe.AsPointer(ref _state));
+            _state.Read();
+            return new RwLockReadOnlyRef<T>((T*)Unsafe.AsPointer(ref _value), (RwLock*)Unsafe.AsPointer(ref _state));
         }
     }
 
-    public unsafe struct RwLockRef<T> : IDisposable where T : unmanaged
+    public readonly unsafe struct RwLockRef<T> : IDisposable where T : unmanaged
     {
-        private nint _ptr;
-        private readonly int* _state;
-        private int _disposed;
+        private readonly T* _ptr;
+        private readonly RwLock* _state;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal RwLockRef(void* ptr, void* state)
+        internal RwLockRef(T* ptr, RwLock* state)
         {
-            _ptr = (nint)ptr;
-            _state = (int*)state;
-            _disposed = 0;
+            _ptr = ptr;
+            _state = state;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref T Unwrap()
-        {
-            var handle = Interlocked.Exchange(ref _ptr, 0);
-            if (handle == 0)
-                throw new InvalidOperationException();
-            return ref Unsafe.AsRef<T>((void*)handle);
-        }
+        public ref T Unwrap() => ref Unsafe.AsRef<T>(_ptr);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            if (Interlocked.Exchange(ref _disposed, 1) != 0)
-                return;
-            Interlocked.Exchange(ref _ptr, 0);
-            Volatile.Write(ref Unsafe.AsRef<int>(_state), 0);
-        }
+        public void Dispose() => _state->ExitWrite();
     }
 
-    public unsafe struct RwLockReadOnlyRef<T> : IDisposable where T : unmanaged
+    public readonly unsafe struct RwLockReadOnlyRef<T> : IDisposable where T : unmanaged
     {
-        private nint _ptr;
-        private readonly int* _state;
-        private int _disposed;
+        private readonly T* _ptr;
+        private readonly RwLock* _state;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal RwLockReadOnlyRef(void* ptr, void* state)
+        internal RwLockReadOnlyRef(T* ptr, RwLock* state)
         {
-            _ptr = (nint)ptr;
-            _state = (int*)state;
-            _disposed = 0;
+            _ptr = ptr;
+            _state = state;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref readonly T Unwrap()
-        {
-            var handle = Interlocked.Exchange(ref _ptr, 0);
-            if (handle == 0)
-                throw new InvalidOperationException();
-            return ref Unsafe.AsRef<T>((void*)handle);
-        }
+        public ref readonly T Unwrap() => ref Unsafe.AsRef<T>(_ptr);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose()
-        {
-            if (Interlocked.Exchange(ref _disposed, 1) != 0)
-                return;
-            Interlocked.Exchange(ref _ptr, 0);
-            Interlocked.Decrement(ref Unsafe.AsRef<int>(_state));
-        }
+        public void Dispose() => _state->ExitRead();
     }
 }

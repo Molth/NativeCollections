@@ -1,4 +1,5 @@
-﻿using NativeCollections;
+﻿using System.Runtime.CompilerServices;
+using NativeCollections;
 
 namespace Examples
 {
@@ -6,72 +7,68 @@ namespace Examples
     {
         private UnsafeAtomicU32 _state;
 
-        private const uint STATE_WRITE = uint.MaxValue;
-        private const uint STATE_IDLE = 0;
-        private const uint MAX_READERS = STATE_WRITE - 1;
+        private const uint WRITER_MASK = unchecked((uint)(1 << 31));
+        private const uint MAX_READERS = WRITER_MASK - 1;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryRead()
+        {
+            var state = _state.Load(Ordering.Acquire);
+            return state < MAX_READERS && _state.CompareExchange(state + 1, state) == state;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Read()
         {
             var spinWait = new UnsafeSpinWait();
-            var state = _state.Load(Ordering.Relaxed);
             while (true)
             {
-                if (state < MAX_READERS)
-                {
-                    var newState = _state.CompareExchange(state + 1, state);
-                    if (newState == state)
-                        break;
-                    state = newState;
-                }
-                else
-                    state = _state.Load(Ordering.Relaxed);
+                var state = _state.Load(Ordering.Acquire);
+                if (state < MAX_READERS && _state.CompareExchange(state + 1, state) == state)
+                    break;
 
-                spinWait.SpinOnce();
+                spinWait.SpinOnce(-1);
             }
         }
 
-        public void ExitRead()
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void ExitRead() => _state.Sub(1);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryWrite()
         {
-            var spinWait = new UnsafeSpinWait();
-            var state = _state.Load(Ordering.Relaxed);
-            while (true)
+            var state = _state.Load(Ordering.Acquire);
+            if ((state & WRITER_MASK) == 0 && _state.CompareExchange(state | WRITER_MASK, state) == state)
             {
-                if (state > STATE_IDLE && state != STATE_WRITE)
-                {
-                    var newState = _state.CompareExchange(state - 1, state);
-                    if (newState == state)
-                        break;
-                    state = newState;
-                }
-                else
-                    state = _state.Load(Ordering.Relaxed);
+                var spinWait = new UnsafeSpinWait();
+                while ((_state.Load(Ordering.Acquire) & ~WRITER_MASK) != 0)
+                    spinWait.SpinOnce(-1);
 
-                spinWait.SpinOnce();
+                return true;
             }
+
+            return false;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write()
         {
             var spinWait = new UnsafeSpinWait();
             while (true)
             {
-                if (_state.CompareExchange(STATE_WRITE, STATE_IDLE) == STATE_IDLE)
+                var state = _state.Load(Ordering.Acquire);
+                if ((state & WRITER_MASK) == 0 && _state.CompareExchange(state | WRITER_MASK, state) == state)
                     break;
 
-                spinWait.SpinOnce();
+                spinWait.SpinOnce(-1);
             }
+
+            spinWait.Reset();
+            while ((_state.Load(Ordering.Acquire) & ~WRITER_MASK) != 0)
+                spinWait.SpinOnce(-1);
         }
 
-        public void ExitWrite()
-        {
-            var spinWait = new UnsafeSpinWait();
-            while (true)
-            {
-                if (_state.CompareExchange(STATE_IDLE, STATE_WRITE) == STATE_WRITE)
-                    break;
-
-                spinWait.SpinOnce();
-            }
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void ExitWrite() => _state.Store(0, Ordering.Release);
     }
 }
