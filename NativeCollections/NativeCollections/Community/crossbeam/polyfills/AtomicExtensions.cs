@@ -16,7 +16,7 @@ namespace crossbeam
         public static void store<T>(ref this UnsafeAtomicPtr<T> value, T* @new, Ordering order) where T : unmanaged => value.Store(@new, order);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T* swap<T>(ref this UnsafeAtomicPtr<T> value, T* @new) where T : unmanaged => value.Swap(@new);
+        public static T* swap<T>(ref this UnsafeAtomicPtr<T> value, T* @new) where T : unmanaged => value.Exchange(@new);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T* compare_exchange<T>(ref this UnsafeAtomicPtr<T> value, T* current, T* @new) where T : unmanaged => value.CompareExchange(@new, current);

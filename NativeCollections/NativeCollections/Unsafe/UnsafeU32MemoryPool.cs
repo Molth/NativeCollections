@@ -156,7 +156,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        public readonly override string ToString() => "UnsafeUInt32MemoryPool";
+        public readonly override string ToString() => "UnsafeU32MemoryPool";
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.

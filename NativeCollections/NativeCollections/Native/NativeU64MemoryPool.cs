@@ -85,7 +85,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        public override string ToString() => "NativeUInt64MemoryPool";
+        public override string ToString() => "NativeU64MemoryPool";
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.

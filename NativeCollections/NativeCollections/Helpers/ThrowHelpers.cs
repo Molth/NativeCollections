@@ -34,7 +34,7 @@ namespace NativeCollections
 #else
             if (value.CompareTo(default) < 0)
 #endif
-                throw new ArgumentOutOfRangeException(GetArgumentName(paramName), value, SR.Argument_MustBeNonNegative);
+                throw new ArgumentOutOfRangeException(GetArgumentName(paramName), value, SR.ArgumentOutOfRange_MustBeNonNegative);
         }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace NativeCollections
 #else
             if (value.CompareTo(default) <= 0)
 #endif
-                throw new ArgumentOutOfRangeException(GetArgumentName(paramName), value, SR.Argument_MustBeNonNegativeNonZero);
+                throw new ArgumentOutOfRangeException(GetArgumentName(paramName), value, SR.ArgumentOutOfRange_MustBeNonNegativeNonZero);
         }
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace NativeCollections
         public static void ThrowIfGreaterThanOrEqual<T>(T value, T other, ExceptionArgument paramName) where T : unmanaged, IComparable<T>
         {
             if (value.CompareTo(other) >= 0)
-                throw new ArgumentOutOfRangeException(GetArgumentName(paramName), value, SR.Argument_MustBeLess);
+                throw new ArgumentOutOfRangeException(GetArgumentName(paramName), value, SR.ArgumentOutOfRange_MustBeLess);
         }
 
         /// <summary>
@@ -83,7 +83,7 @@ namespace NativeCollections
         public static void ThrowIfGreaterThan<T>(T value, T other, ExceptionArgument paramName) where T : unmanaged, IComparable<T>
         {
             if (value.CompareTo(other) > 0)
-                throw new ArgumentOutOfRangeException(GetArgumentName(paramName), value, SR.Argument_MustBeLessOrEqual);
+                throw new ArgumentOutOfRangeException(GetArgumentName(paramName), value, SR.ArgumentOutOfRange_MustBeLessOrEqual);
         }
 
         /// <summary>
@@ -97,7 +97,21 @@ namespace NativeCollections
         public static void ThrowIfLessThan<T>(T value, T other, ExceptionArgument paramName) where T : unmanaged, IComparable<T>
         {
             if (value.CompareTo(other) < 0)
-                throw new ArgumentOutOfRangeException(GetArgumentName(paramName), value, SR.Argument_MustBeGreaterOrEqual);
+                throw new ArgumentOutOfRangeException(GetArgumentName(paramName), value, SR.ArgumentOutOfRange_MustBeGreaterOrEqual);
+        }
+
+        /// <summary>
+        ///     Throws an <see cref="ArgumentOutOfRangeException" /> if <paramref name="value" /> is not equal to
+        ///     <paramref name="other" />.
+        /// </summary>
+        /// <param name="value">The argument to validate as equal to <paramref name="other" />.</param>
+        /// <param name="other">The value to compare with <paramref name="value" />.</param>
+        /// <param name="paramName">The name of the parameter with which <paramref name="value" /> corresponds.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ThrowIfNotEqual<T>(T value, T other, ExceptionArgument paramName) where T : unmanaged, IComparable<T>
+        {
+            if (!value.Equals(other))
+                throw new ArgumentOutOfRangeException(GetArgumentName(paramName), value, SR.Format(SR.ArgumentOutOfRange_MustBeEqual, value, other));
         }
 
         /// <summary>
@@ -121,7 +135,7 @@ namespace NativeCollections
         public static void ThrowIfProbabilityOutOfRange(double value, ExceptionArgument paramName)
         {
             if (value < 0.0 || value > 1.0)
-                throw new ArgumentOutOfRangeException(GetArgumentName(paramName), value, SR.Argument_MustBeBetweenZeroAndOne);
+                throw new ArgumentOutOfRangeException(GetArgumentName(paramName), value, SR.ArgumentOutOfRange_MustBeBetweenZeroAndOne);
         }
 
         /// <summary>
@@ -133,7 +147,7 @@ namespace NativeCollections
         public static void ThrowIfNull<T>(T? argument, ExceptionArgument paramName) where T : class
         {
             if (argument == null)
-                throw new ArgumentNullException(GetArgumentName(paramName), SR.Argument_MustBeNotNull);
+                throw new ArgumentNullException(GetArgumentName(paramName), SR.ArgumentNull_MustBeNotNull);
         }
 
         /// <summary>
@@ -319,16 +333,6 @@ namespace NativeCollections
         public static void ThrowArrayLengthsDifferException() => throw new ArgumentException(SR.Argument_ArrayLengthsDiffer);
 
         /// <summary>
-        ///     Throws an <see cref="ArgumentOutOfRangeException" /> for values exceeding allowed range.
-        /// </summary>
-        /// <param name="value">The argument value that is out of range.</param>
-        /// <param name="paramName">The name of the parameter with the invalid value.</param>
-        /// <typeparam name="T">The type of the argument value.</typeparam>
-        [DoesNotReturn]
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void ThrowMustBeLessOrEqualException<T>(T value, ExceptionArgument paramName) where T : unmanaged, IComparable<T> => throw new ArgumentOutOfRangeException(GetArgumentName(paramName), value, SR.Argument_MustBeLessOrEqual);
-
-        /// <summary>
         ///     Throws an <see cref="OutOfMemoryException" />.
         /// </summary>
         [DoesNotReturn]
@@ -379,7 +383,7 @@ namespace NativeCollections
         /// <typeparam name="T">The type of the alignment value.</typeparam>
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void ThrowMustBeAlignedToException<T>(T value, ExceptionArgument paramName) where T : unmanaged => throw new ArgumentOutOfRangeException(GetArgumentName(paramName), SR.Format(SR.Argument_MustBeAlignedTo, value));
+        public static void ThrowMustBeAlignedToException<T>(T value, ExceptionArgument paramName) where T : unmanaged => throw new ArgumentOutOfRangeException(GetArgumentName(paramName), SR.Format(SR.ArgumentOutOfRange_MustBeAlignedTo, value));
 
         /// <summary>
         ///     Throws an <see cref="ArgumentException" /> for buffers not from a memory pool.

@@ -1,6 +1,9 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+
+#pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
 
 // ReSharper disable ALL
 
@@ -11,12 +14,16 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    public readonly unsafe struct NativeEpochCollectorScope : IIsCreated, IDisposable, IEquatable<NativeEpochCollectorScope>
+    [IsAssignableTo(typeof(IIsCreated), typeof(IDisposable))]
+    public readonly unsafe ref struct NativeEpochCollectorRefScope
+#if NET9_0_OR_GREATER
+        : IIsCreated, IDisposable
+#endif
     {
         /// <summary>
         ///     Handle
         /// </summary>
-        private readonly UnsafeEpochCollector* _handle;
+        private readonly NativeRef<UnsafeEpochCollector> _handle;
 
         /// <summary>
         ///     The current epoch number that the caller is pinned to.
@@ -26,7 +33,7 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
-        public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
+        public bool IsCreated => _handle.IsCreated;
 
         /// <summary>
         ///     The current epoch number that the caller is pinned to.
@@ -37,7 +44,7 @@ namespace NativeCollections
         ///     Structure
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeEpochCollectorScope(UnsafeEpochCollector* handle, uint epoch)
+        public NativeEpochCollectorRefScope(NativeRef<UnsafeEpochCollector> handle, uint epoch)
         {
             _handle = handle;
             _epoch = epoch;
@@ -51,9 +58,9 @@ namespace NativeCollections
         public void Dispose()
         {
             var handle = _handle;
-            if (UnsafeHelpers.IsNull(handle))
+            if (!handle.IsCreated)
                 return;
-            handle->Unpin(_epoch);
+            handle.AsRef().Unpin(_epoch);
         }
 
         /// <summary>
@@ -65,7 +72,7 @@ namespace NativeCollections
         ///     This method is thread-safe and does not block the caller.
         /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Retire(void* data) => _handle->Retire(_epoch, data);
+        public void Retire(void* data) => _handle.AsRef().Retire(_epoch, data);
 
         /// <summary>
         ///     Retires a pointer to be freed using a custom deallocation function when it is safe to do so.
@@ -78,41 +85,39 @@ namespace NativeCollections
         ///     will be invoked exactly once after the epoch advances.
         /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Retire(void* data, delegate* managed<void*, void> call) => _handle->Retire(_epoch, data, call);
+        public void Retire(void* data, delegate* managed<void*, void> call) => _handle.AsRef().Retire(_epoch, data, call);
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        public bool Equals(NativeEpochCollectorScope other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
-
-        /// <summary>
-        ///     Indicates whether the current object is equal to another object.
-        /// </summary>
-        public override bool Equals(object? obj) => obj is NativeEpochCollectorScope other && other.Equals(this);
+        /// <returns>Equals</returns>
+        [Obsolete(SR.parameter_obsolete)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public readonly override bool Equals(object? obj)
+        {
+            ThrowHelpers.ThrowCannotCallEqualsException();
+            return default;
+        }
 
         /// <summary>
         ///     Returns the hash code for this instance.
         /// </summary>
-        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
+        [Obsolete(SR.parameter_obsolete)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public readonly override int GetHashCode()
+        {
+            ThrowHelpers.ThrowCannotCallGetHashCodeException();
+            return default;
+        }
 
         /// <summary>
         ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        public override string ToString() => "NativeEpochCollectorScope";
-
-        /// <summary>
-        ///     Indicates whether the current object is equal to another object.
-        /// </summary>
-        public static bool operator ==(NativeEpochCollectorScope left, NativeEpochCollectorScope right) => left.Equals(right);
-
-        /// <summary>
-        ///     Indicates whether the current object is not equal to another object.
-        /// </summary>
-        public static bool operator !=(NativeEpochCollectorScope left, NativeEpochCollectorScope right) => !left.Equals(right);
+        public override string ToString() => "NativeEpochCollectorRefScope";
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeEpochCollectorScope Empty => default;
+        public static NativeEpochCollectorRefScope Empty => default;
     }
 }

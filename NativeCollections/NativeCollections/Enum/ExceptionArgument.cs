@@ -8,6 +8,7 @@ namespace NativeCollections
     internal enum ExceptionArgument
     {
         _dummy,
+
         addValueFactory,
         alignment,
         array,

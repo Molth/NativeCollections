@@ -20,7 +20,7 @@ namespace NativeCollections
         /// <summary>
         ///     Padding to avoid false sharing with adjacent data.
         /// </summary>
-        private readonly Padding _padding;
+        private readonly CachePadding _padding;
 
         /// <summary>
         ///     The stack is a singly linked list, and only remembers the head.
@@ -68,7 +68,7 @@ namespace NativeCollections
             get
             {
                 var count = 0;
-                using (_ebr.Scope())
+                using (_ebr.EnterRefScope())
                 {
                     for (var node = _head.load(Ordering.Relaxed); node != null; node = node->Next)
                         count++;
@@ -132,7 +132,7 @@ namespace NativeCollections
         public void Clear()
         {
             var node = _head.swap(null);
-            using (var scope = _ebr.Scope())
+            using (var scope = _ebr.EnterRefScope())
             {
                 while (node != null)
                 {
@@ -193,7 +193,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryPop(out T result)
         {
-            using (var scope = _ebr.Scope())
+            using (var scope = _ebr.EnterRefScope())
             {
                 var head = _head.load(Ordering.Acquire);
                 if (head == null)
@@ -228,12 +228,13 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.NoInlining)]
         private bool TryPopSlow(out T result)
         {
-            var random = UnsafeXorshift32.Create();
+            var seed = (ulong)(nint)Unsafe.AsPointer(ref this);
+            var random = new UnsafeXoshiro256(seed, seed, seed, seed);
             var spinWait = new UnsafeSpinWait();
             var backoff = 1;
             while (true)
             {
-                using (var scope = _ebr.Scope())
+                using (var scope = _ebr.EnterRefScope())
                 {
                     var head = _head.load(Ordering.Acquire);
                     if (head == null)

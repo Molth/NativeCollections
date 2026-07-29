@@ -96,7 +96,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        public override string ToString() => SR.Format("NativeUInt32MemoryPool<{0}>", SR.GetTypeName(typeof(T)));
+        public override string ToString() => SR.Format("NativeU32MemoryPool<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.

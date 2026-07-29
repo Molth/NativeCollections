@@ -54,11 +54,6 @@ namespace NativeCollections
         public readonly int Count => GetCount(_shards);
 
         /// <summary>
-        ///     The estimated number of threads that will update this concurrently.
-        /// </summary>
-        public readonly int ConcurrencyLevel => _shards.Length;
-
-        /// <summary>
         ///     Structure
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -114,7 +109,7 @@ namespace NativeCollections
         {
             foreach (ref var shard in _shards)
             {
-                using (shard.RwLock.EnterWriteLock())
+                using (shard.RwLock.EnterWriteScope())
                 {
                     shard.HashSet.Clear();
                 }
@@ -134,7 +129,7 @@ namespace NativeCollections
         public bool Add(T item)
         {
             ref var shard = ref GetShard((uint)item.GetHashCode());
-            using (shard.RwLock.EnterWriteLock())
+            using (shard.RwLock.EnterWriteScope())
             {
                 return shard.HashSet.Add(item);
             }
@@ -152,7 +147,7 @@ namespace NativeCollections
         public bool Remove(T item)
         {
             ref var shard = ref GetShard((uint)item.GetHashCode());
-            using (shard.RwLock.EnterWriteLock())
+            using (shard.RwLock.EnterWriteScope())
             {
                 return shard.HashSet.Remove(item);
             }
@@ -170,7 +165,7 @@ namespace NativeCollections
         public bool Contains(T item)
         {
             ref var shard = ref GetShard((uint)item.GetHashCode());
-            using (shard.RwLock.EnterReadLock())
+            using (shard.RwLock.EnterReadScope())
             {
                 return shard.HashSet.Contains(item);
             }
@@ -194,7 +189,7 @@ namespace NativeCollections
         {
             foreach (ref var shard in shards)
             {
-                using (shard.RwLock.EnterReadLock())
+                using (shard.RwLock.EnterReadScope())
                 {
                     if (!shard.HashSet.IsEmpty)
                         return false;
@@ -223,7 +218,7 @@ namespace NativeCollections
             var count = 0;
             foreach (ref var shard in shards)
             {
-                using (shard.RwLock.EnterReadLock())
+                using (shard.RwLock.EnterReadScope())
                 {
                     checked
                     {
@@ -263,7 +258,7 @@ namespace NativeCollections
         ///     uses the default comparer for the key type.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeShardedHashSet<T> Create() => Create(0, 0);
+        public static UnsafeShardedHashSet<T> Create() => Create(-1, 31);
 
         /// <summary>
         ///     Initializes a new instance of this
@@ -276,18 +271,21 @@ namespace NativeCollections
         /// <param name="capacity">
         ///     The initial number of elements that this can contain.
         /// </param>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="concurrencyLevel" /> is less than -1.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="concurrencyLevel" /> is less than 1.</exception>
         /// <exception cref="ArgumentOutOfRangeException"> <paramref name="capacity" /> is less than 0.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeShardedHashSet<T> Create(int concurrencyLevel, int capacity)
         {
-            ThrowHelpers.ThrowIfLessThan(concurrencyLevel, -1, ExceptionArgument.concurrencyLevel);
+            if (concurrencyLevel < 1)
+            {
+                ThrowHelpers.ThrowIfNotEqual(concurrencyLevel, -1, ExceptionArgument.concurrencyLevel);
+                concurrencyLevel = ConcurrencyHelpers.DefaultConcurrencyLevel;
+            }
+
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
-            concurrencyLevel = Math.Max(concurrencyLevel, 1);
-            concurrencyLevel = (int)BitOperationsHelpers.RoundUpToPowerOf2(Math.Max((uint)concurrencyLevel, (uint)(Environment.ProcessorCount * 2)));
+            concurrencyLevel = (int)BitOperationsHelpers.RoundUpToPowerOf2((uint)concurrencyLevel);
             if (concurrencyLevel < 0)
                 concurrencyLevel = 1 << 30;
-            capacity = Math.Max(capacity, 31);
             var shards = new NativeArray<Shard>(concurrencyLevel, CACHE_LINE_SIZE, true);
             foreach (ref var shard in shards)
                 shard.HashSet = new UnsafeHashSet<T>(capacity);

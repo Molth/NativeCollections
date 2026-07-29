@@ -114,7 +114,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public sbyte Swap(sbyte value) => (sbyte)_value.Swap((byte)value);
+        public sbyte Exchange(sbyte value) => (sbyte)_value.Exchange((byte)value);
 
         /// <summary>
         ///     Compares two values for equality and, if they are equal, replaces the first value.

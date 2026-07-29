@@ -25,14 +25,20 @@ namespace NativeCollections
         private uint _s0;
 
         /// <summary>
-        ///     Gets a value that indicates whether this has been allocated or initialized.
+        ///     Structure
         /// </summary>
-        public readonly bool IsCreated => !((int)_s0 == 0);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public UnsafeXorshift32(uint s0)
+        {
+            _s0 = s0;
+            if (!IsCreated)
+                ThrowHelpers.ThrowMustBeNonEntirelyZeroException();
+        }
 
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeXorshift32(ReadOnlySpan<byte> buffer)
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, Unsafe.SizeOf<UnsafeXorshift32>(), ExceptionArgument.buffer);
@@ -41,6 +47,11 @@ namespace NativeCollections
                 ThrowHelpers.ThrowMustBeNonEntirelyZeroException();
             this = random;
         }
+
+        /// <summary>
+        ///     Gets a value that indicates whether this has been allocated or initialized.
+        /// </summary>
+        public readonly bool IsCreated => !((int)_s0 == 0);
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.

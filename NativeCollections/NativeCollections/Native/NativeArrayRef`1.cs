@@ -15,7 +15,7 @@ namespace NativeCollections
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    public readonly struct NativeArrayReference<T> : IIsCreated, IDisposable, IEquatable<NativeArrayReference<T>>, IReadOnlyCollection<T>
+    public readonly struct NativeArrayRef<T> : IIsCreated, IDisposable, IEquatable<NativeArrayRef<T>>, IReadOnlyCollection<T>
     {
         /// <summary>
         ///     Handle
@@ -32,7 +32,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="length">Length</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeArrayReference(int length)
+        public NativeArrayRef(int length)
         {
             ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
             _handle = GCHandle.Alloc(new T[length], GCHandleType.Normal);
@@ -45,7 +45,7 @@ namespace NativeCollections
         /// <param name="length">Length</param>
         /// <param name="type">GCHandle type</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeArrayReference(int length, GCHandleType type)
+        public NativeArrayRef(int length, GCHandleType type)
         {
             ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
             _handle = GCHandle.Alloc(new T[length], type);
@@ -57,7 +57,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeArrayReference(T[] buffer)
+        public NativeArrayRef(T[] buffer)
         {
             ThrowHelpers.ThrowIfNull(buffer, ExceptionArgument.buffer);
             _handle = GCHandle.Alloc(buffer, GCHandleType.Normal);
@@ -70,7 +70,7 @@ namespace NativeCollections
         /// <param name="buffer">Buffer</param>
         /// <param name="type">GCHandle type</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeArrayReference(T[] buffer, GCHandleType type)
+        public NativeArrayRef(T[] buffer, GCHandleType type)
         {
             ThrowHelpers.ThrowIfNull(buffer, ExceptionArgument.buffer);
             _handle = GCHandle.Alloc(buffer, type);
@@ -131,12 +131,12 @@ namespace NativeCollections
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        public bool Equals(NativeArrayReference<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
+        public bool Equals(NativeArrayRef<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        public override bool Equals(object? obj) => obj is NativeArrayReference<T> other && other.Equals(this);
+        public override bool Equals(object? obj) => obj is NativeArrayRef<T> other && other.Equals(this);
 
         /// <summary>
         ///     Returns the hash code for this instance.
@@ -151,12 +151,12 @@ namespace NativeCollections
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        public static bool operator ==(NativeArrayReference<T> left, NativeArrayReference<T> right) => left.Equals(right);
+        public static bool operator ==(NativeArrayRef<T> left, NativeArrayRef<T> right) => left.Equals(right);
 
         /// <summary>
         ///     Indicates whether the current object is not equal to another object.
         /// </summary>
-        public static bool operator !=(NativeArrayReference<T> left, NativeArrayReference<T> right) => !left.Equals(right);
+        public static bool operator !=(NativeArrayRef<T> left, NativeArrayRef<T> right) => !left.Equals(right);
 
         /// <summary>
         ///     Performs application-defined tasks associated with freeing,
@@ -174,7 +174,7 @@ namespace NativeCollections
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeArrayReference<T> Empty => default;
+        public static NativeArrayRef<T> Empty => default;
 
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.

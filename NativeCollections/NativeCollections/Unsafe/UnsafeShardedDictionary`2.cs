@@ -79,11 +79,6 @@ namespace NativeCollections
         public readonly int Count => GetCount(_shards);
 
         /// <summary>
-        ///     The estimated number of threads that will update this concurrently.
-        /// </summary>
-        public readonly int ConcurrencyLevel => _shards.Length;
-
-        /// <summary>
         ///     Gets a collection containing the keys in the dictionary.
         /// </summary>
         public readonly KeyCollection Keys => new(_shards);
@@ -149,7 +144,7 @@ namespace NativeCollections
         {
             foreach (ref var shard in _shards)
             {
-                using (shard.RwLock.EnterWriteLock())
+                using (shard.RwLock.EnterWriteScope())
                 {
                     shard.HashMap.Clear();
                 }
@@ -172,7 +167,7 @@ namespace NativeCollections
         public bool TryAdd(TKey key, TValue value)
         {
             ref var shard = ref GetShard((uint)key.GetHashCode());
-            using (shard.RwLock.EnterWriteLock())
+            using (shard.RwLock.EnterWriteScope())
             {
                 return shard.HashMap.TryAdd(key, value);
             }
@@ -194,7 +189,7 @@ namespace NativeCollections
         public bool TryRemove(TKey key, out TValue value)
         {
             ref var shard = ref GetShard((uint)key.GetHashCode());
-            using (shard.RwLock.EnterWriteLock())
+            using (shard.RwLock.EnterWriteScope())
             {
                 return shard.HashMap.Remove(key, out value);
             }
@@ -218,7 +213,7 @@ namespace NativeCollections
         public bool TryRemove(KeyValuePair<TKey, TValue> keyValuePair)
         {
             ref var shard = ref GetShard((uint)keyValuePair.Key.GetHashCode());
-            using (shard.RwLock.EnterWriteLock())
+            using (shard.RwLock.EnterWriteScope())
             {
                 if (shard.HashMap.TryGetValue(keyValuePair.Key, out var value) && EqualityComparer<TValue>.Default.Equals(value, keyValuePair.Value))
                 {
@@ -243,7 +238,7 @@ namespace NativeCollections
         public bool ContainsKey(TKey key)
         {
             ref var shard = ref GetShard((uint)key.GetHashCode());
-            using (shard.RwLock.EnterReadLock())
+            using (shard.RwLock.EnterReadScope())
             {
                 return shard.HashMap.ContainsKey(key);
             }
@@ -265,7 +260,7 @@ namespace NativeCollections
         public bool TryGetValue(TKey key, out TValue value)
         {
             ref var shard = ref GetShard((uint)key.GetHashCode());
-            using (shard.RwLock.EnterReadLock())
+            using (shard.RwLock.EnterReadScope())
             {
                 return shard.HashMap.TryGetValue(key, out value);
             }
@@ -295,7 +290,7 @@ namespace NativeCollections
         public bool TryUpdate(TKey key, TValue newValue, TValue comparisonValue)
         {
             ref var shard = ref GetShard((uint)key.GetHashCode());
-            using (shard.RwLock.EnterWriteLock())
+            using (shard.RwLock.EnterWriteScope())
             {
                 ref var valRef = ref shard.HashMap.GetValueRefOrNullRef(key, out var exists);
                 if (exists && EqualityComparer<TValue>.Default.Equals(valRef, comparisonValue))
@@ -331,7 +326,7 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfNull(valueFactory, ExceptionArgument.valueFactory);
             ref var shard = ref GetShard((uint)key.GetHashCode());
-            using (shard.RwLock.EnterWriteLock())
+            using (shard.RwLock.EnterWriteScope())
             {
                 if (shard.HashMap.TryGetValue(key, out var existingValue))
                     return existingValue;
@@ -365,7 +360,7 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfNull(valueFactory, ExceptionArgument.valueFactory);
             ref var shard = ref GetShard((uint)key.GetHashCode());
-            using (shard.RwLock.EnterWriteLock())
+            using (shard.RwLock.EnterWriteScope())
             {
                 if (shard.HashMap.TryGetValue(key, out var existingValue))
                     return existingValue;
@@ -393,7 +388,7 @@ namespace NativeCollections
         public TValue GetOrAdd(TKey key, TValue value)
         {
             ref var shard = ref GetShard((uint)key.GetHashCode());
-            using (shard.RwLock.EnterWriteLock())
+            using (shard.RwLock.EnterWriteScope())
             {
                 ref var valRef = ref shard.HashMap.GetValueRefOrAddDefault(key, out var exists);
                 if (exists)
@@ -439,7 +434,7 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfNull(addValueFactory, ExceptionArgument.valueFactory);
             ThrowHelpers.ThrowIfNull(updateValueFactory, ExceptionArgument.updateValueFactory);
             ref var shard = ref GetShard((uint)key.GetHashCode());
-            using (shard.RwLock.EnterWriteLock())
+            using (shard.RwLock.EnterWriteScope())
             {
                 ref var valRef = ref shard.HashMap.GetValueRefOrNullRef(key, out var exists);
                 if (exists)
@@ -488,7 +483,7 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfNull(addValueFactory, ExceptionArgument.valueFactory);
             ThrowHelpers.ThrowIfNull(updateValueFactory, ExceptionArgument.updateValueFactory);
             ref var shard = ref GetShard((uint)key.GetHashCode());
-            using (shard.RwLock.EnterWriteLock())
+            using (shard.RwLock.EnterWriteScope())
             {
                 ref var valRef = ref shard.HashMap.GetValueRefOrNullRef(key, out var exists);
                 if (exists)
@@ -533,7 +528,7 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfNull(updateValueFactory, ExceptionArgument.updateValueFactory);
             ref var shard = ref GetShard((uint)key.GetHashCode());
-            using (shard.RwLock.EnterWriteLock())
+            using (shard.RwLock.EnterWriteScope())
             {
                 ref var valRef = ref shard.HashMap.GetValueRefOrNullRef(key, out var exists);
                 if (exists)
@@ -563,7 +558,7 @@ namespace NativeCollections
         private void TryInsertOverwriteExisting(TKey key, TValue value)
         {
             ref var shard = ref GetShard((uint)key.GetHashCode());
-            using (shard.RwLock.EnterWriteLock())
+            using (shard.RwLock.EnterWriteScope())
             {
                 shard.HashMap[key] = value;
             }
@@ -581,7 +576,7 @@ namespace NativeCollections
         {
             foreach (ref var shard in shards)
             {
-                using (shard.RwLock.EnterReadLock())
+                using (shard.RwLock.EnterReadScope())
                 {
                     if (!shard.HashMap.IsEmpty)
                         return false;
@@ -610,7 +605,7 @@ namespace NativeCollections
             var count = 0;
             foreach (ref var shard in shards)
             {
-                using (shard.RwLock.EnterReadLock())
+                using (shard.RwLock.EnterReadScope())
                 {
                     checked
                     {
@@ -650,7 +645,7 @@ namespace NativeCollections
         ///     uses the default comparer for the key type.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeShardedDictionary<TKey, TValue> Create() => Create(0, 0);
+        public static UnsafeShardedDictionary<TKey, TValue> Create() => Create(-1, 31);
 
         /// <summary>
         ///     Initializes a new instance of this
@@ -663,18 +658,21 @@ namespace NativeCollections
         /// <param name="capacity">
         ///     The initial number of elements that this can contain.
         /// </param>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="concurrencyLevel" /> is less than -1.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="concurrencyLevel" /> is less than 1.</exception>
         /// <exception cref="ArgumentOutOfRangeException"> <paramref name="capacity" /> is less than 0.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeShardedDictionary<TKey, TValue> Create(int concurrencyLevel, int capacity)
         {
-            ThrowHelpers.ThrowIfLessThan(concurrencyLevel, -1, ExceptionArgument.concurrencyLevel);
+            if (concurrencyLevel < 1)
+            {
+                ThrowHelpers.ThrowIfNotEqual(concurrencyLevel, -1, ExceptionArgument.concurrencyLevel);
+                concurrencyLevel = ConcurrencyHelpers.DefaultConcurrencyLevel;
+            }
+
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
-            concurrencyLevel = Math.Max(concurrencyLevel, 1);
-            concurrencyLevel = (int)BitOperationsHelpers.RoundUpToPowerOf2(Math.Max((uint)concurrencyLevel, (uint)(Environment.ProcessorCount * 2)));
+            concurrencyLevel = (int)BitOperationsHelpers.RoundUpToPowerOf2((uint)concurrencyLevel);
             if (concurrencyLevel < 0)
                 concurrencyLevel = 1 << 30;
-            capacity = Math.Max(capacity, 31);
             var shards = new NativeArray<Shard>(concurrencyLevel, CACHE_LINE_SIZE, true);
             foreach (ref var shard in shards)
                 shard.HashMap = new UnsafeDictionary<TKey, TValue>(capacity);

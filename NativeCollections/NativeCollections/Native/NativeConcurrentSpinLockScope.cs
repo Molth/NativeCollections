@@ -7,16 +7,16 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native concurrent reader writer lock ref
+    ///     Native concurrent spinLock ref
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
-    public readonly unsafe struct NativeConcurrentReaderWriterLockRef : IIsCreated, IDisposable, IEquatable<NativeConcurrentReaderWriterLockRef>
+    public readonly unsafe struct NativeConcurrentSpinLockScope : IIsCreated, IDisposable, IEquatable<NativeConcurrentSpinLockScope>
     {
         /// <summary>
         ///     Handle
         /// </summary>
-        private readonly UnsafeConcurrentReaderWriterLock* _handle;
+        private readonly UnsafeConcurrentSpinLock* _handle;
 
         /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
@@ -27,7 +27,7 @@ namespace NativeCollections
         ///     Structure
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeConcurrentReaderWriterLockRef(UnsafeConcurrentReaderWriterLock* handle) => _handle = handle;
+        public NativeConcurrentSpinLockScope(UnsafeConcurrentSpinLock* handle) => _handle = handle;
 
         /// <summary>
         ///     Performs application-defined tasks associated with freeing,
@@ -45,12 +45,12 @@ namespace NativeCollections
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        public bool Equals(NativeConcurrentReaderWriterLockRef other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
+        public bool Equals(NativeConcurrentSpinLockScope other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        public override bool Equals(object? obj) => obj is NativeConcurrentReaderWriterLockRef other && other.Equals(this);
+        public override bool Equals(object? obj) => obj is NativeConcurrentSpinLockScope other && other.Equals(this);
 
         /// <summary>
         ///     Returns the hash code for this instance.
@@ -60,21 +60,21 @@ namespace NativeCollections
         /// <summary>
         ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        public override string ToString() => "NativeConcurrentReaderWriterLockRef";
+        public override string ToString() => "NativeConcurrentSpinLockScope";
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        public static bool operator ==(NativeConcurrentReaderWriterLockRef left, NativeConcurrentReaderWriterLockRef right) => left.Equals(right);
+        public static bool operator ==(NativeConcurrentSpinLockScope left, NativeConcurrentSpinLockScope right) => left.Equals(right);
 
         /// <summary>
         ///     Indicates whether the current object is not equal to another object.
         /// </summary>
-        public static bool operator !=(NativeConcurrentReaderWriterLockRef left, NativeConcurrentReaderWriterLockRef right) => !left.Equals(right);
+        public static bool operator !=(NativeConcurrentSpinLockScope left, NativeConcurrentSpinLockScope right) => !left.Equals(right);
 
         /// <summary>
         ///     Empty
         /// </summary>
-        public static NativeConcurrentReaderWriterLockRef Empty => default;
+        public static NativeConcurrentSpinLockScope Empty => default;
     }
 }

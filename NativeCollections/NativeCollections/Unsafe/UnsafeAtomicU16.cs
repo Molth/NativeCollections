@@ -114,7 +114,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ushort Swap(ushort value) => InterlockedHelpers.Exchange(ref _value, value);
+        public ushort Exchange(ushort value) => InterlockedHelpers.Exchange(ref _value, value);
 
         /// <summary>
         ///     Compares two values for equality and, if they are equal, replaces the first value.

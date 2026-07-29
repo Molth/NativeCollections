@@ -53,7 +53,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        public override string ToString() => "NativeSegQueue";
+        public override string ToString() => "NativeEpochCollector";
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
@@ -80,7 +80,17 @@ namespace NativeCollections
         /// </remarks>
         /// <returns>A disposable scope representing the pinned epoch.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeEpochCollectorScope Scope() => _handle->Scope();
+        public NativeEpochCollectorScope EnterScope() => _handle->EnterScope();
+
+        /// <summary>
+        ///     Enters the current epoch and returns a disposable scope that automatically exits the epoch on disposal.
+        /// </summary>
+        /// <remarks>
+        ///     This method is thread-safe. The returned scope must be disposed to unpin the epoch.
+        /// </remarks>
+        /// <returns>A disposable scope representing the pinned epoch.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeEpochCollectorRefScope EnterRefScope() => _handle->EnterRefScope();
 
         /// <summary>
         ///     Enters the current epoch and returns the epoch identifier.

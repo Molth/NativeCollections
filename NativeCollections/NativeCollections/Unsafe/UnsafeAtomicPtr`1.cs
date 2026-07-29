@@ -65,7 +65,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T* Swap(T* value) => (T*)_value.Swap((nint)value);
+        public T* Exchange(T* value) => (T*)_value.Exchange((nint)value);
 
         /// <summary>
         ///     Compares two values for equality and, if they are equal, replaces the first value.

@@ -114,7 +114,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public short Swap(short value) => (short)_value.Swap((ushort)value);
+        public short Exchange(short value) => (short)_value.Exchange((ushort)value);
 
         /// <summary>
         ///     Compares two values for equality and, if they are equal, replaces the first value.

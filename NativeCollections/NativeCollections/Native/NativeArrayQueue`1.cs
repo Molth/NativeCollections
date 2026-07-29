@@ -52,6 +52,11 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Returns `true` if the queue is full.
+        /// </summary>
+        public bool IsFull => _handle->IsFull;
+
+        /// <summary>
         ///     Gets the number of elements contained in this.
         /// </summary>
         /// <value>The number of elements contained in this.</value>

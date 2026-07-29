@@ -114,7 +114,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ulong Swap(ulong value) => (ulong)_value.Swap((long)value);
+        public ulong Exchange(ulong value) => (ulong)_value.Exchange((long)value);
 
         /// <summary>
         ///     Compares two values for equality and, if they are equal, replaces the first value.

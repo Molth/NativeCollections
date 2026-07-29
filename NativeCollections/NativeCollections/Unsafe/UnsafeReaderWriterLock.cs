@@ -2,6 +2,8 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+#pragma warning disable CS9084 // Struct member returns 'this' or other instance members by reference
+
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -39,7 +41,7 @@ namespace NativeCollections
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
-        public NativeReaderWriterLockRef EnterReadLock() => EnterReadLock(-1);
+        public NativeReaderWriterLockScope EnterReadScope() => EnterReadScope(-1);
 
         /// <summary>
         ///     Enter the lock in read mode.
@@ -53,10 +55,10 @@ namespace NativeCollections
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
-        public NativeReaderWriterLockRef EnterReadLock(int sleep1Threshold)
+        public NativeReaderWriterLockScope EnterReadScope(int sleep1Threshold)
         {
             EnterRead(sleep1Threshold);
-            return new NativeReaderWriterLockRef(UnsafeHelpers.AsPointer(ref this), true);
+            return new NativeReaderWriterLockScope(UnsafeHelpers.AsPointer(ref this), true);
         }
 
         /// <summary>
@@ -64,7 +66,7 @@ namespace NativeCollections
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
-        public NativeReaderWriterLockRef EnterWriteLock() => EnterWriteLock(-1);
+        public NativeReaderWriterLockScope EnterWriteScope() => EnterWriteScope(-1);
 
         /// <summary>
         ///     Enter the lock in write mode.
@@ -78,10 +80,56 @@ namespace NativeCollections
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
-        public NativeReaderWriterLockRef EnterWriteLock(int sleep1Threshold)
+        public NativeReaderWriterLockScope EnterWriteScope(int sleep1Threshold)
         {
             EnterWrite(sleep1Threshold);
-            return new NativeReaderWriterLockRef(UnsafeHelpers.AsPointer(ref this), false);
+            return new NativeReaderWriterLockScope(UnsafeHelpers.AsPointer(ref this), false);
+        }
+
+        /// <summary>
+        ///     Enter the lock in read mode.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeReaderWriterLockRefScope EnterReadRefScope() => EnterReadRefScope(-1);
+
+        /// <summary>
+        ///     Enter the lock in read mode.
+        /// </summary>
+        /// <param name="sleep1Threshold">
+        ///     A minimum spin count after which <see langword="Thread.Sleep(1)" /> may be used. A value
+        ///     of -1 disables the use of <see langword="Thread.Sleep(1)" />.
+        /// </param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="sleep1Threshold" /> is less than -1.
+        /// </exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeReaderWriterLockRefScope EnterReadRefScope(int sleep1Threshold)
+        {
+            EnterRead(sleep1Threshold);
+            return new NativeReaderWriterLockRefScope(NativeRef<UnsafeReaderWriterLock>.Create(ref this), true);
+        }
+
+        /// <summary>
+        ///     Enter the lock in write mode.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeReaderWriterLockRefScope EnterWriteRefScope() => EnterWriteRefScope(-1);
+
+        /// <summary>
+        ///     Enter the lock in write mode.
+        /// </summary>
+        /// <param name="sleep1Threshold">
+        ///     A minimum spin count after which <see langword="Thread.Sleep(1)" /> may be used. A value
+        ///     of -1 disables the use of <see langword="Thread.Sleep(1)" />.
+        /// </param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="sleep1Threshold" /> is less than -1.
+        /// </exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeReaderWriterLockRefScope EnterWriteRefScope(int sleep1Threshold)
+        {
+            EnterWrite(sleep1Threshold);
+            return new NativeReaderWriterLockRefScope(NativeRef<UnsafeReaderWriterLock>.Create(ref this), false);
         }
 
         /// <summary>
@@ -209,13 +257,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Exit
+        ///     Exit the lock.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ExitRead() => _state.Sub(1);
 
         /// <summary>
-        ///     Exit
+        ///     Exit the lock.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ExitWrite() => _state.Store(0, Ordering.Release);

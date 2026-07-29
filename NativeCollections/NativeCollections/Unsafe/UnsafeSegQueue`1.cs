@@ -118,7 +118,18 @@ namespace NativeCollections
         ///     otherwise, false.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDequeue(out T result) => _handle.pop(out result);
+        public bool TryDequeue(out T result)
+        {
+            var option = _handle.pop();
+            if (option.is_some())
+            {
+                result = option.unwrap_unchecked();
+                return true;
+            }
+
+            result = default;
+            return false;
+        }
 
         /// <summary>
         ///     Empty

@@ -100,7 +100,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public char Swap(char value) => (char)_value.Swap(value);
+        public char Exchange(char value) => (char)_value.Exchange(value);
 
         /// <summary>
         ///     Compares two values for equality and, if they are equal, replaces the first value.

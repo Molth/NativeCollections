@@ -93,7 +93,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        public readonly override string ToString() => SR.Format("UnsafeUInt64MemoryPool<{0}>", SR.GetTypeName(typeof(T)));
+        public readonly override string ToString() => SR.Format("UnsafeU64MemoryPool<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.

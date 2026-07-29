@@ -178,7 +178,7 @@ namespace NativeCollections
         /// <param name="capacity">
         ///     The initial number of elements that this can contain.
         /// </param>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="concurrencyLevel" /> is less than -1.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="concurrencyLevel" /> is less than 1.</exception>
         /// <exception cref="ArgumentOutOfRangeException"> <paramref name="capacity" /> is less than 0.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeConcurrentHashSet<T> Create(int concurrencyLevel, int capacity)

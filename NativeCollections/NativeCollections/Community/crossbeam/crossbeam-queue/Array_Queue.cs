@@ -4,6 +4,8 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using NativeCollections;
 using static NativeCollections.PaddingHelpers;
+using static crossbeam.Option;
+using static crossbeam.Result;
 
 #pragma warning disable CS0162 // Unreachable code detected
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
@@ -28,7 +30,7 @@ namespace crossbeam
     {
         /// A slot in a queue.
         [StructLayout(LayoutKind.Sequential)]
-        public struct Slot<T> where T : unmanaged
+        private struct Slot<T> where T : unmanaged
         {
             /// The current stamp.
             /// <br />
@@ -48,9 +50,9 @@ namespace crossbeam
         /// this queue to be used as a ring-buffer. Having a buffer allocated upfront makes this queue
         /// a bit faster than [`SegQueue`].`
         [StructLayout(LayoutKind.Sequential, Size = 4 * CACHE_LINE_SIZE)]
-        public struct ArrayQueue<T> where T : unmanaged
+        public struct ArrayQueue<T> : IIsCreated where T : unmanaged
         {
-            private readonly Padding _padding;
+            private readonly CachePadding _padding;
 
             /// The head of the queue.
             /// <br />
@@ -58,7 +60,7 @@ namespace crossbeam
             /// single `usize`. The lower bits represent the index, while the upper bits represent the lap.
             /// <br />
             /// Elements are popped from the head of the queue.
-            public CachePaddedAtomicUsize head;
+            private CachePaddedAtomicUsize head;
 
             /// The tail of the queue.
             /// <br />
@@ -66,18 +68,23 @@ namespace crossbeam
             /// single `usize`. The lower bits represent the index, while the upper bits represent the lap.
             /// <br />
             /// Elements are pushed into the tail of the queue.
-            public CachePaddedAtomicUsize tail;
+            private CachePaddedAtomicUsize tail;
 
             /// The buffer holding slots.
-            public NativeMemoryArray<Slot<T>> buffer;
+            private readonly NativeMemoryArray<Slot<T>> buffer;
 
             /// A stamp with the value of `{ lap: 1, index: 0 }`.
-            public nuint one_lap;
+            private readonly nuint one_lap;
+
+            /// <summary>
+            ///     Gets a value that indicates whether this has been allocated or initialized.
+            /// </summary>
+            public readonly bool IsCreated => buffer.IsCreated;
 
             /// Creates a new bounded queue with the given capacity.
             public ArrayQueue(nuint cap)
             {
-                _padding = new Padding();
+                _padding = new CachePadding();
 
                 // Head is initialized to `{ lap: 0, index: 0 }`.
                 // Tail is initialized to `{ lap: 0, index: 0 }`.
@@ -98,7 +105,7 @@ namespace crossbeam
                 one_lap = (nuint)BitOperationsHelpers.RoundUpToPowerOf2((uint)(cap + 1));
             }
 
-            public Result<T> push_or_else(T value, delegate* managed<ref ArrayQueue<T>, T, nuint, nuint, Slot<T>*, Result<T>> f)
+            private Result<T> push_or_else(T value, delegate* managed<ref ArrayQueue<T>, T, nuint, nuint, Slot<T>*, Result<T>> f)
             {
                 var backoff = new Backoff();
                 var tail = this.tail.load(Ordering.Relaxed);
@@ -138,7 +145,7 @@ namespace crossbeam
                             // Write the value into the slot and update the stamp.
                             slot->value = value;
                             slot->stamp.store(tail + 1, Ordering.Release);
-                            return Result.Ok(default(T));
+                            return Ok<T>(default);
                         }
                         else
                         {
@@ -168,9 +175,9 @@ namespace crossbeam
             /// Attempts to push an element into the queue.
             /// <br />
             /// If the queue is full, the element is returned back as an error.
-            public bool push(T value)
+            public Result<T> push(T value)
             {
-                return this.push_or_else(value, &f).is_ok();
+                return this.push_or_else(value, &f);
 
                 static Result<T> f(ref ArrayQueue<T> self, T v, nuint tail, nuint _, Slot<T>* __)
                 {
@@ -180,11 +187,11 @@ namespace crossbeam
                     if (head.wrapping_add(self.one_lap) == tail)
                     {
                         // ...then the queue is full.
-                        return Result.Err(v);
+                        return Err(v);
                     }
                     else
                     {
-                        return Result.Ok(v);
+                        return Ok(v);
                     }
                 }
             }
@@ -192,14 +199,14 @@ namespace crossbeam
             /// Attempts to push an element using an exclusive reference of the queue.
             /// <br />
             /// Atomic operations and checks are omitted
-            public bool push_mut(T value)
+            public Result<T> push_mut(T value)
             {
                 var tail = this.tail.get_mut();
                 var head = this.head.get_mut();
 
                 if (head.wrapping_add(this.one_lap) == tail)
                 {
-                    return false;
+                    return Err(value);
                 }
 
                 var index = tail & (this.one_lap - 1);
@@ -220,7 +227,7 @@ namespace crossbeam
                 slot->value = value;
                 slot->stamp.AsRef() = tail + 1;
 
-                return true;
+                return Ok<T>(default);
             }
 
             /// Pushes an element into the queue, replacing the oldest element if necessary.
@@ -229,9 +236,7 @@ namespace crossbeam
             /// otherwise `None` is returned.
             public Option<T> force_push(T value)
             {
-                var result = this.push_or_else(value, &f);
-
-                return result.err();
+                return this.push_or_else(value, &f).err();
 
                 static Result<T> f(ref ArrayQueue<T> self, T v, nuint tail, nuint new_tail, Slot<T>* slot)
                 {
@@ -254,11 +259,11 @@ namespace crossbeam
                         // Update the stamp.
                         slot->stamp.store(tail + 1, Ordering.Release);
 
-                        return Result.Err(old);
+                        return Err(old);
                     }
                     else
                     {
-                        return Result.Ok(v);
+                        return Ok(v);
                     }
                 }
             }
@@ -266,7 +271,7 @@ namespace crossbeam
             /// Attempts to pop an element from the queue.
             /// <br />
             /// If the queue is empty, `None` is returned.
-            public bool pop(out T result)
+            public Option<T> pop()
             {
                 var backoff = new Backoff();
                 var head = this.head.load(Ordering.Relaxed);
@@ -304,10 +309,10 @@ namespace crossbeam
                         if (h == head)
                         {
                             // Read the value from the slot and update the stamp.
-                            result = slot->value;
+                            var msg = slot->value;
                             slot->stamp
                                 .store(head.wrapping_add(this.one_lap), Ordering.Release);
-                            return true;
+                            return Some(msg);
                         }
                         else
                         {
@@ -323,8 +328,7 @@ namespace crossbeam
                         // If the tail equals the head, that means the channel is empty.
                         if (tail == head)
                         {
-                            result = default;
-                            return false;
+                            return None<T>();
                         }
 
                         backoff.spin();
@@ -342,7 +346,7 @@ namespace crossbeam
             /// Attempts to pop an element using an exclusive reference of the queue.
             /// <br />
             /// Due to having an exclusive reference, atomic operations and checks are omitted
-            public bool pop_mut(out T result)
+            public Option<T> pop_mut()
             {
                 var head = this.head.get_mut();
                 var tail = this.tail.get_mut();
@@ -350,8 +354,7 @@ namespace crossbeam
                 // If the tail equals the head, that means the channel is empty.
                 if (tail == head)
                 {
-                    result = default;
-                    return false;
+                    return None<T>();
                 }
 
                 var index = head & (this.one_lap - 1);
@@ -374,13 +377,12 @@ namespace crossbeam
                     @new = lap.wrapping_add(this.one_lap);
                 }
 
-
                 var slot = this.buffer[(int)index];
 
-                result = slot->value;
+                var msg = slot->value;
                 slot->stamp.AsRef() = head.wrapping_add(this.one_lap);
                 this.head.get_mut() = @new;
-                return true;
+                return Some(msg);
             }
 
             /// Returns the capacity of the queue.

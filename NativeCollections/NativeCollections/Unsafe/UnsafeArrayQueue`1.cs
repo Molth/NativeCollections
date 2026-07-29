@@ -27,7 +27,7 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
-        public readonly bool IsCreated => _handle.buffer.IsCreated;
+        public readonly bool IsCreated => _handle.IsCreated;
 
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
@@ -44,6 +44,11 @@ namespace NativeCollections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => _handle.is_empty();
         }
+
+        /// <summary>
+        ///     Returns `true` if the queue is full.
+        /// </summary>
+        public bool IsFull => _handle.is_full();
 
         /// <summary>
         ///     Gets the number of elements contained in this.
@@ -119,7 +124,7 @@ namespace NativeCollections
         ///     <see langword="false" /> if the queue is already full and the item could not be enqueued.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryEnqueue(T item) => _handle.push(item);
+        public bool TryEnqueue(T item) => _handle.push(item).is_ok();
 
         /// <summary>
         ///     Adds an object to the end of this.
@@ -162,7 +167,18 @@ namespace NativeCollections
         ///     otherwise, false.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDequeue(out T result) => _handle.pop(out result);
+        public bool TryDequeue(out T result)
+        {
+            var option = _handle.pop();
+            if (option.is_some())
+            {
+                result = option.unwrap_unchecked();
+                return true;
+            }
+
+            result = default;
+            return false;
+        }
 
         /// <summary>
         ///     Empty

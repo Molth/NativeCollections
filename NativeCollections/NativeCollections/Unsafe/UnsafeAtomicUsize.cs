@@ -118,7 +118,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public nuint Swap(nuint value) => InterlockedHelpers.Exchange(ref _value, value);
+        public nuint Exchange(nuint value) => InterlockedHelpers.Exchange(ref _value, value);
 
         /// <summary>
         ///     Compares two values for equality and, if they are equal, replaces the first value.

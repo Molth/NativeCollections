@@ -98,9 +98,9 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public double Swap(double value)
+        public double Exchange(double value)
         {
-            var newInt64 = _value.Swap(BitConverter.DoubleToInt64Bits(value));
+            var newInt64 = _value.Exchange(BitConverter.DoubleToInt64Bits(value));
             return BitConverter.Int64BitsToDouble(newInt64);
         }
 

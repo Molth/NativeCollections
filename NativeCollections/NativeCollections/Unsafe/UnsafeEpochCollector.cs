@@ -25,7 +25,7 @@ namespace NativeCollections
         /// <summary>
         ///     Padding to avoid false sharing with adjacent data.
         /// </summary>
-        private readonly Padding _padding;
+        private readonly CachePadding _padding;
 
         /// <summary>
         ///     The global epoch counter, atomically updated and padded to avoid false sharing.
@@ -50,7 +50,7 @@ namespace NativeCollections
         /// <summary>
         ///     Maximum number of deferred actions that can be collected in a single batch.
         /// </summary>
-        private const uint GARBAGE_CAPACITY = 16;
+        private const uint COLLECT_BATCH_SIZE = 16;
 
         /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
@@ -97,9 +97,9 @@ namespace NativeCollections
             for (uint i = 0; i < 3; ++i)
             {
                 ref var slot = ref _slots[i];
-                while (slot.Bag.pop_mut(out var sealedBag))
+                while (slot.Bag.TryDequeue(out var sealedBag))
                     sealedBag.Garbage.Call();
-                slot.Bag.drop();
+                slot.Bag.Dispose();
             }
         }
 
@@ -112,7 +112,17 @@ namespace NativeCollections
         /// <returns>A disposable scope representing the pinned epoch.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
-        public NativeEpochCollectorScope Scope() => new(UnsafeHelpers.AsPointer(ref this), Pin());
+        public NativeEpochCollectorScope EnterScope() => new(UnsafeHelpers.AsPointer(ref this), Pin());
+
+        /// <summary>
+        ///     Enters the current epoch and returns a disposable scope that automatically exits the epoch on disposal.
+        /// </summary>
+        /// <remarks>
+        ///     This method is thread-safe. The returned scope must be disposed to unpin the epoch.
+        /// </remarks>
+        /// <returns>A disposable scope representing the pinned epoch.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeEpochCollectorRefScope EnterRefScope() => new(NativeRef<UnsafeEpochCollector>.Create(ref this), Pin());
 
         /// <summary>
         ///     Enters the current epoch and returns the epoch identifier.
@@ -152,7 +162,7 @@ namespace NativeCollections
             var current = epoch % 3;
             ref var slot = ref _slots[current];
             slot.PinCount.fetch_sub(1);
-            if ((slot.UnpinCount.fetch_add(1) & UNPINNINGS_BETWEEN_COLLECT_MASK) == 0)
+            if ((slot.UnpinCount.fetch_add(1).wrapping_add(1) & UNPINNINGS_BETWEEN_COLLECT_MASK) == 0)
                 Collect();
         }
 
@@ -172,23 +182,23 @@ namespace NativeCollections
             ref var slot = ref _slots[previous];
             if (slot.PinCount.load(Ordering.Acquire) == 0 && _globalEpoch.compare_exchange(globalEpoch, globalEpoch.wrapping_add(1)) == globalEpoch)
             {
-                Span<Deferred> garbage = stackalloc Deferred[(int)GARBAGE_CAPACITY];
+                Span<Deferred> garbage = stackalloc Deferred[(int)COLLECT_BATCH_SIZE];
                 var count = 0;
-                while (slot.Bag.pop(out var sealedBag))
+                while (slot.Bag.TryDequeue(out var sealedBag))
                 {
                     if (sealedBag.IsExpired(globalEpoch))
                     {
                         garbage[count++] = sealedBag.Garbage;
-                        if (count == GARBAGE_CAPACITY)
+                        if (count == COLLECT_BATCH_SIZE)
                         {
-                            for (var i = 0; i < GARBAGE_CAPACITY; ++i)
+                            for (var i = 0; i < COLLECT_BATCH_SIZE; ++i)
                                 garbage[i].Call();
                             count = 0;
                         }
                     }
                     else
                     {
-                        slot.Bag.push(sealedBag);
+                        slot.Bag.Enqueue(sealedBag);
                         break;
                     }
                 }
@@ -229,7 +239,7 @@ namespace NativeCollections
             var current = epoch % 3;
             ref var slot = ref _slots[current];
             var garbage = new SealedBag(epoch, data, call);
-            slot.Bag.push(garbage);
+            slot.Bag.Enqueue(garbage);
         }
 
         /// <summary>
@@ -358,7 +368,7 @@ namespace NativeCollections
             /// <summary>
             ///     The bag (lock-free queue) of sealed bags pending collection for this epoch.
             /// </summary>
-            public Seg_Queue.SegQueue<SealedBag> Bag;
+            public UnsafeSegQueue<SealedBag> Bag;
         }
 
         /// <summary>

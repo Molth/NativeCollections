@@ -85,13 +85,13 @@ namespace NativeCollections
         public void Reset() => _handle->Reset();
 
         /// <summary>
-        ///     Enter
+        ///     Enter the lock.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeConcurrentSpinLockRef EnterLock() => _handle->EnterLock();
+        public NativeConcurrentSpinLockScope EnterScope() => _handle->EnterScope();
 
         /// <summary>
-        ///     Enter
+        ///     Enter the lock.
         /// </summary>
         /// <param name="sleep1Threshold">
         ///     A minimum spin count after which <see langword="Thread.Sleep(1)" /> may be used. A value
@@ -101,26 +101,45 @@ namespace NativeCollections
         ///     <paramref name="sleep1Threshold" /> is less than -1.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeConcurrentSpinLockRef EnterLock(int sleep1Threshold) => _handle->EnterLock(sleep1Threshold);
+        public NativeConcurrentSpinLockScope EnterScope(int sleep1Threshold) => _handle->EnterScope(sleep1Threshold);
 
         /// <summary>
-        ///     Acquire
+        ///     Enter the lock.
         /// </summary>
-        /// <returns>Sequence number</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeConcurrentSpinLockRefScope EnterRefScope() => _handle->EnterRefScope();
+
+        /// <summary>
+        ///     Enter the lock.
+        /// </summary>
+        /// <param name="sleep1Threshold">
+        ///     A minimum spin count after which <see langword="Thread.Sleep(1)" /> may be used. A value
+        ///     of -1 disables the use of <see langword="Thread.Sleep(1)" />.
+        /// </param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="sleep1Threshold" /> is less than -1.
+        /// </exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeConcurrentSpinLockRefScope EnterRefScope(int sleep1Threshold) => _handle->EnterRefScope(sleep1Threshold);
+
+        /// <summary>
+        ///     Atomically acquires the current sequence number.
+        /// </summary>
+        /// <returns>The current sequence number at the time of acquisition.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Acquire() => _handle->Acquire();
 
         /// <summary>
-        ///     Wait
+        ///     Spins until the lock's sequence number advances beyond the specified value.
         /// </summary>
-        /// <param name="sequenceNumber">Sequence number</param>
+        /// <param name="sequenceNumber">The sequence number obtained from <see cref="Acquire" />.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Wait(int sequenceNumber) => _handle->Wait(sequenceNumber);
 
         /// <summary>
-        ///     Wait
+        ///     Spins until the lock's sequence number advances beyond the specified value, with configurable sleep behavior.
         /// </summary>
-        /// <param name="sequenceNumber">Sequence number</param>
+        /// <param name="sequenceNumber">The sequence number obtained from <see cref="Acquire" />.</param>
         /// <param name="sleep1Threshold">
         ///     A minimum spin count after which <see langword="Thread.Sleep(1)" /> may be used. A value
         ///     of -1 disables the use of <see langword="Thread.Sleep(1)" />.
@@ -132,13 +151,13 @@ namespace NativeCollections
         public void Wait(int sequenceNumber, int sleep1Threshold) => _handle->Wait(sequenceNumber, sleep1Threshold);
 
         /// <summary>
-        ///     Enter
+        ///     Enter the lock.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Enter() => _handle->Enter();
 
         /// <summary>
-        ///     Enter
+        ///     Enter the lock.
         /// </summary>
         /// <param name="sleep1Threshold">
         ///     A minimum spin count after which <see langword="Thread.Sleep(1)" /> may be used. A value
@@ -151,7 +170,7 @@ namespace NativeCollections
         public void Enter(int sleep1Threshold) => _handle->Enter(sleep1Threshold);
 
         /// <summary>
-        ///     Exit
+        ///     Exit the lock.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Exit() => _handle->Exit();

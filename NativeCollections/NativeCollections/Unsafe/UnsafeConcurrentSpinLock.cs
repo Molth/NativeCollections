@@ -3,6 +3,8 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 
+#pragma warning disable CS9084 // Struct member returns 'this' or other instance members by reference
+
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -45,14 +47,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Enter
+        ///     Enter the lock.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
-        public NativeConcurrentSpinLockRef EnterLock() => EnterLock(-1);
+        public NativeConcurrentSpinLockScope EnterScope() => EnterScope(-1);
 
         /// <summary>
-        ///     Enter
+        ///     Enter the lock.
         /// </summary>
         /// <param name="sleep1Threshold">
         ///     A minimum spin count after which <see langword="Thread.Sleep(1)" /> may be used. A value
@@ -63,30 +65,53 @@ namespace NativeCollections
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
-        public NativeConcurrentSpinLockRef EnterLock(int sleep1Threshold)
+        public NativeConcurrentSpinLockScope EnterScope(int sleep1Threshold)
         {
             Enter(sleep1Threshold);
-            return new NativeConcurrentSpinLockRef(UnsafeHelpers.AsPointer(ref this));
+            return new NativeConcurrentSpinLockScope(UnsafeHelpers.AsPointer(ref this));
         }
 
         /// <summary>
-        ///     Acquire
+        ///     Enter the lock.
         /// </summary>
-        /// <returns>Sequence number</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeConcurrentSpinLockRefScope EnterRefScope() => EnterRefScope(-1);
+
+        /// <summary>
+        ///     Enter the lock.
+        /// </summary>
+        /// <param name="sleep1Threshold">
+        ///     A minimum spin count after which <see langword="Thread.Sleep(1)" /> may be used. A value
+        ///     of -1 disables the use of <see langword="Thread.Sleep(1)" />.
+        /// </param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="sleep1Threshold" /> is less than -1.
+        /// </exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeConcurrentSpinLockRefScope EnterRefScope(int sleep1Threshold)
+        {
+            Enter(sleep1Threshold);
+            return new NativeConcurrentSpinLockRefScope(NativeRef<UnsafeConcurrentSpinLock>.Create(ref this));
+        }
+
+        /// <summary>
+        ///     Atomically acquires the current sequence number.
+        /// </summary>
+        /// <returns>The current sequence number at the time of acquisition.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Acquire() => Interlocked.Increment(ref _sequenceNumber) - 1;
 
         /// <summary>
-        ///     Wait
+        ///     Spins until the lock's sequence number advances beyond the specified value.
         /// </summary>
-        /// <param name="sequenceNumber">Sequence number</param>
+        /// <param name="sequenceNumber">The sequence number obtained from <see cref="Acquire" />.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void Wait(int sequenceNumber) => Wait(sequenceNumber, -1);
 
         /// <summary>
-        ///     Wait
+        ///     Spins until the lock's sequence number advances beyond the specified value, with configurable sleep behavior.
         /// </summary>
-        /// <param name="sequenceNumber">Sequence number</param>
+        /// <param name="sequenceNumber">The sequence number obtained from <see cref="Acquire" />.</param>
         /// <param name="sleep1Threshold">
         ///     A minimum spin count after which <see langword="Thread.Sleep(1)" /> may be used. A value
         ///     of -1 disables the use of <see langword="Thread.Sleep(1)" />.
@@ -103,13 +128,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Enter
+        ///     Enter the lock.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Enter() => Enter(-1);
 
         /// <summary>
-        ///     Enter
+        ///     Enter the lock.
         /// </summary>
         /// <param name="sleep1Threshold">
         ///     A minimum spin count after which <see langword="Thread.Sleep(1)" /> may be used. A value
@@ -122,7 +147,7 @@ namespace NativeCollections
         public void Enter(int sleep1Threshold) => Wait(Acquire(), sleep1Threshold);
 
         /// <summary>
-        ///     Exit
+        ///     Exit the lock.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Exit() => Interlocked.Increment(ref _nextSequenceNumber);

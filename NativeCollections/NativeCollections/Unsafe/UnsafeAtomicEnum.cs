@@ -327,19 +327,19 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T Swap(T value)
+        public T Exchange(T value)
         {
             if (Unsafe.SizeOf<T>() == 1)
-                return CastFromOther(AsU8().Swap(CastToOther<byte>(value)));
+                return CastFromOther(AsU8().Exchange(CastToOther<byte>(value)));
 
             if (Unsafe.SizeOf<T>() == 2)
-                return CastFromOther(AsU16().Swap(CastToOther<ushort>(value)));
+                return CastFromOther(AsU16().Exchange(CastToOther<ushort>(value)));
 
             if (Unsafe.SizeOf<T>() == 4)
-                return CastFromOther(AsU32().Swap(CastToOther<uint>(value)));
+                return CastFromOther(AsU32().Exchange(CastToOther<uint>(value)));
 
             if (Unsafe.SizeOf<T>() == 8)
-                return CastFromOther(AsU64().Swap(CastToOther<ulong>(value)));
+                return CastFromOther(AsU64().Exchange(CastToOther<ulong>(value)));
 
             ThrowHelpers.ThrowNotSupportedException();
             return default;

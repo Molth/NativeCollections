@@ -78,7 +78,7 @@ namespace NativeCollections
         ///     Enter the lock in read mode.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeReaderWriterLockRef EnterReadLock() => _handle->EnterReadLock();
+        public NativeReaderWriterLockScope EnterReadScope() => _handle->EnterReadScope();
 
         /// <summary>
         ///     Enter the lock in read mode.
@@ -91,13 +91,13 @@ namespace NativeCollections
         ///     <paramref name="sleep1Threshold" /> is less than -1.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeReaderWriterLockRef EnterReadLock(int sleep1Threshold) => _handle->EnterReadLock(sleep1Threshold);
+        public NativeReaderWriterLockScope EnterReadScope(int sleep1Threshold) => _handle->EnterReadScope(sleep1Threshold);
 
         /// <summary>
         ///     Enter the lock in write mode.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeReaderWriterLockRef EnterWriteLock() => _handle->EnterWriteLock();
+        public NativeReaderWriterLockScope EnterWriteScope() => _handle->EnterWriteScope();
 
         /// <summary>
         ///     Enter the lock in write mode.
@@ -110,7 +110,45 @@ namespace NativeCollections
         ///     <paramref name="sleep1Threshold" /> is less than -1.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeReaderWriterLockRef EnterWriteLock(int sleep1Threshold) => _handle->EnterWriteLock(sleep1Threshold);
+        public NativeReaderWriterLockScope EnterWriteScope(int sleep1Threshold) => _handle->EnterWriteScope(sleep1Threshold);
+
+        /// <summary>
+        ///     Enter the lock in read mode.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeReaderWriterLockRefScope EnterReadRefScope() => _handle->EnterReadRefScope();
+
+        /// <summary>
+        ///     Enter the lock in read mode.
+        /// </summary>
+        /// <param name="sleep1Threshold">
+        ///     A minimum spin count after which <see langword="Thread.Sleep(1)" /> may be used. A value
+        ///     of -1 disables the use of <see langword="Thread.Sleep(1)" />.
+        /// </param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="sleep1Threshold" /> is less than -1.
+        /// </exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeReaderWriterLockRefScope EnterReadRefScope(int sleep1Threshold) => _handle->EnterReadRefScope(sleep1Threshold);
+
+        /// <summary>
+        ///     Enter the lock in write mode.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeReaderWriterLockRefScope EnterWriteRefScope() => _handle->EnterWriteRefScope();
+
+        /// <summary>
+        ///     Enter the lock in write mode.
+        /// </summary>
+        /// <param name="sleep1Threshold">
+        ///     A minimum spin count after which <see langword="Thread.Sleep(1)" /> may be used. A value
+        ///     of -1 disables the use of <see langword="Thread.Sleep(1)" />.
+        /// </param>
+        /// <exception cref="T:System.ArgumentOutOfRangeException">
+        ///     <paramref name="sleep1Threshold" /> is less than -1.
+        /// </exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeReaderWriterLockRefScope EnterWriteRefScope(int sleep1Threshold) => _handle->EnterWriteRefScope(sleep1Threshold);
 
         /// <summary>
         ///     Attempts to enter the lock in read mode.
@@ -176,13 +214,13 @@ namespace NativeCollections
         public void EnterWrite(int sleep1Threshold) => _handle->EnterWrite(sleep1Threshold);
 
         /// <summary>
-        ///     Exit
+        ///     Exit the lock.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ExitRead() => _handle->ExitRead();
 
         /// <summary>
-        ///     Exit
+        ///     Exit the lock.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ExitWrite() => _handle->ExitWrite();

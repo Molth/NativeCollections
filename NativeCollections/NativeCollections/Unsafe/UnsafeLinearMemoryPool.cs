@@ -225,8 +225,7 @@ namespace NativeCollections
             alignment = Math.Max(alignment, (int)NativeMemoryAllocator.AlignOf<nint>());
             var byteOffset = alignment - 1 + Unsafe.SizeOf<nint>();
             var bytes = length + byteOffset;
-            if ((uint)bytes > (uint)_size)
-                ThrowHelpers.ThrowMustBeLessOrEqualException(length, ExceptionArgument.length);
+            ThrowHelpers.ThrowIfGreaterThan((uint)bytes, (uint)_size, ExceptionArgument.length);
             var slab = _sentinel;
             if ((ulong)slab->Length + (ulong)bytes > (ulong)_size)
             {

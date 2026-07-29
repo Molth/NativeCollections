@@ -98,9 +98,9 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float Swap(float value)
+        public float Exchange(float value)
         {
-            var newInt32 = _value.Swap(BitConverter.SingleToInt32Bits(value));
+            var newInt32 = _value.Exchange(BitConverter.SingleToInt32Bits(value));
             return BitConverter.Int32BitsToSingle(newInt32);
         }
 

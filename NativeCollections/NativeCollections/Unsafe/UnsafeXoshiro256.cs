@@ -44,7 +44,21 @@ namespace NativeCollections
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public UnsafeXoshiro256(ulong s0, ulong s1, ulong s2, ulong s3)
+        {
+            _s0 = s0;
+            _s1 = s1;
+            _s2 = s2;
+            _s3 = s3;
+            if (!IsCreated)
+                ThrowHelpers.ThrowMustBeNonEntirelyZeroException();
+        }
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeXoshiro256(ReadOnlySpan<byte> buffer)
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, Unsafe.SizeOf<UnsafeXoshiro256>(), ExceptionArgument.buffer);

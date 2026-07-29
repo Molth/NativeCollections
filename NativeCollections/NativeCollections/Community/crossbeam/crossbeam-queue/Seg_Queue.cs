@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using NativeCollections;
 using static NativeCollections.PaddingHelpers;
+using static crossbeam.Option;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 #pragma warning disable CS9084 // Struct member returns 'this' or other instance members by reference
@@ -24,25 +25,25 @@ namespace crossbeam
         // * If a value has been read from the slot, `READ` is set.
         // * If the block is being destroyed, `DESTROY` is set.
 
-        public const nuint WRITE = 1;
-        public const nuint READ = 2;
-        public const nuint DESTROY = 4;
+        private const nuint WRITE = 1;
+        private const nuint READ = 2;
+        private const nuint DESTROY = 4;
 
         // Each block covers one "lap" of indices.
-        public const nuint LAP = 32;
+        private const nuint LAP = 32;
 
         // The maximum number of values a block can hold.
-        public const nuint BLOCK_CAP = LAP - 1;
+        private const nuint BLOCK_CAP = LAP - 1;
 
         // How many lower bits are reserved for metadata.
-        public const nuint SHIFT = 1;
+        private const nuint SHIFT = 1;
 
         // Indicates that the block is not the last one.
-        public const nuint HAS_NEXT = 1;
+        private const nuint HAS_NEXT = 1;
 
         /// A slot in a block.
         [StructLayout(LayoutKind.Sequential)]
-        public struct Slot<T> where T : unmanaged
+        private struct Slot<T> where T : unmanaged
         {
             /// The value.
             public T value;
@@ -61,20 +62,20 @@ namespace crossbeam
             }
         }
 
-        // [InlineArray((int)BLOCK_CAP)]
+        [FixedLengthArray(typeof(Slot<>), (int)BLOCK_CAP)]
         [StructLayout(LayoutKind.Sequential)]
-        public struct Slots<T> where T : unmanaged
+        private struct Slots<T> where T : unmanaged
         {
-            private Slot<T> slot0;
-            private Slot<T> slot1;
-            private Slot<T> slot2;
-            private Slot<T> slot3;
-            private Slot<T> slot4;
-            private Slot<T> slot5;
-            private Slot<T> slot6;
-            private Slot<T> slot7;
-            private Slot<T> slot8;
-            private Slot<T> slot9;
+            private Slot<T> slot_0;
+            private Slot<T> slot_1;
+            private Slot<T> slot_2;
+            private Slot<T> slot_3;
+            private Slot<T> slot_4;
+            private Slot<T> slot_5;
+            private Slot<T> slot_6;
+            private Slot<T> slot_7;
+            private Slot<T> slot_8;
+            private Slot<T> slot_9;
             private Slot<T> slot10;
             private Slot<T> slot11;
             private Slot<T> slot12;
@@ -98,7 +99,7 @@ namespace crossbeam
             private Slot<T> slot30;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public Slot<T>* get_unchecked(nuint index) => (Slot<T>*)Unsafe.AsPointer(ref Unsafe.Add(ref slot0, (nint)index));
+            public Slot<T>* get_unchecked(nuint index) => (Slot<T>*)UnsafeHelpers.Add(ref slot_0, (nint)index);
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public Slot<T>* get_unchecked_mut(nuint index) => get_unchecked(index);
@@ -108,7 +109,7 @@ namespace crossbeam
         /// <br />
         /// Each block in the list can hold up to `BLOCK_CAP` values.
         [StructLayout(LayoutKind.Sequential)]
-        public struct Block<T> where T : unmanaged
+        private struct Block<T> where T : unmanaged
         {
             /// Creates an empty block.
             public static Block<T>* allocate_zeroed() => NativeMemoryAllocator.AlignedAllocZeroed<Block<T>>(1);
@@ -165,7 +166,7 @@ namespace crossbeam
 
         /// A position in a queue.
         [StructLayout(LayoutKind.Sequential, Size = 1 * CACHE_LINE_SIZE)]
-        public struct CachePaddedPosition<T> where T : unmanaged
+        private struct CachePaddedPosition<T> where T : unmanaged
         {
             /// The index in the queue.
             public UnsafeAtomicUsize index;
@@ -182,13 +183,13 @@ namespace crossbeam
         [StructLayout(LayoutKind.Sequential)]
         public struct SegQueue<T> where T : unmanaged
         {
-            private readonly Padding _padding;
+            private readonly CachePadding _padding;
 
             /// The head of the queue.
-            public CachePaddedPosition<T> head;
+            private CachePaddedPosition<T> head;
 
             /// The tail of the queue.
-            public CachePaddedPosition<T> tail;
+            private CachePaddedPosition<T> tail;
 
             /// Pushes back an element to the tail.
             public void push(T value)
@@ -332,7 +333,7 @@ namespace crossbeam
             }
 
             /// Pops the head element from the queue.
-            public bool pop(out T result)
+            public Option<T> pop()
             {
                 var backoff = new Backoff();
                 var head = this.head.index.load(Ordering.Acquire);
@@ -362,8 +363,7 @@ namespace crossbeam
                         // If the tail equals the head, that means the queue is empty.
                         if ((head >> (int)SHIFT) == (tail >> (int)SHIFT))
                         {
-                            result = default;
-                            return false;
+                            return None<T>();
                         }
 
                         // If head and tail are not in the same block, set `HAS_NEXT` in head.
@@ -421,8 +421,7 @@ namespace crossbeam
                             Block<T>.destroy(block, offset + 1);
                         }
 
-                        result = value;
-                        return true;
+                        return Some(value);
                     }
                     else
                     {
@@ -437,7 +436,7 @@ namespace crossbeam
             /// <br />
             /// Avoids atomic operations and synchronization, assuming
             /// no other threads access the queue concurrently.
-            public bool pop_mut(out T result)
+            public Option<T> pop_mut()
             {
                 var head = this.head.index.get_mut();
                 var block = this.head.block.get_mut();
@@ -454,8 +453,7 @@ namespace crossbeam
                     // If the tail equals the head, that means the queue is empty.
                     if (head >> (int)SHIFT == tail >> (int)SHIFT)
                     {
-                        result = default;
-                        return false;
+                        return None<T>();
                     }
 
                     // If head and tail are not in the same block, set `HAS_NEXT` in head.
@@ -500,8 +498,7 @@ namespace crossbeam
                     }
                 }
 
-                result = value;
-                return true;
+                return Some(value);
             }
 
             /// Returns `true` if the queue is empty.

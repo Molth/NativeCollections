@@ -20,20 +20,26 @@ namespace NativeCollections
         public const string Argument_BufferNotFromPool = "BufferNotFromPool";
         public const string Argument_Empty = "Empty";
         public const string Argument_InvalidSeekOrigin = "InvalidSeekOrigin";
-        public const string Argument_MustBeAlignedTo = "MustBeAlignedTo: {0}";
-        public const string Argument_MustBeBetweenZeroAndOne = "MustBeBetweenZeroAndOne";
-        public const string Argument_MustBeGreaterOrEqual = "MustBeGreaterOrEqual";
-        public const string Argument_MustBeLess = "MustBeLess";
-        public const string Argument_MustBeLessOrEqual = "MustBeLessOrEqual";
-        public const string Argument_MustBeNonNegative = "MustBeNonNegative";
-        public const string Argument_MustBeNonNegativeNonZero = "MustBeNonNegativeNonZero";
-        public const string Argument_MustBeNotNull = "MustBeNotNull";
+
+        public const string ArgumentNull_MustBeNotNull = "MustBeNotNull";
+
+        public const string ArgumentOutOfRange_MustBeAlignedTo = "MustBeAlignedTo: {0}";
+        public const string ArgumentOutOfRange_MustBeBetweenZeroAndOne = "MustBeBetweenZeroAndOne";
+        public const string ArgumentOutOfRange_MustBeEqual = "MustBeEqual: actual: {0}, expected: {1}";
+        public const string ArgumentOutOfRange_MustBeGreaterOrEqual = "MustBeGreaterOrEqual";
+        public const string ArgumentOutOfRange_MustBeLess = "MustBeLess";
+        public const string ArgumentOutOfRange_MustBeLessOrEqual = "MustBeLessOrEqual";
+        public const string ArgumentOutOfRange_MustBeNonNegative = "MustBeNonNegative";
+        public const string ArgumentOutOfRange_MustBeNonNegativeNonZero = "MustBeNonNegativeNonZero";
+
         public const string Format_ExpectedAsciiDigit = ", Reason: ExpectedAsciiDigit";
         public const string Format_IndexOutOfRange = "IndexOutOfRange";
         public const string Format_InvalidStringWithOffsetAndReason = "InvalidStringWithOffset: {0}{1}";
         public const string Format_UnclosedFormatItem = ", Reason: UnclosedFormatItem";
         public const string Format_UnexpectedClosingBrace = ", Reason: UnexpectedClosingBrace";
+
         public const string InvalidData_MustBeNonEntirelyZero = "MustBeNonEntirelyZero";
+
         public const string InvalidOperation_ConcurrentOperationsNotSupported = "ConcurrentOperationsNotSupported";
         public const string InvalidOperation_Duplicate = "Duplicate";
         public const string InvalidOperation_EmptyQueue = "EmptyQueue";
@@ -41,8 +47,10 @@ namespace NativeCollections
         public const string InvalidOperation_EnumFailedVersion = "EnumFailedVersion";
         public const string InvalidOperation_HashtableCapacityOverflow = "HashtableCapacityOverflow";
         public const string InvalidOperation_Mismatch = "Mismatch";
+
         public const string IO_SeekBeforeBegin = "SeekBeforeBegin";
         public const string IO_StreamTooLong = "StreamTooLong";
+
         public const string NotSupported_CannotCallEquals = "CannotCallEquals";
         public const string NotSupported_CannotCallGetEnumerator = "CannotCallGetEnumerator";
         public const string NotSupported_CannotCallGetHashCode = "CannotCallGetHashCode";

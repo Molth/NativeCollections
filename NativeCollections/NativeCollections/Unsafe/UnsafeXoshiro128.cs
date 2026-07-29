@@ -37,14 +37,23 @@ namespace NativeCollections
         private uint _s3;
 
         /// <summary>
-        ///     Gets a value that indicates whether this has been allocated or initialized.
+        ///     Structure
         /// </summary>
-        public readonly bool IsCreated => !(((int)_s0 | (int)_s1 | (int)_s2 | (int)_s3) == 0);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public UnsafeXoshiro128(uint s0, uint s1, uint s2, uint s3)
+        {
+            _s0 = s0;
+            _s1 = s1;
+            _s2 = s2;
+            _s3 = s3;
+            if (!IsCreated)
+                ThrowHelpers.ThrowMustBeNonEntirelyZeroException();
+        }
 
         /// <summary>
         ///     Structure
         /// </summary>
-        /// <param name="buffer">Buffer</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeXoshiro128(ReadOnlySpan<byte> buffer)
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, Unsafe.SizeOf<UnsafeXoshiro128>(), ExceptionArgument.buffer);
@@ -53,6 +62,11 @@ namespace NativeCollections
                 ThrowHelpers.ThrowMustBeNonEntirelyZeroException();
             this = random;
         }
+
+        /// <summary>
+        ///     Gets a value that indicates whether this has been allocated or initialized.
+        /// </summary>
+        public readonly bool IsCreated => !(((int)_s0 | (int)_s1 | (int)_s2 | (int)_s3) == 0);
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.

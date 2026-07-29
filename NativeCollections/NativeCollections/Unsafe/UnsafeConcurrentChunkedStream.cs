@@ -119,7 +119,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Read(byte* buffer, int length)
         {
-            using (_spinLock.EnterLock())
+            using (_spinLock.EnterRefScope())
             {
                 return _handle.Read(buffer, length);
             }
@@ -132,7 +132,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(byte* buffer, int length)
         {
-            using (_spinLock.EnterLock())
+            using (_spinLock.EnterRefScope())
             {
                 _handle.Write(buffer, length);
             }
@@ -145,7 +145,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Read(Span<byte> buffer)
         {
-            using (_spinLock.EnterLock())
+            using (_spinLock.EnterRefScope())
             {
                 return _handle.Read(buffer);
             }
@@ -158,7 +158,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(ReadOnlySpan<byte> buffer)
         {
-            using (_spinLock.EnterLock())
+            using (_spinLock.EnterRefScope())
             {
                 _handle.Write(buffer);
             }
@@ -170,7 +170,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Read(int length)
         {
-            using (_spinLock.EnterLock())
+            using (_spinLock.EnterRefScope())
             {
                 return _handle.Read(length);
             }
@@ -182,7 +182,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write(int length)
         {
-            using (_spinLock.EnterLock())
+            using (_spinLock.EnterRefScope())
             {
                 _handle.Write(length);
             }
@@ -198,7 +198,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int EnsureCapacity(int capacity)
         {
-            using (_spinLock.EnterLock())
+            using (_spinLock.EnterRefScope())
             {
                 return _handle.EnsureCapacity(capacity);
             }
@@ -210,7 +210,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess()
         {
-            using (_spinLock.EnterLock())
+            using (_spinLock.EnterRefScope())
             {
                 _handle.TrimExcess();
                 return 0;
@@ -225,7 +225,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity)
         {
-            using (_spinLock.EnterLock())
+            using (_spinLock.EnterRefScope())
             {
                 return _handle.TrimExcess(capacity);
             }

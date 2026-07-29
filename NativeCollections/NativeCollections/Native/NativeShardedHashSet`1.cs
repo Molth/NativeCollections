@@ -54,11 +54,6 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     The estimated number of threads that will update this concurrently.
-        /// </summary>
-        public int ConcurrencyLevel => _handle->ConcurrencyLevel;
-
-        /// <summary>
         ///     Indicates whether the current object is equal to another object.
         /// </summary>
         public bool Equals(NativeShardedHashSet<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
@@ -163,7 +158,7 @@ namespace NativeCollections
         /// <param name="capacity">
         ///     The initial number of elements that this can contain.
         /// </param>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="concurrencyLevel" /> is less than -1.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="concurrencyLevel" /> is less than 1.</exception>
         /// <exception cref="ArgumentOutOfRangeException"> <paramref name="capacity" /> is less than 0.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeShardedHashSet<T> Create(int concurrencyLevel, int capacity)

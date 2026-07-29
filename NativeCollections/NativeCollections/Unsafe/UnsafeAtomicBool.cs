@@ -87,7 +87,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Swap(bool value) => FromU8(_value.Swap(IntoU8(value)));
+        public bool Exchange(bool value) => FromU8(_value.Exchange(IntoU8(value)));
 
         /// <summary>
         ///     Compares two values for equality and, if they are equal, replaces the first value.

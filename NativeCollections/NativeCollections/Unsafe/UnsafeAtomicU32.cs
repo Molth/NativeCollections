@@ -114,7 +114,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public uint Swap(uint value) => (uint)_value.Swap((int)value);
+        public uint Exchange(uint value) => (uint)_value.Exchange((int)value);
 
         /// <summary>
         ///     Compares two values for equality and, if they are equal, replaces the first value.

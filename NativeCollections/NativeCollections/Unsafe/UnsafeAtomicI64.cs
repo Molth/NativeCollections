@@ -114,7 +114,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public long Swap(long value) => Interlocked.Exchange(ref _value, value);
+        public long Exchange(long value) => Interlocked.Exchange(ref _value, value);
 
         /// <summary>
         ///     Compares two values for equality and, if they are equal, replaces the first value.

@@ -76,103 +76,167 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Enter
+        ///     Enter the lock.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Enter() => Monitor.Enter(_handle.Target!);
 
         /// <summary>
-        ///     Enter
+        ///     Acquires an exclusive lock on the specified object, and atomically sets a value that indicates whether the
+        ///     lock was taken.
         /// </summary>
+        /// <param name="lockTaken">
+        ///     The result of the attempt to acquire the lock, passed by reference. The input must be <see langword="false" />.
+        ///     The output is <see langword="true" /> if the lock is acquired; otherwise, the output is <see langword="false" />.
+        ///     The output is set even if an exception occurs during the attempt to acquire the lock.
+        ///     Note: If no exception occurs, the output of this method is always <see langword="true" />.
+        /// </param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Enter(ref bool lockTaken) => Monitor.Enter(_handle.Target!, ref lockTaken);
 
         /// <summary>
-        ///     Enter
+        ///     Attempts to acquire an exclusive lock on the specified object.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryEnter() => Monitor.TryEnter(_handle.Target!);
 
         /// <summary>
-        ///     Enter
+        ///     Attempts to acquire an exclusive lock on the specified object,
+        ///     and atomically sets a value that indicates whether the lock was taken.
         /// </summary>
+        /// <param name="lockTaken">
+        ///     The result of the attempt to acquire the lock, passed by reference.
+        ///     The input must be <see langword="false" />. The output is <see langword="true" /> if the lock is acquired;
+        ///     otherwise, the output is <see langword="false" />. The output is set even if an exception occurs during the attempt
+        ///     to acquire the lock.
+        /// </param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void TryEnter(ref bool lockTaken) => Monitor.TryEnter(_handle.Target!, ref lockTaken);
 
         /// <summary>
-        ///     Enter
+        ///     Attempts, for the specified number of milliseconds, to acquire an exclusive lock on the specified object.
         /// </summary>
+        /// <param name="millisecondsTimeout">The number of milliseconds to wait for the lock.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryEnter(int millisecondsTimeout) => Monitor.TryEnter(_handle.Target!, millisecondsTimeout);
 
         /// <summary>
-        ///     Enter
+        ///     Attempts, for the specified number of milliseconds, to acquire an exclusive lock on the specified object,
+        ///     and atomically sets a value that indicates whether the lock was taken.
         /// </summary>
+        /// <param name="millisecondsTimeout">The number of milliseconds to wait for the lock.</param>
+        /// <param name="lockTaken">
+        ///     The result of the attempt to acquire the lock, passed by reference.
+        ///     The input must be <see langword="false" />. The output is <see langword="true" /> if the lock is acquired;
+        ///     otherwise, the output is <see langword="false" />. The output is set even if an exception occurs during the attempt
+        ///     to acquire the lock.
+        /// </param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void TryEnter(int millisecondsTimeout, ref bool lockTaken) => Monitor.TryEnter(_handle.Target!, millisecondsTimeout, ref lockTaken);
 
         /// <summary>
-        ///     Is entered
+        ///     Determines whether the current thread holds the lock on the specified object.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsEntered() => Monitor.IsEntered(_handle.Target!);
 
         /// <summary>
-        ///     Wait
+        ///     Releases the lock on an object and blocks the current thread until it reacquires the lock.
+        ///     If the specified time-out interval elapses, the thread enters the ready queue.
         /// </summary>
+        /// <param name="millisecondsTimeout">The number of milliseconds to wait before the thread enters the ready queue.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Wait(int millisecondsTimeout) => Monitor.Wait(_handle.Target!, millisecondsTimeout);
 
         /// <summary>
-        ///     Pulse
+        ///     Notifies a thread in the waiting queue of a change in the locked object's state.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Pulse() => Monitor.Pulse(_handle.Target!);
 
         /// <summary>
-        ///     Pulse all
+        ///     Notifies all waiting threads of a change in the object's state.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void PulseAll() => Monitor.PulseAll(_handle.Target!);
 
         /// <summary>
-        ///     Try enter
+        ///     Attempts, for the specified amount of time, to acquire an exclusive lock on the specified object.
         /// </summary>
+        /// <param name="timeout">
+        ///     A <see cref="T:System.TimeSpan" /> representing the amount of time to wait for the lock.
+        ///     A value of -1 millisecond specifies an infinite wait.
+        /// </param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryEnter(TimeSpan timeout) => Monitor.TryEnter(_handle.Target!, timeout);
 
         /// <summary>
-        ///     Try enter
+        ///     Attempts, for the specified amount of time, to acquire an exclusive lock on the specified object,
+        ///     and atomically sets a value that indicates whether the lock was taken.
         /// </summary>
+        /// <param name="timeout">The amount of time to wait for the lock. A value of -1 millisecond specifies an infinite wait.</param>
+        /// <param name="lockTaken">
+        ///     The result of the attempt to acquire the lock, passed by reference.
+        ///     The input must be <see langword="false" />. The output is <see langword="true" /> if the lock is acquired;
+        ///     otherwise,
+        ///     the output is <see langword="false" />. The output is set even if an exception occurs during the attempt to acquire
+        ///     the lock.
+        /// </param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void TryEnter(TimeSpan timeout, ref bool lockTaken) => Monitor.TryEnter(_handle.Target!, timeout, ref lockTaken);
 
         /// <summary>
-        ///     Wait
+        ///     Releases the lock on an object and blocks the current thread until it reacquires the lock.
+        ///     If the specified time-out interval elapses, the thread enters the ready queue.
         /// </summary>
+        /// <param name="timeout">
+        ///     A <see cref="T:System.TimeSpan" /> representing the amount of time to wait before the thread
+        ///     enters the ready queue.
+        /// </param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Wait(TimeSpan timeout) => Monitor.Wait(_handle.Target!, timeout);
 
         /// <summary>
-        ///     Wait
+        ///     Releases the lock on an object and blocks the current thread until it reacquires the lock.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Wait() => Monitor.Wait(_handle.Target!);
 
         /// <summary>
-        ///     Wait
+        ///     Releases the lock on an object and blocks the current thread until it reacquires the lock.
+        ///     If the specified time-out interval elapses, the thread enters the ready queue.
+        ///     This method also specifies whether the synchronization domain for the context (if in a synchronized context) is
+        ///     exited before the wait and reacquired afterward.
         /// </summary>
+        /// <param name="millisecondsTimeout">The number of milliseconds to wait before the thread enters the ready queue.</param>
+        /// <param name="exitContext">
+        ///     <see langword="true" /> to exit and reacquire the synchronization domain for the context (if in a synchronized
+        ///     context) before the wait;
+        ///     otherwise, <see langword="false" />.
+        /// </param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Wait(int millisecondsTimeout, bool exitContext) => Monitor.Wait(_handle.Target!, millisecondsTimeout, exitContext);
 
         /// <summary>
-        ///     Wait
+        ///     Releases the lock on an object and blocks the current thread until it reacquires the lock.
+        ///     If the specified time-out interval elapses, the thread enters the ready queue.
+        ///     Optionally exits the synchronization domain for the synchronized context before the wait and reacquires the domain
+        ///     afterward.
         /// </summary>
+        /// <param name="timeout">
+        ///     A <see cref="T:System.TimeSpan" /> representing the amount of time to wait before the thread
+        ///     enters the ready queue.
+        /// </param>
+        /// <param name="exitContext">
+        ///     <see langword="true" /> to exit and reacquire the synchronization domain for the context (if in a synchronized
+        ///     context) before the wait;
+        ///     otherwise, <see langword="false" />.
+        /// </param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Wait(TimeSpan timeout, bool exitContext) => Monitor.Wait(_handle.Target!, timeout, exitContext);
 
         /// <summary>
-        ///     Exit
+        ///     Exit the lock.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Exit() => Monitor.Exit(_handle.Target!);
