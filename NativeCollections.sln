@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmarks", "Benchmarks\Be
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{F54934C9-F1FB-4CF1-952B-4B0B11B930D9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeAnalysis", "CodeAnalysis\CodeAnalysis.csproj", "{35CC55CE-F181-49E1-B016-058B59F0D803}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{F54934C9-F1FB-4CF1-952B-4B0B11B930D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F54934C9-F1FB-4CF1-952B-4B0B11B930D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F54934C9-F1FB-4CF1-952B-4B0B11B930D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35CC55CE-F181-49E1-B016-058B59F0D803}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35CC55CE-F181-49E1-B016-058B59F0D803}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35CC55CE-F181-49E1-B016-058B59F0D803}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35CC55CE-F181-49E1-B016-058B59F0D803}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

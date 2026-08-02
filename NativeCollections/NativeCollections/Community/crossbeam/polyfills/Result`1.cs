@@ -2,14 +2,12 @@
 using System.Runtime.InteropServices;
 using static crossbeam.Option;
 
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-
 // ReSharper disable All
 
 namespace crossbeam
 {
     [StructLayout(LayoutKind.Sequential)]
-    internal readonly struct Result<T>
+    internal readonly struct Result<T> where T : unmanaged
     {
         private readonly bool _ok;
         private readonly T _value;

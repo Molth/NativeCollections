@@ -49,6 +49,11 @@ namespace NativeCollections
         public bool IsEmpty => _handle->IsEmpty;
 
         /// <summary>
+        ///     Returns `true` if the queue is full.
+        /// </summary>
+        public bool IsFull => _handle->IsFull;
+
+        /// <summary>
         ///     Gets the number of elements contained in this.
         /// </summary>
         public int Count => _handle->Count;

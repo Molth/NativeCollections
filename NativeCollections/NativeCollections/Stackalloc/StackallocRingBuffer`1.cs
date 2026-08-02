@@ -62,6 +62,11 @@ namespace NativeCollections
         public readonly bool IsEmpty => _size == 0;
 
         /// <summary>
+        ///     Returns `true` if the queue is full.
+        /// </summary>
+        public readonly bool IsFull => Count == Capacity;
+
+        /// <summary>
         ///     Gets the number of elements contained in this.
         /// </summary>
         public readonly int Count => _size;

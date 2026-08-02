@@ -1,14 +1,12 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-
 // ReSharper disable All
 
 namespace crossbeam
 {
     [StructLayout(LayoutKind.Sequential)]
-    internal readonly struct Option<T>
+    internal readonly struct Option<T> where T : unmanaged
     {
         private readonly bool _hasValue;
         private readonly T _value;

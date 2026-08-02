@@ -32,6 +32,11 @@ namespace NativeCollections
 #endif
     {
         /// <summary>
+        ///     Default seed
+        /// </summary>
+        private static readonly ulong DefaultSeed = NativeRandom.NextUInt64();
+
+        /// <summary>
         ///     GetHashCode
         /// </summary>
         private static delegate* managed<ReadOnlySpan<char>, int> _getHashCode;
@@ -1272,7 +1277,11 @@ namespace NativeCollections
             if (getHashCode != null)
                 return getHashCode(buffer);
 
-            return MarvinHelpers.ComputeHash32(MemoryMarshal.AsBytes(buffer), MarvinHelpers.DefaultSeed);
+#if NET5_0_OR_GREATER
+            return string.GetHashCode(buffer) + (int)DefaultSeed;
+#else
+            return MarvinHelpers.ComputeHash32(MemoryMarshal.AsBytes(buffer), DefaultSeed);
+#endif
         }
 
         /// <summary>

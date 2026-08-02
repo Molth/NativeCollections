@@ -62,7 +62,13 @@ namespace NativeCollections
             if (getHashCode != null)
                 return getHashCode(buffer);
 
+#if NET10_0_OR_GREATER
+            var hashCode = new HashCode();
+            hashCode.AddBytes(buffer);
+            return hashCode.ToHashCode() + (int)DefaultSeed;
+#else
             return XxHash32.HashToInt32(ref MemoryMarshal.GetReference(buffer), (uint)buffer.Length, DefaultSeed);
+#endif
         }
     }
 }

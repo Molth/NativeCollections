@@ -7,8 +7,6 @@ using static NativeCollections.PaddingHelpers;
 using static crossbeam.Option;
 using static crossbeam.Result;
 
-#pragma warning disable CS0162 // Unreachable code detected
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 #pragma warning disable CS9084 // Struct member returns 'this' or other instance members by reference
 
 // ReSharper disable All
@@ -71,7 +69,7 @@ namespace crossbeam
             private CachePaddedAtomicUsize tail;
 
             /// The buffer holding slots.
-            private readonly NativeMemoryArray<Slot<T>> buffer;
+            private readonly NativeArray<Slot<T>> buffer;
 
             /// A stamp with the value of `{ lap: 1, index: 0 }`.
             private readonly nuint one_lap;
@@ -94,11 +92,11 @@ namespace crossbeam
                 // Allocate a buffer of `cap` slots initialized
                 // with stamps.
 
-                buffer = new NativeMemoryArray<Slot<T>>((int)cap);
+                buffer = new NativeArray<Slot<T>>((int)cap);
                 for (nuint i = 0; i < cap; ++i)
                 {
                     // Set the stamp to `{ lap: 0, index: i }`.
-                    buffer[(int)i]->stamp = new UnsafeAtomicUsize(i);
+                    buffer.get_unchecked(i)->stamp = new UnsafeAtomicUsize(i);
                 }
 
                 // One lap is the smallest power of two greater than `cap`.
@@ -132,7 +130,7 @@ namespace crossbeam
 
                     // Inspect the corresponding slot.
                     Debug.Assert(index < (nuint)this.buffer.Length);
-                    var slot = this.buffer[(int)index];
+                    var slot = this.buffer.get_unchecked(index);
                     var stamp = slot->stamp.load(Ordering.Acquire);
 
                     // If the tail and the stamp match, we may attempt to push.
@@ -223,9 +221,9 @@ namespace crossbeam
 
                 this.tail.get_mut() = new_tail;
 
-                var slot = this.buffer[(int)index];
+                var slot = this.buffer.get_unchecked(index);
                 slot->value = value;
-                slot->stamp.AsRef() = tail + 1;
+                slot->stamp.get_mut() = tail + 1;
 
                 return Ok<T>(default);
             }
@@ -284,7 +282,7 @@ namespace crossbeam
 
                     // Inspect the corresponding slot.
                     Debug.Assert(index < (nuint)this.buffer.Length);
-                    var slot = this.buffer[(int)index];
+                    var slot = this.buffer.get_unchecked(index);
                     var stamp = slot->stamp.load(Ordering.Acquire);
 
                     // If the stamp is ahead of the head by 1, we may attempt to pop.
@@ -377,17 +375,17 @@ namespace crossbeam
                     @new = lap.wrapping_add(this.one_lap);
                 }
 
-                var slot = this.buffer[(int)index];
+                var slot = this.buffer.get_unchecked(index);
 
                 var msg = slot->value;
-                slot->stamp.AsRef() = head.wrapping_add(this.one_lap);
+                slot->stamp.get_mut() = head.wrapping_add(this.one_lap);
                 this.head.get_mut() = @new;
                 return Some(msg);
             }
 
             /// Returns the capacity of the queue.
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public nuint capacity()
+            public readonly nuint capacity()
             {
                 return (nuint)this.buffer.Length;
             }
@@ -454,7 +452,7 @@ namespace crossbeam
                 }
             }
 
-            public void drop()
+            public readonly void drop()
             {
                 buffer.Dispose();
             }

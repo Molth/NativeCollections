@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !NET5_0_OR_GREATER
+using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -11,11 +12,6 @@ namespace NativeCollections
     /// </summary>
     internal static class MarvinHelpers
     {
-        /// <summary>
-        ///     Default seed
-        /// </summary>
-        public static readonly ulong DefaultSeed = NativeRandom.NextUInt64();
-
         /// <summary>
         ///     Compute hash 32
         /// </summary>
@@ -92,3 +88,4 @@ namespace NativeCollections
         }
     }
 }
+#endif

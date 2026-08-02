@@ -8,27 +8,27 @@ namespace NativeCollections
     public enum InsertResult
     {
         /// <summary>
-        ///     None
+        ///     No operation was performed; used as a default or uninitialized state.
         /// </summary>
         None,
 
         /// <summary>
-        ///     Success
+        ///     The item was successfully inserted into the collection.
         /// </summary>
         Success,
 
         /// <summary>
-        ///     Already exists
+        ///     The item could not be inserted because an equivalent element already exists in the collection.
         /// </summary>
         AlreadyExists,
 
         /// <summary>
-        ///     Overwritten
+        ///     The item was inserted by overwriting an existing element.
         /// </summary>
         Overwritten,
 
         /// <summary>
-        ///     Insufficient capacity
+        ///     The item could not be inserted because the collection has insufficient remaining capacity.
         /// </summary>
         InsufficientCapacity
     }

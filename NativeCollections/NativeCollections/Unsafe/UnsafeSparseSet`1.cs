@@ -15,8 +15,7 @@ namespace NativeCollections
     /// <remarks>
     ///     https://github.com/bombela/sparseset
     /// </remarks>
-    /// /
-    // <typeparam name="TValue">Type</typeparam>
+    /// <typeparam name="TValue">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Community | FromType.Rust)]
     public unsafe struct UnsafeSparseSet<TValue> : IIsCreated, IDisposable, IEquatable<UnsafeSparseSet<TValue>>, IReadOnlyCollection<KeyValuePair<int, TValue>> where TValue : unmanaged

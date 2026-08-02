@@ -95,12 +95,7 @@ namespace NativeCollections
         public void Dispose()
         {
             for (uint i = 0; i < 3; ++i)
-            {
-                ref var slot = ref _slots[i];
-                while (slot.Bag.TryDequeue(out var sealedBag))
-                    sealedBag.Garbage.Call();
-                slot.Bag.Dispose();
-            }
+                _slots[i].Dispose();
         }
 
         /// <summary>
@@ -184,11 +179,13 @@ namespace NativeCollections
             {
                 Span<Deferred> garbage = stackalloc Deferred[(int)COLLECT_BATCH_SIZE];
                 var count = 0;
-                while (slot.Bag.TryDequeue(out var sealedBag))
+                Option<SealedBag> option;
+                while ((option = slot.Bag.pop()).is_some())
                 {
+                    var sealedBag = option.unwrap_unchecked();
                     if (sealedBag.IsExpired(globalEpoch))
                     {
-                        garbage[count++] = sealedBag.Garbage;
+                        garbage[count++] = sealedBag.Waste;
                         if (count == COLLECT_BATCH_SIZE)
                         {
                             for (var i = 0; i < COLLECT_BATCH_SIZE; ++i)
@@ -198,7 +195,7 @@ namespace NativeCollections
                     }
                     else
                     {
-                        slot.Bag.Enqueue(sealedBag);
+                        slot.Bag.push(sealedBag);
                         break;
                     }
                 }
@@ -238,8 +235,8 @@ namespace NativeCollections
                 ThrowHelpers.ThrowArgumentNullException(ExceptionArgument.call);
             var current = epoch % 3;
             ref var slot = ref _slots[current];
-            var garbage = new SealedBag(epoch, data, call);
-            slot.Bag.Enqueue(garbage);
+            var sealedBag = new SealedBag(epoch, data, call);
+            slot.Bag.push(sealedBag);
         }
 
         /// <summary>
@@ -291,7 +288,7 @@ namespace NativeCollections
             /// <summary>
             ///     The deferred action to be executed.
             /// </summary>
-            public readonly Deferred Garbage;
+            public readonly Deferred Waste;
 
             /// <summary>
             ///     Initializes a new sealed bag.
@@ -303,7 +300,7 @@ namespace NativeCollections
             public SealedBag(uint epoch, void* data, delegate* managed<void*, void> call)
             {
                 Epoch = epoch;
-                Garbage = new Deferred(data, call);
+                Waste = new Deferred(data, call);
             }
 
             /// <summary>
@@ -353,7 +350,7 @@ namespace NativeCollections
         ///     Padded to avoid false sharing.
         /// </summary>
         [StructLayout(LayoutKind.Sequential, Size = 5 * CACHE_LINE_SIZE)]
-        private struct Slot
+        private struct Slot : IDisposable
         {
             /// <summary>
             ///     The number of active pins on this epoch.
@@ -368,7 +365,24 @@ namespace NativeCollections
             /// <summary>
             ///     The bag (lock-free queue) of sealed bags pending collection for this epoch.
             /// </summary>
-            public UnsafeSegQueue<SealedBag> Bag;
+            public Seg_Queue.SegQueue<SealedBag> Bag;
+
+            /// <summary>
+            ///     Performs application-defined tasks associated with freeing,
+            ///     releasing, or resetting unmanaged resources.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Dispose()
+            {
+                Option<SealedBag> option;
+                while ((option = Bag.pop_mut()).is_some())
+                {
+                    var sealedBag = option.unwrap_unchecked();
+                    sealedBag.Waste.Call();
+                }
+
+                Bag.drop();
+            }
         }
 
         /// <summary>

@@ -16,7 +16,7 @@ namespace NativeCollections
     /// </remarks>
     /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(FromType.Rust)]
+    [UnsafeCollection(FromType.Community | FromType.Rust)]
     public struct UnsafeArrayQueue<T> : IIsCreated, IDisposable, IEquatable<UnsafeArrayQueue<T>> where T : unmanaged
     {
         /// <summary>

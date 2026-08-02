@@ -32,7 +32,7 @@
 using System;
 using System.Runtime.InteropServices;
 using NativeCollections;
-using static Examples.PaddingHelpers;
+using static NativeCollections.PaddingHelpers;
 
 namespace Examples
 {

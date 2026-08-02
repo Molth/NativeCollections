@@ -1,8 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-#pragma warning disable CS8604 // Possible null reference argument.
-
 // ReSharper disable All
 
 namespace crossbeam
@@ -10,9 +7,9 @@ namespace crossbeam
     internal static class Result
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Result<T> Ok<T>(T value) => new(true, value);
+        public static Result<T> Ok<T>(T value) where T : unmanaged => new(true, value);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Result<T> Err<T>(T value) => new(false, value);
+        public static Result<T> Err<T>(T value) where T : unmanaged => new(false, value);
     }
 }

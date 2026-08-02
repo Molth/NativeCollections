@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
 namespace Examples
@@ -6,20 +7,22 @@ namespace Examples
     public sealed class BoundedObjectPool<T> where T : class?
     {
         private object? _fastItem;
-        private readonly RingBufferNotPow2<T>? _buffer;
+        private readonly RingBuffer<object>? _buffer;
         private readonly int _capacity;
 
         public BoundedObjectPool(int capacity)
         {
             ArgumentOutOfRangeException.ThrowIfNegativeOrZero(capacity);
+
             if (capacity != 1)
-                _buffer = capacity == 2 ? new RingBufferNotPow2<T>(capacity) : new RingBufferNotPow2<T>(capacity - 1);
+                _buffer = capacity == 2 ? new RingBuffer<object>(2) : new RingBuffer<object>(capacity - 1);
+
             _capacity = capacity;
         }
 
         public int Capacity => _capacity;
 
-        public bool TryDequeue(out T? item)
+        public bool TryDequeue([NotNullWhen(true)] out T? item)
         {
             if (_capacity != 1)
             {
@@ -33,13 +36,15 @@ namespace Examples
                     }
                 }
 
-                return _buffer!.TryDequeue(out item);
+                var result = _buffer!.TryDequeue(out var obj2);
+                item = (T?)obj2;
+                return result;
             }
 
-            var obj2 = Interlocked.Exchange(ref _fastItem, null);
-            if (obj2 != null)
+            var obj3 = Interlocked.Exchange(ref _fastItem, null);
+            if (obj3 != null)
             {
-                item = (T)obj2;
+                item = (T)obj3;
                 return true;
             }
 
@@ -47,10 +52,13 @@ namespace Examples
             return false;
         }
 
-        public bool TryEnqueue(T? item)
+        public bool TryEnqueue(T item)
         {
+            ArgumentNullException.ThrowIfNull(item);
+
             if (_capacity != 1)
                 return (_capacity != 2 && Interlocked.CompareExchange(ref _fastItem, item, null) == null) || _buffer!.TryEnqueue(item);
+
             return Interlocked.CompareExchange(ref _fastItem, item, null) == null;
         }
     }

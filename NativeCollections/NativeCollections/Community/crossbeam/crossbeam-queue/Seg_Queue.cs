@@ -5,7 +5,6 @@ using NativeCollections;
 using static NativeCollections.PaddingHelpers;
 using static crossbeam.Option;
 
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 #pragma warning disable CS9084 // Struct member returns 'this' or other instance members by reference
 
 // ReSharper disable All

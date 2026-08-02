@@ -52,7 +52,7 @@ namespace NativeCollections
         ///     However, as this collection is intended to be accessed concurrently, it may be the case that another thread will
         ///     modify the collection after <see cref="IsEmpty" /> returns, thus invalidating the result.
         /// </remarks>
-        public bool IsEmpty => _head.load(Ordering.Relaxed) == null;
+        public bool IsEmpty => !UnsafeHelpers.IsNull(_head.load(Ordering.Relaxed));
 
         /// <summary>
         ///     Gets the number of elements contained in this.
@@ -70,7 +70,7 @@ namespace NativeCollections
                 var count = 0;
                 using (_ebr.EnterRefScope())
                 {
-                    for (var node = _head.load(Ordering.Relaxed); node != null; node = node->Next)
+                    for (var node = _head.load(Ordering.Relaxed); !UnsafeHelpers.IsNull(node); node = node->Next)
                         count++;
                 }
 
@@ -115,7 +115,7 @@ namespace NativeCollections
         public void Dispose()
         {
             var node = _head.get_mut();
-            while (node != null)
+            while (!UnsafeHelpers.IsNull(node))
             {
                 var temp = node;
                 node = node->Next;
@@ -134,7 +134,7 @@ namespace NativeCollections
             var node = _head.swap(null);
             using (var scope = _ebr.EnterRefScope())
             {
-                while (node != null)
+                while (!UnsafeHelpers.IsNull(node))
                 {
                     var temp = node;
                     node = node->Next;
@@ -196,7 +196,7 @@ namespace NativeCollections
             using (var scope = _ebr.EnterRefScope())
             {
                 var head = _head.load(Ordering.Acquire);
-                if (head == null)
+                if (UnsafeHelpers.IsNull(head))
                 {
                     result = default;
                     return false;
@@ -237,7 +237,7 @@ namespace NativeCollections
                 using (var scope = _ebr.EnterRefScope())
                 {
                     var head = _head.load(Ordering.Acquire);
-                    if (head == null)
+                    if (UnsafeHelpers.IsNull(head))
                     {
                         result = default;
                         return false;

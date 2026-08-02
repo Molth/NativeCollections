@@ -29,6 +29,7 @@ namespace NativeCollections
 #if NET6_0_OR_GREATER
             return BitOperations.RoundUpToPowerOf2(value);
 #else
+            // Based on https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
             --value;
             value |= value >> 1;
             value |= value >> 2;

@@ -201,6 +201,7 @@ namespace NativeCollections
                     ThrowHelpers.ThrowOutOfMemoryException();
                 }
 
+                SpanHelpers.Set(ref Unsafe.AsRef<byte>(ptr), 0, byteCount);
                 return ptr;
             }
 
