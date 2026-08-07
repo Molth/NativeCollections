@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -47,11 +48,9 @@ namespace crossbeam
         /// element into a full queue will fail. Alternatively, [`force_push`] makes it possible for
         /// this queue to be used as a ring-buffer. Having a buffer allocated upfront makes this queue
         /// a bit faster than [`SegQueue`].`
-        [StructLayout(LayoutKind.Sequential, Size = 4 * CACHE_LINE_SIZE)]
-        public struct ArrayQueue<T> : IIsCreated where T : unmanaged
+        [StructLayout(LayoutKind.Sequential, Size = 3 * CACHE_LINE_SIZE)]
+        public struct ArrayQueue<T> : IIsCreated, IDisposable where T : unmanaged
         {
-            private readonly CachePadding _padding;
-
             /// The head of the queue.
             /// <br />
             /// This value is a "stamp" consisting of an index into the buffer and a lap, but packed into a
@@ -82,8 +81,6 @@ namespace crossbeam
             /// Creates a new bounded queue with the given capacity.
             public ArrayQueue(nuint cap)
             {
-                _padding = new CachePadding();
-
                 // Head is initialized to `{ lap: 0, index: 0 }`.
                 // Tail is initialized to `{ lap: 0, index: 0 }`.
                 head = new CachePaddedAtomicUsize();
@@ -456,6 +453,8 @@ namespace crossbeam
             {
                 buffer.Dispose();
             }
+
+            public readonly void Dispose() => drop();
         }
     }
 }

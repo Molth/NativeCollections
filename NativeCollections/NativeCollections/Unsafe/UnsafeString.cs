@@ -19,7 +19,10 @@ using System.Collections;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe string
+    ///     This class represents a mutable string.  It is convenient for situations in
+    ///     which it is desirable to modify a string, perhaps by removing, replacing, or
+    ///     inserting characters, without creating a new String subsequent to
+    ///     each modification.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard)]
@@ -59,10 +62,6 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        /// <value>
-        ///     true if this is empty;
-        ///     otherwise, false.
-        /// </value>
         public readonly bool IsEmpty => _length == 0;
 
         /// <summary>

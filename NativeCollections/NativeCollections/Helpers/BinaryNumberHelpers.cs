@@ -8,7 +8,7 @@ using System.Numerics;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Binary number helpers
+    ///     Defines a number that is represented in a base-2 format.
     /// </summary>
     internal static class BinaryNumberHelpers
     {
@@ -16,7 +16,7 @@ namespace NativeCollections
         ///     Determines if a value represents an odd integral number.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsOdd<T>(T value) where T : unmanaged
+        public static bool IsOddInteger<T>(T value) where T : unmanaged
 #if NET7_0_OR_GREATER
             , IBinaryNumber<T>
 #endif

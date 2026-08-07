@@ -13,7 +13,7 @@ using System.Threading;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe atomic 8
+    ///     Provides atomic operations on an <see cref="sbyte" /> value.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard | FromType.Rust)]

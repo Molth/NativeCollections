@@ -16,9 +16,8 @@ using System.Collections;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe value list builder
+    ///     Represents a builder that dynamically grows using pooled arrays.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard)]
     [IsReferenceOrContainsReferences]
@@ -83,10 +82,6 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        /// <value>
-        ///     true if this is empty;
-        ///     otherwise, false.
-        /// </value>
         public readonly bool IsEmpty => _length == 0;
 
         /// <summary>

@@ -2,27 +2,37 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using crossbeam;
+using static crossbeam.Seg_Queue;
+using static NativeCollections.PaddingHelpers;
 
 // ReSharper disable ALL
 
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe concurrentQueue
-    ///     (Faster than ConcurrentQueue, disable Enumerator, try peek, clear either)
+    ///     An unbounded multi-producer multi-consumer queue.
+    ///     <br />
+    ///     This queue is implemented as a linked list of segments, where each segment is a small buffer
+    ///     that can hold a handful of elements. There is no limit to how many elements can be in the queue
+    ///     at a time. However, since segments need to be dynamically allocated as elements get pushed,
     /// </summary>
     /// <remarks>
     ///     https://github.com/crossbeam-rs/crossbeam
     /// </remarks>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Community | FromType.Rust)]
+    [BindingType(typeof(SegQueue<>))]
     public struct UnsafeSegQueue<T> : IIsCreated, IDisposable, IEquatable<UnsafeSegQueue<T>> where T : unmanaged
     {
         /// <summary>
+        ///     Padding to avoid false sharing with adjacent data.
+        /// </summary>
+        private readonly CachePadding _padding;
+
+        /// <summary>
         ///     Handle
         /// </summary>
-        private Seg_Queue.SegQueue<T> _handle;
+        private SegQueue<T> _handle;
 
         /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
@@ -42,7 +52,7 @@ namespace NativeCollections
         public bool IsEmpty
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _handle.is_empty();
+            get => _handle.IsEmpty();
         }
 
         /// <summary>
@@ -57,7 +67,7 @@ namespace NativeCollections
         public int Count
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (int)_handle.len();
+            get => _handle.Count();
         }
 
         /// <summary>
@@ -104,7 +114,7 @@ namespace NativeCollections
         ///     The object to add to the end of this.
         /// </param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Enqueue(T item) => _handle.push(item);
+        public void Enqueue(T item) => _handle.Enqueue(item);
 
         /// <summary>
         ///     Attempts to remove and return the object at the beginning of this.
@@ -118,18 +128,7 @@ namespace NativeCollections
         ///     otherwise, false.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDequeue(out T result)
-        {
-            var option = _handle.pop();
-            if (option.is_some())
-            {
-                result = option.unwrap_unchecked();
-                return true;
-            }
-
-            result = default;
-            return false;
-        }
+        public bool TryDequeue(out T result) => _handle.TryDequeue(out result);
 
         /// <summary>
         ///     Empty

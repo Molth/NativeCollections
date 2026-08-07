@@ -10,9 +10,9 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native orderedSparseSet
+    ///     Represents a sparse set mapping integer keys to values  that are accessible by the key,
+    ///     with O(1) insertion, removal, and lookup.
     /// </summary>
-    /// <typeparam name="TValue">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
     [BindingType(typeof(UnsafeOrderedSparseSet<>))]
@@ -67,10 +67,6 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        /// <value>
-        ///     true if this is empty;
-        ///     otherwise, false.
-        /// </value>
         public bool IsEmpty => _handle->IsEmpty;
 
         /// <summary>

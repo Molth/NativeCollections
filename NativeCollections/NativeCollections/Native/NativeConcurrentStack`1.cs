@@ -7,10 +7,9 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native concurrentStack
-    ///     (Slower than ConcurrentStack, disable Enumerator, try peek, push/pop range either)
+    ///     Represents a thread-safe last-in, first-out collection of objects.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
+    /// <remarks>disable Enumerator, try peek, push/pop range either</remarks>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Standard)]
     [BindingType(typeof(UnsafeConcurrentStack<>))]

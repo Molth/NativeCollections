@@ -16,7 +16,6 @@ namespace NativeCollections
     /// <summary>
     ///     Splits the source span using a sequence of elements as the delimiter.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
     [IsReferenceOrContainsReferences]

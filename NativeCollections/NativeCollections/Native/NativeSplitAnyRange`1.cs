@@ -17,7 +17,6 @@ namespace NativeCollections
     ///     Splits the source span using any of the specified single elements as delimiters, but returns the positional ranges
     ///     (<see cref="Range" />) of each segment instead of the segment slices themselves.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
     [IsReferenceOrContainsReferences]

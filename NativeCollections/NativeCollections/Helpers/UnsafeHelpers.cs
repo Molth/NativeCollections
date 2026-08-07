@@ -8,7 +8,8 @@ using System.Runtime.CompilerServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe helpers
+    ///     Contains generic, low-level functionality for
+    ///     manipulating managed and unmanaged pointers.
     /// </summary>
     internal static unsafe class UnsafeHelpers
     {
@@ -38,15 +39,15 @@ namespace NativeCollections
         ///     Returns if a given pointer is a null reference.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsNull(void* ptr) => (nint)ptr == 0;
+        public static bool IsNull(void* ptr) => ptr == null;
 
         /// <summary>
         ///     Returns a pointer to the given by-ref parameter.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T* AsPointer<T>(ref T value)
+        public static T* AsPointer<T>(ref T value) where T : struct
 #if NET9_0_OR_GREATER
-            where T : allows ref struct
+            , allows ref struct
 #endif
             => (T*)Unsafe.AsPointer(ref value);
 

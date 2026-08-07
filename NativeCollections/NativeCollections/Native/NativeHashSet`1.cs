@@ -10,9 +10,8 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native hashSet
+    ///     Represents a collection of items.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Standard)]
     [BindingType(typeof(UnsafeHashSet<>))]
@@ -42,10 +41,6 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        /// <value>
-        ///     true if this is empty;
-        ///     otherwise, false.
-        /// </value>
         public bool IsEmpty => _handle->IsEmpty;
 
         /// <summary>

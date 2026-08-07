@@ -7,9 +7,8 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native fixed size queue memory pool
+    ///     Represents a memory pool that provides reusable fixed-size memory blocks.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
     [BindingType(typeof(UnsafeFixedSizeQueueMemoryPool<>))]
@@ -28,10 +27,6 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        /// <value>
-        ///     true if this is empty;
-        ///     otherwise, false.
-        /// </value>
         public bool IsEmpty => _handle->IsEmpty;
 
         /// <summary>

@@ -5,7 +5,7 @@
 namespace NativeCollections
 {
     /// <summary>
-    ///     Customizable attribute
+    ///     Indicates that the target type or method is customizable, optionally specifying which methods can be customized.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Method)]
     public sealed class CustomizableAttribute : Attribute

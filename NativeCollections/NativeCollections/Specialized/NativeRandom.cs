@@ -11,7 +11,8 @@ using static NativeCollections.BinaryNumberHelpers;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native random
+    ///     Represents a pseudo-random number generator, which is an algorithm that produces a sequence of numbers
+    ///     that meet certain statistical requirements for randomness.
     /// </summary>
     [BindingType(typeof(RandomNumberGenerator))]
     public static unsafe class NativeRandom
@@ -418,7 +419,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>True, or false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool NextBoolean() => IsOdd(Next8());
+        public static bool NextBoolean() => IsOddInteger(Next8());
 
         /// <summary>
         ///     Generates a random boolean value.

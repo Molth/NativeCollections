@@ -7,10 +7,9 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native concurrentQueue
-    ///     (Slower than ConcurrentQueue, disable Enumerator, try peek either)
+    ///     Represents a thread-safe first-in, first-out collection of objects.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
+    /// <remarks>disable Enumerator, try peek either</remarks>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Standard | FromType.NotImplemented)]
     [BindingType(typeof(UnsafeConcurrentQueue<>))]

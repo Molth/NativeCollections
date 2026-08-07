@@ -7,9 +7,8 @@ using System.Runtime.CompilerServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native memory manager
+    ///     Represents a contiguous region of arbitrary native memory.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [IsReferenceOrContainsReferences]
     public sealed unsafe class NativeMemoryManager<T> : MemoryManager<T> where T : unmanaged
     {

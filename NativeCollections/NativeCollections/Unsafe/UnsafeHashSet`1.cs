@@ -10,9 +10,8 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe hashSet
+    ///     Represents a collection of items.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard)]
     public unsafe struct UnsafeHashSet<T> : IIsCreated, IDisposable, IEquatable<UnsafeHashSet<T>>, IReadOnlyCollection<T> where T : unmanaged, IEquatable<T>
@@ -70,10 +69,6 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        /// <value>
-        ///     true if this is empty;
-        ///     otherwise, false.
-        /// </value>
         public readonly bool IsEmpty => Count == 0;
 
         /// <summary>

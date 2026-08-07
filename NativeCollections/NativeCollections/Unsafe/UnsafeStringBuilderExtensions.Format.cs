@@ -9,7 +9,7 @@ using System.Text;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe string builder extensions
+    ///     Provides extension methods for string builders.
     /// </summary>
     public static partial class UnsafeStringBuilderExtensions
     {

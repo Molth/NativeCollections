@@ -10,10 +10,8 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native concurrentHashSet
-    ///     (Slower than ConcurrentDictionary)
+    ///     Represents a thread-safe collection of items.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Community)]
     [BindingType(typeof(UnsafeShardedHashSet<>))]

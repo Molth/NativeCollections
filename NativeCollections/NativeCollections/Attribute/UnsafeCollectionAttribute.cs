@@ -5,7 +5,8 @@
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe collection attribute
+    ///     Specifies that the decorated struct is a low‑level unsafe collection implemented directly as a
+    ///     value type without a handle pointer, offering a lightweight but less managed usage.
     /// </summary>
     [AttributeUsage(AttributeTargets.Struct)]
     public sealed class UnsafeCollectionAttribute : Attribute

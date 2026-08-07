@@ -7,7 +7,7 @@ using System.Text;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Encoding helpers
+    ///     Represents a character encoding.
     /// </summary>
     internal static class EncodingHelpers
     {

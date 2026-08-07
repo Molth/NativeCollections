@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Span helpers
+    ///     Provides low-level memory manipulation utilities for spans.
     /// </summary>
     internal static unsafe class SpanHelpers
     {

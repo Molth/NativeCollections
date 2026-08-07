@@ -10,9 +10,9 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Stackalloc ringBuffer
+    ///     Represents a fixed-size circular buffer that supports insertion and removal from both ends,
+    ///     overwriting the oldest element when full.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [StackallocCollection(FromType.None)]
     public unsafe struct StackallocRingBuffer<T> : IIsCreated, IEquatable<StackallocRingBuffer<T>>, IReadOnlyCollection<T> where T : unmanaged
@@ -55,10 +55,6 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        /// <value>
-        ///     true if this is empty;
-        ///     otherwise, false.
-        /// </value>
         public readonly bool IsEmpty => _size == 0;
 
         /// <summary>

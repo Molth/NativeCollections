@@ -5,7 +5,7 @@
 namespace NativeCollections
 {
     /// <summary>
-    ///     Must be zeroed attribute
+    ///     Indicates that the decorated constructor or parameter must be zero-initialized.
     /// </summary>
     [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Parameter)]
     public sealed class MustBeZeroedAttribute : Attribute

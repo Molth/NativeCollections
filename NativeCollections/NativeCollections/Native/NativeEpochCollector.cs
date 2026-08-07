@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using static NativeCollections.PaddingHelpers;
 
 // ReSharper disable ALL
 
@@ -16,19 +17,19 @@ namespace NativeCollections
     /// </remarks>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Community)]
-    [BindingType(typeof(UnsafeEpochCollector))]
+    [BindingType(typeof(EpochCollector))]
     public readonly unsafe struct NativeEpochCollector : IIsCreated, IDisposable, IEquatable<NativeEpochCollector>
     {
         /// <summary>
         ///     Handle
         /// </summary>
-        private readonly UnsafeEpochCollector* _handle;
+        private readonly EpochCollector* _handle;
 
         /// <summary>
         ///     Structure
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private NativeEpochCollector(UnsafeEpochCollector* handle) => _handle = handle;
+        private NativeEpochCollector(EpochCollector* handle) => _handle = handle;
 
         /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
@@ -150,8 +151,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeEpochCollector Create()
         {
-            var value = UnsafeEpochCollector.Create();
-            return new NativeEpochCollector(Box.New(ref value));
+            var value = EpochCollector.Create();
+            return new NativeEpochCollector(Box.New(ref value, CACHE_LINE_SIZE));
         }
     }
 }

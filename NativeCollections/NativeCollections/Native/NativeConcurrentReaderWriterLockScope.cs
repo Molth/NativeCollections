@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native concurrent reader writer lock ref
+    ///     Represents a disposable scope that holds a reference to a resource and releases it when disposed.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
@@ -27,7 +27,7 @@ namespace NativeCollections
         ///     Structure
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeConcurrentReaderWriterLockScope(UnsafeConcurrentReaderWriterLock* handle) => _handle = handle;
+        internal NativeConcurrentReaderWriterLockScope(UnsafeConcurrentReaderWriterLock* handle) => _handle = handle;
 
         /// <summary>
         ///     Performs application-defined tasks associated with freeing,

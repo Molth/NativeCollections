@@ -5,7 +5,7 @@ using System;
 namespace NativeCollections
 {
     /// <summary>
-    ///     From type
+    ///     Specifies the origin or implementation basis of a collection type.
     /// </summary>
     [Flags]
     public enum FromType

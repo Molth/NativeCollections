@@ -11,7 +11,9 @@ using System.Runtime.CompilerServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Bit operations helpers
+    ///     Utility methods for intrinsic bit-twiddling operations.
+    ///     The methods use hardware intrinsics when available on the underlying platform,
+    ///     otherwise they use optimized software fallbacks.
     /// </summary>
     internal static class BitOperationsHelpers
     {

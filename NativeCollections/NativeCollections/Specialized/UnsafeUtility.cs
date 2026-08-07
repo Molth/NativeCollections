@@ -5,7 +5,7 @@
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe utility
+    ///     Provides alignment-related utility functions for native memory operations.
     /// </summary>
     internal static class UnsafeUtility
     {

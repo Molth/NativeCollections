@@ -2,27 +2,39 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using crossbeam;
+using static crossbeam.Array_Queue;
+using static NativeCollections.PaddingHelpers;
 
 // ReSharper disable ALL
 
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe concurrentQueue
-    ///     (Faster than ConcurrentQueue, disable Enumerator, try peek, clear either)
+    ///     A bounded multi-producer multi-consumer queue.
+    ///     <br />
+    ///     This queue allocates a fixed-capacity buffer on construction, which is used to store pushed
+    ///     elements. The queue cannot hold more elements than the buffer allows. Attempting to push an
+    ///     element into a full queue will fail. Alternatively, [`force_push`] makes it possible for
+    ///     this queue to be used as a ring-buffer. Having a buffer allocated upfront makes this queue
+    ///     a bit faster than [`SegQueue`].`
     /// </summary>
     /// <remarks>
     ///     https://github.com/crossbeam-rs/crossbeam
     /// </remarks>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Community | FromType.Rust)]
+    [BindingType(typeof(ArrayQueue<>))]
     public struct UnsafeArrayQueue<T> : IIsCreated, IDisposable, IEquatable<UnsafeArrayQueue<T>> where T : unmanaged
     {
         /// <summary>
+        ///     Padding to avoid false sharing with adjacent data.
+        /// </summary>
+        private readonly CachePadding _padding;
+
+        /// <summary>
         ///     Handle
         /// </summary>
-        private Array_Queue.ArrayQueue<T> _handle;
+        private ArrayQueue<T> _handle;
 
         /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
@@ -42,13 +54,13 @@ namespace NativeCollections
         public bool IsEmpty
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _handle.is_empty();
+            get => _handle.IsEmpty();
         }
 
         /// <summary>
         ///     Returns `true` if the queue is full.
         /// </summary>
-        public bool IsFull => _handle.is_full();
+        public bool IsFull => _handle.IsFull();
 
         /// <summary>
         ///     Gets the number of elements contained in this.
@@ -62,19 +74,23 @@ namespace NativeCollections
         public int Count
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (int)_handle.len();
+            get => _handle.Count();
         }
 
         /// <summary>
         ///     Gets the total numbers of elements the internal data structure can hold.
         /// </summary>
-        public int Capacity => (int)_handle.capacity();
+        public int Capacity => _handle.Capacity();
 
         /// <summary>
         ///     Structure
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private UnsafeArrayQueue(int capacity) => _handle = new Array_Queue.ArrayQueue<T>((nuint)capacity);
+        private UnsafeArrayQueue(int capacity)
+        {
+            _padding = default;
+            _handle = new ArrayQueue<T>((nuint)capacity);
+        }
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
@@ -111,7 +127,7 @@ namespace NativeCollections
         ///     releasing, or resetting unmanaged resources.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => _handle.drop();
+        public readonly void Dispose() => _handle.drop();
 
         /// <summary>
         ///     Adds an object to the end of this.
@@ -124,7 +140,7 @@ namespace NativeCollections
         ///     <see langword="false" /> if the queue is already full and the item could not be enqueued.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryEnqueue(T item) => _handle.push(item).is_ok();
+        public bool TryEnqueue(T item) => _handle.TryEnqueue(item);
 
         /// <summary>
         ///     Adds an object to the end of this.
@@ -142,18 +158,7 @@ namespace NativeCollections
         ///     <see cref="InsertResult.Overwritten" />.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public InsertResult Enqueue(T item, out T overwritten)
-        {
-            var option = _handle.force_push(item);
-            if (option.is_some())
-            {
-                overwritten = option.unwrap_unchecked();
-                return InsertResult.Overwritten;
-            }
-
-            overwritten = default;
-            return InsertResult.Success;
-        }
+        public InsertResult Enqueue(T item, out T overwritten) => _handle.Enqueue(item, out overwritten);
 
         /// <summary>
         ///     Attempts to remove and return the object at the beginning of this.
@@ -167,18 +172,7 @@ namespace NativeCollections
         ///     otherwise, false.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryDequeue(out T result)
-        {
-            var option = _handle.pop();
-            if (option.is_some())
-            {
-                result = option.unwrap_unchecked();
-                return true;
-            }
-
-            result = default;
-            return false;
-        }
+        public bool TryDequeue(out T result) => _handle.TryDequeue(out result);
 
         /// <summary>
         ///     Empty

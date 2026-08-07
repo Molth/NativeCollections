@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native concurrent reader writer lock ref
+    ///     Represents a disposable scope that holds a reference to a resource and releases it when disposed.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
@@ -34,7 +34,7 @@ namespace NativeCollections
         ///     Structure
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeConcurrentReaderWriterLockRefScope(NativeRef<UnsafeConcurrentReaderWriterLock> handle) => _handle = handle;
+        internal NativeConcurrentReaderWriterLockRefScope(NativeRef<UnsafeConcurrentReaderWriterLock> handle) => _handle = handle;
 
         /// <summary>
         ///     Performs application-defined tasks associated with freeing,
@@ -55,7 +55,7 @@ namespace NativeCollections
         /// <returns>Equals</returns>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public readonly override bool Equals(object? obj)
+        public override bool Equals(object? obj)
         {
             ThrowHelpers.ThrowCannotCallEqualsException();
             return default;
@@ -66,7 +66,7 @@ namespace NativeCollections
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public readonly override int GetHashCode()
+        public override int GetHashCode()
         {
             ThrowHelpers.ThrowCannotCallGetHashCodeException();
             return default;

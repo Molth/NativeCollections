@@ -10,10 +10,8 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native sorted dictionary
+    ///     Represents a collection of key/value pairs that are sorted on the key.
     /// </summary>
-    /// <typeparam name="TKey">Type</typeparam>
-    /// <typeparam name="TValue">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Standard)]
     [BindingType(typeof(UnsafeSortedDictionary<,>))]
@@ -53,10 +51,6 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        /// <value>
-        ///     true if this is empty;
-        ///     otherwise, false.
-        /// </value>
         public bool IsEmpty => _handle->IsEmpty;
 
         /// <summary>

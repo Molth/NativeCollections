@@ -10,9 +10,8 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Stackalloc deque
+    ///     Represents a double-ended collection of objects that supports insertion and removal from both ends.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [StackallocCollection(FromType.Standard)]
     public unsafe struct StackallocDeque<T> : IIsCreated, IEquatable<StackallocDeque<T>>, IReadOnlyCollection<T> where T : unmanaged
@@ -55,10 +54,6 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        /// <value>
-        ///     true if this is empty;
-        ///     otherwise, false.
-        /// </value>
         public readonly bool IsEmpty => _size == 0;
 
         /// <summary>

@@ -5,7 +5,7 @@
 namespace NativeCollections
 {
     /// <summary>
-    ///     Char helpers
+    ///     Represents a character as a UTF-16 code unit.
     /// </summary>
     internal static class CharHelpers
     {

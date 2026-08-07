@@ -13,9 +13,8 @@ using System.Threading;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe atomic reference
+    ///     Provides atomic operations on a managed reference to type <typeparamref name="T" />.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard)]
     [IsReferenceOrContainsReferences]

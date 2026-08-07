@@ -7,7 +7,11 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Memory marshal helpers
+    ///     Provides a collection of methods for interoperating with
+    ///     <see cref="Memory{T}" />,
+    ///     <see cref="ReadOnlyMemory{T}" />,
+    ///     <see cref="Span{T}" />,
+    ///     <see cref="ReadOnlySpan{T}" />.
     /// </summary>
     internal static class MemoryMarshalHelpers
     {

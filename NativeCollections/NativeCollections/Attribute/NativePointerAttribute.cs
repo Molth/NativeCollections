@@ -5,7 +5,8 @@
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native pointer attribute
+    ///     Indicates that the decorated field of type <see cref="nint" /> represents a pointer
+    ///     to the specified unmanaged type.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field)]
     internal sealed class NativePointerAttribute : Attribute

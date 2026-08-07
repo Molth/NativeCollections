@@ -14,9 +14,8 @@ using static NativeCollections.EnumHelpers;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe atomic enum
+    ///     Provides atomic operations on an enum value to type <typeparamref name="T" />.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard)]
     [BindingType(typeof(Interlocked))]

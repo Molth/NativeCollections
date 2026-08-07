@@ -10,9 +10,8 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Stackalloc queue
+    ///     Represents a first-in, first-out collection of objects.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [StackallocCollection(FromType.Standard)]
     public unsafe struct StackallocQueue<T> : IIsCreated, IEquatable<StackallocQueue<T>>, IReadOnlyCollection<T> where T : unmanaged
@@ -73,10 +72,6 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        /// <value>
-        ///     true if this is empty;
-        ///     otherwise, false.
-        /// </value>
         public readonly bool IsEmpty => _size == 0;
 
         /// <summary>

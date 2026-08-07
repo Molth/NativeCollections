@@ -10,10 +10,8 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Stackalloc dictionary
+    ///     Represents a collection of keys and values.
     /// </summary>
-    /// <typeparam name="TKey">Type</typeparam>
-    /// <typeparam name="TValue">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [StackallocCollection(FromType.Standard)]
     public unsafe struct StackallocDictionary<TKey, TValue> : IIsCreated, IEquatable<StackallocDictionary<TKey, TValue>>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
@@ -71,10 +69,6 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        /// <value>
-        ///     true if this is empty;
-        ///     otherwise, false.
-        /// </value>
         public readonly bool IsEmpty => Count == 0;
 
         /// <summary>

@@ -7,9 +7,8 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe fixed size stack memory pool
+    ///     Represents a memory pool that provides reusable fixed-size memory blocks.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.None)]
     public unsafe struct UnsafeFixedSizeStackMemoryPool<T> : IIsCreated, IDisposable, IEquatable<UnsafeFixedSizeStackMemoryPool<T>> where T : unmanaged
@@ -42,10 +41,6 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        /// <value>
-        ///     true if this is empty;
-        ///     otherwise, false.
-        /// </value>
         public readonly bool IsEmpty => _size == 0;
 
         /// <summary>

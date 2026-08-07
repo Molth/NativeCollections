@@ -8,7 +8,7 @@ using System.Threading;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe spin wait
+    ///     Provides support for spin-based waiting.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard)]
@@ -18,7 +18,13 @@ namespace NativeCollections
         /// <summary>
         ///     Spin wait
         /// </summary>
-        private SpinWait _spinWait;
+        private
+#if NET5_0_OR_GREATER
+            SpinWait
+#else
+            SpinWaitHelpers.SpinWait
+#endif
+            _spinWait;
 
         /// <summary>
         ///     Gets the number of times <see cref="SpinOnce()" /> has been called on this instance.
@@ -75,15 +81,7 @@ namespace NativeCollections
         ///     <see cref="SpinOnce()" /> has been called thus far on this instance.
         /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SpinOnce(int sleep1Threshold)
-        {
-#if NET5_0_OR_GREATER
-            _spinWait.SpinOnce(sleep1Threshold);
-#else
-            ThrowHelpers.ThrowIfLessThan(sleep1Threshold, -1, ExceptionArgument.sleep1Threshold);
-            _spinWait.SpinOnce();
-#endif
-        }
+        public void SpinOnce(int sleep1Threshold) => _spinWait.SpinOnce(sleep1Threshold);
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.

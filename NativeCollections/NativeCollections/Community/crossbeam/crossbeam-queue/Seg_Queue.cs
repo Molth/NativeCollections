@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using NativeCollections;
@@ -142,7 +143,7 @@ namespace crossbeam
             {
                 // It is not necessary to set the `DESTROY` bit in the last slot because that slot has
                 // begun destruction of the block.
-                for (nuint i = start; i < BLOCK_CAP - 1; ++i)
+                for (var i = start; i < BLOCK_CAP - 1; ++i)
                 {
                     var slot = block->slots.get_unchecked(i);
 
@@ -164,7 +165,7 @@ namespace crossbeam
         }
 
         /// A position in a queue.
-        [StructLayout(LayoutKind.Sequential, Size = 1 * CACHE_LINE_SIZE)]
+        [StructLayout(LayoutKind.Sequential, Size = CACHE_LINE_SIZE)]
         private struct CachePaddedPosition<T> where T : unmanaged
         {
             /// The index in the queue.
@@ -180,10 +181,8 @@ namespace crossbeam
         /// that can hold a handful of elements. There is no limit to how many elements can be in the queue
         /// at a time. However, since segments need to be dynamically allocated as elements get pushed,
         [StructLayout(LayoutKind.Sequential)]
-        public struct SegQueue<T> where T : unmanaged
+        public struct SegQueue<T> : IDisposable where T : unmanaged
         {
-            private readonly CachePadding _padding;
-
             /// The head of the queue.
             private CachePaddedPosition<T> head;
 
@@ -586,6 +585,8 @@ namespace crossbeam
                     Block<T>.drop(block);
                 }
             }
+
+            public void Dispose() => drop();
         }
     }
 }

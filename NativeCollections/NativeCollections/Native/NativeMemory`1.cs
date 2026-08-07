@@ -7,9 +7,8 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native memory
+    ///     Represents a contiguous region of arbitrary native memory.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
     public readonly struct NativeMemory<T> : IIsCreated, IDisposable, IEquatable<NativeMemory<T>> where T : unmanaged

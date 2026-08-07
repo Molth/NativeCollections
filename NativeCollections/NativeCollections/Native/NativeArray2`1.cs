@@ -10,9 +10,8 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native array 2
+    ///     Represents a contiguous region of arbitrary native memory.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
     public readonly unsafe struct NativeArray2<T> : IIsCreated, IDisposable, IEquatable<NativeArray2<T>>, IReadOnlyCollection<T> where T : unmanaged
@@ -124,10 +123,6 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        /// <value>
-        ///     true if this is empty;
-        ///     otherwise, false.
-        /// </value>
         public bool IsEmpty => _x == 0 || _y == 0;
 
         /// <summary>

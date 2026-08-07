@@ -5,7 +5,7 @@
 namespace NativeCollections
 {
     /// <summary>
-    ///     Boolean helpers
+    ///     Represents a boolean (<see langword="true" /> or <see langword="false" />) value.
     /// </summary>
     internal static class BooleanHelpers
     {

@@ -7,7 +7,7 @@ using System.Threading;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Interlocked helpers
+    ///     Provides atomic operations for variables that are shared by multiple threads.
     /// </summary>
     internal static class InterlockedHelpers
     {

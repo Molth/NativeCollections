@@ -11,10 +11,8 @@ using static NativeCollections.PaddingHelpers;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe concurrentHashSet
-    ///     (Slower than ConcurrentDictionary)
+    ///     Represents a thread-safe collection of items.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Community)]
     public readonly struct UnsafeShardedHashSet<T> : IIsCreated, IDisposable, IEquatable<UnsafeShardedHashSet<T>>, IReadOnlyCollection<T> where T : unmanaged, IEquatable<T>
@@ -22,21 +20,21 @@ namespace NativeCollections
         /// <summary>
         ///     Shards
         /// </summary>
+        /// <remarks>
+        ///     Segment design is inspired by the algorithm outlined at:
+        ///     https://github.com/xacrimon/dashmap
+        /// </remarks>
         private readonly NativeArray<Shard> _shards;
 
         /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
-        public readonly bool IsCreated => _shards.IsCreated;
+        public bool IsCreated => _shards.IsCreated;
 
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        /// <value>
-        ///     true if this is empty;
-        ///     otherwise, false.
-        /// </value>
-        public readonly bool IsEmpty => CheckIsEmpty(_shards);
+        public bool IsEmpty => CheckIsEmpty(_shards);
 
         /// <summary>
         ///     Gets the number of elements contained in this.
@@ -51,7 +49,7 @@ namespace NativeCollections
         ///     Count has snapshot semantics and represents the number of items in this
         ///     at the moment when Count was accessed.
         /// </remarks>
-        public readonly int Count => GetCount(_shards);
+        public int Count => GetCount(_shards);
 
         /// <summary>
         ///     Structure
@@ -62,22 +60,22 @@ namespace NativeCollections
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        public readonly bool Equals(UnsafeShardedHashSet<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
+        public bool Equals(UnsafeShardedHashSet<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        public readonly override bool Equals(object? obj) => obj is UnsafeShardedHashSet<T> other && other.Equals(this);
+        public override bool Equals(object? obj) => obj is UnsafeShardedHashSet<T> other && other.Equals(this);
 
         /// <summary>
         ///     Returns the hash code for this instance.
         /// </summary>
-        public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
+        public override int GetHashCode() => NativeHashCode.GetHashCode(this);
 
         /// <summary>
         ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        public readonly override string ToString() => SR.Format("UnsafeShardedHashSet<{0}>", SR.GetTypeName(typeof(T)));
+        public override string ToString() => SR.Format("UnsafeShardedHashSet<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
@@ -94,7 +92,7 @@ namespace NativeCollections
         ///     releasing, or resetting unmanaged resources.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly void Dispose()
+        public void Dispose()
         {
             foreach (ref var shard in _shards)
                 shard.HashSet.Dispose();
@@ -105,7 +103,7 @@ namespace NativeCollections
         ///     Removes all keys and values from this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly void Clear()
+        public void Clear()
         {
             foreach (ref var shard in _shards)
             {
@@ -180,10 +178,6 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        /// <value>
-        ///     true if this is empty;
-        ///     otherwise, false.
-        /// </value>
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static bool CheckIsEmpty(NativeArray<Shard> shards)
         {
@@ -279,7 +273,7 @@ namespace NativeCollections
             if (concurrencyLevel < 1)
             {
                 ThrowHelpers.ThrowIfNotEqual(concurrencyLevel, -1, ExceptionArgument.concurrencyLevel);
-                concurrencyLevel = ConcurrencyHelpers.DefaultConcurrencyLevel;
+                concurrencyLevel = EnvironmentHelpers.DefaultConcurrencyLevel;
             }
 
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
@@ -295,14 +289,14 @@ namespace NativeCollections
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.
         /// </summary>
-        public readonly Enumerator GetEnumerator() => new(_shards);
+        public Enumerator GetEnumerator() => new(_shards);
 
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        readonly IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -313,7 +307,7 @@ namespace NativeCollections
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        readonly IEnumerator IEnumerable.GetEnumerator()
+        IEnumerator IEnumerable.GetEnumerator()
         {
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
@@ -328,7 +322,7 @@ namespace NativeCollections
             /// <summary>
             ///     Handle
             /// </summary>
-            private readonly NativeArray<Shard> _shards;
+            private readonly NativeArray<Shard> _handle;
 
             /// <summary>
             ///     Index
@@ -349,9 +343,9 @@ namespace NativeCollections
             ///     Structure
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(NativeArray<Shard> shards)
+            internal Enumerator(NativeArray<Shard> handle)
             {
-                _shards = shards;
+                _handle = handle;
                 _index = -1;
                 _enumerator = default;
                 _locked = false;
@@ -372,13 +366,13 @@ namespace NativeCollections
                     if (_enumerator.MoveNext())
                         return true;
 
-                    _shards[_index].RwLock.ExitRead();
+                    _handle[_index].RwLock.ExitRead();
                     _locked = false;
                 }
 
-                while (++_index < _shards.Length)
+                while (++_index < _handle.Length)
                 {
-                    ref var shard = ref _shards[_index];
+                    ref var shard = ref _handle[_index];
                     shard.RwLock.EnterRead();
                     _locked = true;
                     _enumerator = shard.HashSet.GetEnumerator();
@@ -400,7 +394,7 @@ namespace NativeCollections
             public void Reset()
             {
                 if (_locked)
-                    _shards[_index].RwLock.ExitRead();
+                    _handle[_index].RwLock.ExitRead();
                 _index = -1;
                 _enumerator = default;
                 _locked = false;

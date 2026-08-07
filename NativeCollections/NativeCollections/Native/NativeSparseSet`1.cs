@@ -10,12 +10,11 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native sparseSet
+    ///     Represents a sparse set mapping integer keys to values with O(1) insertion, removal, and lookup.
     /// </summary>
     /// <remarks>
     ///     https://github.com/bombela/sparseset
     /// </remarks>
-    /// <typeparam name="TValue">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Community | FromType.Rust)]
     [BindingType(typeof(UnsafeSparseSet<>))]
@@ -55,10 +54,6 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        /// <value>
-        ///     true if this is empty;
-        ///     otherwise, false.
-        /// </value>
         public bool IsEmpty => _handle->IsEmpty;
 
         /// <summary>

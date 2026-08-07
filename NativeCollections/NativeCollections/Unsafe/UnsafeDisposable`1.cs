@@ -7,9 +7,8 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe disposable reference
+    ///     Represents a disposable wrapper over a pointer to an unmanaged disposable type.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.None)]
     public unsafe struct UnsafeDisposable<T> : IIsCreated, IDisposable, IEquatable<UnsafeDisposable<T>> where T : unmanaged, IDisposable

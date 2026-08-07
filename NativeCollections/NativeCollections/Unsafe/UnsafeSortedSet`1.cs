@@ -11,9 +11,8 @@ using static NativeCollections.NativeSortedSet;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe sortedSet
+    ///     Represents a collection of objects that is maintained in sorted order.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard)]
     public unsafe struct UnsafeSortedSet<T> : IIsCreated, IDisposable, IEquatable<UnsafeSortedSet<T>>, IReadOnlyCollection<T> where T : unmanaged, IComparable<T>
@@ -46,10 +45,6 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        /// <value>
-        ///     true if this is empty;
-        ///     otherwise, false.
-        /// </value>
         public readonly bool IsEmpty => _count == 0;
 
         /// <summary>

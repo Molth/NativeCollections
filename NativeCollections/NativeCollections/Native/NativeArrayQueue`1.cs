@@ -1,34 +1,41 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using crossbeam;
+using static crossbeam.Array_Queue;
+using static NativeCollections.PaddingHelpers;
 
 // ReSharper disable ALL
 
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native concurrentQueue
-    ///     (Faster than ConcurrentQueue, disable Enumerator, try peek, clear either)
+    ///     A bounded multi-producer multi-consumer queue.
+    ///     <br />
+    ///     This queue allocates a fixed-capacity buffer on construction, which is used to store pushed
+    ///     elements. The queue cannot hold more elements than the buffer allows. Attempting to push an
+    ///     element into a full queue will fail. Alternatively, [`force_push`] makes it possible for
+    ///     this queue to be used as a ring-buffer. Having a buffer allocated upfront makes this queue
+    ///     a bit faster than [`SegQueue`].`
     /// </summary>
     /// <remarks>
     ///     https://github.com/crossbeam-rs/crossbeam
     /// </remarks>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(FromType.Community | FromType.Rust)]
-    [BindingType(typeof(UnsafeArrayQueue<>))]
+    [NativeCollection(FromType.Community | FromType.Rust)]
+    [BindingType(typeof(ArrayQueue<>))]
     public readonly unsafe struct NativeArrayQueue<T> : IIsCreated, IDisposable, IEquatable<NativeArrayQueue<T>> where T : unmanaged
     {
         /// <summary>
         ///     Handle
         /// </summary>
-        private readonly UnsafeArrayQueue<T>* _handle;
+        private readonly ArrayQueue<T>* _handle;
 
         /// <summary>
         ///     Structure
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private NativeArrayQueue(UnsafeArrayQueue<T>* handle) => _handle = handle;
+        private NativeArrayQueue(ArrayQueue<T>* handle) => _handle = handle;
 
         /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
@@ -48,13 +55,13 @@ namespace NativeCollections
         public bool IsEmpty
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _handle->IsEmpty;
+            get => _handle->IsEmpty();
         }
 
         /// <summary>
         ///     Returns `true` if the queue is full.
         /// </summary>
-        public bool IsFull => _handle->IsFull;
+        public bool IsFull => _handle->IsFull();
 
         /// <summary>
         ///     Gets the number of elements contained in this.
@@ -68,13 +75,13 @@ namespace NativeCollections
         public int Count
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _handle->Count;
+            get => _handle->Count();
         }
 
         /// <summary>
         ///     Gets the total numbers of elements the internal data structure can hold.
         /// </summary>
-        public int Capacity => _handle->Capacity;
+        public int Capacity => _handle->Capacity();
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
@@ -170,8 +177,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeArrayQueue<T> Create(int capacity)
         {
-            var value = UnsafeArrayQueue<T>.Create(capacity);
-            return new NativeArrayQueue<T>(Box.New(ref value));
+            var value = new ArrayQueue<T>((nuint)capacity);
+            return new NativeArrayQueue<T>(Box.New(ref value, CACHE_LINE_SIZE));
         }
     }
 }

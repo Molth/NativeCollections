@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe string extensions
+    ///     Provides extension methods for string builders.
     /// </summary>
     public static class UnsafeStringExtensions
     {

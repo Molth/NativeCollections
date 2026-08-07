@@ -8,7 +8,7 @@ using System.Threading;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native array pool
+    ///     Provides a resource pool that enables reusing instances of native-arrays.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]

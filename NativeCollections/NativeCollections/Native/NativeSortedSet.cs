@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native sortedSet
+    ///     Provides internal structures.
     /// </summary>
     internal static unsafe class NativeSortedSet
     {

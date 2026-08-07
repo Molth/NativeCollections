@@ -11,10 +11,8 @@ using static NativeCollections.NativeSortedSet;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Stackalloc sorted dictionary
+    ///     Represents a collection of key/value pairs that are sorted on the key.
     /// </summary>
-    /// <typeparam name="TKey">Type</typeparam>
-    /// <typeparam name="TValue">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [StackallocCollection(FromType.Standard)]
     public unsafe struct StackallocSortedDictionary<TKey, TValue> : IIsCreated, IEquatable<StackallocSortedDictionary<TKey, TValue>>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IComparable<TKey> where TValue : unmanaged
@@ -59,10 +57,6 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        /// <value>
-        ///     true if this is empty;
-        ///     otherwise, false.
-        /// </value>
         public readonly bool IsEmpty => _count == 0;
 
         /// <summary>

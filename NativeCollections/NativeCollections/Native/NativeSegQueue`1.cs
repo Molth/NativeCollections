@@ -1,34 +1,39 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using crossbeam;
+using static crossbeam.Seg_Queue;
+using static NativeCollections.PaddingHelpers;
 
-// ReSharper disable ALL
+// ReSharper disable All
 
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native concurrentQueue
-    ///     (Faster than ConcurrentQueue, disable Enumerator, try peek, clear either)
+    ///     An unbounded multi-producer multi-consumer queue.
+    ///     <br />
+    ///     This queue is implemented as a linked list of segments, where each segment is a small buffer
+    ///     that can hold a handful of elements. There is no limit to how many elements can be in the queue
+    ///     at a time. However, since segments need to be dynamically allocated as elements get pushed,
     /// </summary>
     /// <remarks>
     ///     https://github.com/crossbeam-rs/crossbeam
     /// </remarks>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(FromType.Community | FromType.Rust)]
-    [BindingType(typeof(UnsafeSegQueue<>))]
+    [NativeCollection(FromType.Community | FromType.Rust)]
+    [BindingType(typeof(SegQueue<>))]
     public readonly unsafe struct NativeSegQueue<T> : IIsCreated, IDisposable, IEquatable<NativeSegQueue<T>> where T : unmanaged
     {
         /// <summary>
         ///     Handle
         /// </summary>
-        private readonly UnsafeSegQueue<T>* _handle;
+        private readonly SegQueue<T>* _handle;
 
         /// <summary>
         ///     Structure
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private NativeSegQueue(UnsafeSegQueue<T>* handle) => _handle = handle;
+        private NativeSegQueue(SegQueue<T>* handle) => _handle = handle;
 
         /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
@@ -48,7 +53,7 @@ namespace NativeCollections
         public bool IsEmpty
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _handle->IsEmpty;
+            get => _handle->IsEmpty();
         }
 
         /// <summary>
@@ -63,7 +68,7 @@ namespace NativeCollections
         public int Count
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _handle->Count;
+            get => _handle->Count();
         }
 
         /// <summary>
@@ -137,8 +142,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeSegQueue<T> Create()
         {
-            var value = UnsafeSegQueue<T>.Create();
-            return new NativeSegQueue<T>(Box.New(ref value));
+            var value = new SegQueue<T>();
+            return new NativeSegQueue<T>(Box.New(ref value, CACHE_LINE_SIZE));
         }
     }
 }

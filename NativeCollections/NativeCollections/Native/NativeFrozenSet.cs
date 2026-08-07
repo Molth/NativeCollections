@@ -13,7 +13,7 @@ using static NativeCollections.FrozenHelpers;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native frozen set
+    ///     Provides internal structures.
     /// </summary>
     internal static unsafe class NativeFrozenSet
     {

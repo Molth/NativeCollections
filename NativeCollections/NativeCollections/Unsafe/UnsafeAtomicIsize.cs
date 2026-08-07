@@ -13,7 +13,7 @@ using System.Threading;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe atomic IntPtr
+    ///     Provides atomic operations on a native-sized signed integer (<see cref="nint" />).
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard | FromType.Rust)]

@@ -7,7 +7,8 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native bit array slot
+    ///     Represents a reference to a single bit within a bit array, where <see langword="true" />
+    ///     indicates the bit is set (1) and <see langword="false" /> indicates the bit is cleared (0).
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]

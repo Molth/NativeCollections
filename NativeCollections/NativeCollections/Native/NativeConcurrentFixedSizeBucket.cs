@@ -8,7 +8,7 @@ using System.Threading;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native concurrentFixedSizeBucket
+    ///     Represents a thread-safe last-in, first-out collection of objects.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
@@ -60,10 +60,6 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        /// <value>
-        ///     true if this is empty;
-        ///     otherwise, false.
-        /// </value>
         public bool IsEmpty => Remaining == 0;
 
         /// <summary>

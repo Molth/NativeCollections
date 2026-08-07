@@ -10,11 +10,8 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native concurrentDictionary
-    ///     (Slower than ConcurrentDictionary)
+    ///     Represents a thread-safe collection of keys and values.
     /// </summary>
-    /// <typeparam name="TKey">Type</typeparam>
-    /// <typeparam name="TValue">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Community)]
     [BindingType(typeof(UnsafeShardedDictionary<,>))]

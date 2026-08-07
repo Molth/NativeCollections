@@ -5,7 +5,6 @@ namespace NativeCollections
     /// <summary>
     ///     Supports a simple iteration over a generic collection.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     public interface IRefIterator<T>
 #if NET9_0_OR_GREATER
         where T : allows ref struct

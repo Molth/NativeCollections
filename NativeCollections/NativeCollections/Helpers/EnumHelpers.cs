@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Enum helpers
+    ///     Provides the base class for enumerations.
     /// </summary>
     internal static class EnumHelpers
     {
@@ -19,7 +19,6 @@ namespace NativeCollections
         /// <summary>
         ///     Enum helper
         /// </summary>
-        /// <typeparam name="T">Type</typeparam>
         private static class EnumHelper<T> where T : unmanaged, Enum
         {
             /// <summary>

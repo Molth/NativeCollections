@@ -1,31 +1,31 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using static NativeCollections.PaddingHelpers;
 
 // ReSharper disable ALL
 
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native concurrentStack
-    ///     (Slower than ConcurrentStack, disable Enumerator, try peek, push/pop range either)
+    ///     Represents a thread-safe last-in, first-out collection of objects.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
+    /// <remarks>disable Enumerator, try peek, push/pop range either</remarks>
     [StructLayout(LayoutKind.Sequential)]
-    [NativeCollection(FromType.Community)]
-    [BindingType(typeof(UnsafeTreiberStack<>))]
+    [NativeCollection(FromType.Standard | FromType.Community)]
+    [BindingType(typeof(TreiberStack<>))]
     public readonly unsafe struct NativeTreiberStack<T> : IIsCreated, IDisposable, IEquatable<NativeTreiberStack<T>> where T : unmanaged
     {
         /// <summary>
         ///     Handle
         /// </summary>
-        private readonly UnsafeTreiberStack<T>* _handle;
+        private readonly TreiberStack<T>* _handle;
 
         /// <summary>
         ///     Structure
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private NativeTreiberStack(UnsafeTreiberStack<T>* handle) => _handle = handle;
+        private NativeTreiberStack(TreiberStack<T>* handle) => _handle = handle;
 
         /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
@@ -132,8 +132,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeTreiberStack<T> Create()
         {
-            var value = UnsafeTreiberStack<T>.Create();
-            return new NativeTreiberStack<T>(Box.New(ref value));
+            var value = TreiberStack<T>.Create();
+            return new NativeTreiberStack<T>(Box.New(ref value, CACHE_LINE_SIZE));
         }
     }
 }

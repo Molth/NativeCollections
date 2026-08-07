@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native memory allocator
+    ///     This class contains methods that are mainly used to manage native memory.
     /// </summary>
     [Customizable("public static void* AlignedAlloc(uint byteCount, uint alignment)", "public static void* AlignedAllocZeroed(uint byteCount, uint alignment)", "public static void AlignedFree(void* ptr)")]
 #if NET6_0_OR_GREATER

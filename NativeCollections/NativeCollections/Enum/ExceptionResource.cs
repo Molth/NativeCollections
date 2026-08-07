@@ -3,7 +3,7 @@
 namespace NativeCollections
 {
     /// <summary>
-    ///     Exception resource
+    ///     Represents resource identifiers for localized exception message templates.
     /// </summary>
     internal enum ExceptionResource
     {

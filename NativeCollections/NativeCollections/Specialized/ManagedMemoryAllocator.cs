@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Managed memory allocator
+    ///     This class contains methods that are mainly used to manage pinned-managed memory.
     /// </summary>
     [BindingType(typeof(ArrayPool<DummyByteHelper>))]
     public static unsafe class ManagedMemoryAllocator

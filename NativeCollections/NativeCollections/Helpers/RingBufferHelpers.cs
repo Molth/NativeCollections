@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Ring buffer helpers
+    ///     Provides helper functions.
     /// </summary>
     internal static class RingBufferHelpers
     {

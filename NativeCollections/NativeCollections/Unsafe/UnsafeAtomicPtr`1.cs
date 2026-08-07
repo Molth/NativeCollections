@@ -13,9 +13,8 @@ using System.Threading;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe atomic ptr
+    ///     Provides atomic operations on a pointer to type <typeparamref name="T" />.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard | FromType.Rust)]
     [BindingType(typeof(Interlocked))]

@@ -10,10 +10,8 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe chunked queue
-    ///     (Slower than Queue)
+    ///     Represents a first-in, first-out collection of objects.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.None)]
     public unsafe struct UnsafeChunkedQueue<T> : IIsCreated, IDisposable, IEquatable<UnsafeChunkedQueue<T>>, IReadOnlyCollection<T> where T : unmanaged
@@ -81,10 +79,6 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        /// <value>
-        ///     true if this is empty;
-        ///     otherwise, false.
-        /// </value>
         public readonly bool IsEmpty => _count == 0;
 
         /// <summary>

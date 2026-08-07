@@ -12,9 +12,8 @@ using static NativeCollections.NativeFrozenSet;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native hashSet
+    ///     Provides an immutable, read-only set optimized for fast lookup and enumeration.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Standard)]
     public readonly unsafe struct NativeFrozenSet<T> : IIsCreated, IDisposable, IEquatable<NativeFrozenSet<T>>, IReadOnlyCollection<T> where T : unmanaged, IEquatable<T>
@@ -32,10 +31,6 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        /// <value>
-        ///     true if this is empty;
-        ///     otherwise, false.
-        /// </value>
         public bool IsEmpty => Count == 0;
 
         /// <summary>

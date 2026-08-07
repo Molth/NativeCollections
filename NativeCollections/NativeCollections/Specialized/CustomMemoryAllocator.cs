@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Custom memory allocator
+    ///     Represents a custom memory allocator that uses user-provided callbacks and a context pointer.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [BindingType(typeof(CustomMemoryCallbacks))]

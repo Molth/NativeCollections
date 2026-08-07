@@ -32,7 +32,6 @@
 using System;
 using System.Runtime.InteropServices;
 using NativeCollections;
-using static NativeCollections.PaddingHelpers;
 
 namespace Examples
 {
@@ -41,6 +40,25 @@ namespace Examples
     /// </summary>
     public unsafe readonly struct HazardPointers : IIsCreated, IDisposable
     {
+        /// Cache lines are assumed to be N bytes long, depending on the architecture:
+        /// <br />
+        /// * On x86-64, aarch64, and powerpc64, N = 128.
+        /// <br />
+        /// * On arm, mips, mips64, sparc, and hexagon, N = 32.
+        /// <br />
+        /// * On m68k, N = 16.
+        /// <br />
+        /// * On s390x, N = 256.
+        /// <br />
+        /// * On all others, N = 64.
+        /// <remarks>
+        ///     Note that N is just a reasonable guess and is not guaranteed to match the actual cache line
+        ///     length of the machine the program is running on. On modern Intel architectures, spatial
+        ///     prefetcher is pulling pairs of 64-byte cache lines at a time, so we pessimistically assume that
+        ///     cache lines are 128 bytes long.
+        /// </remarks>
+        public const int CACHE_LINE_SIZE = 128;
+
         /// <summary>
         ///     This is named 'K' in the HP paper
         /// </summary>

@@ -7,9 +7,8 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native ptr
+    ///     Represents a typed pointer to unmanaged memory.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
     public readonly unsafe struct NativePtr<T> : IIsCreated, IDisposable, IEquatable<NativePtr<T>> where T : unmanaged

@@ -12,7 +12,8 @@ using System.Numerics;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Throw helpers
+    ///     Provides helper methods for validating arguments and
+    ///     throwing standard exceptions with consistent messaging.
     /// </summary>
     internal static class ThrowHelpers
     {

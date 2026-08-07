@@ -14,7 +14,7 @@ using static NativeCollections.BooleanHelpers;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe atomic 8
+    ///     Provides atomic operations on a <see cref="bool" /> value.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard | FromType.Rust)]

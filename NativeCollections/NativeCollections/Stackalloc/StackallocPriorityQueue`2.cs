@@ -10,10 +10,9 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Stackalloc priorityQueue
+    ///     Represents a collection of items that have a value and a priority.
+    ///     On dequeue, the item with the lowest priority value is removed.
     /// </summary>
-    /// <typeparam name="TElement">Type</typeparam>
-    /// <typeparam name="TPriority">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [StackallocCollection(FromType.Standard)]
     public unsafe struct StackallocPriorityQueue<TElement, TPriority> : IIsCreated, IEquatable<StackallocPriorityQueue<TElement, TPriority>> where TElement : unmanaged where TPriority : unmanaged, IComparable<TPriority>
@@ -46,10 +45,6 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        /// <value>
-        ///     true if this is empty;
-        ///     otherwise, false.
-        /// </value>
         public readonly bool IsEmpty => _size == 0;
 
         /// <summary>

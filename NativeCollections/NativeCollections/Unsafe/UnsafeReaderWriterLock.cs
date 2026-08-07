@@ -9,7 +9,8 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe reader writer lock
+    ///     Represents a lock that is used to manage access to a resource,
+    ///     allowing multiple threads for reading or exclusive access for writing.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.None)]

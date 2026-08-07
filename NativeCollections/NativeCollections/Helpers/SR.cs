@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     String resources
+    ///     Contains constant string resources used for exception messages and formatting.
     /// </summary>
     internal static class SR
     {

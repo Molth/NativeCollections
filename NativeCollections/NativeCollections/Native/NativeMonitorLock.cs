@@ -8,7 +8,8 @@ using System.Threading;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native monitorLock
+    ///     Represents a reference to an object pinned in memory using a <see cref="GCHandle" />.
+    ///     Provides a mechanism that synchronizes access to this object.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]

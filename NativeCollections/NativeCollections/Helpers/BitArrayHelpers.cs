@@ -7,6 +7,7 @@ using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.Arm;
 using System.Runtime.Intrinsics.X86;
 #endif
+
 #endif
 
 // ReSharper disable ALL
@@ -14,7 +15,9 @@ using System.Runtime.Intrinsics.X86;
 namespace NativeCollections
 {
     /// <summary>
-    ///     BitArray helpers
+    ///     Manages a compact array of bit values, which are represented as <see cref="bool" />, where
+    ///     <see langword="true" /> indicates that the bit is on (1) and <see langword="false" /> indicates
+    ///     the bit is off (0).
     /// </summary>
     internal static
 #if NET5_0_OR_GREATER && !NET7_0_OR_GREATER

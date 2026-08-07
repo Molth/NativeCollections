@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Hash helpers
+    ///     Provides helper methods for prime number calculations and hash table capacity management.
     /// </summary>
     internal static class HashHelpers
     {

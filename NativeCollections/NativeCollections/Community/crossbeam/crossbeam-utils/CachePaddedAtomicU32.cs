@@ -7,7 +7,7 @@ using static NativeCollections.PaddingHelpers;
 
 namespace crossbeam
 {
-    [StructLayout(LayoutKind.Sequential, Size = 1 * CACHE_LINE_SIZE)]
+    [StructLayout(LayoutKind.Sequential, Size = CACHE_LINE_SIZE)]
     internal struct CachePaddedAtomicU32
     {
         private UnsafeAtomicU32 _data;

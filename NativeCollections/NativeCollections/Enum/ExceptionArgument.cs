@@ -3,7 +3,7 @@
 namespace NativeCollections
 {
     /// <summary>
-    ///     Exception argument
+    ///     Represents parameter names used in exception messages for argument validation failures.
     /// </summary>
     internal enum ExceptionArgument
     {

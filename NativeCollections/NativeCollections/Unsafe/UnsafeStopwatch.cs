@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe stopwatch
+    ///     Provides a set of methods and properties that you can use to accurately measure elapsed time.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard)]

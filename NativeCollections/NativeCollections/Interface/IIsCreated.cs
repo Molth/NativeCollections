@@ -3,7 +3,8 @@
 namespace NativeCollections
 {
     /// <summary>
-    ///     Is created
+    ///     Provides a property that indicates whether the current instance
+    ///     has been successfully allocated or initialized.
     /// </summary>
     public interface IIsCreated
     {

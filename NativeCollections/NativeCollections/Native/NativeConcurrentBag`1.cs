@@ -7,10 +7,9 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native concurrentBag
-    ///     (Slower than ConcurrentBag, disable Enumerator, try peek either)
+    ///     Represents a thread-safe, unordered collection of objects.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
+    /// <remarks>disable Enumerator, try peek either</remarks>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Standard | FromType.NotImplemented)]
     [BindingType(typeof(UnsafeConcurrentBag<>))]
@@ -35,10 +34,6 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        /// <value>
-        ///     true if this is empty;
-        ///     otherwise, false.
-        /// </value>
         public bool IsEmpty
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]

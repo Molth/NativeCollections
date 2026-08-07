@@ -5,7 +5,7 @@
 namespace NativeCollections
 {
     /// <summary>
-    ///     Must be distinct attribute
+    ///     Indicates that the decorated constructor or parameter must have distinct values.
     /// </summary>
     [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Parameter)]
     public sealed class MustBeDistinctAttribute : Attribute

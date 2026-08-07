@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native dynamic (Two-Level Segregated Fit) memory pool
+    ///     Represents a memory pool that provides reusable dynamic-size memory blocks.
     /// </summary>
     /// <remarks>
     ///     https://github.com/mattconte/tlsf

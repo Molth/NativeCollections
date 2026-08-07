@@ -12,10 +12,8 @@ using static NativeCollections.NativeFrozenDictionary;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native dictionary
+    ///     Provides an immutable, read-only dictionary optimized for fast lookup and enumeration.
     /// </summary>
-    /// <typeparam name="TKey">Type</typeparam>
-    /// <typeparam name="TValue">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Standard)]
     public readonly unsafe struct NativeFrozenDictionary<TKey, TValue> : IIsCreated, IDisposable, IEquatable<NativeFrozenDictionary<TKey, TValue>>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
@@ -57,10 +55,6 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        /// <value>
-        ///     true if this is empty;
-        ///     otherwise, false.
-        /// </value>
         public bool IsEmpty => Count == 0;
 
         /// <summary>

@@ -5,7 +5,7 @@
 namespace NativeCollections
 {
     /// <summary>
-    ///     Ring buffer helpers
+    ///     Provides helper functions.
     /// </summary>
     internal static class StackHelpers
     {

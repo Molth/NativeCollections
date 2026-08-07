@@ -11,9 +11,8 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native temp pinned buffer
+    ///     Represents a pinned temporary buffer for unmanaged elements allocated with the managed memory allocator.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
     [BindingType(typeof(ManagedMemoryAllocator))]

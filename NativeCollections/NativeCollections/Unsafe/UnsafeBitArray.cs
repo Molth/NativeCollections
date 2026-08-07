@@ -7,7 +7,9 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe bit array
+    ///     Manages a compact array of bit values, which are represented as <see cref="bool" />, where
+    ///     <see langword="true" /> indicates that the bit is on (1) and <see langword="false" /> indicates
+    ///     the bit is off (0).
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard)]

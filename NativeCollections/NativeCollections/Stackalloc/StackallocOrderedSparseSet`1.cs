@@ -10,9 +10,9 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Stackalloc orderedSparseSet
+    ///     Represents a sparse set mapping integer keys to values  that are accessible by the key,
+    ///     with O(1) insertion, removal, and lookup.
     /// </summary>
-    /// <typeparam name="TValue">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [StackallocCollection(FromType.None)]
     public unsafe struct StackallocOrderedSparseSet<TValue> : IIsCreated, IEquatable<StackallocOrderedSparseSet<TValue>>, IReadOnlyCollection<KeyValuePair<int, TValue>> where TValue : unmanaged
@@ -115,10 +115,6 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        /// <value>
-        ///     true if this is empty;
-        ///     otherwise, false.
-        /// </value>
         public readonly bool IsEmpty => _count == 0;
 
         /// <summary>

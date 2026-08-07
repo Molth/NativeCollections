@@ -5,7 +5,8 @@
 namespace NativeCollections
 {
     /// <summary>
-    ///     Stackalloc collection attribute
+    ///     Specifies that the decorated struct is a stack-allocated collection that expects a fixed buffer
+    ///     to be provided by the caller (e.g., via <c>stackalloc</c> or a fixed managed buffer).
     /// </summary>
     [AttributeUsage(AttributeTargets.Struct)]
     public sealed class StackallocCollectionAttribute : Attribute

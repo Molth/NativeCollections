@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native epoch collector scope
+    ///     Represents a disposable scope that holds a reference to a resource and releases it when disposed.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
@@ -23,7 +23,7 @@ namespace NativeCollections
         /// <summary>
         ///     Handle
         /// </summary>
-        private readonly NativeRef<UnsafeEpochCollector> _handle;
+        private readonly NativeRef<EpochCollector> _handle;
 
         /// <summary>
         ///     The current epoch number that the caller is pinned to.
@@ -44,7 +44,7 @@ namespace NativeCollections
         ///     Structure
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeEpochCollectorRefScope(NativeRef<UnsafeEpochCollector> handle, uint epoch)
+        internal NativeEpochCollectorRefScope(NativeRef<EpochCollector> handle, uint epoch)
         {
             _handle = handle;
             _epoch = epoch;
@@ -93,7 +93,7 @@ namespace NativeCollections
         /// <returns>Equals</returns>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public readonly override bool Equals(object? obj)
+        public override bool Equals(object? obj)
         {
             ThrowHelpers.ThrowCannotCallEqualsException();
             return default;
@@ -104,7 +104,7 @@ namespace NativeCollections
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public readonly override int GetHashCode()
+        public override int GetHashCode()
         {
             ThrowHelpers.ThrowCannotCallGetHashCodeException();
             return default;

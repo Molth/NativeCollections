@@ -10,7 +10,8 @@ using static NativeCollections.BinaryNumberHelpers;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe random
+    ///     Represents a pseudo-random number generator, which is an algorithm that produces a sequence of numbers
+    ///     that meet certain statistical requirements for randomness.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard)]
@@ -564,7 +565,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>True, or false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool NextBoolean() => IsOdd(Next64());
+        public bool NextBoolean() => IsOddInteger(Next64());
 
         /// <summary>
         ///     Generates a random boolean value.

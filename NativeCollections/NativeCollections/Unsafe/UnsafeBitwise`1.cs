@@ -10,12 +10,12 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe bitwise
+    ///     Represents a wrapper around an unmanaged type that enables bitwise comparison
+    ///     and hashing of its binary representation.
     /// </summary>
     /// <remarks>
     ///     https://github.com/dotnet/dotNext/blob/master/src/DotNext/BitwiseComparer.cs
     /// </remarks>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Community)]
     public struct UnsafeBitwise<T> : IEquatable<UnsafeBitwise<T>>, IComparable<UnsafeBitwise<T>>, IEquatable<T>, IComparable<T> where T : unmanaged

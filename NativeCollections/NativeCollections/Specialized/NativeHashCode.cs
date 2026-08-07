@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native hashCode
+    ///     Combines the hash code for multiple values into a single hash code.
     /// </summary>
     [Customizable("public static int GetHashCode(ReadOnlySpan<byte> buffer)")]
     public static unsafe class NativeHashCode

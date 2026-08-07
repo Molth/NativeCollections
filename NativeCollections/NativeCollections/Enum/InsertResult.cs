@@ -3,7 +3,7 @@
 namespace NativeCollections
 {
     /// <summary>
-    ///     Insert result
+    ///     Represents the possible outcomes of an insertion operation on a collection.
     /// </summary>
     public enum InsertResult
     {

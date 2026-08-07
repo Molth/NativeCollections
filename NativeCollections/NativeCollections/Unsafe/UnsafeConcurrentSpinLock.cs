@@ -10,7 +10,7 @@ using System.Threading;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe concurrent spinLock
+    ///     Represents a lock that uses an atomic sequence number to manage exclusive access to a resource.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.None)]

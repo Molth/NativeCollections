@@ -10,9 +10,9 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe list
+    ///     Represents a strongly typed list of objects that can be accessed by index.
+    ///     Provides methods to search, sort, and manipulate lists.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard)]
     public unsafe struct UnsafeList<T> : IIsCreated, IDisposable, IEquatable<UnsafeList<T>>, IReadOnlyCollection<T> where T : unmanaged, IEquatable<T>
@@ -63,10 +63,6 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        /// <value>
-        ///     true if this is empty;
-        ///     otherwise, false.
-        /// </value>
         public readonly bool IsEmpty => _size == 0;
 
         /// <summary>

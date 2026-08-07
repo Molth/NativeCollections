@@ -5,7 +5,6 @@ namespace NativeCollections
     /// <summary>
     ///     Supports a simple iteration over a generic collection.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     public unsafe interface IPtrIterator<T> where T : unmanaged
     {
         /// <summary>

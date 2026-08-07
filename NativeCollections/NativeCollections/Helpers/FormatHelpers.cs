@@ -10,7 +10,7 @@ using System.Text;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Format helpers
+    ///     Provides a mechanism for retrieving an object to control formatting.
     /// </summary>
     internal static class FormatHelpers
     {

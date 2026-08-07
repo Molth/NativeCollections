@@ -10,10 +10,8 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Unsafe chunked stack
-    ///     (Slower than Stack)
+    ///     Represents a variable size last-in-first-out (LIFO) collection of instances of the same specified type.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.None)]
     public unsafe struct UnsafeChunkedStack<T> : IIsCreated, IDisposable, IEquatable<UnsafeChunkedStack<T>>, IReadOnlyCollection<T> where T : unmanaged
@@ -71,10 +69,6 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        /// <value>
-        ///     true if this is empty;
-        ///     otherwise, false.
-        /// </value>
         public readonly bool IsEmpty => _count == 0;
 
         /// <summary>

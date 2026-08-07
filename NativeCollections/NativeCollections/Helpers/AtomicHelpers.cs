@@ -7,7 +7,7 @@ using System.Threading;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Atomic helpers
+    ///     Provides atomic operations for variables that are shared by multiple threads.
     /// </summary>
     internal static unsafe class AtomicHelpers
     {
@@ -15,6 +15,7 @@ namespace NativeCollections
         ///     Returns a value, loaded as an atomic operation.
         /// </summary>
         /// <returns>The loaded value.</returns>
+        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static object? Load(ref object? location, Ordering order)
         {
@@ -65,6 +66,7 @@ namespace NativeCollections
         ///     Returns a value, loaded as an atomic operation.
         /// </summary>
         /// <returns>The loaded value.</returns>
+        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static nint Load(ref nint location, Ordering order)
         {
@@ -166,6 +168,7 @@ namespace NativeCollections
         ///     Returns a value, loaded as an atomic operation.
         /// </summary>
         /// <returns>The loaded value.</returns>
+        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long Load(ref long location, Ordering order)
         {
@@ -251,6 +254,7 @@ namespace NativeCollections
         ///     Returns a value, loaded as an atomic operation.
         /// </summary>
         /// <returns>The loaded value.</returns>
+        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Load(ref int location, Ordering order)
         {
@@ -301,6 +305,7 @@ namespace NativeCollections
         ///     Returns a value, loaded as an atomic operation.
         /// </summary>
         /// <returns>The loaded value.</returns>
+        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ushort Load(ref ushort location, Ordering order)
         {
@@ -351,6 +356,7 @@ namespace NativeCollections
         ///     Returns a value, loaded as an atomic operation.
         /// </summary>
         /// <returns>The loaded value.</returns>
+        /// <exception cref="NotSupportedException">Ordering is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte Load(ref byte location, Ordering order)
         {

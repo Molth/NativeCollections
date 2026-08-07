@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Custom memory callbacks
+    ///     Represents a set of function pointers for custom aligned memory allocation and deallocation.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public readonly unsafe struct CustomMemoryCallbacks : IEquatable<CustomMemoryCallbacks>

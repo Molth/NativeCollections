@@ -10,9 +10,8 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native array reference
+    ///     Represents a reference to a managed array pinned in memory using a <see cref="GCHandle" />.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
     public readonly struct NativeArrayRef<T> : IIsCreated, IDisposable, IEquatable<NativeArrayRef<T>>, IReadOnlyCollection<T>
@@ -85,10 +84,6 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        /// <value>
-        ///     true if this is empty;
-        ///     otherwise, false.
-        /// </value>
         public bool IsEmpty => _length == 0;
 
         /// <summary>

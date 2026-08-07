@@ -18,7 +18,6 @@ namespace NativeCollections
     ///     (<see cref="Range" />) of each segment instead of the segment slices themselves.
     ///     The entire sequence must match for a split to occur.
     /// </summary>
-    /// <typeparam name="T">Type</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
     [IsReferenceOrContainsReferences]

@@ -5,7 +5,7 @@
 namespace NativeCollections
 {
     /// <summary>
-    ///     Is assignable to attribute
+    ///     Specifies one or more types that the decorated struct is assignable to.
     /// </summary>
     [AttributeUsage(AttributeTargets.Struct)]
     public sealed class IsAssignableToAttribute : Attribute

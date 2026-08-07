@@ -12,7 +12,7 @@ using System.Text;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Frozen helpers
+    ///     Provides internal structures.
     /// </summary>
     internal static unsafe class FrozenHelpers
     {

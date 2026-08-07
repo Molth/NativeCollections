@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -20,9 +21,10 @@ namespace crossbeam
         private const uint SPIN_LIMIT = 6;
         private const uint YIELD_LIMIT = 10;
 
-        public uint step;
+        private uint step;
 
         /// Resets the `Backoff`.
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void reset() => step = 0;
 
         /// Backs off in a lock-free loop.
@@ -31,9 +33,10 @@ namespace crossbeam
         /// progress.
         /// <br />
         /// The processor may yield using the *YIELD* or *PAUSE* instruction.
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void spin()
         {
-            int count = 1 << (int)Math.Min(step, SPIN_LIMIT);
+            var count = 1 << (int)Math.Min(step, SPIN_LIMIT);
             Thread.SpinWait(count);
 
             if (step <= SPIN_LIMIT)
@@ -46,6 +49,7 @@ namespace crossbeam
         /// <br />
         /// The processor may yield using the *YIELD* or *PAUSE* instruction and the current thread
         /// may yield by giving up a timeslice to the OS scheduler.
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void snooze()
         {
             if (step <= SPIN_LIMIT)

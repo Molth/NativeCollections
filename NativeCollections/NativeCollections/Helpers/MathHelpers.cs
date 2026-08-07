@@ -1,12 +1,15 @@
-﻿using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
+#if NET5_0_OR_GREATER
+using System;
+#endif
 
 // ReSharper disable ALL
 
 namespace NativeCollections
 {
     /// <summary>
-    ///     Math helpers
+    ///     Provides constants and static methods for trigonometric, logarithmic,
+    ///     and other common mathematical functions.
     /// </summary>
     internal static class MathHelpers
     {

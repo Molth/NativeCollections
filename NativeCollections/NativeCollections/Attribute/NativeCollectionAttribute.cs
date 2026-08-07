@@ -5,7 +5,8 @@
 namespace NativeCollections
 {
     /// <summary>
-    ///     Native collection attribute
+    ///     Specifies that the decorated struct is a native collection wrapper that holds a handle pointer
+    ///     to manage the underlying unmanaged resource.
     /// </summary>
     [AttributeUsage(AttributeTargets.Struct)]
     public sealed class NativeCollectionAttribute : Attribute
