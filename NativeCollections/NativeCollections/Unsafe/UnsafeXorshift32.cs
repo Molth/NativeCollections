@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using static NativeCollections.BinaryNumberHelpers;
 
-#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type
+#pragma warning disable CS9084 // Struct member returns 'this' or other instance members by reference
 
 // ReSharper disable ALL
 
@@ -13,46 +12,32 @@ namespace NativeCollections
     ///     Represents a pseudo-random number generator, which is an algorithm that produces a sequence of numbers
     ///     that meet certain statistical requirements for randomness.
     /// </summary>
-    /// <remarks>
-    ///     https://www.jstatsoft.org/article/view/v008i14
-    /// </remarks>
+    /// <remarks>https://www.jstatsoft.org/article/view/v008i14</remarks>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Community)]
-    public unsafe struct UnsafeXorshift32 : IIsCreated, IEquatable<UnsafeXorshift32>
+    public unsafe struct UnsafeXorshift32 : IIsCreated, IInitializable, IRandom, IEquatable<UnsafeXorshift32>
     {
         /// <summary>
-        ///     State0
+        ///     State
         /// </summary>
-        private uint _s0;
-
-        /// <summary>
-        ///     Structure
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeXorshift32(uint s0)
-        {
-            _s0 = s0;
-            if (!IsCreated)
-                ThrowHelpers.ThrowMustBeNonEntirelyZeroException();
-        }
-
-        /// <summary>
-        ///     Structure
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeXorshift32(ReadOnlySpan<byte> buffer)
-        {
-            ThrowHelpers.ThrowIfLessThan(buffer.Length, Unsafe.SizeOf<UnsafeXorshift32>(), ExceptionArgument.buffer);
-            var random = Unsafe.ReadUnaligned<UnsafeXorshift32>(ref MemoryMarshal.GetReference(buffer));
-            if (!random.IsCreated)
-                ThrowHelpers.ThrowMustBeNonEntirelyZeroException();
-            this = random;
-        }
+        private State _state;
 
         /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
-        public readonly bool IsCreated => !((int)_s0 == 0);
+        public readonly bool IsCreated => _state.IsCreated;
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public UnsafeXorshift32(uint s0) => _state = new State(s0);
+
+        /// <summary>
+        ///     Structure
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public UnsafeXorshift32(ReadOnlySpan<byte> buffer) => _state = new State(buffer);
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
@@ -88,39 +73,7 @@ namespace NativeCollections
         ///     Initialize
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Initialize()
-        {
-            var data = MemoryMarshal.CreateSpan(ref Unsafe.As<uint, byte>(ref _s0), Unsafe.SizeOf<UnsafeXorshift32>());
-            do
-            {
-                NativeRandom.NextBytes(data);
-            } while (!IsCreated);
-        }
-
-        /// <summary>
-        ///     Returns a non-negative random integer.
-        /// </summary>
-        /// <returns>A 32-bit unsigned integer.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private uint Next32()
-        {
-            var s0 = (int)_s0;
-            var num1 = s0 ^ (s0 << 13);
-#if NET7_0_OR_GREATER
-            var num2 = (uint)(num1 ^ (num1 >>> 17));
-#else
-            var num2 = (uint)(num1 ^ (int)((uint)num1 >> 17));
-#endif
-            _s0 = num2 ^ (num2 << 5);
-            return (uint)s0;
-        }
-
-        /// <summary>
-        ///     Returns a non-negative random integer.
-        /// </summary>
-        /// <returns>A 64-bit unsigned integer.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ulong Next64() => ((ulong)Next32() << 32) | Next32();
+        public void Initialize() => _state.Initialize();
 
         /// <summary>
         ///     Performs an in-place shuffle of a buffer.
@@ -128,20 +81,11 @@ namespace NativeCollections
         /// <param name="buffer">The buffer to shuffle.</param>
         /// <typeparam name="T">The type of buffer.</typeparam>
         /// <remarks>
-        ///     This method uses <see cref="NextInt32(int, int)" /> to choose values for shuffling.
+        ///     This method uses <see cref="NextI32(int, int)" /> to choose values for shuffling.
         ///     This method is an O(n) operation.
         /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Shuffle<T>(Span<T> buffer)
-        {
-            var length = buffer.Length;
-            for (var i = 0; i < length - 1; ++i)
-            {
-                var j = NextInt32(i, length);
-                if (j != i)
-                    (buffer[i], buffer[j]) = (buffer[j], buffer[i]);
-            }
-        }
+        public void Shuffle<T>(Span<T> buffer) => _state.Shuffle(buffer);
 
         /// <summary>
         ///     Fills the elements of a specified buffer with items chosen at random from the provided set of choices.
@@ -153,56 +97,7 @@ namespace NativeCollections
         ///     <paramref name="source" /> is empty.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void GetItems<T>(ReadOnlySpan<T> source, Span<T> destination)
-        {
-            ThrowHelpers.ThrowIfReadOnlySpanEmpty(source, ExceptionArgument.source);
-            if (source.Length <= 256)
-            {
-                Span<byte> buffer = stackalloc byte[512];
-                if (BitOperationsHelpers.IsPow2(source.Length))
-                {
-                    var num = source.Length - 1;
-                    for (; !destination.IsEmpty; destination = destination.Slice(buffer.Length))
-                    {
-                        if (destination.Length < buffer.Length)
-                            buffer = buffer.Slice(0, destination.Length);
-                        NextBytes(buffer);
-                        for (var index = 0; index < buffer.Length; ++index)
-                            destination[index] = source[buffer[index] & num];
-                    }
-                }
-                else
-                {
-                    var num1 = (int)BitOperationsHelpers.RoundUpToPowerOf2((uint)source.Length) - 1;
-                    int start;
-                    for (; !destination.IsEmpty; destination = destination.Slice(start))
-                    {
-                        if (destination.Length * 2 < buffer.Length)
-                            buffer = buffer.Slice(0, destination.Length * 2);
-                        NextBytes(buffer);
-                        start = 0;
-                        var span = buffer;
-                        for (var index1 = 0; index1 < span.Length; ++index1)
-                        {
-                            var num2 = span[index1];
-                            if ((uint)start < (uint)destination.Length)
-                            {
-                                var index2 = (byte)(num2 & (uint)num1);
-                                if (index2 < (uint)source.Length)
-                                    destination[start++] = source[index2];
-                            }
-                            else
-                                break;
-                        }
-                    }
-                }
-            }
-            else
-            {
-                for (var index = 0; index < destination.Length; ++index)
-                    destination[index] = source[NextInt32(source.Length)];
-            }
-        }
+        public void GetItems<T>(ReadOnlySpan<T> source, Span<T> destination) => _state.GetItems(source, destination);
 
         /// <summary>
         ///     Chooses the random element in the buffer.
@@ -212,13 +107,7 @@ namespace NativeCollections
         /// <returns>Randomly selected element from the buffer.</returns>
         /// <exception cref="ArgumentException"><paramref name="buffer" /> is empty.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref T Sample<T>(Span<T> buffer)
-        {
-            ThrowHelpers.ThrowIfSpanEmpty(buffer, ExceptionArgument.buffer);
-            ref var reference = ref MemoryMarshal.GetReference(buffer);
-            var length = buffer.Length;
-            return ref length == 1 ? ref reference : ref Unsafe.Add(ref reference, (nint)NextInt32(length));
-        }
+        public ref T Sample<T>(Span<T> buffer) => ref _state.Sample(buffer);
 
         /// <summary>
         ///     Chooses the random element in the buffer.
@@ -228,29 +117,14 @@ namespace NativeCollections
         /// <returns>Randomly selected element from the buffer.</returns>
         /// <exception cref="ArgumentException"><paramref name="buffer" /> is empty.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref readonly T Peek<T>(ReadOnlySpan<T> buffer)
-        {
-            ThrowHelpers.ThrowIfReadOnlySpanEmpty(buffer, ExceptionArgument.buffer);
-            ref var reference = ref MemoryMarshal.GetReference(buffer);
-            var length = buffer.Length;
-            return ref length == 1 ? ref reference : ref Unsafe.Add(ref reference, (nint)NextInt32(length));
-        }
+        public ref readonly T Peek<T>(ReadOnlySpan<T> buffer) => ref _state.Peek(buffer);
 
         /// <summary>
         ///     Returns a non-negative random integer.
         /// </summary>
         /// <returns>A 32-bit unsigned integer that is greater than or equal to 0 and less than <see cref="uint.MaxValue" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public uint NextUInt32()
-        {
-            uint num;
-            do
-            {
-                num = Next32();
-            } while (num == uint.MaxValue);
-
-            return num;
-        }
+        public uint NextU32() => _state.NextU32();
 
         /// <summary>
         ///     Returns a non-negative random integer that is less than the specified maximum.
@@ -266,18 +140,7 @@ namespace NativeCollections
         ///     <paramref name="maxValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public uint NextUInt32(uint maxValue)
-        {
-            var num1 = maxValue * (ulong)Next32();
-            var num2 = (uint)num1;
-            if (num2 < maxValue)
-            {
-                for (var num3 = unchecked(0U - maxValue); num2 < num3; num2 = (uint)num1)
-                    num1 = maxValue * (ulong)Next32();
-            }
-
-            return (uint)(num1 >> 32);
-        }
+        public uint NextU32(uint maxValue) => _state.NextU32(maxValue);
 
         /// <summary>
         ///     Returns a random integer that is within a specified range.
@@ -294,23 +157,14 @@ namespace NativeCollections
         ///     is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public uint NextUInt32(uint minValue, uint maxValue) => NextUInt32(maxValue - minValue) + maxValue;
+        public uint NextU32(uint minValue, uint maxValue) => _state.NextU32(minValue, maxValue);
 
         /// <summary>
         ///     Returns a non-negative random integer.
         /// </summary>
         /// <returns>A 64-bit unsigned integer that is greater than or equal to 0 and less than <see cref="ulong.MaxValue" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ulong NextUInt64()
-        {
-            ulong num;
-            do
-            {
-                num = Next64();
-            } while (num == ulong.MaxValue);
-
-            return num;
-        }
+        public ulong NextU64() => _state.NextU64();
 
         /// <summary>
         ///     Returns a non-negative random integer that is less than the specified maximum.
@@ -326,18 +180,7 @@ namespace NativeCollections
         ///     <paramref name="maxValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ulong NextUInt64(ulong maxValue)
-        {
-            var num1 = MathHelpers.BigMul(maxValue, Next64(), out var num2);
-            if (num2 < maxValue)
-            {
-                var num3 = unchecked(0UL - maxValue) % maxValue;
-                while (num2 < num3)
-                    num1 = MathHelpers.BigMul(maxValue, Next64(), out num2);
-            }
-
-            return num1;
-        }
+        public ulong NextU64(ulong maxValue) => _state.NextU64(maxValue);
 
         /// <summary>
         ///     Returns a random integer that is within a specified range.
@@ -354,23 +197,14 @@ namespace NativeCollections
         ///     is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ulong NextUInt64(ulong minValue, ulong maxValue) => NextUInt64(maxValue - minValue) + minValue;
+        public ulong NextU64(ulong minValue, ulong maxValue) => _state.NextU64(minValue, maxValue);
 
         /// <summary>
         ///     Returns a non-negative random integer.
         /// </summary>
         /// <returns>A 32-bit signed integer that is greater than or equal to 0 and less than <see cref="int.MaxValue" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int NextInt32()
-        {
-            uint num;
-            do
-            {
-                num = Next32() >> 1;
-            } while (num == int.MaxValue);
-
-            return (int)num;
-        }
+        public int NextI32() => _state.NextI32();
 
         /// <summary>
         ///     Returns a non-negative random integer that is less than the specified maximum.
@@ -386,7 +220,7 @@ namespace NativeCollections
         ///     <paramref name="maxValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int NextInt32(int maxValue) => (int)NextUInt32((uint)maxValue);
+        public int NextI32(int maxValue) => _state.NextI32(maxValue);
 
         /// <summary>
         ///     Returns a random integer that is within a specified range.
@@ -403,23 +237,14 @@ namespace NativeCollections
         ///     is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int NextInt32(int minValue, int maxValue) => (int)NextUInt32((uint)(maxValue - minValue)) + minValue;
+        public int NextI32(int minValue, int maxValue) => _state.NextI32(minValue, maxValue);
 
         /// <summary>
         ///     Returns a non-negative random integer.
         /// </summary>
         /// <returns>A 64-bit signed integer that is greater than or equal to 0 and less than <see cref="long.MaxValue" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public long NextInt64()
-        {
-            ulong num;
-            do
-            {
-                num = Next64() >> 1;
-            } while (num == long.MaxValue);
-
-            return (long)num;
-        }
+        public long NextI64() => _state.NextI64();
 
         /// <summary>
         ///     Returns a non-negative random integer that is less than the specified maximum.
@@ -435,7 +260,7 @@ namespace NativeCollections
         ///     <paramref name="maxValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public long NextInt64(long maxValue) => (long)NextUInt64((ulong)maxValue);
+        public long NextI64(long maxValue) => _state.NextI64(maxValue);
 
         /// <summary>
         ///     Returns a random integer that is within a specified range.
@@ -452,48 +277,28 @@ namespace NativeCollections
         ///     is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public long NextInt64(long minValue, long maxValue) => (long)NextUInt64((ulong)(maxValue - minValue)) + minValue;
+        public long NextI64(long minValue, long maxValue) => _state.NextI64(minValue, maxValue);
 
         /// <summary>
         ///     Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.
         /// </summary>
         /// <returns>A double-precision floating point number that is greater than or equal to 0.0, and less than 1.0.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public double NextDouble() => (Next64() >> 11) * 1.1102230246251565E-16;
+        public double NextF64() => _state.NextF64();
 
         /// <summary>
         ///     Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.
         /// </summary>
         /// <returns>A single-precision floating point number that is greater than or equal to 0.0, and less than 1.0.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float NextSingle() => (Next32() >> 8) * 5.9604645E-08f;
+        public float NextF32() => _state.NextF32();
 
         /// <summary>
         ///     Fills the elements of a specified buffer of bytes with random numbers.
         /// </summary>
         /// <param name="buffer">The buffer to be filled with random numbers.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void NextBytes(Span<byte> buffer)
-        {
-            var num1 = _s0;
-            for (; buffer.Length >= 4; buffer = buffer.Slice(4))
-            {
-                Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(buffer), num1);
-                var num2 = num1 ^ (num1 << 13);
-                var num3 = num2 ^ (num2 >> 17);
-                num1 = num3 ^ (num3 << 5);
-            }
-
-            if (!buffer.IsEmpty)
-            {
-                SpanHelpers.Copy(ref MemoryMarshal.GetReference(buffer), ref Unsafe.As<uint, byte>(ref num1), (uint)buffer.Length);
-                num1 ^= num1 << 13;
-                num1 ^= num1 >> 17;
-                num1 ^= num1 << 5;
-            }
-
-            _s0 = num1;
-        }
+        public void NextBytes(Span<byte> buffer) => _state.NextBytes(buffer);
 
         /// <summary>
         ///     Fills a specified memory block with random bytes.
@@ -501,7 +306,7 @@ namespace NativeCollections
         /// <param name="startAddress">A pointer to the memory location where the random bytes will be written.</param>
         /// <param name="byteCount">The number of bytes to fill with random numbers.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void NextBytes(void* startAddress, uint byteCount) => NextBytes(ref Unsafe.AsRef<byte>(startAddress), byteCount);
+        public void NextBytes(void* startAddress, uint byteCount) => _state.NextBytes(startAddress, byteCount);
 
         /// <summary>
         ///     Fills a specified memory block with random bytes.
@@ -509,34 +314,23 @@ namespace NativeCollections
         /// <param name="startAddress">A pointer to the memory location where the random bytes will be written.</param>
         /// <param name="byteCount">The number of bytes to fill with random numbers.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void NextBytes(ref byte startAddress, uint byteCount)
-        {
-            for (uint count; byteCount > 0; byteCount -= count, startAddress = ref Unsafe.AddByteOffset(ref startAddress, (nint)count))
-            {
-                count = byteCount > int.MaxValue ? int.MaxValue : byteCount;
-                NextBytes(MemoryMarshal.CreateSpan(ref startAddress, (int)count));
-            }
-        }
+        public void NextBytes(ref byte startAddress, uint byteCount) => _state.NextBytes(ref startAddress, byteCount);
 
         /// <summary>
-        ///     Returns a boolean.
+        ///     Returns a bool.
         /// </summary>
         /// <returns>True, or false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool NextBoolean() => IsOddInteger(Next32());
+        public bool NextBool() => _state.NextBool();
 
         /// <summary>
-        ///     Generates a random boolean value.
+        ///     Generates a random bool value.
         /// </summary>
         /// <param name="trueProbability">A probability of <see langword="true" /> result (should be between 0.0 and 1.0).</param>
-        /// <returns>Randomly generated boolean value.</returns>
+        /// <returns>Randomly generated bool value.</returns>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="trueProbability" /> value is invalid.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool NextBoolean(double trueProbability)
-        {
-            ThrowHelpers.ThrowIfProbabilityOutOfRange(trueProbability, ExceptionArgument.trueProbability);
-            return NextDouble() >= 1.0 - trueProbability;
-        }
+        public bool NextBool(double trueProbability) => _state.NextBool(trueProbability);
 
         /// <summary>
         ///     Generates a random value of blittable type.
@@ -544,12 +338,7 @@ namespace NativeCollections
         /// <typeparam name="T">The blittable type.</typeparam>
         /// <returns>The randomly generated value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T Next<T>() where T : unmanaged
-        {
-            Unsafe.SkipInit(out T result);
-            Next(ref result);
-            return result;
-        }
+        public T Next<T>() where T : unmanaged => _state.Next<State, T>();
 
         /// <summary>
         ///     Generates a random value of blittable type.
@@ -557,7 +346,7 @@ namespace NativeCollections
         /// <typeparam name="T">The blittable type.</typeparam>
         /// <returns>The randomly generated value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Next<T>(ref T destination) where T : unmanaged => NextBytes(MemoryMarshal.CreateSpan(ref Unsafe.As<T, byte>(ref destination), Unsafe.SizeOf<T>()));
+        public void Next<T>(ref T destination) where T : unmanaged => _state.Next(ref destination);
 
         /// <summary>
         ///     Create
@@ -575,5 +364,99 @@ namespace NativeCollections
         ///     Empty
         /// </summary>
         public static UnsafeXorshift32 Empty => default;
+
+        /// <summary>
+        ///     Provides a thread-safe instance that may be used concurrently from any thread.
+        /// </summary>
+        public static ThreadSafeRandom<UnsafeXorshift32> Shared => new();
+
+        /// <summary>
+        ///     Represents a pseudo-random number generator, which is an algorithm that produces a sequence of numbers
+        ///     that meet certain statistical requirements for randomness.
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
+        private struct State : IIsCreated, IRandomState
+        {
+            /// <summary>
+            ///     State0
+            /// </summary>
+            private uint _s0;
+
+            /// <summary>
+            ///     Gets a value that indicates whether this has been allocated or initialized.
+            /// </summary>
+            public readonly bool IsCreated => !((int)_s0 == 0);
+
+            /// <summary>
+            ///     Structure
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public State(uint s0)
+            {
+                _s0 = s0;
+                ThrowHelpers.ThrowIfNotCreated(ref this, ExceptionArgument._dummy);
+            }
+
+            /// <summary>
+            ///     Structure
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public State(ReadOnlySpan<byte> buffer) => this = RandomHelpers.ReadUnaligned<State>(buffer);
+
+            /// <summary>
+            ///     Returns a non-negative random integer.
+            /// </summary>
+            /// <returns>A 32-bit unsigned integer.</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint Next32()
+            {
+                var s0 = (int)_s0;
+                var num1 = s0 ^ (s0 << 13);
+                var num2 = (uint)(num1 ^ (int)((uint)num1 >> 17));
+                _s0 = num2 ^ (num2 << 5);
+                return (uint)s0;
+            }
+
+            /// <summary>
+            ///     Returns a non-negative random integer.
+            /// </summary>
+            /// <returns>A 64-bit unsigned integer.</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public ulong Next64() => ((ulong)Next32() << 32) | Next32();
+
+            /// <summary>
+            ///     Fills the elements of a specified buffer of bytes with random numbers.
+            /// </summary>
+            /// <param name="buffer">The buffer to be filled with random numbers.</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void NextBytes(Span<byte> buffer)
+            {
+                var num1 = _s0;
+                for (; buffer.Length >= 4; buffer = buffer.Slice(4))
+                {
+                    Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(buffer), num1);
+                    var num2 = num1 ^ (num1 << 13);
+                    var num3 = num2 ^ (num2 >> 17);
+                    num1 = num3 ^ (num3 << 5);
+                }
+
+                if (!buffer.IsEmpty)
+                {
+                    SpanHelpers.Copy(ref MemoryMarshal.GetReference(buffer), ref Unsafe.As<uint, byte>(ref num1), (uint)buffer.Length);
+                    num1 ^= num1 << 13;
+                    num1 ^= num1 >> 17;
+                    num1 ^= num1 << 5;
+                }
+
+                _s0 = num1;
+            }
+
+            /// <summary>
+            ///     Returns a bool.
+            /// </summary>
+            /// <returns>True, or false.</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool NextBool() => BinaryNumberHelpers.IsOddInteger(Next32());
+        }
     }
 }

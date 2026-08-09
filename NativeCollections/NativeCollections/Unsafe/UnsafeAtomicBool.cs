@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
-using static NativeCollections.BooleanHelpers;
+using static NativeCollections.BoolHelpers;
 
 #pragma warning disable CA2231 // Overload operator equals on overriding ValueType.Equals
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member

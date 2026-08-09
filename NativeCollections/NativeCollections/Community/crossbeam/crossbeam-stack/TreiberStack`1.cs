@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using crossbeam;
 
-// ReSharper disable ALL
+// ReSharper disable All
 
 namespace NativeCollections
 {
@@ -12,7 +12,7 @@ namespace NativeCollections
     /// </summary>
     /// <remarks>disable Enumerator, try peek, push/pop range either</remarks>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(FromType.Standard | FromType.Community)]
+    [InternalCollection(FromType.Standard | FromType.Community)]
     internal unsafe struct TreiberStack<T> : IIsCreated, IDisposable, IEquatable<TreiberStack<T>> where T : unmanaged
     {
         /// <summary>
@@ -221,8 +221,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.NoInlining)]
         private bool TryPopSlow(out T result)
         {
-            var seed = (ulong)(nint)Unsafe.AsPointer(ref this);
-            var random = new UnsafeXoshiro256(seed, seed, seed, seed);
+            var random = UnsafeXoshiro256.Shared;
             var spinWait = new UnsafeSpinWait();
             var backoff = 1;
             while (true)
@@ -248,7 +247,7 @@ namespace NativeCollections
                 for (var i = 0; i < backoff; ++i)
                     spinWait.SpinOnce(-1);
 
-                backoff = spinWait.NextSpinWillYield ? random.NextInt32(1, BACKOFF_MAX_YIELDS) : backoff * 2;
+                backoff = spinWait.NextSpinWillYield ? random.NextI32(1, BACKOFF_MAX_YIELDS) : backoff * 2;
             }
         }
 

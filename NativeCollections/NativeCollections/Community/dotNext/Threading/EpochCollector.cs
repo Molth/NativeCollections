@@ -5,7 +5,7 @@ using crossbeam;
 
 #pragma warning disable CS9084 // Struct member returns 'this' or other instance members by reference
 
-// ReSharper disable ALL
+// ReSharper disable All
 
 namespace NativeCollections
 {
@@ -18,7 +18,7 @@ namespace NativeCollections
     ///     https://github.com/dotnet/dotNext/blob/master/src/DotNext/Threading/Epoch.cs
     /// </remarks>
     [StructLayout(LayoutKind.Sequential)]
-    [UnsafeCollection(FromType.Community)]
+    [InternalCollection(FromType.Community)]
     internal unsafe struct EpochCollector : IIsCreated, IDisposable, IEquatable<EpochCollector>
     {
         /// <summary>

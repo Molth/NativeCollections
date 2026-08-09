@@ -49,7 +49,7 @@ namespace NativeCollections
         /// <summary>
         ///     Pre-computed multiplier for use on 64-bit performing faster modulo operations.
         /// </summary>
-        private ulong _fastModMultiplier;
+        private HashHelpers.FastModImpl _fastModImpl;
 
         /// <summary>
         ///     Gets or sets the value associated with the specified key.
@@ -999,7 +999,7 @@ namespace NativeCollections
             _entries = UnsafeHelpers.AddByteOffset<Entry>(_buckets, (nint)bucketsByteCount);
             _bucketsLength = size;
             _entriesLength = size;
-            _fastModMultiplier = Environment.Is64BitProcess ? HashHelpers.GetFastModMultiplier((uint)size) : 0;
+            _fastModImpl = HashHelpers.GetFastModImpl((uint)size);
         }
 
         /// <summary>
@@ -1017,7 +1017,7 @@ namespace NativeCollections
             SpanHelpers.Copy(ref Unsafe.AsRef<byte>(entries), ref Unsafe.AsRef<byte>(_entries), (uint)(count * Unsafe.SizeOf<Entry>()));
             _buckets = buckets;
             _bucketsLength = newSize;
-            _fastModMultiplier = Environment.Is64BitProcess ? HashHelpers.GetFastModMultiplier((uint)newSize) : 0;
+            _fastModImpl = HashHelpers.GetFastModImpl((uint)newSize);
             for (var entryIndex = 0; entryIndex < count; ++entryIndex)
                 PushEntryIntoBucket(ref Unsafe.Add(ref Unsafe.AsRef<Entry>(entries), (nint)entryIndex), entryIndex);
             NativeMemoryAllocator.AlignedFree(oldBuckets);
@@ -1150,11 +1150,7 @@ namespace NativeCollections
         /// <param name="hashCode">HashCode</param>
         /// <returns>Bucket ref</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private readonly ref int GetBucket(uint hashCode)
-        {
-            var buckets = _buckets;
-            return ref Environment.Is64BitProcess ? ref Unsafe.Add(ref Unsafe.AsRef<int>(buckets), (nint)HashHelpers.FastMod(hashCode, (uint)_bucketsLength, _fastModMultiplier)) : ref Unsafe.Add(ref Unsafe.AsRef<int>(buckets), (nint)(hashCode % _bucketsLength));
-        }
+        private readonly ref int GetBucket(uint hashCode) => ref Unsafe.Add(ref Unsafe.AsRef<int>(_buckets), (nint)_fastModImpl.GetRemainder(hashCode, (uint)_bucketsLength));
 
         /// <summary>
         ///     Entry

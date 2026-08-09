@@ -263,7 +263,7 @@ namespace NativeCollections
         ///     Sets the value of the bit at a specific position in this.
         /// </summary>
         /// <param name="index">The zero-based index of the value to get.</param>
-        /// <param name="value">The Boolean value to assign to the bit.</param>
+        /// <param name="value">The bool value to assign to the bit.</param>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="index" /> is less than zero.</exception>
         /// <exception cref="ArgumentOutOfRangeException">
         ///     <paramref name="index" /> is greater than or equal to
@@ -297,7 +297,7 @@ namespace NativeCollections
         ///     Sets the value of the bit at a specific position in this.
         /// </summary>
         /// <param name="index">The zero-based index of the value to get.</param>
-        /// <param name="value">The Boolean value to assign to the bit.</param>
+        /// <param name="value">The bool value to assign to the bit.</param>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="index" /> is less than zero.</exception>
         /// <exception cref="ArgumentOutOfRangeException">
         ///     <paramref name="index" /> is greater than or equal to
@@ -313,7 +313,7 @@ namespace NativeCollections
         /// <summary>
         ///     Sets all bits in this to the specified value.
         /// </summary>
-        /// <param name="value">The Boolean value to assign to all bits.</param>
+        /// <param name="value">The bool value to assign to all bits.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void SetAll(bool value)
         {
@@ -344,8 +344,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void And(NativeBitArray value)
         {
-            if (!value.IsCreated)
-                ThrowHelpers.ThrowArgumentNullException(ExceptionArgument.value);
+            ThrowHelpers.ThrowIfNotCreated(ref value, ExceptionArgument.value);
             And(new UnsafeBitArray(value.Buffer, value.Length));
         }
 
@@ -379,8 +378,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void Or(NativeBitArray value)
         {
-            if (!value.IsCreated)
-                ThrowHelpers.ThrowArgumentNullException(ExceptionArgument.value);
+            ThrowHelpers.ThrowIfNotCreated(ref value, ExceptionArgument.value);
             Or(new UnsafeBitArray(value.Buffer, value.Length));
         }
 
@@ -414,8 +412,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void Xor(NativeBitArray value)
         {
-            if (!value.IsCreated)
-                ThrowHelpers.ThrowArgumentNullException(ExceptionArgument.value);
+            ThrowHelpers.ThrowIfNotCreated(ref value, ExceptionArgument.value);
             Xor(new UnsafeBitArray(value.Buffer, value.Length));
         }
 
@@ -663,14 +660,7 @@ namespace NativeCollections
         /// <param name="n">Bit length</param>
         /// <returns>Byte buffer length</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetByteArrayLengthFromBitLength(int n)
-        {
-#if NET7_0_OR_GREATER
-            return (n + 7) >>> 3;
-#else
-            return (int)(((uint)n + 7) >> 3);
-#endif
-        }
+        public static int GetByteArrayLengthFromBitLength(int n) => (int)(((uint)n + 7) >> 3);
 
         /// <summary>
         ///     Get int32 buffer length from bit length
@@ -678,14 +668,7 @@ namespace NativeCollections
         /// <param name="n">Bit length</param>
         /// <returns>Int32 buffer length</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetInt32ArrayLengthFromBitLength(int n)
-        {
-#if NET7_0_OR_GREATER
-            return (n - 1 + (1 << 5)) >>> 5;
-#else
-            return (int)((uint)(n - 1 + (1 << 5)) >> 5);
-#endif
-        }
+        public static int GetInt32ArrayLengthFromBitLength(int n) => (int)((uint)(n - 1 + (1 << 5)) >> 5);
 
         /// <summary>
         ///     Divide by 32 and get remainder

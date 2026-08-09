@@ -10,6 +10,7 @@ namespace NativeCollections
     ///     Represents a set of function pointers for custom aligned memory allocation and deallocation.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
+    [SpecializedCollection(FromType.Standard)]
     public readonly unsafe struct CustomMemoryCallbacks : IEquatable<CustomMemoryCallbacks>
     {
         /// <summary>

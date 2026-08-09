@@ -5,9 +5,9 @@
 namespace NativeCollections
 {
     /// <summary>
-    ///     Represents a boolean (<see langword="true" /> or <see langword="false" />) value.
+    ///     Represents a bool (<see langword="true" /> or <see langword="false" />) value.
     /// </summary>
-    internal static class BooleanHelpers
+    internal static class BoolHelpers
     {
         /// <summary>
         ///     Into byte

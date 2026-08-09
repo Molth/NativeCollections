@@ -10,6 +10,7 @@ namespace NativeCollections
     ///     Represents a custom memory allocator that uses user-provided callbacks and a context pointer.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
+    [SpecializedCollection(FromType.Standard)]
     [BindingType(typeof(CustomMemoryCallbacks))]
     public readonly unsafe struct CustomMemoryAllocator : IEquatable<CustomMemoryAllocator>
     {

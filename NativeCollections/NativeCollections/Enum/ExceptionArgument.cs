@@ -35,6 +35,7 @@ namespace NativeCollections
         size,
         sleep1Threshold,
         source,
+        stringLength,
         trueProbability,
         updateValueFactory,
         value,

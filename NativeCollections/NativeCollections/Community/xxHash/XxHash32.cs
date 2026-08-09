@@ -187,15 +187,9 @@ namespace NativeCollections
             }
 
             var num31 = (int)num27;
-#if NET7_0_OR_GREATER
-            var num32 = (num31 ^ (num31 >>> 15)) * -2048144777;
-            var num33 = (num32 ^ (num32 >>> 13)) * -1028477379;
-            return num33 ^ (num33 >>> 16);
-#else
             var num32 = (num31 ^ (int)((uint)num31 >> 15)) * -2048144777;
             var num33 = (num32 ^ (int)((uint)num32 >> 13)) * -1028477379;
             return num33 ^ (int)((uint)num33 >> 16);
-#endif
         }
     }
 }

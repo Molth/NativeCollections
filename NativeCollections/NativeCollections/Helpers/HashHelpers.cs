@@ -122,13 +122,43 @@ namespace NativeCollections
         /// </summary>
         /// <remarks>This should only be used on 64-bit.</remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ulong GetFastModMultiplier(uint divisor) => ulong.MaxValue / divisor + 1;
+        private static ulong GetFastModMultiplier(uint divisor) => ulong.MaxValue / divisor + 1;
 
         /// <summary>
         ///     Performs a mod operation using the multiplier pre-computed with <see cref="GetFastModMultiplier" />.
         /// </summary>
         /// <remarks>This should only be used on 64-bit.</remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static uint FastMod(uint value, uint divisor, ulong multiplier) => (uint)(((((multiplier * value) >> 32) + 1) * divisor) >> 32);
+        private static uint FastMod(uint value, uint divisor, ulong multiplier) => (uint)(((((multiplier * value) >> 32) + 1) * divisor) >> 32);
+
+        /// <summary>
+        ///     Creates a new <see cref="FastModImpl" /> instance.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FastModImpl GetFastModImpl(uint divisor) => new(divisor);
+
+        /// <summary>
+        ///     Provides a mod operation.
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
+        public readonly struct FastModImpl
+        {
+            /// <summary>
+            ///     Pre-computed multiplier for use on 64-bit performing faster modulo operations.
+            /// </summary>
+            private readonly ulong _fastModMultiplier;
+
+            /// <summary>
+            ///     Structure
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public FastModImpl(uint divisor) => _fastModMultiplier = Environment.Is64BitProcess ? GetFastModMultiplier(divisor) : 0;
+
+            /// <summary>
+            ///     Performs a mod operation.
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint GetRemainder(uint value, uint divisor) => Environment.Is64BitProcess ? FastMod(value, divisor, _fastModMultiplier) : value % divisor;
+        }
     }
 }

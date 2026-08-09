@@ -38,8 +38,6 @@ namespace NativeCollections
         public const string Format_UnclosedFormatItem = ", Reason: UnclosedFormatItem";
         public const string Format_UnexpectedClosingBrace = ", Reason: UnexpectedClosingBrace";
 
-        public const string InvalidData_MustBeNonEntirelyZero = "MustBeNonEntirelyZero";
-
         public const string InvalidOperation_ConcurrentOperationsNotSupported = "ConcurrentOperationsNotSupported";
         public const string InvalidOperation_Duplicate = "Duplicate";
         public const string InvalidOperation_EmptyQueue = "EmptyQueue";

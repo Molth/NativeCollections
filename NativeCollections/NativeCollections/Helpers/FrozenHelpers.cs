@@ -69,17 +69,17 @@ namespace NativeCollections
             /// <summary>
             ///     Pre-computed multiplier for use on 64-bit performing faster modulo operations.
             /// </summary>
-            private readonly ulong _fastModMultiplier;
+            private readonly HashHelpers.FastModImpl _fastModImpl;
 
             /// <summary>
             ///     Frozen hash table
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private FrozenHashTable(NativeArray<int> hashCodes, NativeArray<Bucket> buckets, ulong fastModMultiplier)
+            private FrozenHashTable(NativeArray<int> hashCodes, NativeArray<Bucket> buckets, HashHelpers.FastModImpl fastModImpl)
             {
                 _hashCodes = hashCodes;
                 _buckets = buckets;
-                _fastModMultiplier = fastModMultiplier;
+                _fastModImpl = fastModImpl;
             }
 
             /// <summary>
@@ -89,14 +89,14 @@ namespace NativeCollections
             public static FrozenHashTable Create(Span<int> hashCodes, bool hashCodesAreUnique)
             {
                 var num1 = CalculateNumBuckets(hashCodes, hashCodesAreUnique);
-                var fastModMultiplier = Environment.Is64BitProcess ? HashHelpers.GetFastModMultiplier((uint)num1) : 0;
+                var fastModImpl = HashHelpers.GetFastModImpl((uint)num1);
                 var array = ArrayPool<int>.Shared.Rent(num1 + hashCodes.Length);
                 var span1 = array.AsSpan(0, num1);
                 var span2 = array.AsSpan(num1, hashCodes.Length);
                 span1.Fill(-1);
                 for (var index1 = 0; index1 < hashCodes.Length; ++index1)
                 {
-                    var index2 = Environment.Is64BitProcess ? (int)HashHelpers.FastMod((uint)hashCodes[index1], (uint)span1.Length, fastModMultiplier) : (int)((uint)hashCodes[index1] % (uint)span1.Length);
+                    var index2 = (int)fastModImpl.GetRemainder((uint)hashCodes[index1], (uint)span1.Length);
                     ref var local = ref span1[index2];
                     span2[index1] = local;
                     local = index1;
@@ -130,7 +130,7 @@ namespace NativeCollections
                 }
 
                 ArrayPool<int>.Shared.Return(array);
-                return new FrozenHashTable(hashCodes1, buckets, fastModMultiplier);
+                return new FrozenHashTable(hashCodes1, buckets, fastModImpl);
             }
 
             /// <summary>
@@ -140,7 +140,7 @@ namespace NativeCollections
             public void FindMatchingEntries(int hashCode, out int startIndex, out int endIndex)
             {
                 var buckets = _buckets.AsReadOnlySpan();
-                ref readonly var local = ref Environment.Is64BitProcess ? ref buckets[(int)HashHelpers.FastMod((uint)hashCode, (uint)buckets.Length, _fastModMultiplier)] : ref buckets[(int)((uint)hashCode % (uint)buckets.Length)];
+                ref readonly var local = ref buckets[(int)_fastModImpl.GetRemainder((uint)hashCode, (uint)buckets.Length)];
                 startIndex = local.StartIndex;
                 endIndex = local.EndIndex;
             }

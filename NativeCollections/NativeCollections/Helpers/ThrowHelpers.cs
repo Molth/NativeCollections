@@ -291,7 +291,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Throws an <see cref="NotSupportedException" /> if the sizes of <typeparamref name="TFrom" /> and
+        ///     Throws a <see cref="NotSupportedException" /> if the sizes of <typeparamref name="TFrom" /> and
         ///     <typeparamref name="TTo" /> are not the same.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -299,6 +299,18 @@ namespace NativeCollections
         {
             if (Unsafe.SizeOf<TFrom>() != Unsafe.SizeOf<TTo>())
                 ThrowNotSupportedException();
+        }
+
+        /// <summary>
+        ///     Throws an <see cref="ArgumentNullException" /> if <paramref name="argument" /> has not been initialized.
+        /// </summary>
+        /// <param name="argument">The value to validate.</param>
+        /// <param name="paramName">The name of the parameter that is null.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ThrowIfNotCreated<T>(ref T argument, ExceptionArgument paramName) where T : unmanaged, IIsCreated
+        {
+            if (!argument.IsCreated)
+                ThrowArgumentNullException(paramName);
         }
 
         /// <summary>
@@ -368,13 +380,6 @@ namespace NativeCollections
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static void ThrowDuplicateException() => throw new InvalidOperationException(SR.InvalidOperation_Duplicate);
-
-        /// <summary>
-        ///     Throws an <see cref="InvalidDataException" /> for entirely zero values.
-        /// </summary>
-        [DoesNotReturn]
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void ThrowMustBeNonEntirelyZeroException() => throw new InvalidDataException(SR.InvalidData_MustBeNonEntirelyZero);
 
         /// <summary>
         ///     Throws an <see cref="ArgumentOutOfRangeException" /> for unaligned memory.
@@ -480,6 +485,7 @@ namespace NativeCollections
             ExceptionArgument.size => "size",
             ExceptionArgument.sleep1Threshold => "sleep1Threshold",
             ExceptionArgument.source => "source",
+            ExceptionArgument.stringLength => "stringLength",
             ExceptionArgument.trueProbability => "trueProbability",
             ExceptionArgument.updateValueFactory => "updateValueFactory",
             ExceptionArgument.value => "value",

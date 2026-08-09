@@ -15,7 +15,7 @@ namespace NativeCollections
         /// <summary>
         ///     Default seed
         /// </summary>
-        private static readonly uint DefaultSeed = NativeRandom.NextUInt32();
+        private static readonly uint DefaultSeed = NativeRandom.NextU32();
 
         /// <summary>
         ///     GetHashCode

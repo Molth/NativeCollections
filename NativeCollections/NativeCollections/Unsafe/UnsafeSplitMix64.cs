@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
+#pragma warning disable CS9084 // Struct member returns 'this' or other instance members by reference
 
 // ReSharper disable ALL
 
@@ -9,50 +12,68 @@ namespace NativeCollections
     ///     Represents a pseudo-random number generator, which is an algorithm that produces a sequence of numbers
     ///     that meet certain statistical requirements for randomness.
     /// </summary>
-    [BindingType(typeof(CryptographyRandom))]
-    public static unsafe class NativeRandom
+    /// <remarks>https://xoshiro.di.unimi.it/splitmix64.c</remarks>
+    [StructLayout(LayoutKind.Sequential)]
+    [UnsafeCollection(FromType.Community | FromType.C)]
+    public unsafe struct UnsafeSplitMix64 : IIsCreated, IInitializable, IRandom, IEquatable<UnsafeSplitMix64>
     {
         /// <summary>
-        ///     The underlying generator implementation.
+        ///     State
         /// </summary>
-        private static CryptographyRandom _impl;
+        private State _state;
 
         /// <summary>
-        ///     Creates a string populated with characters chosen at random from <paramref name="source" />.
+        ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
-        /// <param name="source">The characters to use to populate the string.</param>
-        /// <param name="stringLength">The length of string to return.</param>
-        /// <returns>A string populated with items selected at random from <paramref name="source" />.</returns>
-        /// <exception cref="ArgumentException"><paramref name="source" /> is empty.</exception>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="stringLength" /> is not zero or a positive number.</exception>
-        /// <seealso cref="GetItems{T}(ReadOnlySpan{T}, Span{T})" />
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static string GetString(ReadOnlySpan<char> source, int stringLength) => _impl.GetString(source, stringLength);
+        public readonly bool IsCreated => _state.IsCreated;
 
         /// <summary>
-        ///     Creates a string filled with random hexadecimal characters.
+        ///     Structure
         /// </summary>
-        /// <param name="stringLength">The length of string to create.</param>
-        /// <param name="lowercase">
-        ///     <see langword="true" /> if the hexadecimal characters should be lowercase;
-        ///     <see langword="false" /> if they should be uppercase.
-        ///     The default is <see langword="false" />.
-        /// </param>
-        /// <returns>A string populated with random hexadecimal characters.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static string GetHexString(int stringLength, bool lowercase = false) => _impl.GetHexString(stringLength, lowercase);
+        public UnsafeSplitMix64(ulong s0) => _state = new State(s0);
 
         /// <summary>
-        ///     Fills a buffer with random hexadecimal characters.
+        ///     Structure
         /// </summary>
-        /// <param name="destination">The buffer to receive the characters.</param>
-        /// <param name="lowercase">
-        ///     <see langword="true" /> if the hexadecimal characters should be lowercase;
-        ///     <see langword="false" /> if they should be uppercase.
-        ///     The default is <see langword="false" />.
-        /// </param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void GetHexString(Span<char> destination, bool lowercase = false) => _impl.GetHexString(destination, lowercase);
+        public UnsafeSplitMix64(ReadOnlySpan<byte> buffer) => _state = new State(buffer);
+
+        /// <summary>
+        ///     Indicates whether the current object is equal to another object.
+        /// </summary>
+        public readonly bool Equals(UnsafeSplitMix64 other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
+
+        /// <summary>
+        ///     Indicates whether the current object is equal to another object.
+        /// </summary>
+        public readonly override bool Equals(object? obj) => obj is UnsafeSplitMix64 other && other.Equals(this);
+
+        /// <summary>
+        ///     Returns the hash code for this instance.
+        /// </summary>
+        public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
+
+        /// <summary>
+        ///     Returns the fully qualified type name of this instance.
+        /// </summary>
+        public readonly override string ToString() => "UnsafeSplitMix64";
+
+        /// <summary>
+        ///     Indicates whether the current object is equal to another object.
+        /// </summary>
+        public static bool operator ==(UnsafeSplitMix64 left, UnsafeSplitMix64 right) => left.Equals(right);
+
+        /// <summary>
+        ///     Indicates whether the current object is not equal to another object.
+        /// </summary>
+        public static bool operator !=(UnsafeSplitMix64 left, UnsafeSplitMix64 right) => !left.Equals(right);
+
+        /// <summary>
+        ///     Initialize
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Initialize() => _state.Initialize();
 
         /// <summary>
         ///     Performs an in-place shuffle of a buffer.
@@ -64,7 +85,7 @@ namespace NativeCollections
         ///     This method is an O(n) operation.
         /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Shuffle<T>(Span<T> buffer) => _impl.Shuffle(buffer);
+        public void Shuffle<T>(Span<T> buffer) => _state.Shuffle(buffer);
 
         /// <summary>
         ///     Fills the elements of a specified buffer with items chosen at random from the provided set of choices.
@@ -76,7 +97,7 @@ namespace NativeCollections
         ///     <paramref name="source" /> is empty.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void GetItems<T>(ReadOnlySpan<T> source, Span<T> destination) => _impl.GetItems(source, destination);
+        public void GetItems<T>(ReadOnlySpan<T> source, Span<T> destination) => _state.GetItems(source, destination);
 
         /// <summary>
         ///     Chooses the random element in the buffer.
@@ -86,7 +107,7 @@ namespace NativeCollections
         /// <returns>Randomly selected element from the buffer.</returns>
         /// <exception cref="ArgumentException"><paramref name="buffer" /> is empty.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ref T Sample<T>(Span<T> buffer) => ref _impl.Sample(buffer);
+        public ref T Sample<T>(Span<T> buffer) => ref _state.Sample(buffer);
 
         /// <summary>
         ///     Chooses the random element in the buffer.
@@ -96,14 +117,14 @@ namespace NativeCollections
         /// <returns>Randomly selected element from the buffer.</returns>
         /// <exception cref="ArgumentException"><paramref name="buffer" /> is empty.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ref readonly T Peek<T>(ReadOnlySpan<T> buffer) => ref _impl.Peek(buffer);
+        public ref readonly T Peek<T>(ReadOnlySpan<T> buffer) => ref _state.Peek(buffer);
 
         /// <summary>
         ///     Returns a non-negative random integer.
         /// </summary>
         /// <returns>A 32-bit unsigned integer that is greater than or equal to 0 and less than <see cref="uint.MaxValue" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static uint NextU32() => _impl.NextU32();
+        public uint NextU32() => _state.NextU32();
 
         /// <summary>
         ///     Returns a non-negative random integer that is less than the specified maximum.
@@ -119,7 +140,7 @@ namespace NativeCollections
         ///     <paramref name="maxValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static uint NextU32(uint maxValue) => _impl.NextU32(maxValue);
+        public uint NextU32(uint maxValue) => _state.NextU32(maxValue);
 
         /// <summary>
         ///     Returns a random integer that is within a specified range.
@@ -136,14 +157,14 @@ namespace NativeCollections
         ///     is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static uint NextU32(uint minValue, uint maxValue) => _impl.NextU32(minValue, maxValue);
+        public uint NextU32(uint minValue, uint maxValue) => _state.NextU32(minValue, maxValue);
 
         /// <summary>
         ///     Returns a non-negative random integer.
         /// </summary>
         /// <returns>A 64-bit unsigned integer that is greater than or equal to 0 and less than <see cref="ulong.MaxValue" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ulong NextU64() => _impl.NextU64();
+        public ulong NextU64() => _state.NextU64();
 
         /// <summary>
         ///     Returns a non-negative random integer that is less than the specified maximum.
@@ -159,7 +180,7 @@ namespace NativeCollections
         ///     <paramref name="maxValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ulong NextU64(ulong maxValue) => _impl.NextU64(maxValue);
+        public ulong NextU64(ulong maxValue) => _state.NextU64(maxValue);
 
         /// <summary>
         ///     Returns a random integer that is within a specified range.
@@ -176,14 +197,14 @@ namespace NativeCollections
         ///     is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ulong NextU64(ulong minValue, ulong maxValue) => _impl.NextU64(minValue, maxValue);
+        public ulong NextU64(ulong minValue, ulong maxValue) => _state.NextU64(minValue, maxValue);
 
         /// <summary>
         ///     Returns a non-negative random integer.
         /// </summary>
         /// <returns>A 32-bit signed integer that is greater than or equal to 0 and less than <see cref="int.MaxValue" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int NextI32() => _impl.NextI32();
+        public int NextI32() => _state.NextI32();
 
         /// <summary>
         ///     Returns a non-negative random integer that is less than the specified maximum.
@@ -199,7 +220,7 @@ namespace NativeCollections
         ///     <paramref name="maxValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int NextI32(int maxValue) => _impl.NextI32(maxValue);
+        public int NextI32(int maxValue) => _state.NextI32(maxValue);
 
         /// <summary>
         ///     Returns a random integer that is within a specified range.
@@ -216,14 +237,14 @@ namespace NativeCollections
         ///     is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int NextI32(int minValue, int maxValue) => _impl.NextI32(minValue, maxValue);
+        public int NextI32(int minValue, int maxValue) => _state.NextI32(minValue, maxValue);
 
         /// <summary>
         ///     Returns a non-negative random integer.
         /// </summary>
         /// <returns>A 64-bit signed integer that is greater than or equal to 0 and less than <see cref="long.MaxValue" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long NextI64() => _impl.NextI64();
+        public long NextI64() => _state.NextI64();
 
         /// <summary>
         ///     Returns a non-negative random integer that is less than the specified maximum.
@@ -239,7 +260,7 @@ namespace NativeCollections
         ///     <paramref name="maxValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long NextI64(long maxValue) => _impl.NextI64(maxValue);
+        public long NextI64(long maxValue) => _state.NextI64(maxValue);
 
         /// <summary>
         ///     Returns a random integer that is within a specified range.
@@ -256,28 +277,28 @@ namespace NativeCollections
         ///     is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long NextI64(long minValue, long maxValue) => _impl.NextI64(minValue, maxValue);
+        public long NextI64(long minValue, long maxValue) => _state.NextI64(minValue, maxValue);
 
         /// <summary>
         ///     Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.
         /// </summary>
         /// <returns>A double-precision floating point number that is greater than or equal to 0.0, and less than 1.0.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static double NextF64() => _impl.NextF64();
+        public double NextF64() => _state.NextF64();
 
         /// <summary>
         ///     Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.
         /// </summary>
         /// <returns>A single-precision floating point number that is greater than or equal to 0.0, and less than 1.0.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float NextF32() => _impl.NextF32();
+        public float NextF32() => _state.NextF32();
 
         /// <summary>
         ///     Fills the elements of a specified buffer of bytes with random numbers.
         /// </summary>
         /// <param name="buffer">The buffer to be filled with random numbers.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void NextBytes(Span<byte> buffer) => _impl.NextBytes(buffer);
+        public void NextBytes(Span<byte> buffer) => _state.NextBytes(buffer);
 
         /// <summary>
         ///     Fills a specified memory block with random bytes.
@@ -285,7 +306,7 @@ namespace NativeCollections
         /// <param name="startAddress">A pointer to the memory location where the random bytes will be written.</param>
         /// <param name="byteCount">The number of bytes to fill with random numbers.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void NextBytes(void* startAddress, uint byteCount) => _impl.NextBytes(startAddress, byteCount);
+        public void NextBytes(void* startAddress, uint byteCount) => _state.NextBytes(startAddress, byteCount);
 
         /// <summary>
         ///     Fills a specified memory block with random bytes.
@@ -293,14 +314,14 @@ namespace NativeCollections
         /// <param name="startAddress">A pointer to the memory location where the random bytes will be written.</param>
         /// <param name="byteCount">The number of bytes to fill with random numbers.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void NextBytes(ref byte startAddress, uint byteCount) => _impl.NextBytes(ref startAddress, byteCount);
+        public void NextBytes(ref byte startAddress, uint byteCount) => _state.NextBytes(ref startAddress, byteCount);
 
         /// <summary>
         ///     Returns a bool.
         /// </summary>
         /// <returns>True, or false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool NextBool() => _impl.NextBool();
+        public bool NextBool() => _state.NextBool();
 
         /// <summary>
         ///     Generates a random bool value.
@@ -309,7 +330,7 @@ namespace NativeCollections
         /// <returns>Randomly generated bool value.</returns>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="trueProbability" /> value is invalid.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool NextBool(double trueProbability) => _impl.NextBool(trueProbability);
+        public bool NextBool(double trueProbability) => _state.NextBool(trueProbability);
 
         /// <summary>
         ///     Generates a random value of blittable type.
@@ -317,7 +338,7 @@ namespace NativeCollections
         /// <typeparam name="T">The blittable type.</typeparam>
         /// <returns>The randomly generated value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T Next<T>() where T : unmanaged => _impl.Next<T>();
+        public T Next<T>() where T : unmanaged => _state.Next<State, T>();
 
         /// <summary>
         ///     Generates a random value of blittable type.
@@ -325,6 +346,114 @@ namespace NativeCollections
         /// <typeparam name="T">The blittable type.</typeparam>
         /// <returns>The randomly generated value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Next<T>(ref T destination) where T : unmanaged => _impl.Next(ref destination);
+        public void Next<T>(ref T destination) where T : unmanaged => _state.Next(ref destination);
+
+        /// <summary>
+        ///     Create
+        /// </summary>
+        /// <returns>NativeXoshiro256</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UnsafeSplitMix64 Create()
+        {
+            Unsafe.SkipInit(out UnsafeSplitMix64 random);
+            random.Initialize();
+            return random;
+        }
+
+        /// <summary>
+        ///     Empty
+        /// </summary>
+        public static UnsafeSplitMix64 Empty => default;
+
+        /// <summary>
+        ///     Provides a thread-safe instance that may be used concurrently from any thread.
+        /// </summary>
+        public static ThreadSafeRandom<UnsafeSplitMix64> Shared => new();
+
+        /// <summary>
+        ///     Represents a pseudo-random number generator, which is an algorithm that produces a sequence of numbers
+        ///     that meet certain statistical requirements for randomness.
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
+        private struct State : IIsCreated, IRandomState
+        {
+            /// <summary>
+            ///     State0
+            /// </summary>
+            private ulong _s0;
+
+            /// <summary>
+            ///     Gets a value that indicates whether this has been allocated or initialized.
+            /// </summary>
+            public readonly bool IsCreated => true;
+
+            /// <summary>
+            ///     Structure
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public State(ulong s0) => _s0 = s0;
+
+            /// <summary>
+            ///     Structure
+            /// </summary>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public State(ReadOnlySpan<byte> buffer) => this = RandomHelpers.ReadUnaligned<State>(buffer);
+
+            /// <summary>
+            ///     Returns a non-negative random integer.
+            /// </summary>
+            /// <returns>A 32-bit unsigned integer.</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint Next32() => (uint)(Next64() >> 32);
+
+            /// <summary>
+            ///     Returns a non-negative random integer.
+            /// </summary>
+            /// <returns>A 64-bit unsigned integer.</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public ulong Next64()
+            {
+                var num1 = (long)(_s0 += 11400714819323198485UL);
+                var num2 = (num1 ^ (long)((ulong)num1 >> 30)) * -4658895280553007687L;
+                var num3 = (num2 ^ (long)((ulong)num2 >> 27)) * -7723592293110705685L;
+                return (ulong)(num3 ^ (long)((ulong)num3 >> 31));
+            }
+
+            /// <summary>
+            ///     Fills the elements of a specified buffer of bytes with random numbers.
+            /// </summary>
+            /// <param name="buffer">The buffer to be filled with random numbers.</param>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void NextBytes(Span<byte> buffer)
+            {
+                var s0 = _s0;
+                for (; buffer.Length >= 8; buffer = buffer.Slice(8))
+                {
+                    var num1 = (long)(s0 += 11400714819323198485UL);
+                    var num2 = (num1 ^ (long)((ulong)num1 >> 30)) * -4658895280553007687L;
+                    var num3 = (num2 ^ (long)((ulong)num2 >> 27)) * -7723592293110705685L;
+                    var num4 = (ulong)(num3 ^ (long)((ulong)num3 >> 31));
+                    Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(buffer), num4);
+                }
+
+                if (!buffer.IsEmpty)
+                {
+                    var num5 = (long)(s0 += 11400714819323198485UL);
+                    var num6 = (num5 ^ (long)((ulong)num5 >> 30)) * -4658895280553007687L;
+                    var num7 = (num6 ^ (long)((ulong)num6 >> 27)) * -7723592293110705685L;
+                    var num8 = (ulong)(num7 ^ (long)((ulong)num7 >> 31));
+                    SpanHelpers.Copy(ref MemoryMarshal.GetReference(buffer), ref Unsafe.As<ulong, byte>(ref num8), (uint)buffer.Length);
+                }
+
+                _s0 = s0;
+            }
+
+            /// <summary>
+            ///     Returns a bool.
+            /// </summary>
+            /// <returns>True, or false.</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool NextBool() => BinaryNumberHelpers.IsOddInteger(Next64());
+        }
     }
 }

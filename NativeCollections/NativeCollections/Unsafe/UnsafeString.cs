@@ -37,7 +37,7 @@ namespace NativeCollections
         /// <summary>
         ///     Default seed
         /// </summary>
-        private static readonly ulong DefaultSeed = NativeRandom.NextUInt64();
+        private static readonly ulong DefaultSeed = NativeRandom.NextU64();
 
         /// <summary>
         ///     GetHashCode

@@ -70,7 +70,7 @@ namespace NativeCollections
         /// <summary>
         ///     Sets the value of the bit at a specific position in this.
         /// </summary>
-        /// <param name="value">The Boolean value to assign to the bit.</param>
+        /// <param name="value">The bool value to assign to the bit.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Set(bool value)
         {

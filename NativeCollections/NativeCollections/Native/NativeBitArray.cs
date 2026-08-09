@@ -194,7 +194,7 @@ namespace NativeCollections
         ///     Sets the value of the bit at a specific position in this.
         /// </summary>
         /// <param name="index">The zero-based index of the value to get.</param>
-        /// <param name="value">The Boolean value to assign to the bit.</param>
+        /// <param name="value">The bool value to assign to the bit.</param>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="index" /> is less than zero.</exception>
         /// <exception cref="ArgumentOutOfRangeException">
         ///     <paramref name="index" /> is greater than or equal to
@@ -220,7 +220,7 @@ namespace NativeCollections
         ///     Sets the value of the bit at a specific position in this.
         /// </summary>
         /// <param name="index">The zero-based index of the value to get.</param>
-        /// <param name="value">The Boolean value to assign to the bit.</param>
+        /// <param name="value">The bool value to assign to the bit.</param>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="index" /> is less than zero.</exception>
         /// <exception cref="ArgumentOutOfRangeException">
         ///     <paramref name="index" /> is greater than or equal to
@@ -232,7 +232,7 @@ namespace NativeCollections
         /// <summary>
         ///     Sets all bits in this to the specified value.
         /// </summary>
-        /// <param name="value">The Boolean value to assign to all bits.</param>
+        /// <param name="value">The bool value to assign to all bits.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetAll(bool value) => _handle->SetAll(value);
 
@@ -248,8 +248,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeBitArray And(NativeBitArray value)
         {
-            if (!value.IsCreated)
-                ThrowHelpers.ThrowArgumentNullException(ExceptionArgument.value);
+            ThrowHelpers.ThrowIfNotCreated(ref value, ExceptionArgument.value);
             _handle->And(Unsafe.AsRef<UnsafeBitArray>(value._handle));
             return this;
         }
@@ -282,8 +281,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeBitArray Or(NativeBitArray value)
         {
-            if (!value.IsCreated)
-                ThrowHelpers.ThrowArgumentNullException(ExceptionArgument.value);
+            ThrowHelpers.ThrowIfNotCreated(ref value, ExceptionArgument.value);
             _handle->Or(Unsafe.AsRef<UnsafeBitArray>(value._handle));
             return this;
         }
@@ -316,8 +314,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeBitArray Xor(NativeBitArray value)
         {
-            if (!value.IsCreated)
-                ThrowHelpers.ThrowArgumentNullException(ExceptionArgument.value);
+            ThrowHelpers.ThrowIfNotCreated(ref value, ExceptionArgument.value);
             _handle->Xor(Unsafe.AsRef<UnsafeBitArray>(value._handle));
             return this;
         }
@@ -437,14 +434,6 @@ namespace NativeCollections
         ///     <see langword="true" /> if this contains an element with the specified key; otherwise, <see langword="false" />.
         /// </returns>
         public bool TryGetSlot(uint index, out NativeBitArraySlot slot) => _handle->TryGetSlot(index, out slot);
-
-        /// <summary>
-        ///     Get int32 buffer length from bit length
-        /// </summary>
-        /// <param name="n">Bit length</param>
-        /// <returns>Int32 buffer length</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetInt32ArrayLengthFromBitLength(int n) => UnsafeBitArray.GetInt32ArrayLengthFromBitLength(n);
 
         /// <summary>
         ///     Empty

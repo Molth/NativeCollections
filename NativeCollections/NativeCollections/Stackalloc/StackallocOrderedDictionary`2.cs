@@ -49,7 +49,7 @@ namespace NativeCollections
         /// <summary>
         ///     Pre-computed multiplier for use on 64-bit performing faster modulo operations.
         /// </summary>
-        private readonly ulong _fastModMultiplier;
+        private readonly HashHelpers.FastModImpl _fastModImpl;
 
         /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
@@ -123,7 +123,7 @@ namespace NativeCollections
             _entries = UnsafeHelpers.AddByteOffset<Entry>(_buckets, (nint)bucketsByteCount);
             _bucketsLength = size;
             _entriesLength = size;
-            _fastModMultiplier = Environment.Is64BitProcess ? HashHelpers.GetFastModMultiplier((uint)size) : 0;
+            _fastModImpl = HashHelpers.GetFastModImpl((uint)size);
             _count = 0;
             _version = 0;
         }
@@ -1056,11 +1056,7 @@ namespace NativeCollections
         /// <param name="hashCode">HashCode</param>
         /// <returns>Bucket ref</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private readonly ref int GetBucket(uint hashCode)
-        {
-            var buckets = _buckets;
-            return ref Environment.Is64BitProcess ? ref Unsafe.Add(ref Unsafe.AsRef<int>(buckets), (nint)HashHelpers.FastMod(hashCode, (uint)_bucketsLength, _fastModMultiplier)) : ref Unsafe.Add(ref Unsafe.AsRef<int>(buckets), (nint)(hashCode % _bucketsLength));
-        }
+        private readonly ref int GetBucket(uint hashCode) => ref Unsafe.Add(ref Unsafe.AsRef<int>(_buckets), (nint)_fastModImpl.GetRemainder(hashCode, (uint)_bucketsLength));
 
         /// <summary>
         ///     Entry

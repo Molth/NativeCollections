@@ -559,9 +559,9 @@ namespace NativeCollections
         public static void AppendFormattable(in this UnsafeStringBuilder<char> builder, nint obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
         {
             if (Environment.Is64BitProcess)
-                AppendFormattable(builder, (long)obj, format, provider);
+                builder.AppendFormattable((long)obj, format, provider);
             else
-                AppendFormattable(builder, (int)obj, format, provider);
+                builder.AppendFormattable((int)obj, format, provider);
         }
 
         /// <summary>
@@ -571,9 +571,9 @@ namespace NativeCollections
         public static void AppendFormattable(in this UnsafeStringBuilder<char> builder, nuint obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
         {
             if (Environment.Is64BitProcess)
-                AppendFormattable(builder, (ulong)obj, format, provider);
+                builder.AppendFormattable((ulong)obj, format, provider);
             else
-                AppendFormattable(builder, (uint)obj, format, provider);
+                builder.AppendFormattable((uint)obj, format, provider);
         }
 
         /// <summary>
@@ -1388,9 +1388,9 @@ namespace NativeCollections
         public static void AppendFormattable(in this UnsafeStringBuilder<byte> builder, nint obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
         {
             if (Environment.Is64BitProcess)
-                AppendFormattable(builder, (long)obj, format, provider);
+                builder.AppendFormattable((long)obj, format, provider);
             else
-                AppendFormattable(builder, (int)obj, format, provider);
+                builder.AppendFormattable((int)obj, format, provider);
         }
 
         /// <summary>
@@ -1400,9 +1400,9 @@ namespace NativeCollections
         public static void AppendFormattable(in this UnsafeStringBuilder<byte> builder, nuint obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
         {
             if (Environment.Is64BitProcess)
-                AppendFormattable(builder, (ulong)obj, format, provider);
+                builder.AppendFormattable((ulong)obj, format, provider);
             else
-                AppendFormattable(builder, (uint)obj, format, provider);
+                builder.AppendFormattable((uint)obj, format, provider);
         }
 
         /// <summary>
