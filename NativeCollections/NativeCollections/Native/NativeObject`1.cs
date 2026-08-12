@@ -14,14 +14,13 @@ namespace NativeCollections
     public readonly struct NativeObject<T> : IIsCreated, IDisposable, IEquatable<NativeObject<T>>
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly GCHandle _handle;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
-        /// <param name="handle">GCHandle</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeObject(GCHandle handle) => _handle = handle;
 
@@ -31,7 +30,7 @@ namespace NativeCollections
         public bool IsCreated => _handle.IsAllocated;
 
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         public GCHandle Handle => _handle;
 
@@ -43,7 +42,7 @@ namespace NativeCollections
         public object? Target => _handle.Target;
 
         /// <summary>
-        ///     Value
+        ///     Gets the value to the underlying object.
         /// </summary>
         public T Value
         {
@@ -112,7 +111,7 @@ namespace NativeCollections
         public static NativeObject<T> Create(T value, GCHandleType type) => new(GCHandle.Alloc(value, type));
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeObject<T> Empty => default;
     }

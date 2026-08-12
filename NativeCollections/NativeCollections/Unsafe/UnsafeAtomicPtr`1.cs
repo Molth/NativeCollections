@@ -21,18 +21,18 @@ namespace NativeCollections
     public unsafe struct UnsafeAtomicPtr<T> where T : unmanaged
     {
         /// <summary>
-        ///     Value
+        ///     Gets the value to the underlying object.
         /// </summary>
         private UnsafeAtomicIsize _value;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeAtomicPtr(T* handle) => _value = new UnsafeAtomicIsize((nint)handle);
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeAtomicPtr(nint handle) => _value = new UnsafeAtomicIsize(handle);
@@ -85,7 +85,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -101,23 +101,21 @@ namespace NativeCollections
         public readonly override string ToString() => SR.Format("UnsafeAtomicPtr<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
-        /// <param name="reference">Reference</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(nameof(reference))]
         public static UnsafeAtomicPtr<T> Create([MustBePinned] ref T reference) => new(UnsafeHelpers.AsPointer(ref reference));
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(nameof(buffer))]
         public static UnsafeAtomicPtr<T> Create([MustBePinned] Span<T> buffer) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(buffer)));
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeAtomicPtr<T> Empty => default;
     }

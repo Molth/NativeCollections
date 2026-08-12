@@ -15,17 +15,35 @@ namespace NativeCollections
     public readonly unsafe struct NativeMemoryPool : IIsCreated, IDisposable, IEquatable<NativeMemoryPool>
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly UnsafeMemoryPool* _handle;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified slab size, node length, maximum free slabs, and alignment.
         /// </summary>
-        /// <param name="size">Size</param>
-        /// <param name="length">Length</param>
-        /// <param name="maxFreeSlabs">Max free slabs</param>
-        /// <param name="alignment">Alignment</param>
+        /// <param name="size">
+        ///     The number of nodes each slab can hold.
+        ///     Must be greater than zero.
+        /// </param>
+        /// <param name="length">
+        ///     The length (in bytes) of the data region within each node.
+        ///     Must be non-negative.
+        /// </param>
+        /// <param name="maxFreeSlabs">
+        ///     The maximum number of free slabs to keep in the free list.
+        ///     Must be non-negative.
+        /// </param>
+        /// <param name="alignment">
+        ///     The required alignment for allocations, in bytes.
+        ///     Must be a power of two and at least the alignment of the internal slab and node structures.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="size" /> is less than or equal to zero, or when <paramref name="length" />,
+        ///     <paramref name="maxFreeSlabs" />, or <paramref name="alignment" /> is negative.
+        /// </exception>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="alignment" /> is not a power of two.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeMemoryPool(int size, int length, int maxFreeSlabs, int alignment)
         {
@@ -160,7 +178,7 @@ namespace NativeCollections
         public int TrimExcess(int capacity) => _handle->TrimExcess(capacity);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeMemoryPool Empty => default;
     }

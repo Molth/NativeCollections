@@ -61,8 +61,8 @@ namespace NativeCollections
         public static string GetTypeName(Type type) => type.Name;
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -74,8 +74,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -87,8 +87,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -100,8 +100,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

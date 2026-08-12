@@ -13,7 +13,7 @@ using System.Threading;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Provides atomic operations on a native-sized unsigned integer (<see cref="nuint" />).
+    ///     Provides atomic operations on a native-sized unsigned integer (<see cref="UIntPtr" />).
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard | FromType.Rust)]
@@ -21,12 +21,12 @@ namespace NativeCollections
     public unsafe struct UnsafeAtomicUsize
     {
         /// <summary>
-        ///     Value
+        ///     Gets the value to the underlying object.
         /// </summary>
         private nuint _value;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeAtomicUsize(nuint value) => _value = value;
@@ -39,32 +39,32 @@ namespace NativeCollections
         public ref nuint AsRef() => ref _value;
 
         /// <summary>
-        ///     Bitwise "nands" two native-sized unsigned integers and replaces the first integer with the result, as an atomic
-        ///     operation.
+        ///     Bitwise "nands" two native-sized unsigned integers and replaces the first integer with the result,
+        ///     as an atomic operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public nuint Nand(nuint value) => InterlockedHelpers.Nand(ref _value, value);
 
         /// <summary>
-        ///     Bitwise "ands" two native-sized unsigned integers and replaces the first integer with the result, as an atomic
-        ///     operation.
+        ///     Bitwise "ands" two native-sized unsigned integers and replaces the first integer with the result,
+        ///     as an atomic operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public nuint And(nuint value) => InterlockedHelpers.And(ref _value, value);
 
         /// <summary>
-        ///     Bitwise "ors" two native-sized unsigned integers and replaces the first integer with the result, as an atomic
-        ///     operation.
+        ///     Bitwise "ors" two native-sized unsigned integers and replaces the first integer with the result,
+        ///     as an atomic operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public nuint Or(nuint value) => InterlockedHelpers.Or(ref _value, value);
 
         /// <summary>
-        ///     Bitwise "xors" two native-sized unsigned integers and replaces the first integer with the result, as an atomic
-        ///     operation.
+        ///     Bitwise "xors" two native-sized unsigned integers and replaces the first integer with the result,
+        ///     as an atomic operation.
         /// </summary>
         /// <returns>The original value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -139,7 +139,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -155,7 +155,7 @@ namespace NativeCollections
         public readonly override string ToString() => "UnsafeAtomicUsize";
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeAtomicUsize Empty => default;
     }

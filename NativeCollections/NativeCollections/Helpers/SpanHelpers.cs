@@ -12,8 +12,8 @@ namespace NativeCollections
     internal static unsafe class SpanHelpers
     {
         /// <summary>
-        ///     Copies bytes from the source address to the destination address without assuming architecture dependent alignment
-        ///     of the addresses.
+        ///     Copies bytes from the source address to the destination address
+        ///     without assuming architecture dependent alignment of the addresses.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Copy(ref byte destination, ref byte source, uint byteCount) => Unsafe.CopyBlockUnaligned(ref destination, ref source, byteCount);

@@ -35,32 +35,32 @@ namespace NativeCollections
         public static nint Add(ref nint location, nint value) => Environment.Is64BitProcess ? (nint)Interlocked.Add(ref Unsafe.As<nint, long>(ref location), value) : Interlocked.Add(ref Unsafe.As<nint, int>(ref location), (int)value);
 
         /// <summary>
-        ///     Bitwise "nands" two native-sized signed integers and replaces the first integer with the result, as an atomic
-        ///     operation.
+        ///     Bitwise "nands" two native-sized signed integers and replaces the first integer with the result,
+        ///     as an atomic operation.
         /// </summary>
         /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static nint Nand(ref nint location, nint value) => Environment.Is64BitProcess ? (nint)Nand(ref Unsafe.As<nint, long>(ref location), value) : Nand(ref Unsafe.As<nint, int>(ref location), (int)value);
 
         /// <summary>
-        ///     Bitwise "ands" two native-sized signed integers and replaces the first integer with the result, as an atomic
-        ///     operation.
+        ///     Bitwise "ands" two native-sized signed integers and replaces the first integer with the result,
+        ///     as an atomic operation.
         /// </summary>
         /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static nint And(ref nint location, nint value) => Environment.Is64BitProcess ? (nint)And(ref Unsafe.As<nint, long>(ref location), value) : And(ref Unsafe.As<nint, int>(ref location), (int)value);
 
         /// <summary>
-        ///     Bitwise "ors" two native-sized signed integers and replaces the first integer with the result, as an atomic
-        ///     operation.
+        ///     Bitwise "ors" two native-sized signed integers and replaces the first integer with the result,
+        ///     as an atomic operation.
         /// </summary>
         /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static nint Or(ref nint location, nint value) => Environment.Is64BitProcess ? (nint)Or(ref Unsafe.As<nint, long>(ref location), value) : Or(ref Unsafe.As<nint, int>(ref location), (int)value);
 
         /// <summary>
-        ///     Bitwise "xors" two native-sized signed integers and replaces the first integer with the result, as an atomic
-        ///     operation.
+        ///     Bitwise "xors" two native-sized signed integers and replaces the first integer with the result,
+        ///     as an atomic operation.
         /// </summary>
         /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -111,32 +111,32 @@ namespace NativeCollections
         public static nuint Add(ref nuint location, nuint value) => Environment.Is64BitProcess ? (nuint)Interlocked.Add(ref Unsafe.As<nuint, long>(ref location), (long)value) : (nuint)Interlocked.Add(ref Unsafe.As<nuint, int>(ref location), (int)value);
 
         /// <summary>
-        ///     Bitwise "nands" two native-sized unsigned integers and replaces the first integer with the result, as an atomic
-        ///     operation.
+        ///     Bitwise "nands" two native-sized unsigned integers and replaces the first integer with the result,
+        ///     as an atomic operation.
         /// </summary>
         /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static nuint Nand(ref nuint location, nuint value) => Environment.Is64BitProcess ? (nuint)Nand(ref Unsafe.As<nuint, long>(ref location), (long)value) : (nuint)Nand(ref Unsafe.As<nuint, int>(ref location), (int)value);
 
         /// <summary>
-        ///     Bitwise "ands" two native-sized unsigned integers and replaces the first integer with the result, as an atomic
-        ///     operation.
+        ///     Bitwise "ands" two native-sized unsigned integers and replaces the first integer with the result,
+        ///     as an atomic operation.
         /// </summary>
         /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static nuint And(ref nuint location, nuint value) => Environment.Is64BitProcess ? (nuint)And(ref Unsafe.As<nuint, long>(ref location), (long)value) : (nuint)And(ref Unsafe.As<nuint, int>(ref location), (int)value);
 
         /// <summary>
-        ///     Bitwise "ors" two native-sized unsigned integers and replaces the first integer with the result, as an atomic
-        ///     operation.
+        ///     Bitwise "ors" two native-sized unsigned integers and replaces the first integer with the result,
+        ///     as an atomic operation.
         /// </summary>
         /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static nuint Or(ref nuint location, nuint value) => Environment.Is64BitProcess ? (nuint)Or(ref Unsafe.As<nuint, long>(ref location), (long)value) : (nuint)Or(ref Unsafe.As<nuint, int>(ref location), (int)value);
 
         /// <summary>
-        ///     Bitwise "xors" two native-sized unsigned integers and replaces the first integer with the result, as an atomic
-        ///     operation.
+        ///     Bitwise "xors" two native-sized unsigned integers and replaces the first integer with the result,
+        ///     as an atomic operation.
         /// </summary>
         /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -403,8 +403,8 @@ namespace NativeCollections
         public static ushort Read(ref ushort location) => CompareExchange(ref location, default, default);
 
         /// <summary>
-        ///     Bitwise "nands" two 16-bit unsigned integers and replaces the first integer with the result, as an atomic
-        ///     operation.
+        ///     Bitwise "nands" two 16-bit unsigned integers and replaces the first integer with the result,
+        ///     as an atomic operation.
         /// </summary>
         /// <returns>The original value in <paramref name="location" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

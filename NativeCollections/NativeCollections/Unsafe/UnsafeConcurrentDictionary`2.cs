@@ -19,12 +19,12 @@ namespace NativeCollections
     public readonly struct UnsafeConcurrentDictionary<TKey, TValue> : IIsCreated, IDisposable, IEquatable<UnsafeConcurrentDictionary<TKey, TValue>>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly NativeObject<ConcurrentDictionary<TKey, TValue>> _handle;
 
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private ConcurrentDictionary<TKey, TValue> Handle => _handle.Value;
 
@@ -91,7 +91,7 @@ namespace NativeCollections
         public ValueCollection Values => new(_handle);
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private UnsafeConcurrentDictionary(NativeObject<ConcurrentDictionary<TKey, TValue>> handle) => _handle = handle;
@@ -380,7 +380,7 @@ namespace NativeCollections
         public TValue AddOrUpdate(TKey key, TValue addValue, Func<TKey, TValue, TValue> updateValueFactory) => Handle.AddOrUpdate(key, addValue, updateValueFactory);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeConcurrentDictionary<TKey, TValue> Empty => default;
 
@@ -422,12 +422,12 @@ namespace NativeCollections
         public Enumerator GetEnumerator() => new(AllocEnumerator(Handle));
 
         /// <summary>
-        ///     Alloc enumerator
+        ///     Allocates a native object that holds an enumerator for the dictionary.
         /// </summary>
         private static NativeObject<IEnumerator<KeyValuePair<TKey, TValue>>> AllocEnumerator(ConcurrentDictionary<TKey, TValue> handle) => NativeObject<IEnumerator<KeyValuePair<TKey, TValue>>>.Create(BoxEnumerator(handle));
 
         /// <summary>
-        ///     Box enumerator
+        ///     Returns an enumerator for the dictionary, boxing the value‑type enumerator.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerator<KeyValuePair<TKey, TValue>> BoxEnumerator(ConcurrentDictionary<TKey, TValue> handle) => handle.GetEnumerator();
@@ -455,23 +455,23 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Enumerator
+        ///     Supports a simple iteration over a generic collection.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public readonly struct Enumerator : IIterator<KeyValuePair<TKey, TValue>>, IDisposable
         {
             /// <summary>
-            ///     Handle
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly NativeObject<IEnumerator<KeyValuePair<TKey, TValue>>> _handle;
 
             /// <summary>
-            ///     Handle
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private IEnumerator<KeyValuePair<TKey, TValue>> Handle => _handle.Value;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal Enumerator(NativeObject<IEnumerator<KeyValuePair<TKey, TValue>>> handle) => _handle = handle;
@@ -517,12 +517,12 @@ namespace NativeCollections
         public readonly struct KeyCollection : IIsCreated, IReadOnlyCollection<TKey>
         {
             /// <summary>
-            ///     NativeConcurrentDictionary
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly NativeObject<ConcurrentDictionary<TKey, TValue>> _handle;
 
             /// <summary>
-            ///     Handle
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private ConcurrentDictionary<TKey, TValue> Handle => _handle.Value;
 
@@ -537,7 +537,7 @@ namespace NativeCollections
             public int Count => Handle.Count;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal KeyCollection(NativeObject<ConcurrentDictionary<TKey, TValue>> handle) => _handle = handle;
@@ -570,23 +570,23 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Enumerator
+            ///     Supports a simple iteration over a generic collection.
             /// </summary>
             [StructLayout(LayoutKind.Sequential)]
             public readonly struct Enumerator : IIterator<TKey>, IDisposable
             {
                 /// <summary>
-                ///     Handle
+                ///     Gets the handle to the underlying object.
                 /// </summary>
                 private readonly NativeObject<IEnumerator<KeyValuePair<TKey, TValue>>> _handle;
 
                 /// <summary>
-                ///     Handle
+                ///     Gets the handle to the underlying object.
                 /// </summary>
                 private IEnumerator<KeyValuePair<TKey, TValue>> Handle => _handle.Value;
 
                 /// <summary>
-                ///     Structure
+                ///     Initializes a new instance of this class.
                 /// </summary>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 internal Enumerator(NativeObject<IEnumerator<KeyValuePair<TKey, TValue>>> handle) => _handle = handle;
@@ -633,12 +633,12 @@ namespace NativeCollections
         public readonly struct ValueCollection : IIsCreated, IReadOnlyCollection<TValue>
         {
             /// <summary>
-            ///     NativeConcurrentDictionary
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly NativeObject<ConcurrentDictionary<TKey, TValue>> _handle;
 
             /// <summary>
-            ///     Handle
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private ConcurrentDictionary<TKey, TValue> Handle => _handle.Value;
 
@@ -653,7 +653,7 @@ namespace NativeCollections
             public int Count => Handle.Count;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal ValueCollection(NativeObject<ConcurrentDictionary<TKey, TValue>> handle) => _handle = handle;
@@ -686,23 +686,23 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Enumerator
+            ///     Supports a simple iteration over a generic collection.
             /// </summary>
             [StructLayout(LayoutKind.Sequential)]
             public readonly struct Enumerator : IIterator<TValue>, IDisposable
             {
                 /// <summary>
-                ///     Handle
+                ///     Gets the handle to the underlying object.
                 /// </summary>
                 private readonly NativeObject<IEnumerator<KeyValuePair<TKey, TValue>>> _handle;
 
                 /// <summary>
-                ///     Handle
+                ///     Gets the handle to the underlying object.
                 /// </summary>
                 private IEnumerator<KeyValuePair<TKey, TValue>> Handle => _handle.Value;
 
                 /// <summary>
-                ///     Structure
+                ///     Initializes a new instance of this class.
                 /// </summary>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 internal Enumerator(NativeObject<IEnumerator<KeyValuePair<TKey, TValue>>> handle) => _handle = handle;

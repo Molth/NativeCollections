@@ -17,7 +17,7 @@ namespace NativeCollections
     public readonly unsafe struct NativeUnalignedArray<T> : IIsCreated, IDisposable, IEquatable<NativeUnalignedArray<T>>, IReadOnlyCollection<T> where T : unmanaged
     {
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         private readonly T* _buffer;
 
@@ -27,73 +27,78 @@ namespace NativeCollections
         private readonly int _length;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified number of elements,
+        ///     using the natural alignment of <typeparamref name="T" />
+        ///     and without zero-initializing the allocated memory.
         /// </summary>
-        /// <param name="length">Length</param>
+        /// <param name="length">The number of elements to allocate.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="length" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeUnalignedArray(int length)
-        {
-            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
-            _buffer = NativeMemoryAllocator.AlignedAlloc<T>((uint)length);
-            _length = length;
-        }
+        public NativeUnalignedArray(int length) => this = new NativeArray<T>(length);
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified number of elements,
+        ///     using the natural alignment of <typeparamref name="T" /> and optionally zero-initializing the memory.
         /// </summary>
-        /// <param name="length">Length</param>
-        /// <param name="zeroed">Zeroed</param>
+        /// <param name="length">The number of elements to allocate.</param>
+        /// <param name="zeroed">
+        ///     <see langword="true" /> to zero-initialize the allocated memory;
+        ///     otherwise, the memory content is undefined.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="length" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeUnalignedArray(int length, bool zeroed)
-        {
-            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
-            _buffer = zeroed ? NativeMemoryAllocator.AlignedAllocZeroed<T>((uint)length) : NativeMemoryAllocator.AlignedAlloc<T>((uint)length);
-            _length = length;
-        }
+        public NativeUnalignedArray(int length, bool zeroed) => this = new NativeArray<T>(length, zeroed);
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified number of elements and alignment,
+        ///     without zero-initializing the allocated memory.
         /// </summary>
-        /// <param name="length">Length</param>
-        /// <param name="alignment">Alignment</param>
+        /// <param name="length">The number of elements to allocate.</param>
+        /// <param name="alignment">
+        ///     The required alignment in bytes,
+        ///     which must be a power of two and at least the natural alignment of <typeparamref name="T" />.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown if <paramref name="length" /> or <paramref name="alignment" /> is negative,
+        ///     or if <paramref name="alignment" /> is less than the natural alignment of <typeparamref name="T" />.
+        /// </exception>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="alignment" /> is not a power of two.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeUnalignedArray(int length, int alignment)
-        {
-            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
-            ThrowHelpers.ThrowIfNegative(alignment, ExceptionArgument.alignment);
-            ThrowHelpers.ThrowIfLessThan((uint)alignment, NativeMemoryAllocator.AlignOf<T>(), ExceptionArgument.alignment);
-            _buffer = (T*)NativeMemoryAllocator.AlignedAlloc((uint)(length * Unsafe.SizeOf<T>()), (uint)alignment);
-            _length = length;
-        }
+        public NativeUnalignedArray(int length, int alignment) => this = new NativeArray<T>(length, alignment);
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified number of elements, alignment, and zero-initialization option.
         /// </summary>
-        /// <param name="length">Length</param>
-        /// <param name="alignment">Alignment</param>
-        /// <param name="zeroed">Zeroed</param>
+        /// <param name="length">The number of elements to allocate.</param>
+        /// <param name="alignment">
+        ///     The required alignment in bytes,
+        ///     which must be a power of two and at least the natural alignment of <typeparamref name="T" />.
+        /// </param>
+        /// <param name="zeroed">
+        ///     <see langword="true" /> to zero-initialize the allocated memory;
+        ///     otherwise, the memory content is undefined.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown if <paramref name="length" /> or <paramref name="alignment" /> is negative,
+        ///     or if <paramref name="alignment" /> is less than the natural alignment of <typeparamref name="T" />.
+        /// </exception>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="alignment" /> is not a power of two.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeUnalignedArray(int length, int alignment, bool zeroed)
-        {
-            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
-            ThrowHelpers.ThrowIfNegative(alignment, ExceptionArgument.alignment);
-            ThrowHelpers.ThrowIfLessThan((uint)alignment, NativeMemoryAllocator.AlignOf<T>(), ExceptionArgument.alignment);
-            _buffer = zeroed ? (T*)NativeMemoryAllocator.AlignedAllocZeroed((uint)(length * Unsafe.SizeOf<T>()), (uint)alignment) : (T*)NativeMemoryAllocator.AlignedAlloc((uint)(length * Unsafe.SizeOf<T>()), (uint)alignment);
-            _length = length;
-        }
+        public NativeUnalignedArray(int length, int alignment, bool zeroed) => this = new NativeArray<T>(length, alignment, zeroed);
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     that wraps an existing native memory buffer.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="length">Length</param>
+        /// <param name="buffer">A pointer to the existing native memory buffer.</param>
+        /// <param name="length">The number of elements in the buffer.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="length" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeUnalignedArray(T* buffer, int length)
-        {
-            ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
-            _buffer = buffer;
-            _length = length;
-        }
+        public NativeUnalignedArray(T* buffer, int length) => this = new NativeArray<T>(buffer, length);
 
         /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
@@ -128,7 +133,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         public T* Buffer => _buffer;
 
@@ -165,7 +170,6 @@ namespace NativeCollections
         /// <summary>
         ///     Returns a pointer to the given by-ref parameter.
         /// </summary>
-        /// <returns>Pointer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator T*(NativeUnalignedArray<T> value) => value._buffer;
 
@@ -180,6 +184,18 @@ namespace NativeCollections
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator ReadOnlySpan<T>(NativeUnalignedArray<T> value) => value.AsReadOnlySpan();
+
+        /// <summary>
+        ///     Creates a new span over a portion of a regular managed object.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator NativeUnalignedArray<T>(NativeArray<T> value) => new(value.Buffer, value.Length);
+
+        /// <summary>
+        ///     Creates a new span over a portion of a regular managed object.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator NativeUnalignedArray<T>(NativeMemoryArray<T> value) => new(value.Buffer, value.Length);
 
         /// <summary>
         ///     Creates a new span over a portion of a regular managed object.
@@ -273,7 +289,7 @@ namespace NativeCollections
         public NativeUnalignedArray<T> Slice(int start, int length) => new(UnsafeHelpers.Add<T>(_buffer, start), length);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeUnalignedArray<T> Empty => default;
 
@@ -305,7 +321,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Enumerator
+        ///     Supports a simple iteration over a generic collection.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public struct Enumerator : IIterator<T>
@@ -316,12 +332,12 @@ namespace NativeCollections
             private readonly NativeUnalignedArray<T> _nativeArray;
 
             /// <summary>
-            ///     Index
+            ///     The current index.
             /// </summary>
             private int _index;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal Enumerator(NativeUnalignedArray<T> nativeUnalignedArray)

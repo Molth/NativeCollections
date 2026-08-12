@@ -7,96 +7,109 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Provides internal structures.
+    ///     Provides internal node structures
+    ///     and helper utilities for ordered set collections
+    ///     based on red‑black tree algorithms.
     /// </summary>
     internal static unsafe class NativeSortedSet
     {
         /// <summary>
-        ///     Node color
+        ///     Represents the color of a node in a red‑black tree.
         /// </summary>
         public enum NodeColor : byte
         {
             /// <summary>
-            ///     Node color
+            ///     Black node.
             /// </summary>
             Black,
 
             /// <summary>
-            ///     Node color
+            ///     Red node.
             /// </summary>
             Red
         }
 
         /// <summary>
-        ///     Tree rotation
+        ///     Represents the type of tree rotation to perform.
         /// </summary>
         public enum TreeRotation : byte
         {
             /// <summary>
-            ///     Left
+            ///     Single left rotation.
             /// </summary>
             Left,
 
             /// <summary>
-            ///     Left right
+            ///     Double rotation: left then right.
             /// </summary>
             LeftRight,
 
             /// <summary>
-            ///     Right
+            ///     Single right rotation.
             /// </summary>
             Right,
 
             /// <summary>
-            ///     Right left
+            ///     Double rotation: right then left.
             /// </summary>
             RightLeft
         }
 
         /// <summary>
-        ///     Node
+        ///     Represents a node in a red‑black tree
+        ///     that stores a single value of type <typeparamref name="T" />.
         /// </summary>
+        /// <typeparam name="T">
+        ///     The type of the stored value,
+        ///     which must implement <see cref="IComparable{T}" />.
+        /// </typeparam>
         [StructLayout(LayoutKind.Sequential)]
         public struct Node<T> where T : unmanaged, IComparable<T>
         {
             /// <summary>
-            ///     Is non null red
+            ///     Determines whether the given node is non‑null and red.
             /// </summary>
-            /// <param name="node">Node</param>
-            /// <returns>Is non null red</returns>
+            /// <param name="node">The node to check.</param>
+            /// <returns>
+            ///     <see langword="true" /> if the node is non‑null and red;
+            ///     otherwise, <see langword="false" />.
+            /// </returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static bool IsNonNullRed(Node<T>* node) => !UnsafeHelpers.IsNull(node) && node->IsRed;
 
             /// <summary>
-            ///     Is null or black
+            ///     Determines whether the given node is null or black.
             /// </summary>
-            /// <param name="node">Node</param>
-            /// <returns>Is null or black</returns>
+            /// <param name="node">The node to check.</param>
+            /// <returns>
+            ///     <see langword="true" /> if the node is null or black;
+            ///     otherwise, <see langword="false" />.
+            /// </returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             private static bool IsNullOrBlack(Node<T>* node) => UnsafeHelpers.IsNull(node) || node->IsBlack;
 
             /// <summary>
-            ///     Item
+            ///     The value stored in the node.
             /// </summary>
             public T Item;
 
             /// <summary>
-            ///     Left
+            ///     Pointer to the left child.
             /// </summary>
             public Node<T>* Left;
 
             /// <summary>
-            ///     Right
+            ///     Pointer to the right child.
             /// </summary>
             public Node<T>* Right;
 
             /// <summary>
-            ///     Color
+            ///     The color of the node.
             /// </summary>
             public NodeColor Color;
 
             /// <summary>
-            ///     Is black
+            ///     Gets a value indicating whether the node is black.
             /// </summary>
             private readonly bool IsBlack
             {
@@ -105,7 +118,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Is red
+            ///     Gets a value indicating whether the node is red.
             /// </summary>
             public readonly bool IsRed
             {
@@ -114,7 +127,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Is 2 node
+            ///     Gets a value indicating whether the node is a 2‑node (black with black children).
             /// </summary>
             public readonly bool Is2Node
             {
@@ -123,7 +136,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Is 4 node
+            ///     Gets a value indicating whether the node is a 4‑node (black with two red children).
             /// </summary>
             public readonly bool Is4Node
             {
@@ -132,23 +145,24 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Set color to black
+            ///     Sets the node color to black.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void ColorBlack() => Color = NodeColor.Black;
 
             /// <summary>
-            ///     Set color to red
+            ///     Sets the node color to red.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void ColorRed() => Color = NodeColor.Red;
 
             /// <summary>
-            ///     Get rotation
+            ///     Determines the rotation needed
+            ///     to balance the tree after an insertion or deletion.
             /// </summary>
-            /// <param name="current">Current</param>
-            /// <param name="sibling">Sibling</param>
-            /// <returns>Rotation</returns>
+            /// <param name="current">The child node that is currently unbalanced.</param>
+            /// <param name="sibling">The sibling of the current node.</param>
+            /// <returns>The appropriate <see cref="TreeRotation" />.</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public readonly TreeRotation GetRotation(Node<T>* current, Node<T>* sibling)
             {
@@ -157,15 +171,15 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Get sibling
+            ///     Returns the sibling of the specified child node.
             /// </summary>
-            /// <param name="node">Node</param>
-            /// <returns>Sibling</returns>
+            /// <param name="node">The child node whose sibling is desired.</param>
+            /// <returns>A pointer to the sibling node.</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public readonly Node<T>* GetSibling(Node<T>* node) => node == Left ? Right : Left;
 
             /// <summary>
-            ///     Split 4 node
+            ///     Splits a 4‑node (black with two red children) by recoloring.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Split4Node()
@@ -176,10 +190,11 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Rotate
+            ///     Performs a tree rotation of the specified type
+            ///     and returns the new subtree root.
             /// </summary>
-            /// <param name="rotation">Rotation</param>
-            /// <returns>Node</returns>
+            /// <param name="rotation">The type of rotation to perform.</param>
+            /// <returns>The new root of the rotated subtree.</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public Node<T>* Rotate(TreeRotation rotation)
             {
@@ -204,9 +219,9 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Rotate left
+            ///     Performs a left rotation.
             /// </summary>
-            /// <returns>Node</returns>
+            /// <returns>The new root of the subtree.</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public Node<T>* RotateLeft()
             {
@@ -217,9 +232,9 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Rotate left right
+            ///     Performs a left‑right rotation.
             /// </summary>
-            /// <returns>Node</returns>
+            /// <returns>The new root of the subtree.</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public Node<T>* RotateLeftRight()
             {
@@ -233,9 +248,9 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Rotate right
+            ///     Performs a right rotation.
             /// </summary>
-            /// <returns>Node</returns>
+            /// <returns>The new root of the subtree.</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public Node<T>* RotateRight()
             {
@@ -246,9 +261,9 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Rotate right left
+            ///     Performs a right‑left rotation.
             /// </summary>
-            /// <returns>Node</returns>
+            /// <returns>The new root of the subtree.</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public Node<T>* RotateRightLeft()
             {
@@ -262,7 +277,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Merge 2 nodes
+            ///     Merges two black children into a 2‑node by recoloring.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Merge2Nodes()
@@ -273,10 +288,10 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Replace child
+            ///     Replaces a child pointer with a new node.
             /// </summary>
-            /// <param name="child">Child</param>
-            /// <param name="newChild">New child</param>
+            /// <param name="child">The old child pointer to replace.</param>
+            /// <param name="newChild">The new child pointer.</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void ReplaceChild(Node<T>* child, Node<T>* newChild)
             {
@@ -288,54 +303,65 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Node
+        ///     Represents a node in a red‑black tree that stores a key‑value pair.
         /// </summary>
+        /// <typeparam name="TKey">
+        ///     The type of the key,
+        ///     which must implement <see cref="IComparable{TKey}" />.
+        /// </typeparam>
+        /// <typeparam name="TValue">The type of the value.</typeparam>
         [StructLayout(LayoutKind.Sequential)]
         public struct Node<TKey, TValue> where TKey : unmanaged, IComparable<TKey> where TValue : unmanaged
         {
             /// <summary>
-            ///     Is non null red
+            ///     Determines whether the given node is non‑null and red.
             /// </summary>
-            /// <param name="node">Node</param>
-            /// <returns>Is non null red</returns>
+            /// <param name="node">The node to check.</param>
+            /// <returns>
+            ///     <see langword="true" /> if the node is non‑null and red;
+            ///     otherwise, <see langword="false" />.
+            /// </returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static bool IsNonNullRed(Node<TKey, TValue>* node) => !UnsafeHelpers.IsNull(node) && node->IsRed;
 
             /// <summary>
-            ///     Is null or black
+            ///     Determines whether the given node is null or black.
             /// </summary>
-            /// <param name="node">Node</param>
-            /// <returns>Is null or black</returns>
+            /// <param name="node">The node to check.</param>
+            /// <returns>
+            ///     <see langword="true" /> if the node is null or black;
+            ///     otherwise, <see langword="false" />.
+            /// </returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             private static bool IsNullOrBlack(Node<TKey, TValue>* node) => UnsafeHelpers.IsNull(node) || node->IsBlack;
 
             /// <summary>
-            ///     Key
+            ///     The key stored in the node.
             /// </summary>
             public TKey Key;
 
             /// <summary>
-            ///     Value
+            ///     The value associated with the key.
             /// </summary>
             public TValue Value;
 
             /// <summary>
-            ///     Left
+            ///     Pointer to the left child.
             /// </summary>
             public Node<TKey, TValue>* Left;
 
             /// <summary>
-            ///     Right
+            ///     Pointer to the right child.
             /// </summary>
             public Node<TKey, TValue>* Right;
 
             /// <summary>
-            ///     Color
+            ///     The color of the node.
             /// </summary>
             public NodeColor Color;
 
             /// <summary>
-            ///     Is black
+            ///     Gets a value indicating whether the node is black.
             /// </summary>
             private readonly bool IsBlack
             {
@@ -344,7 +370,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Is red
+            ///     Gets a value indicating whether the node is red.
             /// </summary>
             public readonly bool IsRed
             {
@@ -353,7 +379,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Is 2 node
+            ///     Gets a value indicating whether the node is a 2‑node (black with black children).
             /// </summary>
             public readonly bool Is2Node
             {
@@ -362,7 +388,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Is 4 node
+            ///     Gets a value indicating whether the node is a 4‑node (black with two red children).
             /// </summary>
             public readonly bool Is4Node
             {
@@ -371,23 +397,24 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Set color to black
+            ///     Sets the node color to black.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void ColorBlack() => Color = NodeColor.Black;
 
             /// <summary>
-            ///     Set color to red
+            ///     Sets the node color to red.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void ColorRed() => Color = NodeColor.Red;
 
             /// <summary>
-            ///     Get rotation
+            ///     Determines the rotation needed
+            ///     to balance the tree after an insertion or deletion.
             /// </summary>
-            /// <param name="current">Current</param>
-            /// <param name="sibling">Sibling</param>
-            /// <returns>Rotation</returns>
+            /// <param name="current">The child node that is currently unbalanced.</param>
+            /// <param name="sibling">The sibling of the current node.</param>
+            /// <returns>The appropriate <see cref="TreeRotation" />.</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public readonly TreeRotation GetRotation(Node<TKey, TValue>* current, Node<TKey, TValue>* sibling)
             {
@@ -396,15 +423,15 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Get sibling
+            ///     Returns the sibling of the specified child node.
             /// </summary>
-            /// <param name="node">Node</param>
-            /// <returns>Sibling</returns>
+            /// <param name="node">The child node whose sibling is desired.</param>
+            /// <returns>A pointer to the sibling node.</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public readonly Node<TKey, TValue>* GetSibling(Node<TKey, TValue>* node) => node == Left ? Right : Left;
 
             /// <summary>
-            ///     Split 4 node
+            ///     Splits a 4‑node (black with two red children) by recoloring.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Split4Node()
@@ -415,10 +442,11 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Rotate
+            ///     Performs a tree rotation of the specified type
+            ///     and returns the new subtree root.
             /// </summary>
-            /// <param name="rotation">Rotation</param>
-            /// <returns>Node</returns>
+            /// <param name="rotation">The type of rotation to perform.</param>
+            /// <returns>The new root of the rotated subtree.</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public Node<TKey, TValue>* Rotate(TreeRotation rotation)
             {
@@ -443,9 +471,9 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Rotate left
+            ///     Performs a left rotation.
             /// </summary>
-            /// <returns>Node</returns>
+            /// <returns>The new root of the subtree.</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public Node<TKey, TValue>* RotateLeft()
             {
@@ -456,9 +484,9 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Rotate left right
+            ///     Performs a left‑right rotation.
             /// </summary>
-            /// <returns>Node</returns>
+            /// <returns>The new root of the subtree.</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public Node<TKey, TValue>* RotateLeftRight()
             {
@@ -472,9 +500,9 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Rotate right
+            ///     Performs a right rotation.
             /// </summary>
-            /// <returns>Node</returns>
+            /// <returns>The new root of the subtree.</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public Node<TKey, TValue>* RotateRight()
             {
@@ -485,9 +513,9 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Rotate right left
+            ///     Performs a right‑left rotation.
             /// </summary>
-            /// <returns>Node</returns>
+            /// <returns>The new root of the subtree.</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public Node<TKey, TValue>* RotateRightLeft()
             {
@@ -501,7 +529,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Merge 2 nodes
+            ///     Merges two black children into a 2‑node by recoloring.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Merge2Nodes()
@@ -512,10 +540,10 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Replace child
+            ///     Replaces a child pointer with a new node.
             /// </summary>
-            /// <param name="child">Child</param>
-            /// <param name="newChild">New child</param>
+            /// <param name="child">The old child pointer to replace.</param>
+            /// <param name="newChild">The new child pointer.</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void ReplaceChild(Node<TKey, TValue>* child, Node<TKey, TValue>* newChild)
             {

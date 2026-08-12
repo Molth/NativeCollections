@@ -32,7 +32,7 @@ namespace NativeCollections
         private readonly CachePadding _padding;
 
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private ArrayQueue<T> _handle;
 
@@ -83,7 +83,7 @@ namespace NativeCollections
         public int Capacity => _handle.Capacity();
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private UnsafeArrayQueue(int capacity)
@@ -175,7 +175,7 @@ namespace NativeCollections
         public bool TryDequeue(out T result) => _handle.TryDequeue(out result);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeArrayQueue<T> Empty => default;
 

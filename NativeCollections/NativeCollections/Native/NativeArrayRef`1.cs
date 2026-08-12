@@ -17,7 +17,7 @@ namespace NativeCollections
     public readonly struct NativeArrayRef<T> : IIsCreated, IDisposable, IEquatable<NativeArrayRef<T>>, IReadOnlyCollection<T>
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly GCHandle _handle;
 
@@ -27,9 +27,14 @@ namespace NativeCollections
         private readonly int _length;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class by allocating a new managed array of the specified length,
+        ///     pinned with a normal <see cref="GCHandle" />.
         /// </summary>
-        /// <param name="length">Length</param>
+        /// <param name="length">
+        ///     The number of elements in the array.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="length" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArrayRef(int length)
         {
@@ -39,10 +44,15 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class by allocating a new managed array of the specified length,
+        ///     pinned with the specified <see cref="GCHandleType" />.
         /// </summary>
-        /// <param name="length">Length</param>
-        /// <param name="type">GCHandle type</param>
+        /// <param name="length">
+        ///     The number of elements in the array.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <param name="type">The type of GCHandle to use.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="length" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArrayRef(int length, GCHandleType type)
         {
@@ -52,9 +62,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class by pinning an existing managed array
+        ///     with a normal <see cref="GCHandle" />.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
+        /// <param name="buffer">The managed array to pin.</param>
+        /// <exception cref="ArgumentNullException">
+        ///     Thrown when <paramref name="buffer" />
+        ///     is <see langword="null" />.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArrayRef(T[] buffer)
         {
@@ -64,10 +79,15 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class by pinning an existing managed array
+        ///     with the specified <see cref="GCHandleType" />.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="type">GCHandle type</param>
+        /// <param name="buffer">The managed array to pin.</param>
+        /// <param name="type">The type of GCHandle to use.</param>
+        /// <exception cref="ArgumentNullException">
+        ///     Thrown when <paramref name="buffer" />
+        ///     is <see langword="null" />.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArrayRef(T[] buffer, GCHandleType type)
         {
@@ -105,7 +125,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         public T[] Buffer
         {
@@ -167,7 +187,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeArrayRef<T> Empty => default;
 
@@ -199,23 +219,23 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Enumerator
+        ///     Supports a simple iteration over a generic collection.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public struct Enumerator : IRefIterator<T>
         {
             /// <summary>
-            ///     Buffer
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly T[] _handle;
 
             /// <summary>
-            ///     Index
+            ///     The current index.
             /// </summary>
             private int _index;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal Enumerator(T[] handle)

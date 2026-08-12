@@ -18,22 +18,22 @@ namespace NativeCollections
     public static unsafe class NativeMemoryAllocator
     {
         /// <summary>
-        ///     AlignedAlloc
+        ///     Allocates an aligned block of memory of the specified size and alignment, in bytes.
         /// </summary>
         private static delegate* managed<uint, uint, void*> _alignedAlloc;
 
         /// <summary>
-        ///     AlignedAllocZeroed
+        ///     Allocates and zeroes an aligned block of memory of the specified size and alignment, in bytes.
         /// </summary>
         private static delegate* managed<uint, uint, void*> _alignedAllocZeroed;
 
         /// <summary>
-        ///     AlignedFree
+        ///     Frees an aligned block of memory.
         /// </summary>
         private static delegate* managed<void*, void> _alignedFree;
 
         /// <summary>
-        ///     Abort
+        ///     Abort callback invoked when memory allocation fails.
         /// </summary>
         private static delegate* managed<void> _abort;
 
@@ -275,15 +275,15 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Copies bytes from the source address to the destination address without assuming architecture dependent alignment
-        ///     of the addresses.
+        ///     Copies bytes from the source address to the destination address
+        ///     without assuming architecture dependent alignment of the addresses.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Copy(void* destination, void* source, uint byteCount) => SpanHelpers.Copy(ref Unsafe.AsRef<byte>(destination), ref Unsafe.AsRef<byte>(source), byteCount);
 
         /// <summary>
-        ///     Copies bytes from the source address to the destination address without assuming architecture dependent alignment
-        ///     of the addresses.
+        ///     Copies bytes from the source address to the destination address
+        ///     without assuming architecture dependent alignment of the addresses.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Copy(ref byte destination, ref byte source, uint byteCount) => SpanHelpers.Copy(ref destination, ref source, byteCount);

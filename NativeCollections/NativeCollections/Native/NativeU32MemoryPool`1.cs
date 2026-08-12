@@ -15,14 +15,24 @@ namespace NativeCollections
     public readonly unsafe struct NativeU32MemoryPool<T> : IIsCreated, IDisposable, IEquatable<NativeU32MemoryPool<T>> where T : unmanaged
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly UnsafeU32MemoryPool<T>* _handle;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of the this class
+        ///     with the specified maximum free slabs,
+        ///     using the natural length and alignment of type <typeparamref name="T" />.
         /// </summary>
-        /// <param name="maxFreeSlabs">Max free slabs</param>
+        /// <remarks>
+        ///     Each slab contains exactly 32 nodes,
+        ///     as the allocation bitmap is stored as a <see cref="uint" />.
+        /// </remarks>
+        /// <param name="maxFreeSlabs">
+        ///     The maximum number of free slabs to retain in the free list.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="maxFreeSlabs" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeU32MemoryPool(int maxFreeSlabs)
         {
@@ -31,11 +41,31 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of the this class
+        ///     with the specified node length, maximum free slabs, and alignment.
         /// </summary>
-        /// <param name="length">Length</param>
-        /// <param name="maxFreeSlabs">Max free slabs</param>
-        /// <param name="alignment">Alignment</param>
+        /// <remarks>
+        ///     Each slab contains exactly 32 nodes,
+        ///     as the allocation bitmap is stored as a <see cref="uint" />.
+        /// </remarks>
+        /// <param name="length">
+        ///     The length (in bytes) of the data region of each node.
+        ///     Must be at least <see cref="Unsafe.SizeOf{T}" />.
+        /// </param>
+        /// <param name="maxFreeSlabs">
+        ///     The maximum number of free slabs to retain in the free list.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <param name="alignment">
+        ///     The required alignment, in bytes, for allocations.
+        ///     Must be a power of two and at least <see cref="NativeMemoryAllocator.AlignOf{T}" />.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown if <paramref name="length" /> is less than <see cref="Unsafe.SizeOf{T}" />,
+        ///     or if <paramref name="maxFreeSlabs" /> is negative,
+        ///     or if <paramref name="alignment" /> is less than <see cref="NativeMemoryAllocator.AlignOf{T}" />.
+        /// </exception>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="alignment" /> is not a power of two.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeU32MemoryPool(int length, int maxFreeSlabs, int alignment)
         {
@@ -165,7 +195,7 @@ namespace NativeCollections
         public int TrimExcess(int capacity) => _handle->TrimExcess(capacity);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeU32MemoryPool<T> Empty => default;
     }

@@ -18,7 +18,7 @@ namespace NativeCollections
     public readonly struct UnsafeShardedDictionary<TKey, TValue> : IIsCreated, IDisposable, IEquatable<UnsafeShardedDictionary<TKey, TValue>>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
     {
         /// <summary>
-        ///     Shards
+        ///     Array of shards, each containing a separate hash map and its own reader‑writer lock.
         /// </summary>
         /// <remarks>
         ///     Segment design is inspired by the algorithm outlined at:
@@ -86,7 +86,7 @@ namespace NativeCollections
         public ValueCollection Values => new(_shards);
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private UnsafeShardedDictionary(NativeArray<Shard> shards) => _shards = shards;
@@ -547,10 +547,10 @@ namespace NativeCollections
         private ref Shard GetShard(uint hashCode) => ref _shards[hashCode & ((uint)_shards.Length - 1)];
 
         /// <summary>
-        ///     Insert
+        ///     Inserts an item into the collection at the specified index.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
+        /// <param name="key">The key to insert.</param>
+        /// <param name="value">The value to insert.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void TryInsertOverwriteExisting(TKey key, TValue value)
         {
@@ -611,24 +611,24 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Shard
+        ///     A single shard consisting of a hash set and its associated lock for concurrent access.
         /// </summary>
         [StructLayout(LayoutKind.Sequential, Size = CACHE_LINE_SIZE)]
         internal struct Shard
         {
             /// <summary>
-            ///     Reader writer lock
+            ///     Reader‑writer lock protecting the hash set in this shard.
             /// </summary>
             public UnsafeReaderWriterLock RwLock;
 
             /// <summary>
-            ///     HashMap
+            ///     The underlying hash map holding the key‑value pairs for this shard.
             /// </summary>
             public UnsafeDictionary<TKey, TValue> HashMap;
         }
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeShardedDictionary<TKey, TValue> Empty => default;
 
@@ -700,33 +700,33 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Enumerator
+        ///     Supports a simple iteration over a generic collection.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public struct Enumerator : IIterator<KeyValuePair<TKey, TValue>>, IDisposable
         {
             /// <summary>
-            ///     Handle
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly NativeArray<Shard> _handle;
 
             /// <summary>
-            ///     Index
+            ///     The current index.
             /// </summary>
             private int _index;
 
             /// <summary>
-            ///     Enumerator
+            ///     Supports a simple iteration over a generic collection.
             /// </summary>
             private UnsafeDictionary<TKey, TValue>.Enumerator _enumerator;
 
             /// <summary>
-            ///     Locked
+            ///     Indicates whether the enumerator currently holds a read lock on a shard.
             /// </summary>
             private bool _locked;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal Enumerator(NativeArray<Shard> handle)
@@ -807,7 +807,7 @@ namespace NativeCollections
         public readonly struct KeyCollection : IIsCreated, IReadOnlyCollection<TKey>
         {
             /// <summary>
-            ///     NativeConcurrentDictionary
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly NativeArray<Shard> _handle;
 
@@ -832,7 +832,7 @@ namespace NativeCollections
             public int Count => GetCount(_handle);
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal KeyCollection(NativeArray<Shard> handle) => _handle = handle;
@@ -865,18 +865,18 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Enumerator
+            ///     Supports a simple iteration over a generic collection.
             /// </summary>
             [StructLayout(LayoutKind.Sequential)]
             public struct Enumerator : IIterator<TKey>, IDisposable
             {
                 /// <summary>
-                ///     Handle
+                ///     Gets the handle to the underlying object.
                 /// </summary>
                 private UnsafeShardedDictionary<TKey, TValue>.Enumerator _handle;
 
                 /// <summary>
-                ///     Structure
+                ///     Initializes a new instance of this class.
                 /// </summary>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 internal Enumerator(UnsafeShardedDictionary<TKey, TValue>.Enumerator handle) => _handle = handle;
@@ -919,7 +919,7 @@ namespace NativeCollections
         public readonly struct ValueCollection : IIsCreated, IReadOnlyCollection<TValue>
         {
             /// <summary>
-            ///     NativeConcurrentDictionary
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly NativeArray<Shard> _handle;
 
@@ -944,7 +944,7 @@ namespace NativeCollections
             public int Count => GetCount(_handle);
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal ValueCollection(NativeArray<Shard> handle) => _handle = handle;
@@ -977,18 +977,18 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Enumerator
+            ///     Supports a simple iteration over a generic collection.
             /// </summary>
             [StructLayout(LayoutKind.Sequential)]
             public struct Enumerator : IIterator<TValue>, IDisposable
             {
                 /// <summary>
-                ///     Handle
+                ///     Gets the handle to the underlying object.
                 /// </summary>
                 private UnsafeShardedDictionary<TKey, TValue>.Enumerator _handle;
 
                 /// <summary>
-                ///     Structure
+                ///     Initializes a new instance of this class.
                 /// </summary>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 internal Enumerator(UnsafeShardedDictionary<TKey, TValue>.Enumerator handle) => _handle = handle;

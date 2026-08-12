@@ -8,18 +8,18 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Compute a Marvin hash and collapse it into a 32-bit hash.
+    ///     Marvin hash
     /// </summary>
     internal static class MarvinHelpers
     {
         /// <summary>
-        ///     Compute hash 32
+        ///     Compute a Marvin hash and collapse it into a 32-bit hash.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int ComputeHash32(ReadOnlySpan<byte> data, ulong seed) => ComputeHash32(ref MemoryMarshal.GetReference(data), (uint)data.Length, (uint)seed, (uint)(seed >> 32));
 
         /// <summary>
-        ///     Compute hash 32
+        ///     Compute a Marvin hash and collapse it into a 32-bit hash.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int ComputeHash32(ref byte data, uint count, uint p0, uint p1)
@@ -72,8 +72,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Block
+        ///     Performs one round of the Marvin hash block mixing function.
         /// </summary>
+        /// <param name="rp0">Reference to the first 32-bit state variable. Modified in-place.</param>
+        /// <param name="rp1">Reference to the second 32-bit state variable. Modified in-place.</param>
+        /// <remarks>
+        ///     This method applies a series of XOR, addition, and bit rotations as specified by the Marvin algorithm.
+        ///     It is the core building block of the hash computation and is called multiple times per chunk of data.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Block(ref uint rp0, ref uint rp1)
         {

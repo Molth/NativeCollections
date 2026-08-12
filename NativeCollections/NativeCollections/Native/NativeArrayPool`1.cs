@@ -15,7 +15,7 @@ namespace NativeCollections
     public readonly unsafe struct NativeArrayPool<T> : IIsCreated, IDisposable, IEquatable<NativeArrayPool<T>> where T : unmanaged
     {
         /// <summary>
-        ///     Buckets
+        ///     Array of bucket.
         /// </summary>
         private readonly NativeArrayPoolBucket* _buckets;
 
@@ -30,26 +30,49 @@ namespace NativeCollections
         private readonly int _capacity;
 
         /// <summary>
-        ///     Allocator
+        ///     The custom memory allocator used for allocating and deallocating buffers.
         /// </summary>
         private readonly CustomMemoryAllocator _allocator;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified capacity and maximum length,
+        ///     using the default memory allocator.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <param name="maxLength">Max length</param>
+        /// <param name="capacity">
+        ///     The maximum number of buffers that can be retained per bucket.
+        ///     Must be greater than zero.
+        /// </param>
+        /// <param name="maxLength">
+        ///     The maximum allowed buffer length (in elements).
+        ///     The actual length will be clamped to the nearest power of two.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="capacity" /> is less than or equal to zero,
+        ///     or when <paramref name="maxLength" /> is negative.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArrayPool(int capacity, int maxLength) : this(capacity, maxLength, CustomMemoryAllocator.Default)
         {
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified capacity, maximum length, and custom memory allocator.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <param name="maxLength">Max length</param>
-        /// <param name="allocator">Allocator</param>
+        /// <param name="capacity">
+        ///     The maximum number of buffers that can be retained per bucket.
+        ///     Must be greater than zero.
+        /// </param>
+        /// <param name="maxLength">
+        ///     The maximum allowed buffer length (in elements).
+        ///     The actual length will be clamped to the nearest power of two.
+        /// </param>
+        /// <param name="allocator">The custom memory allocator to use for all allocations and deallocations.</param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="capacity" /> is less than or equal to zero,
+        ///     or when <paramref name="maxLength" /> is negative.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArrayPool(int capacity, int maxLength, CustomMemoryAllocator allocator)
         {
@@ -87,8 +110,12 @@ namespace NativeCollections
         public int Capacity => _capacity;
 
         /// <summary>
-        ///     Max length
+        ///     Gets the maximum allowed buffer length (in elements) supported by this pool.
         /// </summary>
+        /// <remarks>
+        ///     The value is the highest power of two that the pool can manage,
+        ///     calculated as <c>16 &lt;&lt; (bucketCount - 1)</c>.
+        /// </remarks>
         public int MaxLength => 16 << (_length - 1);
 
         /// <summary>
@@ -213,46 +240,53 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Select bucket index
+        ///     Determines the bucket index for a given buffer size.
         /// </summary>
-        /// <param name="bufferSize">Buffer size</param>
-        /// <returns>Bucket index</returns>
+        /// <param name="bufferSize">The buffer size (in elements).</param>
+        /// <returns>
+        ///     The zero‑based index of the bucket that can accommodate the specified size.
+        ///     Buckets correspond to powers of two, starting from 16.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int SelectBucketIndex(int bufferSize) => BitOperationsHelpers.Log2(((uint)bufferSize - 1) | 15) - 3;
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeArrayPool<T> Empty => default;
 
         /// <summary>
-        ///     NativeArrayPool bucket
+        ///     Represents a bucket that stores free buffers of a fixed size (a power of two).
         /// </summary>
+        /// <remarks>
+        ///     Each bucket is responsible for managing up to <c>capacity</c> buffers of the same length.
+        ///     The bucket uses a <see cref="SpinLock" /> to synchronize concurrent access.
+        /// </remarks>
         [StructLayout(LayoutKind.Sequential)]
         private struct NativeArrayPoolBucket
         {
             /// <summary>
-            ///     Buffers
+            ///     Represents a contiguous region of arbitrary memory.
             /// </summary>
             [NativePointer(typeof(void*))] private readonly nint* _buffer;
 
             /// <summary>
-            ///     Length
+            ///     Gets the total numbers of elements the internal data structure can hold.
             /// </summary>
             private readonly int _length;
 
             /// <summary>
-            ///     Index
+            ///     The current index.
             /// </summary>
             private int _index;
 
             /// <summary>
-            ///     State lock
+            ///     Synchronization lock to protect concurrent access to the bucket's internal state.
             /// </summary>
             private SpinLock _spinLock;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeArrayPoolBucket(nint* buffer, int length)
@@ -280,7 +314,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Rent buffer
+            ///     Retrieves a buffer that is at least the requested length.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeArray<T> Rent(int capacity, in CustomMemoryAllocator allocator)
@@ -309,7 +343,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Return buffer
+            ///     Returns to the pool an array that was previously obtained.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Return(void* ptr, in CustomMemoryAllocator allocator)

@@ -14,7 +14,7 @@ namespace NativeCollections
     public readonly struct NativeMemory<T> : IIsCreated, IDisposable, IEquatable<NativeMemory<T>> where T : unmanaged
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly GCHandle _handle;
 
@@ -24,7 +24,7 @@ namespace NativeCollections
         public bool IsCreated => _handle.IsAllocated;
 
         /// <summary>
-        ///     Manager
+        ///     Gets the handle to the underlying object.
         /// </summary>
         public NativeMemoryManager<T> Manager
         {
@@ -33,8 +33,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Memory
+        ///     Gets the memory block handled by this
+        ///     <see cref="T:System.Buffers.MemoryManager`1" />.
         /// </summary>
+        /// <returns>The memory block handled by this <see cref="T:System.Buffers.MemoryManager`1" />.</returns>
         public Memory<T> Memory
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -42,17 +44,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
-        /// <param name="memoryManager">Native memory manager</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeMemory(NativeMemoryManager<T> memoryManager) => _handle = GCHandle.Alloc(memoryManager);
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
-        /// <param name="memoryManager">Native memory manager</param>
-        /// <param name="type">Type</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeMemory(NativeMemoryManager<T> memoryManager, GCHandleType type) => _handle = GCHandle.Alloc(memoryManager, type);
 
@@ -146,7 +145,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeMemory<T> Empty => default;
     }

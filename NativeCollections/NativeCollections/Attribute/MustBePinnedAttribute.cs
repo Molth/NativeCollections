@@ -12,21 +12,20 @@ namespace NativeCollections
     public sealed class MustBePinnedAttribute : Attribute
     {
         /// <summary>
-        ///     Parameter
+        ///     Gets the name of the parameter.
         /// </summary>
         public readonly string? Parameter;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         public MustBePinnedAttribute()
         {
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
-        /// <param name="parameter">Parameter</param>
         public MustBePinnedAttribute(string parameter) => Parameter = parameter;
     }
 }

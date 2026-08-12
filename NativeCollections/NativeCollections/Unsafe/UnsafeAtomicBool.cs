@@ -22,12 +22,12 @@ namespace NativeCollections
     public unsafe struct UnsafeAtomicBool
     {
         /// <summary>
-        ///     Value
+        ///     Gets the value to the underlying object.
         /// </summary>
         private UnsafeAtomicU8 _value;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeAtomicBool(bool value) => _value = new UnsafeAtomicU8(IntoU8(value));
@@ -108,7 +108,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -124,7 +124,7 @@ namespace NativeCollections
         public readonly override string ToString() => "UnsafeAtomicBool";
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeAtomicBool Empty => default;
     }

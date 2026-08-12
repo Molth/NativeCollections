@@ -14,8 +14,8 @@ namespace NativeCollections
     public static partial class UnsafeStringBuilderExtensions
     {
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -37,8 +37,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -68,8 +68,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -102,8 +102,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -139,8 +139,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -179,8 +179,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -222,8 +222,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -268,8 +268,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -317,8 +317,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -369,8 +369,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -424,8 +424,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -482,8 +482,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -543,8 +543,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -607,8 +607,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -674,8 +674,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -744,8 +744,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -817,8 +817,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -842,8 +842,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -875,8 +875,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -911,8 +911,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -950,8 +950,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -992,8 +992,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1037,8 +1037,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1085,8 +1085,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1136,8 +1136,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1190,8 +1190,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1247,8 +1247,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1307,8 +1307,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1370,8 +1370,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1436,8 +1436,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1505,8 +1505,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1577,8 +1577,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1652,8 +1652,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1675,8 +1675,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1706,8 +1706,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1740,8 +1740,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1777,8 +1777,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1817,8 +1817,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1860,8 +1860,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1906,8 +1906,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1955,8 +1955,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -2007,8 +2007,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -2062,8 +2062,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -2120,8 +2120,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -2181,8 +2181,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -2245,8 +2245,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -2312,8 +2312,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -2382,8 +2382,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -2455,8 +2455,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -2480,8 +2480,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -2513,8 +2513,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -2549,8 +2549,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -2588,8 +2588,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -2630,8 +2630,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -2675,8 +2675,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -2723,8 +2723,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -2774,8 +2774,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -2828,8 +2828,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -2885,8 +2885,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -2945,8 +2945,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -3008,8 +3008,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -3074,8 +3074,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -3143,8 +3143,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -3215,8 +3215,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -3290,8 +3290,21 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Parse format
+        ///     Parses the next format item from the format string, appending literal text to the builder,
+        ///     and extracts the argument index, alignment, formatting string, and alignment direction.
         /// </summary>
+        /// <param name="builderRef">Reference to the string builder to which literal text is appended.</param>
+        /// <param name="format">The format string containing placeholders.</param>
+        /// <param name="position">The current position in the format string; updated to after the parsed item.</param>
+        /// <param name="width">The alignment width (positive) or 0 if not specified.</param>
+        /// <param name="leftJustify"><see langword="true" /> if left‑justified; otherwise, right‑justified.</param>
+        /// <param name="itemFormatSpan1">The format specifier for the argument (after ':'), or empty if none.</param>
+        /// <param name="index">The zero‑based argument index of the placeholder.</param>
+        /// <returns>
+        ///     <see langword="true" /> if a valid format item was parsed; <see langword="false" /> if the end of the string
+        ///     was reached.
+        /// </returns>
+        /// <exception cref="FormatException">Thrown when the format string is malformed.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool ParseFormat(ref UnsafeStringBuilder<char> builderRef, ReadOnlySpan<char> format, ref int position, out int width, out bool leftJustify, out ReadOnlySpan<char> itemFormatSpan1, out int index)
         {
@@ -3396,8 +3409,17 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append
+        ///     Appends the formatted representation of an argument to the builder, considering alignment and format specifier.
         /// </summary>
+        /// <param name="builderRef">Reference to the string builder to append to.</param>
+        /// <param name="itemFormatSpan1">The format specifier for the argument, or empty for default.</param>
+        /// <param name="arg">The argument to format and append.</param>
+        /// <param name="width">The alignment width; positive for fixed width, 0 for none.</param>
+        /// <param name="leftJustify">
+        ///     <see langword="true" /> to left‑justify (pad right); <see langword="false" /> to
+        ///     right‑justify (pad left).
+        /// </param>
+        /// <typeparam name="T">The type of the argument.</typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Append<T>(ref UnsafeStringBuilder<char> builderRef, ReadOnlySpan<char> itemFormatSpan1, T? arg, int width, bool leftJustify)
         {
@@ -3449,8 +3471,21 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append
+        ///     Appends the formatted representation of an argument to the builder, using the provided format provider and optional
+        ///     custom formatter.
         /// </summary>
+        /// <param name="builderRef">Reference to the string builder to append to.</param>
+        /// <param name="provider">The <see cref="IFormatProvider" /> to use for formatting; may be <see langword="null" />.</param>
+        /// <param name="customFormatter">A custom <see cref="ICustomFormatter" />; may be <see langword="null" />.</param>
+        /// <param name="itemFormat">A cached string for the format specifier; may be updated internally.</param>
+        /// <param name="itemFormatSpan1">The format specifier span.</param>
+        /// <param name="arg">The argument to format and append.</param>
+        /// <param name="width">The alignment width; positive for fixed width, 0 for none.</param>
+        /// <param name="leftJustify">
+        ///     <see langword="true" /> to left‑justify (pad right); <see langword="false" /> to
+        ///     right‑justify (pad left).
+        /// </param>
+        /// <typeparam name="T">The type of the argument.</typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Append<T>(ref UnsafeStringBuilder<char> builderRef, IFormatProvider? provider, ICustomFormatter? customFormatter, ref string? itemFormat, ReadOnlySpan<char> itemFormatSpan1, T? arg, int width, bool leftJustify)
         {
@@ -3526,8 +3561,21 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Parse format
+        ///     Parses the next format item from the format string, appending literal UTF‑8 text to the builder,
+        ///     and extracts the argument index, alignment, formatting string, and alignment direction.
         /// </summary>
+        /// <param name="builderRef">Reference to the UTF‑8 string builder to which literal text is appended.</param>
+        /// <param name="format">The format string containing placeholders.</param>
+        /// <param name="position">The current position in the format string; updated to after the parsed item.</param>
+        /// <param name="width">The alignment width (positive) or 0 if not specified.</param>
+        /// <param name="leftJustify"><see langword="true" /> if left‑justified; otherwise, right‑justified.</param>
+        /// <param name="itemFormatSpan1">The format specifier for the argument (after ':'), or empty if none.</param>
+        /// <param name="index">The zero‑based argument index of the placeholder.</param>
+        /// <returns>
+        ///     <see langword="true" /> if a valid format item was parsed; <see langword="false" /> if the end of the string
+        ///     was reached.
+        /// </returns>
+        /// <exception cref="FormatException">Thrown when the format string is malformed.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool ParseFormat(ref UnsafeStringBuilder<byte> builderRef, ReadOnlySpan<char> format, ref int position, out int width, out bool leftJustify, out ReadOnlySpan<char> itemFormatSpan1, out int index)
         {
@@ -3632,8 +3680,18 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append
+        ///     Appends the UTF‑8 formatted representation of an argument to the builder, considering alignment and format
+        ///     specifier.
         /// </summary>
+        /// <param name="builderRef">Reference to the UTF‑8 string builder to append to.</param>
+        /// <param name="itemFormatSpan1">The format specifier for the argument, or empty for default.</param>
+        /// <param name="arg">The argument to format and append.</param>
+        /// <param name="width">The alignment width; positive for fixed width, 0 for none.</param>
+        /// <param name="leftJustify">
+        ///     <see langword="true" /> to left‑justify (pad right); <see langword="false" /> to
+        ///     right‑justify (pad left).
+        /// </param>
+        /// <typeparam name="T">The type of the argument.</typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Append<T>(ref UnsafeStringBuilder<byte> builderRef, ReadOnlySpan<char> itemFormatSpan1, T? arg, int width, bool leftJustify)
         {
@@ -3688,8 +3746,21 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Append
+        ///     Appends the UTF‑8 formatted representation of an argument to the builder, using the provided format provider and
+        ///     optional custom formatter.
         /// </summary>
+        /// <param name="builderRef">Reference to the UTF‑8 string builder to append to.</param>
+        /// <param name="provider">The <see cref="IFormatProvider" /> to use for formatting; may be <see langword="null" />.</param>
+        /// <param name="customFormatter">A custom <see cref="ICustomFormatter" />; may be <see langword="null" />.</param>
+        /// <param name="itemFormat">A cached string for the format specifier; may be updated internally.</param>
+        /// <param name="itemFormatSpan1">The format specifier span.</param>
+        /// <param name="arg">The argument to format and append.</param>
+        /// <param name="width">The alignment width; positive for fixed width, 0 for none.</param>
+        /// <param name="leftJustify">
+        ///     <see langword="true" /> to left‑justify (pad right); <see langword="false" /> to
+        ///     right‑justify (pad left).
+        /// </param>
+        /// <typeparam name="T">The type of the argument.</typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Append<T>(ref UnsafeStringBuilder<byte> builderRef, IFormatProvider? provider, ICustomFormatter? customFormatter, ref string? itemFormat, ReadOnlySpan<char> itemFormatSpan1, T? arg, int width, bool leftJustify)
         {
@@ -3768,8 +3839,12 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Move next
+        ///     Advances the position by one character, checks for end‑of‑string, and returns the character at the new position.
         /// </summary>
+        /// <param name="format">The format string being parsed.</param>
+        /// <param name="position">The current position; updated to the next character.</param>
+        /// <returns>The character at the new position.</returns>
+        /// <exception cref="FormatException">Thrown when the end of the string is reached unexpectedly (missing closing brace).</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static char MoveNext(ReadOnlySpan<char> format, ref int position)
         {

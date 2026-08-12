@@ -17,14 +17,19 @@ namespace NativeCollections
     public readonly unsafe struct NativeBitArray : IIsCreated, IDisposable, IEquatable<NativeBitArray>
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly UnsafeBitArray* _handle;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class with the specified number of bits,
+        ///     using the natural alignment and zero-initializing the underlying storage.
         /// </summary>
-        /// <param name="length">Length</param>
+        /// <param name="length">
+        ///     The number of bits to store.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="length" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeBitArray(int length)
         {
@@ -33,10 +38,18 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class with the specified number of bits
+        ///     and the initial value for all bits.
         /// </summary>
-        /// <param name="length">Length</param>
-        /// <param name="defaultValue">Default value</param>
+        /// <param name="length">
+        ///     The number of bits to store.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <param name="defaultValue">
+        ///     The value to assign to all bits
+        ///     (<see langword="true" /> for set, <see langword="false" /> for cleared).
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="length" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeBitArray(int length, bool defaultValue)
         {
@@ -45,10 +58,23 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class that wraps a user-provided buffer of 32‑bit integers,
+        ///     with the specified number of bits.
+        ///     The buffer must be large enough to hold all bits.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="length">Length</param>
+        /// <param name="buffer">
+        ///     The buffer to use as storage.
+        ///     It must be pinned in memory.
+        /// </param>
+        /// <param name="length">
+        ///     The number of bits to store.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="length" /> is negative.</exception>
+        /// <exception cref="ArgumentException">
+        ///     Thrown when the provided <paramref name="buffer" /> is smaller than required for the specified
+        ///     <paramref name="length" />.
+        /// </exception>
         [MustBePinned(nameof(buffer))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeBitArray([MustBePinned] Span<int> buffer, int length)
@@ -58,11 +84,27 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class that wraps a user-provided buffer of 32‑bit integers,
+        ///     with the specified number of bits and initial value for all bits.
+        ///     The buffer must be large enough to hold all bits.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="length">Length</param>
-        /// <param name="defaultValue">Default value</param>
+        /// <param name="buffer">
+        ///     The buffer to use as storage.
+        ///     It must be pinned in memory.
+        /// </param>
+        /// <param name="length">
+        ///     The number of bits to store.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <param name="defaultValue">
+        ///     The value to assign to all bits
+        ///     (<see langword="true" /> for set, <see langword="false" /> for cleared).
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="length" /> is negative.</exception>
+        /// <exception cref="ArgumentException">
+        ///     Thrown when the provided <paramref name="buffer" /> is smaller than required for the specified
+        ///     <paramref name="length" />.
+        /// </exception>
         [MustBePinned(nameof(buffer))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeBitArray([MustBePinned] Span<int> buffer, int length, bool defaultValue)
@@ -77,7 +119,7 @@ namespace NativeCollections
         public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         public NativeArray<int> Buffer => _handle->Buffer;
 
@@ -436,7 +478,7 @@ namespace NativeCollections
         public bool TryGetSlot(uint index, out NativeBitArraySlot slot) => _handle->TryGetSlot(index, out slot);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeBitArray Empty => default;
     }

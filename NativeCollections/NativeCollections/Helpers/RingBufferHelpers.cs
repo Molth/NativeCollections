@@ -11,7 +11,8 @@ namespace NativeCollections
     internal static class RingBufferHelpers
     {
         /// <summary>
-        ///     Copy
+        ///     Copies bytes from the source address to the destination address without assuming architecture dependent alignment
+        ///     of the addresses.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Copy<T>(ref T destination, ref T source, int size, int length, int head) where T : unmanaged
@@ -27,8 +28,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get element offset
+        ///     Computes the actual buffer index for a given logical index in a ring buffer,
+        ///     taking into account the current head position and handling wrap-around.
         /// </summary>
+        /// <param name="index">The logical index (0‑based) of the element within the ring buffer.</param>
+        /// <param name="head">The current head position (starting offset) of the ring buffer.</param>
+        /// <param name="length">The total length of the ring buffer.</param>
+        /// <returns>The actual linear offset in the underlying buffer that corresponds to the logical index.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static nint GetElementOffset(nint index, nint head, nint length)
         {

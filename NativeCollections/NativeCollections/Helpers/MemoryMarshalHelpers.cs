@@ -16,6 +16,15 @@ namespace NativeCollections
     internal static class MemoryMarshalHelpers
     {
         /// <summary>
+        ///     Converts a <see cref="ReadOnlySpan{T}" /> to a mutable <see cref="Span{T}" />.
+        /// </summary>
+        /// <typeparam name="T">The type of elements in the span.</typeparam>
+        /// <param name="value">The read-only span to convert.</param>
+        /// <returns>A mutable span that references the same memory location as <paramref name="value" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Span<T> AsSpan<T>(ReadOnlySpan<T> value) => MemoryMarshal.CreateSpan(ref MemoryMarshal.GetReference(value), value.Length);
+
+        /// <summary>
         ///     Returns a reference to the 0th element of <paramref name="array" />. If the array is empty, returns a reference to
         ///     where the 0th element
         ///     would have been stored. Such a reference may be used for pinning but must never be dereferenced.

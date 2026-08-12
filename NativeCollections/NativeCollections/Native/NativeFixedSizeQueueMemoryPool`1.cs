@@ -15,7 +15,7 @@ namespace NativeCollections
     public readonly unsafe struct NativeFixedSizeQueueMemoryPool<T> : IIsCreated, IDisposable, IEquatable<NativeFixedSizeQueueMemoryPool<T>> where T : unmanaged
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly UnsafeFixedSizeQueueMemoryPool<T>* _handle;
 
@@ -40,9 +40,13 @@ namespace NativeCollections
         public int Capacity => _handle->Capacity;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of the class with the specified initial capacity.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
+        /// <param name="capacity">
+        ///     The initial number of elements that the instance can hold.
+        ///     Must be non-negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="capacity" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeFixedSizeQueueMemoryPool(int capacity)
         {
@@ -106,7 +110,7 @@ namespace NativeCollections
         public void Return(T* ptr) => _handle->Return(ptr);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeFixedSizeQueueMemoryPool<T> Empty => default;
     }

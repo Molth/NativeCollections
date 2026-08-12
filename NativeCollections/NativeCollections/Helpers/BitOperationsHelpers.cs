@@ -1,10 +1,12 @@
-﻿#if NET5_0_OR_GREATER
+﻿using System.Runtime.CompilerServices;
+#if NET5_0_OR_GREATER
 using System.Numerics;
 #else
-using System;
 using System.Runtime.InteropServices;
 #endif
-using System.Runtime.CompilerServices;
+#if !NET7_0_OR_GREATER
+using System;
+#endif
 
 // ReSharper disable ALL
 
@@ -47,20 +49,6 @@ namespace NativeCollections
         /// </summary>
         /// <param name="value">The value.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsPow2(int value)
-        {
-#if NET6_0_OR_GREATER
-            return BitOperations.IsPow2(value);
-#else
-            return (value & (value - 1)) == 0 && value > 0;
-#endif
-        }
-
-        /// <summary>
-        ///     Evaluate whether a given integral value is a power of 2.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsPow2(uint value)
         {
 #if NET6_0_OR_GREATER
@@ -75,7 +63,47 @@ namespace NativeCollections
         /// </summary>
         /// <param name="value">The value to rotate.</param>
         /// <param name="offset">
-        ///     The number of bits to rotate by. Any value outside the range [0..31] is treated as congruent mod 32.
+        ///     The number of bits to rotate by.
+        ///     Any value outside the range [0..31] is treated as congruent mod 32 on a 32-bit process,
+        ///     and any value outside the range [0..63] is treated as congruent mod 64 on a 64-bit process.
+        /// </param>
+        /// <returns>The rotated value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static nuint RotateLeft(nuint value, int offset)
+        {
+#if NET7_0_OR_GREATER
+            return BitOperations.RotateLeft(value, offset);
+#else
+            return Environment.Is64BitProcess ? (nuint)RotateLeft((ulong)value, offset) : RotateLeft((uint)value, offset);
+#endif
+        }
+
+        /// <summary>
+        ///     Rotates the specified value left by the specified number of bits.
+        /// </summary>
+        /// <param name="value">The value to rotate.</param>
+        /// <param name="offset">
+        ///     The number of bits to rotate by.
+        ///     Any value outside the range [0..63] is treated as congruent mod 64.
+        /// </param>
+        /// <returns>The rotated value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ulong RotateLeft(ulong value, int offset)
+        {
+#if NET5_0_OR_GREATER
+            return BitOperations.RotateLeft(value, offset);
+#else
+            return (value << offset) | (value >> (64 - offset));
+#endif
+        }
+
+        /// <summary>
+        ///     Rotates the specified value left by the specified number of bits.
+        /// </summary>
+        /// <param name="value">The value to rotate.</param>
+        /// <param name="offset">
+        ///     The number of bits to rotate by.
+        ///     Any value outside the range [0..31] is treated as congruent mod 32.
         /// </param>
         /// <returns>The rotated value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -89,11 +117,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Count the number of leading zero bits in a mask
-        ///     Similar in behavior to the x86 instruction LZCNT
+        ///     Count the number of leading zero bits in a mask.
         /// </summary>
-        /// <param name="value">Value</param>
-        /// <returns>Leading zero count</returns>
+        /// <param name="value">The value.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int LeadingZeroCount(ulong value)
         {
@@ -106,11 +132,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Count the number of leading zero bits in a mask
-        ///     Similar in behavior to the x86 instruction LZCNT
+        ///     Count the number of leading zero bits in a mask.
         /// </summary>
-        /// <param name="value">Value</param>
-        /// <returns>Leading zero count</returns>
+        /// <param name="value">The value.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int LeadingZeroCount(uint value)
         {
@@ -122,11 +146,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Count the number of trailing zero bits in an integer value
-        ///     Similar in behavior to the x86 instruction TZCNT
+        ///     Count the number of trailing zero bits in a mask.
         /// </summary>
-        /// <param name="value">Value</param>
-        /// <returns>Trailing zero count</returns>
+        /// <param name="value">The value.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int TrailingZeroCount(ulong value)
         {
@@ -139,11 +161,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Count the number of trailing zero bits in an integer value
-        ///     Similar in behavior to the x86 instruction TZCNT
+        ///     Count the number of trailing zero bits in an integer value.
         /// </summary>
-        /// <param name="value">Value</param>
-        /// <returns>Trailing zero count</returns>
+        /// <param name="value">The value.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int TrailingZeroCount(uint value)
         {
@@ -155,10 +175,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Log2
+        ///     Returns the integer (floor) log of the specified value, base 2.
+        ///     Note that by convention, input value 0 returns 0 since log(0) is undefined.
         /// </summary>
-        /// <param name="value">Value</param>
-        /// <returns>Log2</returns>
+        /// <param name="value">The value.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Log2(uint value)
         {

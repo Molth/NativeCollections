@@ -11,21 +11,20 @@ namespace NativeCollections
     public sealed class MustBeZeroedAttribute : Attribute
     {
         /// <summary>
-        ///     Parameter
+        ///     Gets the name of the parameter.
         /// </summary>
         public readonly string? Parameter;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         public MustBeZeroedAttribute()
         {
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
-        /// <param name="parameter">Parameter</param>
         public MustBeZeroedAttribute(string parameter) => Parameter = parameter;
     }
 }

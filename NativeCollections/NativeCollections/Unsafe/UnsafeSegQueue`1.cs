@@ -30,7 +30,7 @@ namespace NativeCollections
         private readonly CachePadding _padding;
 
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private SegQueue<T> _handle;
 
@@ -131,7 +131,7 @@ namespace NativeCollections
         public bool TryDequeue(out T result) => _handle.TryDequeue(out result);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeSegQueue<T> Empty => default;
 

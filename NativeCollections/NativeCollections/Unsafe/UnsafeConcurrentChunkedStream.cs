@@ -15,12 +15,12 @@ namespace NativeCollections
     public unsafe struct UnsafeConcurrentChunkedStream : IIsCreated, IDisposable, IEquatable<UnsafeConcurrentChunkedStream>
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private UnsafeChunkedStream _handle;
 
         /// <summary>
-        ///     Spin lock
+        ///     Internal spin lock used to synchronize updates to the shared state.
         /// </summary>
         private UnsafeConcurrentSpinLock _spinLock;
 
@@ -60,10 +60,21 @@ namespace NativeCollections
         public readonly int Length => _handle.Length;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified chunk size and maximum number of free chunks to retain.
         /// </summary>
-        /// <param name="size">Size</param>
-        /// <param name="maxFreeChunks">Max free chunks</param>
+        /// <param name="size">
+        ///     The number of elements each chunk can hold.
+        ///     Must be greater than zero.
+        /// </param>
+        /// <param name="maxFreeChunks">
+        ///     The maximum number of free chunks to keep in the free list.
+        ///     Must be non-negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown if <paramref name="size" /> is less than or equal to zero, or if
+        ///     <paramref name="maxFreeChunks" /> is negative.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeConcurrentChunkedStream(int size, int maxFreeChunks)
         {
@@ -228,7 +239,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeConcurrentChunkedStream Empty => default;
     }

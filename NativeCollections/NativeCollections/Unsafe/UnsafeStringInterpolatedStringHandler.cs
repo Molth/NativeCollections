@@ -27,7 +27,7 @@ namespace NativeCollections
 #endif
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly UnsafeString* _handle;
 
@@ -115,7 +115,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -136,7 +136,9 @@ namespace NativeCollections
         public readonly bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
         /// <summary>
-        ///     Try copy to
+        ///     Copies the contents of this span into destination span. If the source
+        ///     and destinations overlap, this method behaves as if the original values in
+        ///     a temporary location before the destination is overwritten.
         /// </summary>
         internal readonly bool TryCopyTo(ref UnsafeString builder)
         {

@@ -16,9 +16,8 @@ namespace NativeCollections
         public readonly Type Type;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
-        /// <param name="type">Type</param>
         public BindingTypeAttribute(Type type) => Type = type;
     }
 }

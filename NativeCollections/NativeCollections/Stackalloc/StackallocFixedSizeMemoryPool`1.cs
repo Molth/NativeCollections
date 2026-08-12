@@ -14,17 +14,17 @@ namespace NativeCollections
     public unsafe struct StackallocFixedSizeMemoryPool<T> : IIsCreated, IEquatable<StackallocFixedSizeMemoryPool<T>> where T : unmanaged
     {
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         private readonly T* _buffer;
 
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         private readonly int* _index;
 
         /// <summary>
-        ///     Bit buffer
+        ///     Bit array tracking which slots are currently allocated.
         /// </summary>
         private readonly int* _bitArray;
 
@@ -34,14 +34,14 @@ namespace NativeCollections
         private readonly int _capacity;
 
         /// <summary>
-        ///     Bit buffer length
+        ///     Number of integers required to store the allocation bit array.
         /// </summary>
         private readonly int _bitArrayLength;
 
         /// <summary>
         ///     Gets the number of elements.
         /// </summary>
-        private int _size;
+        private int _count;
 
         /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
@@ -51,12 +51,12 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        public readonly bool IsEmpty => _size == 0;
+        public readonly bool IsEmpty => _count == 0;
 
         /// <summary>
         ///     Gets the number of elements contained in this.
         /// </summary>
-        public readonly int Count => _size;
+        public readonly int Count => _count;
 
         /// <summary>
         ///     Gets the total numbers of elements the internal data structure can hold.
@@ -86,10 +86,21 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     that uses a caller-provided byte buffer as storage.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="capacity">Capacity</param>
+        /// <param name="buffer">
+        ///     The byte buffer to use as underlying storage.
+        ///     It must be large enough to store the specified number of elements with proper alignment.
+        /// </param>
+        /// <param name="capacity">
+        ///     The maximum number of elements the stack can hold.
+        ///     Must be non-negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown if <paramref name="capacity" /> is negative, or if <paramref name="buffer" /> is too small
+        ///     to hold the required number of elements (including alignment padding).
+        /// </exception>
         [MustBePinned(nameof(buffer))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public StackallocFixedSizeMemoryPool([MustBePinned] Span<byte> buffer, int capacity)
@@ -104,7 +115,7 @@ namespace NativeCollections
             SpanHelpers.Set(ref Unsafe.AsRef<byte>(_bitArray), 0, (uint)(extremeLength * Unsafe.SizeOf<int>()));
             _capacity = capacity;
             _bitArrayLength = extremeLength;
-            _size = capacity;
+            _count = capacity;
             for (var i = 0; i < capacity; ++i)
                 Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)i) = i;
         }
@@ -146,7 +157,7 @@ namespace NativeCollections
         public void Reset()
         {
             SpanHelpers.Set(ref Unsafe.AsRef<byte>(_bitArray), 0, (uint)(_bitArrayLength * Unsafe.SizeOf<int>()));
-            _size = _capacity;
+            _count = _capacity;
             for (var i = 0; i < _capacity; ++i)
                 Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)i) = i;
         }
@@ -157,14 +168,14 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryRent(out T* ptr)
         {
-            var size = _size - 1;
+            var size = _count - 1;
             if ((uint)size >= (uint)_capacity)
             {
                 ptr = null;
                 return false;
             }
 
-            _size = size;
+            _count = size;
             var index = Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)size);
             ref var segment = ref Unsafe.Add(ref Unsafe.AsRef<int>(_bitArray), (nint)(index >> 5));
             var bitMask = 1 << index;
@@ -188,13 +199,13 @@ namespace NativeCollections
             if ((segment & bitMask) == 0)
                 ThrowHelpers.ThrowDuplicateException();
             segment &= ~bitMask;
-            Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)_size++) = (int)index;
+            Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)_count++) = (int)index;
         }
 
         /// <summary>
-        ///     Try return buffer
+        ///     Attempts to return to the pool an object that was previously obtained via <see cref="TryRent" /> on the same
+        ///     instance.
         /// </summary>
-        /// <param name="ptr">Pointer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryReturn(T* ptr)
         {
@@ -207,12 +218,12 @@ namespace NativeCollections
             if ((segment & bitMask) == 0)
                 return false;
             segment &= ~bitMask;
-            Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)_size++) = (int)index;
+            Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)_count++) = (int)index;
             return true;
         }
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static StackallocFixedSizeMemoryPool<T> Empty => default;
     }

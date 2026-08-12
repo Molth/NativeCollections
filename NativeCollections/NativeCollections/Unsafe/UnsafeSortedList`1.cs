@@ -25,7 +25,7 @@ namespace NativeCollections
         /// <summary>
         ///     Gets the number of elements.
         /// </summary>
-        private int _size;
+        private int _count;
 
         /// <summary>
         ///     Used to keep enumerator in sync w/ collection.
@@ -45,12 +45,12 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        public readonly bool IsEmpty => _size == 0;
+        public readonly bool IsEmpty => _count == 0;
 
         /// <summary>
         ///     Gets the number of elements contained in this.
         /// </summary>
-        public readonly int Count => _size;
+        public readonly int Count => _count;
 
         /// <summary>
         ///     Gets the total numbers of elements the internal data structure can hold.
@@ -58,16 +58,20 @@ namespace NativeCollections
         public readonly int Capacity => _capacity;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of the class with the specified initial capacity.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
+        /// <param name="capacity">
+        ///     The initial number of elements that the instance can hold.
+        ///     Must be non-negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="capacity" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeSortedList(int capacity)
         {
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             capacity = Math.Max(capacity, 4);
             _items = NativeMemoryAllocator.AlignedAlloc<T>((uint)capacity);
-            _size = 0;
+            _count = 0;
             _version = 0;
             _capacity = capacity;
         }
@@ -116,7 +120,7 @@ namespace NativeCollections
         public void Clear()
         {
             ++_version;
-            _size = 0;
+            _count = 0;
         }
 
         /// <summary>
@@ -126,7 +130,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int IndexOf(in T item)
         {
-            var num = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<T>(_items), _size).BinarySearch(item);
+            var num = MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<T>(_items), _count).BinarySearch(item);
             return num >= 0 ? num : -1;
         }
 
@@ -177,9 +181,9 @@ namespace NativeCollections
             var index = IndexOf(item);
             if (index >= 0)
             {
-                --_size;
-                if (index < _size)
-                    SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<T>()));
+                --_count;
+                if (index < _count)
+                    SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_count - index) * Unsafe.SizeOf<T>()));
                 ++_version;
                 return true;
             }
@@ -198,10 +202,10 @@ namespace NativeCollections
         public void RemoveAt(int index)
         {
             ThrowHelpers.ThrowIfNegative(index, ExceptionArgument.index);
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, ExceptionArgument.index);
-            --_size;
-            if (index < _size)
-                SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<T>()));
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _count, ExceptionArgument.index);
+            --_count;
+            if (index < _count)
+                SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_count - index) * Unsafe.SizeOf<T>()));
             ++_version;
         }
 
@@ -217,11 +221,11 @@ namespace NativeCollections
         public void RemoveAt(int index, out T item)
         {
             ThrowHelpers.ThrowIfNegative(index, ExceptionArgument.index);
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, ExceptionArgument.index);
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _count, ExceptionArgument.index);
             item = Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index);
-            --_size;
-            if (index < _size)
-                SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<T>()));
+            --_count;
+            if (index < _count)
+                SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_count - index) * Unsafe.SizeOf<T>()));
             ++_version;
         }
 
@@ -232,11 +236,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryRemoveAt(int index)
         {
-            if ((uint)index >= (uint)_size)
+            if ((uint)index >= (uint)_count)
                 return false;
-            --_size;
-            if (index < _size)
-                SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<T>()));
+            --_count;
+            if (index < _count)
+                SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_count - index) * Unsafe.SizeOf<T>()));
             ++_version;
             return true;
         }
@@ -249,16 +253,16 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryRemoveAt(int index, out T item)
         {
-            if ((uint)index >= (uint)_size)
+            if ((uint)index >= (uint)_count)
             {
                 item = default;
                 return false;
             }
 
             item = Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index);
-            --_size;
-            if (index < _size)
-                SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_size - index) * Unsafe.SizeOf<T>()));
+            --_count;
+            if (index < _count)
+                SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), (uint)((_count - index) * Unsafe.SizeOf<T>()));
             ++_version;
             return true;
         }
@@ -282,10 +286,10 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
             if (count == 0)
                 return;
-            ThrowHelpers.ThrowIfGreaterThan(index + count, _size, ExceptionArgument.count);
-            _size -= count;
-            if (index < _size)
-                SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + count))), (uint)((_size - index) * Unsafe.SizeOf<T>()));
+            ThrowHelpers.ThrowIfGreaterThan(index + count, _count, ExceptionArgument.count);
+            _count -= count;
+            if (index < _count)
+                SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + count))), (uint)((_count - index) * Unsafe.SizeOf<T>()));
             ++_version;
         }
 
@@ -297,7 +301,7 @@ namespace NativeCollections
         public readonly ref readonly T GetAt(int index)
         {
             ThrowHelpers.ThrowIfNegative(index, ExceptionArgument.index);
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _size, ExceptionArgument.index);
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, _count, ExceptionArgument.index);
             return ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index);
         }
 
@@ -324,7 +328,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool TryGetAt(int index, out T item)
         {
-            if ((uint)index >= (uint)_size)
+            if ((uint)index >= (uint)_count)
             {
                 item = default;
                 return false;
@@ -365,8 +369,8 @@ namespace NativeCollections
         public int TrimExcess()
         {
             var threshold = (int)(_capacity * 0.9);
-            if (_size < threshold)
-                SetCapacity(_size);
+            if (_count < threshold)
+                SetCapacity(_count);
             return _capacity;
         }
 
@@ -379,7 +383,7 @@ namespace NativeCollections
         public int TrimExcess(int capacity)
         {
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
-            if (capacity < _size || capacity >= _capacity)
+            if (capacity < _count || capacity >= _capacity)
                 return _capacity;
             SetCapacity(capacity);
             return _capacity;
@@ -393,12 +397,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetCapacity(int capacity)
         {
-            ThrowHelpers.ThrowIfLessThan(capacity, _size, ExceptionArgument.capacity);
+            ThrowHelpers.ThrowIfLessThan(capacity, _count, ExceptionArgument.capacity);
             if (capacity != _capacity)
             {
                 var items = NativeMemoryAllocator.AlignedAlloc<T>((uint)capacity);
-                if (_size > 0)
-                    SpanHelpers.Copy(ref Unsafe.AsRef<byte>(items), ref Unsafe.AsRef<byte>(_items), (uint)(_size * Unsafe.SizeOf<T>()));
+                if (_count > 0)
+                    SpanHelpers.Copy(ref Unsafe.AsRef<byte>(items), ref Unsafe.AsRef<byte>(_items), (uint)(_count * Unsafe.SizeOf<T>()));
                 NativeMemoryAllocator.AlignedFree(_items);
                 _items = items;
                 _capacity = capacity;
@@ -409,13 +413,13 @@ namespace NativeCollections
         ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<T>(_items), _size);
+        public readonly ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<T>(_items), _count);
 
         /// <summary>
         ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<T> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)start), _size - start);
+        public readonly ReadOnlySpan<T> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)start), _count - start);
 
         /// <summary>
         ///     Creates a new read-only span over a portion of a regular managed object.
@@ -430,24 +434,24 @@ namespace NativeCollections
         public static implicit operator ReadOnlySpan<T>(UnsafeSortedList<T> value) => value.AsReadOnlySpan();
 
         /// <summary>
-        ///     Insert
+        ///     Adds the given object to the end of this list. The size of the list is
+        ///     increased by one. If required, the capacity of the list is doubled
+        ///     before adding the new element.
         /// </summary>
-        /// <param name="index">The zero-based starting index.</param>
-        /// <param name="item">Item</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Insert(int index, in T item)
         {
-            if (_size == _capacity)
-                EnsureCapacity(_size + 1);
-            if (index < _size)
-                SpanHelpers.Move(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), (uint)((_size - index) * Unsafe.SizeOf<T>()));
+            if (_count == _capacity)
+                EnsureCapacity(_count + 1);
+            if (index < _count)
+                SpanHelpers.Move(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)(index + 1))), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index)), (uint)((_count - index) * Unsafe.SizeOf<T>()));
             Unsafe.Add(ref Unsafe.AsRef<T>(_items), (nint)index) = item;
-            ++_size;
+            ++_count;
             ++_version;
         }
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeSortedList<T> Empty => default;
 
@@ -480,13 +484,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Enumerator
+        ///     Supports a simple iteration over a generic collection.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public struct Enumerator : IIterator<T>
         {
             /// <summary>
-            ///     NativeSortedList
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly UnsafeSortedList<T>* _handle;
 
@@ -497,7 +501,7 @@ namespace NativeCollections
             private T _current;
 
             /// <summary>
-            ///     Index
+            ///     The current index.
             /// </summary>
             private int _index;
 
@@ -507,7 +511,7 @@ namespace NativeCollections
             private readonly int _version;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal Enumerator(UnsafeSortedList<T>* handle)
@@ -530,14 +534,14 @@ namespace NativeCollections
             {
                 var handle = _handle;
                 ThrowHelpers.ThrowIfEnumFailedVersion(_version, handle->_version);
-                if ((uint)_index < (uint)handle->_size)
+                if ((uint)_index < (uint)handle->_count)
                 {
                     _current = Unsafe.Add(ref Unsafe.AsRef<T>(handle->_items), (nint)_index);
                     ++_index;
                     return true;
                 }
 
-                _index = handle->_size + 1;
+                _index = handle->_count + 1;
                 return false;
             }
 

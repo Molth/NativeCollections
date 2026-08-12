@@ -18,7 +18,7 @@ namespace NativeCollections
     public unsafe struct UnsafeSortedSet<T> : IIsCreated, IDisposable, IEquatable<UnsafeSortedSet<T>>, IReadOnlyCollection<T> where T : unmanaged, IComparable<T>
     {
         /// <summary>
-        ///     Root
+        ///     The root node.
         /// </summary>
         private Node<T>* _root;
 
@@ -33,7 +33,7 @@ namespace NativeCollections
         private int _version;
 
         /// <summary>
-        ///     Node pool
+        ///     Represents a memory pool that provides reusable fixed-size memory blocks.
         /// </summary>
         private UnsafeMemoryPool<Node<T>> _nodePool;
 
@@ -87,10 +87,22 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified slab capacity and maximum free slabs,
+        ///     using the natural alignment and node length of type <typeparamref name="T" />.
         /// </summary>
-        /// <param name="size">MemoryPool size</param>
-        /// <param name="maxFreeSlabs">MemoryPool maxFreeSlabs</param>
+        /// <param name="size">
+        ///     The number of nodes each slab can hold.
+        ///     Must be greater than zero.
+        /// </param>
+        /// <param name="maxFreeSlabs">
+        ///     The maximum number of free slabs to retain.
+        ///     Must be non-negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="size" /> is less than or equal to zero,
+        ///     or when <paramref name="maxFreeSlabs" /> is negative.
+        /// </exception>
         public UnsafeSortedSet(int size, int maxFreeSlabs)
         {
             var nodePool = new UnsafeMemoryPool<Node<T>>(size, maxFreeSlabs);
@@ -217,12 +229,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Add
+        ///     Adds a new element to the set, or updates an existing element
+        ///     that compares equal to the specified <paramref name="equalValue" />.
         /// </summary>
-        /// <param name="equalValue">Equal value</param>
-        /// <param name="actualValue">Actual value</param>
+        /// <param name="equalValue">The value used for equality comparison to locate an existing element.</param>
+        /// <param name="actualValue">The value to add, or to replace the existing element with if found.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Add(in T equalValue, in T actualValue)
+        public void AddOrUpdate(in T equalValue, in T actualValue)
         {
             var node = FindNode(equalValue);
             if (UnsafeHelpers.IsNull(node))
@@ -494,12 +507,15 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Insertion balance
+        ///     Restores red‑black tree balance after insertion by performing rotations and recoloring.
         /// </summary>
-        /// <param name="current">Current</param>
-        /// <param name="parent">Parent</param>
-        /// <param name="grandParent">Grand parent</param>
-        /// <param name="greatGrandParent">GreatGrand parent</param>
+        /// <param name="current">The newly inserted red node.</param>
+        /// <param name="parent">The parent of <paramref name="current" />.</param>
+        /// <param name="grandParent">The grandparent of <paramref name="current" />.</param>
+        /// <param name="greatGrandParent">
+        ///     The great‑grandparent of <paramref name="current" />,
+        ///     used to update the tree root.
+        /// </param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void InsertionBalance(Node<T>* current, Node<T>* parent, Node<T>* grandParent, Node<T>* greatGrandParent)
         {
@@ -516,11 +532,15 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Replace child or root
+        ///     Replaces a child node of a given parent with a new child,
+        ///     or updates the root if the parent is <see langword="null" />.
         /// </summary>
-        /// <param name="parent">Parent</param>
-        /// <param name="child">Child</param>
-        /// <param name="newChild">New child</param>
+        /// <param name="parent">
+        ///     The parent node whose child is being replaced.
+        ///     May be <see langword="null" />.
+        /// </param>
+        /// <param name="child">The child node to replace.</param>
+        /// <param name="newChild">The new child node.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ReplaceChildOrRoot(Node<T>* parent, Node<T>* child, Node<T>* newChild)
         {
@@ -531,12 +551,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Replace node
+        ///     Replaces a matched node with its successor during deletion,
+        ///     adjusting the tree structure accordingly.
         /// </summary>
-        /// <param name="match">Match</param>
-        /// <param name="parentOfMatch">Parent of match</param>
-        /// <param name="successor">Successor</param>
-        /// <param name="parentOfSuccessor">Parent of successor</param>
+        /// <param name="match">The node to be removed.</param>
+        /// <param name="parentOfMatch">The parent of <paramref name="match" />.</param>
+        /// <param name="successor">The successor node that will replace <paramref name="match" />.</param>
+        /// <param name="parentOfSuccessor">The parent of <paramref name="successor" />.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ReplaceNode(Node<T>* match, Node<T>* parentOfMatch, Node<T>* successor, Node<T>* parentOfSuccessor)
         {
@@ -563,10 +584,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Find node
+        ///     Searches for a node with the specified key.
         /// </summary>
-        /// <param name="item">Item</param>
-        /// <returns>Node</returns>
+        /// <param name="item">The key to locate.</param>
+        /// <returns>
+        ///     A node if found;
+        ///     otherwise, <see langword="null" />.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly Node<T>* FindNode(in T item)
         {
@@ -672,7 +696,7 @@ namespace NativeCollections
         public readonly void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, T>(buffer));
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeSortedSet<T> Empty => default;
 
@@ -705,13 +729,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Enumerator
+        ///     Supports a simple iteration over a generic collection.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public struct Enumerator : IIterator<T>, IDisposable
         {
             /// <summary>
-            ///     NativeHashSet
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly UnsafeSortedSet<T>* _handle;
 
@@ -721,7 +745,7 @@ namespace NativeCollections
             private readonly int _version;
 
             /// <summary>
-            ///     Node stack
+            ///     Stack used for in-order traversal of the tree during enumeration.
             /// </summary>
             private readonly NativeStack<NativePtr<Node<T>>> _nodeStack;
 
@@ -738,7 +762,7 @@ namespace NativeCollections
             private T _current;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal Enumerator(UnsafeSortedSet<T>* handle)

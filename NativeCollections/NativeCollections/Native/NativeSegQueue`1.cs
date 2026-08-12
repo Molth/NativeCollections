@@ -25,12 +25,12 @@ namespace NativeCollections
     public readonly unsafe struct NativeSegQueue<T> : IIsCreated, IDisposable, IEquatable<NativeSegQueue<T>> where T : unmanaged
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly SegQueue<T>* _handle;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private NativeSegQueue(SegQueue<T>* handle) => _handle = handle;
@@ -132,7 +132,7 @@ namespace NativeCollections
         public bool TryDequeue(out T result) => _handle->TryDequeue(out result);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeSegQueue<T> Empty => default;
 

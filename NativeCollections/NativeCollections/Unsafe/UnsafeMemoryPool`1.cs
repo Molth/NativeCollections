@@ -15,7 +15,7 @@ namespace NativeCollections
     public unsafe struct UnsafeMemoryPool<T> : IIsCreated, IDisposable, IEquatable<UnsafeMemoryPool<T>> where T : unmanaged
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private UnsafeMemoryPool _handle;
 
@@ -60,20 +60,51 @@ namespace NativeCollections
         public readonly int AlignedLength => _handle.AlignedLength;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified slab capacity and maximum free slabs,
+        ///     using the natural alignment and node length of type <typeparamref name="T" />.
         /// </summary>
-        /// <param name="size">Size</param>
-        /// <param name="maxFreeSlabs">Max free slabs</param>
+        /// <param name="size">
+        ///     The number of nodes each slab can hold.
+        ///     Must be greater than zero.
+        /// </param>
+        /// <param name="maxFreeSlabs">
+        ///     The maximum number of free slabs to retain.
+        ///     Must be non-negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="size" /> is less than or equal to zero,
+        ///     or when <paramref name="maxFreeSlabs" /> is negative.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeMemoryPool(int size, int maxFreeSlabs) => _handle = new UnsafeMemoryPool(size, Unsafe.SizeOf<T>(), maxFreeSlabs, (int)NativeMemoryAllocator.AlignOf<T>());
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified slab capacity, node length, maximum free slabs, and alignment.
         /// </summary>
-        /// <param name="size">Size</param>
-        /// <param name="length">Length</param>
-        /// <param name="maxFreeSlabs">Max free slabs</param>
-        /// <param name="alignment">Alignment</param>
+        /// <param name="size">
+        ///     The number of nodes each slab can hold.
+        ///     Must be greater than zero.
+        /// </param>
+        /// <param name="length">
+        ///     The length (in bytes) of the data region of each node.
+        ///     Must be at least <see cref="Unsafe.SizeOf{T}" />.
+        /// </param>
+        /// <param name="maxFreeSlabs">
+        ///     The maximum number of free slabs to retain.
+        ///     Must be non-negative.
+        /// </param>
+        /// <param name="alignment">
+        ///     The required alignment, in bytes.
+        ///     Must be a power of two and at least <see cref="NativeMemoryAllocator.AlignOf{T}" />.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="size" /> is less than or equal to zero, <paramref name="maxFreeSlabs" /> is negative,
+        ///     or <paramref name="length" /> is less than <see cref="Unsafe.SizeOf{T}" />,
+        ///     or <paramref name="alignment" /> is less than <see cref="NativeMemoryAllocator.AlignOf{T}" />.
+        /// </exception>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="alignment" /> is not a power of two.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeMemoryPool(int size, int length, int maxFreeSlabs, int alignment)
         {
@@ -169,7 +200,7 @@ namespace NativeCollections
         public int TrimExcess(int capacity) => _handle.TrimExcess(capacity);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeMemoryPool<T> Empty => default;
     }

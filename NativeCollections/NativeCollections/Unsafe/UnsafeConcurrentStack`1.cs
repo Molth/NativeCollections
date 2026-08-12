@@ -17,12 +17,12 @@ namespace NativeCollections
     public readonly struct UnsafeConcurrentStack<T> : IIsCreated, IDisposable, IEquatable<UnsafeConcurrentStack<T>> where T : unmanaged
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly NativeObject<ConcurrentStack<T>> _handle;
 
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private ConcurrentStack<T> Handle => _handle.Value;
 
@@ -55,7 +55,7 @@ namespace NativeCollections
         public int Count => Handle.Count;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeConcurrentStack(NativeObject<ConcurrentStack<T>> handle) => _handle = handle;
@@ -127,7 +127,7 @@ namespace NativeCollections
         public bool TryPop(out T result) => Handle.TryPop(out result);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeConcurrentStack<T> Empty => default;
 

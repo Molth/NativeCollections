@@ -27,20 +27,20 @@ namespace NativeCollections
         where T : IEquatable<T>
     {
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         private readonly ReadOnlySpan<T> _buffer;
 
         /// <summary>
-        ///     Separator
+        ///     The separator.
         /// </summary>
         private readonly ReadOnlySpan<T> _separator;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="separator">Separator</param>
+        /// <param name="buffer">The source to be split.</param>
+        /// <param name="separator">The separator.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(nameof(separator))]
         public NativeSplitAny(ReadOnlySpan<T> buffer, [MustBePinned] in T separator)
@@ -50,10 +50,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="separator">Separator</param>
+        /// <param name="buffer">The source to be split.</param>
+        /// <param name="separator">The separator.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeSplitAny(ReadOnlySpan<T> buffer, ReadOnlySpan<T> separator)
         {
@@ -73,7 +73,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -94,7 +94,7 @@ namespace NativeCollections
         public bool IsCreated => !_buffer.IsEmpty;
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeSplitAny<T> Empty => default;
 
@@ -128,7 +128,7 @@ namespace NativeCollections
 #endif
 
         /// <summary>
-        ///     Enumerator
+        ///     Supports a simple iteration over a generic collection.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         [IsAssignableTo(typeof(IIterator<>))]
@@ -144,25 +144,25 @@ namespace NativeCollections
             private Range _current;
 
             /// <summary>
-            ///     Next
+            ///     The starting index of the remaining portion of the buffer to be split.
             /// </summary>
             private int _next;
 
             /// <summary>
-            ///     Buffer
+            ///     Represents a contiguous region of arbitrary memory.
             /// </summary>
             private readonly ReadOnlySpan<T> _buffer;
 
             /// <summary>
-            ///     Separator
+            ///     The separator.
             /// </summary>
             private readonly ReadOnlySpan<T> _separator;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
-            /// <param name="buffer">Buffer</param>
-            /// <param name="separator">Separator</param>
+            /// <param name="buffer">The source to be split.</param>
+            /// <param name="separator">The separator.</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal Enumerator(ReadOnlySpan<T> buffer, ReadOnlySpan<T> separator)
             {

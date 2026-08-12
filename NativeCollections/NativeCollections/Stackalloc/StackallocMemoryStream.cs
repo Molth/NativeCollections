@@ -15,12 +15,12 @@ namespace NativeCollections
     public unsafe struct StackallocMemoryStream : IIsCreated, IEquatable<StackallocMemoryStream>
     {
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         private readonly byte* _buffer;
 
         /// <summary>
-        ///     Position
+        ///     Gets the current position within the stream.
         /// </summary>
         private int _position;
 
@@ -84,9 +84,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     that uses a caller-provided byte buffer as storage.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
+        /// <param name="buffer">The byte buffer to use as underlying storage.</param>
         [MustBePinned(nameof(buffer))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public StackallocMemoryStream([MustBePinned] Span<byte> buffer)
@@ -341,7 +342,7 @@ namespace NativeCollections
         public static implicit operator ReadOnlySpan<byte>(StackallocMemoryStream value) => value.AsReadOnlySpan();
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static StackallocMemoryStream Empty => default;
     }

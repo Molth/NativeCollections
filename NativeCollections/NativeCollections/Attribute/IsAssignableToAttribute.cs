@@ -11,14 +11,13 @@ namespace NativeCollections
     public sealed class IsAssignableToAttribute : Attribute
     {
         /// <summary>
-        ///     Types
+        ///     Gets the specified one or more types.
         /// </summary>
         public readonly Type[]? Types;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
-        /// <param name="types">Types</param>
         public IsAssignableToAttribute(params Type[]? types) => Types = types;
     }
 }

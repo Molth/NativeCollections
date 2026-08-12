@@ -17,22 +17,22 @@ namespace NativeCollections
     public unsafe struct UnsafeDictionary<TKey, TValue> : IIsCreated, IDisposable, IEquatable<UnsafeDictionary<TKey, TValue>>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
     {
         /// <summary>
-        ///     Buckets
+        ///     Array of bucket.
         /// </summary>
         private int* _buckets;
 
         /// <summary>
-        ///     Entries
+        ///     Array of entry.
         /// </summary>
         private Entry* _entries;
 
         /// <summary>
-        ///     BucketsLength
+        ///     Length of the bucket array.
         /// </summary>
         private int _bucketsLength;
 
         /// <summary>
-        ///     EntriesLength
+        ///     Length of the entry array.
         /// </summary>
         private int _entriesLength;
 
@@ -47,12 +47,12 @@ namespace NativeCollections
         private int _count;
 
         /// <summary>
-        ///     FreeList
+        ///     Index of the head of the free list of unused entries.
         /// </summary>
         private int _freeList;
 
         /// <summary>
-        ///     FreeCount
+        ///     Number of unused entries currently in the free list.
         /// </summary>
         private int _freeCount;
 
@@ -120,9 +120,13 @@ namespace NativeCollections
         public ValueCollection Values => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of the class with the specified initial capacity.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
+        /// <param name="capacity">
+        ///     The initial number of elements that the instance can hold.
+        ///     Must be non-negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="capacity" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeDictionary(int capacity)
         {
@@ -570,10 +574,17 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Find value
+        ///     Searches for the value associated
+        ///     with the specified key and returns a reference to it.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <returns>Value</returns>
+        /// <param name="key">The key to locate.</param>
+        /// <returns>
+        ///     A reference to the value if the key is found;
+        ///     otherwise, a null reference.
+        /// </returns>
+        /// <exception cref="InvalidOperationException">
+        ///     Thrown if the dictionary has been modified concurrently.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly ref TValue FindValue(in TKey key)
         {
@@ -597,10 +608,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Initialize
+        ///     Performs initialization of the object.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>New capacity</returns>
+        /// <param name="capacity">The minimum capacity to ensure.</param>
+        /// <returns>The new capacity of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Initialize(int capacity)
         {
@@ -616,13 +627,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Resize
+        ///     Resizes this to the specified new capacity.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Resize() => Resize(HashHelpers.ExpandPrime(_count));
 
         /// <summary>
-        ///     Resize
+        ///     Resizes this to the specified new capacity.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Resize(int newSize)
@@ -654,10 +665,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Insert
+        ///     Inserts an item into the collection at the specified index.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
+        /// <param name="key">The key to insert.</param>
+        /// <param name="value">The value to insert.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void TryInsertOverwriteExisting(in TKey key, in TValue value)
         {
@@ -712,10 +723,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Insert
+        ///     Inserts an item into the collection at the specified index.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
+        /// <param name="key">The key to insert.</param>
+        /// <param name="value">The value to insert.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void TryInsertThrowOnExisting(in TKey key, in TValue value)
         {
@@ -766,10 +777,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Insert
+        ///     Inserts an item into the collection at the specified index.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
+        /// <param name="key">The key to insert.</param>
+        /// <param name="value">The value to insert.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool TryInsertNone(in TKey key, in TValue value)
         {
@@ -821,36 +832,36 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get bucket ref
+        ///     Returns a reference to the bucket corresponding to the specified hash code.
         /// </summary>
-        /// <param name="hashCode">HashCode</param>
-        /// <returns>Bucket ref</returns>
+        /// <param name="hashCode">The hash code of the key.</param>
+        /// <returns>A reference to the bucket for the given hash code.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly ref int GetBucket(uint hashCode) => ref Unsafe.Add(ref Unsafe.AsRef<int>(_buckets), (nint)_fastModImpl.GetRemainder(hashCode, (uint)_bucketsLength));
 
         /// <summary>
-        ///     Entry
+        ///     Represents an entry.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         private struct Entry
         {
             /// <summary>
-            ///     HashCode
+            ///     The hash code of the key.
             /// </summary>
             public uint HashCode;
 
             /// <summary>
-            ///     Next
+            ///     The index of the next entry.
             /// </summary>
             public int Next;
 
             /// <summary>
-            ///     Key
+            ///     Gets the key to the underlying object.
             /// </summary>
             public TKey Key;
 
             /// <summary>
-            ///     Value
+            ///     Gets the value to the underlying object.
             /// </summary>
             public TValue Value;
         }
@@ -936,7 +947,7 @@ namespace NativeCollections
         public readonly void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, KeyValuePair<TKey, TValue>>(buffer));
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeDictionary<TKey, TValue> Empty => default;
 
@@ -969,13 +980,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Enumerator
+        ///     Supports a simple iteration over a generic collection.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public struct Enumerator : IIterator<KeyValuePair<TKey, TValue>>
         {
             /// <summary>
-            ///     NativeDictionary
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly UnsafeDictionary<TKey, TValue>* _handle;
 
@@ -985,7 +996,7 @@ namespace NativeCollections
             private readonly int _version;
 
             /// <summary>
-            ///     Index
+            ///     The current index.
             /// </summary>
             private int _index;
 
@@ -996,7 +1007,7 @@ namespace NativeCollections
             private KeyValuePair<TKey, TValue> _current;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal Enumerator(UnsafeDictionary<TKey, TValue>* handle)
@@ -1062,7 +1073,7 @@ namespace NativeCollections
         public readonly struct KeyCollection : IIsCreated, IReadOnlyCollection<TKey>
         {
             /// <summary>
-            ///     NativeDictionary
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly UnsafeDictionary<TKey, TValue>* _handle;
 
@@ -1077,7 +1088,7 @@ namespace NativeCollections
             public int Count => _handle->Count;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal KeyCollection(UnsafeDictionary<TKey, TValue>* handle) => _handle = handle;
@@ -1190,18 +1201,18 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Enumerator
+            ///     Supports a simple iteration over a generic collection.
             /// </summary>
             [StructLayout(LayoutKind.Sequential)]
             public struct Enumerator : IIterator<TKey>
             {
                 /// <summary>
-                ///     NativeDictionary
+                ///     Gets the handle to the underlying object.
                 /// </summary>
                 private readonly UnsafeDictionary<TKey, TValue>* _handle;
 
                 /// <summary>
-                ///     Index
+                ///     The current index.
                 /// </summary>
                 private int _index;
 
@@ -1217,7 +1228,7 @@ namespace NativeCollections
                 private TKey _currentKey;
 
                 /// <summary>
-                ///     Structure
+                ///     Initializes a new instance of this class.
                 /// </summary>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 internal Enumerator(UnsafeDictionary<TKey, TValue>* handle)
@@ -1284,7 +1295,7 @@ namespace NativeCollections
         public readonly struct ValueCollection : IIsCreated, IReadOnlyCollection<TValue>
         {
             /// <summary>
-            ///     NativeDictionary
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly UnsafeDictionary<TKey, TValue>* _handle;
 
@@ -1299,7 +1310,7 @@ namespace NativeCollections
             public int Count => _handle->Count;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal ValueCollection(UnsafeDictionary<TKey, TValue>* handle) => _handle = handle;
@@ -1412,18 +1423,18 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Enumerator
+            ///     Supports a simple iteration over a generic collection.
             /// </summary>
             [StructLayout(LayoutKind.Sequential)]
             public struct Enumerator : IIterator<TValue>
             {
                 /// <summary>
-                ///     NativeDictionary
+                ///     Gets the handle to the underlying object.
                 /// </summary>
                 private readonly UnsafeDictionary<TKey, TValue>* _handle;
 
                 /// <summary>
-                ///     Index
+                ///     The current index.
                 /// </summary>
                 private int _index;
 
@@ -1439,7 +1450,7 @@ namespace NativeCollections
                 private TValue _currentValue;
 
                 /// <summary>
-                ///     Structure
+                ///     Initializes a new instance of this class.
                 /// </summary>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 internal Enumerator(UnsafeDictionary<TKey, TValue>* handle)

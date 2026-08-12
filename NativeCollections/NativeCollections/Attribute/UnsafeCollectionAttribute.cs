@@ -12,14 +12,13 @@ namespace NativeCollections
     public sealed class UnsafeCollectionAttribute : Attribute
     {
         /// <summary>
-        ///     Type
+        ///     Gets the origin type of the collection implementation.
         /// </summary>
         public readonly FromType Type;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
-        /// <param name="type">Type</param>
         public UnsafeCollectionAttribute(FromType type) => Type = type;
     }
 }

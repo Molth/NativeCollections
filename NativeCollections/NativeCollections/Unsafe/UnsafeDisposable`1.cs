@@ -14,7 +14,7 @@ namespace NativeCollections
     public unsafe struct UnsafeDisposable<T> : IIsCreated, IDisposable, IEquatable<UnsafeDisposable<T>> where T : unmanaged, IDisposable
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private T* _handle;
 
@@ -24,7 +24,7 @@ namespace NativeCollections
         public readonly bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         public readonly T* Handle
         {
@@ -33,9 +33,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
-        /// <param name="handle">Handle</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeDisposable(T* handle) => _handle = handle;
 
@@ -95,20 +94,20 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Create(T* reference) => _handle = reference;
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(nameof(reference))]
         public void Create([MustBePinned] ref T reference) => _handle = UnsafeHelpers.AsPointer(ref reference);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeDisposable<T> Empty => default;
     }

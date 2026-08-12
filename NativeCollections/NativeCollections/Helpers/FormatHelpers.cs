@@ -21,7 +21,9 @@ namespace NativeCollections
         public static bool HasCustomFormatter(IFormatProvider provider) => provider.GetType() != typeof(CultureInfo) && provider.GetFormat(typeof(ICustomFormatter)) != null;
 
         /// <summary>
-        ///     Try format
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
+        ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         public static bool TryFormat<T>(T? value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
         {
@@ -393,7 +395,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Format
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
+        ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         private static bool TryFormatFallback<T>(T? value, Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
@@ -417,8 +421,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try copy to
+        ///     Copies the contents of this read-only span into destination span. If the source
+        ///     and destinations overlap, this method behaves as if the original values in
+        ///     a temporary location before the destination is overwritten.
         /// </summary>
+        /// <returns>
+        ///     If the destination span is shorter than the source span, this method
+        ///     return false and no data is written to the destination.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool TryCopyTo(ReadOnlySpan<char> source, Span<char> destination, out int charsWritten)
         {
@@ -434,8 +444,8 @@ namespace NativeCollections
 
 #if NET8_0_OR_GREATER
         /// <summary>
-        ///     Decodes into a span of chars a set of bytes from the specified read-only span if the destination is large
-        ///     enough.
+        ///     Decodes into a span of chars a set of bytes from the specified read-only span
+        ///     if the destination is large enough.
         /// </summary>
         /// <param name="bytes">A read-only span containing the sequence of bytes to decode.</param>
         /// <param name="chars">The character span receiving the decoded bytes.</param>

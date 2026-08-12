@@ -29,17 +29,17 @@ namespace NativeCollections
         private readonly int _alignment;
 
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         [NativePointer(typeof(void*))] private readonly nint* _buffer;
 
         /// <summary>
-        ///     Index
+        ///     The current index.
         /// </summary>
         private int _index;
 
         /// <summary>
-        ///     Memory allocator
+        ///     The custom memory allocator used for allocating and deallocating buffers.
         /// </summary>
         private readonly CustomMemoryAllocator _allocator;
 
@@ -64,28 +64,57 @@ namespace NativeCollections
         public readonly int Alignment => _alignment;
 
         /// <summary>
-        ///     Memory allocator
+        ///     The custom memory allocator used for allocating and deallocating buffers.
         /// </summary>
         public readonly CustomMemoryAllocator Allocator => _allocator;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified capacity, node length, and alignment,
+        ///     using the default memory allocator.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <param name="length">Length</param>
-        /// <param name="alignment">Alignment</param>
+        /// <param name="capacity">
+        ///     The maximum number of buffers that can be retained in the bucket.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <param name="length">
+        ///     The size (in bytes) of each allocated buffer.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <param name="alignment">
+        ///     The required alignment (in bytes) for each buffer.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="capacity" />, <paramref name="length" />,
+        ///     or <paramref name="alignment" /> is negative.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeMemoryBucket(int capacity, int length, int alignment) : this(capacity, length, alignment, CustomMemoryAllocator.Default)
         {
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified capacity, node length, alignment, and custom memory allocator.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <param name="length">Length</param>
-        /// <param name="alignment">Alignment</param>
-        /// <param name="allocator">Memory allocator</param>
+        /// <param name="capacity">
+        ///     The maximum number of buffers that can be retained in the bucket.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <param name="length">
+        ///     The size (in bytes) of each allocated buffer.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <param name="alignment">
+        ///     The required alignment (in bytes) for each buffer.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <param name="allocator">The custom memory allocator to use for allocations and deallocations.</param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="capacity" />, <paramref name="length" />,
+        ///     or <paramref name="alignment" /> is negative.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeMemoryBucket(int capacity, int length, int alignment, CustomMemoryAllocator allocator)
         {
@@ -179,7 +208,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeMemoryBucket Empty => default;
     }

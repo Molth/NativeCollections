@@ -18,7 +18,7 @@ namespace NativeCollections
     public unsafe struct StackallocRingBuffer<T> : IIsCreated, IEquatable<StackallocRingBuffer<T>>, IReadOnlyCollection<T> where T : unmanaged
     {
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         private readonly T* _buffer;
 
@@ -28,19 +28,19 @@ namespace NativeCollections
         private readonly int _length;
 
         /// <summary>
-        ///     Head
+        ///     The index of the head.
         /// </summary>
         private int _head;
 
         /// <summary>
-        ///     Tail
+        ///     The index of the tail.
         /// </summary>
         private int _tail;
 
         /// <summary>
         ///     Gets the number of elements.
         /// </summary>
-        private int _size;
+        private int _count;
 
         /// <summary>
         ///     Used to keep enumerator in sync w/ collection.
@@ -55,7 +55,7 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        public readonly bool IsEmpty => _size == 0;
+        public readonly bool IsEmpty => _count == 0;
 
         /// <summary>
         ///     Returns `true` if the queue is full.
@@ -65,7 +65,7 @@ namespace NativeCollections
         /// <summary>
         ///     Gets the number of elements contained in this.
         /// </summary>
-        public readonly int Count => _size;
+        public readonly int Count => _count;
 
         /// <summary>
         ///     Gets the total numbers of elements the internal data structure can hold.
@@ -110,10 +110,21 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     that uses a caller-provided byte buffer as storage.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="capacity">Capacity</param>
+        /// <param name="buffer">
+        ///     The byte buffer to use as underlying storage.
+        ///     It must be large enough to store the specified number of elements with proper alignment.
+        /// </param>
+        /// <param name="capacity">
+        ///     The maximum number of elements the stack can hold.
+        ///     Must be non-negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown if <paramref name="capacity" /> is negative, or if <paramref name="buffer" /> is too small
+        ///     to hold the required number of elements (including alignment padding).
+        /// </exception>
         [MustBePinned(nameof(buffer))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public StackallocRingBuffer([MustBePinned] Span<byte> buffer, int capacity)
@@ -123,7 +134,7 @@ namespace NativeCollections
             _length = capacity;
             _head = 0;
             _tail = 0;
-            _size = 0;
+            _count = 0;
             _version = 0;
         }
 
@@ -163,7 +174,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
-            _size = 0;
+            _count = 0;
             _head = 0;
             _tail = 0;
             _version++;
@@ -183,7 +194,7 @@ namespace NativeCollections
         public InsertResult EnqueueHead(in T item)
         {
             InsertResult result;
-            if (_size == _length)
+            if (_count == _length)
             {
                 if (--_tail == -1)
                     _tail = _length - 1;
@@ -191,7 +202,7 @@ namespace NativeCollections
             }
             else
             {
-                ++_size;
+                ++_count;
                 result = InsertResult.Success;
             }
 
@@ -221,7 +232,7 @@ namespace NativeCollections
         public InsertResult EnqueueHead(in T item, out T overwritten)
         {
             InsertResult result;
-            if (_size == _length)
+            if (_count == _length)
             {
                 if (--_tail == -1)
                     _tail = _length - 1;
@@ -231,7 +242,7 @@ namespace NativeCollections
             else
             {
                 overwritten = default;
-                ++_size;
+                ++_count;
                 result = InsertResult.Success;
             }
 
@@ -253,12 +264,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryEnqueueHead(in T item)
         {
-            if (_size == _length)
+            if (_count == _length)
                 return false;
             if (--_head == -1)
                 _head = _length - 1;
             Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_head) = item;
-            ++_size;
+            ++_count;
             ++_version;
             return true;
         }
@@ -277,7 +288,7 @@ namespace NativeCollections
         public InsertResult EnqueueTail(in T item)
         {
             InsertResult result;
-            if (_size == _length)
+            if (_count == _length)
             {
                 if (++_head == _length)
                     _head = 0;
@@ -285,7 +296,7 @@ namespace NativeCollections
             }
             else
             {
-                ++_size;
+                ++_count;
                 result = InsertResult.Success;
             }
 
@@ -315,7 +326,7 @@ namespace NativeCollections
         public InsertResult EnqueueTail(in T item, out T overwritten)
         {
             InsertResult result;
-            if (_size == _length)
+            if (_count == _length)
             {
                 overwritten = Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_head);
                 if (++_head == _length)
@@ -325,7 +336,7 @@ namespace NativeCollections
             else
             {
                 overwritten = default;
-                ++_size;
+                ++_count;
                 result = InsertResult.Success;
             }
 
@@ -347,12 +358,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryEnqueueTail(in T item)
         {
-            if (_size == _length)
+            if (_count == _length)
                 return false;
             Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_tail) = item;
             if (++_tail == _length)
                 _tail = 0;
-            ++_size;
+            ++_count;
             ++_version;
             return true;
         }
@@ -368,7 +379,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDequeueHead(out T result)
         {
-            if (_size == 0)
+            if (_count == 0)
             {
                 result = default;
                 return false;
@@ -377,7 +388,7 @@ namespace NativeCollections
             result = Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_head);
             if (++_head == _length)
                 _head = 0;
-            --_size;
+            --_count;
             ++_version;
             return true;
         }
@@ -393,7 +404,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDequeueTail(out T result)
         {
-            if (_size == 0)
+            if (_count == 0)
             {
                 result = default;
                 return false;
@@ -402,7 +413,7 @@ namespace NativeCollections
             if (--_tail == -1)
                 _tail = _length - 1;
             result = Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_tail);
-            --_size;
+            --_count;
             ++_version;
             return true;
         }
@@ -423,7 +434,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool TryPeekHead(out T result)
         {
-            if (_size == 0)
+            if (_count == 0)
             {
                 result = default;
                 return false;
@@ -449,7 +460,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool TryPeekTail(out T result)
         {
-            var size = _size - 1;
+            var size = _count - 1;
             if ((uint)size >= (uint)_length)
             {
                 result = default;
@@ -474,7 +485,7 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
             ref var reference = ref MemoryMarshal.GetReference(buffer);
-            var size = Math.Min(buffer.Length, Math.Min(count, _size));
+            var size = Math.Min(buffer.Length, Math.Min(count, _count));
             RingBufferHelpers.Copy(ref reference, ref Unsafe.AsRef<T>(_buffer), size, _length, _head);
             return size;
         }
@@ -504,7 +515,7 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, ExceptionArgument.buffer);
             ref var reference = ref MemoryMarshal.GetReference(buffer);
-            RingBufferHelpers.Copy(ref reference, ref Unsafe.AsRef<T>(_buffer), _size, _length, _head);
+            RingBufferHelpers.Copy(ref reference, ref Unsafe.AsRef<T>(_buffer), _count, _length, _head);
         }
 
         /// <summary>
@@ -519,7 +530,7 @@ namespace NativeCollections
         public readonly void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, T>(buffer));
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static StackallocRingBuffer<T> Empty => default;
 
@@ -552,13 +563,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Enumerator
+        ///     Supports a simple iteration over a generic collection.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public struct Enumerator : IIterator<T>
         {
             /// <summary>
-            ///     NativeDeque
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly StackallocRingBuffer<T>* _handle;
 
@@ -568,7 +579,7 @@ namespace NativeCollections
             private readonly int _version;
 
             /// <summary>
-            ///     Index
+            ///     The current index.
             /// </summary>
             private int _index;
 
@@ -579,7 +590,7 @@ namespace NativeCollections
             private T _currentElement;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal Enumerator(StackallocRingBuffer<T>* handle)
@@ -605,7 +616,7 @@ namespace NativeCollections
                 if (_index == -2)
                     return false;
                 _index++;
-                if (_index == handle->_size)
+                if (_index == handle->_count)
                 {
                     _index = -2;
                     _currentElement = default;

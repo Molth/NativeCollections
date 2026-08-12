@@ -18,7 +18,7 @@ namespace NativeCollections
     public readonly struct UnsafeShardedHashSet<T> : IIsCreated, IDisposable, IEquatable<UnsafeShardedHashSet<T>>, IReadOnlyCollection<T> where T : unmanaged, IEquatable<T>
     {
         /// <summary>
-        ///     Shards
+        ///     Array of shards, each containing a separate hash set and its own reader‑writer lock.
         /// </summary>
         /// <remarks>
         ///     Segment design is inspired by the algorithm outlined at:
@@ -43,7 +43,7 @@ namespace NativeCollections
         ///     The hashSet contains too many elements.
         /// </exception>
         /// <value>
-        ///     The number of key/value pairs contained in this.
+        ///     The number of items contained in this.
         /// </value>
         /// <remarks>
         ///     Count has snapshot semantics and represents the number of items in this
@@ -52,7 +52,7 @@ namespace NativeCollections
         public int Count => GetCount(_shards);
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private UnsafeShardedHashSet(NativeArray<Shard> shards) => _shards = shards;
@@ -200,7 +200,7 @@ namespace NativeCollections
         ///     The hashSet contains too many elements.
         /// </exception>
         /// <value>
-        ///     The number of key/value pairs contained in this.
+        ///     The number of items contained in this.
         /// </value>
         /// <remarks>
         ///     Count has snapshot semantics and represents the number of items in this
@@ -225,24 +225,24 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Shard
+        ///     A single shard consisting of a hash map and its associated lock for concurrent access.
         /// </summary>
         [StructLayout(LayoutKind.Sequential, Size = CACHE_LINE_SIZE)]
         internal struct Shard
         {
             /// <summary>
-            ///     Reader writer lock
+            ///     Reader‑writer lock protecting the hash map in this shard.
             /// </summary>
             public UnsafeReaderWriterLock RwLock;
 
             /// <summary>
-            ///     HashMap
+            ///     The underlying set holding the items for this shard.
             /// </summary>
             public UnsafeHashSet<T> HashSet;
         }
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeShardedHashSet<T> Empty => default;
 
@@ -314,33 +314,33 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Enumerator
+        ///     Supports a simple iteration over a generic collection.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public struct Enumerator : IIterator<T>, IDisposable
         {
             /// <summary>
-            ///     Handle
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly NativeArray<Shard> _handle;
 
             /// <summary>
-            ///     Index
+            ///     The current index.
             /// </summary>
             private int _index;
 
             /// <summary>
-            ///     Enumerator
+            ///     Supports a simple iteration over a generic collection.
             /// </summary>
             private UnsafeHashSet<T>.Enumerator _enumerator;
 
             /// <summary>
-            ///     Locked
+            ///     Indicates whether the enumerator currently holds a read lock on a shard.
             /// </summary>
             private bool _locked;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal Enumerator(NativeArray<Shard> handle)

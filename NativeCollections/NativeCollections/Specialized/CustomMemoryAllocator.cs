@@ -15,7 +15,8 @@ namespace NativeCollections
     public readonly unsafe struct CustomMemoryAllocator : IEquatable<CustomMemoryAllocator>
     {
         /// <summary>
-        ///     User
+        ///     The user-defined context pointer
+        ///     used by the callbacks.
         /// </summary>
         private readonly void* _user;
 
@@ -25,7 +26,7 @@ namespace NativeCollections
         private readonly CustomMemoryCallbacks _callbacks;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public CustomMemoryAllocator(void* user, delegate* managed<void*, uint, uint, void*> alignedAlloc, delegate* managed<void*, uint, uint, void*> alignedAllocZeroed, delegate* managed<void*, void*, void> alignedFree)
@@ -35,10 +36,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
-        /// <param name="user">User</param>
-        /// <param name="callbacks">Callbacks</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public CustomMemoryAllocator(void* user, in CustomMemoryCallbacks callbacks)
         {
@@ -47,12 +46,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     User
+        ///     Gets the user-provided context pointer
+        ///     that is passed to the memory callbacks.
         /// </summary>
         public void* User => _user;
 
         /// <summary>
-        ///     Callbacks
+        ///     Allocates an aligned block of memory of the specified size and alignment, in bytes.
         /// </summary>
         public CustomMemoryCallbacks Callbacks => _callbacks;
 
@@ -138,7 +138,8 @@ namespace NativeCollections
         public void AlignedFree(void* ptr) => _callbacks.AlignedFree(_user, ptr);
 
         /// <summary>
-        ///     Default
+        ///     Gets a memory allocator that uses the
+        ///     default native memory allocation functions.
         /// </summary>
         public static CustomMemoryAllocator Default
         {
@@ -154,7 +155,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static CustomMemoryAllocator Empty => default;
     }

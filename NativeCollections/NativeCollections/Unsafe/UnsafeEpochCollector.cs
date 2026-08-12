@@ -28,7 +28,7 @@ namespace NativeCollections
         private readonly CachePadding _padding;
 
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private EpochCollector _handle;
 
@@ -142,7 +142,7 @@ namespace NativeCollections
         public void Retire(uint epoch, void* data, delegate* managed<void*, void> call) => _handle.Retire(epoch, data, call);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeEpochCollector Empty => default;
 

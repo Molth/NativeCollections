@@ -26,11 +26,10 @@ namespace NativeCollections
         class BitArrayHelpers
     {
         /// <summary>
-        ///     And
+        ///     Performs the bitwise AND operation between the elements of the current object and the
+        ///     corresponding elements in the specified array. The current object will be modified to
+        ///     store the result of the bitwise AND operation.
         /// </summary>
-        /// <param name="destination">Destination</param>
-        /// <param name="source">Source</param>
-        /// <param name="count">The number of elements.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void And(Span<int> destination, Span<int> source, uint count)
         {
@@ -132,11 +131,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Or
+        ///     Performs the bitwise OR operation between the elements of the current object and the
+        ///     corresponding elements in the specified array. The current object will be modified to
+        ///     store the result of the bitwise OR operation.
         /// </summary>
-        /// <param name="destination">Destination</param>
-        /// <param name="source">Source</param>
-        /// <param name="count">The number of elements.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Or(Span<int> destination, Span<int> source, uint count)
         {
@@ -238,11 +236,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Xor
+        ///     Performs the bitwise XOR operation between the elements of the current object and the
+        ///     corresponding elements in the specified array. The current object will be modified to
+        ///     store the result of the bitwise XOR operation.
         /// </summary>
-        /// <param name="destination">Destination</param>
-        /// <param name="source">Source</param>
-        /// <param name="count">The number of elements.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Xor(Span<int> destination, Span<int> source, uint count)
         {
@@ -344,10 +341,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Not
+        ///     Inverts all the bit values in the current, so that elements set to true are changed to false,
+        ///     and elements set to false are changed to true.
         /// </summary>
-        /// <param name="destination">Destination</param>
-        /// <param name="count">The number of elements.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Not(Span<int> destination, uint count)
         {

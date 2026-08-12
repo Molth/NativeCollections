@@ -18,27 +18,28 @@ namespace NativeCollections
     public unsafe struct UnsafeConcurrentReaderWriterLock : IEquatable<UnsafeConcurrentReaderWriterLock>
     {
         /// <summary>
-        ///     Spin lock
+        ///     Internal spin lock used to synchronize updates to the shared state.
         /// </summary>
         private UnsafeConcurrentSpinLock _spinLock;
 
         /// <summary>
-        ///     Is writer
+        ///     Indicates whether the write lock is currently held.
         /// </summary>
         private bool _isWriter;
 
         /// <summary>
-        ///     Read sequence number
+        ///     Sequence number captured at the time of acquiring a read lock,
+        ///     used to wait for any pending write lock to complete.
         /// </summary>
         private uint _readSequenceNumber;
 
         /// <summary>
-        ///     Sequence number
+        ///     Monotonically increasing sequence number that changes on every lock acquisition.
         /// </summary>
         private uint _sequenceNumber;
 
         /// <summary>
-        ///     Next sequence number
+        ///     Sequence number of the last released lock, used to determine when a lock can be acquired.
         /// </summary>
         private uint _nextSequenceNumber;
 
@@ -249,7 +250,7 @@ namespace NativeCollections
         public static bool operator !=(UnsafeConcurrentReaderWriterLock left, UnsafeConcurrentReaderWriterLock right) => !left.Equals(right);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeConcurrentReaderWriterLock Empty => default;
     }

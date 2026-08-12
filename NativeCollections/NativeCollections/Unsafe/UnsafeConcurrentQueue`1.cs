@@ -17,12 +17,12 @@ namespace NativeCollections
     public readonly struct UnsafeConcurrentQueue<T> : IIsCreated, IDisposable, IEquatable<UnsafeConcurrentQueue<T>> where T : unmanaged
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly NativeObject<ConcurrentQueue<T>> _handle;
 
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private ConcurrentQueue<T> Handle => _handle.Value;
 
@@ -63,7 +63,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private UnsafeConcurrentQueue(NativeObject<ConcurrentQueue<T>> handle) => _handle = handle;
@@ -135,7 +135,7 @@ namespace NativeCollections
         public bool TryDequeue(out T result) => Handle.TryDequeue(out result);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeConcurrentQueue<T> Empty => default;
 

@@ -19,7 +19,7 @@ namespace NativeCollections
     public readonly unsafe struct NativeFrozenSet<T> : IIsCreated, IDisposable, IEquatable<NativeFrozenSet<T>>, IReadOnlyCollection<T> where T : unmanaged, IEquatable<T>
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly NativeFrozenSetHandle<T>* _handle;
 
@@ -60,7 +60,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeFrozenSet<T> Create(HashSet<T> source)
@@ -73,7 +73,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeFrozenSet<T> Create(NativeHashSet<T> source)
@@ -84,10 +84,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeFrozenSet<T> Create(in UnsafeHashSet<T> source)
+        public static NativeFrozenSet<T> Create(UnsafeHashSet<T> source)
         {
             using var items = new NativeArray<T>(source.Count);
             source.CopyTo(items);
@@ -95,10 +95,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeFrozenSet<T> Create(in StackallocHashSet<T> source)
+        public static NativeFrozenSet<T> Create(StackallocHashSet<T> source)
         {
             using var items = new NativeArray<T>(source.Count);
             source.CopyTo(items);
@@ -106,14 +106,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MustBeDistinct(nameof(source))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeFrozenSet([MustBeDistinct] ReadOnlySpan<T> source) => _handle = Initialize(source);
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static NativeFrozenSetHandle<T>* Initialize(ReadOnlySpan<T> source)
@@ -274,28 +274,28 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeFrozenSet<T> Empty => default;
 
         /// <summary>
-        ///     Enumerator
+        ///     Supports a simple iteration over a generic collection.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public struct Enumerator : IIterator<T>
         {
             /// <summary>
-            ///     Items
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly NativeArray<T> _handle;
 
             /// <summary>
-            ///     Index
+            ///     The current index.
             /// </summary>
             private int _index;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal Enumerator(NativeArray<T> handle)

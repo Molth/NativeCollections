@@ -21,7 +21,7 @@ namespace NativeCollections
 #endif
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly NativeRef<EpochCollector> _handle;
 
@@ -41,7 +41,7 @@ namespace NativeCollections
         public uint Epoch => _epoch;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal NativeEpochCollectorRefScope(NativeRef<EpochCollector> handle, uint epoch)
@@ -116,7 +116,7 @@ namespace NativeCollections
         public override string ToString() => "NativeEpochCollectorRefScope";
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeEpochCollectorRefScope Empty => default;
     }

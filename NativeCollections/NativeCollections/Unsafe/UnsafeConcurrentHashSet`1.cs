@@ -19,12 +19,12 @@ namespace NativeCollections
     public readonly struct UnsafeConcurrentHashSet<T> : IIsCreated, IDisposable, IEquatable<UnsafeConcurrentHashSet<T>>, IReadOnlyCollection<T> where T : unmanaged, IEquatable<T>
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly NativeObject<ConcurrentDictionary<T, bool>> _handle;
 
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private ConcurrentDictionary<T, bool> Handle => _handle.Value;
 
@@ -62,7 +62,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private UnsafeConcurrentHashSet(NativeObject<ConcurrentDictionary<T, bool>> handle) => _handle = handle;
@@ -145,7 +145,7 @@ namespace NativeCollections
         public bool Contains(T item) => Handle.ContainsKey(item);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeConcurrentHashSet<T> Empty => default;
 
@@ -187,12 +187,12 @@ namespace NativeCollections
         public Enumerator GetEnumerator() => new(AllocEnumerator(Handle));
 
         /// <summary>
-        ///     Alloc enumerator
+        ///     Allocates a native object that holds an enumerator for the dictionary.
         /// </summary>
         private static NativeObject<IEnumerator<KeyValuePair<T, bool>>> AllocEnumerator(ConcurrentDictionary<T, bool> handle) => NativeObject<IEnumerator<KeyValuePair<T, bool>>>.Create(BoxEnumerator(handle));
 
         /// <summary>
-        ///     Box enumerator
+        ///     Returns an enumerator for the dictionary, boxing the value‑type enumerator.
         /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static IEnumerator<KeyValuePair<T, bool>> BoxEnumerator(ConcurrentDictionary<T, bool> handle) => handle.GetEnumerator();
@@ -220,23 +220,23 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Enumerator
+        ///     Supports a simple iteration over a generic collection.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public readonly struct Enumerator : IIterator<T>, IDisposable
         {
             /// <summary>
-            ///     Handle
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly NativeObject<IEnumerator<KeyValuePair<T, bool>>> _handle;
 
             /// <summary>
-            ///     Handle
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private IEnumerator<KeyValuePair<T, bool>> Handle => _handle.Value;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal Enumerator(NativeObject<IEnumerator<KeyValuePair<T, bool>>> handle) => _handle = handle;

@@ -17,12 +17,12 @@ namespace NativeCollections
     public readonly unsafe struct NativeTreiberStack<T> : IIsCreated, IDisposable, IEquatable<NativeTreiberStack<T>> where T : unmanaged
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly TreiberStack<T>* _handle;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private NativeTreiberStack(TreiberStack<T>* handle) => _handle = handle;
@@ -122,7 +122,7 @@ namespace NativeCollections
         public bool TryPop(out T result) => _handle->TryPop(out result);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeTreiberStack<T> Empty => default;
 

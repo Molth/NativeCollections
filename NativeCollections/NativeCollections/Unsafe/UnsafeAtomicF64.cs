@@ -21,12 +21,12 @@ namespace NativeCollections
     public unsafe struct UnsafeAtomicF64
     {
         /// <summary>
-        ///     Value
+        ///     Gets the value to the underlying object.
         /// </summary>
         private UnsafeAtomicI64 _value;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeAtomicF64(double value) => _value = new UnsafeAtomicI64(BitConverter.DoubleToInt64Bits(value));
@@ -127,7 +127,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -143,7 +143,7 @@ namespace NativeCollections
         public readonly override string ToString() => "UnsafeAtomicF64";
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeAtomicF64 Empty => default;
     }

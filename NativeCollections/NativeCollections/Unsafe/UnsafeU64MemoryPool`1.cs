@@ -15,7 +15,7 @@ namespace NativeCollections
     public unsafe struct UnsafeU64MemoryPool<T> : IIsCreated, IDisposable, IEquatable<UnsafeU64MemoryPool<T>> where T : unmanaged
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private UnsafeU64MemoryPool _handle;
 
@@ -55,18 +55,48 @@ namespace NativeCollections
         public readonly int AlignedLength => _handle.AlignedLength;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of the this class
+        ///     with the specified maximum free slabs,
+        ///     using the natural length and alignment of type <typeparamref name="T" />.
         /// </summary>
-        /// <param name="maxFreeSlabs">Max free slabs</param>
+        /// <remarks>
+        ///     Each slab contains exactly 64 nodes,
+        ///     as the allocation bitmap is stored as a <see cref="ulong" />.
+        /// </remarks>
+        /// <param name="maxFreeSlabs">
+        ///     The maximum number of free slabs to retain in the free list.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="maxFreeSlabs" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeU64MemoryPool(int maxFreeSlabs) => _handle = new UnsafeU64MemoryPool(Unsafe.SizeOf<T>(), maxFreeSlabs, (int)NativeMemoryAllocator.AlignOf<T>());
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of the this class
+        ///     with the specified node length, maximum free slabs, and alignment.
         /// </summary>
-        /// <param name="length">Length</param>
-        /// <param name="maxFreeSlabs">Max free slabs</param>
-        /// <param name="alignment">Alignment</param>
+        /// <remarks>
+        ///     Each slab contains exactly 64 nodes,
+        ///     as the allocation bitmap is stored as a <see cref="ulong" />.
+        /// </remarks>
+        /// <param name="length">
+        ///     The length (in bytes) of the data region of each node.
+        ///     Must be at least <see cref="Unsafe.SizeOf{T}" />.
+        /// </param>
+        /// <param name="maxFreeSlabs">
+        ///     The maximum number of free slabs to retain in the free list.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <param name="alignment">
+        ///     The required alignment, in bytes, for allocations.
+        ///     Must be a power of two and at least <see cref="NativeMemoryAllocator.AlignOf{T}" />.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown if <paramref name="length" /> is less than <see cref="Unsafe.SizeOf{T}" />,
+        ///     or if <paramref name="maxFreeSlabs" /> is negative,
+        ///     or if <paramref name="alignment" /> is less than <see cref="NativeMemoryAllocator.AlignOf{T}" />.
+        /// </exception>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="alignment" /> is not a power of two.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeU64MemoryPool(int length, int maxFreeSlabs, int alignment)
         {
@@ -162,7 +192,7 @@ namespace NativeCollections
         public int TrimExcess(int capacity) => _handle.TrimExcess(capacity);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeU64MemoryPool<T> Empty => default;
     }

@@ -21,12 +21,12 @@ namespace NativeCollections
     public readonly unsafe struct NativeEpochCollector : IIsCreated, IDisposable, IEquatable<NativeEpochCollector>
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly EpochCollector* _handle;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private NativeEpochCollector(EpochCollector* handle) => _handle = handle;
@@ -141,7 +141,7 @@ namespace NativeCollections
         public void Retire(uint epoch, void* data, delegate* managed<void*, void> call) => _handle->Retire(epoch, data, call);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeEpochCollector Empty => default;
 

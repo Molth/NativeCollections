@@ -27,12 +27,12 @@ namespace NativeCollections
     public readonly unsafe struct NativeArrayQueue<T> : IIsCreated, IDisposable, IEquatable<NativeArrayQueue<T>> where T : unmanaged
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly ArrayQueue<T>* _handle;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private NativeArrayQueue(ArrayQueue<T>* handle) => _handle = handle;
@@ -166,7 +166,7 @@ namespace NativeCollections
         public bool TryDequeue(out T result) => _handle->TryDequeue(out result);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeArrayQueue<T> Empty => default;
 
@@ -177,6 +177,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeArrayQueue<T> Create(int capacity)
         {
+            ThrowHelpers.ThrowIfNegativeOrZero(capacity, ExceptionArgument.capacity);
             var value = new ArrayQueue<T>((nuint)capacity);
             return new NativeArrayQueue<T>(Box.New(ref value, CACHE_LINE_SIZE));
         }

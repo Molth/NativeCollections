@@ -107,7 +107,7 @@ namespace NativeCollections
         private static void Dispose<T, TKey, TValue>(void* ptr) where T : unmanaged, IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged => Unsafe.AsRef<T>(ptr).Dispose();
 
         /// <summary>
-        ///     Get handle
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeFrozenDictionaryHandle<TKey, TValue> GetNativeHandle<T, TKey, TValue>() where T : unmanaged, IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged => new(&GetValueRefOrNullRef<T, TKey, TValue>, &Keys<T, TKey, TValue>, &Values<T, TKey, TValue>, &Count<T, TKey, TValue>, &GetEnumerator<T, TKey, TValue>, &Dispose<T, TKey, TValue>);
@@ -154,13 +154,13 @@ namespace NativeCollections
         private static void Dispose<T, TKey, TValue>(ref UnsafeFrozenDictionaryValue ptr) where T : unmanaged, IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged => Unsafe.As<UnsafeFrozenDictionaryValue, T>(ref ptr).Dispose();
 
         /// <summary>
-        ///     Get handle
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeFrozenDictionaryHandle<TKey, TValue> GetUnsafeHandle<T, TKey, TValue>() where T : unmanaged, IFrozenDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged => new(&GetValueRefOrNullRef<T, TKey, TValue>, &Keys<T, TKey, TValue>, &Values<T, TKey, TValue>, &Count<T, TKey, TValue>, &GetEnumerator<T, TKey, TValue>, &Dispose<T, TKey, TValue>);
 
         /// <summary>
-        ///     Frozen dictionary
+        ///     Provides an immutable, read-only dictionary optimized for fast lookup and enumeration.
         /// </summary>
         public interface IFrozenDictionary<TKey, TValue> : IDisposable where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
         {
@@ -195,7 +195,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Native frozen dictionary handle
+        ///     Provides an immutable, read-only dictionary optimized for fast lookup and enumeration.
         /// </summary>
         [StructLayout(LayoutKind.Sequential, Size = CACHE_LINE_SIZE)]
         public readonly struct NativeFrozenDictionaryHandle<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
@@ -236,7 +236,7 @@ namespace NativeCollections
             public readonly delegate* managed<void*, void> Dispose;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public NativeFrozenDictionaryHandle(delegate* managed<void*, in TKey, ref readonly TValue> getValueRefOrNullRef, delegate* managed<void*, NativeArray<TKey>> keys, delegate* managed<void*, NativeArray<TValue>> values, delegate* managed<void*, int> count, delegate* managed<void*, NativeFrozenDictionary<TKey, TValue>.Enumerator> getEnumerator, delegate* managed<void*, void> dispose)
@@ -251,7 +251,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Unsafe frozen dictionary handle
+        ///     Provides an immutable, read-only dictionary optimized for fast lookup and enumeration.
         /// </summary>
         [StructLayout(LayoutKind.Sequential, Size = CACHE_LINE_SIZE)]
         public struct UnsafeFrozenDictionaryHandle<TKey, TValue> : IIsCreated where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
@@ -297,12 +297,12 @@ namespace NativeCollections
             public readonly delegate* managed<ref UnsafeFrozenDictionaryValue, void> Dispose;
 
             /// <summary>
-            ///     Value
+            ///     Gets the value to the underlying object.
             /// </summary>
             public UnsafeFrozenDictionaryValue Value;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public UnsafeFrozenDictionaryHandle(delegate* managed<ref UnsafeFrozenDictionaryValue, in TKey, ref readonly TValue> getValueRefOrNullRef, delegate* managed<ref UnsafeFrozenDictionaryValue, NativeArray<TKey>> keys, delegate* managed<ref UnsafeFrozenDictionaryValue, NativeArray<TValue>> values, delegate* managed<ref UnsafeFrozenDictionaryValue, int> count, delegate* managed<ref UnsafeFrozenDictionaryValue, NativeFrozenDictionary<TKey, TValue>.Enumerator> getEnumerator, delegate* managed<ref UnsafeFrozenDictionaryValue, void> dispose)
@@ -318,39 +318,39 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Value
+        ///     Gets the value to the underlying object.
         /// </summary>
         [StructLayout(LayoutKind.Explicit)]
         public readonly struct UnsafeFrozenDictionaryValue
         {
             /// <summary>
-            ///     Element
+            ///     Union field.
             /// </summary>
             [FieldOffset(0)] private readonly EmptyFrozenDictionary<int, int> _element0;
 
             /// <summary>
-            ///     Element
+            ///     Union field.
             /// </summary>
             [FieldOffset(0)] private readonly SmallFrozenDictionary<int, int> _element1;
 
             /// <summary>
-            ///     Element
+            ///     Union field.
             /// </summary>
             [FieldOffset(0)] private readonly SmallComparableFrozenDictionary<int, int> _element2;
 
             /// <summary>
-            ///     Element
+            ///     Union field.
             /// </summary>
             [FieldOffset(0)] private readonly Int32FrozenDictionary<int> _element3;
 
             /// <summary>
-            ///     Element
+            ///     Union field.
             /// </summary>
             [FieldOffset(0)] private readonly DefaultFrozenDictionary<int, int> _element4;
         }
 
         /// <summary>
-        ///     Empty frozen dictionary
+        ///     Provides an immutable, read-only dictionary optimized for fast lookup and enumeration.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public readonly struct EmptyFrozenDictionary<TKey, TValue> : IFrozenDictionary<TKey, TValue>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
@@ -425,7 +425,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Small frozen dictionary
+        ///     Provides an immutable, read-only dictionary optimized for fast lookup and enumeration.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public readonly struct SmallFrozenDictionary<TKey, TValue> : IFrozenDictionary<TKey, TValue>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
@@ -441,7 +441,7 @@ namespace NativeCollections
             private readonly NativeArray<TValue> _values;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public SmallFrozenDictionary(ReadOnlySpan<KeyValuePair<TKey, TValue>> source)
@@ -529,7 +529,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Small comparable frozen dictionary
+        ///     Provides an immutable, read-only dictionary optimized for fast lookup and enumeration.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public readonly struct SmallComparableFrozenDictionary<TKey, TValue> : IFrozenDictionary<TKey, TValue>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
@@ -545,12 +545,12 @@ namespace NativeCollections
             private readonly NativeArray<TValue> _values;
 
             /// <summary>
-            ///     Max
+            ///     Gets the maximum key in this.
             /// </summary>
             private TKey Max => _keys[^1];
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public SmallComparableFrozenDictionary(ReadOnlySpan<KeyValuePair<TKey, TValue>> source)
@@ -652,13 +652,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Int32 frozen dictionary
+        ///     Provides an immutable, read-only dictionary optimized for fast lookup and enumeration.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public readonly struct Int32FrozenDictionary<TValue> : IFrozenDictionary<int, TValue>, IReadOnlyCollection<KeyValuePair<int, TValue>> where TValue : unmanaged
         {
             /// <summary>
-            ///     Frozen hash table
+            ///     Represents a frozen hash table that stores hash codes and provides fast lookup for matching entries.
             /// </summary>
             private readonly FrozenHashTable _hashTable;
 
@@ -668,7 +668,7 @@ namespace NativeCollections
             private readonly NativeArray<TValue> _values;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public Int32FrozenDictionary(ReadOnlySpan<KeyValuePair<int, TValue>> source)
@@ -767,13 +767,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Default frozen dictionary
+        ///     Provides an immutable, read-only dictionary optimized for fast lookup and enumeration.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public readonly struct DefaultFrozenDictionary<TKey, TValue> : IFrozenDictionary<TKey, TValue>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
         {
             /// <summary>
-            ///     Frozen hash table
+            ///     Represents a frozen hash table that stores hash codes and provides fast lookup for matching entries.
             /// </summary>
             private readonly FrozenHashTable _hashTable;
 
@@ -788,7 +788,7 @@ namespace NativeCollections
             private readonly NativeArray<TValue> _values;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public DefaultFrozenDictionary(ReadOnlySpan<KeyValuePair<TKey, TValue>> source)

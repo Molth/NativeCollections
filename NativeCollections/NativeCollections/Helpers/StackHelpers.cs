@@ -10,7 +10,8 @@ namespace NativeCollections
     internal static class StackHelpers
     {
         /// <summary>
-        ///     Copy
+        ///     Copies bytes from the source address to the destination address without assuming architecture dependent alignment
+        ///     of the addresses.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Copy<T>(ref T destination, ref T source, int count) where T : unmanaged

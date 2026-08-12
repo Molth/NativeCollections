@@ -14,12 +14,12 @@ namespace NativeCollections
     public unsafe struct UnsafeFixedSizeQueueMemoryPool<T> : IIsCreated, IDisposable, IEquatable<UnsafeFixedSizeQueueMemoryPool<T>> where T : unmanaged
     {
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         private readonly T* _buffer;
 
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         private readonly int* _index;
 
@@ -29,19 +29,19 @@ namespace NativeCollections
         private readonly int _capacity;
 
         /// <summary>
-        ///     Head
+        ///     The index of the head.
         /// </summary>
         private int _head;
 
         /// <summary>
-        ///     Tail
+        ///     The index of the tail.
         /// </summary>
         private int _tail;
 
         /// <summary>
         ///     Gets the number of elements.
         /// </summary>
-        private int _size;
+        private int _count;
 
         /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
@@ -51,12 +51,12 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        public readonly bool IsEmpty => _size == 0;
+        public readonly bool IsEmpty => _count == 0;
 
         /// <summary>
         ///     Gets the number of elements contained in this.
         /// </summary>
-        public readonly int Count => _size;
+        public readonly int Count => _count;
 
         /// <summary>
         ///     Gets the total numbers of elements the internal data structure can hold.
@@ -64,9 +64,13 @@ namespace NativeCollections
         public readonly int Capacity => _capacity;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of the class with the specified initial capacity.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
+        /// <param name="capacity">
+        ///     The initial number of elements that the instance can hold.
+        ///     Must be non-negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="capacity" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeFixedSizeQueueMemoryPool(int capacity)
         {
@@ -79,7 +83,7 @@ namespace NativeCollections
             _capacity = capacity;
             _head = 0;
             _tail = 0;
-            _size = capacity;
+            _count = capacity;
             for (var i = 0; i < _capacity; ++i)
                 Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)i) = i;
         }
@@ -127,7 +131,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reset()
         {
-            _size = _capacity;
+            _count = _capacity;
             for (var i = 0; i < _capacity; ++i)
                 Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)i) = i;
         }
@@ -138,7 +142,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryRent(out T* ptr)
         {
-            if (_size == 0)
+            if (_count == 0)
             {
                 ptr = null;
                 return false;
@@ -146,7 +150,7 @@ namespace NativeCollections
 
             var index = Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)_head);
             MoveNext(ref _head);
-            _size--;
+            _count--;
             ptr = UnsafeHelpers.Add<T>(_buffer, index);
             return true;
         }
@@ -161,11 +165,12 @@ namespace NativeCollections
             var index = byteOffset / Unsafe.SizeOf<T>();
             Unsafe.Add(ref Unsafe.AsRef<int>(_index), (nint)_tail) = (int)index;
             MoveNext(ref _tail);
-            _size++;
+            _count++;
         }
 
         /// <summary>
-        ///     Move next
+        ///     Advances the specified index to the next position in the ring buffer,
+        ///     wrapping around to zero if it reaches the buffer length.
         /// </summary>
         /// <param name="index">The zero-based starting index.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -178,7 +183,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeFixedSizeQueueMemoryPool<T> Empty => default;
     }

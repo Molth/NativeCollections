@@ -17,14 +17,15 @@ namespace NativeCollections
     public readonly struct NativeMonitorLock : IIsCreated, IDisposable, IEquatable<NativeMonitorLock>
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly GCHandle _handle;
 
         /// <summary>
-        ///     Structure
+        ///     Creates a new GC handle for an object.
         /// </summary>
-        /// <param name="type">GCHandle type</param>
+        /// <param name="type">The type of GC handle to create.</param>
+        /// <returns>A new GC handle that protects the object.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeMonitorLock(GCHandleType type) => _handle = GCHandle.Alloc(new object(), type);
 
@@ -243,7 +244,7 @@ namespace NativeCollections
         public void Exit() => Monitor.Exit(_handle.Target!);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeMonitorLock Empty => default;
     }

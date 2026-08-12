@@ -22,12 +22,12 @@ namespace NativeCollections
     public unsafe struct UnsafeAtomicRef<T> where T : class?
     {
         /// <summary>
-        ///     Value
+        ///     Gets the value to the underlying object.
         /// </summary>
         private object? _value;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeAtomicRef(T? handle) => _value = handle;
@@ -80,7 +80,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -96,21 +96,19 @@ namespace NativeCollections
         public readonly override string ToString() => SR.Format("UnsafeAtomicRef<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
-        /// <param name="reference">Reference</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeAtomicRef<T> Create([MustBePinned] T? reference) => new(reference);
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeAtomicRef<T> Create([MustBePinned] Span<T> buffer) => new(MemoryMarshal.GetReference(buffer));
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeAtomicRef<T> Empty => default;
     }

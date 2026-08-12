@@ -19,7 +19,7 @@ namespace NativeCollections
     public readonly unsafe struct NativeTempPinnedBuffer<T> : IIsCreated, IDisposable where T : unmanaged
     {
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         private readonly T* _buffer;
 
@@ -39,9 +39,13 @@ namespace NativeCollections
         public int Length => _length;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified number of elements,
+        ///     using the natural alignment of <typeparamref name="T" />
+        ///     and without zero-initializing the allocated memory.
         /// </summary>
-        /// <param name="length">Length</param>
+        /// <param name="length">The number of elements to allocate.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="length" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeTempPinnedBuffer(int length)
         {
@@ -51,10 +55,16 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified number of elements,
+        ///     using the natural alignment of <typeparamref name="T" /> and optionally zero-initializing the memory.
         /// </summary>
-        /// <param name="length">Length</param>
-        /// <param name="zeroed">Zeroed</param>
+        /// <param name="length">The number of elements to allocate.</param>
+        /// <param name="zeroed">
+        ///     <see langword="true" /> to zero-initialize the allocated memory;
+        ///     otherwise, the memory content is undefined.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="length" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeTempPinnedBuffer(int length, bool zeroed)
         {
@@ -64,10 +74,20 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified number of elements and alignment,
+        ///     without zero-initializing the allocated memory.
         /// </summary>
-        /// <param name="length">Length</param>
-        /// <param name="alignment">Alignment</param>
+        /// <param name="length">The number of elements to allocate.</param>
+        /// <param name="alignment">
+        ///     The required alignment in bytes,
+        ///     which must be a power of two and at least the natural alignment of <typeparamref name="T" />.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown if <paramref name="length" /> or <paramref name="alignment" /> is negative,
+        ///     or if <paramref name="alignment" /> is less than the natural alignment of <typeparamref name="T" />.
+        /// </exception>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="alignment" /> is not a power of two.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeTempPinnedBuffer(int length, int alignment)
         {
@@ -79,11 +99,23 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified number of elements, alignment, and zero-initialization option.
         /// </summary>
-        /// <param name="length">Length</param>
-        /// <param name="alignment">Alignment</param>
-        /// <param name="zeroed">Zeroed</param>
+        /// <param name="length">The number of elements to allocate.</param>
+        /// <param name="alignment">
+        ///     The required alignment in bytes,
+        ///     which must be a power of two and at least the natural alignment of <typeparamref name="T" />.
+        /// </param>
+        /// <param name="zeroed">
+        ///     <see langword="true" /> to zero-initialize the allocated memory;
+        ///     otherwise, the memory content is undefined.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown if <paramref name="length" /> or <paramref name="alignment" /> is negative,
+        ///     or if <paramref name="alignment" /> is less than the natural alignment of <typeparamref name="T" />.
+        /// </exception>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="alignment" /> is not a power of two.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeTempPinnedBuffer(int length, int alignment, bool zeroed)
         {
@@ -148,7 +180,7 @@ namespace NativeCollections
         public override string ToString() => SR.Format("NativeTempPinnedBuffer<{0}>[{1}]", SR.GetTypeName(typeof(T)), _length);
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeTempPinnedBuffer<T> Create(ReadOnlySpan<T> buffer)
@@ -159,7 +191,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeTempPinnedBuffer<T> Create(in T arg0)
@@ -171,7 +203,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeTempPinnedBuffer<T> Create(in T arg0, in T arg1)
@@ -184,7 +216,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeTempPinnedBuffer<T> Create(in T arg0, in T arg1, in T arg2)
@@ -198,7 +230,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeTempPinnedBuffer<T> Create(in T arg0, in T arg1, in T arg2, in T arg3)
@@ -213,7 +245,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeTempPinnedBuffer<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4)
@@ -229,7 +261,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeTempPinnedBuffer<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5)
@@ -246,7 +278,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeTempPinnedBuffer<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6)
@@ -264,7 +296,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeTempPinnedBuffer<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7)
@@ -283,7 +315,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeTempPinnedBuffer<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8)
@@ -303,7 +335,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeTempPinnedBuffer<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8, in T arg9)
@@ -324,7 +356,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeTempPinnedBuffer<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8, in T arg9, in T arg10)
@@ -346,7 +378,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeTempPinnedBuffer<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8, in T arg9, in T arg10, in T arg11)
@@ -369,7 +401,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeTempPinnedBuffer<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8, in T arg9, in T arg10, in T arg11, in T arg12)
@@ -393,7 +425,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeTempPinnedBuffer<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8, in T arg9, in T arg10, in T arg11, in T arg12, in T arg13)
@@ -418,7 +450,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeTempPinnedBuffer<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8, in T arg9, in T arg10, in T arg11, in T arg12, in T arg13, in T arg14)
@@ -444,7 +476,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeTempPinnedBuffer<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8, in T arg9, in T arg10, in T arg11, in T arg12, in T arg13, in T arg14, in T arg15)
@@ -471,7 +503,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeTempPinnedBuffer<T> Empty => default;
     }

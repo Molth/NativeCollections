@@ -21,7 +21,7 @@ namespace NativeCollections
 #endif
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly NativeRef<UnsafeConcurrentSpinLock> _handle;
 
@@ -31,7 +31,7 @@ namespace NativeCollections
         public bool IsCreated => _handle.IsCreated;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal NativeConcurrentSpinLockRefScope(NativeRef<UnsafeConcurrentSpinLock> handle) => _handle = handle;
@@ -78,7 +78,7 @@ namespace NativeCollections
         public override string ToString() => "NativeConcurrentSpinLockRefScope";
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeConcurrentSpinLockRefScope Empty => default;
     }

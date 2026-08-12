@@ -17,31 +17,37 @@ namespace NativeCollections
     public readonly unsafe struct NativeArray3<T> : IIsCreated, IDisposable, IEquatable<NativeArray3<T>>, IReadOnlyCollection<T> where T : unmanaged
     {
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         private readonly T* _buffer;
 
         /// <summary>
-        ///     X
+        ///     The size of the first dimension.
         /// </summary>
         private readonly int _x;
 
         /// <summary>
-        ///     Y
+        ///     The size of the second dimension.
         /// </summary>
         private readonly int _y;
 
         /// <summary>
-        ///     Z
+        ///     The size of the third dimension.
         /// </summary>
         private readonly int _z;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified dimensions,
+        ///     using the natural alignment of <typeparamref name="T" /> and without zero-initializing the allocated memory.
         /// </summary>
-        /// <param name="x">X</param>
-        /// <param name="y">Y</param>
-        /// <param name="z">Z</param>
+        /// <param name="x">The size of the first dimension.</param>
+        /// <param name="y">The size of the second dimension.</param>
+        /// <param name="z">The size of the third dimension.</param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown if <paramref name="x" />, <paramref name="y" />, or
+        ///     <paramref name="z" /> is negative.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArray3(int x, int y, int z)
         {
@@ -55,12 +61,21 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified dimensions,
+        ///     using the natural alignment of <typeparamref name="T" /> and optionally zero-initializing the memory.
         /// </summary>
-        /// <param name="x">X</param>
-        /// <param name="y">Y</param>
-        /// <param name="z">Z</param>
-        /// <param name="zeroed">Zeroed</param>
+        /// <param name="x">The size of the first dimension.</param>
+        /// <param name="y">The size of the second dimension.</param>
+        /// <param name="z">The size of the third dimension.</param>
+        /// <param name="zeroed">
+        ///     <see langword="true" /> to zero-initialize the allocated memory;
+        ///     otherwise, the memory content is undefined.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown if <paramref name="x" />, <paramref name="y" />, or
+        ///     <paramref name="z" /> is negative.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArray3(int x, int y, int z, bool zeroed)
         {
@@ -74,12 +89,23 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified dimensions and alignment,
+        ///     without zero-initializing the allocated memory.
         /// </summary>
-        /// <param name="x">X</param>
-        /// <param name="y">Y</param>
-        /// <param name="z">Z</param>
-        /// <param name="alignment">Alignment</param>
+        /// <param name="x">The size of the first dimension.</param>
+        /// <param name="y">The size of the second dimension.</param>
+        /// <param name="z">The size of the third dimension.</param>
+        /// <param name="alignment">
+        ///     The required alignment in bytes,
+        ///     which must be a power of two and at least the natural alignment of <typeparamref name="T" />.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown if <paramref name="x" />, <paramref name="y" />, <paramref name="z" />, or <paramref name="alignment" /> is
+        ///     negative,
+        ///     or if <paramref name="alignment" /> is less than the natural alignment of <typeparamref name="T" />.
+        /// </exception>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="alignment" /> is not a power of two.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArray3(int x, int y, int z, int alignment)
         {
@@ -95,13 +121,26 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified dimensions, alignment, and zero-initialization option.
         /// </summary>
-        /// <param name="x">X</param>
-        /// <param name="y">Y</param>
-        /// <param name="z">Z</param>
-        /// <param name="alignment">Alignment</param>
-        /// <param name="zeroed">Zeroed</param>
+        /// <param name="x">The size of the first dimension.</param>
+        /// <param name="y">The size of the second dimension.</param>
+        /// <param name="z">The size of the third dimension.</param>
+        /// <param name="alignment">
+        ///     The required alignment in bytes,
+        ///     which must be a power of two and at least the natural alignment of <typeparamref name="T" />.
+        /// </param>
+        /// <param name="zeroed">
+        ///     <see langword="true" /> to zero-initialize the allocated memory;
+        ///     otherwise, the memory content is undefined.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown if <paramref name="x" />, <paramref name="y" />, <paramref name="z" />, or <paramref name="alignment" /> is
+        ///     negative,
+        ///     or if <paramref name="alignment" /> is less than the natural alignment of <typeparamref name="T" />.
+        /// </exception>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="alignment" /> is not a power of two.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArray3(int x, int y, int z, int alignment, bool zeroed)
         {
@@ -117,12 +156,17 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     that wraps an existing native memory buffer.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="x">X</param>
-        /// <param name="y">Y</param>
-        /// <param name="z">Z</param>
+        /// <param name="buffer">A pointer to the existing native memory buffer.</param>
+        /// <param name="x">The size of the first dimension.</param>
+        /// <param name="y">The size of the second dimension.</param>
+        /// <param name="z">The size of the third dimension.</param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown if <paramref name="x" />, <paramref name="y" />, or
+        ///     <paramref name="z" /> is negative.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeArray3(T* buffer, int x, int y, int z)
         {
@@ -146,22 +190,22 @@ namespace NativeCollections
         public bool IsEmpty => _x == 0 || _y == 0 || _z == 0;
 
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         public T* Buffer => _buffer;
 
         /// <summary>
-        ///     X
+        ///     The size of the first dimension.
         /// </summary>
         public int X => _x;
 
         /// <summary>
-        ///     Y
+        ///     The size of the second dimension.
         /// </summary>
         public int Y => _y;
 
         /// <summary>
-        ///     Z
+        ///     The size of the third dimension.
         /// </summary>
         public int Z => _z;
 
@@ -300,7 +344,6 @@ namespace NativeCollections
         /// <summary>
         ///     Returns a pointer to the given by-ref parameter.
         /// </summary>
-        /// <returns>Pointer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator T*(NativeArray3<T> value) => value._buffer;
 
@@ -335,7 +378,7 @@ namespace NativeCollections
         public static implicit operator NativeSlice<T>(NativeArray3<T> value) => new(value._buffer, value._x * value._y * value._z);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeArray3<T> Empty => default;
 

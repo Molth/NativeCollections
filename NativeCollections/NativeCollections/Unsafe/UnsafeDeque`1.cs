@@ -17,7 +17,7 @@ namespace NativeCollections
     public unsafe struct UnsafeDeque<T> : IIsCreated, IDisposable, IEquatable<UnsafeDeque<T>>, IReadOnlyCollection<T> where T : unmanaged
     {
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         private T* _buffer;
 
@@ -27,19 +27,19 @@ namespace NativeCollections
         private int _length;
 
         /// <summary>
-        ///     Head
+        ///     The index of the head.
         /// </summary>
         private int _head;
 
         /// <summary>
-        ///     Tail
+        ///     The index of the tail.
         /// </summary>
         private int _tail;
 
         /// <summary>
         ///     Gets the number of elements.
         /// </summary>
-        private int _size;
+        private int _count;
 
         /// <summary>
         ///     Used to keep enumerator in sync w/ collection.
@@ -54,12 +54,12 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        public readonly bool IsEmpty => _size == 0;
+        public readonly bool IsEmpty => _count == 0;
 
         /// <summary>
         ///     Gets the number of elements contained in this.
         /// </summary>
-        public readonly int Count => _size;
+        public readonly int Count => _count;
 
         /// <summary>
         ///     Gets the total numbers of elements the internal data structure can hold.
@@ -85,9 +85,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of the class with the specified initial capacity.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
+        /// <param name="capacity">
+        ///     The initial number of elements that the instance can hold.
+        ///     Must be non-negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="capacity" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeDeque(int capacity)
         {
@@ -97,7 +101,7 @@ namespace NativeCollections
             _length = capacity;
             _head = 0;
             _tail = 0;
-            _size = 0;
+            _count = 0;
             _version = 0;
         }
 
@@ -144,7 +148,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
-            _size = 0;
+            _count = 0;
             _head = 0;
             _tail = 0;
             _version++;
@@ -156,12 +160,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void EnqueueHead(in T item)
         {
-            if (_size == _length)
-                Grow(_size + 1);
+            if (_count == _length)
+                Grow(_count + 1);
             if (--_head == -1)
                 _head = _length - 1;
             Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_head) = item;
-            ++_size;
+            ++_count;
             ++_version;
         }
 
@@ -176,12 +180,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryEnqueueHead(in T item)
         {
-            if (_size == _length)
+            if (_count == _length)
                 return false;
             if (--_head == -1)
                 _head = _length - 1;
             Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_head) = item;
-            ++_size;
+            ++_count;
             ++_version;
             return true;
         }
@@ -192,12 +196,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void EnqueueTail(in T item)
         {
-            if (_size == _length)
-                Grow(_size + 1);
+            if (_count == _length)
+                Grow(_count + 1);
             Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_tail) = item;
             if (++_tail == _length)
                 _tail = 0;
-            ++_size;
+            ++_count;
             ++_version;
         }
 
@@ -212,12 +216,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryEnqueueTail(in T item)
         {
-            if (_size == _length)
+            if (_count == _length)
                 return false;
             Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_tail) = item;
             if (++_tail == _length)
                 _tail = 0;
-            ++_size;
+            ++_count;
             ++_version;
             return true;
         }
@@ -233,7 +237,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDequeueHead(out T result)
         {
-            if (_size == 0)
+            if (_count == 0)
             {
                 result = default;
                 return false;
@@ -242,7 +246,7 @@ namespace NativeCollections
             result = Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_head);
             if (++_head == _length)
                 _head = 0;
-            --_size;
+            --_count;
             ++_version;
             return true;
         }
@@ -258,7 +262,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDequeueTail(out T result)
         {
-            if (_size == 0)
+            if (_count == 0)
             {
                 result = default;
                 return false;
@@ -267,7 +271,7 @@ namespace NativeCollections
             if (--_tail == -1)
                 _tail = _length - 1;
             result = Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_tail);
-            --_size;
+            --_count;
             ++_version;
             return true;
         }
@@ -288,7 +292,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool TryPeekHead(out T result)
         {
-            if (_size == 0)
+            if (_count == 0)
             {
                 result = default;
                 return false;
@@ -314,7 +318,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool TryPeekTail(out T result)
         {
-            var size = _size - 1;
+            var size = _count - 1;
             if ((uint)size >= (uint)_length)
             {
                 result = default;
@@ -348,8 +352,8 @@ namespace NativeCollections
         public int TrimExcess()
         {
             var threshold = (int)(_length * 0.9);
-            if (_size < threshold)
-                SetCapacity(_size);
+            if (_count < threshold)
+                SetCapacity(_count);
             return _length;
         }
 
@@ -362,7 +366,7 @@ namespace NativeCollections
         public int TrimExcess(int capacity)
         {
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
-            if (capacity < _size || capacity >= _length)
+            if (capacity < _count || capacity >= _length)
                 return _length;
             SetCapacity(capacity);
             return _length;
@@ -372,24 +376,24 @@ namespace NativeCollections
         ///     Sets the capacity of this to the specified number of entries.
         /// </summary>
         /// <param name="capacity">The new capacity.</param>
-        /// <exception cref="ArgumentOutOfRangeException">Passed capacity is lower than entries count.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void SetCapacity(int capacity)
         {
             var newBuffer = NativeMemoryAllocator.AlignedAlloc<T>((uint)capacity);
-            RingBufferHelpers.Copy(ref Unsafe.AsRef<T>(newBuffer), ref Unsafe.AsRef<T>(_buffer), _size, _length, _head);
+            RingBufferHelpers.Copy(ref Unsafe.AsRef<T>(newBuffer), ref Unsafe.AsRef<T>(_buffer), _count, _length, _head);
             NativeMemoryAllocator.AlignedFree(_buffer);
             _buffer = newBuffer;
             _length = capacity;
             _head = 0;
-            _tail = _size == capacity ? 0 : _size;
+            _tail = _count == capacity ? 0 : _count;
             _version++;
         }
 
         /// <summary>
-        ///     Grow
+        ///     Increases the capacity of this to a new size
+        ///     that is at least the specified minimum capacity.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
+        /// <param name="capacity">The new capacity.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Grow(int capacity)
         {
@@ -416,7 +420,7 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
             ref var reference = ref MemoryMarshal.GetReference(buffer);
-            var size = Math.Min(buffer.Length, Math.Min(count, _size));
+            var size = Math.Min(buffer.Length, Math.Min(count, _count));
             RingBufferHelpers.Copy(ref reference, ref Unsafe.AsRef<T>(_buffer), size, _length, _head);
             return size;
         }
@@ -446,7 +450,7 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, ExceptionArgument.buffer);
             ref var reference = ref MemoryMarshal.GetReference(buffer);
-            RingBufferHelpers.Copy(ref reference, ref Unsafe.AsRef<T>(_buffer), _size, _length, _head);
+            RingBufferHelpers.Copy(ref reference, ref Unsafe.AsRef<T>(_buffer), _count, _length, _head);
         }
 
         /// <summary>
@@ -461,7 +465,7 @@ namespace NativeCollections
         public readonly void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, T>(buffer));
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeDeque<T> Empty => default;
 
@@ -494,13 +498,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Enumerator
+        ///     Supports a simple iteration over a generic collection.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public struct Enumerator : IIterator<T>
         {
             /// <summary>
-            ///     NativeDeque
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly UnsafeDeque<T>* _handle;
 
@@ -510,7 +514,7 @@ namespace NativeCollections
             private readonly int _version;
 
             /// <summary>
-            ///     Index
+            ///     The current index.
             /// </summary>
             private int _index;
 
@@ -521,7 +525,7 @@ namespace NativeCollections
             private T _currentElement;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal Enumerator(UnsafeDeque<T>* handle)
@@ -547,7 +551,7 @@ namespace NativeCollections
                 if (_index == -2)
                     return false;
                 _index++;
-                if (_index == handle->_size)
+                if (_index == handle->_count)
                 {
                     _index = -2;
                     _currentElement = default;

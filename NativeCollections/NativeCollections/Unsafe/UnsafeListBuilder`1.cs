@@ -29,12 +29,13 @@ namespace NativeCollections
 #endif
     {
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         private Span<T> _buffer;
 
         /// <summary>
-        ///     Array
+        ///     The array rented from <see cref="ArrayPool{T}.Shared" />,
+        ///     or <see langword="null" /> if the buffer is user-provided.
         /// </summary>
         private T[]? _array;
 
@@ -84,9 +85,14 @@ namespace NativeCollections
         public readonly bool IsEmpty => _length == 0;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class that wraps an existing span as storage,
+        ///     with an initial length of zero.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
+        /// <param name="buffer">The span to use as the underlying storage.</param>
+        /// <remarks>
+        ///     This constructor does not allocate new memory;
+        ///     it merely wraps the provided buffer.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeListBuilder(Span<T> buffer)
         {
@@ -96,10 +102,18 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class that wraps an existing span as storage,
+        ///     with the specified initial number of elements.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="length">Length</param>
+        /// <param name="buffer">The span to use as the underlying storage.</param>
+        /// <param name="length">
+        ///     The initial number of elements considered in use.
+        ///     Must be between 0 and <paramref name="buffer" /> length, inclusive.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="length" /> is negative or exceeds the length
+        ///     of <paramref name="buffer" />.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeListBuilder(Span<T> buffer, int length)
         {
@@ -111,9 +125,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of the class with the specified initial capacity.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
+        /// <param name="capacity">
+        ///     The initial number of elements that the instance can hold.
+        ///     Must be non-negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="capacity" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeListBuilder(int capacity)
         {
@@ -123,10 +141,21 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified initial capacity and initial length.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <param name="length">Length</param>
+        /// <param name="capacity">
+        ///     The initial storage capacity.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <param name="length">
+        ///     The initial number of elements considered in use.
+        ///     Must be between 0 and <paramref name="capacity" />, inclusive.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="capacity" /> or <paramref name="length" /> is negative,
+        ///     or when <paramref name="length" /> exceeds <paramref name="capacity" />.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeListBuilder(int capacity, int length)
         {
@@ -361,7 +390,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Grow
+        ///     Increases the capacity of this to a new size
+        ///     that is at least the specified minimum capacity.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Grow(int additionalCapacityRequired = 1)
@@ -373,7 +403,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeListBuilder<T> Create(ReadOnlySpan<T> buffer)
@@ -384,7 +414,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeListBuilder<T> Create(in T arg0)
@@ -396,7 +426,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeListBuilder<T> Create(in T arg0, in T arg1)
@@ -409,7 +439,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeListBuilder<T> Create(in T arg0, in T arg1, in T arg2)
@@ -423,7 +453,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3)
@@ -438,7 +468,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4)
@@ -454,7 +484,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5)
@@ -471,7 +501,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6)
@@ -489,7 +519,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7)
@@ -508,7 +538,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8)
@@ -528,7 +558,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8, in T arg9)
@@ -549,7 +579,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8, in T arg9, in T arg10)
@@ -571,7 +601,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8, in T arg9, in T arg10, in T arg11)
@@ -594,7 +624,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8, in T arg9, in T arg10, in T arg11, in T arg12)
@@ -618,7 +648,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8, in T arg9, in T arg10, in T arg11, in T arg12, in T arg13)
@@ -643,7 +673,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8, in T arg9, in T arg10, in T arg11, in T arg12, in T arg13, in T arg14)
@@ -669,7 +699,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeListBuilder<T> Create(in T arg0, in T arg1, in T arg2, in T arg3, in T arg4, in T arg5, in T arg6, in T arg7, in T arg8, in T arg9, in T arg10, in T arg11, in T arg12, in T arg13, in T arg14, in T arg15)
@@ -696,7 +726,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeListBuilder<T> Empty => default;
 

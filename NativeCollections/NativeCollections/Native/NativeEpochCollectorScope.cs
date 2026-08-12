@@ -14,7 +14,7 @@ namespace NativeCollections
     public readonly unsafe struct NativeEpochCollectorScope : IIsCreated, IDisposable, IEquatable<NativeEpochCollectorScope>
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly EpochCollector* _handle;
 
@@ -34,7 +34,7 @@ namespace NativeCollections
         public uint Epoch => _epoch;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal NativeEpochCollectorScope(EpochCollector* handle, uint epoch)
@@ -111,7 +111,7 @@ namespace NativeCollections
         public static bool operator !=(NativeEpochCollectorScope left, NativeEpochCollectorScope right) => !left.Equals(right);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeEpochCollectorScope Empty => default;
     }

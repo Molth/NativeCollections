@@ -22,7 +22,7 @@ namespace NativeCollections
         private readonly CachePadding _padding;
 
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private TreiberStack<T> _handle;
 
@@ -120,7 +120,7 @@ namespace NativeCollections
         public bool TryPop(out T result) => _handle.TryPop(out result);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeTreiberStack<T> Empty => default;
 

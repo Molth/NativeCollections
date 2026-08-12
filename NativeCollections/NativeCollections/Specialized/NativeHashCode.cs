@@ -13,12 +13,12 @@ namespace NativeCollections
     public static unsafe class NativeHashCode
     {
         /// <summary>
-        ///     Default seed
+        ///     Default seed value used for hash code calculation.
         /// </summary>
         private static readonly uint DefaultSeed = NativeRandom.NextU32();
 
         /// <summary>
-        ///     GetHashCode
+        ///     Custom get hash code handler.
         /// </summary>
         private static delegate* managed<ReadOnlySpan<byte>, int> _getHashCode;
 

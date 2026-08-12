@@ -17,12 +17,12 @@ namespace NativeCollections
     public readonly unsafe struct NativeSlice<T> : IIsCreated, IDisposable, IEquatable<NativeSlice<T>>, IReadOnlyCollection<T> where T : unmanaged
     {
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         private readonly T* _buffer;
 
         /// <summary>
-        ///     Offset
+        ///     The number of elements from the start.
         /// </summary>
         private readonly int _offset;
 
@@ -32,10 +32,12 @@ namespace NativeCollections
         private readonly int _count;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class,
+        ///     with zero offset and the specified number of elements.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="count">The number of elements.</param>
+        /// <param name="buffer">A pointer to the start of the native memory buffer.</param>
+        /// <param name="count">The number of elements in the slice. Must be non-negative.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="count" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeSlice(T* buffer, int count)
         {
@@ -46,11 +48,19 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class,
+        ///     starting at the specified offset and with the specified number of elements.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="offset">Offset</param>
-        /// <param name="count">The number of elements.</param>
+        /// <param name="buffer">A pointer to the start of the native memory buffer.</param>
+        /// <param name="offset">
+        ///     The number of elements to skip from the start of the buffer.
+        ///     Must be non-negative.
+        /// </param>
+        /// <param name="count">The number of elements in the slice. Must be non-negative.</param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="offset" />
+        ///     or <paramref name="count" /> is negative.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeSlice(T* buffer, int offset, int count)
         {
@@ -62,9 +72,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
-        /// <param name="nativeArray">Buffer</param>
+        /// <param name="nativeArray">The native array to wrap.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeSlice(NativeArray<T> nativeArray)
         {
@@ -74,41 +84,23 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class,
+        ///     starting at the specified offset and containing the specified number of elements.
         /// </summary>
-        /// <param name="nativeArray">Buffer</param>
-        /// <param name="offset">Offset</param>
-        /// <param name="count">The number of elements.</param>
+        /// <param name="nativeArray">The native array to wrap.</param>
+        /// <param name="offset">
+        ///     The number of elements to skip from the start of the array.
+        ///     Must be non-negative.
+        /// </param>
+        /// <param name="count">The number of elements in the slice. Must be non-negative.</param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="offset" />
+        ///     or <paramref name="count" /> is negative.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeSlice(NativeArray<T> nativeArray, int offset, int count)
         {
             _buffer = nativeArray.Buffer;
-            _offset = offset;
-            _count = count;
-        }
-
-        /// <summary>
-        ///     Structure
-        /// </summary>
-        /// <param name="nativeMemoryArray">Buffer</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeSlice(NativeMemoryArray<T> nativeMemoryArray)
-        {
-            _buffer = nativeMemoryArray.Buffer;
-            _offset = 0;
-            _count = nativeMemoryArray.Length;
-        }
-
-        /// <summary>
-        ///     Structure
-        /// </summary>
-        /// <param name="nativeMemoryArray">Buffer</param>
-        /// <param name="offset">Offset</param>
-        /// <param name="count">The number of elements.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeSlice(NativeMemoryArray<T> nativeMemoryArray, int offset, int count)
-        {
-            _buffer = nativeMemoryArray.Buffer;
             _offset = offset;
             _count = count;
         }
@@ -142,12 +134,12 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         public T* Buffer => _buffer;
 
         /// <summary>
-        ///     Offset
+        ///     The number of elements from the start.
         /// </summary>
         public int Offset => _offset;
 
@@ -179,7 +171,6 @@ namespace NativeCollections
         /// <summary>
         ///     Returns a pointer to the given by-ref parameter.
         /// </summary>
-        /// <returns>Pointer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator T*(NativeSlice<T> value) => value._buffer;
 
@@ -299,7 +290,7 @@ namespace NativeCollections
         public NativeSlice<T> Slice(int start, int length) => new(_buffer, _offset + start, length);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeSlice<T> Empty => default;
 
@@ -331,23 +322,23 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Enumerator
+        ///     Supports a simple iteration over a generic collection.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public struct Enumerator : IRefIterator<T>
         {
             /// <summary>
-            ///     NativeSlice
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly NativeSlice<T> _handle;
 
             /// <summary>
-            ///     Index
+            ///     The current index.
             /// </summary>
             private int _index;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal Enumerator(NativeSlice<T> handle)

@@ -17,22 +17,22 @@ namespace NativeCollections
     public unsafe struct UnsafeHashSet<T> : IIsCreated, IDisposable, IEquatable<UnsafeHashSet<T>>, IReadOnlyCollection<T> where T : unmanaged, IEquatable<T>
     {
         /// <summary>
-        ///     Buckets
+        ///     Array of bucket.
         /// </summary>
         private int* _buckets;
 
         /// <summary>
-        ///     Entries
+        ///     Array of entry.
         /// </summary>
         private Entry* _entries;
 
         /// <summary>
-        ///     BucketsLength
+        ///     Length of the bucket array.
         /// </summary>
         private int _bucketsLength;
 
         /// <summary>
-        ///     EntriesLength
+        ///     Length of the entry array.
         /// </summary>
         private int _entriesLength;
 
@@ -47,12 +47,12 @@ namespace NativeCollections
         private int _count;
 
         /// <summary>
-        ///     FreeList
+        ///     Index of the head of the free list of unused entries.
         /// </summary>
         private int _freeList;
 
         /// <summary>
-        ///     FreeCount
+        ///     Number of unused entries currently in the free list.
         /// </summary>
         private int _freeCount;
 
@@ -82,9 +82,13 @@ namespace NativeCollections
         public readonly int Capacity => _entriesLength;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of the class with the specified initial capacity.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
+        /// <param name="capacity">
+        ///     The initial number of elements that the instance can hold.
+        ///     Must be non-negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="capacity" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeHashSet(int capacity)
         {
@@ -425,10 +429,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Initialize
+        ///     Performs initialization of the object.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>New capacity</returns>
+        /// <param name="capacity">The minimum capacity to ensure.</param>
+        /// <returns>The new capacity of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Initialize(int capacity)
         {
@@ -444,13 +448,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Resize
+        ///     Resizes this to the specified new capacity.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Resize() => Resize(HashHelpers.ExpandPrime(_count));
 
         /// <summary>
-        ///     Resize
+        ///     Resizes this to the specified new capacity.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Resize(int newSize)
@@ -482,10 +486,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Find item index
+        ///     Searches for the specified item and returns its index in the entries array if found.
         /// </summary>
-        /// <param name="item">Item</param>
-        /// <returns>Index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly int FindItemIndex(in T item)
         {
@@ -507,31 +509,31 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get bucket ref
+        ///     Returns a reference to the bucket corresponding to the specified hash code.
         /// </summary>
-        /// <param name="hashCode">HashCode</param>
-        /// <returns>Bucket ref</returns>
+        /// <param name="hashCode">The hash code of the key.</param>
+        /// <returns>A reference to the bucket for the given hash code.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly ref int GetBucket(uint hashCode) => ref Unsafe.Add(ref Unsafe.AsRef<int>(_buckets), (nint)_fastModImpl.GetRemainder(hashCode, (uint)_bucketsLength));
 
         /// <summary>
-        ///     Entry
+        ///     Represents an entry.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         private struct Entry
         {
             /// <summary>
-            ///     HashCode
+            ///     The hash code of the key.
             /// </summary>
             public uint HashCode;
 
             /// <summary>
-            ///     Next
+            ///     The index of the next entry.
             /// </summary>
             public int Next;
 
             /// <summary>
-            ///     Value
+            ///     Gets the value to the underlying object.
             /// </summary>
             public T Value;
         }
@@ -617,7 +619,7 @@ namespace NativeCollections
         public readonly void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, T>(buffer));
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeHashSet<T> Empty => default;
 
@@ -650,13 +652,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Enumerator
+        ///     Supports a simple iteration over a generic collection.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public struct Enumerator : IIterator<T>
         {
             /// <summary>
-            ///     NativeHashSet
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly UnsafeHashSet<T>* _handle;
 
@@ -666,7 +668,7 @@ namespace NativeCollections
             private readonly int _version;
 
             /// <summary>
-            ///     Index
+            ///     The current index.
             /// </summary>
             private int _index;
 
@@ -677,7 +679,7 @@ namespace NativeCollections
             private T _current;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal Enumerator(UnsafeHashSet<T>* handle)

@@ -22,12 +22,12 @@ namespace NativeCollections
     public unsafe struct UnsafeAtomicEnum<T> where T : unmanaged, Enum
     {
         /// <summary>
-        ///     Value
+        ///     Gets the value to the underlying object.
         /// </summary>
         private T _value;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeAtomicEnum(T value) => _value = value;
@@ -379,7 +379,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -395,14 +395,21 @@ namespace NativeCollections
         public readonly override string ToString() => SR.Format("UnsafeAtomicEnum<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
-        ///     Cast from other
+        ///     Reinterprets the specified value of type <typeparamref name="TFrom" />
+        ///     as the enumeration type <typeparamref name="T" />.
         /// </summary>
+        /// <typeparam name="TFrom">The source unmanaged type.</typeparam>
+        /// <param name="value">The value to reinterpret.</param>
+        /// <returns>The reinterpreted enumeration value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static T CastFromOther<TFrom>(TFrom value) where TFrom : unmanaged => UnsafeHelpers.BitCast<TFrom, T>(value);
 
         /// <summary>
-        ///     Cast to other
+        ///     Reinterprets the enumeration value as the specified unmanaged type <typeparamref name="TTo" />.
         /// </summary>
+        /// <typeparam name="TTo">The destination unmanaged type.</typeparam>
+        /// <param name="value">The enumeration value to reinterpret.</param>
+        /// <returns>The reinterpreted value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static TTo CastToOther<TTo>(T value) where TTo : unmanaged => UnsafeHelpers.BitCast<T, TTo>(value);
 
@@ -455,7 +462,7 @@ namespace NativeCollections
         private ref UnsafeAtomicU64 AsU64() => ref Unsafe.As<T, UnsafeAtomicU64>(ref _value);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeAtomicEnum<T> Empty => default;
     }

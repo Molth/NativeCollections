@@ -18,7 +18,8 @@ using System.Collections;
 namespace NativeCollections
 {
     /// <summary>
-    ///     This class represents a mutable string.  It is convenient for situations in
+    ///     This class represents a mutable string.
+    ///     It is convenient for situations in
     ///     which it is desirable to modify a string, perhaps by removing, replacing, or
     ///     inserting characters, without creating a new String subsequent to
     ///     each modification.
@@ -35,12 +36,12 @@ namespace NativeCollections
         where T : unmanaged, IComparable<T>, IEquatable<T>
     {
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         private Span<T> _buffer;
 
         /// <summary>
-        ///     Array
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         private T[]? _array;
 
@@ -75,18 +76,26 @@ namespace NativeCollections
         public readonly int Capacity => _buffer.Length;
 
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         public readonly Span<T> Buffer => _buffer;
 
         /// <summary>
-        ///     Text
+        ///     Gets the portion of the buffer that contains the current string content.
         /// </summary>
+        /// <remarks>
+        ///     This span represents the characters that are currently considered part of the string.
+        ///     Its length equals <see cref="Length" />.
+        /// </remarks>
         public readonly Span<T> Text => _buffer.Slice(0, _length);
 
         /// <summary>
-        ///     Space
+        ///     Gets the unused portion of the buffer available for appending new characters.
         /// </summary>
+        /// <remarks>
+        ///     This span represents the free space after the current content.
+        ///     Its length equals <see cref="Capacity" /> - <see cref="Length" />.
+        /// </remarks>
         public readonly Span<T> Space => _buffer.Slice(_length);
 
         /// <summary>
@@ -99,9 +108,11 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     that wraps an existing span,
+        ///     setting the initial length to the full length of the span.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
+        /// <param name="buffer">The underlying span to use as storage.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeStringBuilder(Span<T> buffer)
         {
@@ -111,10 +122,19 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     that wraps an existing span,
+        ///     with a specified initial length.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="length">Length</param>
+        /// <param name="buffer">The underlying span to use as storage.</param>
+        /// <param name="length">
+        ///     The initial number of elements considered in use.
+        ///     Must be between 0 and <paramref name="buffer" /> length.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown if <paramref name="length" /> is negative or exceeds
+        ///     <paramref name="buffer" /> length.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeStringBuilder(Span<T> buffer, int length)
         {
@@ -126,9 +146,15 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified capacity,
+        ///     using a rented array from <see cref="ArrayPool{T}.Shared" /> as storage, and no initial content.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
+        /// <param name="capacity">
+        ///     The initial storage capacity.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="capacity" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeStringBuilder(int capacity)
         {
@@ -138,10 +164,19 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified capacity and initial length,
+        ///     using a rented array from <see cref="ArrayPool{T}.Shared" /> as storage.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <param name="length">Length</param>
+        /// <param name="capacity">The initial storage capacity. Must be non‑negative.</param>
+        /// <param name="length">
+        ///     The initial number of elements considered in use.
+        ///     Must be between 0 and <paramref name="capacity" />.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown if <paramref name="capacity" /> or <paramref name="length" /> is
+        ///     negative, or if <paramref name="length" /> exceeds <paramref name="capacity" />.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeStringBuilder(int capacity, int length)
         {
@@ -801,9 +836,10 @@ namespace NativeCollections
         public readonly void CopyTo(Span<T> buffer) => Text.CopyTo(buffer);
 
         /// <summary>
-        ///     Try copy to
+        ///     Copies the contents of this span into destination span. If the source
+        ///     and destinations overlap, this method behaves as if the original values in
+        ///     a temporary location before the destination is overwritten.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool TryCopyTo(Span<T> buffer) => Text.TryCopyTo(buffer);
 
@@ -1115,7 +1151,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Grow
+        ///     Increases the capacity of this to a new size
+        ///     that is at least the specified minimum capacity.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Grow(int additionalCapacityRequired)
@@ -1181,7 +1218,7 @@ namespace NativeCollections
         public static bool operator !=(ReadOnlySpan<T> left, UnsafeStringBuilder<T> right) => !right.Equals(left);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeStringBuilder<T> Empty => default;
 

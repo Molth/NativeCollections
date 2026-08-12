@@ -23,7 +23,7 @@ namespace NativeCollections
     public readonly unsafe struct UnsafeFrozenDictionary<TKey, TValue> : IIsCreated, IDisposable, IEquatable<UnsafeFrozenDictionary<TKey, TValue>>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly UnsafeFrozenDictionaryHandle<TKey, TValue> _handle;
 
@@ -101,7 +101,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeFrozenDictionary<TKey, TValue> Create(Dictionary<TKey, TValue> source)
@@ -114,7 +114,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeFrozenDictionary<TKey, TValue> Create(NativeDictionary<TKey, TValue> source)
@@ -125,10 +125,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeFrozenDictionary<TKey, TValue> Create(in UnsafeDictionary<TKey, TValue> source)
+        public static UnsafeFrozenDictionary<TKey, TValue> Create(UnsafeDictionary<TKey, TValue> source)
         {
             using var keyValuePairs = new NativeArray<KeyValuePair<TKey, TValue>>(source.Count);
             source.CopyTo(keyValuePairs);
@@ -136,10 +136,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeFrozenDictionary<TKey, TValue> Create(in StackallocDictionary<TKey, TValue> source)
+        public static UnsafeFrozenDictionary<TKey, TValue> Create(StackallocDictionary<TKey, TValue> source)
         {
             using var keyValuePairs = new NativeArray<KeyValuePair<TKey, TValue>>(source.Count);
             source.CopyTo(keyValuePairs);
@@ -147,7 +147,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MustBeDistinct(nameof(source))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -184,7 +184,7 @@ namespace NativeCollections
         public static bool operator !=(UnsafeFrozenDictionary<TKey, TValue> left, UnsafeFrozenDictionary<TKey, TValue> right) => !left.Equals(right);
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static UnsafeFrozenDictionaryHandle<TKey, TValue> Initialize(ReadOnlySpan<KeyValuePair<TKey, TValue>> source)
@@ -307,7 +307,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeFrozenDictionary<TKey, TValue> Empty => default;
 

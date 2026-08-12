@@ -16,7 +16,7 @@ namespace NativeCollections
     public unsafe struct UnsafeBitArray : IIsCreated, IDisposable, IEquatable<UnsafeBitArray>
     {
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         private NativeArray<int> _buffer;
 
@@ -31,7 +31,7 @@ namespace NativeCollections
         public readonly bool IsCreated => _buffer.IsCreated;
 
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         public readonly NativeArray<int> Buffer => _buffer;
 
@@ -89,9 +89,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class with the specified number of bits,
+        ///     using the natural alignment and zero-initializing the underlying storage.
         /// </summary>
-        /// <param name="length">Length</param>
+        /// <param name="length">
+        ///     The number of bits to store.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="length" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeBitArray(int length)
         {
@@ -101,10 +106,18 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class with the specified number of bits
+        ///     and the initial value for all bits.
         /// </summary>
-        /// <param name="length">Length</param>
-        /// <param name="defaultValue">Default value</param>
+        /// <param name="length">
+        ///     The number of bits to store.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <param name="defaultValue">
+        ///     The value to assign to all bits
+        ///     (<see langword="true" /> for set, <see langword="false" /> for cleared).
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="length" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeBitArray(int length, bool defaultValue)
         {
@@ -125,10 +138,23 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class that wraps a user-provided buffer of 32‑bit integers,
+        ///     with the specified number of bits.
+        ///     The buffer must be large enough to hold all bits.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="length">Length</param>
+        /// <param name="buffer">
+        ///     The buffer to use as storage.
+        ///     It must be pinned in memory.
+        /// </param>
+        /// <param name="length">
+        ///     The number of bits to store.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="length" /> is negative.</exception>
+        /// <exception cref="ArgumentException">
+        ///     Thrown when the provided <paramref name="buffer" /> is smaller than required for the specified
+        ///     <paramref name="length" />.
+        /// </exception>
         [MustBePinned(nameof(buffer))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeBitArray([MustBePinned] Span<int> buffer, int length)
@@ -141,11 +167,27 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class that wraps a user-provided buffer of 32‑bit integers,
+        ///     with the specified number of bits and initial value for all bits.
+        ///     The buffer must be large enough to hold all bits.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="length">Length</param>
-        /// <param name="defaultValue">Default value</param>
+        /// <param name="buffer">
+        ///     The buffer to use as storage.
+        ///     It must be pinned in memory.
+        /// </param>
+        /// <param name="length">
+        ///     The number of bits to store.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <param name="defaultValue">
+        ///     The value to assign to all bits
+        ///     (<see langword="true" /> for set, <see langword="false" /> for cleared).
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="length" /> is negative.</exception>
+        /// <exception cref="ArgumentException">
+        ///     Thrown when the provided <paramref name="buffer" /> is smaller than required for the specified
+        ///     <paramref name="length" />.
+        /// </exception>
         [MustBePinned(nameof(buffer))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeBitArray([MustBePinned] Span<int> buffer, int length, bool defaultValue)
@@ -655,18 +697,18 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get byte buffer length from bit length
+        ///     Calculates the minimum number of bytes required to store the specified number of bits.
         /// </summary>
-        /// <param name="n">Bit length</param>
-        /// <returns>Byte buffer length</returns>
+        /// <param name="n">The number of bits.</param>
+        /// <returns>The number of bytes needed to store <paramref name="n" /> bits.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetByteArrayLengthFromBitLength(int n) => (int)(((uint)n + 7) >> 3);
 
         /// <summary>
-        ///     Get int32 buffer length from bit length
+        ///     Calculates the minimum number of 32‑bit signed integers required to store the specified number of bits.
         /// </summary>
-        /// <param name="n">Bit length</param>
-        /// <returns>Int32 buffer length</returns>
+        /// <param name="n">The number of bits.</param>
+        /// <returns>The number of 32‑bit signed integers needed to store <paramref name="n" /> bits.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetInt32ArrayLengthFromBitLength(int n) => (int)((uint)(n - 1 + (1 << 5)) >> 5);
 
@@ -685,7 +727,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeBitArray Empty => default;
     }

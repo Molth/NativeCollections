@@ -19,7 +19,8 @@ using System.Collections;
 namespace NativeCollections
 {
     /// <summary>
-    ///     This class represents a mutable string.  It is convenient for situations in
+    ///     This class represents a mutable string.
+    ///     It is convenient for situations in
     ///     which it is desirable to modify a string, perhaps by removing, replacing, or
     ///     inserting characters, without creating a new String subsequent to
     ///     each modification.
@@ -35,17 +36,17 @@ namespace NativeCollections
 #endif
     {
         /// <summary>
-        ///     Default seed
+        ///     Default seed value used for hash code calculation.
         /// </summary>
         private static readonly ulong DefaultSeed = NativeRandom.NextU64();
 
         /// <summary>
-        ///     GetHashCode
+        ///     Custom get hash code handler.
         /// </summary>
         private static delegate* managed<ReadOnlySpan<char>, int> _getHashCode;
 
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         private readonly Span<char> _buffer;
 
@@ -80,18 +81,26 @@ namespace NativeCollections
         public readonly int Capacity => _buffer.Length;
 
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         public readonly Span<char> Buffer => _buffer;
 
         /// <summary>
-        ///     Text
+        ///     Gets the portion of the buffer that contains the current string content.
         /// </summary>
+        /// <remarks>
+        ///     This span represents the characters that are currently considered part of the string.
+        ///     Its length equals <see cref="Length" />.
+        /// </remarks>
         public readonly Span<char> Text => _buffer.Slice(0, _length);
 
         /// <summary>
-        ///     Space
+        ///     Gets the unused portion of the buffer available for appending new characters.
         /// </summary>
+        /// <remarks>
+        ///     This span represents the free space after the current content.
+        ///     Its length equals <see cref="Capacity" /> - <see cref="Length" />.
+        /// </remarks>
         public readonly Span<char> Space => _buffer.Slice(_length);
 
         /// <summary>
@@ -104,9 +113,11 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     that wraps an existing span,
+        ///     setting the initial length to the full length of the span.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
+        /// <param name="buffer">The underlying span to use as storage.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeString(Span<char> buffer)
         {
@@ -115,10 +126,19 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     that wraps an existing span,
+        ///     with a specified initial length.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="length">Length</param>
+        /// <param name="buffer">The underlying span to use as storage.</param>
+        /// <param name="length">
+        ///     The initial number of elements considered in use.
+        ///     Must be between 0 and <paramref name="buffer" /> length.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown if <paramref name="length" /> is negative or exceeds
+        ///     <paramref name="buffer" /> length.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeString(Span<char> buffer, int length)
         {
@@ -834,9 +854,10 @@ namespace NativeCollections
         public readonly void CopyTo(Span<char> buffer) => Text.CopyTo(buffer);
 
         /// <summary>
-        ///     Try copy to
+        ///     Copies the contents of this span into destination span. If the source
+        ///     and destinations overlap, this method behaves as if the original values in
+        ///     a temporary location before the destination is overwritten.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool TryCopyTo(Span<char> buffer) => Text.TryCopyTo(buffer);
 
@@ -1220,22 +1241,22 @@ namespace NativeCollections
         public static bool operator !=(ReadOnlySpan<char> left, UnsafeString right) => !right.Equals(left);
 
         /// <summary>
-        ///     New line
+        ///     Gets the newline string defined for this environment.
         /// </summary>
         private static readonly char[] _NewLine = Environment.NewLine.ToCharArray();
 
         /// <summary>
-        ///     New line
+        ///     Gets the newline string defined for this environment.
         /// </summary>
         private static readonly byte[] _NewLineUtf8 = Encoding.UTF8.GetBytes(Environment.NewLine);
 
         /// <summary>
-        ///     New line chars
+        ///     Gets the all newline chars defined for this environment.
         /// </summary>
         private static readonly char[] _NewLineChars = "\r\f\u0085\u2028\u2029\n".ToCharArray();
 
         /// <summary>
-        ///     WhiteSpace chars
+        ///     Gets the all white space chars defined for this environment.
         /// </summary>
         private static readonly char[] _WhiteSpaceChars = "\t\n\v\f\r\u0020\u0085\u00a0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000".ToCharArray();
 
@@ -1295,19 +1316,19 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeString Create(ReadOnlySpan<char> buffer) => new(MemoryMarshal.CreateSpan(ref MemoryMarshal.GetReference(buffer), buffer.Length));
+        public static UnsafeString Create(ReadOnlySpan<char> buffer) => new(MemoryMarshalHelpers.AsSpan(buffer));
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeString Create(ReadOnlySpan<char> buffer, int length) => new(MemoryMarshal.CreateSpan(ref MemoryMarshal.GetReference(buffer), buffer.Length), length);
+        public static UnsafeString Create(ReadOnlySpan<char> buffer, int length) => new(MemoryMarshalHelpers.AsSpan(buffer), length);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeString Empty => default;
 
@@ -1341,16 +1362,16 @@ namespace NativeCollections
 #endif
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool AppendFormat<T>(T? obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) where T : struct => !obj.HasValue || AppendFormat(obj.GetValueOrDefault(), format, provider);
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which contains zero or more format items, to
-        ///     this instance.
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

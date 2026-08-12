@@ -29,7 +29,7 @@ namespace NativeCollections
         public readonly delegate* managed<void*, void*, void> AlignedFree;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public CustomMemoryCallbacks(delegate* managed<void*, uint, uint, void*> alignedAlloc, delegate* managed<void*, uint, uint, void*> alignedAllocZeroed, delegate* managed<void*, void*, void> alignedFree)
@@ -70,7 +70,7 @@ namespace NativeCollections
         public static bool operator !=(CustomMemoryCallbacks left, CustomMemoryCallbacks right) => !left.Equals(right);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static CustomMemoryCallbacks Empty => default;
     }

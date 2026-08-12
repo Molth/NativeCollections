@@ -16,7 +16,7 @@ namespace NativeCollections
     public struct UnsafeSpinWait : IEquatable<UnsafeSpinWait>
     {
         /// <summary>
-        ///     Spin wait
+        ///     Provides support for spin-based waiting.
         /// </summary>
         private
 #if NET5_0_OR_GREATER
@@ -114,7 +114,7 @@ namespace NativeCollections
         public static bool operator !=(UnsafeSpinWait left, UnsafeSpinWait right) => !left.Equals(right);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeSpinWait Empty => default;
     }

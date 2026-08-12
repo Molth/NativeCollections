@@ -18,12 +18,12 @@ namespace NativeCollections
     public readonly unsafe struct NativeConcurrentHashSet<T> : IIsCreated, IDisposable, IEquatable<NativeConcurrentHashSet<T>>, IReadOnlyCollection<T> where T : unmanaged, IEquatable<T>
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly UnsafeConcurrentHashSet<T>* _handle;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private NativeConcurrentHashSet(UnsafeConcurrentHashSet<T>* handle) => _handle = handle;
@@ -129,7 +129,7 @@ namespace NativeCollections
         public bool Contains(T item) => _handle->Contains(item);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeConcurrentHashSet<T> Empty => default;
 

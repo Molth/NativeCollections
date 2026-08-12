@@ -17,25 +17,32 @@ namespace NativeCollections
     public readonly unsafe struct NativeDynamicMemoryPool : IIsCreated, IDisposable, IEquatable<NativeDynamicMemoryPool>
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly void* _handle;
 
         /// <summary>
-        ///     Gets the number of elements.
+        ///     Total size (in bytes) of the memory pool.
         /// </summary>
         private readonly nuint _size;
 
         /// <summary>
-        ///     Blocks
+        ///     Expected maximum number of blocks that can be allocated
+        ///     from the pool (used for overhead pre‑computation).
         /// </summary>
         private readonly nuint _blocks;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class with the specified pool size and block count.
         /// </summary>
-        /// <param name="size">Size</param>
-        /// <param name="blocks">Blocks</param>
+        /// <param name="size">Total size (in bytes) of the memory pool.</param>
+        /// <param name="blocks">
+        ///     The expected maximum number of blocks.
+        ///     This is used to reserve overhead for block management.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when alignment or size requirements are not met, or when TLSF pool creation fails.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeDynamicMemoryPool(nuint size, nuint blocks)
         {
@@ -76,12 +83,13 @@ namespace NativeCollections
         public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
         /// <summary>
-        ///     Gets the number of elements.
+        ///     Total size (in bytes) of the memory pool.
         /// </summary>
         public nuint Size => _size;
 
         /// <summary>
-        ///     Blocks
+        ///     Expected maximum number of blocks that can be allocated
+        ///     from the pool (used for overhead pre‑computation).
         /// </summary>
         public nuint Blocks => _blocks;
 
@@ -197,7 +205,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeDynamicMemoryPool Empty => default;
     }

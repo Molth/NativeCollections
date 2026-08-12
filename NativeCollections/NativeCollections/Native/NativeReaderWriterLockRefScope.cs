@@ -21,12 +21,13 @@ namespace NativeCollections
 #endif
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly NativeRef<UnsafeReaderWriterLock> _handle;
 
         /// <summary>
-        ///     Is reader
+        ///     Indicates whether the lock was acquired in read mode (<see langword="true" />)
+        ///     or write mode (<see langword="false" />).
         /// </summary>
         private readonly bool _isReader;
 
@@ -36,7 +37,7 @@ namespace NativeCollections
         public bool IsCreated => _handle.IsCreated;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal NativeReaderWriterLockRefScope(NativeRef<UnsafeReaderWriterLock> handle, bool isReader)
@@ -93,7 +94,7 @@ namespace NativeCollections
         public override string ToString() => "NativeReaderWriterLockRefScope";
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeReaderWriterLockRefScope Empty => default;
     }

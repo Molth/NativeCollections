@@ -18,12 +18,12 @@ namespace NativeCollections
     public unsafe struct UnsafeOrderedSparseSet<TValue> : IIsCreated, IDisposable, IEquatable<UnsafeOrderedSparseSet<TValue>>, IReadOnlyCollection<KeyValuePair<int, TValue>> where TValue : unmanaged
     {
         /// <summary>
-        ///     Dense
+        ///     The dense array of entries (key-value pairs).
         /// </summary>
         private Entry* _dense;
 
         /// <summary>
-        ///     Sparse
+        ///     The sparse array mapping keys to dense indices.
         /// </summary>
         private int* _sparse;
 
@@ -33,12 +33,12 @@ namespace NativeCollections
         private int _length;
 
         /// <summary>
-        ///     Head
+        ///     The index of the head.
         /// </summary>
         private int _head;
 
         /// <summary>
-        ///     Tail
+        ///     The index of the tail.
         /// </summary>
         private int _tail;
 
@@ -65,7 +65,7 @@ namespace NativeCollections
         public ValueCollection Values => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
-        ///     KeyValuePairs
+        ///     Gets a collection containing the key/value pairs in the dictionary.
         /// </summary>
         [MustBePinned(SR.parameter_this)]
         public OrderedKeyValuePairCollection OrderedKeyValuePairs => new(UnsafeHelpers.AsPointer(ref this));
@@ -190,9 +190,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of the class with the specified initial capacity.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
+        /// <param name="capacity">
+        ///     The initial number of elements that the instance can hold.
+        ///     Must be non-negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="capacity" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeOrderedSparseSet(int capacity)
         {
@@ -906,34 +910,34 @@ namespace NativeCollections
         public static implicit operator ReadOnlySpan<KeyValuePair<int, TValue>>(UnsafeOrderedSparseSet<TValue> value) => value.AsReadOnlySpan();
 
         /// <summary>
-        ///     Entry
+        ///     Represents an entry.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         private struct Entry
         {
             /// <summary>
-            ///     Key
+            ///     Gets the key to the underlying object.
             /// </summary>
             public int Key;
 
             /// <summary>
-            ///     Value
+            ///     Gets the value to the underlying object.
             /// </summary>
             public TValue Value;
 
             /// <summary>
-            ///     Next
+            ///     The index of the next entry.
             /// </summary>
             public int Next;
 
             /// <summary>
-            ///     Previous
+            ///     The index of the previous entry.
             /// </summary>
             public int Previous;
         }
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeOrderedSparseSet<TValue> Empty => default;
 
@@ -966,13 +970,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Enumerator
+        ///     Supports a simple iteration over a generic collection.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public struct Enumerator : IIterator<KeyValuePair<int, TValue>>
         {
             /// <summary>
-            ///     NativeSparseSet
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly UnsafeOrderedSparseSet<TValue>* _handle;
 
@@ -982,12 +986,12 @@ namespace NativeCollections
             private readonly int _version;
 
             /// <summary>
-            ///     Index
+            ///     The current index.
             /// </summary>
             private int _index;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal Enumerator(UnsafeOrderedSparseSet<TValue>* handle)
@@ -1040,12 +1044,12 @@ namespace NativeCollections
         public readonly struct KeyCollection : IIsCreated, IReadOnlyCollection<int>
         {
             /// <summary>
-            ///     NativeSparseSet
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly UnsafeOrderedSparseSet<TValue>* _handle;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal KeyCollection(UnsafeOrderedSparseSet<TValue>* handle) => _handle = handle;
@@ -1104,13 +1108,13 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Enumerator
+            ///     Supports a simple iteration over a generic collection.
             /// </summary>
             [StructLayout(LayoutKind.Sequential)]
             public struct Enumerator : IIterator<int>
             {
                 /// <summary>
-                ///     NativeSparseSet
+                ///     Gets the handle to the underlying object.
                 /// </summary>
                 private readonly UnsafeOrderedSparseSet<TValue>* _handle;
 
@@ -1120,12 +1124,12 @@ namespace NativeCollections
                 private readonly int _version;
 
                 /// <summary>
-                ///     Index
+                ///     The current index.
                 /// </summary>
                 private int _index;
 
                 /// <summary>
-                ///     Structure
+                ///     Initializes a new instance of this class.
                 /// </summary>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 internal Enumerator(UnsafeOrderedSparseSet<TValue>* handle)
@@ -1179,12 +1183,12 @@ namespace NativeCollections
         public readonly struct ValueCollection : IIsCreated, IReadOnlyCollection<TValue>
         {
             /// <summary>
-            ///     NativeSparseSet
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly UnsafeOrderedSparseSet<TValue>* _handle;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal ValueCollection(UnsafeOrderedSparseSet<TValue>* handle) => _handle = handle;
@@ -1242,13 +1246,13 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Enumerator
+            ///     Supports a simple iteration over a generic collection.
             /// </summary>
             [StructLayout(LayoutKind.Sequential)]
             public struct Enumerator : IIterator<TValue>
             {
                 /// <summary>
-                ///     NativeSparseSet
+                ///     Gets the handle to the underlying object.
                 /// </summary>
                 private readonly UnsafeOrderedSparseSet<TValue>* _handle;
 
@@ -1258,12 +1262,12 @@ namespace NativeCollections
                 private readonly int _version;
 
                 /// <summary>
-                ///     Index
+                ///     The current index.
                 /// </summary>
                 private int _index;
 
                 /// <summary>
-                ///     Structure
+                ///     Initializes a new instance of this class.
                 /// </summary>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 internal Enumerator(UnsafeOrderedSparseSet<TValue>* handle)
@@ -1311,18 +1315,18 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     KeyValuePair collection
+        ///     Represents the collection of key/value pairs.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public readonly struct OrderedKeyValuePairCollection : IIsCreated, IReadOnlyCollection<KeyValuePair<int, TValue>>
         {
             /// <summary>
-            ///     NativeSparseSet
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly UnsafeOrderedSparseSet<TValue>* _handle;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal OrderedKeyValuePairCollection(UnsafeOrderedSparseSet<TValue>* handle) => _handle = handle;
@@ -1438,13 +1442,13 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Enumerator
+            ///     Supports a simple iteration over a generic collection.
             /// </summary>
             [StructLayout(LayoutKind.Sequential)]
             public struct Enumerator : IIterator<KeyValuePair<int, TValue>>
             {
                 /// <summary>
-                ///     NativeSparseSet
+                ///     Gets the handle to the underlying object.
                 /// </summary>
                 private readonly UnsafeOrderedSparseSet<TValue>* _handle;
 
@@ -1454,7 +1458,7 @@ namespace NativeCollections
                 private readonly int _version;
 
                 /// <summary>
-                ///     Index
+                ///     The current index.
                 /// </summary>
                 private int _index;
 
@@ -1465,7 +1469,7 @@ namespace NativeCollections
                 private Entry* _current;
 
                 /// <summary>
-                ///     Structure
+                ///     Initializes a new instance of this class.
                 /// </summary>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 internal Enumerator(UnsafeOrderedSparseSet<TValue>* handle)
@@ -1522,12 +1526,12 @@ namespace NativeCollections
         public readonly struct OrderedKeyCollection : IIsCreated, IReadOnlyCollection<int>
         {
             /// <summary>
-            ///     NativeSparseSet
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly UnsafeOrderedSparseSet<TValue>* _handle;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal OrderedKeyCollection(UnsafeOrderedSparseSet<TValue>* handle) => _handle = handle;
@@ -1643,13 +1647,13 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Enumerator
+            ///     Supports a simple iteration over a generic collection.
             /// </summary>
             [StructLayout(LayoutKind.Sequential)]
             public struct Enumerator : IIterator<int>
             {
                 /// <summary>
-                ///     NativeSparseSet
+                ///     Gets the handle to the underlying object.
                 /// </summary>
                 private readonly UnsafeOrderedSparseSet<TValue>* _handle;
 
@@ -1659,7 +1663,7 @@ namespace NativeCollections
                 private readonly int _version;
 
                 /// <summary>
-                ///     Index
+                ///     The current index.
                 /// </summary>
                 private int _index;
 
@@ -1670,7 +1674,7 @@ namespace NativeCollections
                 private Entry* _current;
 
                 /// <summary>
-                ///     Structure
+                ///     Initializes a new instance of this class.
                 /// </summary>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 internal Enumerator(UnsafeOrderedSparseSet<TValue>* handle)
@@ -1727,12 +1731,12 @@ namespace NativeCollections
         public readonly struct OrderedValueCollection : IIsCreated, IReadOnlyCollection<TValue>
         {
             /// <summary>
-            ///     NativeSparseSet
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly UnsafeOrderedSparseSet<TValue>* _handle;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal OrderedValueCollection(UnsafeOrderedSparseSet<TValue>* handle) => _handle = handle;
@@ -1848,13 +1852,13 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Enumerator
+            ///     Supports a simple iteration over a generic collection.
             /// </summary>
             [StructLayout(LayoutKind.Sequential)]
             public struct Enumerator : IIterator<TValue>
             {
                 /// <summary>
-                ///     NativeSparseSet
+                ///     Gets the handle to the underlying object.
                 /// </summary>
                 private readonly UnsafeOrderedSparseSet<TValue>* _handle;
 
@@ -1864,7 +1868,7 @@ namespace NativeCollections
                 private readonly int _version;
 
                 /// <summary>
-                ///     Index
+                ///     The current index.
                 /// </summary>
                 private int _index;
 
@@ -1875,7 +1879,7 @@ namespace NativeCollections
                 private Entry* _current;
 
                 /// <summary>
-                ///     Structure
+                ///     Initializes a new instance of this class.
                 /// </summary>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 internal Enumerator(UnsafeOrderedSparseSet<TValue>* handle)

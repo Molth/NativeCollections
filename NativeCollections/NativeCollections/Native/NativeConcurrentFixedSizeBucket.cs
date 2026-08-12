@@ -15,7 +15,7 @@ namespace NativeCollections
     public readonly unsafe struct NativeConcurrentFixedSizeBucket : IIsCreated, IDisposable, IEquatable<NativeConcurrentFixedSizeBucket>
     {
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         private readonly int* _buffer;
 
@@ -25,9 +25,13 @@ namespace NativeCollections
         private readonly int _length;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of the class with the specified initial capacity.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
+        /// <param name="capacity">
+        ///     The initial number of elements that the instance can hold.
+        ///     Must be non-negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="capacity" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeConcurrentFixedSizeBucket(int capacity)
         {
@@ -37,10 +41,21 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     that uses a caller-provided byte buffer as storage.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="capacity">Capacity</param>
+        /// <param name="buffer">
+        ///     The byte buffer to use as underlying storage.
+        ///     It must be large enough to store the specified number of elements with proper alignment.
+        /// </param>
+        /// <param name="capacity">
+        ///     The maximum number of elements the stack can hold.
+        ///     Must be non-negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown if <paramref name="capacity" /> is negative, or if <paramref name="buffer" /> is too small
+        ///     to hold the required number of elements (including alignment padding).
+        /// </exception>
         [MustBeZeroed(nameof(buffer))]
         [MustBePinned(nameof(buffer))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -174,7 +189,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeConcurrentFixedSizeBucket Empty => default;
     }

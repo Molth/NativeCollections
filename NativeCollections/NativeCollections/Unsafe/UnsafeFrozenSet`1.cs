@@ -18,7 +18,7 @@ namespace NativeCollections
     public readonly unsafe struct UnsafeFrozenSet<T> : IIsCreated, IDisposable, IEquatable<UnsafeFrozenSet<T>>, IReadOnlyCollection<T> where T : unmanaged, IEquatable<T>
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly UnsafeFrozenSetHandle<T> _handle;
 
@@ -59,7 +59,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeFrozenSet<T> Create(HashSet<T> source)
@@ -72,7 +72,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeFrozenSet<T> Create(NativeHashSet<T> source)
@@ -83,7 +83,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeFrozenSet<T> Create(UnsafeHashSet<T> source)
@@ -94,7 +94,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeFrozenSet<T> Create(StackallocHashSet<T> source)
@@ -105,7 +105,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MustBeDistinct(nameof(source))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -142,7 +142,7 @@ namespace NativeCollections
         public static bool operator !=(UnsafeFrozenSet<T> left, UnsafeFrozenSet<T> right) => !left.Equals(right);
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static UnsafeFrozenSetHandle<T> Initialize(ReadOnlySpan<T> source)
@@ -266,7 +266,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeFrozenSet<T> Empty => default;
 

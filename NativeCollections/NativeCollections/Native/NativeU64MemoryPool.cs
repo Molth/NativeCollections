@@ -15,16 +15,35 @@ namespace NativeCollections
     public readonly unsafe struct NativeU64MemoryPool : IIsCreated, IDisposable, IEquatable<NativeU64MemoryPool>
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly UnsafeU64MemoryPool* _handle;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified node length, maximum free slabs, and alignment.
         /// </summary>
-        /// <param name="length">Length</param>
-        /// <param name="maxFreeSlabs">Max free slabs</param>
-        /// <param name="alignment">Alignment</param>
+        /// <remarks>
+        ///     Each slab in this pool contains exactly 64 nodes,
+        ///     as the allocation bitmap is stored as a <see cref="ulong" />.
+        /// </remarks>
+        /// <param name="length">
+        ///     The length (in bytes) of the data region of each node.
+        ///     Must be non-negative.
+        /// </param>
+        /// <param name="maxFreeSlabs">
+        ///     The maximum number of free slabs to retain in the free list.
+        ///     Must be non-negative.
+        /// </param>
+        /// <param name="alignment">
+        ///     The required alignment for allocations, in bytes.
+        ///     Must be a power of two and at least the alignment of the internal slab structure.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown if <paramref name="length" />, <paramref name="maxFreeSlabs" />,
+        ///     or <paramref name="alignment" /> is negative.
+        /// </exception>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="alignment" /> is not a power of two.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeU64MemoryPool(int length, int maxFreeSlabs, int alignment)
         {
@@ -154,7 +173,7 @@ namespace NativeCollections
         public int TrimExcess(int capacity) => _handle->TrimExcess(capacity);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeU64MemoryPool Empty => default;
     }

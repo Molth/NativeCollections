@@ -19,7 +19,7 @@ namespace NativeCollections
     public readonly unsafe struct NativeSortedList<TKey, TValue> : IIsCreated, IDisposable, IEquatable<NativeSortedList<TKey, TValue>>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IComparable<TKey> where TValue : unmanaged
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly UnsafeSortedList<TKey, TValue>* _handle;
 
@@ -34,9 +34,13 @@ namespace NativeCollections
         public UnsafeSortedList<TKey, TValue>.ValueCollection Values => _handle->Values;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of the class with the specified initial capacity.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
+        /// <param name="capacity">
+        ///     The initial number of elements that the instance can hold.
+        ///     Must be non-negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="capacity" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeSortedList(int capacity)
         {
@@ -438,7 +442,7 @@ namespace NativeCollections
         public void SetCapacity(int capacity) => _handle->SetCapacity(capacity);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeSortedList<TKey, TValue> Empty => default;
 

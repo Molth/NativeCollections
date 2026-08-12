@@ -15,7 +15,7 @@ namespace NativeCollections
     ///     Provides helper methods for validating arguments and
     ///     throwing standard exceptions with consistent messaging.
     /// </summary>
-    internal static class ThrowHelpers
+    internal static unsafe class ThrowHelpers
     {
         /// <summary>
         ///     Throws an <see cref="ArgumentOutOfRangeException" /> if <paramref name="value" /> is negative.
@@ -128,9 +128,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Throws an <see cref="ArgumentOutOfRangeException" /> if <paramref name="value" /> is not between 0.0 and 1.0.
+        ///     Throws an <see cref="ArgumentOutOfRangeException" /> if <paramref name="value" /> is not in the range [0.0, 1.0].
         /// </summary>
-        /// <param name="value">The argument to validate as a probability between 0.0 and 1.0 inclusive.</param>
+        /// <param name="value">The argument to validate as a probability in the range [0.0, 1.0] inclusive.</param>
         /// <param name="paramName">The name of the parameter with which <paramref name="value" /> corresponds.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ThrowIfProbabilityOutOfRange(double value, ExceptionArgument paramName)
@@ -148,6 +148,18 @@ namespace NativeCollections
         public static void ThrowIfNull<T>(T? argument, ExceptionArgument paramName) where T : class
         {
             if (argument == null)
+                throw new ArgumentNullException(GetArgumentName(paramName), SR.ArgumentNull_MustBeNotNull);
+        }
+
+        /// <summary>
+        ///     Throws an <see cref="ArgumentNullException" /> if <paramref name="argument" /> is null.
+        /// </summary>
+        /// <param name="argument">The reference type argument to validate as non-null.</param>
+        /// <param name="paramName">The name of the parameter with which <paramref name="argument" /> corresponds.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ThrowIfNull(void* argument, ExceptionArgument paramName)
+        {
+            if (UnsafeHelpers.IsNull(argument))
                 throw new ArgumentNullException(GetArgumentName(paramName), SR.ArgumentNull_MustBeNotNull);
         }
 

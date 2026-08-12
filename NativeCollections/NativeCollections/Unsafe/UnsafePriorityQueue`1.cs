@@ -18,7 +18,7 @@ namespace NativeCollections
     public unsafe struct UnsafePriorityQueue<TPriority> : IIsCreated, IDisposable, IEquatable<UnsafePriorityQueue<TPriority>> where TPriority : unmanaged, IComparable<TPriority>
     {
         /// <summary>
-        ///     Nodes
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         private TPriority* _nodes;
 
@@ -30,7 +30,7 @@ namespace NativeCollections
         /// <summary>
         ///     Gets the number of elements.
         /// </summary>
-        private int _size;
+        private int _count;
 
         /// <summary>
         ///     Used to keep enumerator in sync w/ collection.
@@ -45,12 +45,12 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        public readonly bool IsEmpty => _size == 0;
+        public readonly bool IsEmpty => _count == 0;
 
         /// <summary>
         ///     Gets the number of elements contained in this.
         /// </summary>
-        public readonly int Count => _size;
+        public readonly int Count => _count;
 
         /// <summary>
         ///     Gets the total numbers of elements the internal data structure can hold.
@@ -82,9 +82,13 @@ namespace NativeCollections
         public UnorderedItemsCollection UnorderedItems => new(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of the class with the specified initial capacity.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
+        /// <param name="capacity">
+        ///     The initial number of elements that the instance can hold.
+        ///     Must be non-negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="capacity" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafePriorityQueue(int capacity)
         {
@@ -92,7 +96,7 @@ namespace NativeCollections
             capacity = Math.Max(capacity, 4);
             _nodes = NativeMemoryAllocator.AlignedAlloc<TPriority>((uint)capacity);
             _length = capacity;
-            _size = 0;
+            _count = 0;
             _version = 0;
         }
 
@@ -139,7 +143,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
-            _size = 0;
+            _count = 0;
             ++_version;
         }
 
@@ -150,11 +154,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool RemoveAt(int index)
         {
-            if ((uint)index >= (uint)_size)
+            if ((uint)index >= (uint)_count)
                 return false;
             var nodes = _nodes;
             var priority = Unsafe.Add(ref Unsafe.AsRef<TPriority>(nodes), (nint)index);
-            var num = --_size;
+            var num = --_count;
             if (index < num)
             {
                 var node = Unsafe.Add(ref Unsafe.AsRef<TPriority>(nodes), (nint)num);
@@ -176,7 +180,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool RemoveAt(int index, out TPriority priority)
         {
-            if ((uint)index >= (uint)_size)
+            if ((uint)index >= (uint)_count)
             {
                 priority = default;
                 return false;
@@ -184,7 +188,7 @@ namespace NativeCollections
 
             var nodes = _nodes;
             priority = Unsafe.Add(ref Unsafe.AsRef<TPriority>(nodes), (nint)index);
-            var num = --_size;
+            var num = --_count;
             if (index < num)
             {
                 var node = Unsafe.Add(ref Unsafe.AsRef<TPriority>(nodes), (nint)num);
@@ -205,11 +209,11 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Enqueue(in TPriority priority)
         {
-            var size = _size;
+            var size = _count;
             ++_version;
             if (_length == size)
                 Grow(size + 1);
-            _size = size + 1;
+            _count = size + 1;
             MoveUp(priority, size);
         }
 
@@ -224,10 +228,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryEnqueue(in TPriority priority)
         {
-            var size = _size;
+            var size = _count;
             if (_length != size)
             {
-                _size = size + 1;
+                _count = size + 1;
                 MoveUp(priority, size);
                 ++_version;
                 return true;
@@ -245,7 +249,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TPriority EnqueueDequeue(in TPriority priority)
         {
-            if (_size != 0)
+            if (_count != 0)
             {
                 var node = Unsafe.AsRef<TPriority>(_nodes);
                 if (priority.CompareTo(node) > 0)
@@ -276,7 +280,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryEnqueueDequeue(in TPriority priority, out TPriority result)
         {
-            if (_size != 0)
+            if (_count != 0)
             {
                 var node = Unsafe.AsRef<TPriority>(_nodes);
                 if (priority.CompareTo(node) > 0)
@@ -300,7 +304,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TPriority Dequeue()
         {
-            ThrowHelpers.ThrowIfEmptyQueue(_size);
+            ThrowHelpers.ThrowIfEmptyQueue(_count);
             var priority = Unsafe.AsRef<TPriority>(_nodes);
             RemoveRootNode();
             return priority;
@@ -317,7 +321,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDequeue(out TPriority priority)
         {
-            if (_size != 0)
+            if (_count != 0)
             {
                 priority = Unsafe.AsRef<TPriority>(_nodes);
                 RemoveRootNode();
@@ -337,7 +341,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TPriority DequeueEnqueue(in TPriority priority)
         {
-            ThrowHelpers.ThrowIfEmptyQueue(_size);
+            ThrowHelpers.ThrowIfEmptyQueue(_count);
             var node = Unsafe.AsRef<TPriority>(_nodes);
             if (priority.CompareTo(node) > 0)
                 MoveDown(priority, 0);
@@ -364,7 +368,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDequeueEnqueue(in TPriority priority, out TPriority result)
         {
-            if (_size == 0)
+            if (_count == 0)
             {
                 result = default;
                 return false;
@@ -388,7 +392,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly TPriority Peek()
         {
-            ThrowHelpers.ThrowIfEmptyQueue(_size);
+            ThrowHelpers.ThrowIfEmptyQueue(_count);
             return Unsafe.AsRef<TPriority>(_nodes);
         }
 
@@ -405,7 +409,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool TryPeek(out TPriority priority)
         {
-            if (_size != 0)
+            if (_count != 0)
             {
                 priority = Unsafe.AsRef<TPriority>(_nodes);
                 return true;
@@ -441,13 +445,13 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess()
         {
-            if (_size >= (int)(_length * 0.9))
+            if (_count >= (int)(_length * 0.9))
                 return _length;
-            var nodes = NativeMemoryAllocator.AlignedAlloc<TPriority>((uint)_size);
-            SpanHelpers.Copy(ref Unsafe.AsRef<byte>(nodes), ref Unsafe.AsRef<byte>(_nodes), (uint)(_size * Unsafe.SizeOf<TPriority>()));
+            var nodes = NativeMemoryAllocator.AlignedAlloc<TPriority>((uint)_count);
+            SpanHelpers.Copy(ref Unsafe.AsRef<byte>(nodes), ref Unsafe.AsRef<byte>(_nodes), (uint)(_count * Unsafe.SizeOf<TPriority>()));
             NativeMemoryAllocator.AlignedFree(_nodes);
             _nodes = nodes;
-            _length = _size;
+            _length = _count;
             ++_version;
             return _length;
         }
@@ -459,13 +463,13 @@ namespace NativeCollections
         public int TrimExcess(int capacity)
         {
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
-            if (capacity < _size || capacity >= _length)
+            if (capacity < _count || capacity >= _length)
                 return _length;
-            var nodes = NativeMemoryAllocator.AlignedAlloc<TPriority>((uint)_size);
-            SpanHelpers.Copy(ref Unsafe.AsRef<byte>(nodes), ref Unsafe.AsRef<byte>(_nodes), (uint)(_size * Unsafe.SizeOf<TPriority>()));
+            var nodes = NativeMemoryAllocator.AlignedAlloc<TPriority>((uint)_count);
+            SpanHelpers.Copy(ref Unsafe.AsRef<byte>(nodes), ref Unsafe.AsRef<byte>(_nodes), (uint)(_count * Unsafe.SizeOf<TPriority>()));
             NativeMemoryAllocator.AlignedFree(_nodes);
             _nodes = nodes;
-            _length = _size;
+            _length = _count;
             ++_version;
             return _length;
         }
@@ -474,13 +478,13 @@ namespace NativeCollections
         ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<TPriority> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<TPriority>(_nodes), _size);
+        public readonly ReadOnlySpan<TPriority> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<TPriority>(_nodes), _count);
 
         /// <summary>
         ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<TPriority> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<TPriority>(_nodes), (nint)start), _size - start);
+        public readonly ReadOnlySpan<TPriority> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<TPriority>(_nodes), (nint)start), _count - start);
 
         /// <summary>
         ///     Creates a new read-only span over a portion of a regular managed object.
@@ -489,9 +493,10 @@ namespace NativeCollections
         public readonly ReadOnlySpan<TPriority> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<TPriority>(_nodes), (nint)start), length);
 
         /// <summary>
-        ///     Grow
+        ///     Increases the capacity of this to a new size
+        ///     that is at least the specified minimum capacity.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
+        /// <param name="capacity">The new capacity.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Grow(int capacity)
         {
@@ -502,19 +507,20 @@ namespace NativeCollections
             newCapacity = Math.Max(newCapacity, expected);
             newCapacity = Math.Max(newCapacity, capacity);
             var nodes = NativeMemoryAllocator.AlignedAlloc<TPriority>((uint)newCapacity);
-            SpanHelpers.Copy(ref Unsafe.AsRef<byte>(nodes), ref Unsafe.AsRef<byte>(_nodes), (uint)(_size * Unsafe.SizeOf<TPriority>()));
+            SpanHelpers.Copy(ref Unsafe.AsRef<byte>(nodes), ref Unsafe.AsRef<byte>(_nodes), (uint)(_count * Unsafe.SizeOf<TPriority>()));
             NativeMemoryAllocator.AlignedFree(_nodes);
             _nodes = nodes;
             _length = newCapacity;
         }
 
         /// <summary>
-        ///     Remove root node
+        ///     Removes the root node (the minimum priority element) from the heap,
+        ///     and rebalances the heap by moving the last element down.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void RemoveRootNode()
         {
-            var index = --_size;
+            var index = --_count;
             ++_version;
             if (index > 0)
             {
@@ -524,10 +530,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Move up
+        ///     Moves a node upward in the heap to restore heap order,
+        ///     assuming the node's priority is lower than its parent's.
         /// </summary>
-        /// <param name="node">Node</param>
-        /// <param name="nodeIndex">Node index</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly void MoveUp(in TPriority node, int nodeIndex)
         {
@@ -547,17 +552,16 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Move down
+        ///     Moves a node downward in the heap to restore heap order,
+        ///     assuming the node's priority is greater than its children's.
         /// </summary>
-        /// <param name="node">Node</param>
-        /// <param name="nodeIndex">Node index</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly void MoveDown(in TPriority node, int nodeIndex)
         {
             var nodes = _nodes;
             int firstChildIndex;
             int first;
-            for (var size = _size; (firstChildIndex = (nodeIndex << 2) + 1) < size; nodeIndex = first)
+            for (var size = _count; (firstChildIndex = (nodeIndex << 2) + 1) < size; nodeIndex = first)
             {
                 var priority1 = Unsafe.Add(ref Unsafe.AsRef<TPriority>(nodes), (nint)firstChildIndex);
                 first = firstChildIndex;
@@ -583,7 +587,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafePriorityQueue<TPriority> Empty => default;
 
@@ -594,7 +598,7 @@ namespace NativeCollections
         public readonly struct UnorderedItemsCollection : IIsCreated, IReadOnlyCollection<TPriority>
         {
             /// <summary>
-            ///     NativePriorityQueue
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly UnsafePriorityQueue<TPriority>* _handle;
 
@@ -609,7 +613,7 @@ namespace NativeCollections
             public int Count => _handle->Count;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal UnorderedItemsCollection(UnsafePriorityQueue<TPriority>* handle) => _handle = handle;
@@ -660,13 +664,13 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Enumerator
+            ///     Supports a simple iteration over a generic collection.
             /// </summary>
             [StructLayout(LayoutKind.Sequential)]
             public struct Enumerator : IIterator<TPriority>
             {
                 /// <summary>
-                ///     NativePriorityQueue
+                ///     Gets the handle to the underlying object.
                 /// </summary>
                 private readonly UnsafePriorityQueue<TPriority>* _handle;
 
@@ -676,7 +680,7 @@ namespace NativeCollections
                 private readonly int _version;
 
                 /// <summary>
-                ///     Index
+                ///     The current index.
                 /// </summary>
                 private int _index;
 
@@ -687,7 +691,7 @@ namespace NativeCollections
                 private TPriority _current;
 
                 /// <summary>
-                ///     Structure
+                ///     Initializes a new instance of this class.
                 /// </summary>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 internal Enumerator(UnsafePriorityQueue<TPriority>* handle)
@@ -710,9 +714,9 @@ namespace NativeCollections
                 {
                     var handle = _handle;
                     ThrowHelpers.ThrowIfEnumFailedVersion(_version, handle->_version);
-                    if ((uint)_index >= (uint)handle->_size)
+                    if ((uint)_index >= (uint)handle->_count)
                     {
-                        _index = handle->_size + 1;
+                        _index = handle->_count + 1;
                         _current = default;
                         return false;
                     }

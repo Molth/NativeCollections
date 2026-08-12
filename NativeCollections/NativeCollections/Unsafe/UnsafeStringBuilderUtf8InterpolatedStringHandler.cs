@@ -26,18 +26,18 @@ namespace NativeCollections
 #endif
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         private readonly struct UnsafeStringBuilderHandle : IIsCreated
         {
             /// <summary>
-            ///     Handle
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly UnsafeStringBuilder<byte>* _handle;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public UnsafeStringBuilderHandle(in UnsafeStringBuilder<byte> builder) => _handle = builder.AsPointer();
@@ -136,7 +136,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]

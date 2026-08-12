@@ -13,19 +13,18 @@ namespace NativeCollections
     public sealed unsafe class NativeMemoryManager<T> : MemoryManager<T> where T : unmanaged
     {
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         private readonly NativeArray<T> _buffer;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
-        /// <param name="buffer">buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeMemoryManager(NativeArray<T> buffer) => _buffer = buffer;
 
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         public NativeArray<T> Buffer
         {
@@ -84,22 +83,25 @@ namespace NativeCollections
         protected override void Dispose(bool disposing) => _buffer.Dispose();
 
         /// <summary>
-        ///     Get span
+        ///     Returns a memory span that wraps the underlying memory buffer.
         /// </summary>
-        /// <returns>Span</returns>
+        /// <returns>A memory span that wraps the underlying memory buffer.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override Span<T> GetSpan() => _buffer.AsSpan();
 
         /// <summary>
-        ///     Pin
+        ///     Returns a handle to the memory that has been pinned and whose address can be taken.
         /// </summary>
-        /// <param name="elementIndex">Element index</param>
-        /// <returns>MemoryHandle</returns>
+        /// <param name="elementIndex">
+        ///     The offset to the element in the memory buffer
+        ///     at which the returned <see cref="T:System.Buffers.MemoryHandle" /> points.
+        /// </param>
+        /// <returns>A handle to the memory that has been pinned.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override MemoryHandle Pin(int elementIndex = 0) => new(UnsafeHelpers.Add<T>(_buffer.Buffer, elementIndex));
 
         /// <summary>
-        ///     Unpin
+        ///     Unpins pinned memory so that the garbage collector is free to move it.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void Unpin()

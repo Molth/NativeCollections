@@ -18,7 +18,7 @@ namespace NativeCollections
     public unsafe struct StackallocSortedDictionary<TKey, TValue> : IIsCreated, IEquatable<StackallocSortedDictionary<TKey, TValue>>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IComparable<TKey> where TValue : unmanaged
     {
         /// <summary>
-        ///     Root
+        ///     The root node.
         /// </summary>
         private Node<TKey, TValue>* _root;
 
@@ -33,7 +33,7 @@ namespace NativeCollections
         private int _version;
 
         /// <summary>
-        ///     Node pool
+        ///     Represents a memory pool that provides reusable fixed-size memory blocks.
         /// </summary>
         private StackallocFixedSizeStackMemoryPool<Node<TKey, TValue>> _nodePool;
 
@@ -114,10 +114,21 @@ namespace NativeCollections
         public static int GetByteCount(int capacity) => StackallocFixedSizeStackMemoryPool<Node<TKey, TValue>>.GetByteCount(capacity);
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     that uses a caller-provided byte buffer as storage.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="capacity">Capacity</param>
+        /// <param name="buffer">
+        ///     The byte buffer to use as underlying storage.
+        ///     It must be large enough to store the specified number of elements with proper alignment.
+        /// </param>
+        /// <param name="capacity">
+        ///     The maximum number of elements the stack can hold.
+        ///     Must be non-negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown if <paramref name="capacity" /> is negative, or if <paramref name="buffer" /> is too small
+        ///     to hold the required number of elements (including alignment padding).
+        /// </exception>
         [MustBePinned(nameof(buffer))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public StackallocSortedDictionary([MustBePinned] Span<byte> buffer, int capacity)
@@ -250,11 +261,6 @@ namespace NativeCollections
         /// </summary>
         /// <param name="key">The key of the element to add.</param>
         /// <param name="value">The value of the element to add.</param>
-        /// <returns>
-        ///     An <see cref="InsertResult" /> value indicating whether the item was added successfully
-        ///     <see cref="InsertResult.Success" /> or if an existing element was overwritten
-        ///     <see cref="InsertResult.Overwritten" />.
-        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public InsertResult TryAddOrUpdate(in TKey key, in TValue value)
         {
@@ -738,12 +744,15 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Insertion balance
+        ///     Restores red‑black tree balance after insertion by performing rotations and recoloring.
         /// </summary>
-        /// <param name="current">Current</param>
-        /// <param name="parent">Parent</param>
-        /// <param name="grandParent">Grand parent</param>
-        /// <param name="greatGrandParent">GreatGrand parent</param>
+        /// <param name="current">The newly inserted red node.</param>
+        /// <param name="parent">The parent of <paramref name="current" />.</param>
+        /// <param name="grandParent">The grandparent of <paramref name="current" />.</param>
+        /// <param name="greatGrandParent">
+        ///     The great‑grandparent of <paramref name="current" />,
+        ///     used to update the tree root.
+        /// </param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void InsertionBalance(Node<TKey, TValue>* current, Node<TKey, TValue>* parent, Node<TKey, TValue>* grandParent, Node<TKey, TValue>* greatGrandParent)
         {
@@ -760,11 +769,15 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Replace child or root
+        ///     Replaces a child node of a given parent with a new child,
+        ///     or updates the root if the parent is <see langword="null" />.
         /// </summary>
-        /// <param name="parent">Parent</param>
-        /// <param name="child">Child</param>
-        /// <param name="newChild">New child</param>
+        /// <param name="parent">
+        ///     The parent node whose child is being replaced.
+        ///     May be <see langword="null" />.
+        /// </param>
+        /// <param name="child">The child node to replace.</param>
+        /// <param name="newChild">The new child node.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ReplaceChildOrRoot(Node<TKey, TValue>* parent, Node<TKey, TValue>* child, Node<TKey, TValue>* newChild)
         {
@@ -775,12 +788,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Replace node
+        ///     Replaces a matched node with its successor during deletion,
+        ///     adjusting the tree structure accordingly.
         /// </summary>
-        /// <param name="match">Match</param>
-        /// <param name="parentOfMatch">Parent of match</param>
-        /// <param name="successor">Successor</param>
-        /// <param name="parentOfSuccessor">Parent of successor</param>
+        /// <param name="match">The node to be removed.</param>
+        /// <param name="parentOfMatch">The parent of <paramref name="match" />.</param>
+        /// <param name="successor">The successor node that will replace <paramref name="match" />.</param>
+        /// <param name="parentOfSuccessor">The parent of <paramref name="successor" />.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ReplaceNode(Node<TKey, TValue>* match, Node<TKey, TValue>* parentOfMatch, Node<TKey, TValue>* successor, Node<TKey, TValue>* parentOfSuccessor)
         {
@@ -807,10 +821,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Find node
+        ///     Searches for a node with the specified key.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <returns>Node</returns>
+        /// <param name="key">The key to locate.</param>
+        /// <returns>
+        ///     A node if found;
+        ///     otherwise, <see langword="null" />.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly Node<TKey, TValue>* FindNode(in TKey key)
         {
@@ -916,7 +933,7 @@ namespace NativeCollections
         public readonly void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, KeyValuePair<TKey, TValue>>(buffer));
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static StackallocSortedDictionary<TKey, TValue> Empty => default;
 
@@ -949,13 +966,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Enumerator
+        ///     Supports a simple iteration over a generic collection.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public struct Enumerator : IIterator<KeyValuePair<TKey, TValue>>, IDisposable
         {
             /// <summary>
-            ///     NativeHashSet
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly StackallocSortedDictionary<TKey, TValue>* _handle;
 
@@ -965,7 +982,7 @@ namespace NativeCollections
             private readonly int _version;
 
             /// <summary>
-            ///     Node stack
+            ///     Stack used for in-order traversal of the tree during enumeration.
             /// </summary>
             private readonly NativeStack<NativePtr<Node<TKey, TValue>>> _nodeStack;
 
@@ -982,7 +999,7 @@ namespace NativeCollections
             private KeyValuePair<TKey, TValue> _current;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal Enumerator(StackallocSortedDictionary<TKey, TValue>* handle)
@@ -1075,7 +1092,7 @@ namespace NativeCollections
         public readonly struct KeyCollection : IIsCreated, IReadOnlyCollection<TKey>
         {
             /// <summary>
-            ///     NativeSortedDictionary
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly StackallocSortedDictionary<TKey, TValue>* _handle;
 
@@ -1090,7 +1107,7 @@ namespace NativeCollections
             public int Count => _handle->Count;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal KeyCollection(StackallocSortedDictionary<TKey, TValue>* handle) => _handle = handle;
@@ -1212,13 +1229,13 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Enumerator
+            ///     Supports a simple iteration over a generic collection.
             /// </summary>
             [StructLayout(LayoutKind.Sequential)]
             public struct Enumerator : IIterator<TKey>, IDisposable
             {
                 /// <summary>
-                ///     NativeHashSet
+                ///     Gets the handle to the underlying object.
                 /// </summary>
                 private readonly StackallocSortedDictionary<TKey, TValue>* _handle;
 
@@ -1228,7 +1245,7 @@ namespace NativeCollections
                 private readonly int _version;
 
                 /// <summary>
-                ///     Node stack
+                ///     Stack used for in-order traversal of the tree during enumeration.
                 /// </summary>
                 private readonly NativeStack<NativePtr<Node<TKey, TValue>>> _nodeStack;
 
@@ -1245,7 +1262,7 @@ namespace NativeCollections
                 private TKey _current;
 
                 /// <summary>
-                ///     Structure
+                ///     Initializes a new instance of this class.
                 /// </summary>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 internal Enumerator(StackallocSortedDictionary<TKey, TValue>* handle)
@@ -1339,7 +1356,7 @@ namespace NativeCollections
         public readonly struct ValueCollection : IIsCreated, IReadOnlyCollection<TValue>
         {
             /// <summary>
-            ///     NativeSortedDictionary
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly StackallocSortedDictionary<TKey, TValue>* _handle;
 
@@ -1354,7 +1371,7 @@ namespace NativeCollections
             public int Count => _handle->Count;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal ValueCollection(StackallocSortedDictionary<TKey, TValue>* handle) => _handle = handle;
@@ -1476,13 +1493,13 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Enumerator
+            ///     Supports a simple iteration over a generic collection.
             /// </summary>
             [StructLayout(LayoutKind.Sequential)]
             public struct Enumerator : IIterator<TValue>, IDisposable
             {
                 /// <summary>
-                ///     NativeHashSet
+                ///     Gets the handle to the underlying object.
                 /// </summary>
                 private readonly StackallocSortedDictionary<TKey, TValue>* _handle;
 
@@ -1492,7 +1509,7 @@ namespace NativeCollections
                 private readonly int _version;
 
                 /// <summary>
-                ///     Node stack
+                ///     Stack used for in-order traversal of the tree during enumeration.
                 /// </summary>
                 private readonly NativeStack<NativePtr<Node<TKey, TValue>>> _nodeStack;
 
@@ -1509,7 +1526,7 @@ namespace NativeCollections
                 private TValue _current;
 
                 /// <summary>
-                ///     Structure
+                ///     Initializes a new instance of this class.
                 /// </summary>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 internal Enumerator(StackallocSortedDictionary<TKey, TValue>* handle)

@@ -14,7 +14,7 @@ namespace NativeCollections
     public unsafe struct UnsafeMemoryLinearAllocator : IIsCreated, IDisposable, IEquatable<UnsafeMemoryLinearAllocator>
     {
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         public readonly byte* Buffer;
 
@@ -24,15 +24,19 @@ namespace NativeCollections
         public readonly int Length;
 
         /// <summary>
-        ///     Position
+        ///     Gets the current position within the stream.
         /// </summary>
         private int _position;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of the class with the specified initial capacity.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="length">Length</param>
+        /// <param name="buffer">Represents a contiguous region of arbitrary memory.</param>
+        /// <param name="length">
+        ///     The initial number of elements that the instance can hold.
+        ///     Must be non-negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="length" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeMemoryLinearAllocator(byte* buffer, int length)
         {
@@ -276,7 +280,6 @@ namespace NativeCollections
         /// <summary>
         ///     Returns a pointer to the given by-ref parameter.
         /// </summary>
-        /// <returns>Pointer</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator byte*(UnsafeMemoryLinearAllocator value) => value.Buffer;
 
@@ -307,7 +310,7 @@ namespace NativeCollections
         public static implicit operator ReadOnlySpan<byte>(UnsafeMemoryLinearAllocator value) => value.AsReadOnlySpan();
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeMemoryLinearAllocator Empty => default;
     }

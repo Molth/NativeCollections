@@ -223,8 +223,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Retire(uint epoch, void* data, delegate* managed<void*, void> call)
         {
-            if (call == null)
-                ThrowHelpers.ThrowArgumentNullException(ExceptionArgument.call);
+            ThrowHelpers.ThrowIfNull(call, ExceptionArgument.call);
             var current = epoch % 3;
             ref var slot = ref _slots[current];
             var sealedBag = new SealedBag(epoch, data, call);
@@ -374,7 +373,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static EpochCollector Empty => default;
 

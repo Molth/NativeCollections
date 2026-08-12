@@ -31,9 +31,11 @@ namespace NativeCollections
 #endif
         }
 
-        // Determines the misalignment of the address with respect to the specified `alignment`.
+        /// <summary>
+        ///     Determines the misalignment of the address with respect to the specified `alignment`.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static nuint OpportunisticMisalignment<T>(ref T address, nuint alignment) where T : unmanaged => (nuint)(nint)Unsafe.AsPointer(ref address) & (alignment - 1);
+        public static nuint OpportunisticMisalignment<T>(ref T address, nuint alignment) where T : unmanaged => (nuint)NativeMemoryAllocator.AddressOf(ref address) & (alignment - 1);
 
         /// <summary>
         ///     Returns if a given pointer is a null reference.

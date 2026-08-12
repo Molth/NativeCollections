@@ -22,7 +22,7 @@ namespace NativeCollections
 #endif
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly Span<T> _handle;
 
@@ -32,9 +32,8 @@ namespace NativeCollections
         public bool IsCreated => !Unsafe.IsNullRef(ref AsRef());
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
-        /// <param name="handle">Handle</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeRef(Span<T> handle) => _handle = handle;
 
@@ -73,14 +72,13 @@ namespace NativeCollections
         public ref T AsRef() => ref MemoryMarshal.GetReference(_handle);
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
-        /// <param name="reference">Reference</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeRef<T> Create(ref T reference) => new(MemoryMarshal.CreateSpan(ref reference, 1));
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeRef<T> Empty => default;
     }

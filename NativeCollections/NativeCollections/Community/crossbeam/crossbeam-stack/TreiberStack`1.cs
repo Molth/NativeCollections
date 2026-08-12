@@ -16,7 +16,7 @@ namespace NativeCollections
     internal unsafe struct TreiberStack<T> : IIsCreated, IDisposable, IEquatable<TreiberStack<T>> where T : unmanaged
     {
         /// <summary>
-        ///     Epoch collector
+        ///     Epoch-based reclamation (EBR) collector for safe memory reclamation of retired nodes.
         /// </summary>
         private EpochCollector _ebr;
 
@@ -221,7 +221,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.NoInlining)]
         private bool TryPopSlow(out T result)
         {
-            var random = UnsafeXoshiro256.Shared;
+            var random = UnsafeSmallRandom.Shared;
             var spinWait = new UnsafeSpinWait();
             var backoff = 1;
             while (true)
@@ -269,7 +269,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static TreiberStack<T> Empty => default;
 

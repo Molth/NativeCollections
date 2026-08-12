@@ -18,7 +18,7 @@ namespace NativeCollections
     public readonly unsafe struct NativeConcurrentDictionary<TKey, TValue> : IIsCreated, IDisposable, IEquatable<NativeConcurrentDictionary<TKey, TValue>>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly UnsafeConcurrentDictionary<TKey, TValue>* _handle;
 
@@ -33,7 +33,7 @@ namespace NativeCollections
         public UnsafeConcurrentDictionary<TKey, TValue>.ValueCollection Values => _handle->Values;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private NativeConcurrentDictionary(UnsafeConcurrentDictionary<TKey, TValue>* handle) => _handle = handle;
@@ -364,7 +364,7 @@ namespace NativeCollections
         public TValue AddOrUpdate(TKey key, TValue addValue, Func<TKey, TValue, TValue> updateValueFactory) => _handle->AddOrUpdate(key, addValue, updateValueFactory);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeConcurrentDictionary<TKey, TValue> Empty => default;
 

@@ -18,7 +18,7 @@ namespace NativeCollections
     public unsafe struct UnsafeSortedDictionary<TKey, TValue> : IIsCreated, IDisposable, IEquatable<UnsafeSortedDictionary<TKey, TValue>>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IComparable<TKey> where TValue : unmanaged
     {
         /// <summary>
-        ///     Root
+        ///     The root node.
         /// </summary>
         private Node<TKey, TValue>* _root;
 
@@ -33,7 +33,7 @@ namespace NativeCollections
         private int _version;
 
         /// <summary>
-        ///     Node pool
+        ///     Represents a memory pool that provides reusable fixed-size memory blocks.
         /// </summary>
         private UnsafeMemoryPool<Node<TKey, TValue>> _nodePool;
 
@@ -135,10 +135,22 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified slab capacity and maximum free slabs,
+        ///     using the natural alignment and node length of type <typeparamref name="TKey" />.
         /// </summary>
-        /// <param name="size">MemoryPool size</param>
-        /// <param name="maxFreeSlabs">MemoryPool maxFreeSlabs</param>
+        /// <param name="size">
+        ///     The number of nodes each slab can hold.
+        ///     Must be greater than zero.
+        /// </param>
+        /// <param name="maxFreeSlabs">
+        ///     The maximum number of free slabs to retain.
+        ///     Must be non-negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="size" /> is less than or equal to zero,
+        ///     or when <paramref name="maxFreeSlabs" /> is negative.
+        /// </exception>
         public UnsafeSortedDictionary(int size, int maxFreeSlabs)
         {
             var nodePool = new UnsafeMemoryPool<Node<TKey, TValue>>(size, maxFreeSlabs);
@@ -695,12 +707,15 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Insertion balance
+        ///     Restores red‑black tree balance after insertion by performing rotations and recoloring.
         /// </summary>
-        /// <param name="current">Current</param>
-        /// <param name="parent">Parent</param>
-        /// <param name="grandParent">Grand parent</param>
-        /// <param name="greatGrandParent">GreatGrand parent</param>
+        /// <param name="current">The newly inserted red node.</param>
+        /// <param name="parent">The parent of <paramref name="current" />.</param>
+        /// <param name="grandParent">The grandparent of <paramref name="current" />.</param>
+        /// <param name="greatGrandParent">
+        ///     The great‑grandparent of <paramref name="current" />,
+        ///     used to update the tree root.
+        /// </param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void InsertionBalance(Node<TKey, TValue>* current, Node<TKey, TValue>* parent, Node<TKey, TValue>* grandParent, Node<TKey, TValue>* greatGrandParent)
         {
@@ -717,11 +732,15 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Replace child or root
+        ///     Replaces a child node of a given parent with a new child,
+        ///     or updates the root if the parent is <see langword="null" />.
         /// </summary>
-        /// <param name="parent">Parent</param>
-        /// <param name="child">Child</param>
-        /// <param name="newChild">New child</param>
+        /// <param name="parent">
+        ///     The parent node whose child is being replaced.
+        ///     May be <see langword="null" />.
+        /// </param>
+        /// <param name="child">The child node to replace.</param>
+        /// <param name="newChild">The new child node.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ReplaceChildOrRoot(Node<TKey, TValue>* parent, Node<TKey, TValue>* child, Node<TKey, TValue>* newChild)
         {
@@ -732,12 +751,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Replace node
+        ///     Replaces a matched node with its successor during deletion,
+        ///     adjusting the tree structure accordingly.
         /// </summary>
-        /// <param name="match">Match</param>
-        /// <param name="parentOfMatch">Parent of match</param>
-        /// <param name="successor">Successor</param>
-        /// <param name="parentOfSuccessor">Parent of successor</param>
+        /// <param name="match">The node to be removed.</param>
+        /// <param name="parentOfMatch">The parent of <paramref name="match" />.</param>
+        /// <param name="successor">The successor node that will replace <paramref name="match" />.</param>
+        /// <param name="parentOfSuccessor">The parent of <paramref name="successor" />.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ReplaceNode(Node<TKey, TValue>* match, Node<TKey, TValue>* parentOfMatch, Node<TKey, TValue>* successor, Node<TKey, TValue>* parentOfSuccessor)
         {
@@ -764,10 +784,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Find node
+        ///     Searches for a node with the specified key.
         /// </summary>
-        /// <param name="key">Key</param>
-        /// <returns>Node</returns>
+        /// <param name="key">The key to locate.</param>
+        /// <returns>
+        ///     A node if found;
+        ///     otherwise, <see langword="null" />.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly Node<TKey, TValue>* FindNode(in TKey key)
         {
@@ -873,7 +896,7 @@ namespace NativeCollections
         public readonly void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, KeyValuePair<TKey, TValue>>(buffer));
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeSortedDictionary<TKey, TValue> Empty => default;
 
@@ -906,13 +929,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Enumerator
+        ///     Supports a simple iteration over a generic collection.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public struct Enumerator : IIterator<KeyValuePair<TKey, TValue>>, IDisposable
         {
             /// <summary>
-            ///     NativeHashSet
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly UnsafeSortedDictionary<TKey, TValue>* _handle;
 
@@ -922,7 +945,7 @@ namespace NativeCollections
             private readonly int _version;
 
             /// <summary>
-            ///     Node stack
+            ///     Stack used for in-order traversal of the tree during enumeration.
             /// </summary>
             private readonly NativeStack<NativePtr<Node<TKey, TValue>>> _nodeStack;
 
@@ -939,7 +962,7 @@ namespace NativeCollections
             private KeyValuePair<TKey, TValue> _current;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal Enumerator(UnsafeSortedDictionary<TKey, TValue>* handle)
@@ -1032,7 +1055,7 @@ namespace NativeCollections
         public readonly struct KeyCollection : IIsCreated, IReadOnlyCollection<TKey>
         {
             /// <summary>
-            ///     NativeSortedDictionary
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly UnsafeSortedDictionary<TKey, TValue>* _handle;
 
@@ -1047,7 +1070,7 @@ namespace NativeCollections
             public int Count => _handle->Count;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal KeyCollection(UnsafeSortedDictionary<TKey, TValue>* handle) => _handle = handle;
@@ -1169,13 +1192,13 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Enumerator
+            ///     Supports a simple iteration over a generic collection.
             /// </summary>
             [StructLayout(LayoutKind.Sequential)]
             public struct Enumerator : IIterator<TKey>, IDisposable
             {
                 /// <summary>
-                ///     NativeHashSet
+                ///     Gets the handle to the underlying object.
                 /// </summary>
                 private readonly UnsafeSortedDictionary<TKey, TValue>* _handle;
 
@@ -1185,7 +1208,7 @@ namespace NativeCollections
                 private readonly int _version;
 
                 /// <summary>
-                ///     Node stack
+                ///     Stack used for in-order traversal of the tree during enumeration.
                 /// </summary>
                 private readonly NativeStack<NativePtr<Node<TKey, TValue>>> _nodeStack;
 
@@ -1202,7 +1225,7 @@ namespace NativeCollections
                 private TKey _current;
 
                 /// <summary>
-                ///     Structure
+                ///     Initializes a new instance of this class.
                 /// </summary>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 internal Enumerator(UnsafeSortedDictionary<TKey, TValue>* handle)
@@ -1296,7 +1319,7 @@ namespace NativeCollections
         public readonly struct ValueCollection : IIsCreated, IReadOnlyCollection<TValue>
         {
             /// <summary>
-            ///     NativeSortedDictionary
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly UnsafeSortedDictionary<TKey, TValue>* _handle;
 
@@ -1311,7 +1334,7 @@ namespace NativeCollections
             public int Count => _handle->Count;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal ValueCollection(UnsafeSortedDictionary<TKey, TValue>* handle) => _handle = handle;
@@ -1433,13 +1456,13 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Enumerator
+            ///     Supports a simple iteration over a generic collection.
             /// </summary>
             [StructLayout(LayoutKind.Sequential)]
             public struct Enumerator : IIterator<TValue>, IDisposable
             {
                 /// <summary>
-                ///     NativeHashSet
+                ///     Gets the handle to the underlying object.
                 /// </summary>
                 private readonly UnsafeSortedDictionary<TKey, TValue>* _handle;
 
@@ -1449,7 +1472,7 @@ namespace NativeCollections
                 private readonly int _version;
 
                 /// <summary>
-                ///     Node stack
+                ///     Stack used for in-order traversal of the tree during enumeration.
                 /// </summary>
                 private readonly NativeStack<NativePtr<Node<TKey, TValue>>> _nodeStack;
 
@@ -1466,7 +1489,7 @@ namespace NativeCollections
                 private TValue _current;
 
                 /// <summary>
-                ///     Structure
+                ///     Initializes a new instance of this class.
                 /// </summary>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 internal Enumerator(UnsafeSortedDictionary<TKey, TValue>* handle)

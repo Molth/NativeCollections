@@ -14,12 +14,12 @@ namespace NativeCollections
     public unsafe struct UnsafeU32MemoryPool : IIsCreated, IDisposable, IEquatable<UnsafeU32MemoryPool>
     {
         /// <summary>
-        ///     Sentinel
+        ///     Sentinel node of the linked list of active slabs.
         /// </summary>
         private MemorySlab* _sentinel;
 
         /// <summary>
-        ///     Free list
+        ///     Head of the free list of slabs that are available for reuse.
         /// </summary>
         private MemorySlab* _freeList;
 
@@ -105,11 +105,30 @@ namespace NativeCollections
         public readonly int AlignedLength => _alignedLength;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified node length, maximum free slabs, and alignment.
         /// </summary>
-        /// <param name="length">Length</param>
-        /// <param name="maxFreeSlabs">Max free slabs</param>
-        /// <param name="alignment">Alignment</param>
+        /// <remarks>
+        ///     Each slab in this pool contains exactly 32 nodes,
+        ///     as the allocation bitmap is stored as a <see cref="uint" />.
+        /// </remarks>
+        /// <param name="length">
+        ///     The length (in bytes) of the data region of each node.
+        ///     Must be non-negative.
+        /// </param>
+        /// <param name="maxFreeSlabs">
+        ///     The maximum number of free slabs to retain in the free list.
+        ///     Must be non-negative.
+        /// </param>
+        /// <param name="alignment">
+        ///     The required alignment for allocations, in bytes.
+        ///     Must be a power of two and at least the alignment of the internal slab structure.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown if <paramref name="length" />, <paramref name="maxFreeSlabs" />,
+        ///     or <paramref name="alignment" /> is negative.
+        /// </exception>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="alignment" /> is not a power of two.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeU32MemoryPool(int length, int maxFreeSlabs, int alignment)
         {
@@ -391,7 +410,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static MemorySlab* Create(int alignedSlabSize, int fullNodeSize, int alignment)
@@ -402,7 +421,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Initialize
+        ///     Performs initialization of the object.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Initialize(MemorySlab* slab, int alignedSlabSize, int fullNodeSize)
@@ -414,29 +433,30 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Slab
+        ///     Represents a slab in the memory pool, containing a linked list of nodes and metadata.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         private struct MemorySlab
         {
             /// <summary>
-            ///     Next
+            ///     Pointer to the next slab in the linked list.
             /// </summary>
             public MemorySlab* Next;
 
             /// <summary>
-            ///     Previous
+            ///     Pointer to the previous slab in the linked list.
             /// </summary>
             public MemorySlab* Previous;
 
             /// <summary>
-            ///     Bitmap
+            ///     Bitmap indicating which nodes in the slab are allocated
+            ///     (bit = 1) or free (bit = 0).
             /// </summary>
             public uint Bitmap;
         }
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeU32MemoryPool Empty => default;
     }

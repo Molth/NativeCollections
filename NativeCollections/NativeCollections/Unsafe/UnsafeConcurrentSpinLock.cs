@@ -17,22 +17,22 @@ namespace NativeCollections
     public unsafe struct UnsafeConcurrentSpinLock : IEquatable<UnsafeConcurrentSpinLock>
     {
         /// <summary>
-        ///     Sequence number
+        ///     The current sequence number, incremented each time a lock is acquired.
         /// </summary>
         private volatile int _sequenceNumber;
 
         /// <summary>
-        ///     Next sequence number
+        ///     The sequence number that has been released, indicating the lock is free.
         /// </summary>
         private volatile int _nextSequenceNumber;
 
         /// <summary>
-        ///     Sequence number
+        ///     Gets the current sequence number.
         /// </summary>
         public readonly int SequenceNumber => _sequenceNumber;
 
         /// <summary>
-        ///     Next sequence number
+        ///     Gets the sequence number corresponding to the last released lock.
         /// </summary>
         public readonly int NextSequenceNumber => _nextSequenceNumber;
 
@@ -183,7 +183,7 @@ namespace NativeCollections
         public static bool operator !=(UnsafeConcurrentSpinLock left, UnsafeConcurrentSpinLock right) => !left.Equals(right);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeConcurrentSpinLock Empty => default;
     }

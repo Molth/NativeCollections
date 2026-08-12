@@ -17,17 +17,17 @@ namespace NativeCollections
     public unsafe struct UnsafeChunkedDeque<T> : IIsCreated, IDisposable, IEquatable<UnsafeChunkedDeque<T>>, IReadOnlyCollection<T> where T : unmanaged
     {
         /// <summary>
-        ///     Head
+        ///     Pointer to the first chunk.
         /// </summary>
         private MemoryChunk* _head;
 
         /// <summary>
-        ///     Tail
+        ///     Pointer to the last chunk.
         /// </summary>
         private MemoryChunk* _tail;
 
         /// <summary>
-        ///     Free list
+        ///     Head of the free list of chunks available for reuse.
         /// </summary>
         private MemoryChunk* _freeList;
 
@@ -52,12 +52,12 @@ namespace NativeCollections
         private readonly int _size;
 
         /// <summary>
-        ///     Read offset
+        ///     Current read position offset within the head chunk.
         /// </summary>
         private int _readOffset;
 
         /// <summary>
-        ///     Write offset
+        ///     Current write position offset within the tail chunk.
         /// </summary>
         private int _writeOffset;
 
@@ -107,10 +107,21 @@ namespace NativeCollections
         public readonly int Count => _count;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified chunk size and maximum number of free chunks to retain.
         /// </summary>
-        /// <param name="size">Size</param>
-        /// <param name="maxFreeChunks">Max free chunks</param>
+        /// <param name="size">
+        ///     The number of elements each chunk can hold.
+        ///     Must be greater than zero.
+        /// </param>
+        /// <param name="maxFreeChunks">
+        ///     The maximum number of free chunks to keep in the free list.
+        ///     Must be non-negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown if <paramref name="size" /> is less than or equal to zero, or if
+        ///     <paramref name="maxFreeChunks" /> is negative.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeChunkedDeque(int size, int maxFreeChunks)
         {
@@ -602,7 +613,7 @@ namespace NativeCollections
         public readonly void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, T>(buffer));
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static MemoryChunk* Create(int size)
@@ -621,23 +632,23 @@ namespace NativeCollections
         private struct MemoryChunk
         {
             /// <summary>
-            ///     Next
+            ///     The next chunk in the linked list.
             /// </summary>
             public MemoryChunk* Next;
 
             /// <summary>
-            ///     Previous
+            ///     The previous chunk in the linked list.
             /// </summary>
             public MemoryChunk* Previous;
 
             /// <summary>
-            ///     Buffer
+            ///     Represents a contiguous region of arbitrary memory.
             /// </summary>
             public T* Buffer;
         }
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeChunkedDeque<T> Empty => default;
 
@@ -670,13 +681,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Enumerator
+        ///     Supports a simple iteration over a generic collection.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public struct Enumerator : IIterator<T>
         {
             /// <summary>
-            ///     Unsafe chunked deque
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly UnsafeChunkedDeque<T>* _handle;
 
@@ -686,12 +697,12 @@ namespace NativeCollections
             private readonly int _version;
 
             /// <summary>
-            ///     Memory chunk
+            ///     The chunk currently being enumerated.
             /// </summary>
             private MemoryChunk* _currentChunk;
 
             /// <summary>
-            ///     Read offset
+            ///     Current read position offset within the head chunk.
             /// </summary>
             private int _readOffset;
 
@@ -707,7 +718,7 @@ namespace NativeCollections
             private T _current;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal Enumerator(UnsafeChunkedDeque<T>* handle)

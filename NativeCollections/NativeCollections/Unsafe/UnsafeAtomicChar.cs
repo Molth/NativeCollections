@@ -21,12 +21,12 @@ namespace NativeCollections
     public unsafe struct UnsafeAtomicChar
     {
         /// <summary>
-        ///     Value
+        ///     Gets the value to the underlying object.
         /// </summary>
         private UnsafeAtomicU16 _value;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeAtomicChar(char value) => _value = new UnsafeAtomicU16(value);
@@ -121,7 +121,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -137,7 +137,7 @@ namespace NativeCollections
         public readonly override string ToString() => "UnsafeAtomicChar";
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeAtomicChar Empty => default;
     }

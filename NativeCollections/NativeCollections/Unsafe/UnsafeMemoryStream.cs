@@ -15,12 +15,12 @@ namespace NativeCollections
     public unsafe struct UnsafeMemoryStream : IIsCreated, IDisposable, IEquatable<UnsafeMemoryStream>
     {
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         private byte* _buffer;
 
         /// <summary>
-        ///     Position
+        ///     Gets the current position within the stream.
         /// </summary>
         private int _position;
 
@@ -99,9 +99,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of the class with the specified initial capacity.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
+        /// <param name="capacity">
+        ///     The initial number of elements that the instance can hold.
+        ///     Must be non-negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="capacity" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeMemoryStream(int capacity)
         {
@@ -339,10 +343,15 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Ensure capacity
+        ///     Ensures that the stream's internal buffer
+        ///     is large enough to accommodate the specified capacity,
+        ///     reallocating and copying data if necessary.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <returns>Ensured</returns>
+        /// <param name="capacity">The minimum required capacity in bytes.</param>
+        /// <returns>
+        ///     <see langword="true" /> if the buffer was reallocated to a larger size;
+        ///     otherwise, <see langword="false" /> if the current capacity already satisfies the request.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool EnsureCapacity(int capacity)
         {
@@ -410,7 +419,7 @@ namespace NativeCollections
         public static implicit operator ReadOnlySpan<byte>(UnsafeMemoryStream value) => value.AsReadOnlySpan();
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeMemoryStream Empty => default;
     }

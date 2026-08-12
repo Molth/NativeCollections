@@ -17,13 +17,17 @@ namespace NativeCollections
         private const int MAX_PRIME_ARRAY_LENGTH = 2147483587;
 
         /// <summary>
-        ///     Hash prime
+        ///     A prime constant used to ensure hash table sizes are prime and relatively prime to the hash function.
         /// </summary>
         private const int HASH_PRIME = 101;
 
         /// <summary>
-        ///     Lookup table
+        ///     A lookup table containing 24 index offsets followed by 72 prime numbers.
         /// </summary>
+        /// <remarks>
+        ///     The first 24 values are used to map small capacities to a starting index in the prime list.
+        ///     The remaining 72 values are precomputed primes for hash table sizing.
+        /// </remarks>
         private static ReadOnlySpan<int> LookupTable => new int[96]
         {
             0, 0, 1, 2, 3, 6, 9, 12, 16, 19, 23, 27, 31, 34, 38, 42, 46, 50, 53, 57, 61, 65, 69, 0,
@@ -50,10 +54,13 @@ namespace NativeCollections
         public static ReadOnlySpan<int> Primes => LookupTable.Slice(24);
 
         /// <summary>
-        ///     Is prime
+        ///     Determines whether the specified integer is a prime number.
         /// </summary>
-        /// <param name="candidate">Candidate</param>
-        /// <returns>Is prime</returns>
+        /// <param name="candidate">The integer to test for primality.</param>
+        /// <returns>
+        ///     <see langword="true" /> if <paramref name="candidate" /> is prime;
+        ///     otherwise, <see langword="false" />.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsPrime(int candidate)
         {
@@ -73,10 +80,11 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get prime
+        ///     Returns the smallest prime number that is greater than or equal to the specified minimum value.
         /// </summary>
-        /// <param name="min">Min</param>
-        /// <returns>Prime</returns>
+        /// <param name="min">The minimum value that the returned prime must be at least.</param>
+        /// <returns>A prime number that is greater than or equal to <paramref name="min" />.</returns>
+        /// <exception cref="InvalidOperationException">Thrown if <paramref name="min" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetPrime(int min)
         {
@@ -149,7 +157,7 @@ namespace NativeCollections
             private readonly ulong _fastModMultiplier;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public FastModImpl(uint divisor) => _fastModMultiplier = Environment.Is64BitProcess ? GetFastModMultiplier(divisor) : 0;

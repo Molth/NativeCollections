@@ -15,16 +15,31 @@ namespace NativeCollections
     public readonly unsafe struct NativeMemoryBucket : IIsCreated, IDisposable, IEquatable<NativeMemoryBucket>
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly UnsafeMemoryBucket* _handle;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified capacity, node length, and alignment,
+        ///     using the default memory allocator.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <param name="length">Length</param>
-        /// <param name="alignment">Alignment</param>
+        /// <param name="capacity">
+        ///     The maximum number of buffers that can be retained in the bucket.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <param name="length">
+        ///     The size (in bytes) of each allocated buffer.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <param name="alignment">
+        ///     The required alignment (in bytes) for each buffer.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="capacity" />, <paramref name="length" />,
+        ///     or <paramref name="alignment" /> is negative.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeMemoryBucket(int capacity, int length, int alignment)
         {
@@ -33,12 +48,26 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified capacity, node length, alignment, and custom memory allocator.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
-        /// <param name="length">Length</param>
-        /// <param name="alignment">Alignment</param>
-        /// <param name="allocator">Memory allocator</param>
+        /// <param name="capacity">
+        ///     The maximum number of buffers that can be retained in the bucket.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <param name="length">
+        ///     The size (in bytes) of each allocated buffer.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <param name="alignment">
+        ///     The required alignment (in bytes) for each buffer.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <param name="allocator">The custom memory allocator to use for allocations and deallocations.</param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="capacity" />, <paramref name="length" />,
+        ///     or <paramref name="alignment" /> is negative.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeMemoryBucket(int capacity, int length, int alignment, CustomMemoryAllocator allocator)
         {
@@ -116,7 +145,7 @@ namespace NativeCollections
         public void Return(void* ptr) => _handle->Return(ptr);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeMemoryBucket Empty => default;
     }

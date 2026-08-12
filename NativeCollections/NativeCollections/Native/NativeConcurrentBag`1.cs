@@ -16,12 +16,12 @@ namespace NativeCollections
     public readonly unsafe struct NativeConcurrentBag<T> : IIsCreated, IDisposable, IEquatable<NativeConcurrentBag<T>> where T : unmanaged
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly UnsafeConcurrentBag<T>* _handle;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private NativeConcurrentBag(UnsafeConcurrentBag<T>* handle) => _handle = handle;
@@ -123,7 +123,7 @@ namespace NativeCollections
         public bool TryTake(out T result) => _handle->TryTake(out result);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeConcurrentBag<T> Empty => default;
 

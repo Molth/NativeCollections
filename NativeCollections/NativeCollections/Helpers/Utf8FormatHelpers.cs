@@ -13,7 +13,9 @@ namespace NativeCollections
     internal static unsafe class Utf8FormatHelpers
     {
         /// <summary>
-        ///     Try format
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
+        ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         public static bool TryFormat<T>(T? value, Span<byte> destination, out int bytesWritten, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
         {
@@ -388,7 +390,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Format
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
+        ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         private static bool TryFormatFallback<T>(T? value, Span<byte> destination, out int bytesWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         {
@@ -412,7 +416,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Try format
+        ///     Appends the string returned by processing a composite format string,
+        ///     which contains zero or more format items, to this instance.
+        ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool TryFormatUtf8<T>(T value, Span<byte> destination, out int bytesWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
@@ -436,8 +442,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Encodes into a span of bytes a set of characters from the specified read-only span if the destination is large
-        ///     enough.
+        ///     Encodes into a span of bytes a set of characters from the specified
+        ///     read-only span if the destination is large enough.
         /// </summary>
         /// <param name="chars">The span containing the set of characters to encode.</param>
         /// <param name="bytes">The byte span to hold the encoded bytes.</param>
@@ -453,7 +459,7 @@ namespace NativeCollections
         public static bool TryGetBytes(ReadOnlySpan<char> chars, Span<byte> bytes, out int bytesWritten) => EncodingHelpers.TryGetBytes(Encoding.UTF8, chars, bytes, out bytesWritten);
 
         /// <summary>
-        ///     Dummy bytes 2
+        ///     Represents a 2‑byte structure used for unaligned memory operations.
         /// </summary>
         [StructLayout(LayoutKind.Sequential, Size = 2)]
         public readonly struct DummyBytes2
@@ -465,7 +471,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Dummy bytes 3
+        ///     Represents a 3‑byte structure used for unaligned memory operations.
         /// </summary>
         [StructLayout(LayoutKind.Sequential, Size = 3)]
         public readonly struct DummyBytes3

@@ -1,5 +1,6 @@
 ﻿#if !NET5_0_OR_GREATER
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 
 // ReSharper disable ALL
@@ -58,6 +59,7 @@ namespace NativeCollections
         ///         threads must spin, each should use its own instance of SpinWait.
         ///     </para>
         /// </remarks>
+        [StructLayout(LayoutKind.Sequential)]
         public struct SpinWait
         {
             /// <summary>

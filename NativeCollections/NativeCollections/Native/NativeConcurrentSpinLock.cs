@@ -15,14 +15,13 @@ namespace NativeCollections
     public readonly unsafe struct NativeConcurrentSpinLock : IIsCreated, IDisposable, IEquatable<NativeConcurrentSpinLock>
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly UnsafeConcurrentSpinLock* _handle;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeConcurrentSpinLock(UnsafeConcurrentSpinLock* buffer) => _handle = buffer;
 
@@ -39,12 +38,12 @@ namespace NativeCollections
         public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
         /// <summary>
-        ///     Sequence number
+        ///     Gets the current sequence number.
         /// </summary>
         public int SequenceNumber => _handle->SequenceNumber;
 
         /// <summary>
-        ///     Next sequence number
+        ///     Gets the sequence number corresponding to the last released lock.
         /// </summary>
         public int NextSequenceNumber => _handle->NextSequenceNumber;
 
@@ -176,13 +175,13 @@ namespace NativeCollections
         public void Exit() => _handle->Exit();
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeConcurrentSpinLock Create() => new(NativeMemoryAllocator.AlignedAllocZeroed<UnsafeConcurrentSpinLock>(1));
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeConcurrentSpinLock Empty => default;
     }

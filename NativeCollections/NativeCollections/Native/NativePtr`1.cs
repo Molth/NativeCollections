@@ -14,7 +14,7 @@ namespace NativeCollections
     public readonly unsafe struct NativePtr<T> : IIsCreated, IDisposable, IEquatable<NativePtr<T>> where T : unmanaged
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly T* _handle;
 
@@ -24,7 +24,7 @@ namespace NativeCollections
         public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
         /// <summary>
-        ///     Handle
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         public T* Handle
         {
@@ -33,7 +33,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Value
+        ///     Reinterprets the given location as a reference to a value.
         /// </summary>
         public ref T Value
         {
@@ -60,16 +60,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
-        /// <param name="handle">Handle</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativePtr(T* handle) => _handle = handle;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
-        /// <param name="handle">Handle</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativePtr(nint handle) => _handle = (T*)handle;
 
@@ -189,31 +187,28 @@ namespace NativeCollections
         public void Dispose() => Box.Free(_handle);
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
-        /// <param name="reference">Reference</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(nameof(reference))]
         public static NativePtr<T> Create<TFrom>([MustBePinned] ref TFrom reference) => new((T*)Unsafe.AsPointer(ref reference));
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(nameof(buffer))]
         public static NativePtr<T> Create<TFrom>([MustBePinned] Span<TFrom> buffer) => new((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)));
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(nameof(buffer))]
         public static NativePtr<T> Create<TFrom>([MustBePinned] ReadOnlySpan<TFrom> buffer) => new((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)));
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativePtr<T> Empty => default;
     }

@@ -17,17 +17,17 @@ namespace NativeCollections
     public unsafe struct UnsafeReaderWriterLock : IEquatable<UnsafeReaderWriterLock>
     {
         /// <summary>
-        ///     Writer mask
+        ///     Bit mask indicating that the writer lock is held (the highest bit).
         /// </summary>
         private const uint WRITER_MASK = unchecked((uint)(1 << 31));
 
         /// <summary>
-        ///     Max readers
+        ///     Maximum number of concurrent readers allowed (all bits except the writer bit).
         /// </summary>
         private const uint MAX_READERS = WRITER_MASK - 1;
 
         /// <summary>
-        ///     State
+        ///     Represents the state.
         /// </summary>
         private UnsafeAtomicU32 _state;
 
@@ -173,7 +173,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Spin until unlocked
+        ///     Spins until there are no active readers,
+        ///     indicating the writer lock can be granted.
         /// </summary>
         /// <param name="sleep1Threshold">
         ///     A minimum spin count after which <see langword="Thread.Sleep(1)" /> may be used. A value
@@ -191,7 +192,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Acquire writer lock
+        ///     Attempts to atomically acquire the write lock bit.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool AcquireWriterLock()
@@ -300,7 +301,7 @@ namespace NativeCollections
         public static bool operator !=(UnsafeReaderWriterLock left, UnsafeReaderWriterLock right) => !left.Equals(right);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeReaderWriterLock Empty => default;
     }

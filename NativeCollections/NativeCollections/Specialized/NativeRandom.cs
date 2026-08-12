@@ -86,7 +86,7 @@ namespace NativeCollections
         /// <returns>Randomly selected element from the buffer.</returns>
         /// <exception cref="ArgumentException"><paramref name="buffer" /> is empty.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ref T Sample<T>(Span<T> buffer) => ref _impl.Sample(buffer);
+        public static ref T Choose<T>(Span<T> buffer) => ref _impl.Choose(buffer);
 
         /// <summary>
         ///     Chooses the random element in the buffer.
@@ -96,7 +96,79 @@ namespace NativeCollections
         /// <returns>Randomly selected element from the buffer.</returns>
         /// <exception cref="ArgumentException"><paramref name="buffer" /> is empty.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ref readonly T Peek<T>(ReadOnlySpan<T> buffer) => ref _impl.Peek(buffer);
+        public static ref readonly T ChooseReadOnly<T>(ReadOnlySpan<T> buffer) => ref _impl.ChooseReadOnly(buffer);
+
+        /// <summary>
+        ///     Returns a random 64-bit double-precision floating point number
+        ///     that is less than the specified maximum.
+        /// </summary>
+        /// <param name="maxValue">
+        ///     The exclusive upper bound of the random number returned.
+        /// </param>
+        /// <returns>
+        ///     A 64-bit double-precision floating point number
+        ///     in the range [0, <paramref name="maxValue" />) if <paramref name="maxValue" /> is positive,
+        ///     or (<paramref name="maxValue" />, 0] if <paramref name="maxValue" /> is negative.
+        ///     However, if <paramref name="maxValue" /> equals 0, 0 is returned.
+        /// </returns>
+        /// <seealso cref="NextF64()" />
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static double LerpF64(double maxValue) => _impl.LerpF64(maxValue);
+
+        /// <summary>
+        ///     Returns a random 64-bit double-precision floating point number
+        ///     that is within a specified range.
+        /// </summary>
+        /// <param name="minValue">The inclusive lower bound of the random number returned.</param>
+        /// <param name="maxValue">
+        ///     The exclusive upper bound of the random number returned.
+        ///     <paramref name="maxValue" /> must be greater than or equal to <paramref name="minValue" />.
+        /// </param>
+        /// <returns>
+        ///     A 64-bit double-precision floating point number greater than or equal to <paramref name="minValue" />,
+        ///     and less than <paramref name="maxValue" />; that is,
+        ///     the range of return values includes <paramref name="minValue" /> but not <paramref name="maxValue" />.
+        ///     However, if minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        /// </returns>
+        /// <seealso cref="NextF64()" />
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static double LerpF64(double minValue, double maxValue) => _impl.LerpF64(minValue, maxValue);
+
+        /// <summary>
+        ///     Returns a random 32-bit single-precision floating point number
+        ///     that is less than the specified maximum.
+        /// </summary>
+        /// <param name="maxValue">
+        ///     The exclusive upper bound of the random number returned.
+        /// </param>
+        /// <returns>
+        ///     A 32-bit single-precision floating point number
+        ///     in the range [0, <paramref name="maxValue" />) if <paramref name="maxValue" /> is positive,
+        ///     or (<paramref name="maxValue" />, 0] if <paramref name="maxValue" /> is negative.
+        ///     However, if <paramref name="maxValue" /> equals 0, 0 is returned.
+        /// </returns>
+        /// <seealso cref="NextF32()" />
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float LerpF32(float maxValue) => _impl.LerpF32(maxValue);
+
+        /// <summary>
+        ///     Returns a random 32-bit single-precision floating point number
+        ///     that is within a specified range.
+        /// </summary>
+        /// <param name="minValue">The inclusive lower bound of the random number returned.</param>
+        /// <param name="maxValue">
+        ///     The exclusive upper bound of the random number returned.
+        ///     <paramref name="maxValue" /> must be greater than or equal to <paramref name="minValue" />.
+        /// </param>
+        /// <returns>
+        ///     A 32-bit single-precision floating point number greater than or equal to <paramref name="minValue" />,
+        ///     and less than <paramref name="maxValue" />; that is,
+        ///     the range of return values includes <paramref name="minValue" /> but not <paramref name="maxValue" />.
+        ///     However, if minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        /// </returns>
+        /// <seealso cref="NextF32()" />
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float LerpF32(float minValue, float maxValue) => _impl.LerpF32(minValue, maxValue);
 
         /// <summary>
         ///     Returns a non-negative random integer.
@@ -109,31 +181,31 @@ namespace NativeCollections
         ///     Returns a non-negative random integer that is less than the specified maximum.
         /// </summary>
         /// <param name="maxValue">
-        ///     The exclusive upper bound of the random number to be generated. <paramref name="maxValue" />
-        ///     must be greater than or equal to 0.
+        ///     The exclusive upper bound of the random number returned.
+        ///     <paramref name="maxValue" /> must be greater than or equal to 0.
         /// </param>
         /// <returns>
-        ///     A 32-bit unsigned integer that is greater than or equal to 0, and less than <paramref name="maxValue" />; that is,
-        ///     the range of return values ordinarily
-        ///     includes 0 but not <paramref name="maxValue" />. However, if <paramref name="maxValue" /> equals 0,
-        ///     <paramref name="maxValue" /> is returned.
+        ///     A 32-bit unsigned integer that is greater than or equal to 0,
+        ///     and less than <paramref name="maxValue" />; that is,
+        ///     the range of return values includes 0 but not <paramref name="maxValue" />.
+        ///     However, if <paramref name="maxValue" /> equals 0, 0 is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint NextU32(uint maxValue) => _impl.NextU32(maxValue);
 
         /// <summary>
-        ///     Returns a random integer that is within a specified range.
+        ///     Returns a non-negative random integer that is within a specified range.
         /// </summary>
         /// <param name="minValue">The inclusive lower bound of the random number returned.</param>
         /// <param name="maxValue">
-        ///     The exclusive upper bound of the random number returned. <paramref name="maxValue" /> must be
-        ///     greater than or equal to <paramref name="minValue" />.
+        ///     The exclusive upper bound of the random number returned.
+        ///     <paramref name="maxValue" /> must be greater than or equal to <paramref name="minValue" />.
         /// </param>
         /// <returns>
-        ///     A 32-bit unsigned integer greater than or equal to <paramref name="minValue" /> and less than
-        ///     <paramref name="maxValue" />; that is, the range of return values includes <paramref name="minValue" />
-        ///     but not <paramref name="maxValue" />. If minValue equals <paramref name="maxValue" />, <paramref name="minValue" />
-        ///     is returned.
+        ///     A 32-bit unsigned integer greater than or equal to <paramref name="minValue" />,
+        ///     and less than <paramref name="maxValue" />; that is,
+        ///     the range of return values includes <paramref name="minValue" /> but not <paramref name="maxValue" />.
+        ///     However, if minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint NextU32(uint minValue, uint maxValue) => _impl.NextU32(minValue, maxValue);
@@ -149,31 +221,31 @@ namespace NativeCollections
         ///     Returns a non-negative random integer that is less than the specified maximum.
         /// </summary>
         /// <param name="maxValue">
-        ///     The exclusive upper bound of the random number to be generated. <paramref name="maxValue" />
-        ///     must be greater than or equal to 0.
+        ///     The exclusive upper bound of the random number returned.
+        ///     <paramref name="maxValue" /> must be greater than or equal to 0.
         /// </param>
         /// <returns>
-        ///     A 64-bit unsigned integer that is greater than or equal to 0, and less than <paramref name="maxValue" />; that is,
-        ///     the range of return values ordinarily
-        ///     includes 0 but not <paramref name="maxValue" />. However, if <paramref name="maxValue" /> equals 0,
-        ///     <paramref name="maxValue" /> is returned.
+        ///     A 64-bit unsigned integer that is greater than or equal to 0,
+        ///     and less than <paramref name="maxValue" />; that is,
+        ///     the range of return values includes 0 but not <paramref name="maxValue" />.
+        ///     However, if <paramref name="maxValue" /> equals 0, 0 is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ulong NextU64(ulong maxValue) => _impl.NextU64(maxValue);
 
         /// <summary>
-        ///     Returns a random integer that is within a specified range.
+        ///     Returns a non-negative random integer that is within a specified range.
         /// </summary>
         /// <param name="minValue">The inclusive lower bound of the random number returned.</param>
         /// <param name="maxValue">
-        ///     The exclusive upper bound of the random number returned. <paramref name="maxValue" /> must be
-        ///     greater than or equal to <paramref name="minValue" />.
+        ///     The exclusive upper bound of the random number returned.
+        ///     <paramref name="maxValue" /> must be greater than or equal to <paramref name="minValue" />.
         /// </param>
         /// <returns>
-        ///     A 64-bit unsigned integer greater than or equal to <paramref name="minValue" /> and less than
-        ///     <paramref name="maxValue" />; that is, the range of return values includes <paramref name="minValue" />
-        ///     but not <paramref name="maxValue" />. If minValue equals <paramref name="maxValue" />, <paramref name="minValue" />
-        ///     is returned.
+        ///     A 64-bit unsigned integer greater than or equal to <paramref name="minValue" />,
+        ///     and less than <paramref name="maxValue" />; that is,
+        ///     the range of return values includes <paramref name="minValue" /> but not <paramref name="maxValue" />.
+        ///     However, if minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ulong NextU64(ulong minValue, ulong maxValue) => _impl.NextU64(minValue, maxValue);
@@ -189,31 +261,31 @@ namespace NativeCollections
         ///     Returns a non-negative random integer that is less than the specified maximum.
         /// </summary>
         /// <param name="maxValue">
-        ///     The exclusive upper bound of the random number to be generated. <paramref name="maxValue" />
-        ///     must be greater than or equal to 0.
+        ///     The exclusive upper bound of the random number returned.
+        ///     <paramref name="maxValue" /> must be greater than or equal to 0.
         /// </param>
         /// <returns>
-        ///     A 32-bit signed integer that is greater than or equal to 0, and less than <paramref name="maxValue" />; that is,
-        ///     the range of return values ordinarily
-        ///     includes 0 but not <paramref name="maxValue" />. However, if <paramref name="maxValue" /> equals 0,
-        ///     <paramref name="maxValue" /> is returned.
+        ///     A 32-bit signed integer that is greater than or equal to 0,
+        ///     and less than <paramref name="maxValue" />; that is,
+        ///     the range of return values includes 0 but not <paramref name="maxValue" />.
+        ///     However, if <paramref name="maxValue" /> equals 0, 0 is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int NextI32(int maxValue) => _impl.NextI32(maxValue);
 
         /// <summary>
-        ///     Returns a random integer that is within a specified range.
+        ///     Returns a non-negative random integer that is within a specified range.
         /// </summary>
         /// <param name="minValue">The inclusive lower bound of the random number returned.</param>
         /// <param name="maxValue">
-        ///     The exclusive upper bound of the random number returned. <paramref name="maxValue" /> must be
-        ///     greater than or equal to <paramref name="minValue" />.
+        ///     The exclusive upper bound of the random number returned.
+        ///     <paramref name="maxValue" /> must be greater than or equal to <paramref name="minValue" />.
         /// </param>
         /// <returns>
-        ///     A 32-bit signed integer greater than or equal to <paramref name="minValue" /> and less than
-        ///     <paramref name="maxValue" />; that is, the range of return values includes <paramref name="minValue" />
-        ///     but not <paramref name="maxValue" />. If minValue equals <paramref name="maxValue" />, <paramref name="minValue" />
-        ///     is returned.
+        ///     A 32-bit signed integer greater than or equal to <paramref name="minValue" />,
+        ///     and less than <paramref name="maxValue" />; that is,
+        ///     the range of return values includes <paramref name="minValue" /> but not <paramref name="maxValue" />.
+        ///     However, if minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int NextI32(int minValue, int maxValue) => _impl.NextI32(minValue, maxValue);
@@ -229,46 +301,48 @@ namespace NativeCollections
         ///     Returns a non-negative random integer that is less than the specified maximum.
         /// </summary>
         /// <param name="maxValue">
-        ///     The exclusive upper bound of the random number to be generated. <paramref name="maxValue" />
-        ///     must be greater than or equal to 0.
+        ///     The exclusive upper bound of the random number returned.
+        ///     <paramref name="maxValue" /> must be greater than or equal to 0.
         /// </param>
         /// <returns>
-        ///     A 64-bit signed integer that is greater than or equal to 0, and less than <paramref name="maxValue" />; that is,
-        ///     the range of return values ordinarily
-        ///     includes 0 but not <paramref name="maxValue" />. However, if <paramref name="maxValue" /> equals 0,
-        ///     <paramref name="maxValue" /> is returned.
+        ///     A 64-bit signed integer that is greater than or equal to 0,
+        ///     and less than <paramref name="maxValue" />; that is,
+        ///     the range of return values includes 0 but not <paramref name="maxValue" />.
+        ///     However, if <paramref name="maxValue" /> equals 0, 0 is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long NextI64(long maxValue) => _impl.NextI64(maxValue);
 
         /// <summary>
-        ///     Returns a random integer that is within a specified range.
+        ///     Returns a non-negative random integer that is within a specified range.
         /// </summary>
         /// <param name="minValue">The inclusive lower bound of the random number returned.</param>
         /// <param name="maxValue">
-        ///     The exclusive upper bound of the random number returned. <paramref name="maxValue" /> must be
-        ///     greater than or equal to <paramref name="minValue" />.
+        ///     The exclusive upper bound of the random number returned.
+        ///     <paramref name="maxValue" /> must be greater than or equal to <paramref name="minValue" />.
         /// </param>
         /// <returns>
-        ///     A 64-bit signed integer greater than or equal to <paramref name="minValue" /> and less than
-        ///     <paramref name="maxValue" />; that is, the range of return values includes <paramref name="minValue" />
-        ///     but not <paramref name="maxValue" />. If minValue equals <paramref name="maxValue" />, <paramref name="minValue" />
-        ///     is returned.
+        ///     A 64-bit signed integer greater than or equal to <paramref name="minValue" />,
+        ///     and less than <paramref name="maxValue" />; that is,
+        ///     the range of return values includes <paramref name="minValue" /> but not <paramref name="maxValue" />.
+        ///     However, if minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long NextI64(long minValue, long maxValue) => _impl.NextI64(minValue, maxValue);
 
         /// <summary>
-        ///     Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.
+        ///     Returns a non-negative random 64-bit double-precision floating point number
+        ///     that is greater than or equal to 0.0, and less than 1.0.
         /// </summary>
-        /// <returns>A double-precision floating point number that is greater than or equal to 0.0, and less than 1.0.</returns>
+        /// <returns>A 64-bit double-precision floating point number that is greater than or equal to 0.0, and less than 1.0.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double NextF64() => _impl.NextF64();
 
         /// <summary>
-        ///     Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.
+        ///     Returns a non-negative random 32-bit single-precision floating point number
+        ///     that is greater than or equal to 0.0, and less than 1.0.
         /// </summary>
-        /// <returns>A single-precision floating point number that is greater than or equal to 0.0, and less than 1.0.</returns>
+        /// <returns>A 32-bit single-precision floating point number that is greater than or equal to 0.0, and less than 1.0.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float NextF32() => _impl.NextF32();
 
@@ -303,10 +377,10 @@ namespace NativeCollections
         public static bool NextBool() => _impl.NextBool();
 
         /// <summary>
-        ///     Generates a random bool value.
+        ///     Returns a bool.
         /// </summary>
-        /// <param name="trueProbability">A probability of <see langword="true" /> result (should be between 0.0 and 1.0).</param>
-        /// <returns>Randomly generated bool value.</returns>
+        /// <param name="trueProbability">A probability of <see langword="true" /> result, should be in the range [0.0, 1.0].</param>
+        /// <returns>True, or false.</returns>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="trueProbability" /> value is invalid.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool NextBool(double trueProbability) => _impl.NextBool(trueProbability);
@@ -320,10 +394,10 @@ namespace NativeCollections
         public static T Next<T>() where T : unmanaged => _impl.Next<T>();
 
         /// <summary>
-        ///     Generates a random value of blittable type.
+        ///     Fills the specified reference with a random value of the specified blittable type.
         /// </summary>
         /// <typeparam name="T">The blittable type.</typeparam>
-        /// <returns>The randomly generated value.</returns>
+        /// <param name="destination">The reference to the memory location to fill with random data.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Next<T>(ref T destination) where T : unmanaged => _impl.Next(ref destination);
     }

@@ -17,8 +17,14 @@ namespace NativeCollections
     internal static unsafe class FrozenHelpers
     {
         /// <summary>
-        ///     Is known comparable
+        ///     Determines whether the specified type <typeparamref name="T" /> is a primitive or well-known comparable type.
         /// </summary>
+        /// <typeparam name="T">The unmanaged type to check.</typeparam>
+        /// <returns>
+        ///     <see langword="true" /> if <typeparamref name="T" /> is a primitive type (including enums)
+        ///     or a known framework type that implements <see cref="IEquatable{T}" />;
+        ///     otherwise, <see langword="false" />.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsKnownComparable<T>() where T : unmanaged, IEquatable<T>
         {
@@ -40,8 +46,16 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Keys are hash codes
+        ///     Determines whether the specified type <typeparamref name="T" /> can be used
+        ///     directly as a hash code value without requiring additional hashing.
         /// </summary>
+        /// <typeparam name="T">The unmanaged type to check.</typeparam>
+        /// <returns>
+        ///     <see langword="true" /> if <typeparamref name="T" /> is a
+        ///     small integer type (byte, sbyte, short, ushort, int, uint)
+        ///     or a native-sized integer type (nint, nuint) on a 32‑bit process;
+        ///     otherwise, <see langword="false" />.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool KeysAreHashCodes<T>() where T : unmanaged, IEquatable<T>
         {
@@ -51,18 +65,18 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Frozen hash table
+        ///     Represents a frozen hash table that stores hash codes and provides fast lookup for matching entries.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public readonly struct FrozenHashTable : IDisposable
         {
             /// <summary>
-            ///     Hash codes
+            ///     A array containing the reordered hash codes.
             /// </summary>
             private readonly NativeArray<int> _hashCodes;
 
             /// <summary>
-            ///     Buckets
+            ///     A array of bucket descriptors.
             /// </summary>
             private readonly NativeArray<Bucket> _buckets;
 
@@ -72,8 +86,11 @@ namespace NativeCollections
             private readonly HashHelpers.FastModImpl _fastModImpl;
 
             /// <summary>
-            ///     Frozen hash table
+            ///     Initializes a new instance of this class.
             /// </summary>
+            /// <param name="hashCodes">A array containing the reordered hash codes.</param>
+            /// <param name="buckets">A array of bucket descriptors.</param>
+            /// <param name="fastModImpl">A fast modulo implementation used for bucket indexing.</param>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             private FrozenHashTable(NativeArray<int> hashCodes, NativeArray<Bucket> buckets, HashHelpers.FastModImpl fastModImpl)
             {
@@ -83,8 +100,15 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Create frozen hash table
+            ///     Builds a frozen hash table from the provided span of hash codes.
             /// </summary>
+            /// <param name="hashCodes">The input hash codes. This span will be modified to store order information.</param>
+            /// <param name="hashCodesAreUnique">
+            ///     <see langword="true" /> if all hash codes are known to be distinct;
+            ///     otherwise, <see langword="false" />.
+            ///     If <see langword="false" />, duplicate handling will be performed.
+            /// </param>
+            /// <returns>A new <see cref="FrozenHashTable" /> instance.</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static FrozenHashTable Create(Span<int> hashCodes, bool hashCodesAreUnique)
             {
@@ -134,8 +158,15 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Find matching entries
+            ///     Locates the range of entries in the hash table that match the given hash code.
             /// </summary>
+            /// <param name="hashCode">The hash code to look up.</param>
+            /// <param name="startIndex">When this method returns, contains the starting index of matching entries.</param>
+            /// <param name="endIndex">When this method returns, contains the ending index of matching entries.</param>
+            /// <remarks>
+            ///     The matching entries are stored contiguously in the <see cref="HashCodes" /> array between
+            ///     <paramref name="startIndex" /> and <paramref name="endIndex" /> (inclusive).
+            /// </remarks>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void FindMatchingEntries(int hashCode, out int startIndex, out int endIndex)
             {
@@ -155,7 +186,7 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Hash codes
+            ///     Gets a read-only span of the reordered hash codes stored in the table.
             /// </summary>
             public ReadOnlySpan<int> HashCodes
             {
@@ -164,8 +195,15 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Calculate num buckets
+            ///     Calculates the optimal number of buckets to use for the frozen hash table based on the input hash codes.
             /// </summary>
+            /// <param name="hashCodes">The hash codes to be stored.</param>
+            /// <param name="hashCodesAreUnique">Whether the hash codes are already unique.</param>
+            /// <returns>The recommended bucket count.</returns>
+            /// <remarks>
+            ///     This method attempts to balance the number of buckets against collision probability
+            ///     to achieve good performance for lookup operations.
+            /// </remarks>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             private static int CalculateNumBuckets(ReadOnlySpan<int> hashCodes, bool hashCodesAreUnique)
             {
@@ -239,7 +277,8 @@ namespace NativeCollections
                 return num3;
 
                 // <summary>
-                //     Is bucket first visit
+                //     Checks if the hash code's bucket has been visited before,
+                //     updates collision count accordingly.
                 // </summary>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 bool IsBucketFirstVisit(int code)
@@ -261,24 +300,26 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Bucket
+            ///     Represents a bucket entry in the frozen hash table, storing the range of hash codes that map to the same bucket.
             /// </summary>
             [StructLayout(LayoutKind.Sequential)]
             private readonly struct Bucket
             {
                 /// <summary>
-                ///     Start index
+                ///     The starting index of the bucket's range within the hash codes array.
                 /// </summary>
                 public readonly int StartIndex;
 
                 /// <summary>
-                ///     End index
+                ///     The ending index of the bucket's range (inclusive).
                 /// </summary>
                 public readonly int EndIndex;
 
                 /// <summary>
-                ///     Bucket
+                ///     Initializes a new instance of this class struct.
                 /// </summary>
+                /// <param name="startIndex">The starting index of the range.</param>
+                /// <param name="count">The number of entries in the bucket.</param>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 public Bucket(int startIndex, int count)
                 {

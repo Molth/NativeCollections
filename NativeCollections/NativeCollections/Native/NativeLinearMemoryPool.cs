@@ -15,21 +15,9 @@ namespace NativeCollections
     public readonly unsafe struct NativeLinearMemoryPool : IIsCreated, IDisposable, IEquatable<NativeLinearMemoryPool>
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly UnsafeLinearMemoryPool* _handle;
-
-        /// <summary>
-        ///     Structure
-        /// </summary>
-        /// <param name="maxLength">Max length</param>
-        /// <param name="maxFreeSlabs">Max free slabs</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public NativeLinearMemoryPool(int maxLength, int maxFreeSlabs)
-        {
-            var value = new UnsafeLinearMemoryPool(maxLength, maxFreeSlabs);
-            _handle = Box.New(ref value);
-        }
 
         /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
@@ -52,9 +40,40 @@ namespace NativeCollections
         public int MaxFreeSlabs => _handle->MaxFreeSlabs;
 
         /// <summary>
-        ///     Max length
+        ///     Gets the maximum usable length (in bytes) of a user allocation that can fit within a single slab,
+        ///     assuming the default alignment of <see cref="IntPtr" />.
         /// </summary>
+        /// <remarks>
+        ///     This value is determined by the total slab size minus the overhead required for the slab header and
+        ///     the alignment adjustment for a <see cref="IntPtr" />‑aligned pointer. It represents the largest contiguous
+        ///     block of memory that can be allocated in one slab when using the default alignment.
+        /// </remarks>
         public int MaxLength => _handle->MaxLength;
+
+        /// <summary>
+        ///     Initializes a new instance of this class
+        ///     with the specified maximum allocation length
+        ///     and the maximum number of free slabs to retain.
+        /// </summary>
+        /// <param name="maxLength">
+        ///     The maximum size (in bytes) of a single allocation
+        ///     that can be accommodated within a slab.
+        ///     Must be greater than zero.
+        /// </param>
+        /// <param name="maxFreeSlabs">
+        ///     The maximum number of free slabs to keep in the free list.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown if <paramref name="maxLength" /> is less than or equal to zero,
+        ///     or if <paramref name="maxFreeSlabs" /> is negative.
+        /// </exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public NativeLinearMemoryPool(int maxLength, int maxFreeSlabs)
+        {
+            var value = new UnsafeLinearMemoryPool(maxLength, maxFreeSlabs);
+            _handle = Box.New(ref value);
+        }
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
@@ -115,14 +134,40 @@ namespace NativeCollections
         public int Clear(int capacity) => _handle->Clear(capacity);
 
         /// <summary>
-        ///     Rent buffer
+        ///     Allocates a memory block of the specified length with the specified alignment.
         /// </summary>
+        /// <param name="length">
+        ///     The number of bytes to allocate.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <param name="alignment">
+        ///     The alignment, in bytes, for the allocated block.
+        ///     Must be a power of two.
+        /// </param>
+        /// <returns>A pointer to the allocated memory block.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="length" /> or <paramref name="alignment" /> is negative,
+        ///     or when <paramref name="length" /> exceeds the maximum allowed within a slab.
+        /// </exception>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="alignment" /> is not a power of two.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void* Rent(int length, int alignment) => _handle->Rent(length, alignment);
 
         /// <summary>
-        ///     Rent buffer
+        ///     Allocates a memory block large enough
+        ///     to hold the specified number of elements of type <typeparamref name="T" />,
+        ///     using the natural alignment of <typeparamref name="T" />.
         /// </summary>
+        /// <typeparam name="T">The unmanaged type of the elements.</typeparam>
+        /// <param name="elementCount">
+        ///     The number of elements to allocate.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <returns>A pointer to the allocated memory block, typed as <typeparamref name="T" />.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="elementCount" /> is negative,
+        ///     or when the required byte length exceeds the maximum allowed within a slab.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T* Rent<T>(int elementCount) where T : unmanaged => _handle->Rent<T>(elementCount);
 
@@ -157,7 +202,7 @@ namespace NativeCollections
         public int TrimExcess(int capacity) => _handle->TrimExcess(capacity);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeLinearMemoryPool Empty => default;
     }

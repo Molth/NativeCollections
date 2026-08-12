@@ -25,23 +25,33 @@ namespace NativeCollections
         public static bool IsHighResolution => Stopwatch.IsHighResolution;
 
         /// <summary>
-        ///     Tick frequency
+        ///     Multiplier used to convert performance counter ticks
+        ///     to <see cref="TimeSpan" /> ticks.
         /// </summary>
+        /// <remarks>
+        ///     This value is precomputed as <c>TimeSpan.TicksPerSecond / Stopwatch.Frequency</c>.
+        /// </remarks>
         private static readonly double _tickFrequency = TimeSpan.TicksPerSecond / (double)Stopwatch.Frequency;
 
         /// <summary>
-        ///     Elapsed
+        ///     Cumulative elapsed time in performance counter ticks,
+        ///     excluding any currently running interval.
         /// </summary>
         private long _elapsed;
 
         /// <summary>
-        ///     Start timeStamp
+        ///     Timestamp obtained from <see cref="GetTimestamp" />
+        ///     when the stopwatch was last started or restarted.
         /// </summary>
         private long _startTimeStamp;
 
         /// <summary>
-        ///     Is running
+        ///     Gets a value indicating whether the <see cref="T:System.Diagnostics.Stopwatch" /> timer is running.
         /// </summary>
+        /// <returns>
+        ///     <see langword="true" /> if the <see cref="T:System.Diagnostics.Stopwatch" /> instance is currently running and
+        ///     measuring elapsed time for an interval; otherwise, false.
+        /// </returns>
         private bool _isRunning;
 
         /// <summary>
@@ -197,8 +207,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get raw elapsed ticks
+        ///     Gets the total elapsed time in performance counter ticks,
+        ///     including any currently running interval.
         /// </summary>
+        /// <returns>The total elapsed time in performance counter ticks.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly long GetRawElapsedTicks()
         {
@@ -213,8 +225,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get elapsed dateTime ticks
+        ///     Gets the total elapsed time as
+        ///     <see cref="TimeSpan.TicksPerSecond" />-based ticks (i.e., DateTime ticks).
         /// </summary>
+        /// <returns>The elapsed time in DateTime ticks (100 nanoseconds per tick).</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly long GetElapsedDateTimeTicks() => (long)(GetRawElapsedTicks() * _tickFrequency);
 
@@ -232,7 +246,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeStopwatch Empty => default;
     }

@@ -12,14 +12,13 @@ namespace NativeCollections
     internal sealed class InternalCollectionAttribute : Attribute
     {
         /// <summary>
-        ///     Type
+        ///     Gets the origin type of the collection implementation.
         /// </summary>
         public readonly FromType Type;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
-        /// <param name="type">Type</param>
         public InternalCollectionAttribute(FromType type) => Type = type;
     }
 }

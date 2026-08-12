@@ -14,12 +14,12 @@ namespace NativeCollections
     public unsafe struct UnsafeLinearMemoryPool : IIsCreated, IDisposable, IEquatable<UnsafeLinearMemoryPool>
     {
         /// <summary>
-        ///     Sentinel
+        ///     Sentinel node of the linked list of active slabs.
         /// </summary>
         private MemorySlab* _sentinel;
 
         /// <summary>
-        ///     Free list
+        ///     Head of the free list of slabs that are available for reuse.
         /// </summary>
         private MemorySlab* _freeList;
 
@@ -64,15 +64,34 @@ namespace NativeCollections
         public readonly int MaxFreeSlabs => _maxFreeSlabs;
 
         /// <summary>
-        ///     Max length
+        ///     Gets the maximum usable length (in bytes) of a user allocation that can fit within a single slab,
+        ///     assuming the default alignment of <see cref="IntPtr" />.
         /// </summary>
+        /// <remarks>
+        ///     This value is determined by the total slab size minus the overhead required for the slab header and
+        ///     the alignment adjustment for a <see cref="IntPtr" />‑aligned pointer. It represents the largest contiguous
+        ///     block of memory that can be allocated in one slab when using the default alignment.
+        /// </remarks>
         public readonly int MaxLength => _size - Unsafe.SizeOf<nint>();
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified maximum allocation length
+        ///     and the maximum number of free slabs to retain.
         /// </summary>
-        /// <param name="maxLength">Max length</param>
-        /// <param name="maxFreeSlabs">Max free slabs</param>
+        /// <param name="maxLength">
+        ///     The maximum size (in bytes) of a single allocation
+        ///     that can be accommodated within a slab.
+        ///     Must be greater than zero.
+        /// </param>
+        /// <param name="maxFreeSlabs">
+        ///     The maximum number of free slabs to keep in the free list.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown if <paramref name="maxLength" /> is less than or equal to zero,
+        ///     or if <paramref name="maxFreeSlabs" /> is negative.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeLinearMemoryPool(int maxLength, int maxFreeSlabs)
         {
@@ -214,8 +233,22 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Rent buffer
+        ///     Allocates a memory block of the specified length with the specified alignment.
         /// </summary>
+        /// <param name="length">
+        ///     The number of bytes to allocate.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <param name="alignment">
+        ///     The alignment, in bytes, for the allocated block.
+        ///     Must be a power of two.
+        /// </param>
+        /// <returns>A pointer to the allocated memory block.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="length" /> or <paramref name="alignment" /> is negative,
+        ///     or when <paramref name="length" /> exceeds the maximum allowed within a slab.
+        /// </exception>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="alignment" /> is not a power of two.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void* Rent(int length, int alignment)
         {
@@ -257,8 +290,20 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Rent buffer
+        ///     Allocates a memory block large enough
+        ///     to hold the specified number of elements of type <typeparamref name="T" />,
+        ///     using the natural alignment of <typeparamref name="T" />.
         /// </summary>
+        /// <typeparam name="T">The unmanaged type of the elements.</typeparam>
+        /// <param name="elementCount">
+        ///     The number of elements to allocate.
+        ///     Must be non‑negative.
+        /// </param>
+        /// <returns>A pointer to the allocated memory block, typed as <typeparamref name="T" />.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="elementCount" /> is negative,
+        ///     or when the required byte length exceeds the maximum allowed within a slab.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T* Rent<T>(int elementCount) where T : unmanaged => (T*)Rent(elementCount * Unsafe.SizeOf<T>(), (int)NativeMemoryAllocator.AlignOf<T>());
 
@@ -358,7 +403,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static MemorySlab* Create(int size)
@@ -369,7 +414,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Initialize
+        ///     Performs initialization of the object.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Initialize(MemorySlab* slab)
@@ -379,18 +424,18 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Slab
+        ///     Represents a slab in the memory pool, containing a linked list of nodes and metadata.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         private struct MemorySlab
         {
             /// <summary>
-            ///     Next
+            ///     Pointer to the next slab in the linked list.
             /// </summary>
             public MemorySlab* Next;
 
             /// <summary>
-            ///     Previous
+            ///     Pointer to the previous slab in the linked list.
             /// </summary>
             public MemorySlab* Previous;
 
@@ -400,13 +445,13 @@ namespace NativeCollections
             public int Count;
 
             /// <summary>
-            ///     Length
+            ///     Gets the total numbers of elements the internal data structure can hold.
             /// </summary>
             public int Length;
         }
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeLinearMemoryPool Empty => default;
     }

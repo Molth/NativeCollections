@@ -14,12 +14,13 @@ namespace NativeCollections
     public readonly unsafe struct NativeReaderWriterLockScope : IIsCreated, IDisposable, IEquatable<NativeReaderWriterLockScope>
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly UnsafeReaderWriterLock* _handle;
 
         /// <summary>
-        ///     Is reader
+        ///     Indicates whether the lock was acquired in read mode (<see langword="true" />)
+        ///     or write mode (<see langword="false" />).
         /// </summary>
         private readonly bool _isReader;
 
@@ -29,7 +30,7 @@ namespace NativeCollections
         public bool IsCreated => !UnsafeHelpers.IsNull(_handle);
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal NativeReaderWriterLockScope(UnsafeReaderWriterLock* handle, bool isReader)
@@ -88,7 +89,7 @@ namespace NativeCollections
         public static bool operator !=(NativeReaderWriterLockScope left, NativeReaderWriterLockScope right) => !left.Equals(right);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeReaderWriterLockScope Empty => default;
     }

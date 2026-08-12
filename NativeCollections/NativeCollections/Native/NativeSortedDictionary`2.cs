@@ -18,7 +18,7 @@ namespace NativeCollections
     public readonly unsafe struct NativeSortedDictionary<TKey, TValue> : IIsCreated, IDisposable, IEquatable<NativeSortedDictionary<TKey, TValue>>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IComparable<TKey> where TValue : unmanaged
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly UnsafeSortedDictionary<TKey, TValue>* _handle;
 
@@ -33,10 +33,22 @@ namespace NativeCollections
         public UnsafeSortedDictionary<TKey, TValue>.ValueCollection Values => _handle->Values;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified slab capacity and maximum free slabs,
+        ///     using the natural alignment and node length of type <typeparamref name="TKey" />.
         /// </summary>
-        /// <param name="size">MemoryPool size</param>
-        /// <param name="maxFreeSlabs">MemoryPool maxFreeSlabs</param>
+        /// <param name="size">
+        ///     The number of nodes each slab can hold.
+        ///     Must be greater than zero.
+        /// </param>
+        /// <param name="maxFreeSlabs">
+        ///     The maximum number of free slabs to retain.
+        ///     Must be non-negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="size" /> is less than or equal to zero,
+        ///     or when <paramref name="maxFreeSlabs" /> is negative.
+        /// </exception>
         public NativeSortedDictionary(int size, int maxFreeSlabs)
         {
             var value = new UnsafeSortedDictionary<TKey, TValue>(size, maxFreeSlabs);
@@ -299,7 +311,7 @@ namespace NativeCollections
         public void CopyTo(Span<byte> buffer) => _handle->CopyTo(buffer);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeSortedDictionary<TKey, TValue> Empty => default;
 

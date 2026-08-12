@@ -21,12 +21,12 @@ namespace NativeCollections
     public unsafe struct UnsafeAtomicU32
     {
         /// <summary>
-        ///     Value
+        ///     Gets the value to the underlying object.
         /// </summary>
         private UnsafeAtomicI32 _value;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeAtomicU32(uint value) => _value = new UnsafeAtomicI32((int)value);
@@ -135,7 +135,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Get hashCode
+        ///     Returns the hash code for this instance.
         /// </summary>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -151,7 +151,7 @@ namespace NativeCollections
         public readonly override string ToString() => "UnsafeAtomicU32";
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeAtomicU32 Empty => default;
     }

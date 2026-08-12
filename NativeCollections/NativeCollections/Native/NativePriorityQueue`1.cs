@@ -16,14 +16,18 @@ namespace NativeCollections
     public readonly unsafe struct NativePriorityQueue<TPriority> : IIsCreated, IDisposable, IEquatable<NativePriorityQueue<TPriority>> where TPriority : unmanaged, IComparable<TPriority>
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly UnsafePriorityQueue<TPriority>* _handle;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of the class with the specified initial capacity.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
+        /// <param name="capacity">
+        ///     The initial number of elements that the instance can hold.
+        ///     Must be non-negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="capacity" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativePriorityQueue(int capacity)
         {
@@ -283,7 +287,7 @@ namespace NativeCollections
         public ReadOnlySpan<TPriority> AsReadOnlySpan(int start, int length) => _handle->AsReadOnlySpan(start, length);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativePriorityQueue<TPriority> Empty => default;
     }

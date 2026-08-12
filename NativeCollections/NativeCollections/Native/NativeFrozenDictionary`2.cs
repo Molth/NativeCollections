@@ -19,7 +19,7 @@ namespace NativeCollections
     public readonly unsafe struct NativeFrozenDictionary<TKey, TValue> : IIsCreated, IDisposable, IEquatable<NativeFrozenDictionary<TKey, TValue>>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly NativeFrozenDictionaryHandle<TKey, TValue>* _handle;
 
@@ -127,7 +127,7 @@ namespace NativeCollections
         public static bool operator !=(NativeFrozenDictionary<TKey, TValue> left, NativeFrozenDictionary<TKey, TValue> right) => !left.Equals(right);
 
         /// <summary>
-        ///     Structure
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeFrozenDictionary<TKey, TValue> Create(Dictionary<TKey, TValue> source)
@@ -140,7 +140,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeFrozenDictionary<TKey, TValue> Create(NativeDictionary<TKey, TValue> source)
@@ -151,7 +151,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeFrozenDictionary<TKey, TValue> Create(UnsafeDictionary<TKey, TValue> source)
@@ -162,7 +162,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeFrozenDictionary<TKey, TValue> Create(StackallocDictionary<TKey, TValue> source)
@@ -173,14 +173,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MustBeDistinct(nameof(source))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeFrozenDictionary([MustBeDistinct] ReadOnlySpan<KeyValuePair<TKey, TValue>> source) => _handle = Initialize(source);
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static NativeFrozenDictionaryHandle<TKey, TValue>* Initialize(ReadOnlySpan<KeyValuePair<TKey, TValue>> source)
@@ -310,12 +310,12 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeFrozenDictionary<TKey, TValue> Empty => default;
 
         /// <summary>
-        ///     Enumerator
+        ///     Supports a simple iteration over a generic collection.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public struct Enumerator : IIterator<KeyValuePair<TKey, TValue>>
@@ -331,12 +331,12 @@ namespace NativeCollections
             private readonly NativeArray<TValue> _values;
 
             /// <summary>
-            ///     Index
+            ///     The current index.
             /// </summary>
             private int _index;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal Enumerator(NativeArray<TKey> keys, NativeArray<TValue> values)

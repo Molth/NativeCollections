@@ -19,57 +19,53 @@ namespace Examples
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public RwLockMutRefScope<T> MutRefScope()
-        {
-            _state.EnterWrite();
-            return new RwLockMutRefScope<T>(NativeRef<T>.Create(ref _value), NativeRef<UnsafeReaderWriterLock>.Create(ref _state));
-        }
+        public RwLockWriteRefScope<T> EnterWriteRefScope() => new(NativeRef<T>.Create(ref _value), _state.EnterWriteRefScope());
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public RwLockReadOnlyRefScope<T> ReadOnlyRefScope()
-        {
-            _state.EnterRead();
-            return new RwLockReadOnlyRefScope<T>(NativeRef<T>.Create(ref _value), NativeRef<UnsafeReaderWriterLock>.Create(ref _state));
-        }
+        public RwLockReadRefScope<T> EnterReadRefScope() => new(NativeRef<T>.Create(ref _value), _state.EnterReadRefScope());
     }
 
-    [IsAssignableTo(typeof(IDisposable))]
-    public readonly ref struct RwLockMutRefScope<T> : IDisposable
+    [IsAssignableTo(typeof(IIsCreated), typeof(IDisposable))]
+    public readonly ref struct RwLockWriteRefScope<T> : IIsCreated, IDisposable
     {
         private readonly NativeRef<T> _ptr;
-        private readonly NativeRef<UnsafeReaderWriterLock> _state;
+        private readonly NativeReaderWriterLockRefScope _scope;
+
+        public bool IsCreated => _ptr.IsCreated;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal RwLockMutRefScope(NativeRef<T> ptr, NativeRef<UnsafeReaderWriterLock> state)
+        internal RwLockWriteRefScope(NativeRef<T> ptr, NativeReaderWriterLockRefScope scope)
         {
             _ptr = ptr;
-            _state = state;
+            _scope = scope;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ref T AsRef() => ref _ptr.AsRef();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => _state.AsRef().ExitWrite();
+        public void Dispose() => _scope.Dispose();
     }
 
-    [IsAssignableTo(typeof(IDisposable))]
-    public readonly ref struct RwLockReadOnlyRefScope<T> : IDisposable
+    [IsAssignableTo(typeof(IIsCreated), typeof(IDisposable))]
+    public readonly ref struct RwLockReadRefScope<T> : IIsCreated, IDisposable
     {
         private readonly NativeRef<T> _ptr;
-        private readonly NativeRef<UnsafeReaderWriterLock> _state;
+        private readonly NativeReaderWriterLockRefScope _scope;
+
+        public bool IsCreated => _ptr.IsCreated;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal RwLockReadOnlyRefScope(NativeRef<T> ptr, NativeRef<UnsafeReaderWriterLock> state)
+        internal RwLockReadRefScope(NativeRef<T> ptr, NativeReaderWriterLockRefScope scope)
         {
             _ptr = ptr;
-            _state = state;
+            _scope = scope;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ref readonly T AsRef() => ref _ptr.AsRef();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => _state.AsRef().ExitRead();
+        public void Dispose() => _scope.Dispose();
     }
 }

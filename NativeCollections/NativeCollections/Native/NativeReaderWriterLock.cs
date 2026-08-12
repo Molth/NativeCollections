@@ -16,14 +16,13 @@ namespace NativeCollections
     public readonly unsafe struct NativeReaderWriterLock : IIsCreated, IDisposable, IEquatable<NativeReaderWriterLock>
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly UnsafeReaderWriterLock* _handle;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeReaderWriterLock(UnsafeReaderWriterLock* buffer) => _handle = buffer;
 
@@ -227,13 +226,13 @@ namespace NativeCollections
         public void ExitWrite() => _handle->ExitWrite();
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeReaderWriterLock Create() => new(NativeMemoryAllocator.AlignedAllocZeroed<UnsafeReaderWriterLock>(1));
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeReaderWriterLock Empty => default;
     }

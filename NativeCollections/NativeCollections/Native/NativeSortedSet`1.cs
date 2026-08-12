@@ -18,15 +18,27 @@ namespace NativeCollections
     public readonly unsafe struct NativeSortedSet<T> : IIsCreated, IDisposable, IEquatable<NativeSortedSet<T>>, IReadOnlyCollection<T> where T : unmanaged, IComparable<T>
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly UnsafeSortedSet<T>* _handle;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified slab capacity and maximum free slabs,
+        ///     using the natural alignment and node length of type <typeparamref name="T" />.
         /// </summary>
-        /// <param name="size">MemoryPool size</param>
-        /// <param name="maxFreeSlabs">MemoryPool maxFreeSlabs</param>
+        /// <param name="size">
+        ///     The number of nodes each slab can hold.
+        ///     Must be greater than zero.
+        /// </param>
+        /// <param name="maxFreeSlabs">
+        ///     The maximum number of free slabs to retain.
+        ///     Must be non-negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="size" /> is less than or equal to zero,
+        ///     or when <paramref name="maxFreeSlabs" /> is negative.
+        /// </exception>
         public NativeSortedSet(int size, int maxFreeSlabs)
         {
             var value = new UnsafeSortedSet<T>(size, maxFreeSlabs);
@@ -115,12 +127,13 @@ namespace NativeCollections
         public bool Add(in T item) => _handle->Add(item);
 
         /// <summary>
-        ///     Add
+        ///     Adds a new element to the set, or updates an existing element
+        ///     that compares equal to the specified <paramref name="equalValue" />.
         /// </summary>
-        /// <param name="equalValue">Equal value</param>
-        /// <param name="actualValue">Actual value</param>
+        /// <param name="equalValue">The value used for equality comparison to locate an existing element.</param>
+        /// <param name="actualValue">The value to add, or to replace the existing element with if found.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Add(in T equalValue, in T actualValue) => _handle->Add(equalValue, actualValue);
+        public void AddOrUpdate(in T equalValue, in T actualValue) => _handle->AddOrUpdate(equalValue, actualValue);
 
         /// <summary>
         ///     Removes the first occurrence of a specific object from this.
@@ -241,7 +254,7 @@ namespace NativeCollections
         public void CopyTo(Span<byte> buffer) => _handle->CopyTo(buffer);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeSortedSet<T> Empty => default;
 

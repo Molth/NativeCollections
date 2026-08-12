@@ -17,7 +17,7 @@ namespace NativeCollections
     public unsafe struct UnsafeStack<T> : IIsCreated, IDisposable, IEquatable<UnsafeStack<T>>, IReadOnlyCollection<T> where T : unmanaged
     {
         /// <summary>
-        ///     Buffer
+        ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         private T* _buffer;
 
@@ -29,7 +29,7 @@ namespace NativeCollections
         /// <summary>
         ///     Gets the number of elements.
         /// </summary>
-        private int _size;
+        private int _count;
 
         /// <summary>
         ///     Used to keep enumerator in sync w/ collection.
@@ -62,12 +62,12 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
-        public readonly bool IsEmpty => _size == 0;
+        public readonly bool IsEmpty => _count == 0;
 
         /// <summary>
         ///     Gets the number of elements contained in this.
         /// </summary>
-        public readonly int Count => _size;
+        public readonly int Count => _count;
 
         /// <summary>
         ///     Gets the total numbers of elements the internal data structure can hold.
@@ -75,9 +75,13 @@ namespace NativeCollections
         public readonly int Capacity => _length;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of the class with the specified initial capacity.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
+        /// <param name="capacity">
+        ///     The initial number of elements that the instance can hold.
+        ///     Must be non-negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="capacity" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeStack(int capacity)
         {
@@ -85,7 +89,7 @@ namespace NativeCollections
             capacity = Math.Max(capacity, 4);
             _buffer = NativeMemoryAllocator.AlignedAlloc<T>((uint)capacity);
             _length = capacity;
-            _size = 0;
+            _count = 0;
             _version = 0;
         }
 
@@ -132,7 +136,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
-            _size = 0;
+            _count = 0;
             _version++;
         }
 
@@ -142,19 +146,19 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Push(in T item)
         {
-            var size = _size;
+            var size = _count;
             if ((uint)size < (uint)_length)
             {
                 Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)size) = item;
                 _version++;
-                _size = size + 1;
+                _count = size + 1;
             }
             else
             {
-                Grow(_size + 1);
-                Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_size) = item;
+                Grow(_count + 1);
+                Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_count) = item;
                 _version++;
-                _size++;
+                _count++;
             }
         }
 
@@ -169,12 +173,12 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryPush(in T item)
         {
-            var size = _size;
+            var size = _count;
             if ((uint)size < (uint)_length)
             {
                 Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)size) = item;
                 _version++;
-                _size = size + 1;
+                _count = size + 1;
                 return true;
             }
 
@@ -189,10 +193,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Pop()
         {
-            var size = _size - 1;
+            var size = _count - 1;
             ThrowHelpers.ThrowIfEmptyStack((uint)size, (uint)_length);
             _version++;
-            _size = size;
+            _count = size;
             var item = Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)size);
             return item;
         }
@@ -208,7 +212,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryPop(out T result)
         {
-            var size = _size - 1;
+            var size = _count - 1;
             if ((uint)size >= (uint)_length)
             {
                 result = default;
@@ -216,7 +220,7 @@ namespace NativeCollections
             }
 
             _version++;
-            _size = size;
+            _count = size;
             result = Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)size);
             return true;
         }
@@ -229,7 +233,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly T Peek()
         {
-            var size = _size - 1;
+            var size = _count - 1;
             ThrowHelpers.ThrowIfEmptyStack((uint)size, (uint)_length);
             return Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)size);
         }
@@ -250,7 +254,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool TryPeek(out T result)
         {
-            var size = _size - 1;
+            var size = _count - 1;
             if ((uint)size >= (uint)_length)
             {
                 result = default;
@@ -284,8 +288,8 @@ namespace NativeCollections
         public int TrimExcess()
         {
             var threshold = (int)(_length * 0.9);
-            if (_size < threshold)
-                SetCapacity(_size);
+            if (_count < threshold)
+                SetCapacity(_count);
             return _length;
         }
 
@@ -298,7 +302,7 @@ namespace NativeCollections
         public int TrimExcess(int capacity)
         {
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
-            if (capacity < _size || capacity >= _length)
+            if (capacity < _count || capacity >= _length)
                 return _length;
             SetCapacity(capacity);
             return _length;
@@ -308,22 +312,22 @@ namespace NativeCollections
         ///     Sets the capacity of this to the specified number of entries.
         /// </summary>
         /// <param name="capacity">The new capacity.</param>
-        /// <exception cref="ArgumentOutOfRangeException">Passed capacity is lower than entries count.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void SetCapacity(int capacity)
         {
             var newBuffer = NativeMemoryAllocator.AlignedAlloc<T>((uint)capacity);
-            if (_size > 0)
-                SpanHelpers.Copy(ref Unsafe.AsRef<byte>(newBuffer), ref Unsafe.AsRef<byte>(_buffer), (uint)(_size * Unsafe.SizeOf<T>()));
+            if (_count > 0)
+                SpanHelpers.Copy(ref Unsafe.AsRef<byte>(newBuffer), ref Unsafe.AsRef<byte>(_buffer), (uint)(_count * Unsafe.SizeOf<T>()));
             NativeMemoryAllocator.AlignedFree(_buffer);
             _buffer = newBuffer;
             _length = capacity;
         }
 
         /// <summary>
-        ///     Grow
+        ///     Increases the capacity of this to a new size
+        ///     that is at least the specified minimum capacity.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
+        /// <param name="capacity">The new capacity.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Grow(int capacity)
         {
@@ -350,8 +354,8 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
             ref var reference = ref MemoryMarshal.GetReference(buffer);
-            var size = Math.Min(buffer.Length, Math.Min(count, _size));
-            StackHelpers.Copy(ref reference, ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(_size - size)), size);
+            var size = Math.Min(buffer.Length, Math.Min(count, _count));
+            StackHelpers.Copy(ref reference, ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(_count - size)), size);
             return size;
         }
 
@@ -380,7 +384,7 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, ExceptionArgument.buffer);
             ref var reference = ref MemoryMarshal.GetReference(buffer);
-            StackHelpers.Copy(ref reference, ref Unsafe.AsRef<T>(_buffer), _size);
+            StackHelpers.Copy(ref reference, ref Unsafe.AsRef<T>(_buffer), _count);
         }
 
         /// <summary>
@@ -395,7 +399,7 @@ namespace NativeCollections
         public readonly void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, T>(buffer));
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeStack<T> Empty => default;
 
@@ -428,13 +432,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Enumerator
+        ///     Supports a simple iteration over a generic collection.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public struct Enumerator : IIterator<T>
         {
             /// <summary>
-            ///     NativeStack
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly UnsafeStack<T>* _handle;
 
@@ -444,17 +448,18 @@ namespace NativeCollections
             private readonly int _version;
 
             /// <summary>
-            ///     Index
+            ///     The current index.
             /// </summary>
             private int _index;
 
             /// <summary>
-            ///     Current element
+            ///     Gets the element in the collection at the current position of the enumerator.
             /// </summary>
-            private T _currentElement;
+            /// <returns>The element in the collection at the current position of the enumerator.</returns>
+            private T _current;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal Enumerator(UnsafeStack<T>* handle)
@@ -462,7 +467,7 @@ namespace NativeCollections
                 _handle = handle;
                 _version = handle->_version;
                 _index = -2;
-                _currentElement = default;
+                _current = default;
             }
 
             /// <summary>
@@ -480,17 +485,17 @@ namespace NativeCollections
                 bool returned;
                 if (_index == -2)
                 {
-                    _index = handle->_size - 1;
+                    _index = handle->_count - 1;
                     returned = _index >= 0;
                     if (returned)
-                        _currentElement = Unsafe.Add(ref Unsafe.AsRef<T>(handle->_buffer), (nint)_index);
+                        _current = Unsafe.Add(ref Unsafe.AsRef<T>(handle->_buffer), (nint)_index);
                     return returned;
                 }
 
                 if (_index == -1)
                     return false;
                 returned = --_index >= 0;
-                _currentElement = returned ? Unsafe.Add(ref Unsafe.AsRef<T>(handle->_buffer), (nint)_index) : default;
+                _current = returned ? Unsafe.Add(ref Unsafe.AsRef<T>(handle->_buffer), (nint)_index) : default;
                 return returned;
             }
 
@@ -501,7 +506,7 @@ namespace NativeCollections
             public void Reset()
             {
                 _index = -2;
-                _currentElement = default;
+                _current = default;
             }
 
             /// <summary>
@@ -511,7 +516,7 @@ namespace NativeCollections
             public readonly T Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => _currentElement;
+                get => _current;
             }
         }
     }

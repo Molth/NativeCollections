@@ -5,21 +5,20 @@
 namespace NativeCollections
 {
     /// <summary>
-    ///     Indicates that the decorated field of type <see cref="nint" /> represents a pointer
+    ///     Indicates that the decorated field of type <see cref="IntPtr" /> represents a pointer
     ///     to the specified unmanaged type.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field)]
     internal sealed class NativePointerAttribute : Attribute
     {
         /// <summary>
-        ///     Type
+        ///     Gets the specified unmanaged type.
         /// </summary>
         public readonly Type Type;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
-        /// <param name="type">Type</param>
         public NativePointerAttribute(Type type) => Type = type;
     }
 }

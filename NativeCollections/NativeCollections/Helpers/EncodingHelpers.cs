@@ -12,8 +12,8 @@ namespace NativeCollections
     internal static class EncodingHelpers
     {
         /// <summary>
-        ///     Encodes into a span of bytes a set of characters from the specified read-only span if the destination is large
-        ///     enough.
+        ///     Encodes into a span of bytes a set of characters from the specified
+        ///     read-only span if the destination is large enough.
         /// </summary>
         /// <param name="encoding">Encoding</param>
         /// <param name="chars">The span containing the set of characters to encode.</param>

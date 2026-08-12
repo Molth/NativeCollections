@@ -16,14 +16,18 @@ namespace NativeCollections
     public readonly unsafe struct NativeMemoryStream : IIsCreated, IDisposable, IEquatable<NativeMemoryStream>
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly UnsafeMemoryStream* _handle;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of the class with the specified initial capacity.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
+        /// <param name="capacity">
+        ///     The initial number of elements that the instance can hold.
+        ///     Must be non-negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="capacity" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeMemoryStream(int capacity)
         {
@@ -60,17 +64,17 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Can read
+        ///     Gets a value indicating whether the current stream supports reading.
         /// </summary>
         public bool CanRead => IsCreated;
 
         /// <summary>
-        ///     Can seek
+        ///     Gets a value indicating whether the current stream supports seeking.
         /// </summary>
         public bool CanSeek => IsCreated;
 
         /// <summary>
-        ///     Can write
+        ///     Gets a value indicating whether the current stream supports writing.
         /// </summary>
         public bool CanWrite => IsCreated;
 
@@ -272,7 +276,7 @@ namespace NativeCollections
         public ReadOnlySpan<byte> AsReadOnlySpan(int start, int length) => _handle->AsReadOnlySpan(start, length);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeMemoryStream Empty => default;
     }

@@ -15,12 +15,12 @@ namespace NativeCollections
     public readonly unsafe struct NativeBitArraySlot : IIsCreated, IEquatable<NativeBitArraySlot>
     {
         /// <summary>
-        ///     Segment
+        ///     Pointer to the integer array containing the bit.
         /// </summary>
         private readonly int* _segment;
 
         /// <summary>
-        ///     BitMask
+        ///     Bit mask used to isolate the target bit within the segment.
         /// </summary>
         private readonly int _bitMask;
 
@@ -30,10 +30,8 @@ namespace NativeCollections
         public bool IsCreated => !UnsafeHelpers.IsNull(_segment);
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class.
         /// </summary>
-        /// <param name="segment">Segment</param>
-        /// <param name="bitMask">BitMask</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeBitArraySlot(int* segment, int bitMask)
         {
@@ -97,7 +95,7 @@ namespace NativeCollections
         public static bool operator !=(NativeBitArraySlot left, NativeBitArraySlot right) => !left.Equals(right);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeBitArraySlot Empty => default;
     }

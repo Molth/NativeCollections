@@ -12,16 +12,14 @@ namespace NativeCollections
     /// <summary>
     ///     Represents a sparse set mapping integer keys to values with O(1) insertion, removal, and lookup.
     /// </summary>
-    /// <remarks>
-    ///     https://github.com/bombela/sparseset
-    /// </remarks>
+    /// <remarks>https://github.com/bombela/sparseset</remarks>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Community | FromType.Rust)]
     [BindingType(typeof(UnsafeSparseSet<>))]
     public readonly unsafe struct NativeSparseSet<TValue> : IIsCreated, IDisposable, IEquatable<NativeSparseSet<TValue>>, IReadOnlyCollection<KeyValuePair<int, TValue>> where TValue : unmanaged
     {
         /// <summary>
-        ///     Handle
+        ///     Gets the handle to the underlying object.
         /// </summary>
         private readonly UnsafeSparseSet<TValue>* _handle;
 
@@ -36,9 +34,13 @@ namespace NativeCollections
         public UnsafeSparseSet<TValue>.ValueCollection Values => _handle->Values;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of the class with the specified initial capacity.
         /// </summary>
-        /// <param name="capacity">Capacity</param>
+        /// <param name="capacity">
+        ///     The initial number of elements that the instance can hold.
+        ///     Must be non-negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="capacity" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeSparseSet(int capacity)
         {
@@ -435,7 +437,7 @@ namespace NativeCollections
         public ReadOnlySpan<KeyValuePair<int, TValue>> AsReadOnlySpan(int start, int length) => _handle->AsReadOnlySpan(start, length);
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static NativeSparseSet<TValue> Empty => default;
 

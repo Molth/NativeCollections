@@ -12,20 +12,18 @@ namespace NativeCollections
     /// <summary>
     ///     Represents a sparse set mapping integer keys to values with O(1) insertion, removal, and lookup.
     /// </summary>
-    /// <remarks>
-    ///     https://github.com/bombela/sparseset
-    /// </remarks>
+    /// <remarks>https://github.com/bombela/sparseset</remarks>
     [StructLayout(LayoutKind.Sequential)]
     [StackallocCollection(FromType.Community | FromType.Rust)]
     public unsafe struct StackallocSparseSet<TValue> : IIsCreated, IEquatable<StackallocSparseSet<TValue>>, IReadOnlyCollection<KeyValuePair<int, TValue>> where TValue : unmanaged
     {
         /// <summary>
-        ///     Dense
+        ///     The dense array of entries (key-value pairs).
         /// </summary>
         private readonly Entry* _dense;
 
         /// <summary>
-        ///     Sparse
+        ///     The sparse array mapping keys to dense indices.
         /// </summary>
         private readonly int* _sparse;
 
@@ -183,10 +181,21 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     that uses a caller-provided byte buffer as storage.
         /// </summary>
-        /// <param name="buffer">Buffer</param>
-        /// <param name="capacity">Capacity</param>
+        /// <param name="buffer">
+        ///     The byte buffer to use as underlying storage.
+        ///     It must be large enough to store the specified number of elements with proper alignment.
+        /// </param>
+        /// <param name="capacity">
+        ///     The maximum number of elements the stack can hold.
+        ///     Must be non-negative.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown if <paramref name="capacity" /> is negative, or if <paramref name="buffer" /> is too small
+        ///     to hold the required number of elements (including alignment padding).
+        /// </exception>
         [MustBePinned(nameof(buffer))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public StackallocSparseSet([MustBePinned] Span<byte> buffer, int capacity)
@@ -803,24 +812,24 @@ namespace NativeCollections
         public static implicit operator ReadOnlySpan<KeyValuePair<int, TValue>>(StackallocSparseSet<TValue> value) => value.AsReadOnlySpan();
 
         /// <summary>
-        ///     Entry
+        ///     Represents an entry.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         private struct Entry
         {
             /// <summary>
-            ///     Key
+            ///     Gets the key to the underlying object.
             /// </summary>
             public int Key;
 
             /// <summary>
-            ///     Value
+            ///     Gets the value to the underlying object.
             /// </summary>
             public TValue Value;
         }
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static StackallocSparseSet<TValue> Empty => default;
 
@@ -853,13 +862,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Enumerator
+        ///     Supports a simple iteration over a generic collection.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         public struct Enumerator : IIterator<KeyValuePair<int, TValue>>
         {
             /// <summary>
-            ///     NativeSparseSet
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly StackallocSparseSet<TValue>* _handle;
 
@@ -869,12 +878,12 @@ namespace NativeCollections
             private readonly int _version;
 
             /// <summary>
-            ///     Index
+            ///     The current index.
             /// </summary>
             private int _index;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal Enumerator(StackallocSparseSet<TValue>* handle)
@@ -927,12 +936,12 @@ namespace NativeCollections
         public readonly struct KeyCollection : IIsCreated, IReadOnlyCollection<int>
         {
             /// <summary>
-            ///     NativeSparseSet
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly StackallocSparseSet<TValue>* _handle;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal KeyCollection(StackallocSparseSet<TValue>* handle) => _handle = handle;
@@ -991,13 +1000,13 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Enumerator
+            ///     Supports a simple iteration over a generic collection.
             /// </summary>
             [StructLayout(LayoutKind.Sequential)]
             public struct Enumerator : IIterator<int>
             {
                 /// <summary>
-                ///     NativeSparseSet
+                ///     Gets the handle to the underlying object.
                 /// </summary>
                 private readonly StackallocSparseSet<TValue>* _handle;
 
@@ -1007,12 +1016,12 @@ namespace NativeCollections
                 private readonly int _version;
 
                 /// <summary>
-                ///     Index
+                ///     The current index.
                 /// </summary>
                 private int _index;
 
                 /// <summary>
-                ///     Structure
+                ///     Initializes a new instance of this class.
                 /// </summary>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 internal Enumerator(StackallocSparseSet<TValue>* handle)
@@ -1066,12 +1075,12 @@ namespace NativeCollections
         public readonly struct ValueCollection : IIsCreated, IReadOnlyCollection<TValue>
         {
             /// <summary>
-            ///     NativeSparseSet
+            ///     Gets the handle to the underlying object.
             /// </summary>
             private readonly StackallocSparseSet<TValue>* _handle;
 
             /// <summary>
-            ///     Structure
+            ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal ValueCollection(StackallocSparseSet<TValue>* handle) => _handle = handle;
@@ -1129,13 +1138,13 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Enumerator
+            ///     Supports a simple iteration over a generic collection.
             /// </summary>
             [StructLayout(LayoutKind.Sequential)]
             public struct Enumerator : IIterator<TValue>
             {
                 /// <summary>
-                ///     NativeSparseSet
+                ///     Gets the handle to the underlying object.
                 /// </summary>
                 private readonly StackallocSparseSet<TValue>* _handle;
 
@@ -1145,12 +1154,12 @@ namespace NativeCollections
                 private readonly int _version;
 
                 /// <summary>
-                ///     Index
+                ///     The current index.
                 /// </summary>
                 private int _index;
 
                 /// <summary>
-                ///     Structure
+                ///     Initializes a new instance of this class.
                 /// </summary>
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 internal Enumerator(StackallocSparseSet<TValue>* handle)

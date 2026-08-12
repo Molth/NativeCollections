@@ -14,12 +14,12 @@ namespace NativeCollections
     public unsafe struct UnsafeMemoryPool : IIsCreated, IDisposable, IEquatable<UnsafeMemoryPool>
     {
         /// <summary>
-        ///     Sentinel
+        ///     Sentinel node of the linked list of active slabs.
         /// </summary>
         private MemorySlab* _sentinel;
 
         /// <summary>
-        ///     Free list
+        ///     Head of the free list of slabs that are available for reuse.
         /// </summary>
         private MemorySlab* _freeList;
 
@@ -115,12 +115,30 @@ namespace NativeCollections
         public readonly int AlignedLength => _alignedLength;
 
         /// <summary>
-        ///     Structure
+        ///     Initializes a new instance of this class
+        ///     with the specified slab size, node length, maximum free slabs, and alignment.
         /// </summary>
-        /// <param name="size">Size</param>
-        /// <param name="length">Length</param>
-        /// <param name="maxFreeSlabs">Max free slabs</param>
-        /// <param name="alignment">Alignment</param>
+        /// <param name="size">
+        ///     The number of nodes each slab can hold.
+        ///     Must be greater than zero.
+        /// </param>
+        /// <param name="length">
+        ///     The length (in bytes) of the data region within each node.
+        ///     Must be non-negative.
+        /// </param>
+        /// <param name="maxFreeSlabs">
+        ///     The maximum number of free slabs to keep in the free list.
+        ///     Must be non-negative.
+        /// </param>
+        /// <param name="alignment">
+        ///     The required alignment for allocations, in bytes.
+        ///     Must be a power of two and at least the alignment of the internal slab and node structures.
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="size" /> is less than or equal to zero, or when <paramref name="length" />,
+        ///     <paramref name="maxFreeSlabs" />, or <paramref name="alignment" /> is negative.
+        /// </exception>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="alignment" /> is not a power of two.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public UnsafeMemoryPool(int size, int length, int maxFreeSlabs, int alignment)
         {
@@ -411,7 +429,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Create
+        ///     Creates a new instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static MemorySlab* Create(int alignedSlabSize, int size, int fullNodeSize, int alignment)
@@ -422,7 +440,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Initialize
+        ///     Performs initialization of the object.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Initialize(MemorySlab* slab, int alignedSlabSize, int size, int fullNodeSize)
@@ -441,23 +459,23 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Slab
+        ///     Represents a slab in the memory pool, containing a linked list of nodes and metadata.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         private struct MemorySlab
         {
             /// <summary>
-            ///     Next
+            ///     Pointer to the next slab in the linked list.
             /// </summary>
             public MemorySlab* Next;
 
             /// <summary>
-            ///     Previous
+            ///     Pointer to the previous slab in the linked list.
             /// </summary>
             public MemorySlab* Previous;
 
             /// <summary>
-            ///     Sentinel
+            ///     Pointer to the head of the free node list within this slab.
             /// </summary>
             public MemoryNode* Sentinel;
 
@@ -468,24 +486,24 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Node
+        ///     Represents a node used for either an allocated block (pointing back to its slab) or a free node in the free list.
         /// </summary>
         [StructLayout(LayoutKind.Explicit)]
         private struct MemoryNode
         {
             /// <summary>
-            ///     Slab
+            ///     When the node is allocated, points to the slab that owns this node.
             /// </summary>
             [FieldOffset(0)] public MemorySlab* Slab;
 
             /// <summary>
-            ///     Next
+            ///     When the node is free, points to the next free node in the free list.
             /// </summary>
             [FieldOffset(0)] public MemoryNode* Next;
         }
 
         /// <summary>
-        ///     Empty
+        ///     Gets an empty instance.
         /// </summary>
         public static UnsafeMemoryPool Empty => default;
     }
