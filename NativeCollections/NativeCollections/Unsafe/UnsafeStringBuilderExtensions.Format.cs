@@ -18,7 +18,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0>(in this UnsafeStringBuilder<char> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0)
         {
             ref var builderRef = ref builder.AsRef();
@@ -41,7 +40,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1>(in this UnsafeStringBuilder<char> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1)
         {
             ref var builderRef = ref builder.AsRef();
@@ -72,7 +70,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2>(in this UnsafeStringBuilder<char> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2)
         {
             ref var builderRef = ref builder.AsRef();
@@ -106,7 +103,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3>(in this UnsafeStringBuilder<char> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3)
         {
             ref var builderRef = ref builder.AsRef();
@@ -143,7 +139,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4>(in this UnsafeStringBuilder<char> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
             ref var builderRef = ref builder.AsRef();
@@ -183,7 +178,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5>(in this UnsafeStringBuilder<char> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
         {
             ref var builderRef = ref builder.AsRef();
@@ -226,7 +220,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6>(in this UnsafeStringBuilder<char> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
         {
             ref var builderRef = ref builder.AsRef();
@@ -272,7 +265,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7>(in this UnsafeStringBuilder<char> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
         {
             ref var builderRef = ref builder.AsRef();
@@ -321,7 +313,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8>(in this UnsafeStringBuilder<char> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
         {
             ref var builderRef = ref builder.AsRef();
@@ -373,7 +364,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(in this UnsafeStringBuilder<char> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
         {
             ref var builderRef = ref builder.AsRef();
@@ -428,7 +418,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(in this UnsafeStringBuilder<char> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
         {
             ref var builderRef = ref builder.AsRef();
@@ -486,7 +475,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(in this UnsafeStringBuilder<char> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
         {
             ref var builderRef = ref builder.AsRef();
@@ -547,7 +535,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(in this UnsafeStringBuilder<char> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
         {
             ref var builderRef = ref builder.AsRef();
@@ -611,7 +598,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(in this UnsafeStringBuilder<char> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13)
         {
             ref var builderRef = ref builder.AsRef();
@@ -678,7 +664,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(in this UnsafeStringBuilder<char> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14)
         {
             ref var builderRef = ref builder.AsRef();
@@ -748,7 +733,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(in this UnsafeStringBuilder<char> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14, T15 arg15)
         {
             ref var builderRef = ref builder.AsRef();
@@ -821,7 +805,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0>(in this UnsafeStringBuilder<char> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0)
         {
             ref var builderRef = ref builder.AsRef();
@@ -846,7 +829,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1>(in this UnsafeStringBuilder<char> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1)
         {
             ref var builderRef = ref builder.AsRef();
@@ -879,7 +861,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2>(in this UnsafeStringBuilder<char> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2)
         {
             ref var builderRef = ref builder.AsRef();
@@ -915,7 +896,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3>(in this UnsafeStringBuilder<char> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3)
         {
             ref var builderRef = ref builder.AsRef();
@@ -954,7 +934,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4>(in this UnsafeStringBuilder<char> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
             ref var builderRef = ref builder.AsRef();
@@ -996,7 +975,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5>(in this UnsafeStringBuilder<char> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
         {
             ref var builderRef = ref builder.AsRef();
@@ -1041,7 +1019,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6>(in this UnsafeStringBuilder<char> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
         {
             ref var builderRef = ref builder.AsRef();
@@ -1089,7 +1066,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7>(in this UnsafeStringBuilder<char> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
         {
             ref var builderRef = ref builder.AsRef();
@@ -1140,7 +1116,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8>(in this UnsafeStringBuilder<char> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
         {
             ref var builderRef = ref builder.AsRef();
@@ -1194,7 +1169,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(in this UnsafeStringBuilder<char> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
         {
             ref var builderRef = ref builder.AsRef();
@@ -1251,7 +1225,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(in this UnsafeStringBuilder<char> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
         {
             ref var builderRef = ref builder.AsRef();
@@ -1311,7 +1284,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(in this UnsafeStringBuilder<char> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
         {
             ref var builderRef = ref builder.AsRef();
@@ -1374,7 +1346,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(in this UnsafeStringBuilder<char> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
         {
             ref var builderRef = ref builder.AsRef();
@@ -1440,7 +1411,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(in this UnsafeStringBuilder<char> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13)
         {
             ref var builderRef = ref builder.AsRef();
@@ -1509,7 +1479,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(in this UnsafeStringBuilder<char> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14)
         {
             ref var builderRef = ref builder.AsRef();
@@ -1581,7 +1550,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(in this UnsafeStringBuilder<char> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14, T15 arg15)
         {
             ref var builderRef = ref builder.AsRef();
@@ -1656,7 +1624,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0>(in this UnsafeStringBuilder<byte> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0)
         {
             ref var builderRef = ref builder.AsRef();
@@ -1679,7 +1646,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1>(in this UnsafeStringBuilder<byte> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1)
         {
             ref var builderRef = ref builder.AsRef();
@@ -1710,7 +1676,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2>(in this UnsafeStringBuilder<byte> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2)
         {
             ref var builderRef = ref builder.AsRef();
@@ -1744,7 +1709,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3>(in this UnsafeStringBuilder<byte> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3)
         {
             ref var builderRef = ref builder.AsRef();
@@ -1781,7 +1745,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4>(in this UnsafeStringBuilder<byte> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
             ref var builderRef = ref builder.AsRef();
@@ -1821,7 +1784,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5>(in this UnsafeStringBuilder<byte> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
         {
             ref var builderRef = ref builder.AsRef();
@@ -1864,7 +1826,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6>(in this UnsafeStringBuilder<byte> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
         {
             ref var builderRef = ref builder.AsRef();
@@ -1910,7 +1871,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7>(in this UnsafeStringBuilder<byte> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
         {
             ref var builderRef = ref builder.AsRef();
@@ -1959,7 +1919,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8>(in this UnsafeStringBuilder<byte> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
         {
             ref var builderRef = ref builder.AsRef();
@@ -2011,7 +1970,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(in this UnsafeStringBuilder<byte> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
         {
             ref var builderRef = ref builder.AsRef();
@@ -2066,7 +2024,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(in this UnsafeStringBuilder<byte> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
         {
             ref var builderRef = ref builder.AsRef();
@@ -2124,7 +2081,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(in this UnsafeStringBuilder<byte> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
         {
             ref var builderRef = ref builder.AsRef();
@@ -2185,7 +2141,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(in this UnsafeStringBuilder<byte> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
         {
             ref var builderRef = ref builder.AsRef();
@@ -2249,7 +2204,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(in this UnsafeStringBuilder<byte> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13)
         {
             ref var builderRef = ref builder.AsRef();
@@ -2316,7 +2270,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(in this UnsafeStringBuilder<byte> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14)
         {
             ref var builderRef = ref builder.AsRef();
@@ -2386,7 +2339,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(in this UnsafeStringBuilder<byte> builder, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14, T15 arg15)
         {
             ref var builderRef = ref builder.AsRef();
@@ -2459,7 +2411,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0>(in this UnsafeStringBuilder<byte> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0)
         {
             ref var builderRef = ref builder.AsRef();
@@ -2484,7 +2435,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1>(in this UnsafeStringBuilder<byte> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1)
         {
             ref var builderRef = ref builder.AsRef();
@@ -2517,7 +2467,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2>(in this UnsafeStringBuilder<byte> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2)
         {
             ref var builderRef = ref builder.AsRef();
@@ -2553,7 +2502,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3>(in this UnsafeStringBuilder<byte> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3)
         {
             ref var builderRef = ref builder.AsRef();
@@ -2592,7 +2540,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4>(in this UnsafeStringBuilder<byte> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
             ref var builderRef = ref builder.AsRef();
@@ -2634,7 +2581,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5>(in this UnsafeStringBuilder<byte> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
         {
             ref var builderRef = ref builder.AsRef();
@@ -2679,7 +2625,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6>(in this UnsafeStringBuilder<byte> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
         {
             ref var builderRef = ref builder.AsRef();
@@ -2727,7 +2672,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7>(in this UnsafeStringBuilder<byte> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
         {
             ref var builderRef = ref builder.AsRef();
@@ -2778,7 +2722,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8>(in this UnsafeStringBuilder<byte> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
         {
             ref var builderRef = ref builder.AsRef();
@@ -2832,7 +2775,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(in this UnsafeStringBuilder<byte> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
         {
             ref var builderRef = ref builder.AsRef();
@@ -2889,7 +2831,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(in this UnsafeStringBuilder<byte> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
         {
             ref var builderRef = ref builder.AsRef();
@@ -2949,7 +2890,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(in this UnsafeStringBuilder<byte> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
         {
             ref var builderRef = ref builder.AsRef();
@@ -3012,7 +2952,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(in this UnsafeStringBuilder<byte> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
         {
             ref var builderRef = ref builder.AsRef();
@@ -3078,7 +3017,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(in this UnsafeStringBuilder<byte> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13)
         {
             ref var builderRef = ref builder.AsRef();
@@ -3147,7 +3085,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(in this UnsafeStringBuilder<byte> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14)
         {
             ref var builderRef = ref builder.AsRef();
@@ -3219,7 +3156,6 @@ namespace NativeCollections
         ///     which contains zero or more format items, to this instance.
         ///     Each format item is replaced by the string representation of a corresponding argument in a parameter span.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AppendFormat<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(in this UnsafeStringBuilder<byte> builder, IFormatProvider? provider, [StringSyntax(StringSyntaxAttribute.CompositeFormat)] ReadOnlySpan<char> format, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14, T15 arg15)
         {
             ref var builderRef = ref builder.AsRef();
@@ -3305,7 +3241,6 @@ namespace NativeCollections
         ///     was reached.
         /// </returns>
         /// <exception cref="FormatException">Thrown when the format string is malformed.</exception>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool ParseFormat(ref UnsafeStringBuilder<char> builderRef, ReadOnlySpan<char> format, ref int position, out int width, out bool leftJustify, out ReadOnlySpan<char> itemFormatSpan1, out int index)
         {
             index = default;
@@ -3420,7 +3355,6 @@ namespace NativeCollections
         ///     right‑justify (pad left).
         /// </param>
         /// <typeparam name="T">The type of the argument.</typeparam>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Append<T>(ref UnsafeStringBuilder<char> builderRef, ReadOnlySpan<char> itemFormatSpan1, T? arg, int width, bool leftJustify)
         {
             int charsWritten;
@@ -3486,7 +3420,6 @@ namespace NativeCollections
         ///     right‑justify (pad left).
         /// </param>
         /// <typeparam name="T">The type of the argument.</typeparam>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Append<T>(ref UnsafeStringBuilder<char> builderRef, IFormatProvider? provider, ICustomFormatter? customFormatter, ref string? itemFormat, ReadOnlySpan<char> itemFormatSpan1, T? arg, int width, bool leftJustify)
         {
             if (customFormatter != null)
@@ -3576,7 +3509,6 @@ namespace NativeCollections
         ///     was reached.
         /// </returns>
         /// <exception cref="FormatException">Thrown when the format string is malformed.</exception>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool ParseFormat(ref UnsafeStringBuilder<byte> builderRef, ReadOnlySpan<char> format, ref int position, out int width, out bool leftJustify, out ReadOnlySpan<char> itemFormatSpan1, out int index)
         {
             index = default;
@@ -3692,7 +3624,6 @@ namespace NativeCollections
         ///     right‑justify (pad left).
         /// </param>
         /// <typeparam name="T">The type of the argument.</typeparam>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Append<T>(ref UnsafeStringBuilder<byte> builderRef, ReadOnlySpan<char> itemFormatSpan1, T? arg, int width, bool leftJustify)
         {
             int bytesWritten;
@@ -3761,7 +3692,6 @@ namespace NativeCollections
         ///     right‑justify (pad left).
         /// </param>
         /// <typeparam name="T">The type of the argument.</typeparam>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Append<T>(ref UnsafeStringBuilder<byte> builderRef, IFormatProvider? provider, ICustomFormatter? customFormatter, ref string? itemFormat, ReadOnlySpan<char> itemFormatSpan1, T? arg, int width, bool leftJustify)
         {
             if (customFormatter != null)

@@ -1,6 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using NativeCollections;
+using rust;
 using static NativeCollections.PaddingHelpers;
 
 // ReSharper disable All

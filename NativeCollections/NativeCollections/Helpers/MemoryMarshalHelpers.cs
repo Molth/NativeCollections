@@ -16,6 +16,18 @@ namespace NativeCollections
     internal static class MemoryMarshalHelpers
     {
         /// <summary>
+        ///     Casts to a Span of byte.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Span<byte> AsBytes<T>(ref T value) => MemoryMarshal.CreateSpan(ref Unsafe.As<T, byte>(ref value), Unsafe.SizeOf<T>());
+
+        /// <summary>
+        ///     Casts to a ReadOnlySpan of byte.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ReadOnlySpan<byte> AsReadOnlyBytes<T>(ref T value) where T : unmanaged => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<T, byte>(ref value), Unsafe.SizeOf<T>());
+
+        /// <summary>
         ///     Converts a <see cref="ReadOnlySpan{T}" /> to a mutable <see cref="Span{T}" />.
         /// </summary>
         /// <typeparam name="T">The type of elements in the span.</typeparam>
@@ -25,9 +37,9 @@ namespace NativeCollections
         public static Span<T> AsSpan<T>(ReadOnlySpan<T> value) => MemoryMarshal.CreateSpan(ref MemoryMarshal.GetReference(value), value.Length);
 
         /// <summary>
-        ///     Returns a reference to the 0th element of <paramref name="array" />. If the array is empty, returns a reference to
-        ///     where the 0th element
-        ///     would have been stored. Such a reference may be used for pinning but must never be dereferenced.
+        ///     Returns a reference to the 0th element of <paramref name="array" />.
+        ///     If the array is empty, returns a reference to where the 0th element would have been stored.
+        ///     Such a reference may be used for pinning but must never be dereferenced.
         /// </summary>
         /// <exception cref="NullReferenceException"><paramref name="array" /> is <see langword="null" />.</exception>
         /// <remarks>

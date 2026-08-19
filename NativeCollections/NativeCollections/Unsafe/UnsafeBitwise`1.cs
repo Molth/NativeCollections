@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
+#pragma warning disable CS9084 // Struct member returns 'this' or other instance members by reference
 
 // ReSharper disable ALL
 
@@ -18,7 +19,7 @@ namespace NativeCollections
     /// </remarks>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Community)]
-    public struct UnsafeBitwise<T> : IEquatable<UnsafeBitwise<T>>, IComparable<UnsafeBitwise<T>>, IEquatable<T>, IComparable<T> where T : unmanaged
+    public unsafe struct UnsafeBitwise<T> : IEquatable<UnsafeBitwise<T>>, IComparable<UnsafeBitwise<T>>, IEquatable<T>, IComparable<T> where T : unmanaged
     {
         /// <summary>
         ///     Gets the value to the underlying object.
@@ -150,14 +151,14 @@ namespace NativeCollections
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
-        public Span<byte> AsSpan() => MemoryMarshal.CreateSpan(ref Unsafe.As<T, byte>(ref Value), Unsafe.SizeOf<T>());
+        public Span<byte> AsSpan() => MemoryMarshalHelpers.AsBytes(ref Value);
 
         /// <summary>
         ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
-        public readonly ReadOnlySpan<byte> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<T, byte>(ref Unsafe.AsRef(in Value)), Unsafe.SizeOf<T>());
+        public readonly ReadOnlySpan<byte> AsReadOnlySpan() => MemoryMarshalHelpers.AsReadOnlyBytes(ref Unsafe.AsRef(in Value));
 
         /// <summary>
         ///     Copies the element of a regular managed object.
@@ -225,17 +226,5 @@ namespace NativeCollections
         ///     Gets an empty instance.
         /// </summary>
         public static UnsafeBitwise<T> Empty => default;
-
-        /// <summary>
-        ///     Determines whether two values are equal.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool Equals(ref T left, ref T right) => SpanHelpers.Equals(ref left, ref right);
-
-        /// <summary>
-        ///     Determines the relative order of the values.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int Compare(ref T left, ref T right) => SpanHelpers.Compare(ref left, ref right);
     }
 }

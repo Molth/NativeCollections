@@ -197,7 +197,7 @@ namespace NativeCollections
 
 #if !NET5_0_OR_GREATER
         /// <summary>
-        ///     DeBruijn sequence
+        ///     Using deBruijn sequence, k=2, n=5 (2^5=32) : 0b_0000_0111_0111_1100_1011_0101_0011_0001u
         /// </summary>
         private static ReadOnlySpan<byte> TrailingZeroCountDeBruijn => new byte[32]
         {
@@ -208,7 +208,7 @@ namespace NativeCollections
         };
 
         /// <summary>
-        ///     DeBruijn sequence
+        ///     Using deBruijn sequence, k=2, n=5 (2^5=32) : 0b_0000_0111_1100_0100_1010_1100_1101_1101u
         /// </summary>
         private static ReadOnlySpan<byte> Log2DeBruijn => new byte[32]
         {

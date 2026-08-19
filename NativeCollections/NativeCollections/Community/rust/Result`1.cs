@@ -1,10 +1,10 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using static crossbeam.Option;
+using static rust.Option;
 
 // ReSharper disable All
 
-namespace crossbeam
+namespace rust
 {
     [StructLayout(LayoutKind.Sequential)]
     internal readonly struct Result<T> where T : unmanaged

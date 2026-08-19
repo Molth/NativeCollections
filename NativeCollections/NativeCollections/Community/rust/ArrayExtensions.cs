@@ -3,7 +3,7 @@ using NativeCollections;
 
 // ReSharper disable All
 
-namespace crossbeam
+namespace rust
 {
     internal static unsafe class ArrayExtensions
     {

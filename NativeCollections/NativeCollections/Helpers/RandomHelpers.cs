@@ -43,7 +43,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Initialize<TState>(ref this TState random) where TState : unmanaged, IIsCreated, IRandomState
         {
-            var data = MemoryMarshal.CreateSpan(ref Unsafe.As<TState, byte>(ref random), Unsafe.SizeOf<TState>());
+            var data = MemoryMarshalHelpers.AsBytes(ref random);
             do
             {
                 NativeRandom.NextBytes(data);
@@ -154,7 +154,7 @@ namespace NativeCollections
             }
 
             var destination = new string((char)0, stringLength);
-            random.GetItems(source, StringHelpers.AsSpan(destination));
+            random.GetItems(source, MemoryMarshalHelpers.AsSpan(destination.AsSpan()));
             return destination;
         }
 
@@ -638,6 +638,6 @@ namespace NativeCollections
         /// <typeparam name="T">The blittable type.</typeparam>
         /// <param name="destination">The reference to the memory location to fill with random data.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Next<TState, T>(ref this TState random, ref T destination) where TState : unmanaged, IRandomState where T : unmanaged => random.NextBytes(MemoryMarshal.CreateSpan(ref Unsafe.As<T, byte>(ref destination), Unsafe.SizeOf<T>()));
+        public static void Next<TState, T>(ref this TState random, ref T destination) where TState : unmanaged, IRandomState where T : unmanaged => random.NextBytes(MemoryMarshalHelpers.AsBytes(ref destination));
     }
 }

@@ -430,13 +430,13 @@ namespace NativeCollections
         {
 #if NET8_0_OR_GREATER
             return value.TryFormat(destination, out bytesWritten, format, provider);
-#elif NET6_0_OR_GREATER
-            using var temp = new UnsafeStringBuilder<char>(stackalloc char[512], 0);
-            temp.AppendFormattable(value, format, provider);
-            return TryGetBytes(temp.Text, destination, out bytesWritten);
 #else
             using var temp = new UnsafeStringBuilder<char>(stackalloc char[512], 0);
+#if NET6_0_OR_GREATER
+            temp.AppendFormattable(value, format, provider);
+#else
             temp.AppendFormat(value, format, provider);
+#endif
             return TryGetBytes(temp.Text, destination, out bytesWritten);
 #endif
         }

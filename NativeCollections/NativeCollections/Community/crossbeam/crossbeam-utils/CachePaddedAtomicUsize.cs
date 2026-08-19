@@ -1,6 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using NativeCollections;
+using rust;
 using static NativeCollections.PaddingHelpers;
 
 #pragma warning disable CS9084 // Struct member returns 'this' or other instance members by reference

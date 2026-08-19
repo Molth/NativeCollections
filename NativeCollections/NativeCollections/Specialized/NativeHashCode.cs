@@ -15,7 +15,7 @@ namespace NativeCollections
         /// <summary>
         ///     Default seed value used for hash code calculation.
         /// </summary>
-        private static readonly uint DefaultSeed = NativeRandom.NextU32();
+        private static readonly ulong DefaultSeed = NativeRandom.NextU64();
 
         /// <summary>
         ///     Custom get hash code handler.
@@ -32,7 +32,7 @@ namespace NativeCollections
         ///     Diffuses the hash code returned by the specified bytes.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetHashCode<T>(in T obj) where T : unmanaged => GetHashCode(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<T, byte>(ref Unsafe.AsRef(in obj)), Unsafe.SizeOf<T>()));
+        public static int GetHashCode<T>(in T obj) where T : unmanaged => GetHashCode(MemoryMarshalHelpers.AsReadOnlyBytes(ref Unsafe.AsRef(in obj)));
 
         /// <summary>
         ///     Diffuses the hash code returned by the specified bytes.
@@ -62,13 +62,7 @@ namespace NativeCollections
             if (getHashCode != null)
                 return getHashCode(buffer);
 
-#if NET10_0_OR_GREATER
-            var hashCode = new HashCode();
-            hashCode.AddBytes(buffer);
-            return hashCode.ToHashCode() + (int)DefaultSeed;
-#else
-            return XxHash32.HashToInt32(ref MemoryMarshal.GetReference(buffer), (uint)buffer.Length, DefaultSeed);
-#endif
+            return Environment.Is64BitProcess ? XxHash64.HashToUInt64(buffer, DefaultSeed).GetHashCode() : (int)XxHash32.HashToUInt32(buffer, (uint)DefaultSeed.GetHashCode());
         }
     }
 }

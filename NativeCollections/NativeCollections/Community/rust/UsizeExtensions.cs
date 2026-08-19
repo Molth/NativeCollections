@@ -2,7 +2,7 @@
 
 // ReSharper disable All
 
-namespace crossbeam
+namespace rust
 {
     internal static class UsizeExtensions
     {

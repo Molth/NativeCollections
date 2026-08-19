@@ -7,7 +7,6 @@ using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.Arm;
 using System.Runtime.Intrinsics.X86;
 #endif
-
 #endif
 
 // ReSharper disable ALL
@@ -19,11 +18,7 @@ namespace NativeCollections
     ///     <see langword="true" /> indicates that the bit is on (1) and <see langword="false" /> indicates
     ///     the bit is off (0).
     /// </summary>
-    internal static
-#if NET5_0_OR_GREATER && !NET7_0_OR_GREATER
-        unsafe
-#endif
-        class BitArrayHelpers
+    internal static class BitArrayHelpers
     {
         /// <summary>
         ///     Performs the bitwise AND operation between the elements of the current object and the
@@ -63,7 +58,7 @@ namespace NativeCollections
             ref var left = ref MemoryMarshal.GetReference(destination);
             ref var right = ref MemoryMarshal.GetReference(source);
             uint i = 0;
-#if NET7_0_OR_GREATER
+#if NET5_0_OR_GREATER
 #if NET8_0_OR_GREATER
             if (Vector512.IsHardwareAccelerated && count >= (uint)Vector512<int>.Count)
             {
@@ -76,53 +71,22 @@ namespace NativeCollections
             }
             else
 #endif
-            if (Vector256.IsHardwareAccelerated && count >= (uint)Vector256<int>.Count)
+            if (IsHardwareAccelerated256 && count >= (uint)Vector256<int>.Count)
             {
                 var n = count - ((uint)Vector256<int>.Count - 1);
                 for (; i < n; i += (uint)Vector256<int>.Count)
                 {
-                    var result = Vector256.LoadUnsafe(ref left, i) & Vector256.LoadUnsafe(ref right, i);
-                    result.StoreUnsafe(ref left, i);
+                    var result = And(Load256(ref left, i), Load256(ref right, i));
+                    Store256(ref left, i, result);
                 }
             }
-            else if (Vector128.IsHardwareAccelerated && count >= (uint)Vector128<int>.Count)
+            else if (IsHardwareAccelerated128 && count >= (uint)Vector128<int>.Count)
             {
                 var n = count - ((uint)Vector128<int>.Count - 1);
                 for (; i < n; i += (uint)Vector128<int>.Count)
                 {
-                    var result = Vector128.LoadUnsafe(ref left, i) & Vector128.LoadUnsafe(ref right, i);
-                    result.StoreUnsafe(ref left, i);
-                }
-            }
-#elif NET5_0_OR_GREATER
-            if (Avx2.IsSupported && count >= (uint)Vector256<int>.Count)
-            {
-                var n = count - ((uint)Vector256<int>.Count - 1);
-                for (; i < n; i += (uint)Vector256<int>.Count)
-                {
-                    var local1 = Avx.LoadVector256(UnsafeHelpers.Add(ref left, (nint)i));
-                    var local2 = Avx.LoadVector256(UnsafeHelpers.Add(ref right, (nint)i));
-                    Avx.Store(UnsafeHelpers.Add(ref left, (nint)i), Avx2.And(local1, local2));
-                }
-            }
-            else if (Sse2.IsSupported && count >= (uint)Vector128<int>.Count)
-            {
-                var n = count - ((uint)Vector128<int>.Count - 1);
-                for (; i < n; i += (uint)Vector128<int>.Count)
-                {
-                    var local1 = Sse2.LoadVector128(UnsafeHelpers.Add(ref left, (nint)i));
-                    var local2 = Sse2.LoadVector128(UnsafeHelpers.Add(ref right, (nint)i));
-                    Sse2.Store(UnsafeHelpers.Add(ref left, (nint)i), Sse2.And(local1, local2));
-                }
-            }
-            else if (AdvSimd.IsSupported && count >= (uint)Vector128<int>.Count)
-            {
-                var n = count - ((uint)Vector128<int>.Count - 1);
-                for (; i < n; i += (uint)Vector128<int>.Count)
-                {
-                    var local1 = AdvSimd.LoadVector128(UnsafeHelpers.Add(ref left, (nint)i));
-                    var local2 = AdvSimd.LoadVector128(UnsafeHelpers.Add(ref right, (nint)i));
-                    AdvSimd.Store(UnsafeHelpers.Add(ref left, (nint)i), AdvSimd.And(local1, local2));
+                    var result = And(Load128(ref left, i), Load128(ref right, i));
+                    Store128(ref left, i, result);
                 }
             }
 #endif
@@ -168,7 +132,7 @@ namespace NativeCollections
             ref var left = ref MemoryMarshal.GetReference(destination);
             ref var right = ref MemoryMarshal.GetReference(source);
             uint i = 0;
-#if NET7_0_OR_GREATER
+#if NET5_0_OR_GREATER
 #if NET8_0_OR_GREATER
             if (Vector512.IsHardwareAccelerated && count >= (uint)Vector512<int>.Count)
             {
@@ -181,53 +145,22 @@ namespace NativeCollections
             }
             else
 #endif
-            if (Vector256.IsHardwareAccelerated && count >= (uint)Vector256<int>.Count)
+            if (IsHardwareAccelerated256 && count >= (uint)Vector256<int>.Count)
             {
                 var n = count - ((uint)Vector256<int>.Count - 1);
                 for (; i < n; i += (uint)Vector256<int>.Count)
                 {
-                    var result = Vector256.LoadUnsafe(ref left, i) | Vector256.LoadUnsafe(ref right, i);
-                    result.StoreUnsafe(ref left, i);
+                    var result = Or(Load256(ref left, i), Load256(ref right, i));
+                    Store256(ref left, i, result);
                 }
             }
-            else if (Vector128.IsHardwareAccelerated && count >= (uint)Vector128<int>.Count)
+            else if (IsHardwareAccelerated128 && count >= (uint)Vector128<int>.Count)
             {
                 var n = count - ((uint)Vector128<int>.Count - 1);
                 for (; i < n; i += (uint)Vector128<int>.Count)
                 {
-                    var result = Vector128.LoadUnsafe(ref left, i) | Vector128.LoadUnsafe(ref right, i);
-                    result.StoreUnsafe(ref left, i);
-                }
-            }
-#elif NET5_0_OR_GREATER
-            if (Avx2.IsSupported && count >= (uint)Vector256<int>.Count)
-            {
-                var n = count - ((uint)Vector256<int>.Count - 1);
-                for (; i < n; i += (uint)Vector256<int>.Count)
-                {
-                    var local1 = Avx.LoadVector256(UnsafeHelpers.Add(ref left, (nint)i));
-                    var local2 = Avx.LoadVector256(UnsafeHelpers.Add(ref right, (nint)i));
-                    Avx.Store(UnsafeHelpers.Add(ref left, (nint)i), Avx2.Or(local1, local2));
-                }
-            }
-            else if (Sse2.IsSupported && count >= (uint)Vector128<int>.Count)
-            {
-                var n = count - ((uint)Vector128<int>.Count - 1);
-                for (; i < n; i += (uint)Vector128<int>.Count)
-                {
-                    var local1 = Sse2.LoadVector128(UnsafeHelpers.Add(ref left, (nint)i));
-                    var local2 = Sse2.LoadVector128(UnsafeHelpers.Add(ref right, (nint)i));
-                    Sse2.Store(UnsafeHelpers.Add(ref left, (nint)i), Sse2.Or(local1, local2));
-                }
-            }
-            else if (AdvSimd.IsSupported && count >= (uint)Vector128<int>.Count)
-            {
-                var n = count - ((uint)Vector128<int>.Count - 1);
-                for (; i < n; i += (uint)Vector128<int>.Count)
-                {
-                    var local1 = AdvSimd.LoadVector128(UnsafeHelpers.Add(ref left, (nint)i));
-                    var local2 = AdvSimd.LoadVector128(UnsafeHelpers.Add(ref right, (nint)i));
-                    AdvSimd.Store(UnsafeHelpers.Add(ref left, (nint)i), AdvSimd.Or(local1, local2));
+                    var result = Or(Load128(ref left, i), Load128(ref right, i));
+                    Store128(ref left, i, result);
                 }
             }
 #endif
@@ -273,7 +206,7 @@ namespace NativeCollections
             ref var left = ref MemoryMarshal.GetReference(destination);
             ref var right = ref MemoryMarshal.GetReference(source);
             uint i = 0;
-#if NET7_0_OR_GREATER
+#if NET5_0_OR_GREATER
 #if NET8_0_OR_GREATER
             if (Vector512.IsHardwareAccelerated && count >= (uint)Vector512<int>.Count)
             {
@@ -286,53 +219,22 @@ namespace NativeCollections
             }
             else
 #endif
-            if (Vector256.IsHardwareAccelerated && count >= (uint)Vector256<int>.Count)
+            if (IsHardwareAccelerated256 && count >= (uint)Vector256<int>.Count)
             {
                 var n = count - ((uint)Vector256<int>.Count - 1);
                 for (; i < n; i += (uint)Vector256<int>.Count)
                 {
-                    var result = Vector256.LoadUnsafe(ref left, i) ^ Vector256.LoadUnsafe(ref right, i);
-                    result.StoreUnsafe(ref left, i);
+                    var result = Xor(Load256(ref left, i), Load256(ref right, i));
+                    Store256(ref left, i, result);
                 }
             }
-            else if (Vector128.IsHardwareAccelerated && count >= (uint)Vector128<int>.Count)
+            else if (IsHardwareAccelerated128 && count >= (uint)Vector128<int>.Count)
             {
                 var n = count - ((uint)Vector128<int>.Count - 1);
                 for (; i < n; i += (uint)Vector128<int>.Count)
                 {
-                    var result = Vector128.LoadUnsafe(ref left, i) ^ Vector128.LoadUnsafe(ref right, i);
-                    result.StoreUnsafe(ref left, i);
-                }
-            }
-#elif NET5_0_OR_GREATER
-            if (Avx2.IsSupported && count >= (uint)Vector256<int>.Count)
-            {
-                var n = count - ((uint)Vector256<int>.Count - 1);
-                for (; i < n; i += (uint)Vector256<int>.Count)
-                {
-                    var local1 = Avx.LoadVector256(UnsafeHelpers.Add(ref left, (nint)i));
-                    var local2 = Avx.LoadVector256(UnsafeHelpers.Add(ref right, (nint)i));
-                    Avx.Store(UnsafeHelpers.Add(ref left, (nint)i), Avx2.Xor(local1, local2));
-                }
-            }
-            else if (Sse2.IsSupported && count >= (uint)Vector128<int>.Count)
-            {
-                var n = count - ((uint)Vector128<int>.Count - 1);
-                for (; i < n; i += (uint)Vector128<int>.Count)
-                {
-                    var local1 = Sse2.LoadVector128(UnsafeHelpers.Add(ref left, (nint)i));
-                    var local2 = Sse2.LoadVector128(UnsafeHelpers.Add(ref right, (nint)i));
-                    Sse2.Store(UnsafeHelpers.Add(ref left, (nint)i), Sse2.Xor(local1, local2));
-                }
-            }
-            else if (AdvSimd.IsSupported && count >= (uint)Vector128<int>.Count)
-            {
-                var n = count - ((uint)Vector128<int>.Count - 1);
-                for (; i < n; i += (uint)Vector128<int>.Count)
-                {
-                    var local1 = AdvSimd.LoadVector128(UnsafeHelpers.Add(ref left, (nint)i));
-                    var local2 = AdvSimd.LoadVector128(UnsafeHelpers.Add(ref right, (nint)i));
-                    AdvSimd.Store(UnsafeHelpers.Add(ref left, (nint)i), AdvSimd.Xor(local1, local2));
+                    var result = Xor(Load128(ref left, i), Load128(ref right, i));
+                    Store128(ref left, i, result);
                 }
             }
 #endif
@@ -374,72 +276,260 @@ namespace NativeCollections
                     return;
             }
 
-            ref var value = ref MemoryMarshal.GetReference(destination);
+            ref var location = ref MemoryMarshal.GetReference(destination);
             uint i = 0;
-#if NET7_0_OR_GREATER
+#if NET5_0_OR_GREATER
 #if NET8_0_OR_GREATER
             if (Vector512.IsHardwareAccelerated && count >= (uint)Vector512<int>.Count)
             {
                 var n = count - ((uint)Vector512<int>.Count - 1);
                 for (; i < n; i += (uint)Vector512<int>.Count)
                 {
-                    var result = ~Vector512.LoadUnsafe(ref value, i);
-                    result.StoreUnsafe(ref value, i);
+                    var result = ~Vector512.LoadUnsafe(ref location, i);
+                    result.StoreUnsafe(ref location, i);
                 }
             }
             else
 #endif
-            if (Vector256.IsHardwareAccelerated && count >= (uint)Vector256<int>.Count)
+            if (IsHardwareAccelerated256 && count >= (uint)Vector256<int>.Count)
             {
                 var n = count - ((uint)Vector256<int>.Count - 1);
                 for (; i < n; i += (uint)Vector256<int>.Count)
                 {
-                    var result = ~Vector256.LoadUnsafe(ref value, i);
-                    result.StoreUnsafe(ref value, i);
+                    var result = Not(Load256(ref location, i));
+                    Store256(ref location, i, result);
                 }
             }
-            else if (Vector128.IsHardwareAccelerated && count >= (uint)Vector128<int>.Count)
+            else if (IsHardwareAccelerated128 && count >= (uint)Vector128<int>.Count)
             {
                 var n = count - ((uint)Vector128<int>.Count - 1);
                 for (; i < n; i += (uint)Vector128<int>.Count)
                 {
-                    var result = ~Vector128.LoadUnsafe(ref value, i);
-                    result.StoreUnsafe(ref value, i);
-                }
-            }
-#elif NET5_0_OR_GREATER
-            if (Avx2.IsSupported && count >= (uint)Vector256<int>.Count)
-            {
-                var local2 = Vector256.Create(-1);
-                var n = count - ((uint)Vector256<int>.Count - 1);
-                for (; i < n; i += (uint)Vector256<int>.Count)
-                {
-                    var local1 = Avx.LoadVector256(UnsafeHelpers.Add(ref value, (nint)i));
-                    Avx.Store(UnsafeHelpers.Add(ref value, (nint)i), Avx2.Xor(local1, local2));
-                }
-            }
-            else if (Sse2.IsSupported && count >= (uint)Vector128<int>.Count)
-            {
-                var local2 = Vector128.Create(-1);
-                var n = count - ((uint)Vector128<int>.Count - 1);
-                for (; i < n; i += (uint)Vector128<int>.Count)
-                {
-                    var local1 = Sse2.LoadVector128(UnsafeHelpers.Add(ref value, (nint)i));
-                    Sse2.Store(UnsafeHelpers.Add(ref value, (nint)i), Sse2.Xor(local1, local2));
-                }
-            }
-            else if (AdvSimd.IsSupported && count >= (uint)Vector128<int>.Count)
-            {
-                var n = count - ((uint)Vector128<int>.Count - 1);
-                for (; i < n; i += (uint)Vector128<int>.Count)
-                {
-                    var local = AdvSimd.LoadVector128(UnsafeHelpers.Add(ref value, (nint)i));
-                    AdvSimd.Store(UnsafeHelpers.Add(ref value, (nint)i), AdvSimd.Not(local));
+                    var result = Not(Load128(ref location, i));
+                    Store128(ref location, i, result);
                 }
             }
 #endif
             for (; i < count; ++i)
-                Unsafe.Add(ref value, (nint)i) = ~ Unsafe.Add(ref value, (nint)i);
+                Unsafe.Add(ref location, (nint)i) = ~ Unsafe.Add(ref location, (nint)i);
         }
+
+#if NET5_0_OR_GREATER
+        /// <summary>
+        ///     Gets a value that indicates whether 256-bit vector operations
+        ///     are subject to hardware acceleration through JIT intrinsic support.
+        /// </summary>
+        /// <returns>
+        ///     <see langword="true" /> if 256-bit vector operations are subject to hardware acceleration;
+        ///     otherwise, <see langword="false" />.
+        /// </returns>
+        private static bool IsHardwareAccelerated256 =>
+#if NET7_0_OR_GREATER
+            Vector256.IsHardwareAccelerated;
+#else
+            Avx2.IsSupported;
+#endif
+
+        /// <summary>
+        ///     Gets a value that indicates whether 128-bit vector operations
+        ///     are subject to hardware acceleration through JIT intrinsic support.
+        /// </summary>
+        /// <returns>
+        ///     <see langword="true" /> if 128-bit vector operations are subject to hardware acceleration;
+        ///     otherwise, <see langword="false" />.
+        /// </returns>
+        private static bool IsHardwareAccelerated128 =>
+#if NET7_0_OR_GREATER
+            Vector128.IsHardwareAccelerated;
+#else
+            Sse2.IsSupported || AdvSimd.IsSupported;
+#endif
+
+        /// <summary>
+        ///     Loads a vector from the given source and element offset.
+        /// </summary>
+        /// <param name="source">
+        ///     The source to which <paramref name="elementOffset" />
+        ///     will be added before loading the vector.
+        /// </param>
+        /// <param name="elementOffset">
+        ///     The element offset from <paramref name="source" />
+        ///     from which the vector will be loaded.
+        /// </param>
+        /// <returns>The vector loaded from <paramref name="source" /> plus <paramref name="elementOffset" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector256<int> Load256(ref int source, nuint elementOffset) => Unsafe.ReadUnaligned<Vector256<int>>(ref Unsafe.As<int, byte>(ref Unsafe.Add(ref source, (nint)elementOffset)));
+
+        /// <summary>
+        ///     Loads a vector from the given source and element offset.
+        /// </summary>
+        /// <param name="source">
+        ///     The source to which <paramref name="elementOffset" />
+        ///     will be added before loading the vector.
+        /// </param>
+        /// <param name="elementOffset">
+        ///     The element offset from <paramref name="source" />
+        ///     from which the vector will be loaded.
+        /// </param>
+        /// <returns>The vector loaded from <paramref name="source" /> plus <paramref name="elementOffset" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector128<int> Load128(ref int source, nuint elementOffset) => Unsafe.ReadUnaligned<Vector128<int>>(ref Unsafe.As<int, byte>(ref Unsafe.Add(ref source, (nint)elementOffset)));
+
+        /// <summary>
+        ///     Stores a vector at the given destination.
+        /// </summary>
+        /// <param name="source">The vector that will be stored.</param>
+        /// <param name="destination">
+        ///     The destination to which <paramref name="elementOffset" />
+        ///     will be added before the vector will be stored.
+        /// </param>
+        /// <param name="elementOffset">
+        ///     The element offset from <paramref name="destination" />
+        ///     from which the vector will be stored.
+        /// </param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void Store256(ref int destination, nuint elementOffset, Vector256<int> source) => Unsafe.WriteUnaligned(ref Unsafe.As<int, byte>(ref Unsafe.Add(ref destination, (nint)elementOffset)), source);
+
+        /// <summary>
+        ///     Stores a vector at the given destination.
+        /// </summary>
+        /// <param name="source">The vector that will be stored.</param>
+        /// <param name="destination">
+        ///     The destination to which <paramref name="elementOffset" />
+        ///     will be added before the vector will be stored.
+        /// </param>
+        /// <param name="elementOffset">
+        ///     The element offset from <paramref name="destination" />
+        ///     from which the vector will be stored.
+        /// </param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void Store128(ref int destination, nuint elementOffset, Vector128<int> source) => Unsafe.WriteUnaligned(ref Unsafe.As<int, byte>(ref Unsafe.Add(ref destination, (nint)elementOffset)), source);
+
+        /// <summary>
+        ///     Computes the bitwise-and of two vectors.
+        /// </summary>
+        /// <param name="left">The vector to bitwise-and with <paramref name="right" />.</param>
+        /// <param name="right">The vector to bitwise-and with <paramref name="left" />.</param>
+        /// <returns>The bitwise-and of <paramref name="left" /> and <paramref name="right" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector256<int> And(Vector256<int> left, Vector256<int> right)
+        {
+#if NET7_0_OR_GREATER
+            return left & right;
+#else
+            return Avx2.And(left, right);
+#endif
+        }
+
+        /// <summary>
+        ///     Computes the bitwise-or of two vectors.
+        /// </summary>
+        /// <param name="left">The vector to bitwise-or with <paramref name="right" />.</param>
+        /// <param name="right">The vector to bitwise-or with <paramref name="left" />.</param>
+        /// <returns>The bitwise-or of <paramref name="left" /> and <paramref name="right" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector256<int> Or(Vector256<int> left, Vector256<int> right)
+        {
+#if NET7_0_OR_GREATER
+            return left | right;
+#else
+            return Avx2.Or(left, right);
+#endif
+        }
+
+        /// <summary>
+        ///     Computes the exclusive-or of two vectors.
+        /// </summary>
+        /// <param name="left">The vector to exclusive-or with <paramref name="right" />.</param>
+        /// <param name="right">The vector to exclusive-or with <paramref name="left" />.</param>
+        /// <returns>The exclusive-or of <paramref name="left" /> and <paramref name="right" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector256<int> Xor(Vector256<int> left, Vector256<int> right)
+        {
+#if NET7_0_OR_GREATER
+            return left ^ right;
+#else
+            return Avx2.Xor(left, right);
+#endif
+        }
+
+        /// <summary>
+        ///     Computes the ones-complement of a vector.
+        /// </summary>
+        /// <param name="vector">The vector whose ones-complement is to be computed.</param>
+        /// <returns>A vector whose elements are the ones-complement of the corresponding elements in <paramref name="vector" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector256<int> Not(Vector256<int> vector)
+        {
+#if NET7_0_OR_GREATER
+            return ~vector;
+#else
+            return Avx2.Xor(vector, Vector256.Create(-1));
+#endif
+        }
+
+        /// <summary>
+        ///     Computes the bitwise-and of two vectors.
+        /// </summary>
+        /// <param name="left">The vector to bitwise-and with <paramref name="right" />.</param>
+        /// <param name="right">The vector to bitwise-and with <paramref name="left" />.</param>
+        /// <returns>The bitwise-and of <paramref name="left" /> and <paramref name="right" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector128<int> And(Vector128<int> left, Vector128<int> right)
+        {
+#if NET7_0_OR_GREATER
+            return left & right;
+#else
+            return Sse2.IsSupported ? Sse2.And(left, right) : AdvSimd.And(left, right);
+#endif
+        }
+
+        /// <summary>
+        ///     Computes the bitwise-or of two vectors.
+        /// </summary>
+        /// <param name="left">The vector to bitwise-or with <paramref name="right" />.</param>
+        /// <param name="right">The vector to bitwise-or with <paramref name="left" />.</param>
+        /// <returns>The bitwise-or of <paramref name="left" /> and <paramref name="right" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector128<int> Or(Vector128<int> left, Vector128<int> right)
+        {
+#if NET7_0_OR_GREATER
+            return left | right;
+#else
+            return Sse2.IsSupported ? Sse2.Or(left, right) : AdvSimd.Or(left, right);
+#endif
+        }
+
+        /// <summary>
+        ///     Computes the exclusive-or of two vectors.
+        /// </summary>
+        /// <param name="left">The vector to exclusive-or with <paramref name="right" />.</param>
+        /// <param name="right">The vector to exclusive-or with <paramref name="left" />.</param>
+        /// <returns>The exclusive-or of <paramref name="left" /> and <paramref name="right" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector128<int> Xor(Vector128<int> left, Vector128<int> right)
+        {
+#if NET7_0_OR_GREATER
+            return left ^ right;
+#else
+            return Sse2.IsSupported ? Sse2.Xor(left, right) : AdvSimd.Xor(left, right);
+#endif
+        }
+
+        /// <summary>
+        ///     Computes the ones-complement of a vector.
+        /// </summary>
+        /// <param name="vector">The vector whose ones-complement is to be computed.</param>
+        /// <returns>A vector whose elements are the ones-complement of the corresponding elements in <paramref name="vector" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector128<int> Not(Vector128<int> vector)
+        {
+#if NET7_0_OR_GREATER
+            return ~vector;
+#else
+            return Sse2.IsSupported ? Sse2.Xor(vector, Vector128.Create(-1)) : AdvSimd.Not(vector);
+#endif
+        }
+#endif
     }
 }

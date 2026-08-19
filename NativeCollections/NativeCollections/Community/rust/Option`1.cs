@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 // ReSharper disable All
 
-namespace crossbeam
+namespace rust
 {
     [StructLayout(LayoutKind.Sequential)]
     internal readonly struct Option<T> where T : unmanaged

@@ -3,8 +3,9 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using NativeCollections;
+using rust;
 using static NativeCollections.PaddingHelpers;
-using static crossbeam.Option;
+using static rust.Option;
 
 #pragma warning disable CS9084 // Struct member returns 'this' or other instance members by reference
 

@@ -92,7 +92,7 @@ namespace Examples
                 Bitmap = 0;
             }
 
-            public bool Equals(Block other) => UnsafeBitwise<Block>.Equals(ref this, ref other);
+            public bool Equals(Block other) => NativeBitwise.Equals(ref this, ref other);
 
             public override bool Equals(object? obj) => obj is Block other && Equals(other);
 

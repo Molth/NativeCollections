@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using crossbeam;
+using rust;
 
 #pragma warning disable CS9084 // Struct member returns 'this' or other instance members by reference
 
