@@ -226,15 +226,6 @@ namespace NativeCollections
         /// <summary>
         ///     Reinterprets the given location as a reference to a value.
         /// </summary>
-        public NativeArray2<T> this[uint x]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => new(UnsafeHelpers.Add<T>(_buffer, (nint)(x * _y * _z)), _y, _z);
-        }
-
-        /// <summary>
-        ///     Reinterprets the given location as a reference to a value.
-        /// </summary>
         public NativeArray<T> this[int x, int y]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -244,25 +235,7 @@ namespace NativeCollections
         /// <summary>
         ///     Reinterprets the given location as a reference to a value.
         /// </summary>
-        public NativeArray<T> this[uint x, uint y]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => new(UnsafeHelpers.Add<T>(_buffer, (nint)(x * _y * _z + y * _z)), _z);
-        }
-
-        /// <summary>
-        ///     Reinterprets the given location as a reference to a value.
-        /// </summary>
         public ref T this[int x, int y, int z]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(x * _y * _z + y * _z + z));
-        }
-
-        /// <summary>
-        ///     Reinterprets the given location as a reference to a value.
-        /// </summary>
-        public ref T this[uint x, uint y, uint z]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(x * _y * _z + y * _z + z));

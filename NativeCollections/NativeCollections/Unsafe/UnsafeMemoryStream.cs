@@ -90,15 +90,6 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reinterprets the given location as a reference to a value.
-        /// </summary>
-        public readonly ref byte this[uint index]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(_buffer), (nint)index);
-        }
-
-        /// <summary>
         ///     Initializes a new instance of the class with the specified initial capacity.
         /// </summary>
         /// <param name="capacity">
@@ -358,7 +349,7 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfStreamTooLong(capacity);
             if (capacity > _capacity)
             {
-                var newCapacity = CollectionHelpers.EnsureCapacity(_capacity, 256);
+                var newCapacity = CollectionHelpers.GrowCapacity(_capacity, 256);
                 SetCapacity(newCapacity);
                 return true;
             }

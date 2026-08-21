@@ -382,7 +382,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Grow(int additionalCapacityRequired = 1)
         {
-            var minimumLength = BuilderHelpers.EnsureCapacity(Capacity, Capacity + additionalCapacityRequired);
+            var minimumLength = BuilderHelpers.GrowCapacity(Capacity, Capacity + additionalCapacityRequired);
             SetCapacity(minimumLength);
         }
 

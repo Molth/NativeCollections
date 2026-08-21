@@ -65,15 +65,6 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reinterprets the given location as a reference to a value.
-        /// </summary>
-        public ref readonly (TElement Element, TPriority Priority) this[uint index]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Unsafe.AsRef<UnsafePriorityQueue<TElement, TPriority>>(_handle)[index];
-        }
-
-        /// <summary>
         ///     Gets a collection that enumerates the elements of the queue in an unordered manner.
         /// </summary>
         public UnsafePriorityQueue<TElement, TPriority>.UnorderedItemsCollection UnorderedItems => _handle->UnorderedItems;

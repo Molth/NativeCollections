@@ -10,7 +10,7 @@ namespace NativeCollections
     /// operations synchronize other memory while additionally preserving a total order of such
     /// operations across all threads.
     /// <br />
-    /// Rust's memory orderings are [the same as those of
+    /// Memory orderings are [the same as those of
     /// C++20](https://en.cppreference.com/w/cpp/atomic/memory_order).
     /// <br />
     /// For more information see the [nomicon].

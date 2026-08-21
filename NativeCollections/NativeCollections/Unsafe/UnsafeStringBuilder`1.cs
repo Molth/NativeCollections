@@ -329,10 +329,19 @@ namespace NativeCollections
 
             var dst = ReplaceHelper(oldValue.Length, newValue, replacementIndices.AsReadOnlySpan());
             _length = dst.Length;
-            var array = _array;
-            _buffer = _array = dst;
-            if (array.IsCreated)
-                array.Dispose();
+            if (dst.Length < Capacity)
+            {
+                dst.AsReadOnlySpan().CopyTo(AsSpan());
+                dst.Dispose();
+            }
+            else
+            {
+                var array = _array;
+                _buffer = _array = dst;
+                if (array.IsCreated)
+                    array.Dispose();
+            }
+
             return true;
         }
 
@@ -344,7 +353,8 @@ namespace NativeCollections
         {
             var dstLength = Length + (long)(newValue.Length - oldValueLength) * indices.Length;
             ThrowHelpers.ThrowIfGreaterThan(dstLength, int.MaxValue, ExceptionArgument._dummy);
-            var dst = new NativeArray<T>(BuilderHelpers.EnsureCapacity(Capacity, (int)dstLength));
+            var newCapacity = (int)dstLength <= Capacity ? (int)dstLength : BuilderHelpers.GrowCapacity(Capacity, (int)dstLength);
+            var dst = new NativeArray<T>(newCapacity);
             var dstSpan = dst.AsSpan();
             var thisIdx = 0;
             var dstIdx = 0;
@@ -1048,7 +1058,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Grow(int additionalCapacityRequired)
         {
-            var minimumLength = BuilderHelpers.EnsureCapacity(Capacity, Capacity + additionalCapacityRequired);
+            var minimumLength = BuilderHelpers.GrowCapacity(Capacity, Capacity + additionalCapacityRequired);
             SetCapacity(minimumLength);
         }
 

@@ -116,15 +116,6 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reinterprets the given location as a reference to a value.
-        /// </summary>
-        public ref T this[uint index]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Buffer[index];
-        }
-
-        /// <summary>
         ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         public T[] Buffer

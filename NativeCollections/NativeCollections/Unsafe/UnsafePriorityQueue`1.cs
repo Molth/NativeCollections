@@ -67,15 +67,6 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reinterprets the given location as a reference to a value.
-        /// </summary>
-        public readonly ref readonly TPriority this[uint index]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Unsafe.Add(ref Unsafe.AsRef<TPriority>(_buffer), (nint)index);
-        }
-
-        /// <summary>
         ///     Gets a collection that enumerates the elements of the queue in an unordered manner.
         /// </summary>
         [MustBePinned(SR.parameter_this)]
@@ -500,7 +491,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Grow(int capacity)
         {
-            var newCapacity = CollectionHelpers.EnsureCapacity(_capacity, capacity);
+            var newCapacity = CollectionHelpers.GrowCapacity(_capacity, capacity);
             var nodes = NativeMemoryAllocator.AlignedAlloc<TPriority>((uint)newCapacity);
             SpanHelpers.Copy(ref Unsafe.AsRef<byte>(nodes), ref Unsafe.AsRef<byte>(_buffer), (uint)(_count * Unsafe.SizeOf<TPriority>()));
             NativeMemoryAllocator.AlignedFree(_buffer);

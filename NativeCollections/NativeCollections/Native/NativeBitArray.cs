@@ -158,17 +158,6 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reinterprets the given location as a reference to a value.
-        /// </summary>
-        public bool this[uint index]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => Unsafe.AsRef<UnsafeBitArray>(_handle)[index];
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Unsafe.AsRef<UnsafeBitArray>(_handle)[index] = value;
-        }
-
-        /// <summary>
         ///     Indicates whether the current object is equal to another object.
         /// </summary>
         public bool Equals(NativeBitArray other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
@@ -244,32 +233,6 @@ namespace NativeCollections
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Set(int index, bool value) => _handle->Set(index, value);
-
-        /// <summary>
-        ///     Gets the value of the bit at a specific position in this.
-        /// </summary>
-        /// <param name="index">The zero-based index of the value to get.</param>
-        /// <returns>The value of the bit at position <paramref name="index" />.</returns>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="index" /> is less than zero.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///     <paramref name="index" /> is greater than or equal to
-        ///     <see cref="Count" />.
-        /// </exception>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Get(uint index) => _handle->Get(index);
-
-        /// <summary>
-        ///     Sets the value of the bit at a specific position in this.
-        /// </summary>
-        /// <param name="index">The zero-based index of the value to get.</param>
-        /// <param name="value">The bool value to assign to the bit.</param>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="index" /> is less than zero.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///     <paramref name="index" /> is greater than or equal to
-        ///     <see cref="Count" />.
-        /// </exception>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Set(uint index, bool value) => _handle->Set(index, value);
 
         /// <summary>
         ///     Sets all bits in this to the specified value.
@@ -455,27 +418,6 @@ namespace NativeCollections
         ///     <see langword="true" /> if this contains an element with the specified key; otherwise, <see langword="false" />.
         /// </returns>
         public bool TryGetSlot(int index, out NativeBitArraySlot slot) => _handle->TryGetSlot(index, out slot);
-
-        /// <summary>
-        ///     Gets the value associated with the specified index.
-        /// </summary>
-        /// <param name="index">The zero-based index of the pair to get.</param>
-        /// <exception cref="ArgumentOutOfRangeException">The property is set to a value that is less than zero.</exception>
-        public NativeBitArraySlot GetSlot(uint index) => _handle->GetSlot(index);
-
-        /// <summary>
-        ///     Gets the value associated with the specified index.
-        /// </summary>
-        /// <param name="index">The zero-based index of the pair to get.</param>
-        /// <param name="slot">
-        ///     When this method returns, contains the value associated with the specified key, if the key is
-        ///     found; otherwise, the default value for the type of the <paramref name="slot" /> parameter.
-        ///     This parameter is passed uninitialized.
-        /// </param>
-        /// <returns>
-        ///     <see langword="true" /> if this contains an element with the specified key; otherwise, <see langword="false" />.
-        /// </returns>
-        public bool TryGetSlot(uint index, out NativeBitArraySlot slot) => _handle->TryGetSlot(index, out slot);
 
         /// <summary>
         ///     Gets an empty instance.

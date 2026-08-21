@@ -694,7 +694,7 @@ namespace NativeCollections
         {
             if (_capacity < capacity)
             {
-                var newCapacity = CollectionHelpers.EnsureCapacity(_capacity, capacity);
+                var newCapacity = CollectionHelpers.GrowCapacity(_capacity, capacity);
                 SetCapacity(newCapacity);
             }
 

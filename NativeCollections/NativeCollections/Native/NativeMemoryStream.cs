@@ -55,15 +55,6 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reinterprets the given location as a reference to a value.
-        /// </summary>
-        public ref byte this[uint index]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Unsafe.AsRef<UnsafeMemoryStream>(_handle)[index];
-        }
-
-        /// <summary>
         ///     Gets a value indicating whether the current stream supports reading.
         /// </summary>
         public bool CanRead => IsCreated;

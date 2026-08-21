@@ -17,7 +17,7 @@ namespace NativeCollections
         /// <param name="newCapacity">The minimum required capacity.</param>
         /// <returns>A new capacity that is at least <paramref name="newCapacity" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int EnsureCapacity(int capacity, int newCapacity)
+        public static int GrowCapacity(int capacity, int newCapacity)
         {
             var result = Math.Max(capacity != 0 ? capacity * 2 : 4, newCapacity);
             if ((uint)result > ArrayHelpers.MaxLength)

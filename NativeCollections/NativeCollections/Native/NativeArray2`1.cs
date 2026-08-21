@@ -192,25 +192,7 @@ namespace NativeCollections
         /// <summary>
         ///     Reinterprets the given location as a reference to a value.
         /// </summary>
-        public NativeArray<T> this[uint x]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => new(UnsafeHelpers.Add<T>(_buffer, (nint)(x * _y)), _y);
-        }
-
-        /// <summary>
-        ///     Reinterprets the given location as a reference to a value.
-        /// </summary>
         public ref T this[int x, int y]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(x * _y + y));
-        }
-
-        /// <summary>
-        ///     Reinterprets the given location as a reference to a value.
-        /// </summary>
-        public ref T this[uint x, uint y]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(x * _y + y));

@@ -53,15 +53,6 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reinterprets the given location as a reference to a value.
-        /// </summary>
-        public ref T this[uint index]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Unsafe.AsRef<UnsafeList<T>>(_handle)[index];
-        }
-
-        /// <summary>
         ///     Gets a value that indicates whether this is empty.
         /// </summary>
         public bool IsEmpty => _handle->IsEmpty;

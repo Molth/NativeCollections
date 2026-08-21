@@ -67,15 +67,6 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reinterprets the given location as a reference to a value.
-        /// </summary>
-        public readonly ref readonly TPriority this[uint index]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Unsafe.Add(ref Unsafe.AsRef<TPriority>(_buffer), (nint)index);
-        }
-
-        /// <summary>
         ///     Gets a collection that enumerates the elements of the queue in an unordered manner.
         /// </summary>
         [MustBePinned(SR.parameter_this)]

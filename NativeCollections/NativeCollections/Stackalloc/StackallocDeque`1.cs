@@ -76,15 +76,6 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reinterprets the given location as a reference to a value.
-        /// </summary>
-        public readonly ref T this[uint index]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), RingBufferHelpers.GetElementOffset((nint)index, _head, _capacity));
-        }
-
-        /// <summary>
         ///     Calculates the minimum number of bytes required to store a specified number of elements,
         ///     taking into account alignment requirements for the underlying buffer.
         /// </summary>

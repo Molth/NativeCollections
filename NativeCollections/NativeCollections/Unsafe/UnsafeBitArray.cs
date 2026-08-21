@@ -76,19 +76,6 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Gets or sets the value of the bit at a specific position in this.
-        /// </summary>
-        /// <param name="index">The zero-based index of the value to get or set.</param>
-        /// <returns>The value of the bit at position <paramref name="index" />.</returns>
-        public bool this[uint index]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            readonly get => this[(int)index];
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => this[(int)index] = value;
-        }
-
-        /// <summary>
         ///     Initializes a new instance of this class with the specified number of bits,
         ///     using the natural alignment and zero-initializing the underlying storage.
         /// </summary>
@@ -315,40 +302,6 @@ namespace NativeCollections
         public void Set(int index, bool value)
         {
             ThrowHelpers.ThrowIfGreaterThanOrEqual((uint)index, (uint)_bitLength, ExceptionArgument.index);
-            this[index] = value;
-        }
-
-        /// <summary>
-        ///     Gets the value of the bit at a specific position in this.
-        /// </summary>
-        /// <param name="index">The zero-based index of the value to get.</param>
-        /// <returns>The value of the bit at position <paramref name="index" />.</returns>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="index" /> is less than zero.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///     <paramref name="index" /> is greater than or equal to
-        ///     <see cref="Count" />.
-        /// </exception>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly bool Get(uint index)
-        {
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, (uint)_bitLength, ExceptionArgument.index);
-            return this[index];
-        }
-
-        /// <summary>
-        ///     Sets the value of the bit at a specific position in this.
-        /// </summary>
-        /// <param name="index">The zero-based index of the value to get.</param>
-        /// <param name="value">The bool value to assign to the bit.</param>
-        /// <exception cref="ArgumentOutOfRangeException"><paramref name="index" /> is less than zero.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///     <paramref name="index" /> is greater than or equal to
-        ///     <see cref="Count" />.
-        /// </exception>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Set(uint index, bool value)
-        {
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, (uint)_bitLength, ExceptionArgument.index);
             this[index] = value;
         }
 
@@ -658,41 +611,6 @@ namespace NativeCollections
             }
 
             slot = new NativeBitArraySlot(UnsafeHelpers.Add<int>(_buffer.Buffer, index >> 5), 1 << index);
-            return true;
-        }
-
-        /// <summary>
-        ///     Gets the value associated with the specified index.
-        /// </summary>
-        /// <param name="index">The zero-based index of the pair to get.</param>
-        /// <exception cref="ArgumentOutOfRangeException">The property is set to a value that is less than zero.</exception>
-        public readonly NativeBitArraySlot GetSlot(uint index)
-        {
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(index, (uint)_bitLength, ExceptionArgument.index);
-            return new NativeBitArraySlot(UnsafeHelpers.Add<int>(_buffer.Buffer, (nint)index >> 5), 1 << (int)index);
-        }
-
-        /// <summary>
-        ///     Gets the value associated with the specified index.
-        /// </summary>
-        /// <param name="index">The zero-based index of the pair to get.</param>
-        /// <param name="slot">
-        ///     When this method returns, contains the value associated with the specified key, if the key is
-        ///     found; otherwise, the default value for the type of the <paramref name="slot" /> parameter.
-        ///     This parameter is passed uninitialized.
-        /// </param>
-        /// <returns>
-        ///     <see langword="true" /> if this contains an element with the specified key; otherwise, <see langword="false" />.
-        /// </returns>
-        public readonly bool TryGetSlot(uint index, out NativeBitArraySlot slot)
-        {
-            if (index >= (uint)_bitLength)
-            {
-                slot = default;
-                return false;
-            }
-
-            slot = new NativeBitArraySlot(UnsafeHelpers.Add<int>(_buffer.Buffer, (nint)(index >> 5)), 1 << (int)index);
             return true;
         }
 

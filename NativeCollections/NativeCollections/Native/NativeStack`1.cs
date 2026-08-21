@@ -67,15 +67,6 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reinterprets the given location as a reference to a value.
-        /// </summary>
-        public ref T this[uint index]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Unsafe.AsRef<UnsafeStack<T>>(_handle)[index];
-        }
-
-        /// <summary>
         ///     Indicates whether the current object is equal to another object.
         /// </summary>
         public bool Equals(NativeStack<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);

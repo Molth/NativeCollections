@@ -76,15 +76,6 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reinterprets the given location as a reference to a value.
-        /// </summary>
-        public readonly ref T this[uint index]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), RingBufferHelpers.GetElementOffset((nint)index, _head, _capacity));
-        }
-
-        /// <summary>
         ///     Initializes a new instance of the class with the specified initial capacity.
         /// </summary>
         /// <param name="capacity">
@@ -397,7 +388,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Grow(int capacity)
         {
-            var newCapacity = CollectionHelpers.EnsureCapacity(_capacity, capacity);
+            var newCapacity = CollectionHelpers.GrowCapacity(_capacity, capacity);
             SetCapacity(newCapacity);
         }
 

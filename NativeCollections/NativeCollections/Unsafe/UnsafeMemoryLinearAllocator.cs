@@ -78,15 +78,6 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reinterprets the given location as a reference to a value.
-        /// </summary>
-        public readonly byte* this[uint index]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => UnsafeHelpers.AddByteOffset<byte>(Buffer, (nint)index);
-        }
-
-        /// <summary>
         ///     Indicates whether the current object is equal to another object.
         /// </summary>
         public readonly bool Equals(UnsafeMemoryLinearAllocator other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);

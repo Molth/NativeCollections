@@ -544,7 +544,7 @@ namespace NativeCollections
         ///     Ger shard
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ref Shard GetShard(uint hashCode) => ref _shards[hashCode & ((uint)_shards.Length - 1)];
+        private ref Shard GetShard(uint hashCode) => ref _shards[(int)(hashCode & ((uint)_shards.Length - 1))];
 
         /// <summary>
         ///     Inserts an item into the collection at the specified index.

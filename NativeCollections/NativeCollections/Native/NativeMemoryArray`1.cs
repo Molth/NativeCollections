@@ -120,15 +120,6 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reinterprets the given location as a reference to a value.
-        /// </summary>
-        public T* this[uint index]
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => UnsafeHelpers.Add<T>(_buffer, (nint)index);
-        }
-
-        /// <summary>
         ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
         public T* Buffer => _buffer;
