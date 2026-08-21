@@ -20,12 +20,12 @@ namespace NativeCollections
         /// <summary>
         ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
-        private readonly (TElement Element, TPriority Priority)* _nodes;
+        private readonly (TElement Element, TPriority Priority)* _buffer;
 
         /// <summary>
         ///     Gets the total numbers of elements the internal data structure can hold.
         /// </summary>
-        private readonly int _length;
+        private readonly int _capacity;
 
         /// <summary>
         ///     Gets the number of elements.
@@ -40,7 +40,7 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
-        public readonly bool IsCreated => !UnsafeHelpers.IsNull(_nodes);
+        public readonly bool IsCreated => !UnsafeHelpers.IsNull(_buffer);
 
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
@@ -55,7 +55,7 @@ namespace NativeCollections
         /// <summary>
         ///     Gets the total numbers of elements the internal data structure can hold.
         /// </summary>
-        public readonly int Capacity => _length;
+        public readonly int Capacity => _capacity;
 
         /// <summary>
         ///     Reinterprets the given location as a reference to a value.
@@ -63,7 +63,7 @@ namespace NativeCollections
         public readonly ref readonly (TElement Element, TPriority Priority) this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes), (nint)index);
+            get => ref Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_buffer), (nint)index);
         }
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace NativeCollections
         public readonly ref readonly (TElement Element, TPriority Priority) this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes), (nint)index);
+            get => ref Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_buffer), (nint)index);
         }
 
         /// <summary>
@@ -121,8 +121,8 @@ namespace NativeCollections
         public StackallocPriorityQueue([MustBePinned] Span<byte> buffer, int capacity)
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, GetByteCount(capacity), ExceptionArgument.capacity);
-            _nodes = NativeArray<(TElement Element, TPriority Priority)>.Create(buffer).Buffer;
-            _length = capacity;
+            _buffer = NativeArray<(TElement Element, TPriority Priority)>.Create(buffer).Buffer;
+            _capacity = capacity;
             _count = 0;
             _version = 0;
         }
@@ -176,7 +176,7 @@ namespace NativeCollections
         {
             if ((uint)index >= (uint)_count)
                 return false;
-            var nodes = _nodes;
+            var nodes = _buffer;
             var priority = Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(nodes), (nint)index).Priority;
             var num = --_count;
             if (index < num)
@@ -208,7 +208,7 @@ namespace NativeCollections
                 return false;
             }
 
-            var nodes = _nodes;
+            var nodes = _buffer;
             (element, priority) = Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(nodes), (nint)index);
             var num = --_count;
             if (index < num)
@@ -237,7 +237,7 @@ namespace NativeCollections
         public bool TryEnqueue(in TElement element, in TPriority priority)
         {
             var size = _count;
-            if (_length != size)
+            if (_capacity != size)
             {
                 _count = size + 1;
                 MoveUp((element, priority), size);
@@ -260,7 +260,7 @@ namespace NativeCollections
         {
             if (_count != 0)
             {
-                var node = Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes);
+                var node = Unsafe.AsRef<(TElement Element, TPriority Priority)>(_buffer);
                 if (priority.CompareTo(node.Priority) > 0)
                 {
                     MoveDown((element, priority), 0);
@@ -292,7 +292,7 @@ namespace NativeCollections
         {
             if (_count != 0)
             {
-                var node = Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes);
+                var node = Unsafe.AsRef<(TElement Element, TPriority Priority)>(_buffer);
                 if (priority.CompareTo(node.Priority) > 0)
                 {
                     MoveDown((element, priority), 0);
@@ -315,7 +315,7 @@ namespace NativeCollections
         public TElement Dequeue()
         {
             ThrowHelpers.ThrowIfEmptyQueue(_count);
-            var element = Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes).Element;
+            var element = Unsafe.AsRef<(TElement Element, TPriority Priority)>(_buffer).Element;
             RemoveRootNode();
             return element;
         }
@@ -333,7 +333,7 @@ namespace NativeCollections
         {
             if (_count != 0)
             {
-                element = Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes).Element;
+                element = Unsafe.AsRef<(TElement Element, TPriority Priority)>(_buffer).Element;
                 RemoveRootNode();
                 return true;
             }
@@ -357,7 +357,7 @@ namespace NativeCollections
         {
             if (_count != 0)
             {
-                (element, priority) = Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes);
+                (element, priority) = Unsafe.AsRef<(TElement Element, TPriority Priority)>(_buffer);
                 RemoveRootNode();
                 return true;
             }
@@ -378,11 +378,11 @@ namespace NativeCollections
         public TElement DequeueEnqueue(in TElement element, in TPriority priority)
         {
             ThrowHelpers.ThrowIfEmptyQueue(_count);
-            var node = Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes);
+            var node = Unsafe.AsRef<(TElement Element, TPriority Priority)>(_buffer);
             if (priority.CompareTo(node.Priority) > 0)
                 MoveDown((element, priority), 0);
             else
-                Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes) = (element, priority);
+                Unsafe.AsRef<(TElement Element, TPriority Priority)>(_buffer) = (element, priority);
             ++_version;
             return node.Element;
         }
@@ -411,11 +411,11 @@ namespace NativeCollections
                 return false;
             }
 
-            var node = Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes);
+            var node = Unsafe.AsRef<(TElement Element, TPriority Priority)>(_buffer);
             if (priority.CompareTo(node.Priority) > 0)
                 MoveDown((element, priority), 0);
             else
-                Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes) = (element, priority);
+                Unsafe.AsRef<(TElement Element, TPriority Priority)>(_buffer) = (element, priority);
             ++_version;
             result = node.Element;
             return true;
@@ -430,7 +430,7 @@ namespace NativeCollections
         public readonly TElement Peek()
         {
             ThrowHelpers.ThrowIfEmptyQueue(_count);
-            return Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes).Element;
+            return Unsafe.AsRef<(TElement Element, TPriority Priority)>(_buffer).Element;
         }
 
         /// <summary>
@@ -450,7 +450,7 @@ namespace NativeCollections
         {
             if (_count != 0)
             {
-                (element, priority) = Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes);
+                (element, priority) = Unsafe.AsRef<(TElement Element, TPriority Priority)>(_buffer);
                 return true;
             }
 
@@ -463,19 +463,19 @@ namespace NativeCollections
         ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes), _count);
+        public readonly ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_buffer), _count);
 
         /// <summary>
         ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes), (nint)start), _count - start);
+        public readonly ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan(int start) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_buffer), (nint)start), _count - start);
 
         /// <summary>
         ///     Creates a new read-only span over a portion of a regular managed object.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes), (nint)start), length);
+        public readonly ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan(int start, int length) => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_buffer), (nint)start), length);
 
         /// <summary>
         ///     Removes the root node (the minimum priority element) from the heap,
@@ -488,7 +488,7 @@ namespace NativeCollections
             ++_version;
             if (index > 0)
             {
-                var node = Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_nodes), (nint)index);
+                var node = Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(_buffer), (nint)index);
                 MoveDown(node, 0);
             }
         }
@@ -500,7 +500,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly void MoveUp(in (TElement Element, TPriority Priority) node, int nodeIndex)
         {
-            var nodes = _nodes;
+            var nodes = _buffer;
             int parentIndex;
             for (; nodeIndex > 0; nodeIndex = parentIndex)
             {
@@ -522,7 +522,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly void MoveDown(in (TElement Element, TPriority Priority) node, int nodeIndex)
         {
-            var nodes = _nodes;
+            var nodes = _buffer;
             int firstChildIndex;
             int first;
             for (var size = _count; (firstChildIndex = (nodeIndex << 2) + 1) < size; nodeIndex = first)
@@ -608,6 +608,7 @@ namespace NativeCollections
             /// <summary>
             ///     Returns an enumerator that iterates through the collection.
             /// </summary>
+            /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator<(TElement Element, TPriority Priority)> IEnumerable<(TElement Element, TPriority Priority)>.GetEnumerator()
@@ -619,6 +620,7 @@ namespace NativeCollections
             /// <summary>
             ///     Returns an enumerator that iterates through the collection.
             /// </summary>
+            /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator IEnumerable.GetEnumerator()
@@ -685,7 +687,7 @@ namespace NativeCollections
                         return false;
                     }
 
-                    _current = Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(handle->_nodes), (nint)_index);
+                    _current = Unsafe.Add(ref Unsafe.AsRef<(TElement Element, TPriority Priority)>(handle->_buffer), (nint)_index);
                     ++_index;
                     return true;
                 }

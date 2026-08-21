@@ -10,10 +10,10 @@ namespace xxhash_rust
     internal static partial class XxHash64
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static uint read_u32(ReadOnlySpan<byte> input, int cursor) => BinaryPrimitivesHelpers.ReadUInt32LittleEndian(input.split(cursor));
+        private static uint read_u32(ReadOnlySpan<byte> input, int cursor) => BinaryPrimitivesHelpers.ReadUInt32LittleEndian(input.Slice(cursor));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static ulong read_u64(ReadOnlySpan<byte> input, int cursor) => BinaryPrimitivesHelpers.ReadUInt64LittleEndian(input.split(cursor));
+        private static ulong read_u64(ReadOnlySpan<byte> input, int cursor) => BinaryPrimitivesHelpers.ReadUInt64LittleEndian(input.Slice(cursor));
 
         private static ulong finalize(ulong input, ReadOnlySpan<byte> data, int cursor)
         {
@@ -37,7 +37,7 @@ namespace xxhash_rust
 
             while (len > 0)
             {
-                input ^= ((ulong)data.get_unchecked(cursor)).wrapping_mul(PRIME_5);
+                input ^= ((ulong)data[cursor]).wrapping_mul(PRIME_5);
                 cursor += sizeof(byte);
                 len -= sizeof(byte);
                 input = input.rotate_left(11).wrapping_mul(PRIME_1);

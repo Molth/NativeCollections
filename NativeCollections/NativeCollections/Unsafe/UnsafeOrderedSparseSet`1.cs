@@ -30,7 +30,7 @@ namespace NativeCollections
         /// <summary>
         ///     Gets the total number of elements in all the dimensions of the instance.
         /// </summary>
-        private int _length;
+        private int _capacity;
 
         /// <summary>
         ///     The index of the head.
@@ -120,7 +120,7 @@ namespace NativeCollections
         /// <summary>
         ///     Gets the total number of elements in all the dimensions of the instance.
         /// </summary>
-        public readonly int Length => _length;
+        public readonly int Capacity => _capacity;
 
         /// <summary>
         ///     Gets the number of elements contained in this.
@@ -207,7 +207,7 @@ namespace NativeCollections
             _dense = (Entry*)NativeMemoryAllocator.AlignedAlloc(denseByteCount + (uint)capacity * (uint)Unsafe.SizeOf<int>(), alignment);
             _sparse = UnsafeHelpers.AddByteOffset<int>(_dense, (nint)denseByteCount);
             MemoryMarshal.CreateSpan(ref Unsafe.AsRef<int>(_sparse), capacity).Fill(-1);
-            _length = capacity;
+            _capacity = capacity;
             _head = -1;
             _tail = -1;
             _count = 0;
@@ -257,7 +257,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
-            MemoryMarshal.CreateSpan(ref Unsafe.AsRef<int>(_sparse), _length).Fill(-1);
+            MemoryMarshal.CreateSpan(ref Unsafe.AsRef<int>(_sparse), _capacity).Fill(-1);
             _head = -1;
             _tail = -1;
             _count = 0;
@@ -275,7 +275,7 @@ namespace NativeCollections
             var max = Max;
             var maxKey = max?.Key ?? 0;
             ThrowHelpers.ThrowIfLessThan(capacity, maxKey, ExceptionArgument.capacity);
-            if (capacity != _length)
+            if (capacity != _capacity)
             {
                 var alignment = Math.Max(NativeMemoryAllocator.AlignOf<Entry>(), NativeMemoryAllocator.AlignOf<int>());
                 var denseByteCount = (uint)NativeMemoryAllocator.AlignUp((nuint)(capacity * Unsafe.SizeOf<Entry>()), alignment);
@@ -288,7 +288,7 @@ namespace NativeCollections
                 NativeMemoryAllocator.AlignedFree(_dense);
                 _dense = dense;
                 _sparse = sparse;
-                _length = capacity;
+                _capacity = capacity;
             }
         }
 
@@ -305,7 +305,7 @@ namespace NativeCollections
         public bool Add(int key, in TValue value)
         {
             ThrowHelpers.ThrowIfNegative(key, ExceptionArgument.key);
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(key, _length, ExceptionArgument.key);
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(key, _capacity, ExceptionArgument.key);
             var index = Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key);
             if (index != -1)
                 return false;
@@ -349,7 +349,7 @@ namespace NativeCollections
         public InsertResult Insert(int key, in TValue value)
         {
             ThrowHelpers.ThrowIfNegative(key, ExceptionArgument.key);
-            ThrowHelpers.ThrowIfGreaterThanOrEqual(key, _length, ExceptionArgument.key);
+            ThrowHelpers.ThrowIfGreaterThanOrEqual(key, _capacity, ExceptionArgument.key);
             var index = Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key);
             if (index != -1)
             {
@@ -394,7 +394,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(int key)
         {
-            if ((uint)key >= (uint)_length)
+            if ((uint)key >= (uint)_capacity)
                 return false;
             var index = Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key);
             if (index == -1)
@@ -442,7 +442,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(int key, out TValue value)
         {
-            if ((uint)key >= (uint)_length)
+            if ((uint)key >= (uint)_capacity)
             {
                 value = default;
                 return false;
@@ -495,7 +495,7 @@ namespace NativeCollections
         ///     otherwise, <see langword="false" />.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly bool ContainsKey(int key) => key >= 0 && key < _length && Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key) != -1;
+        public readonly bool ContainsKey(int key) => key >= 0 && key < _capacity && Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key) != -1;
 
         /// <summary>
         ///     Gets the value associated with the specified key.
@@ -512,7 +512,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool TryGetValue(int key, out TValue value)
         {
-            if ((uint)key >= (uint)_length)
+            if ((uint)key >= (uint)_capacity)
             {
                 value = default;
                 return false;
@@ -544,7 +544,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool TryGetValueReference(int key, out NativePtr<TValue> value)
         {
-            if ((uint)key >= (uint)_length)
+            if ((uint)key >= (uint)_capacity)
             {
                 value = default;
                 return false;
@@ -567,7 +567,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The index of <paramref name="key" /> if found; otherwise, -1.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly int IndexOf(int key) => (uint)key >= (uint)_length ? -1 : Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key);
+        public readonly int IndexOf(int key) => (uint)key >= (uint)_capacity ? -1 : Unsafe.Add(ref Unsafe.AsRef<int>(_sparse), (nint)key);
 
         /// <summary>
         ///     Gets the key/value pair at the specified index.
@@ -950,6 +950,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.
         /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator<KeyValuePair<int, TValue>> IEnumerable<KeyValuePair<int, TValue>>.GetEnumerator()
@@ -961,6 +962,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.
         /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator IEnumerable.GetEnumerator()
@@ -1088,6 +1090,7 @@ namespace NativeCollections
             /// <summary>
             ///     Returns an enumerator that iterates through the collection.
             /// </summary>
+            /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator<int> IEnumerable<int>.GetEnumerator()
@@ -1099,6 +1102,7 @@ namespace NativeCollections
             /// <summary>
             ///     Returns an enumerator that iterates through the collection.
             /// </summary>
+            /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator IEnumerable.GetEnumerator()
@@ -1226,6 +1230,7 @@ namespace NativeCollections
             /// <summary>
             ///     Returns an enumerator that iterates through the collection.
             /// </summary>
+            /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator()
@@ -1237,6 +1242,7 @@ namespace NativeCollections
             /// <summary>
             ///     Returns an enumerator that iterates through the collection.
             /// </summary>
+            /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator IEnumerable.GetEnumerator()
@@ -1422,6 +1428,7 @@ namespace NativeCollections
             /// <summary>
             ///     Returns an enumerator that iterates through the collection.
             /// </summary>
+            /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator<KeyValuePair<int, TValue>> IEnumerable<KeyValuePair<int, TValue>>.GetEnumerator()
@@ -1433,6 +1440,7 @@ namespace NativeCollections
             /// <summary>
             ///     Returns an enumerator that iterates through the collection.
             /// </summary>
+            /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator IEnumerable.GetEnumerator()
@@ -1627,6 +1635,7 @@ namespace NativeCollections
             /// <summary>
             ///     Returns an enumerator that iterates through the collection.
             /// </summary>
+            /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator<int> IEnumerable<int>.GetEnumerator()
@@ -1638,6 +1647,7 @@ namespace NativeCollections
             /// <summary>
             ///     Returns an enumerator that iterates through the collection.
             /// </summary>
+            /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator IEnumerable.GetEnumerator()
@@ -1832,6 +1842,7 @@ namespace NativeCollections
             /// <summary>
             ///     Returns an enumerator that iterates through the collection.
             /// </summary>
+            /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator()
@@ -1843,6 +1854,7 @@ namespace NativeCollections
             /// <summary>
             ///     Returns an enumerator that iterates through the collection.
             /// </summary>
+            /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator IEnumerable.GetEnumerator()

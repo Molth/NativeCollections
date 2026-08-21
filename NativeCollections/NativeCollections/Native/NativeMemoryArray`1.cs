@@ -225,10 +225,17 @@ namespace NativeCollections
         public void Dispose() => Box.Free(_buffer);
 
         /// <summary>
+        ///     Returns a reference to the 0th element of the Span. If the Span is empty, returns null reference.
+        ///     It can be used for pinning and is required to support the use of span within a fixed statement.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref T GetPinnableReference() => ref Unsafe.AsRef<T>(_buffer);
+
+        /// <summary>
         ///     Clears the contents of this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Clear() => SpanHelpers.Set(ref Unsafe.AsRef<byte>(_buffer), 0, (uint)(_length * Unsafe.SizeOf<T>()));
+        public void Clear() => AsSpan().Clear();
 
         /// <summary>
         ///     Casts a instance of one primitive type to another primitive type.
@@ -285,6 +292,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.
         /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
@@ -296,6 +304,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.
         /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         IEnumerator IEnumerable.GetEnumerator()

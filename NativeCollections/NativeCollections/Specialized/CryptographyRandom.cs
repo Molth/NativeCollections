@@ -387,7 +387,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">The buffer to be filled with random numbers.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void NextBytes(Span<byte> buffer) => _state.NextBytes(buffer);
+        public readonly void NextBytes(Span<byte> buffer) => _state.NextBytes(buffer);
 
         /// <summary>
         ///     Fills a specified memory block with random bytes.

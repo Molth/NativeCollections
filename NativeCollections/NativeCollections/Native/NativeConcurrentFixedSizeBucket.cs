@@ -22,7 +22,7 @@ namespace NativeCollections
         /// <summary>
         ///     Gets the total numbers of elements the internal data structure can hold.
         /// </summary>
-        private readonly int _length;
+        private readonly int _capacity;
 
         /// <summary>
         ///     Initializes a new instance of the class with the specified initial capacity.
@@ -37,7 +37,7 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             _buffer = NativeMemoryAllocator.AlignedAllocZeroed<int>((uint)(2 + capacity));
-            _length = capacity;
+            _capacity = capacity;
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             ThrowHelpers.ThrowIfLessThan((uint)buffer.Length, (uint)(2 + capacity), ExceptionArgument.buffer);
             _buffer = UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(buffer));
-            _length = capacity;
+            _capacity = capacity;
         }
 
         /// <summary>
@@ -80,7 +80,7 @@ namespace NativeCollections
         /// <summary>
         ///     Gets the total numbers of elements the internal data structure can hold.
         /// </summary>
-        public int Capacity => _length;
+        public int Capacity => _capacity;
 
         /// <summary>
         ///     Gets the number of elements contained in this.
@@ -90,7 +90,7 @@ namespace NativeCollections
         /// <summary>
         ///     Gets the number of remaining free slots available in the bucket.
         /// </summary>
-        public int Remaining => _length - Count;
+        public int Remaining => _capacity - Count;
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
@@ -110,7 +110,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        public override string ToString() => SR.Format("NativeConcurrentFixedSizeBucket[{0}]", _length);
+        public override string ToString() => SR.Format("NativeConcurrentFixedSizeBucket[{0}]", _capacity);
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
@@ -162,7 +162,7 @@ namespace NativeCollections
 
             location = ref buffer;
             id = Interlocked.Increment(ref location) - 1;
-            if ((uint)id >= (uint)_length)
+            if ((uint)id >= (uint)_capacity)
             {
                 Interlocked.Decrement(ref location);
                 index = -1;

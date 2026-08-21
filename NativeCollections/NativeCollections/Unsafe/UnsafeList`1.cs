@@ -25,7 +25,7 @@ namespace NativeCollections
         /// <summary>
         ///     Gets the total number of elements in all the dimensions of the instance.
         /// </summary>
-        private int _length;
+        private int _capacity;
 
         /// <summary>
         ///     Gets the number of elements.
@@ -76,7 +76,7 @@ namespace NativeCollections
         public int Capacity
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            readonly get => _length;
+            readonly get => _capacity;
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set => SetCapacity(value);
         }
@@ -95,7 +95,7 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             capacity = Math.Max(capacity, 4);
             _buffer = NativeMemoryAllocator.AlignedAlloc<T>((uint)capacity);
-            _length = capacity;
+            _capacity = capacity;
             _count = 0;
             _version = 0;
         }
@@ -157,7 +157,7 @@ namespace NativeCollections
         {
             _version++;
             var size = _count;
-            if ((uint)size < (uint)_length)
+            if ((uint)size < (uint)_capacity)
             {
                 _count = size + 1;
                 Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)size) = item;
@@ -182,7 +182,7 @@ namespace NativeCollections
         public bool TryAdd(in T item)
         {
             var size = _count;
-            if ((uint)size < (uint)_length)
+            if ((uint)size < (uint)_capacity)
             {
                 _version++;
                 _count = size + 1;
@@ -203,7 +203,7 @@ namespace NativeCollections
             var count = buffer.Length;
             if (count > 0)
             {
-                if (_length - _count < count)
+                if (_capacity - _count < count)
                     Grow(checked(_count + count));
                 SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_count)), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(count * Unsafe.SizeOf<T>()));
                 _count += count;
@@ -225,7 +225,7 @@ namespace NativeCollections
             var count = buffer.Length;
             if (count > 0)
             {
-                if (_length - _count < count)
+                if (_capacity - _count < count)
                     return false;
                 SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_count)), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(count * Unsafe.SizeOf<T>()));
                 _count += count;
@@ -248,7 +248,7 @@ namespace NativeCollections
         public void Insert(int index, in T item)
         {
             ThrowHelpers.ThrowIfGreaterThan((uint)index, (uint)_count, ExceptionArgument.index);
-            if (_count == _length)
+            if (_count == _capacity)
                 Grow(_count + 1);
             if (index < _count)
                 SpanHelpers.Move(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(index + 1))), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index)), (uint)((_count - index) * Unsafe.SizeOf<T>()));
@@ -274,7 +274,7 @@ namespace NativeCollections
         public bool TryInsert(int index, in T item)
         {
             ThrowHelpers.ThrowIfGreaterThan((uint)index, (uint)_count, ExceptionArgument.index);
-            if (_count == _length)
+            if (_count == _capacity)
                 return false;
             if (index < _count)
                 SpanHelpers.Move(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(index + 1))), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index)), (uint)((_count - index) * Unsafe.SizeOf<T>()));
@@ -300,7 +300,7 @@ namespace NativeCollections
             var count = buffer.Length;
             if (count > 0)
             {
-                if (_length - _count < count)
+                if (_capacity - _count < count)
                     Grow(checked(_count + count));
                 if (index < _count)
                     SpanHelpers.Move(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(index + count))), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index)), (uint)((_count - index) * Unsafe.SizeOf<T>()));
@@ -330,7 +330,7 @@ namespace NativeCollections
             var count = buffer.Length;
             if (count > 0)
             {
-                if (_length - _count < count)
+                if (_capacity - _count < count)
                     return false;
                 if (index < _count)
                     SpanHelpers.Move(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(index + count))), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index)), (uint)((_count - index) * Unsafe.SizeOf<T>()));
@@ -517,7 +517,7 @@ namespace NativeCollections
         public void SetCount(int count)
         {
             ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
-            if (_length < count)
+            if (_capacity < count)
                 Grow(count);
             _count = count;
             _version++;
@@ -534,9 +534,9 @@ namespace NativeCollections
         public int EnsureCapacity(int capacity)
         {
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
-            if (_length < capacity)
+            if (_capacity < capacity)
                 Grow(capacity);
-            return _length;
+            return _capacity;
         }
 
         /// <summary>
@@ -545,10 +545,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess()
         {
-            var threshold = (int)(_length * 0.9);
+            var threshold = (int)(_capacity * 0.9);
             if (_count < threshold)
                 SetCapacity(_count);
-            return _length;
+            return _capacity;
         }
 
         /// <summary>
@@ -560,10 +560,10 @@ namespace NativeCollections
         public int TrimExcess(int capacity)
         {
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
-            if (capacity < _count || capacity >= _length)
-                return _length;
+            if (capacity < _count || capacity >= _capacity)
+                return _capacity;
             SetCapacity(capacity);
-            return _length;
+            return _capacity;
         }
 
         /// <summary>
@@ -574,12 +574,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Grow(int capacity)
         {
-            var newCapacity = 2 * _length;
-            if ((uint)newCapacity > ArrayHelpers.MaxLength)
-                newCapacity = ArrayHelpers.MaxLength;
-            var expected = _length + 4;
-            newCapacity = Math.Max(newCapacity, expected);
-            newCapacity = Math.Max(newCapacity, capacity);
+            var newCapacity = CollectionHelpers.EnsureCapacity(_capacity, capacity);
             SetCapacity(newCapacity);
         }
 
@@ -646,14 +641,14 @@ namespace NativeCollections
         public void SetCapacity(int capacity)
         {
             ThrowHelpers.ThrowIfLessThan(capacity, _count, ExceptionArgument.capacity);
-            if (capacity != _length)
+            if (capacity != _capacity)
             {
                 var newItems = NativeMemoryAllocator.AlignedAlloc<T>((uint)capacity);
                 if (_count > 0)
                     SpanHelpers.Copy(ref Unsafe.AsRef<byte>(newItems), ref Unsafe.AsRef<byte>(_buffer), (uint)(_count * Unsafe.SizeOf<T>()));
                 NativeMemoryAllocator.AlignedFree(_buffer);
                 _buffer = newItems;
-                _length = capacity;
+                _capacity = capacity;
             }
         }
 
@@ -719,6 +714,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.
         /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator<T> IEnumerable<T>.GetEnumerator()
@@ -730,6 +726,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.
         /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator IEnumerable.GetEnumerator()

@@ -1,18 +1,14 @@
 ﻿using System;
-using System.Buffers;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
-#if NET9_0_OR_GREATER
-using System.Collections;
-#endif
 
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
-#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
-#pragma warning disable CS9081 // A result of a stackalloc expression of this type in this context may be exposed outside of the containing method
+#pragma warning disable CS9084 // Struct member returns 'this' or other instance members by reference
 
 // ReSharper disable ALL
 
@@ -27,12 +23,11 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard)]
-    [IsReferenceOrContainsReferences]
-    [IsAssignableTo(typeof(IIsCreated), typeof(IEquatable<>), typeof(IEquatable<>), typeof(IReadOnlyCollection<char>))]
+    [IsAssignableTo(typeof(IEquatable<>))]
     [Customizable("public static int GetHashCode(ReadOnlySpan<char> buffer)")]
-    public unsafe ref struct UnsafeString
+    public unsafe struct UnsafeString : IIsCreated, IEquatable<UnsafeString>, IReadOnlyCollection<char>
 #if NET9_0_OR_GREATER
-        : IIsCreated, IEquatable<UnsafeString>, IEquatable<ReadOnlySpan<char>>, IReadOnlyCollection<char>
+        , IEquatable<ReadOnlySpan<char>>
 #endif
     {
         /// <summary>
@@ -43,7 +38,7 @@ namespace NativeCollections
         /// <summary>
         ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
-        private readonly Span<char> _buffer;
+        private readonly NativeArray<char> _buffer;
 
         /// <summary>
         ///     Gets the total number of elements in all the dimensions of the instance.
@@ -53,7 +48,7 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
-        public readonly bool IsCreated => !Unsafe.IsNullRef(ref MemoryMarshal.GetReference(_buffer));
+        public readonly bool IsCreated => _buffer.IsCreated;
 
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
@@ -104,7 +99,7 @@ namespace NativeCollections
         public readonly ref char this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _buffer[index];
+            get => ref _buffer.AsSpan()[index];
         }
 
         /// <summary>
@@ -113,8 +108,9 @@ namespace NativeCollections
         ///     setting the initial length to the full length of the span.
         /// </summary>
         /// <param name="buffer">The underlying span to use as storage.</param>
+        [MustBePinned(nameof(buffer))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeString(Span<char> buffer)
+        public UnsafeString([MustBePinned] Span<char> buffer)
         {
             _buffer = buffer;
             _length = buffer.Length;
@@ -134,8 +130,9 @@ namespace NativeCollections
         ///     Thrown if <paramref name="length" /> is negative or exceeds
         ///     <paramref name="buffer" /> length.
         /// </exception>
+        [MustBePinned(nameof(buffer))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeString(Span<char> buffer, int length)
+        public UnsafeString([MustBePinned] Span<char> buffer, int length)
         {
             ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
             ThrowHelpers.ThrowIfGreaterThan(length, buffer.Length, ExceptionArgument.length);
@@ -151,7 +148,7 @@ namespace NativeCollections
         {
             if (_length + buffer.Length > Capacity)
                 return false;
-            SpanHelpers.Copy(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref MemoryMarshal.GetReference(_buffer), (nint)_length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(buffer.Length * Unsafe.SizeOf<char>()));
+            SpanHelpers.Copy(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref _buffer.GetPinnableReference(), (nint)_length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(buffer.Length * Unsafe.SizeOf<char>()));
             _length += buffer.Length;
             return true;
         }
@@ -165,7 +162,7 @@ namespace NativeCollections
             var newLine = NewLine;
             if (_length + newLine.Length > Capacity)
                 return false;
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             SpanHelpers.Copy(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)_length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(newLine)), (uint)(newLine.Length * Unsafe.SizeOf<char>()));
             _length += newLine.Length;
             return true;
@@ -180,7 +177,7 @@ namespace NativeCollections
             var newLine = NewLine;
             if (_length + buffer.Length + newLine.Length > Capacity)
                 return false;
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             SpanHelpers.Copy(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)_length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(buffer.Length * Unsafe.SizeOf<char>()));
             _length += buffer.Length;
             SpanHelpers.Copy(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)_length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(newLine)), (uint)(newLine.Length * Unsafe.SizeOf<char>()));
@@ -242,7 +239,7 @@ namespace NativeCollections
         {
             if ((uint)startIndex > (uint)_length || _length + buffer.Length > Capacity)
                 return false;
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             var count = _length - startIndex;
             if (count > 0)
                 SpanHelpers.Move(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)(startIndex + buffer.Length))), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)startIndex)), (uint)(count * Unsafe.SizeOf<char>()));
@@ -254,21 +251,19 @@ namespace NativeCollections
         /// <summary>
         ///     Replaces all occurrences of a specified string in this instance with another specified string.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Replace(ReadOnlySpan<char> oldValue, ReadOnlySpan<char> newValue)
         {
             if (Unsafe.IsNullRef(ref MemoryMarshal.GetReference(oldValue)) || oldValue.IsEmpty)
                 return false;
+
             if (Unsafe.IsNullRef(ref MemoryMarshal.GetReference(newValue)))
             {
                 if (newValue.Length != 0)
                     return false;
-                newValue = "";
+                newValue = (ReadOnlySpan<char>)"";
             }
 
-            UnsafeValueListBuilder<int> valueListBuilder;
-            var elementOffset1 = 0;
-            ref var local1 = ref MemoryMarshal.GetReference(_buffer);
+            using var replacementIndices = new UnsafeListBuilder<int>(stackalloc int[128]);
             if (oldValue.Length == 1)
             {
                 if (newValue.Length == 1)
@@ -277,72 +272,81 @@ namespace NativeCollections
                     return true;
                 }
 
-                valueListBuilder = new UnsafeValueListBuilder<int>(stackalloc int[128]);
-                var ch = oldValue[0];
+                var c = oldValue[0];
+                var i = 0;
+
                 while (true)
                 {
-                    var num = MemoryMarshal.CreateSpan(ref Unsafe.Add(ref local1, (nint)elementOffset1), _length - elementOffset1).IndexOf(ch);
-                    if (num >= 0)
-                    {
-                        valueListBuilder.Append(elementOffset1 + num);
-                        elementOffset1 += num + 1;
-                    }
-                    else
+                    var pos = AsReadOnlySpan(i).IndexOf(c);
+                    if (pos < 0)
                         break;
+
+                    replacementIndices.Append(i + pos);
+                    i += pos + 1;
                 }
             }
             else
             {
-                valueListBuilder = new UnsafeValueListBuilder<int>(stackalloc int[128]);
+                var i = 0;
                 while (true)
                 {
-                    var num = MemoryMarshal.CreateSpan(ref Unsafe.Add(ref local1, (nint)elementOffset1), _length - elementOffset1).IndexOf(oldValue);
-                    if (num >= 0)
-                    {
-                        valueListBuilder.Append(elementOffset1 + num);
-                        elementOffset1 += num + oldValue.Length;
-                    }
-                    else
+                    var pos = AsReadOnlySpan(i).IndexOf(oldValue);
+                    if (pos < 0)
                         break;
+
+                    replacementIndices.Append(i + pos);
+                    i += pos + oldValue.Length;
                 }
             }
 
-            if (valueListBuilder.IsEmpty)
+            if (replacementIndices.Length == 0)
                 return true;
-            var readOnlySpan = valueListBuilder.AsReadOnlySpan();
-            var minimumLength = _length + (newValue.Length - oldValue.Length) * readOnlySpan.Length;
-            if ((uint)minimumLength > (uint)Capacity)
+
+            if (ReplaceHelper(oldValue.Length, newValue, replacementIndices.AsReadOnlySpan(), out var dst))
             {
-                valueListBuilder.Dispose();
+                _length = dst.Length;
+                dst.AsReadOnlySpan().CopyTo(AsSpan());
+                dst.Dispose();
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///     Replaces all occurrences of a specified string in this instance with another specified string.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private readonly bool ReplaceHelper(int oldValueLength, ReadOnlySpan<char> newValue, ReadOnlySpan<int> indices, out NativeArray<char> dst)
+        {
+            var dstLength = Length + (long)(newValue.Length - oldValueLength) * indices.Length;
+            ThrowHelpers.ThrowIfGreaterThan(dstLength, int.MaxValue, ExceptionArgument._dummy);
+            if (dstLength > Capacity)
+            {
+                dst = default;
                 return false;
             }
 
-            char[]? array = null;
-            ref var local2 = ref MemoryMarshal.GetReference(minimumLength <= 256 ? stackalloc char[minimumLength] : (Span<char>)(array = ArrayPool<char>.Shared.Rent(minimumLength)));
-            var elementOffset2 = 0;
-            var elementOffset3 = 0;
-            ref var local3 = ref MemoryMarshal.GetReference(newValue);
-            for (var index = 0; index < readOnlySpan.Length; ++index)
+            dst = new NativeArray<char>((int)dstLength);
+            var dstSpan = dst.AsSpan();
+            var thisIdx = 0;
+            var dstIdx = 0;
+            for (var r = 0; r < indices.Length; ++r)
             {
-                var num1 = readOnlySpan[index];
-                var num2 = num1 - elementOffset2;
-                if (num2 != 0)
+                var replacementIdx = indices[r];
+                var count = replacementIdx - thisIdx;
+                if (count != 0)
                 {
-                    SpanHelpers.Copy(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref local2, (nint)elementOffset3)), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref local1, (nint)elementOffset2)), (uint)(num2 * 2));
-                    elementOffset3 += num2;
+                    AsReadOnlySpan(thisIdx, count).CopyTo(dstSpan.Slice(dstIdx));
+                    dstIdx += count;
                 }
 
-                elementOffset2 = num1 + oldValue.Length;
-                SpanHelpers.Copy(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref local2, (nint)elementOffset3)), ref Unsafe.As<char, byte>(ref local3), (uint)(newValue.Length * 2));
-                elementOffset3 += newValue.Length;
+                thisIdx = replacementIdx + oldValueLength;
+                newValue.CopyTo(dstSpan.Slice(dstIdx));
+                dstIdx += newValue.Length;
             }
 
-            SpanHelpers.Copy(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref local2, (nint)elementOffset3)), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref local1, (nint)elementOffset2)), (uint)((_length - elementOffset2) * 2));
-            SpanHelpers.Copy(ref Unsafe.As<char, byte>(ref local1), ref Unsafe.As<char, byte>(ref local2), (uint)(minimumLength * 2));
-            _length = minimumLength;
-            valueListBuilder.Dispose();
-            if (array != null)
-                ArrayPool<char>.Shared.Return(array);
+            AsReadOnlySpan(thisIdx).CopyTo(dstSpan.Slice(dstIdx));
             return true;
         }
 
@@ -385,7 +389,7 @@ namespace NativeCollections
         {
             if (_length + repeatCount > Capacity)
                 return false;
-            _buffer.Slice(_length, repeatCount).Fill(value);
+            _buffer.Slice(_length, repeatCount).AsSpan().Fill(value);
             _length += repeatCount;
             return true;
         }
@@ -400,7 +404,7 @@ namespace NativeCollections
             if (_length + 1 + newLine.Length > Capacity)
                 return false;
             _buffer[_length++] = value;
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             SpanHelpers.Copy(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)_length)), ref Unsafe.As<char, byte>(ref MemoryMarshal.GetReference(newLine)), (uint)(newLine.Length * Unsafe.SizeOf<char>()));
             _length += newLine.Length;
             return true;
@@ -436,7 +440,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Remove(char value)
         {
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             var newLength = 0;
             for (var index = 0; index < _length; ++index)
             {
@@ -456,7 +460,7 @@ namespace NativeCollections
         {
             if ((uint)startIndex > (uint)_length || _length + 1 > Capacity)
                 return false;
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             var count = _length - startIndex;
             if (count > 0)
                 SpanHelpers.Move(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)(startIndex + 1))), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)startIndex)), (uint)(count * Unsafe.SizeOf<char>()));
@@ -474,7 +478,7 @@ namespace NativeCollections
 #if NET8_0_OR_GREATER
             Text.Replace(oldValue, newValue);
 #else
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             for (var index = 0; index < _length; ++index)
             {
                 ref var value = ref Unsafe.Add(ref reference, (nint)index);
@@ -509,7 +513,7 @@ namespace NativeCollections
                 return false;
             if (length > 0)
             {
-                ref var reference = ref MemoryMarshal.GetReference(_buffer);
+                ref var reference = ref _buffer.GetPinnableReference();
                 SpanHelpers.Copy(ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)startIndex)), ref Unsafe.As<char, byte>(ref Unsafe.Add(ref reference, (nint)(startIndex + length))), (uint)((_length - startIndex - length) * Unsafe.SizeOf<char>()));
                 _length -= length;
             }
@@ -537,7 +541,7 @@ namespace NativeCollections
         {
             if (_length == 0)
                 return;
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             var start = 0;
             while (start < _length && char.IsWhiteSpace(Unsafe.Add(ref reference, (nint)start)))
                 start++;
@@ -561,7 +565,7 @@ namespace NativeCollections
         {
             if (_length == 0)
                 return;
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             var end = _length - 1;
             while (end >= 0 && char.IsWhiteSpace(Unsafe.Add(ref reference, (nint)end)))
                 end--;
@@ -576,7 +580,7 @@ namespace NativeCollections
         {
             if (_length == 0)
                 return;
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             var start = 0;
             var end = _length - 1;
             while (start <= end && char.IsWhiteSpace(Unsafe.Add(ref reference, (nint)start)))
@@ -603,7 +607,7 @@ namespace NativeCollections
         {
             if (_length == 0)
                 return;
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             var start = 0;
             while (start < _length && Unsafe.Add(ref reference, (nint)start) == value)
                 start++;
@@ -627,7 +631,7 @@ namespace NativeCollections
         {
             if (_length == 0)
                 return;
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             var end = _length - 1;
             while (end >= 0 && Unsafe.Add(ref reference, (nint)end) == value)
                 end--;
@@ -642,7 +646,7 @@ namespace NativeCollections
         {
             if (_length == 0)
                 return;
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             var start = 0;
             var end = _length - 1;
             while (start <= end && Unsafe.Add(ref reference, (nint)start) == value)
@@ -670,7 +674,7 @@ namespace NativeCollections
         {
             if (_length == 0 || Unsafe.IsNullRef(ref MemoryMarshal.GetReference(buffer)) || buffer.IsEmpty)
                 return;
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             var start = 0;
             while (start < _length && SpanHelpers.Contains(buffer, Unsafe.Add(ref reference, (nint)start)))
                 start++;
@@ -695,7 +699,7 @@ namespace NativeCollections
         {
             if (_length == 0 || Unsafe.IsNullRef(ref MemoryMarshal.GetReference(buffer)) || buffer.IsEmpty)
                 return;
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             var end = _length - 1;
             while (end >= 0 && SpanHelpers.Contains(buffer, Unsafe.Add(ref reference, (nint)end)))
                 end--;
@@ -711,7 +715,7 @@ namespace NativeCollections
         {
             if (_length == 0 || Unsafe.IsNullRef(ref MemoryMarshal.GetReference(buffer)) || buffer.IsEmpty)
                 return;
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             var start = 0;
             var end = _length - 1;
             while (start <= end && SpanHelpers.Contains(buffer, Unsafe.Add(ref reference, (nint)start)))
@@ -805,19 +809,17 @@ namespace NativeCollections
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <returns>Equals</returns>
         public readonly bool Equals(UnsafeString other) => Text.SequenceEqual(other.Text);
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <returns>Equals</returns>
         public readonly bool Equals(ReadOnlySpan<char> buffer) => Text.SequenceEqual(buffer);
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <returns>Equals</returns>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public readonly override bool Equals(object? obj)
@@ -884,7 +886,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void ToLower()
         {
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             for (var index = 0; index < _length; ++index)
             {
                 ref var value = ref Unsafe.Add(ref reference, (nint)index);
@@ -902,7 +904,7 @@ namespace NativeCollections
         public readonly void ToLower(CultureInfo? culture)
         {
             var textInfo = (culture ?? CultureInfo.CurrentCulture).TextInfo;
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             for (var index = 0; index < _length; ++index)
             {
                 ref var value = ref Unsafe.Add(ref reference, (nint)index);
@@ -916,7 +918,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void ToLowerInvariant()
         {
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             for (var index = 0; index < _length; ++index)
             {
                 ref var value = ref Unsafe.Add(ref reference, (nint)index);
@@ -930,7 +932,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void ToUpper()
         {
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             for (var index = 0; index < _length; ++index)
             {
                 ref var value = ref Unsafe.Add(ref reference, (nint)index);
@@ -948,7 +950,7 @@ namespace NativeCollections
         public readonly void ToUpper(CultureInfo? culture)
         {
             var textInfo = (culture ?? CultureInfo.CurrentCulture).TextInfo;
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             for (var index = 0; index < _length; ++index)
             {
                 ref var value = ref Unsafe.Add(ref reference, (nint)index);
@@ -962,7 +964,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void ToUpperInvariant()
         {
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             for (var index = 0; index < _length; ++index)
             {
                 ref var value = ref Unsafe.Add(ref reference, (nint)index);
@@ -1000,7 +1002,7 @@ namespace NativeCollections
             if (num <= 0)
                 return true;
             Text.CopyTo(_buffer.Slice(num));
-            _buffer.Slice(0, num).Fill(paddingChar);
+            _buffer.Slice(0, num).AsSpan().Fill(paddingChar);
             _length = totalWidth;
             return true;
         }
@@ -1034,7 +1036,7 @@ namespace NativeCollections
             var num = totalWidth - _length;
             if (num <= 0)
                 return true;
-            _buffer.Slice(_length, num).Fill(paddingChar);
+            _buffer.Slice(_length, num).AsSpan().Fill(paddingChar);
             _length = totalWidth;
             return true;
         }
@@ -1045,7 +1047,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool IsNullOrWhiteSpace()
         {
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             if (Unsafe.IsNullRef(ref reference))
                 return true;
             for (var index = 0; index < _length; ++index)
@@ -1061,7 +1063,7 @@ namespace NativeCollections
         ///     Indicates whether the specified string is <see langword="null" /> or an empty string ("").
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly bool IsNullOrEmpty() => Unsafe.IsNullRef(ref MemoryMarshal.GetReference(_buffer)) || _length == 0;
+        public readonly bool IsNullOrEmpty() => Unsafe.IsNullRef(ref _buffer.GetPinnableReference()) || _length == 0;
 
         /// <summary>
         ///     Splits the source span using a single element as the delimiter.
@@ -1123,33 +1125,7 @@ namespace NativeCollections
         ///     Reinterprets the given location as a reference to a value.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ref UnsafeString AsRef()
-        {
-#if NET9_0_OR_GREATER
-            return ref Unsafe.AsRef(in this);
-#else
-            fixed (UnsafeString* ptr = &this)
-            {
-                return ref *ptr;
-            }
-#endif
-        }
-
-        /// <summary>
-        ///     Returns a pointer to the given by-ref parameter.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly UnsafeString* AsPointer()
-        {
-#if NET9_0_OR_GREATER
-            return UnsafeHelpers.AsPointer(ref Unsafe.AsRef(in this));
-#else
-            fixed (UnsafeString* ptr = &this)
-            {
-                return ptr;
-            }
-#endif
-        }
+        public readonly ref UnsafeString AsRef() => ref Unsafe.AsRef(in this);
 
         /// <summary>
         ///     Creates a new span over a portion of a regular managed object.
@@ -1309,14 +1285,16 @@ namespace NativeCollections
         /// <summary>
         ///     Creates a new instance.
         /// </summary>
+        [MustBePinned(nameof(buffer))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeString Create(ReadOnlySpan<char> buffer) => new(MemoryMarshalHelpers.AsSpan(buffer));
+        public static UnsafeString Create([MustBePinned] ReadOnlySpan<char> buffer) => new(MemoryMarshalHelpers.AsSpan(buffer));
 
         /// <summary>
         ///     Creates a new instance.
         /// </summary>
+        [MustBePinned(nameof(buffer))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeString Create(ReadOnlySpan<char> buffer, int length) => new(MemoryMarshalHelpers.AsSpan(buffer), length);
+        public static UnsafeString Create([MustBePinned] ReadOnlySpan<char> buffer, int length) => new(MemoryMarshalHelpers.AsSpan(buffer), length);
 
         /// <summary>
         ///     Gets an empty instance.
@@ -1328,10 +1306,10 @@ namespace NativeCollections
         /// </summary>
         public readonly Span<char>.Enumerator GetEnumerator() => Text.GetEnumerator();
 
-#if NET9_0_OR_GREATER
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.
         /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator<char> IEnumerable<char>.GetEnumerator()
@@ -1343,6 +1321,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.
         /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator IEnumerable.GetEnumerator()
@@ -1350,7 +1329,6 @@ namespace NativeCollections
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
         }
-#endif
 
         /// <summary>
         ///     Appends the string returned by processing a composite format string,

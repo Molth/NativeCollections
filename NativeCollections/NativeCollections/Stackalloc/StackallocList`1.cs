@@ -25,7 +25,7 @@ namespace NativeCollections
         /// <summary>
         ///     Gets the total numbers of elements the internal data structure can hold.
         /// </summary>
-        private readonly int _length;
+        private readonly int _capacity;
 
         /// <summary>
         ///     Gets the number of elements.
@@ -73,7 +73,7 @@ namespace NativeCollections
         /// <summary>
         ///     Gets the total numbers of elements the internal data structure can hold.
         /// </summary>
-        public readonly int Capacity => _length;
+        public readonly int Capacity => _capacity;
 
         /// <summary>
         ///     Calculates the minimum number of bytes required to store a specified number of elements,
@@ -116,7 +116,7 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, GetByteCount(capacity), ExceptionArgument.capacity);
             _buffer = NativeArray<T>.Create(buffer).Buffer;
-            _length = capacity;
+            _capacity = capacity;
             _count = 0;
             _version = 0;
         }
@@ -173,7 +173,7 @@ namespace NativeCollections
         public InsertResult TryAdd(in T item)
         {
             var size = _count;
-            if ((uint)size < (uint)_length)
+            if ((uint)size < (uint)_capacity)
             {
                 _version++;
                 _count = size + 1;
@@ -198,7 +198,7 @@ namespace NativeCollections
             var count = buffer.Length;
             if (count > 0)
             {
-                if (_length - _count < count)
+                if (_capacity - _count < count)
                     return InsertResult.InsufficientCapacity;
                 SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_count)), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(count * Unsafe.SizeOf<T>()));
                 _count += count;
@@ -225,7 +225,7 @@ namespace NativeCollections
         public InsertResult TryInsert(int index, in T item)
         {
             ThrowHelpers.ThrowIfGreaterThan((uint)index, (uint)_count, ExceptionArgument.index);
-            if (_count == _length)
+            if (_count == _capacity)
                 return InsertResult.InsufficientCapacity;
             if (index < _count)
                 SpanHelpers.Move(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(index + 1))), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index)), (uint)((_count - index) * Unsafe.SizeOf<T>()));
@@ -255,7 +255,7 @@ namespace NativeCollections
             var count = buffer.Length;
             if (count > 0)
             {
-                if (_length - _count < count)
+                if (_capacity - _count < count)
                     return InsertResult.InsufficientCapacity;
                 if (index < _count)
                     SpanHelpers.Move(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)(index + count))), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)index)), (uint)((_count - index) * Unsafe.SizeOf<T>()));
@@ -442,7 +442,7 @@ namespace NativeCollections
         public InsertResult TrySetCount(int count)
         {
             ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
-            if (_length < count)
+            if (_capacity < count)
                 return InsertResult.InsufficientCapacity;
             _count = count;
             _version++;
@@ -565,6 +565,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.
         /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator<T> IEnumerable<T>.GetEnumerator()
@@ -576,6 +577,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.
         /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator IEnumerable.GetEnumerator()

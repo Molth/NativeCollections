@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Buffers;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
-#if NET9_0_OR_GREATER
-using System.Collections;
-#endif
 
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
-#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
-#pragma warning disable CS9081 // A result of a stackalloc expression of this type in this context may be exposed outside of the containing method
+#pragma warning disable CS9084 // Struct member returns 'this' or other instance members by reference
 
 // ReSharper disable ALL
 
@@ -26,24 +23,22 @@ namespace NativeCollections
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard)]
-    [IsReferenceOrContainsReferences]
-    [BindingType(typeof(ArrayPool<>))]
-    [IsAssignableTo(typeof(IIsCreated), typeof(IDisposable), typeof(IEquatable<>), typeof(IEquatable<>), typeof(IReadOnlyCollection<>), typeof(IBufferWriter<>))]
-    public unsafe ref struct UnsafeStringBuilder<T>
+    [IsAssignableTo(typeof(IEquatable<>))]
+    public unsafe struct UnsafeStringBuilder<T> : IIsCreated, IDisposable, IEquatable<UnsafeStringBuilder<T>>, IReadOnlyCollection<T>, IBufferWriter<T>
 #if NET9_0_OR_GREATER
-        : IIsCreated, IDisposable, IEquatable<UnsafeStringBuilder<T>>, IEquatable<ReadOnlySpan<T>>, IReadOnlyCollection<T>, IBufferWriter<T>
+        , IEquatable<ReadOnlySpan<T>>
 #endif
         where T : unmanaged, IComparable<T>, IEquatable<T>
     {
         /// <summary>
         ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
-        private Span<T> _buffer;
+        private NativeArray<T> _buffer;
 
         /// <summary>
         ///     Represents a contiguous region of arbitrary memory.
         /// </summary>
-        private T[]? _array;
+        private NativeArray<T> _array;
 
         /// <summary>
         ///     Gets the total number of elements in all the dimensions of the instance.
@@ -53,7 +48,7 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
-        public readonly bool IsCreated => !Unsafe.IsNullRef(ref MemoryMarshal.GetReference(_buffer));
+        public readonly bool IsCreated => _buffer.IsCreated;
 
         /// <summary>
         ///     Gets a value that indicates whether this is empty.
@@ -101,10 +96,10 @@ namespace NativeCollections
         /// <summary>
         ///     Reinterprets the given location as a reference to a value.
         /// </summary>
-        public ref T this[int index]
+        public readonly ref T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _buffer[index];
+            get => ref _buffer.AsSpan()[index];
         }
 
         /// <summary>
@@ -113,11 +108,12 @@ namespace NativeCollections
         ///     setting the initial length to the full length of the span.
         /// </summary>
         /// <param name="buffer">The underlying span to use as storage.</param>
+        [MustBePinned(nameof(buffer))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeStringBuilder(Span<T> buffer)
+        public UnsafeStringBuilder([MustBePinned] Span<T> buffer)
         {
             _buffer = buffer;
-            _array = null;
+            _array = default;
             _length = buffer.Length;
         }
 
@@ -135,20 +131,20 @@ namespace NativeCollections
         ///     Thrown if <paramref name="length" /> is negative or exceeds
         ///     <paramref name="buffer" /> length.
         /// </exception>
+        [MustBePinned(nameof(buffer))]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public UnsafeStringBuilder(Span<T> buffer, int length)
+        public UnsafeStringBuilder([MustBePinned] Span<T> buffer, int length)
         {
             ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
             ThrowHelpers.ThrowIfGreaterThan(length, buffer.Length, ExceptionArgument.length);
             _buffer = buffer;
-            _array = null;
+            _array = default;
             _length = length;
         }
 
         /// <summary>
         ///     Initializes a new instance of this class
         ///     with the specified capacity,
-        ///     using a rented array from <see cref="ArrayPool{T}.Shared" /> as storage, and no initial content.
         /// </summary>
         /// <param name="capacity">
         ///     The initial storage capacity.
@@ -159,14 +155,13 @@ namespace NativeCollections
         public UnsafeStringBuilder(int capacity)
         {
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
-            _buffer = _array = ArrayPool<T>.Shared.Rent(capacity);
+            _buffer = _array = new NativeArray<T>(capacity);
             _length = 0;
         }
 
         /// <summary>
         ///     Initializes a new instance of this class
         ///     with the specified capacity and initial length,
-        ///     using a rented array from <see cref="ArrayPool{T}.Shared" /> as storage.
         /// </summary>
         /// <param name="capacity">The initial storage capacity. Must be non‑negative.</param>
         /// <param name="length">
@@ -183,7 +178,7 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
             ThrowHelpers.ThrowIfGreaterThan(length, capacity, ExceptionArgument.length);
-            _buffer = _array = ArrayPool<T>.Shared.Rent(capacity);
+            _buffer = _array = new NativeArray<T>(capacity);
             _length = length;
         }
 
@@ -194,13 +189,13 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Dispose()
         {
-            _buffer = new Span<T>();
+            _buffer = default;
             _length = 0;
             var array = _array;
-            if (array == null)
+            if (!array.IsCreated)
                 return;
-            _array = null;
-            ArrayPool<T>.Shared.Return(array);
+            _array = default;
+            array.Dispose();
         }
 
         /// <summary>
@@ -210,7 +205,7 @@ namespace NativeCollections
         public void Append(ReadOnlySpan<T> buffer)
         {
             EnsureCapacity(_length + buffer.Length);
-            SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref MemoryMarshal.GetReference(_buffer), (nint)_length)), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(buffer.Length * Unsafe.SizeOf<T>()));
+            SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref _buffer.GetPinnableReference(), (nint)_length)), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(buffer)), (uint)(buffer.Length * Unsafe.SizeOf<T>()));
             _length += buffer.Length;
         }
 
@@ -269,7 +264,7 @@ namespace NativeCollections
             if ((uint)startIndex > (uint)_length)
                 return false;
             EnsureCapacity(_length + buffer.Length);
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             var count = _length - startIndex;
             if (count > 0)
                 SpanHelpers.Move(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)(startIndex + buffer.Length))), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)startIndex)), (uint)(count * Unsafe.SizeOf<T>()));
@@ -281,11 +276,11 @@ namespace NativeCollections
         /// <summary>
         ///     Replaces all occurrences of a specified string in this instance with another specified string.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Replace(ReadOnlySpan<T> oldValue, ReadOnlySpan<T> newValue)
         {
             if (Unsafe.IsNullRef(ref MemoryMarshal.GetReference(oldValue)) || oldValue.IsEmpty)
                 return false;
+
             if (Unsafe.IsNullRef(ref MemoryMarshal.GetReference(newValue)))
             {
                 if (newValue.Length != 0)
@@ -293,9 +288,7 @@ namespace NativeCollections
                 newValue = (ReadOnlySpan<T>)Array.Empty<T>();
             }
 
-            var elementOffset1 = 0;
-            ref var local1 = ref MemoryMarshal.GetReference(_buffer);
-            UnsafeValueListBuilder<int> valueListBuilder;
+            using var replacementIndices = new UnsafeListBuilder<int>(stackalloc int[128]);
             if (oldValue.Length == 1)
             {
                 if (newValue.Length == 1)
@@ -304,101 +297,74 @@ namespace NativeCollections
                     return true;
                 }
 
-                valueListBuilder = new UnsafeValueListBuilder<int>(stackalloc int[128]);
-                var obj = oldValue[0];
+                var c = oldValue[0];
+                var i = 0;
+
                 while (true)
                 {
-                    var num = MemoryMarshal.CreateSpan(ref Unsafe.Add(ref local1, (nint)elementOffset1), _length - elementOffset1).IndexOf(obj);
-                    if (num >= 0)
-                    {
-                        valueListBuilder.Append(elementOffset1 + num);
-                        elementOffset1 += num + 1;
-                    }
-                    else
+                    var pos = AsReadOnlySpan(i).IndexOf(c);
+                    if (pos < 0)
                         break;
+
+                    replacementIndices.Append(i + pos);
+                    i += pos + 1;
                 }
             }
             else
             {
-                valueListBuilder = new UnsafeValueListBuilder<int>(stackalloc int[128]);
+                var i = 0;
                 while (true)
                 {
-                    var num = MemoryMarshal.CreateSpan(ref Unsafe.Add(ref local1, (nint)elementOffset1), _length - elementOffset1).IndexOf(oldValue);
-                    if (num >= 0)
-                    {
-                        valueListBuilder.Append(elementOffset1 + num);
-                        elementOffset1 += num + oldValue.Length;
-                    }
-                    else
+                    var pos = AsReadOnlySpan(i).IndexOf(oldValue);
+                    if (pos < 0)
                         break;
+
+                    replacementIndices.Append(i + pos);
+                    i += pos + oldValue.Length;
                 }
             }
 
-            if (valueListBuilder.IsEmpty)
+            if (replacementIndices.Length == 0)
                 return true;
-            var readOnlySpan = valueListBuilder.AsReadOnlySpan();
-            var num1 = _length + (newValue.Length - oldValue.Length) * (long)readOnlySpan.Length;
-            if (num1 > int.MaxValue)
-                return false;
-            var num2 = (int)num1;
-            T[]? objArray = null;
-            T[]? array = null;
-            var elementOffset2 = 0;
-            var elementOffset3 = 0;
-            ref var local2 = ref MemoryMarshal.GetReference(newValue);
-            ref var local3 = ref MemoryMarshal.GetReference(_buffer);
-            Span<T> span;
-            if (num2 >= _buffer.Length)
-            {
-                if (num2 == _buffer.Length)
-                {
-                    objArray = ArrayPool<T>.Shared.Rent(num2);
-                }
-                else
-                {
-                    var minimumLength = Math.Max(_buffer.Length != 0 ? _buffer.Length * 2 : 4, num2);
-                    if ((uint)minimumLength > ArrayHelpers.MaxLength)
-                        minimumLength = Math.Max(Math.Max(_buffer.Length + 1, ArrayHelpers.MaxLength), _buffer.Length);
-                    objArray = ArrayPool<T>.Shared.Rent(minimumLength);
-                }
 
-                span = (Span<T>)objArray;
-            }
-            else
-            {
-                span = num2 <= 512 / Unsafe.SizeOf<T>() ? stackalloc T[num2] : (Span<T>)(array = ArrayPool<T>.Shared.Rent(num2));
-            }
-
-            ref var local4 = ref MemoryMarshal.GetReference(span);
-            for (var index = 0; index < readOnlySpan.Length; ++index)
-            {
-                var num3 = readOnlySpan[index];
-                var num4 = num3 - elementOffset2;
-                if (num4 != 0)
-                {
-                    SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local4, (nint)elementOffset3)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local3, (nint)elementOffset2)), (uint)(num4 * Unsafe.SizeOf<T>()));
-                    elementOffset3 += num4;
-                }
-
-                elementOffset2 = num3 + oldValue.Length;
-                SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local4, (nint)elementOffset3)), ref Unsafe.As<T, byte>(ref local2), (uint)(newValue.Length * Unsafe.SizeOf<T>()));
-                elementOffset3 += newValue.Length;
-            }
-
-            SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local4, (nint)elementOffset3)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref local3, (nint)elementOffset2)), (uint)((_length - elementOffset2) * Unsafe.SizeOf<T>()));
-            if (objArray != null)
-            {
-                array = _array;
-                _buffer = (Span<T>)(_array = objArray);
-            }
-            else
-                SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref local3), ref Unsafe.As<T, byte>(ref local4), (uint)(num2 * Unsafe.SizeOf<T>()));
-
-            _length = num2;
-            valueListBuilder.Dispose();
-            if (array != null)
-                ArrayPool<T>.Shared.Return(array);
+            var dst = ReplaceHelper(oldValue.Length, newValue, replacementIndices.AsReadOnlySpan());
+            _length = dst.Length;
+            var array = _array;
+            _buffer = _array = dst;
+            if (array.IsCreated)
+                array.Dispose();
             return true;
+        }
+
+        /// <summary>
+        ///     Replaces all occurrences of a specified string in this instance with another specified string.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private readonly NativeArray<T> ReplaceHelper(int oldValueLength, ReadOnlySpan<T> newValue, ReadOnlySpan<int> indices)
+        {
+            var dstLength = Length + (long)(newValue.Length - oldValueLength) * indices.Length;
+            ThrowHelpers.ThrowIfGreaterThan(dstLength, int.MaxValue, ExceptionArgument._dummy);
+            var dst = new NativeArray<T>(BuilderHelpers.EnsureCapacity(Capacity, (int)dstLength));
+            var dstSpan = dst.AsSpan();
+            var thisIdx = 0;
+            var dstIdx = 0;
+            for (var r = 0; r < indices.Length; ++r)
+            {
+                var replacementIdx = indices[r];
+                var count = replacementIdx - thisIdx;
+                if (count != 0)
+                {
+                    AsReadOnlySpan(thisIdx, count).CopyTo(dstSpan.Slice(dstIdx));
+                    dstIdx += count;
+                }
+
+                thisIdx = replacementIdx + oldValueLength;
+                newValue.CopyTo(dstSpan.Slice(dstIdx));
+                dstIdx += newValue.Length;
+            }
+
+            AsReadOnlySpan(thisIdx).CopyTo(dstSpan.Slice(dstIdx));
+            return dst;
         }
 
         /// <summary>
@@ -437,7 +403,7 @@ namespace NativeCollections
         public void Append(in T value, int repeatCount)
         {
             EnsureCapacity(_length + repeatCount);
-            _buffer.Slice(_length, repeatCount).Fill(value);
+            _buffer.Slice(_length, repeatCount).AsSpan().Fill(value);
             _length += repeatCount;
         }
 
@@ -471,7 +437,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Remove(in T value)
         {
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             var newLength = 0;
             for (var index = 0; index < _length; ++index)
             {
@@ -492,7 +458,7 @@ namespace NativeCollections
             if ((uint)startIndex > (uint)_length)
                 return false;
             EnsureCapacity(_length + 1);
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             var count = _length - startIndex;
             if (count > 0)
                 SpanHelpers.Move(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)(startIndex + 1))), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)startIndex)), (uint)(count * Unsafe.SizeOf<T>()));
@@ -510,7 +476,7 @@ namespace NativeCollections
 #if NET8_0_OR_GREATER
             Text.Replace(oldValue, newValue);
 #else
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             for (var index = 0; index < _length; ++index)
             {
                 ref var value = ref Unsafe.Add(ref reference, (nint)index);
@@ -545,7 +511,7 @@ namespace NativeCollections
                 return false;
             if (length > 0)
             {
-                ref var reference = ref MemoryMarshal.GetReference(_buffer);
+                ref var reference = ref _buffer.GetPinnableReference();
                 SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)startIndex)), ref Unsafe.As<T, byte>(ref Unsafe.Add(ref reference, (nint)(startIndex + length))), (uint)((_length - startIndex - length) * Unsafe.SizeOf<T>()));
                 _length -= length;
             }
@@ -573,7 +539,7 @@ namespace NativeCollections
         {
             if (_length == 0)
                 return;
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             var start = 0;
             while (start < _length && Unsafe.Add(ref reference, (nint)start).Equals(value))
                 start++;
@@ -597,7 +563,7 @@ namespace NativeCollections
         {
             if (_length == 0)
                 return;
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             var end = _length - 1;
             while (end >= 0 && Unsafe.Add(ref reference, (nint)end).Equals(value))
                 end--;
@@ -612,7 +578,7 @@ namespace NativeCollections
         {
             if (_length == 0)
                 return;
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             var start = 0;
             var end = _length - 1;
             while (start <= end && Unsafe.Add(ref reference, (nint)start).Equals(value))
@@ -640,7 +606,7 @@ namespace NativeCollections
         {
             if (_length == 0 || Unsafe.IsNullRef(ref MemoryMarshal.GetReference(buffer)) || buffer.IsEmpty)
                 return;
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             var start = 0;
             while (start < _length && SpanHelpers.Contains(buffer, Unsafe.Add(ref reference, (nint)start)))
                 start++;
@@ -665,7 +631,7 @@ namespace NativeCollections
         {
             if (_length == 0 || Unsafe.IsNullRef(ref MemoryMarshal.GetReference(buffer)) || buffer.IsEmpty)
                 return;
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             var end = _length - 1;
             while (end >= 0 && SpanHelpers.Contains(buffer, Unsafe.Add(ref reference, (nint)end)))
                 end--;
@@ -681,7 +647,7 @@ namespace NativeCollections
         {
             if (_length == 0 || Unsafe.IsNullRef(ref MemoryMarshal.GetReference(buffer)) || buffer.IsEmpty)
                 return;
-            ref var reference = ref MemoryMarshal.GetReference(_buffer);
+            ref var reference = ref _buffer.GetPinnableReference();
             var start = 0;
             var end = _length - 1;
             while (start <= end && SpanHelpers.Contains(buffer, Unsafe.Add(ref reference, (nint)start)))
@@ -775,19 +741,17 @@ namespace NativeCollections
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <returns>Equals</returns>
         public readonly bool Equals(UnsafeStringBuilder<T> other) => Text.SequenceEqual(other.Text);
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <returns>Equals</returns>
         public readonly bool Equals(ReadOnlySpan<T> buffer) => Text.SequenceEqual(buffer);
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <returns>Equals</returns>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public readonly override bool Equals(object? obj)
@@ -866,17 +830,6 @@ namespace NativeCollections
         public readonly Span<T> GetSpan(int sizeHint = 0) => _buffer.Slice(_length, sizeHint);
 
         /// <summary>
-        ///     Returns a <see cref="T:System.Memory`1" /> to write to that is at least the requested size (specified by
-        ///     <paramref name="sizeHint" />).
-        /// </summary>
-        /// <param name="sizeHint">The desired length for the slice (exclusive).</param>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///     Thrown when the specified <paramref name="sizeHint" /> out of range (&lt;0 or &gt;Length).
-        /// </exception>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly Memory<T> GetMemory(int sizeHint = 0) => new(_array, _length, sizeHint);
-
-        /// <summary>
         ///     Returns a new string that right-aligns the characters in this instance by padding them on the left with a specified
         ///     character,
         ///     for a specified total length.
@@ -894,7 +847,7 @@ namespace NativeCollections
             if (num <= 0)
                 return;
             Text.CopyTo(_buffer.Slice(num));
-            _buffer.Slice(0, num).Fill(padding);
+            _buffer.Slice(0, num).AsSpan().Fill(padding);
             _length = totalWidth;
         }
 
@@ -915,7 +868,7 @@ namespace NativeCollections
             var num = totalWidth - _length;
             if (num <= 0)
                 return;
-            _buffer.Slice(_length, num).Fill(padding);
+            _buffer.Slice(_length, num).AsSpan().Fill(padding);
             _length = totalWidth;
         }
 
@@ -923,7 +876,7 @@ namespace NativeCollections
         ///     Indicates whether the specified string is <see langword="null" /> or an empty string ("").
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly bool IsNullOrEmpty() => Unsafe.IsNullRef(ref MemoryMarshal.GetReference(_buffer)) || _length == 0;
+        public readonly bool IsNullOrEmpty() => Unsafe.IsNullRef(ref _buffer.GetPinnableReference()) || _length == 0;
 
         /// <summary>
         ///     Splits the source span using a single element as the delimiter.
@@ -985,33 +938,7 @@ namespace NativeCollections
         ///     Reinterprets the given location as a reference to a value.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ref UnsafeStringBuilder<T> AsRef()
-        {
-#if NET9_0_OR_GREATER
-            return ref Unsafe.AsRef(in this);
-#else
-            fixed (UnsafeStringBuilder<T>* ptr = &this)
-            {
-                return ref *ptr;
-            }
-#endif
-        }
-
-        /// <summary>
-        ///     Returns a pointer to the given by-ref parameter.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly UnsafeStringBuilder<T>* AsPointer()
-        {
-#if NET9_0_OR_GREATER
-            return UnsafeHelpers.AsPointer(ref Unsafe.AsRef(in this));
-#else
-            fixed (UnsafeStringBuilder<T>* ptr = &this)
-            {
-                return ptr;
-            }
-#endif
-        }
+        public readonly ref UnsafeStringBuilder<T> AsRef() => ref Unsafe.AsRef(in this);
 
         /// <summary>
         ///     Creates a new span over a portion of a regular managed object.
@@ -1050,42 +977,6 @@ namespace NativeCollections
         public readonly ReadOnlySpan<T> AsReadOnlySpan(int start, int length) => _buffer.Slice(start, length);
 
         /// <summary>
-        ///     Creates a new memory over the portion of the target array.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly Memory<T> AsMemory() => new(_array, 0, _length);
-
-        /// <summary>
-        ///     Creates a new memory over the portion of the target array.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly Memory<T> AsMemory(int start) => new(_array, start, _length - start);
-
-        /// <summary>
-        ///     Creates a new memory over the portion of the target array.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly Memory<T> AsMemory(int start, int length) => new(_array, start, length);
-
-        /// <summary>
-        ///     Creates a new memory region over the portion of the target array.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlyMemory<T> AsReadOnlyMemory() => new(_array, 0, _length);
-
-        /// <summary>
-        ///     Creates a new memory region over the portion of the target array.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlyMemory<T> AsReadOnlyMemory(int start) => new(_array, start, _length - start);
-
-        /// <summary>
-        ///     Creates a new memory region over the portion of the target array.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlyMemory<T> AsReadOnlyMemory(int start, int length) => new(_array, start, length);
-
-        /// <summary>
         ///     Ensures that the capacity of this is at least the specified <paramref name="capacity" />.
         ///     If the current capacity of this is less than specified <paramref name="capacity" />,
         ///     the capacity is increased to at least <paramref name="capacity" />.
@@ -1096,9 +987,9 @@ namespace NativeCollections
         public int EnsureCapacity(int capacity)
         {
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
-            if (_buffer.Length < capacity)
-                Grow(capacity - _buffer.Length);
-            return _buffer.Length;
+            if (Capacity < capacity)
+                Grow(capacity - Capacity);
+            return Capacity;
         }
 
         /// <summary>
@@ -1107,10 +998,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess()
         {
-            var threshold = (int)(_buffer.Length * 0.9);
+            var threshold = (int)(Capacity * 0.9);
             if (_length < threshold)
                 SetCapacity(_length);
-            return _buffer.Length;
+            return Capacity;
         }
 
         /// <summary>
@@ -1122,10 +1013,10 @@ namespace NativeCollections
         public int TrimExcess(int capacity)
         {
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
-            if (capacity < _length || capacity >= _buffer.Length)
-                return _buffer.Length;
+            if (capacity < _length || capacity >= Capacity)
+                return Capacity;
             SetCapacity(capacity);
-            return _buffer.Length;
+            return Capacity;
         }
 
         /// <summary>
@@ -1137,16 +1028,16 @@ namespace NativeCollections
         public void SetCapacity(int capacity)
         {
             ThrowHelpers.ThrowIfLessThan(capacity, _length, ExceptionArgument.capacity);
-            if (capacity != _buffer.Length)
+            if (capacity != Capacity)
             {
-                var destination = ArrayPool<T>.Shared.Rent(capacity);
+                var destination = new NativeArray<T>(capacity);
                 if (_length > 0)
-                    SpanHelpers.Copy(ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference((Span<T>)destination)), ref Unsafe.As<T, byte>(ref MemoryMarshal.GetReference(_buffer)), (uint)(_length * Unsafe.SizeOf<T>()));
+                    _buffer.AsReadOnlySpan(0, _length).CopyTo(destination);
                 var array = _array;
-                _buffer = (Span<T>)(_array = destination);
-                if (array == null)
+                _buffer = _array = destination;
+                if (!array.IsCreated)
                     return;
-                ArrayPool<T>.Shared.Return(array);
+                array.Dispose();
             }
         }
 
@@ -1157,9 +1048,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Grow(int additionalCapacityRequired)
         {
-            var minimumLength = Math.Max(_buffer.Length != 0 ? _buffer.Length * 2 : 4, _buffer.Length + additionalCapacityRequired);
-            if ((uint)minimumLength > ArrayHelpers.MaxLength)
-                minimumLength = Math.Max(Math.Max(_buffer.Length + 1, ArrayHelpers.MaxLength), _buffer.Length);
+            var minimumLength = BuilderHelpers.EnsureCapacity(Capacity, Capacity + additionalCapacityRequired);
             SetCapacity(minimumLength);
         }
 
@@ -1174,18 +1063,6 @@ namespace NativeCollections
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator ReadOnlySpan<T>(UnsafeStringBuilder<T> value) => value.AsReadOnlySpan();
-
-        /// <summary>
-        ///     Creates a new memory over the portion of the target array.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Memory<T>(UnsafeStringBuilder<T> value) => value.AsMemory();
-
-        /// <summary>
-        ///     Creates a new memory region over the portion of the target array.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator ReadOnlyMemory<T>(UnsafeStringBuilder<T> value) => value.AsReadOnlyMemory();
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
@@ -1227,10 +1104,10 @@ namespace NativeCollections
         /// </summary>
         public readonly Span<T>.Enumerator GetEnumerator() => Text.GetEnumerator();
 
-#if NET9_0_OR_GREATER
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.
         /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator<T> IEnumerable<T>.GetEnumerator()
@@ -1242,6 +1119,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.
         /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator IEnumerable.GetEnumerator()
@@ -1249,6 +1127,22 @@ namespace NativeCollections
             ThrowHelpers.ThrowCannotCallGetEnumeratorException();
             return default;
         }
-#endif
+
+        /// <summary>
+        ///     Returns a <see cref="T:System.Memory`1" /> to write to that is at least the requested size (specified by
+        ///     <paramref name="sizeHint" />).
+        /// </summary>
+        /// <param name="sizeHint">The desired length for the slice (exclusive).</param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when the specified <paramref name="sizeHint" /> out of range (&lt;0 or &gt;Length).
+        /// </exception>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
+        [Obsolete(SR.parameter_obsolete)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        readonly Memory<T> IBufferWriter<T>.GetMemory(int sizeHint)
+        {
+            ThrowHelpers.ThrowNotSupportedException();
+            return default;
+        }
     }
 }

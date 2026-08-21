@@ -799,6 +799,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.
         /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator()
@@ -810,6 +811,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.
         /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator IEnumerable.GetEnumerator()
@@ -1020,6 +1022,7 @@ namespace NativeCollections
             /// <summary>
             ///     Returns an enumerator that iterates through the collection.
             /// </summary>
+            /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator<TKey> IEnumerable<TKey>.GetEnumerator()
@@ -1031,6 +1034,7 @@ namespace NativeCollections
             /// <summary>
             ///     Returns an enumerator that iterates through the collection.
             /// </summary>
+            /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator IEnumerable.GetEnumerator()
@@ -1242,6 +1246,7 @@ namespace NativeCollections
             /// <summary>
             ///     Returns an enumerator that iterates through the collection.
             /// </summary>
+            /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator()
@@ -1253,6 +1258,7 @@ namespace NativeCollections
             /// <summary>
             ///     Returns an enumerator that iterates through the collection.
             /// </summary>
+            /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
             [Obsolete(SR.parameter_obsolete)]
             [EditorBrowsable(EditorBrowsableState.Never)]
             IEnumerator IEnumerable.GetEnumerator()

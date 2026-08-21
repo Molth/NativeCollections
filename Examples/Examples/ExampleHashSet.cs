@@ -22,11 +22,11 @@ namespace Examples
 
             var span = CollectionsMarshal.AsSpan(list);
 
-            var builder1 = Distinct1((ReadOnlySpan<int>)span);
+            var builder1 = Distinct1(span);
             var list2 = builder1.AsSpan().ToArray();
             builder1.Dispose();
 
-            var builder2 = new UnsafeValueListBuilder<int>(0);
+            var builder2 = new UnsafeListBuilder<int>(0);
             Distinct3(span, ref builder2);
             var list4 = builder2.AsSpan().ToArray();
             builder2.Dispose();
@@ -38,9 +38,9 @@ namespace Examples
             Console.WriteLine(list1.AsSpan().SequenceEqual(list2) && list2.AsSpan().SequenceEqual(list3) && list3.AsSpan().SequenceEqual(list4));
         }
 
-        private static UnsafeValueListBuilder<T> Distinct1<T>(ReadOnlySpan<T> source) where T : unmanaged, IEquatable<T>
+        private static UnsafeListBuilder<T> Distinct1<T>(ReadOnlySpan<T> source) where T : unmanaged, IEquatable<T>
         {
-            var builder = new UnsafeValueListBuilder<T>(16);
+            var builder = new UnsafeListBuilder<T>(16);
             var byteCount = StackallocHashSet<T>.GetByteCount(source.Length);
             Span<byte> bytes;
             var buffer = NativeTempPinnedBuffer<byte>.Empty;
@@ -104,7 +104,7 @@ namespace Examples
             source = MemoryMarshal.CreateSpan(ref reference, index);
         }
 
-        private static void Distinct3<T>(ReadOnlySpan<T> source, ref UnsafeValueListBuilder<T> builder) where T : unmanaged, IEquatable<T>
+        private static void Distinct3<T>(ReadOnlySpan<T> source, ref UnsafeListBuilder<T> builder) where T : unmanaged, IEquatable<T>
         {
             var byteCount = StackallocHashSet<T>.GetByteCount(source.Length);
             using var buffer = new NativeTempPinnedBuffer<byte>(byteCount, true);

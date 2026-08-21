@@ -511,7 +511,7 @@ namespace NativeCollections
             /// <summary>
             ///     Gets a value that indicates whether this has been allocated or initialized.
             /// </summary>
-            public bool IsCreated => !(((nint)_s0 | (nint)_s1 | (nint)_s2 | (nint)_s3) == 0L);
+            public readonly bool IsCreated => !(((nint)_s0 | (nint)_s1 | (nint)_s2 | (nint)_s3) == 0L);
 
             /// <summary>
             ///     Initializes a new instance of this class from states.

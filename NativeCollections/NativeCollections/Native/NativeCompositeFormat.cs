@@ -99,13 +99,19 @@ namespace NativeCollections
             string format)
         {
             ThrowHelpers.ThrowIfNull(format, ExceptionArgument.format);
-            using var segments = new UnsafeListBuilder<(string? Literal, int ArgIndex, int Alignment, string? Format)>(4);
-            ref var segmentsRef = ref segments.AsRef();
-            var failureOffset = 0;
-            var failureReason = (ExceptionResource)(-1);
-            if (!TryParseLiterals(format, ref segmentsRef, ref failureOffset, ref failureReason))
-                ThrowHelpers.ThrowFormatInvalidString(failureOffset, failureReason);
-            return new NativeCompositeFormat(format, segmentsRef.AsSpan().ToArray());
+            var segments = new UnsafeListBuilder<(string? Literal, int ArgIndex, int Alignment, string? Format)>(4);
+            try
+            {
+                var failureOffset = 0;
+                var failureReason = (ExceptionResource)(-1);
+                if (!TryParseLiterals(format, ref segments, ref failureOffset, ref failureReason))
+                    ThrowHelpers.ThrowFormatInvalidString(failureOffset, failureReason);
+                return new NativeCompositeFormat(format, segments.AsSpan().ToArray());
+            }
+            finally
+            {
+                segments.Dispose();
+            }
         }
 
         /// <summary>

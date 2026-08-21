@@ -24,7 +24,7 @@ namespace NativeCollections
         /// <summary>
         ///     Gets the total number of elements in all the dimensions of the instance.
         /// </summary>
-        private int _length;
+        private int _capacity;
 
         /// <summary>
         ///     The index of the head.
@@ -52,7 +52,7 @@ namespace NativeCollections
         public readonly ref T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), RingBufferHelpers.GetElementOffset(index, _head, _length));
+            get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), RingBufferHelpers.GetElementOffset(index, _head, _capacity));
         }
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace NativeCollections
         public readonly ref T this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), RingBufferHelpers.GetElementOffset((nint)index, _head, _length));
+            get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), RingBufferHelpers.GetElementOffset((nint)index, _head, _capacity));
         }
 
         /// <summary>
@@ -82,7 +82,7 @@ namespace NativeCollections
         /// <summary>
         ///     Gets the total numbers of elements the internal data structure can hold.
         /// </summary>
-        public readonly int Capacity => _length;
+        public readonly int Capacity => _capacity;
 
         /// <summary>
         ///     Initializes a new instance of the class with the specified initial capacity.
@@ -98,7 +98,7 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             capacity = Math.Max(capacity, 4);
             _buffer = NativeMemoryAllocator.AlignedAlloc<T>((uint)capacity);
-            _length = capacity;
+            _capacity = capacity;
             _head = 0;
             _tail = 0;
             _count = 0;
@@ -160,7 +160,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Enqueue(in T item)
         {
-            if (_count == _length)
+            if (_count == _capacity)
                 Grow(_count + 1);
             Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_tail) = item;
             MoveNext(ref _tail);
@@ -179,7 +179,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryEnqueue(in T item)
         {
-            if (_count != _length)
+            if (_count != _capacity)
             {
                 Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_tail) = item;
                 MoveNext(ref _tail);
@@ -280,9 +280,9 @@ namespace NativeCollections
         public int EnsureCapacity(int capacity)
         {
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
-            if (_length < capacity)
+            if (_capacity < capacity)
                 Grow(capacity);
-            return _length;
+            return _capacity;
         }
 
         /// <summary>
@@ -291,10 +291,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess()
         {
-            var threshold = (int)(_length * 0.9);
+            var threshold = (int)(_capacity * 0.9);
             if (_count < threshold)
                 SetCapacity(_count);
-            return _length;
+            return _capacity;
         }
 
         /// <summary>
@@ -306,10 +306,10 @@ namespace NativeCollections
         public int TrimExcess(int capacity)
         {
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
-            if (capacity < _count || capacity >= _length)
-                return _length;
+            if (capacity < _count || capacity >= _capacity)
+                return _capacity;
             SetCapacity(capacity);
-            return _length;
+            return _capacity;
         }
 
         /// <summary>
@@ -320,10 +320,10 @@ namespace NativeCollections
         private void SetCapacity(int capacity)
         {
             var newBuffer = NativeMemoryAllocator.AlignedAlloc<T>((uint)capacity);
-            RingBufferHelpers.Copy(ref Unsafe.AsRef<T>(newBuffer), ref Unsafe.AsRef<T>(_buffer), _count, _length, _head);
+            RingBufferHelpers.Copy(ref Unsafe.AsRef<T>(newBuffer), ref Unsafe.AsRef<T>(_buffer), _count, _capacity, _head);
             NativeMemoryAllocator.AlignedFree(_buffer);
             _buffer = newBuffer;
-            _length = capacity;
+            _capacity = capacity;
             _head = 0;
             _tail = _count == capacity ? 0 : _count;
             _version++;
@@ -337,12 +337,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Grow(int capacity)
         {
-            var newCapacity = 2 * _length;
-            if ((uint)newCapacity > ArrayHelpers.MaxLength)
-                newCapacity = ArrayHelpers.MaxLength;
-            var expected = _length + 4;
-            newCapacity = Math.Max(newCapacity, expected);
-            newCapacity = Math.Max(newCapacity, capacity);
+            var newCapacity = CollectionHelpers.EnsureCapacity(_capacity, capacity);
             SetCapacity(newCapacity);
         }
 
@@ -355,7 +350,7 @@ namespace NativeCollections
         private readonly void MoveNext(ref int index)
         {
             var tmp = index + 1;
-            if (tmp == _length)
+            if (tmp == _capacity)
                 tmp = 0;
             index = tmp;
         }
@@ -375,7 +370,7 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
             ref var reference = ref MemoryMarshal.GetReference(buffer);
             var size = Math.Min(buffer.Length, Math.Min(count, _count));
-            RingBufferHelpers.Copy(ref reference, ref Unsafe.AsRef<T>(_buffer), size, _length, _head);
+            RingBufferHelpers.Copy(ref reference, ref Unsafe.AsRef<T>(_buffer), size, _capacity, _head);
             return size;
         }
 
@@ -404,7 +399,7 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, ExceptionArgument.buffer);
             ref var reference = ref MemoryMarshal.GetReference(buffer);
-            RingBufferHelpers.Copy(ref reference, ref Unsafe.AsRef<T>(_buffer), _count, _length, _head);
+            RingBufferHelpers.Copy(ref reference, ref Unsafe.AsRef<T>(_buffer), _count, _capacity, _head);
         }
 
         /// <summary>
@@ -432,6 +427,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.
         /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator<T> IEnumerable<T>.GetEnumerator()
@@ -443,6 +439,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.
         /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator IEnumerable.GetEnumerator()
@@ -513,7 +510,7 @@ namespace NativeCollections
                 }
 
                 var buffer = handle->_buffer;
-                var capacity = (uint)handle->_length;
+                var capacity = (uint)handle->_capacity;
                 var index = (uint)(handle->_head + _index);
                 if (index >= capacity)
                     index -= capacity;

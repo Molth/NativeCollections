@@ -350,12 +350,7 @@ namespace NativeCollections
         {
             if (_capacity < capacity)
             {
-                var newCapacity = 2 * _capacity;
-                if ((uint)newCapacity > ArrayHelpers.MaxLength)
-                    newCapacity = ArrayHelpers.MaxLength;
-                var expected = _capacity + 4;
-                newCapacity = Math.Max(newCapacity, expected);
-                newCapacity = Math.Max(newCapacity, capacity);
+                var newCapacity = CollectionHelpers.EnsureCapacity(_capacity, capacity);
                 SetCapacity(newCapacity);
             }
 
@@ -464,6 +459,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.
         /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator<T> IEnumerable<T>.GetEnumerator()
@@ -475,6 +471,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.
         /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator IEnumerable.GetEnumerator()

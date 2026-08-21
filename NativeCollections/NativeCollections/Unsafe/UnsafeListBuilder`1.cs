@@ -9,7 +9,6 @@ using System.Collections;
 #endif
 
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
-#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
 
 // ReSharper disable ALL
 
@@ -23,7 +22,7 @@ namespace NativeCollections
     [IsReferenceOrContainsReferences]
     [BindingType(typeof(ArrayPool<>))]
     [IsAssignableTo(typeof(IIsCreated), typeof(IDisposable), typeof(IReadOnlyCollection<>))]
-    public unsafe ref struct UnsafeListBuilder<T>
+    public ref struct UnsafeListBuilder<T>
 #if NET9_0_OR_GREATER
         : IIsCreated, IDisposable, IReadOnlyCollection<T>
 #endif
@@ -50,7 +49,7 @@ namespace NativeCollections
         public int Length
         {
             readonly get => _length;
-            set => _length = value;
+            set => SetLength(value);
         }
 
         /// <summary>
@@ -177,39 +176,7 @@ namespace NativeCollections
             if (array == null)
                 return;
             _array = null;
-            ArrayPool<T>.Shared.Return(array);
-        }
-
-        /// <summary>
-        ///     Reinterprets the given location as a reference to a value.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ref UnsafeListBuilder<T> AsRef()
-        {
-#if NET9_0_OR_GREATER
-            return ref Unsafe.AsRef(in this);
-#else
-            fixed (UnsafeListBuilder<T>* ptr = &this)
-            {
-                return ref *ptr;
-            }
-#endif
-        }
-
-        /// <summary>
-        ///     Returns a pointer to the given by-ref parameter.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly UnsafeListBuilder<T>* AsPointer()
-        {
-#if NET9_0_OR_GREATER
-            return UnsafeHelpers.AsPointer(ref Unsafe.AsRef(in this));
-#else
-            fixed (UnsafeListBuilder<T>* ptr = &this)
-            {
-                return ptr;
-            }
-#endif
+            ArrayPool<T>.Shared.Return(array, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
         }
 
         /// <summary>
@@ -232,7 +199,7 @@ namespace NativeCollections
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
         /// </summary>
-        /// <returns>Equals</returns>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public readonly override bool Equals(object? obj)
@@ -244,6 +211,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns the hash code for this instance.
         /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public readonly override int GetHashCode()
@@ -293,8 +261,8 @@ namespace NativeCollections
             }
             else
             {
-                if ((uint)(_length + source.Length) > (uint)_buffer.Length)
-                    Grow(_buffer.Length - _length + source.Length);
+                if ((uint)(_length + source.Length) > (uint)Capacity)
+                    Grow(Capacity - _length + source.Length);
                 source.CopyTo(_buffer.Slice(_length));
                 _length += source.Length;
             }
@@ -325,6 +293,24 @@ namespace NativeCollections
         public readonly ReadOnlyMemory<T> AsReadOnlyMemory() => new(_array, 0, _length);
 
         /// <summary>
+        ///     Sets the number of elements considered in use.
+        /// </summary>
+        /// <param name="length">
+        ///     The new length.
+        ///     Must be between 0 and <see cref="Capacity" /> (inclusive).
+        /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="length" />
+        ///     exceeds the current capacity.
+        /// </exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetLength(int length)
+        {
+            ThrowHelpers.ThrowIfGreaterThan((uint)length, (uint)Capacity, ExceptionArgument.length);
+            _length = length;
+        }
+
+        /// <summary>
         ///     Ensures that the capacity of this is at least the specified <paramref name="capacity" />.
         ///     If the current capacity of this is less than specified <paramref name="capacity" />,
         ///     the capacity is increased to at least <paramref name="capacity" />.
@@ -335,9 +321,9 @@ namespace NativeCollections
         public int EnsureCapacity(int capacity)
         {
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
-            if (_buffer.Length < capacity)
-                Grow(capacity - _buffer.Length);
-            return _buffer.Length;
+            if (Capacity < capacity)
+                Grow(capacity - Capacity);
+            return Capacity;
         }
 
         /// <summary>
@@ -346,10 +332,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess()
         {
-            var threshold = (int)(_buffer.Length * 0.9);
+            var threshold = (int)(Capacity * 0.9);
             if (_length < threshold)
                 SetCapacity(_length);
-            return _buffer.Length;
+            return Capacity;
         }
 
         /// <summary>
@@ -361,10 +347,10 @@ namespace NativeCollections
         public int TrimExcess(int capacity)
         {
             ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
-            if (capacity < _length || capacity >= _buffer.Length)
-                return _buffer.Length;
+            if (capacity < _length || capacity >= Capacity)
+                return Capacity;
             SetCapacity(capacity);
-            return _buffer.Length;
+            return Capacity;
         }
 
         /// <summary>
@@ -376,7 +362,7 @@ namespace NativeCollections
         public void SetCapacity(int capacity)
         {
             ThrowHelpers.ThrowIfLessThan(capacity, _length, ExceptionArgument.capacity);
-            if (capacity != _buffer.Length)
+            if (capacity != Capacity)
             {
                 var destination = ArrayPool<T>.Shared.Rent(capacity);
                 if (_length > 0)
@@ -396,9 +382,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Grow(int additionalCapacityRequired = 1)
         {
-            var minimumLength = Math.Max(_buffer.Length != 0 ? _buffer.Length * 2 : 4, _buffer.Length + additionalCapacityRequired);
-            if ((uint)minimumLength > ArrayHelpers.MaxLength)
-                minimumLength = Math.Max(Math.Max(_buffer.Length + 1, ArrayHelpers.MaxLength), _buffer.Length);
+            var minimumLength = BuilderHelpers.EnsureCapacity(Capacity, Capacity + additionalCapacityRequired);
             SetCapacity(minimumLength);
         }
 
@@ -739,6 +723,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.
         /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator<T> IEnumerable<T>.GetEnumerator()
@@ -750,6 +735,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.
         /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator IEnumerable.GetEnumerator()

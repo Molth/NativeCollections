@@ -24,7 +24,7 @@ namespace NativeCollections
         /// <summary>
         ///     Gets the total numbers of elements the internal data structure can hold.
         /// </summary>
-        private readonly int _length;
+        private readonly int _capacity;
 
         /// <summary>
         ///     The index of the head.
@@ -64,7 +64,7 @@ namespace NativeCollections
         /// <summary>
         ///     Gets the total numbers of elements the internal data structure can hold.
         /// </summary>
-        public readonly int Capacity => _length;
+        public readonly int Capacity => _capacity;
 
         /// <summary>
         ///     Reinterprets the given location as a reference to a value.
@@ -72,7 +72,7 @@ namespace NativeCollections
         public readonly ref T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), RingBufferHelpers.GetElementOffset(index, _head, _length));
+            get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), RingBufferHelpers.GetElementOffset(index, _head, _capacity));
         }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace NativeCollections
         public readonly ref T this[uint index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), RingBufferHelpers.GetElementOffset((nint)index, _head, _length));
+            get => ref Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), RingBufferHelpers.GetElementOffset((nint)index, _head, _capacity));
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, GetByteCount(capacity), ExceptionArgument.capacity);
             _buffer = NativeArray<T>.Create(buffer).Buffer;
-            _length = capacity;
+            _capacity = capacity;
             _head = 0;
             _tail = 0;
             _count = 0;
@@ -185,10 +185,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryEnqueueHead(in T item)
         {
-            if (_count == _length)
+            if (_count == _capacity)
                 return false;
             if (--_head == -1)
-                _head = _length - 1;
+                _head = _capacity - 1;
             Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_head) = item;
             ++_count;
             ++_version;
@@ -206,10 +206,10 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryEnqueueTail(in T item)
         {
-            if (_count == _length)
+            if (_count == _capacity)
                 return false;
             Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_tail) = item;
-            if (++_tail == _length)
+            if (++_tail == _capacity)
                 _tail = 0;
             ++_count;
             ++_version;
@@ -234,7 +234,7 @@ namespace NativeCollections
             }
 
             result = Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_head);
-            if (++_head == _length)
+            if (++_head == _capacity)
                 _head = 0;
             --_count;
             ++_version;
@@ -259,7 +259,7 @@ namespace NativeCollections
             }
 
             if (--_tail == -1)
-                _tail = _length - 1;
+                _tail = _capacity - 1;
             result = Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)_tail);
             --_count;
             ++_version;
@@ -309,7 +309,7 @@ namespace NativeCollections
         public readonly bool TryPeekTail(out T result)
         {
             var size = _count - 1;
-            if ((uint)size >= (uint)_length)
+            if ((uint)size >= (uint)_capacity)
             {
                 result = default;
                 return false;
@@ -334,7 +334,7 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
             ref var reference = ref MemoryMarshal.GetReference(buffer);
             var size = Math.Min(buffer.Length, Math.Min(count, _count));
-            RingBufferHelpers.Copy(ref reference, ref Unsafe.AsRef<T>(_buffer), size, _length, _head);
+            RingBufferHelpers.Copy(ref reference, ref Unsafe.AsRef<T>(_buffer), size, _capacity, _head);
             return size;
         }
 
@@ -363,7 +363,7 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, Count, ExceptionArgument.buffer);
             ref var reference = ref MemoryMarshal.GetReference(buffer);
-            RingBufferHelpers.Copy(ref reference, ref Unsafe.AsRef<T>(_buffer), _count, _length, _head);
+            RingBufferHelpers.Copy(ref reference, ref Unsafe.AsRef<T>(_buffer), _count, _capacity, _head);
         }
 
         /// <summary>
@@ -391,6 +391,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.
         /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator<T> IEnumerable<T>.GetEnumerator()
@@ -402,6 +403,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.
         /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator IEnumerable.GetEnumerator()
@@ -472,7 +474,7 @@ namespace NativeCollections
                 }
 
                 var buffer = handle->_buffer;
-                var capacity = (uint)handle->_length;
+                var capacity = (uint)handle->_capacity;
                 var index = (uint)(handle->_head + _index);
                 if (index >= capacity)
                     index -= capacity;

@@ -4,7 +4,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
-#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
 
 // ReSharper disable ALL
 
@@ -39,7 +38,7 @@ namespace NativeCollections
             ///     Initializes a new instance of this class.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public UnsafeStringBuilderHandle(in UnsafeStringBuilder<char> builder) => _handle = builder.AsPointer();
+            public UnsafeStringBuilderHandle(in UnsafeStringBuilder<char> builder) => _handle = UnsafeHelpers.AsPointer(ref builder.AsRef());
 
             /// <summary>
             ///     Gets a value that indicates whether this has been allocated or initialized.
@@ -50,14 +49,7 @@ namespace NativeCollections
             ///     Reinterprets the given location as a reference to a value.
             /// </summary>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public ref UnsafeStringBuilder<char> AsRef()
-            {
-#if NET9_0_OR_GREATER
-                return ref Unsafe.AsRef<UnsafeStringBuilder<char>>(_handle);
-#else
-                return ref *_handle;
-#endif
-            }
+            public ref UnsafeStringBuilder<char> AsRef() => ref Unsafe.AsRef<UnsafeStringBuilder<char>>(_handle);
         }
 
         /// <summary>
@@ -126,6 +118,7 @@ namespace NativeCollections
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
         /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public override bool Equals(object? obj)
@@ -137,6 +130,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns the hash code for this instance.
         /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public override int GetHashCode()

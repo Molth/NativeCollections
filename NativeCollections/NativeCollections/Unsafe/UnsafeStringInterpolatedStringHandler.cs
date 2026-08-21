@@ -6,7 +6,6 @@ using System.Runtime.CompilerServices;
 #endif
 
 #pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
-#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
 
 // ReSharper disable ALL
 
@@ -73,7 +72,7 @@ namespace NativeCollections
         /// </remarks>
         public UnsafeStringInterpolatedStringHandler(int literalLength, int formattedCount, in UnsafeString stringBuilder)
         {
-            _handle = stringBuilder.AsPointer();
+            _handle = UnsafeHelpers.AsPointer(ref stringBuilder.AsRef());
             _stringBuilder = stringBuilder;
             _provider = null;
             _hasCustomFormatter = false;
@@ -96,7 +95,7 @@ namespace NativeCollections
         /// </remarks>
         public UnsafeStringInterpolatedStringHandler(int literalLength, int formattedCount, in UnsafeString stringBuilder, IFormatProvider? provider)
         {
-            _handle = stringBuilder.AsPointer();
+            _handle = UnsafeHelpers.AsPointer(ref stringBuilder.AsRef());
             _stringBuilder = stringBuilder;
             _provider = provider;
             _hasCustomFormatter = provider != null && FormatHelpers.HasCustomFormatter(provider);
@@ -106,6 +105,7 @@ namespace NativeCollections
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
         /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public readonly override bool Equals(object? obj)
@@ -117,6 +117,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns the hash code for this instance.
         /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public readonly override int GetHashCode()
@@ -142,7 +143,7 @@ namespace NativeCollections
         /// </summary>
         internal readonly bool TryCopyTo(ref UnsafeString builder)
         {
-            if (builder.AsPointer() != _handle)
+            if (UnsafeHelpers.AsPointer(ref builder) != _handle)
                 ThrowHelpers.ThrowNotSupportedException();
             var result = _result;
             if (result)

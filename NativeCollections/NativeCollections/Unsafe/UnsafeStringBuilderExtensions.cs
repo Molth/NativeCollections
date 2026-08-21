@@ -1040,7 +1040,7 @@ namespace NativeCollections
         ///     Appends the string representation of a specified read-only character span to this instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Append(in this UnsafeStringBuilder<byte> builder, [InterpolatedStringHandlerArgument("builder")] ref UnsafeStringBuilderUtf8InterpolatedStringHandler handler)
+        public static void AppendInterpolated(in this UnsafeStringBuilder<byte> builder, [InterpolatedStringHandlerArgument("builder")] ref UnsafeStringBuilderUtf8InterpolatedStringHandler handler)
         {
         }
 
@@ -1048,7 +1048,7 @@ namespace NativeCollections
         ///     Appends the string representation of a specified read-only character span to this instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Append(in this UnsafeStringBuilder<byte> builder, IFormatProvider? provider, [InterpolatedStringHandlerArgument("builder", "provider")] ref UnsafeStringBuilderUtf8InterpolatedStringHandler handler)
+        public static void AppendInterpolated(in this UnsafeStringBuilder<byte> builder, IFormatProvider? provider, [InterpolatedStringHandlerArgument("builder", "provider")] ref UnsafeStringBuilderUtf8InterpolatedStringHandler handler)
         {
         }
 

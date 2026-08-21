@@ -358,11 +358,7 @@ namespace NativeCollections
             ThrowHelpers.ThrowIfStreamTooLong(capacity);
             if (capacity > _capacity)
             {
-                var newCapacity = Math.Max(capacity, 256);
-                var expected = _capacity * 2;
-                newCapacity = Math.Max(newCapacity, expected);
-                if ((uint)expected > ArrayHelpers.MaxLength)
-                    newCapacity = Math.Max(capacity, ArrayHelpers.MaxLength);
+                var newCapacity = CollectionHelpers.EnsureCapacity(_capacity, 256);
                 SetCapacity(newCapacity);
                 return true;
             }

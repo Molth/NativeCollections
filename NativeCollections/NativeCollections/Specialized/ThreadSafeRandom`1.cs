@@ -54,7 +54,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns the fully qualified type name of this instance.
         /// </summary>
-        public override string ToString() => SR.Format("ThreadSafeRandom<{0}>", SR.GetTypeName(typeof(TRandom)));
+        public readonly override string ToString() => SR.Format("ThreadSafeRandom<{0}>", SR.GetTypeName(typeof(TRandom)));
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
@@ -75,7 +75,7 @@ namespace NativeCollections
         /// <exception cref="ArgumentException"><paramref name="source" /> is empty.</exception>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="stringLength" /> is not zero or a positive number.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public string GetString(ReadOnlySpan<char> source, int stringLength) => LocalRandom.GetString(source, stringLength);
+        public readonly string GetString(ReadOnlySpan<char> source, int stringLength) => LocalRandom.GetString(source, stringLength);
 
         /// <summary>
         ///     Creates a string filled with random hexadecimal characters.
@@ -88,7 +88,7 @@ namespace NativeCollections
         /// </param>
         /// <returns>A string populated with random hexadecimal characters.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public string GetHexString(int stringLength, bool lowercase = false) => LocalRandom.GetHexString(stringLength, lowercase);
+        public readonly string GetHexString(int stringLength, bool lowercase = false) => LocalRandom.GetHexString(stringLength, lowercase);
 
         /// <summary>
         ///     Fills a buffer with random hexadecimal characters.
@@ -100,7 +100,7 @@ namespace NativeCollections
         ///     The default is <see langword="false" />.
         /// </param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void GetHexString(Span<char> destination, bool lowercase = false) => LocalRandom.GetHexString(destination, lowercase);
+        public readonly void GetHexString(Span<char> destination, bool lowercase = false) => LocalRandom.GetHexString(destination, lowercase);
 
         /// <summary>
         ///     Performs an in-place shuffle of a buffer.
@@ -108,7 +108,7 @@ namespace NativeCollections
         /// <param name="buffer">The buffer to shuffle.</param>
         /// <typeparam name="T">The type of buffer.</typeparam>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Shuffle<T>(Span<T> buffer) => LocalRandom.Shuffle(buffer);
+        public readonly void Shuffle<T>(Span<T> buffer) => LocalRandom.Shuffle(buffer);
 
         /// <summary>
         ///     Fills the elements of a specified buffer with items chosen at random from the provided set of choices.
@@ -120,7 +120,7 @@ namespace NativeCollections
         ///     <paramref name="source" /> is empty.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void GetItems<T>(ReadOnlySpan<T> source, Span<T> destination) => LocalRandom.GetItems(source, destination);
+        public readonly void GetItems<T>(ReadOnlySpan<T> source, Span<T> destination) => LocalRandom.GetItems(source, destination);
 
         /// <summary>
         ///     Chooses the random element in the buffer.
@@ -130,7 +130,7 @@ namespace NativeCollections
         /// <returns>Randomly selected element from the buffer.</returns>
         /// <exception cref="ArgumentException"><paramref name="buffer" /> is empty.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref T Choose<T>(Span<T> buffer) => ref LocalRandom.Choose(buffer);
+        public readonly ref T Choose<T>(Span<T> buffer) => ref LocalRandom.Choose(buffer);
 
         /// <summary>
         ///     Chooses the random element in the buffer.
@@ -140,7 +140,7 @@ namespace NativeCollections
         /// <returns>Randomly selected element from the buffer.</returns>
         /// <exception cref="ArgumentException"><paramref name="buffer" /> is empty.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ref readonly T ChooseReadOnly<T>(ReadOnlySpan<T> buffer) => ref LocalRandom.ChooseReadOnly(buffer);
+        public readonly ref readonly T ChooseReadOnly<T>(ReadOnlySpan<T> buffer) => ref LocalRandom.ChooseReadOnly(buffer);
 
         /// <summary>
         ///     Returns a random 64-bit double-precision floating point number
@@ -156,7 +156,7 @@ namespace NativeCollections
         ///     However, if <paramref name="maxValue" /> equals 0, 0 is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public double LerpF64(double maxValue) => LocalRandom.LerpF64(maxValue);
+        public readonly double LerpF64(double maxValue) => LocalRandom.LerpF64(maxValue);
 
         /// <summary>
         ///     Returns a random 64-bit double-precision floating point number
@@ -174,7 +174,7 @@ namespace NativeCollections
         ///     However, if minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public double LerpF64(double minValue, double maxValue) => LocalRandom.LerpF64(minValue, maxValue);
+        public readonly double LerpF64(double minValue, double maxValue) => LocalRandom.LerpF64(minValue, maxValue);
 
         /// <summary>
         ///     Returns a random 32-bit single-precision floating point number
@@ -190,7 +190,7 @@ namespace NativeCollections
         ///     However, if <paramref name="maxValue" /> equals 0, 0 is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float LerpF32(float maxValue) => LocalRandom.LerpF32(maxValue);
+        public readonly float LerpF32(float maxValue) => LocalRandom.LerpF32(maxValue);
 
         /// <summary>
         ///     Returns a random 32-bit single-precision floating point number
@@ -208,14 +208,14 @@ namespace NativeCollections
         ///     However, if minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float LerpF32(float minValue, float maxValue) => LocalRandom.LerpF32(minValue, maxValue);
+        public readonly float LerpF32(float minValue, float maxValue) => LocalRandom.LerpF32(minValue, maxValue);
 
         /// <summary>
         ///     Returns a non-negative random integer.
         /// </summary>
         /// <returns>A 32-bit unsigned integer that is greater than or equal to 0 and less than <see cref="uint.MaxValue" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public uint NextU32() => LocalRandom.NextU32();
+        public readonly uint NextU32() => LocalRandom.NextU32();
 
         /// <summary>
         ///     Returns a non-negative random integer that is less than the specified maximum.
@@ -231,7 +231,7 @@ namespace NativeCollections
         ///     However, if <paramref name="maxValue" /> equals 0, 0 is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public uint NextU32(uint maxValue) => LocalRandom.NextU32(maxValue);
+        public readonly uint NextU32(uint maxValue) => LocalRandom.NextU32(maxValue);
 
         /// <summary>
         ///     Returns a non-negative random integer that is within a specified range.
@@ -248,14 +248,14 @@ namespace NativeCollections
         ///     However, if minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public uint NextU32(uint minValue, uint maxValue) => LocalRandom.NextU32(minValue, maxValue);
+        public readonly uint NextU32(uint minValue, uint maxValue) => LocalRandom.NextU32(minValue, maxValue);
 
         /// <summary>
         ///     Returns a non-negative random integer.
         /// </summary>
         /// <returns>A 64-bit unsigned integer that is greater than or equal to 0 and less than <see cref="ulong.MaxValue" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ulong NextU64() => LocalRandom.NextU64();
+        public readonly ulong NextU64() => LocalRandom.NextU64();
 
         /// <summary>
         ///     Returns a non-negative random integer that is less than the specified maximum.
@@ -271,7 +271,7 @@ namespace NativeCollections
         ///     However, if <paramref name="maxValue" /> equals 0, 0 is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ulong NextU64(ulong maxValue) => LocalRandom.NextU64(maxValue);
+        public readonly ulong NextU64(ulong maxValue) => LocalRandom.NextU64(maxValue);
 
         /// <summary>
         ///     Returns a non-negative random integer that is within a specified range.
@@ -288,14 +288,14 @@ namespace NativeCollections
         ///     However, if minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ulong NextU64(ulong minValue, ulong maxValue) => LocalRandom.NextU64(minValue, maxValue);
+        public readonly ulong NextU64(ulong minValue, ulong maxValue) => LocalRandom.NextU64(minValue, maxValue);
 
         /// <summary>
         ///     Returns a non-negative random integer.
         /// </summary>
         /// <returns>A 32-bit signed integer that is greater than or equal to 0 and less than <see cref="int.MaxValue" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int NextI32() => LocalRandom.NextI32();
+        public readonly int NextI32() => LocalRandom.NextI32();
 
         /// <summary>
         ///     Returns a non-negative random integer that is less than the specified maximum.
@@ -311,7 +311,7 @@ namespace NativeCollections
         ///     However, if <paramref name="maxValue" /> equals 0, 0 is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int NextI32(int maxValue) => LocalRandom.NextI32(maxValue);
+        public readonly int NextI32(int maxValue) => LocalRandom.NextI32(maxValue);
 
         /// <summary>
         ///     Returns a non-negative random integer that is within a specified range.
@@ -328,14 +328,14 @@ namespace NativeCollections
         ///     However, if minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int NextI32(int minValue, int maxValue) => LocalRandom.NextI32(minValue, maxValue);
+        public readonly int NextI32(int minValue, int maxValue) => LocalRandom.NextI32(minValue, maxValue);
 
         /// <summary>
         ///     Returns a non-negative random integer.
         /// </summary>
         /// <returns>A 64-bit signed integer that is greater than or equal to 0 and less than <see cref="long.MaxValue" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public long NextI64() => LocalRandom.NextI64();
+        public readonly long NextI64() => LocalRandom.NextI64();
 
         /// <summary>
         ///     Returns a non-negative random integer that is less than the specified maximum.
@@ -351,7 +351,7 @@ namespace NativeCollections
         ///     However, if <paramref name="maxValue" /> equals 0, 0 is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public long NextI64(long maxValue) => LocalRandom.NextI64(maxValue);
+        public readonly long NextI64(long maxValue) => LocalRandom.NextI64(maxValue);
 
         /// <summary>
         ///     Returns a non-negative random integer that is within a specified range.
@@ -368,7 +368,7 @@ namespace NativeCollections
         ///     However, if minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public long NextI64(long minValue, long maxValue) => LocalRandom.NextI64(minValue, maxValue);
+        public readonly long NextI64(long minValue, long maxValue) => LocalRandom.NextI64(minValue, maxValue);
 
         /// <summary>
         ///     Returns a non-negative random 64-bit double-precision floating point number
@@ -376,7 +376,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>A 64-bit double-precision floating point number that is greater than or equal to 0.0, and less than 1.0.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public double NextF64() => LocalRandom.NextF64();
+        public readonly double NextF64() => LocalRandom.NextF64();
 
         /// <summary>
         ///     Returns a non-negative random 32-bit single-precision floating point number
@@ -384,14 +384,14 @@ namespace NativeCollections
         /// </summary>
         /// <returns>A 32-bit single-precision floating point number that is greater than or equal to 0.0, and less than 1.0.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float NextF32() => LocalRandom.NextF32();
+        public readonly float NextF32() => LocalRandom.NextF32();
 
         /// <summary>
         ///     Fills the elements of a specified buffer of bytes with random numbers.
         /// </summary>
         /// <param name="buffer">The buffer to be filled with random numbers.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void NextBytes(Span<byte> buffer) => LocalRandom.NextBytes(buffer);
+        public readonly void NextBytes(Span<byte> buffer) => LocalRandom.NextBytes(buffer);
 
         /// <summary>
         ///     Fills a specified memory block with random bytes.
@@ -399,7 +399,7 @@ namespace NativeCollections
         /// <param name="startAddress">A pointer to the memory location where the random bytes will be written.</param>
         /// <param name="byteCount">The number of bytes to fill with random numbers.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void NextBytes(void* startAddress, uint byteCount) => LocalRandom.NextBytes(startAddress, byteCount);
+        public readonly void NextBytes(void* startAddress, uint byteCount) => LocalRandom.NextBytes(startAddress, byteCount);
 
         /// <summary>
         ///     Fills a specified memory block with random bytes.
@@ -407,14 +407,14 @@ namespace NativeCollections
         /// <param name="startAddress">A pointer to the memory location where the random bytes will be written.</param>
         /// <param name="byteCount">The number of bytes to fill with random numbers.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void NextBytes(ref byte startAddress, uint byteCount) => LocalRandom.NextBytes(ref startAddress, byteCount);
+        public readonly void NextBytes(ref byte startAddress, uint byteCount) => LocalRandom.NextBytes(ref startAddress, byteCount);
 
         /// <summary>
         ///     Returns a bool.
         /// </summary>
         /// <returns>True, or false.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool NextBool() => LocalRandom.NextBool();
+        public readonly bool NextBool() => LocalRandom.NextBool();
 
         /// <summary>
         ///     Returns a bool.
@@ -423,7 +423,7 @@ namespace NativeCollections
         /// <returns>True, or false.</returns>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="trueProbability" /> value is invalid.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool NextBool(double trueProbability) => LocalRandom.NextBool(trueProbability);
+        public readonly bool NextBool(double trueProbability) => LocalRandom.NextBool(trueProbability);
 
         /// <summary>
         ///     Generates a random value of blittable type.
@@ -431,7 +431,7 @@ namespace NativeCollections
         /// <typeparam name="T">The blittable type.</typeparam>
         /// <returns>The randomly generated value.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public T Next<T>() where T : unmanaged => LocalRandom.Next<T>();
+        public readonly T Next<T>() where T : unmanaged => LocalRandom.Next<T>();
 
         /// <summary>
         ///     Fills the specified reference with a random value of the specified blittable type.
@@ -439,7 +439,7 @@ namespace NativeCollections
         /// <typeparam name="T">The blittable type.</typeparam>
         /// <param name="destination">The reference to the memory location to fill with random data.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Next<T>(ref T destination) where T : unmanaged => LocalRandom.Next(ref destination);
+        public readonly void Next<T>(ref T destination) where T : unmanaged => LocalRandom.Next(ref destination);
 
         /// <summary>
         ///     Gets an empty instance.

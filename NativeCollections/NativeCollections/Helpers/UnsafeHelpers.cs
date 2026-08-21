@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 
-#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
-
 // ReSharper disable ALL
 
 namespace NativeCollections
@@ -47,11 +45,7 @@ namespace NativeCollections
         ///     Returns a pointer to the given by-ref parameter.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T* AsPointer<T>(ref T value) where T : struct
-#if NET9_0_OR_GREATER
-            , allows ref struct
-#endif
-            => (T*)Unsafe.AsPointer(ref value);
+        public static T* AsPointer<T>(ref T value) where T : unmanaged => (T*)Unsafe.AsPointer(ref value);
 
         /// <summary>
         ///     Reads a value of type <typeparamref name="T" /> from the given location.

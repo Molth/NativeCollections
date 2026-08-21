@@ -24,7 +24,7 @@ namespace NativeCollections
         /// <summary>
         ///     Gets the total numbers of elements the internal data structure can hold.
         /// </summary>
-        private readonly int _length;
+        private readonly int _capacity;
 
         /// <summary>
         ///     Gets the number of elements.
@@ -72,7 +72,7 @@ namespace NativeCollections
         /// <summary>
         ///     Gets the total numbers of elements the internal data structure can hold.
         /// </summary>
-        public readonly int Capacity => _length;
+        public readonly int Capacity => _capacity;
 
         /// <summary>
         ///     Calculates the minimum number of bytes required to store a specified number of elements,
@@ -115,7 +115,7 @@ namespace NativeCollections
         {
             ThrowHelpers.ThrowIfLessThan(buffer.Length, GetByteCount(capacity), ExceptionArgument.capacity);
             _buffer = NativeArray<T>.Create(buffer).Buffer;
-            _length = capacity;
+            _capacity = capacity;
             _count = 0;
             _version = 0;
         }
@@ -172,7 +172,7 @@ namespace NativeCollections
         public bool TryPush(in T item)
         {
             var size = _count;
-            if ((uint)size < (uint)_length)
+            if ((uint)size < (uint)_capacity)
             {
                 Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)size) = item;
                 _version++;
@@ -192,7 +192,7 @@ namespace NativeCollections
         public T Pop()
         {
             var size = _count - 1;
-            ThrowHelpers.ThrowIfEmptyStack((uint)size, (uint)_length);
+            ThrowHelpers.ThrowIfEmptyStack((uint)size, (uint)_capacity);
             _version++;
             _count = size;
             var item = Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)size);
@@ -211,7 +211,7 @@ namespace NativeCollections
         public bool TryPop(out T result)
         {
             var size = _count - 1;
-            if ((uint)size >= (uint)_length)
+            if ((uint)size >= (uint)_capacity)
             {
                 result = default;
                 return false;
@@ -232,7 +232,7 @@ namespace NativeCollections
         public readonly T Peek()
         {
             var size = _count - 1;
-            ThrowHelpers.ThrowIfEmptyStack((uint)size, (uint)_length);
+            ThrowHelpers.ThrowIfEmptyStack((uint)size, (uint)_capacity);
             return Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)size);
         }
 
@@ -253,7 +253,7 @@ namespace NativeCollections
         public readonly bool TryPeek(out T result)
         {
             var size = _count - 1;
-            if ((uint)size >= (uint)_length)
+            if ((uint)size >= (uint)_capacity)
             {
                 result = default;
                 return false;
@@ -335,6 +335,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.
         /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator<T> IEnumerable<T>.GetEnumerator()
@@ -346,6 +347,7 @@ namespace NativeCollections
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.
         /// </summary>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         readonly IEnumerator IEnumerable.GetEnumerator()
