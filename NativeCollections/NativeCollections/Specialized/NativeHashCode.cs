@@ -15,7 +15,7 @@ namespace NativeCollections
         /// <summary>
         ///     Default seed value used for hash code calculation.
         /// </summary>
-        private static readonly ulong DefaultSeed = NativeRandom.NextU64();
+        private static readonly ulong DefaultSeed = NativeRandom.Next<ulong>();
 
         /// <summary>
         ///     Custom get hash code handler.
@@ -62,7 +62,7 @@ namespace NativeCollections
             if (getHashCode != null)
                 return getHashCode(buffer);
 
-            return Environment.Is64BitProcess ? XxHash64.HashToUInt64(buffer, DefaultSeed).GetHashCode() : (int)XxHash32.HashToUInt32(buffer, (uint)DefaultSeed.GetHashCode());
+            return Environment.Is64BitProcess ? XxHash64.HashToUInt64(buffer, DefaultSeed).GetHashCode() : (int)XxHash32.HashToUInt32(buffer, (uint)DefaultSeed);
         }
     }
 }

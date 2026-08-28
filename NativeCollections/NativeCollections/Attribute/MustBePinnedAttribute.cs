@@ -5,8 +5,8 @@
 namespace NativeCollections
 {
     /// <summary>
-    ///     Indicates that the decorated target must be pinned (fixed in memory) to prevent garbage collection from relocating
-    ///     it.
+    ///     Indicates that the decorated target must be pinned (fixed in memory)
+    ///     to prevent garbage collection from relocating it.
     /// </summary>
     [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Parameter)]
     public sealed class MustBePinnedAttribute : Attribute

@@ -371,7 +371,7 @@ namespace NativeCollections
                 _buffer = (Span<T>)(_array = destination);
                 if (array == null)
                     return;
-                ArrayPool<T>.Shared.Return(array);
+                ArrayPool<T>.Shared.Return(array, RuntimeHelpers.IsReferenceOrContainsReferences<T>());
             }
         }
 
