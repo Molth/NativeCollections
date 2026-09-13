@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 using System.Collections;
 #endif
 
-#pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
+#pragma warning disable CS0809 // Obsolete member overrides non-obsolete member.
 
 // ReSharper disable ALL
 

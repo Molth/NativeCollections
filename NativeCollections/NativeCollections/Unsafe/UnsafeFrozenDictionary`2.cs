@@ -7,8 +7,8 @@ using System.Runtime.InteropServices;
 using static NativeCollections.NativeFrozenDictionary;
 
 #if !NET7_0_OR_GREATER
-#pragma warning disable CS9082 // Local is returned by reference but was initialized to a value that cannot be returned by reference
-#pragma warning disable CS9083 // A member is returned by reference but was initialized to a value that cannot be returned by reference 
+#pragma warning disable CS9082 // Local is returned by reference but was initialized to a value that cannot be returned by reference.
+#pragma warning disable CS9083 // A member is returned by reference but was initialized to a value that cannot be returned by reference.
 #endif
 
 // ReSharper disable ALL

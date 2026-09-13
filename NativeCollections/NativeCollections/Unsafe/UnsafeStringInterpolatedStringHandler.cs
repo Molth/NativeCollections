@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
 #endif
 
-#pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
+#pragma warning disable CS0809 // Obsolete member overrides non-obsolete member.
 
 // ReSharper disable ALL
 

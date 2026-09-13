@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using NativeCollections;
 
-#pragma warning disable CS9084 // Struct member returns 'this' or other instance members by reference
+#pragma warning disable CS9084 // Struct member returns 'this' or other instance members by reference.
 
 namespace Examples
 {

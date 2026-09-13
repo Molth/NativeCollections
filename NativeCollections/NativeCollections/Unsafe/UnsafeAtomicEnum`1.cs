@@ -5,9 +5,9 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using static NativeCollections.EnumHelpers;
 
-#pragma warning disable CA2231 // Overload operator equals on overriding ValueType.Equals
-#pragma warning disable CS0809 // Obsolete member overrides non-obsolete member
-#pragma warning disable CS9084 // Struct member returns 'this' or other instance members by reference
+#pragma warning disable CA2231 // Overload operator equals on overriding ValueType.Equals.
+#pragma warning disable CS0809 // Obsolete member overrides non-obsolete member.
+#pragma warning disable CS9084 // Struct member returns 'this' or other instance members by reference.
 
 // ReSharper disable ALL
 

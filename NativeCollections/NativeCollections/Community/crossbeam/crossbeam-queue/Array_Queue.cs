@@ -9,7 +9,7 @@ using static NativeCollections.PaddingHelpers;
 using static rust.Option;
 using static rust.Result;
 
-#pragma warning disable CS9084 // Struct member returns 'this' or other instance members by reference
+#pragma warning disable CS9084 // Struct member returns 'this' or other instance members by reference.
 
 // ReSharper disable All
 

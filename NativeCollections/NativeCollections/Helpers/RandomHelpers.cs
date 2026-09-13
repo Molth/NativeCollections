@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type
+#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
 
 // ReSharper disable ALL
 
