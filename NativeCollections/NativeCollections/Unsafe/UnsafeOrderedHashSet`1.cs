@@ -547,10 +547,11 @@ namespace NativeCollections
         ///     Trims the capacity of this to the specified number of entries.
         /// </summary>
         /// <param name="capacity">The new capacity.</param>
-        /// <exception cref="ArgumentOutOfRangeException">Passed capacity is lower than entries count.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="capacity" /> is negative.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity)
         {
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
             var length = _entriesLength;
             if (capacity <= length)
                 return length;
@@ -823,7 +824,7 @@ namespace NativeCollections
         ///     The span must have a length at least equal to the current number of elements in this.
         /// </summary>
         /// <param name="buffer">The destination span to which all elements are copied.</param>
-        /// <exception cref="ArgumentException">
+        /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="buffer" /> has insufficient length to hold all of this's elements.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -841,7 +842,7 @@ namespace NativeCollections
         ///     The span must have a length at least equal to the current number of elements in this.
         /// </summary>
         /// <param name="buffer">The destination span to which all elements are copied.</param>
-        /// <exception cref="ArgumentException">
+        /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="buffer" /> has insufficient length to hold all of this's elements.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

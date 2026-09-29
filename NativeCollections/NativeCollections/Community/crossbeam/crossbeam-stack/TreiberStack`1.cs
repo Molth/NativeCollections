@@ -45,7 +45,7 @@ namespace NativeCollections
         ///     However, as this collection is intended to be accessed concurrently, it may be the case that another thread will
         ///     modify the collection after <see cref="IsEmpty" /> returns, thus invalidating the result.
         /// </remarks>
-        public bool IsEmpty => !UnsafeHelpers.IsNull(_head.load(Ordering.Relaxed));
+        public bool IsEmpty => UnsafeHelpers.IsNull(_head.load(Ordering.Relaxed));
 
         /// <summary>
         ///     Gets the number of elements contained in this.

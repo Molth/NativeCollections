@@ -1125,7 +1125,7 @@ namespace NativeCollections
         ///     The span must have a length at least equal to the current number of elements in this.
         /// </summary>
         /// <param name="buffer">The destination span to which all elements are copied.</param>
-        /// <exception cref="ArgumentException">
+        /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="buffer" /> has insufficient length to hold all of this's elements.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1143,7 +1143,7 @@ namespace NativeCollections
         ///     The span must have a length at least equal to the current number of elements in this.
         /// </summary>
         /// <param name="buffer">The destination span to which all elements are copied.</param>
-        /// <exception cref="ArgumentException">
+        /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="buffer" /> has insufficient length to hold all of this's elements.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1333,7 +1333,7 @@ namespace NativeCollections
             ///     The span must have a length at least equal to the current number of elements in this.
             /// </summary>
             /// <param name="buffer">The destination span to which all elements are copied.</param>
-            /// <exception cref="ArgumentException">
+            /// <exception cref="ArgumentOutOfRangeException">
             ///     Thrown when <paramref name="buffer" /> has insufficient length to hold all of this's elements.
             /// </exception>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1351,7 +1351,7 @@ namespace NativeCollections
             ///     The span must have a length at least equal to the current number of elements in this.
             /// </summary>
             /// <param name="buffer">The destination span to which all elements are copied.</param>
-            /// <exception cref="ArgumentException">
+            /// <exception cref="ArgumentOutOfRangeException">
             ///     Thrown when <paramref name="buffer" /> has insufficient length to hold all of this's elements.
             /// </exception>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1536,7 +1536,7 @@ namespace NativeCollections
             ///     The span must have a length at least equal to the current number of elements in this.
             /// </summary>
             /// <param name="buffer">The destination span to which all elements are copied.</param>
-            /// <exception cref="ArgumentException">
+            /// <exception cref="ArgumentOutOfRangeException">
             ///     Thrown when <paramref name="buffer" /> has insufficient length to hold all of this's elements.
             /// </exception>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1554,7 +1554,7 @@ namespace NativeCollections
             ///     The span must have a length at least equal to the current number of elements in this.
             /// </summary>
             /// <param name="buffer">The destination span to which all elements are copied.</param>
-            /// <exception cref="ArgumentException">
+            /// <exception cref="ArgumentOutOfRangeException">
             ///     Thrown when <paramref name="buffer" /> has insufficient length to hold all of this's elements.
             /// </exception>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]

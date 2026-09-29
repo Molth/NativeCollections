@@ -100,6 +100,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeSlice(NativeArray<T> nativeArray, int offset, int count)
         {
+            ThrowHelpers.ThrowIfNegative(offset, ExceptionArgument.offset);
+            ThrowHelpers.ThrowIfNegative(count, ExceptionArgument.count);
             _buffer = nativeArray.Buffer;
             _offset = offset;
             _count = count;

@@ -299,14 +299,16 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool TryPeekTail(out T result)
         {
-            var size = _count - 1;
-            if ((uint)size >= (uint)_capacity)
+            if (_count == 0)
             {
                 result = default;
                 return false;
             }
 
-            result = Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)size);
+            var tail = _tail;
+            if (--tail == -1)
+                tail = _capacity - 1;
+            result = Unsafe.Add(ref Unsafe.AsRef<T>(_buffer), (nint)tail);
             return true;
         }
 
@@ -346,7 +348,7 @@ namespace NativeCollections
         ///     The span must have a length at least equal to the current number of elements in this.
         /// </summary>
         /// <param name="buffer">The destination span to which all elements are copied.</param>
-        /// <exception cref="ArgumentException">
+        /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="buffer" /> has insufficient length to hold all of this's elements.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -362,7 +364,7 @@ namespace NativeCollections
         ///     The span must have a length at least equal to the current number of elements in this.
         /// </summary>
         /// <param name="buffer">The destination span to which all elements are copied.</param>
-        /// <exception cref="ArgumentException">
+        /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="buffer" /> has insufficient length to hold all of this's elements.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

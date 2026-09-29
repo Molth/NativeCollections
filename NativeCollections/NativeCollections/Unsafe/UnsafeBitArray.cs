@@ -138,7 +138,7 @@ namespace NativeCollections
         ///     Must be non‑negative.
         /// </param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="length" /> is negative.</exception>
-        /// <exception cref="ArgumentException">
+        /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when the provided <paramref name="buffer" /> is smaller than required for the specified
         ///     <paramref name="length" />.
         /// </exception>
@@ -171,7 +171,7 @@ namespace NativeCollections
         ///     (<see langword="true" /> for set, <see langword="false" /> for cleared).
         /// </param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="length" /> is negative.</exception>
-        /// <exception cref="ArgumentException">
+        /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when the provided <paramref name="buffer" /> is smaller than required for the specified
         ///     <paramref name="length" />.
         /// </exception>

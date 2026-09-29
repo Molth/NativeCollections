@@ -388,7 +388,6 @@ namespace NativeCollections
         ///     otherwise, the default value for the type of the <paramref name="result" /> parameter.
         ///     This parameter is passed uninitialized.
         /// </param>
-        /// <exception cref="T:System.InvalidOperationException">The queue is empty.</exception>
         /// <returns>
         ///     <see langword="true" /> if the item was successfully removed to this;
         ///     <see langword="false" /> if the this is already empty and the item could not be removed.
