@@ -1,0 +1,117 @@
+﻿using System;
+using System.Runtime.CompilerServices;
+
+// ReSharper disable ALL
+
+namespace NativeCollections
+{
+    internal static partial class XxHash64
+    {
+        /// <summary>
+        ///     Reads a little-endian 32-bit unsigned integer from the specified position.
+        /// </summary>
+        /// <param name="input">The input bytes to read.</param>
+        /// <param name="cursor">The zero-based position at which to read.</param>
+        /// <returns>The value read from the input.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static uint ReadU32(ReadOnlySpan<byte> input, int cursor) => BinaryPrimitivesHelpers.ReadUInt32LittleEndian(input.Slice(cursor));
+
+        /// <summary>
+        ///     Reads a little-endian 64-bit unsigned integer from the specified position.
+        /// </summary>
+        /// <param name="input">The input bytes to read.</param>
+        /// <param name="cursor">The zero-based position at which to read.</param>
+        /// <returns>The value read from the input.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ulong ReadU64(ReadOnlySpan<byte> input, int cursor) => BinaryPrimitivesHelpers.ReadUInt64LittleEndian(input.Slice(cursor));
+
+        /// <summary>
+        ///     Processes the remaining bytes and applies the final xxHash64 avalanche mix.
+        /// </summary>
+        /// <param name="input">The current hash accumulator.</param>
+        /// <param name="data">The input bytes being hashed.</param>
+        /// <param name="cursor">The zero-based position of the first remaining byte.</param>
+        /// <returns>The finalized hash value.</returns>
+        private static ulong Finalize(ulong input, ReadOnlySpan<byte> data, int cursor)
+        {
+            var len = data.Length.WrappingSub(cursor);
+
+            while (len >= 8)
+            {
+                input ^= Round(U64.FromI32Unchecked(0), ReadU64(data, cursor));
+                cursor = cursor.WrappingAdd(sizeof(ulong));
+                len = len.WrappingSub(sizeof(ulong));
+                input = input.RotateLeft(27).WrappingMul(PRIME_1).WrappingAdd(PRIME_4);
+            }
+
+            if (len >= 4)
+            {
+                input ^= U64.FromU32Unchecked(ReadU32(data, cursor)).WrappingMul(PRIME_1);
+                cursor = cursor.WrappingAdd(sizeof(uint));
+                len = len.WrappingSub(sizeof(uint));
+                input = input.RotateLeft(23).WrappingMul(PRIME_2).WrappingAdd(PRIME_3);
+            }
+
+            while (len > 0)
+            {
+                input ^= U64.FromU8Unchecked(data[cursor]).WrappingMul(PRIME_5);
+                cursor = cursor.WrappingAdd(sizeof(byte));
+                len = len.WrappingSub(sizeof(byte));
+                input = input.RotateLeft(11).WrappingMul(PRIME_1);
+            }
+
+            return Avalanche(input);
+        }
+
+        /// <summary>
+        ///     Computes the xxHash64 value for the specified input and seed.
+        /// </summary>
+        /// <param name="input">The input bytes to hash.</param>
+        /// <param name="seed">The seed used to initialize the hash.</param>
+        /// <returns>The computed 64-bit hash value.</returns>
+        public static ulong HashToU64(ReadOnlySpan<byte> input, ulong seed)
+        {
+            var inputLen = U64.FromI32Unchecked(input.Length);
+            var cursor = 0;
+            ulong result;
+
+            if (input.Length >= CHUNK_SIZE)
+            {
+                var v1 = seed.WrappingAdd(PRIME_1).WrappingAdd(PRIME_2);
+                var v2 = seed.WrappingAdd(PRIME_2);
+                var v3 = seed;
+                var v4 = seed.WrappingSub(PRIME_1);
+
+                while (true)
+                {
+                    v1 = Round(v1, ReadU64(input, cursor));
+                    cursor = cursor.WrappingAdd(sizeof(ulong));
+                    v2 = Round(v2, ReadU64(input, cursor));
+                    cursor = cursor.WrappingAdd(sizeof(ulong));
+                    v3 = Round(v3, ReadU64(input, cursor));
+                    cursor = cursor.WrappingAdd(sizeof(ulong));
+                    v4 = Round(v4, ReadU64(input, cursor));
+                    cursor = cursor.WrappingAdd(sizeof(ulong));
+
+                    if (input.Length.WrappingSub(cursor) < CHUNK_SIZE)
+                        break;
+                }
+
+                result = v1.RotateLeft(1).WrappingAdd(v2.RotateLeft(7)).WrappingAdd(v3.RotateLeft(12)).WrappingAdd(v4.RotateLeft(18));
+
+                result = MergeRound(result, v1);
+                result = MergeRound(result, v2);
+                result = MergeRound(result, v3);
+                result = MergeRound(result, v4);
+            }
+            else
+            {
+                result = seed.WrappingAdd(PRIME_5);
+            }
+
+            result = result.WrappingAdd(inputLen);
+
+            return Finalize(result, input, cursor);
+        }
+    }
+}

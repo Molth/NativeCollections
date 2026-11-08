@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
@@ -12,6 +12,9 @@
         <IsRoslynComponent>true</IsRoslynComponent>
 
         <LangVersion>latest</LangVersion>
+
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);RS1038;RS2008</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
