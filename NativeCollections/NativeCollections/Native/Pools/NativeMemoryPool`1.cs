@@ -41,6 +41,9 @@ namespace NativeCollections
         ///     Thrown when <paramref name="size" /> is less than or equal to zero or
         ///     <paramref name="maxFreeSlabs" /> is negative.
         /// </exception>
+        /// <exception cref="OverflowException">
+        ///     Thrown when the aligned node size exceeds <see cref="int.MaxValue" />.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeMemoryPool<T> Create(int size, int maxFreeSlabs)
         {
@@ -53,15 +56,26 @@ namespace NativeCollections
         ///     maximum free slabs, and alignment.
         /// </summary>
         /// <param name="size">The number of nodes each slab can hold. Must be greater than zero.</param>
-        /// <param name="length">The length in bytes of each node's data region.</param>
-        /// <param name="maxFreeSlabs">The maximum number of free slabs to retain.</param>
-        /// <param name="alignment">The required allocation alignment.</param>
+        /// <param name="length">
+        ///     The length in bytes of the data region of each node. Must be at least <see cref="Unsafe.SizeOf{T}" />.
+        /// </param>
+        /// <param name="maxFreeSlabs">The maximum number of free slabs to retain. Must be non-negative.</param>
+        /// <param name="alignment">
+        ///     The required alignment, in bytes. Must be a power of two and at least
+        ///     <see cref="NativeMemoryAllocator.AlignOf{T}" />.
+        /// </param>
         /// <returns>A newly allocated memory pool.</returns>
         /// <exception cref="ArgumentOutOfRangeException">
-        ///     Thrown when any argument is outside the supported range.
+        ///     Thrown when <paramref name="size" /> is less than or equal to zero,
+        ///     <paramref name="length" /> is less than <see cref="Unsafe.SizeOf{T}" />,
+        ///     <paramref name="maxFreeSlabs" /> is negative, or <paramref name="alignment" />
+        ///     is less than <see cref="NativeMemoryAllocator.AlignOf{T}" />.
         /// </exception>
         /// <exception cref="ArgumentException">
         ///     Thrown when <paramref name="alignment" /> is not a power of two.
+        /// </exception>
+        /// <exception cref="OverflowException">
+        ///     Thrown when the aligned node size exceeds <see cref="int.MaxValue" />.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeMemoryPool<T> Create(int size, int length, int maxFreeSlabs, int alignment)

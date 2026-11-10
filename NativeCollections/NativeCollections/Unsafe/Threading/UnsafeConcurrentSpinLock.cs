@@ -22,7 +22,8 @@ namespace NativeCollections
         private volatile int _sequenceNumber;
 
         /// <summary>
-        ///     The sequence number that has been released, indicating the lock is free.
+        ///     The sequence number of the next ticket to be released. The lock is free
+        ///     when this equals <see cref="_sequenceNumber" />.
         /// </summary>
         private volatile int _nextSequenceNumber;
 
@@ -32,7 +33,7 @@ namespace NativeCollections
         public readonly int SequenceNumber => _sequenceNumber;
 
         /// <summary>
-        ///     Gets the sequence number corresponding to the last released lock.
+        ///     Gets the sequence number of the next ticket to be released.
         /// </summary>
         public readonly int NextSequenceNumber => _nextSequenceNumber;
 
@@ -125,7 +126,8 @@ namespace NativeCollections
         /// </exception>
         /// <remarks>
         ///     The threshold is validated before the first spin, so an invalid argument
-        ///     never leaves the lock in a partially entered state.
+        ///     never starts spinning. A ticket already obtained from <see cref="Acquire" />
+        ///     is not released automatically, however, and must still be exited.
         /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void Wait(int sequenceNumber, int sleep1Threshold)

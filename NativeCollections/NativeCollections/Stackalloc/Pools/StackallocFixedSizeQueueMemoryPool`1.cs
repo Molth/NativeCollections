@@ -120,6 +120,10 @@ namespace NativeCollections
         /// <param name="capacity">
         ///     The maximum number of elements the queue can hold.
         /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="capacity" /> is negative or <paramref name="buffer" />
+        ///     is too small to hold the required number of elements (including alignment padding).
+        /// </exception>
         /// <exception cref="OverflowException">
         ///     Thrown when <paramref name="capacity" /> is negative or the required byte count
         ///     exceeds <see cref="int.MaxValue" />.
@@ -206,10 +210,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Attempts to retrieve a buffer that is at least the requested length.
+        ///     Attempts to retrieve a single block from the pool.
         /// </summary>
         /// <param name="ptr">
-        ///     When this method returns, contains the rented buffer if
+        ///     When this method returns, contains a pointer to the rented block if
         ///     the operation succeeds; otherwise, <see langword="null" />.
         /// </param>
         /// <returns>

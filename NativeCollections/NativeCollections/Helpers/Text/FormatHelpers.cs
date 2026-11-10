@@ -464,9 +464,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Copies the contents of this read-only span into destination span. If the
-        ///     source and destinations overlap, this method behaves as if the original
-        ///     values in a temporary location before the destination is overwritten.
+        ///     Copies the contents of <paramref name="source" /> into <paramref name="destination" />.
+        ///     If the source and destination overlap, this method behaves as if the original
+        ///     values were first copied to a temporary location before the destination is overwritten.
         /// </summary>
         /// <param name="source">The read-only span of characters to copy.</param>
         /// <param name="destination">The destination span to receive the characters.</param>
@@ -475,8 +475,9 @@ namespace NativeCollections
         ///     <paramref name="destination" />, or <c>0</c> if <paramref name="destination" /> is too small.
         /// </param>
         /// <returns>
-        ///     If the destination span is shorter than the source span, this method
-        ///     return <see langword="false" /> and no data is written to the destination.
+        ///     <see langword="true" /> if <paramref name="source" /> was copied to the destination;
+        ///     otherwise, <see langword="false" /> if <paramref name="destination" /> was shorter than
+        ///     <paramref name="source" />, in which case no data is written to the destination.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool TryCopyTo(ReadOnlySpan<char> source, Span<char> destination, out int charsWritten)
@@ -493,7 +494,7 @@ namespace NativeCollections
 
 #if NET8_0_OR_GREATER
         /// <summary>
-        ///     Decodes into a span of chars a set of bytes from the
+        ///     Decodes into a span of chars a set of UTF-8 bytes from the
         ///     specified read-only span if the destination is large enough.
         /// </summary>
         /// <param name="bytes">A read-only span containing the sequence of bytes to decode.</param>

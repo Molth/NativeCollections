@@ -40,30 +40,6 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Calculates the minimum number of bytes required to store a specified number of
-        ///     elements, taking into account alignment requirements for the underlying buffer.
-        /// </summary>
-        /// <param name="capacity">The number of elements to store. Must be non-negative.</param>
-        /// <returns>
-        ///     The minimum byte count needed to allocate a buffer capable of
-        ///     holding <paramref name="capacity" /> elements with proper alignment.
-        /// </returns>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///     Thrown when <paramref name="capacity" /> is negative.
-        /// </exception>
-        /// <exception cref="OverflowException">
-        ///     Thrown when the required byte count exceeds <see cref="int.MaxValue" />.
-        /// </exception>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetByteCount(int capacity)
-        {
-            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
-            var nativeCapacity = Usize.FromI32Unchecked(capacity);
-            var byteCount = nativeCapacity * Usize.FromI32Unchecked(Unsafe.SizeOf<T>()) + NativeMemoryAllocator.AlignOf<T>().WrappingSub(Usize.FromI32Unchecked(1));
-            return I32.FromUsize(byteCount);
-        }
-
-        /// <summary>
         ///     Creates a new instance of this class with the specified number of elements, using the natural
         ///     alignment of <typeparamref name="T" /> and without zero-initializing the allocated memory.
         /// </summary>
@@ -242,6 +218,30 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Calculates the minimum number of bytes required to store a specified number of
+        ///     elements, taking into account alignment requirements for the underlying buffer.
+        /// </summary>
+        /// <param name="capacity">The number of elements to store. Must be non-negative.</param>
+        /// <returns>
+        ///     The minimum byte count needed to allocate a buffer capable of
+        ///     holding <paramref name="capacity" /> elements with proper alignment.
+        /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="capacity" /> is negative.
+        /// </exception>
+        /// <exception cref="OverflowException">
+        ///     Thrown when the required byte count exceeds <see cref="int.MaxValue" />.
+        /// </exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int GetByteCount(int capacity)
+        {
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
+            var nativeCapacity = Usize.FromI32Unchecked(capacity);
+            var byteCount = nativeCapacity * Usize.FromI32Unchecked(Unsafe.SizeOf<T>()) + NativeMemoryAllocator.AlignOf<T>().WrappingSub(Usize.FromI32Unchecked(1));
+            return I32.FromUsize(byteCount);
+        }
+
+        /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public bool IsCreated => _buffer != null;
@@ -343,10 +343,10 @@ namespace NativeCollections
         public void Dispose() => NativeMemoryAllocator.AlignedFree(_buffer);
 
         /// <summary>
-        ///     Returns a reference to the 0th element of the Span. If the Span is empty, returns null reference.
-        ///     It can be used for pinning and is required to support the use of span within a fixed statement.
+        ///     Returns a reference to the 0th element of this. If this is empty, the returned
+        ///     reference must not be dereferenced.
         /// </summary>
-        /// <returns>A reference to the 0th element of the Span, or a null reference if the Span is empty.</returns>
+        /// <returns>A reference to the 0th element of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ref T GetPinnableReference() => ref Unsafe.AsRef<T>(_buffer);
 
@@ -367,21 +367,21 @@ namespace NativeCollections
         public NativeArray<TTo> Cast<TTo>() where TTo : unmanaged => NativeArray<TTo>.From(MemoryMarshal.Cast<T, TTo>(AsSpan()));
 
         /// <summary>
-        ///     Returns a span over a portion of this.
+        ///     Returns a span over the entire contents of this.
         /// </summary>
-        /// <returns>A span over a portion of this.</returns>
+        /// <returns>A span over the entire contents of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Span<T> AsSpan() => MemoryMarshal.CreateSpan(ref Unsafe.AsRef<T>(_buffer), _length);
 
         /// <summary>
-        ///     Returns a read-only span over a portion of this.
+        ///     Returns a read-only span over the entire contents of this.
         /// </summary>
-        /// <returns>A read-only span over a portion of this.</returns>
+        /// <returns>A read-only span over the entire contents of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<T>(_buffer), _length);
 
         /// <summary>
-        ///     Forms a slice out of the given span.
+        ///     Forms a slice out of this.
         /// </summary>
         /// <param name="start">The starting element index.</param>
         /// <returns>A slice of this starting at <paramref name="start" />.</returns>
@@ -392,7 +392,7 @@ namespace NativeCollections
         public NativeArray<T> Slice(int start) => From(AsSpan().Slice(start));
 
         /// <summary>
-        ///     Forms a slice out of the given span.
+        ///     Forms a slice out of this.
         /// </summary>
         /// <param name="start">The starting element index.</param>
         /// <param name="length">The number of elements in the slice.</param>

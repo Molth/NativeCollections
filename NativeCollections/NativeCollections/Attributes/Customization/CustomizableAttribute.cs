@@ -12,7 +12,7 @@ namespace NativeCollections
     internal sealed class CustomizableAttribute : Attribute
     {
         /// <summary>
-        ///     Gets the names of the specified one or more methods.
+        ///     Gets the signatures of the specified one or more methods.
         /// </summary>
         public readonly string[]? Methods;
 
@@ -26,7 +26,7 @@ namespace NativeCollections
         /// <summary>
         ///     Initializes a new instance of this class.
         /// </summary>
-        /// <param name="methods">The names of the methods that can be customized.</param>
+        /// <param name="methods">The signatures of the methods that can be customized.</param>
         public CustomizableAttribute(params string[]? methods) => Methods = methods;
     }
 }

@@ -14,7 +14,7 @@ namespace NativeCollections
         /// <summary>
         ///     Appends the interpolated string produced by the specified handler to this instance.
         /// </summary>
-        /// <param name="builder">The string builder to append to.</param>
+        /// <param name="builder">The <see cref="UnsafeString" /> to which the resulting text is copied.</param>
         /// <param name="handler">The interpolated string handler to append.</param>
         /// <returns>
         ///     <see langword="true" /> if the formatted value was appended; otherwise, <see langword="false" />.
@@ -25,7 +25,7 @@ namespace NativeCollections
         /// <summary>
         ///     Appends the interpolated string produced by the specified handler to this instance.
         /// </summary>
-        /// <param name="builder">The string builder to append to.</param>
+        /// <param name="builder">The <see cref="UnsafeString" /> to which the resulting text is copied.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
         /// <param name="handler">The interpolated string handler to append.</param>
         /// <returns>

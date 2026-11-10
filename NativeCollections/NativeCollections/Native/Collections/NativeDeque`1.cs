@@ -40,6 +40,9 @@ namespace NativeCollections
         /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="capacity" /> is negative.
         /// </exception>
+        /// <remarks>
+        ///     The requested capacity is clamped to a minimum of 2; read <c>Capacity</c> for the effective value.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeDeque<T> Create(int capacity)
         {
@@ -277,10 +280,12 @@ namespace NativeCollections
         public int CopyTo(Span<T> buffer, int count) => _handle->CopyTo(buffer, count);
 
         /// <summary>
-        ///     Copies up to the specified number of elements from this. The actual number of copied elements is
-        ///     limited by the span's length, the specified count, and the current number of elements in this.
+        ///     Copies up to the specified number of elements from this into a destination byte span. The span's
+        ///     length is measured in bytes, and each element occupies the byte size of <typeparamref name="T" />;
+        ///     the actual number of copied elements is limited by the number of elements that fit in the span,
+        ///     the specified count, and the current number of elements in this.
         /// </summary>
-        /// <param name="buffer">The destination span to which elements are copied.</param>
+        /// <param name="buffer">The destination byte span to which elements are copied.</param>
         /// <param name="count">The maximum number of elements to copy. Must be non-negative.</param>
         /// <returns>The actual number of elements copied from this.</returns>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="count" /> is negative.</exception>
@@ -299,12 +304,12 @@ namespace NativeCollections
         public void CopyTo(Span<T> buffer) => _handle->CopyTo(buffer);
 
         /// <summary>
-        ///     Copies all elements from this into a destination span. The span must
-        ///     have a length at least equal to the current number of elements in this.
+        ///     Copies all elements from this into a destination byte span. The span's length is measured in bytes
+        ///     and must be at least the byte size of all elements in this.
         /// </summary>
-        /// <param name="buffer">The destination span to which all elements are copied.</param>
+        /// <param name="buffer">The destination byte span to which all elements are copied.</param>
         /// <exception cref="ArgumentOutOfRangeException">
-        ///     Thrown when <paramref name="buffer" /> has insufficient length to hold all the elements of this.
+        ///     Thrown when <paramref name="buffer" /> has insufficient byte length to hold all the elements of this.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void CopyTo(Span<byte> buffer) => _handle->CopyTo(buffer);

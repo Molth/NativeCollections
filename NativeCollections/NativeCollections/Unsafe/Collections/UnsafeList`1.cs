@@ -262,7 +262,8 @@ namespace NativeCollections
         /// <param name="buffer">The collection whose elements should be added to the end of this.</param>
         /// <returns>
         ///     <see langword="true" /> if the items were successfully added to this;
-        ///     <see langword="false" /> if this is already full and the items could not be added.
+        ///     <see langword="false" /> if the remaining capacity is less than the number of items
+        ///     and the items could not be added.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryAddRange(ReadOnlySpan<T> buffer)
@@ -368,8 +369,9 @@ namespace NativeCollections
         /// <param name="index">The zero-based index at which the new elements should be inserted.</param>
         /// <param name="buffer">The collection whose elements should be inserted into this.</param>
         /// <returns>
-        ///     <see langword="true" /> if the item was successfully added to this;
-        ///     <see langword="false" /> if this is already full and the item could not be added.
+        ///     <see langword="true" /> if the items were successfully added to this;
+        ///     <see langword="false" /> if the remaining capacity is less than the number of items
+        ///     and the items could not be added.
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="index" /> is negative or greater than <see cref="Count" />.
@@ -418,9 +420,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Removes the first occurrence of a specific object from this using a swap-based removal,
-        ///     which maintains O(1) time complexity by moving the last element into the position of
-        ///     the removed element. This operation does not preserve the original order of elements.
+        ///     Searches for the first occurrence of a specific object in this and, if found, removes it
+        ///     using a swap-based removal; the search is O(n), while the swap itself is O(1) because
+        ///     the last element is moved into the position of the removed element. This operation does
+        ///     not preserve the original order of elements.
         /// </summary>
         /// <param name="item">The object to remove from this.</param>
         /// <returns>
@@ -510,7 +513,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reverses the sequence of the elements in the specified span.
+        ///     Reverses the order of the elements in this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reverse()
@@ -520,7 +523,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reverses the sequence of the elements in the specified span.
+        ///     Reverses the order of the elements in this from <paramref name="index" />
+        ///     to the end of this.
         /// </summary>
         /// <param name="index">The zero-based starting index.</param>
         /// <exception cref="ArgumentOutOfRangeException">
@@ -535,13 +539,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reverses the sequence of the elements in the specified span.
+        ///     Reverses the order of the elements in this in the range specified by
+        ///     <paramref name="index" /> and <paramref name="count" />.
         /// </summary>
         /// <param name="index">The zero-based starting index.</param>
         /// <param name="count">The number of elements.</param>
         /// <exception cref="ArgumentOutOfRangeException">
-        ///     Thrown when <paramref name="index" /> or the end index
-        ///     is not in range (&lt;0 or &gt;<see cref="Count" />).
+        ///     Thrown when <paramref name="index" /> or <paramref name="count" /> is negative, or
+        ///     <paramref name="index" /> and <paramref name="count" /> do not denote a valid range of elements in this.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reverse(int index, int count)
@@ -691,8 +696,8 @@ namespace NativeCollections
         /// <param name="count">The number of elements to search.</param>
         /// <returns>The index of <paramref name="item" /> if found; otherwise, -1.</returns>
         /// <exception cref="ArgumentOutOfRangeException">
-        ///     Thrown when <paramref name="index" /> or the end index
-        ///     is not in range (&lt;0 or &gt;<see cref="Count" />).
+        ///     Thrown when <paramref name="index" /> or <paramref name="count" /> is negative, or
+        ///     <paramref name="index" /> and <paramref name="count" /> do not denote a valid range of elements in this.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int IndexOf(T item, int index, int count)
@@ -716,8 +721,7 @@ namespace NativeCollections
         /// <param name="index">The zero-based starting index of the backward search.</param>
         /// <returns>The index of <paramref name="item" /> if found; otherwise, -1.</returns>
         /// <exception cref="ArgumentOutOfRangeException">
-        ///     Thrown when <paramref name="index" /> or the end index
-        ///     is not in range (&lt;0 or &gt;<see cref="Count" />).
+        ///     Thrown when <paramref name="index" /> is negative or greater than or equal to <see cref="Count" />.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int LastIndexOf(T item, int index)
@@ -734,8 +738,9 @@ namespace NativeCollections
         /// <param name="count">The number of elements in the section to search.</param>
         /// <returns>The index of <paramref name="item" /> if found; otherwise, -1.</returns>
         /// <exception cref="ArgumentOutOfRangeException">
-        ///     Thrown when <paramref name="index" /> or the end index
-        ///     is not in range (&lt;0 or &gt;<see cref="Count" />).
+        ///     Thrown when <paramref name="index" /> or <paramref name="count" /> is negative, or when
+        ///     this is not empty and <paramref name="index" /> and <paramref name="count" />
+        ///     do not denote a valid range of elements in this.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int LastIndexOf(T item, int index, int count)
@@ -774,16 +779,16 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Returns a span over a portion of this.
+        ///     Returns a span over the entire contents of this.
         /// </summary>
-        /// <returns>A span over a portion of this.</returns>
+        /// <returns>A span over the entire contents of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<T> AsSpan() => MemoryMarshal.CreateSpan(ref Unsafe.AsRef<T>(_buffer), _count);
 
         /// <summary>
-        ///     Returns a read-only span over a portion of this.
+        ///     Returns a read-only span over the entire contents of this.
         /// </summary>
-        /// <returns>A read-only span over a portion of this.</returns>
+        /// <returns>A read-only span over the entire contents of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<T>(_buffer), _count);
 

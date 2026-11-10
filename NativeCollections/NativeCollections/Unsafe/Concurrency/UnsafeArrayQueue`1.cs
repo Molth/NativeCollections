@@ -49,12 +49,12 @@ namespace NativeCollections
     ///         <item>
     ///             <description>
     ///                 <see cref="Enqueue" /> replaces the oldest element when the queue is full and returns
-    ///                 it in an <see cref="InsertResult" />, allowing the queue to act as a ring buffer.
+    ///                 it through the out parameter, allowing the queue to act as a ring buffer.
     ///             </description>
     ///         </item>
     ///     </list>
     ///     <para>
-    ///         The preallocated buffer makes this queue somewhat faster than <see cref="NativeSegQueue{T}" />.
+    ///         The preallocated buffer makes this queue somewhat faster than <see cref="UnsafeSegQueue{T}" />.
     ///     </para>
     ///     <para>
     ///         The implementation is based on Dmitry Vyukov's bounded MPMC queue.
@@ -130,7 +130,7 @@ namespace NativeCollections
         /// <summary>
         ///     Gets the total number of elements the internal data structure can hold.
         /// </summary>
-        public int Capacity => I32.FromUsizeUnchecked(_handle.Capacity());
+        public readonly int Capacity => I32.FromUsizeUnchecked(_handle.Capacity());
 
         /// <summary>
         ///     Initializes a new instance of this class with the specified state.
@@ -142,6 +142,21 @@ namespace NativeCollections
         {
             _padding = padding;
             _handle = handle;
+        }
+
+        /// <summary>
+        ///     Creates a new bounded queue with the given capacity.
+        /// </summary>
+        /// <param name="capacity">The requested queue capacity.</param>
+        /// <returns>A new bounded queue with a capacity of <paramref name="capacity" />.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="capacity" /> is less than or equal to zero.
+        /// </exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UnsafeArrayQueue<T> Create(int capacity)
+        {
+            ThrowHelpers.ThrowIfNegativeOrZero(capacity, ExceptionArgument.capacity);
+            return new UnsafeArrayQueue<T>(default, RawArrayQueue<T>.Create(Usize.FromI32Unchecked(capacity)));
         }
 
         /// <summary>
@@ -246,20 +261,5 @@ namespace NativeCollections
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDequeue(out T result) => _handle.TryDequeue(out result);
-
-        /// <summary>
-        ///     Creates a new bounded queue with the given capacity.
-        /// </summary>
-        /// <param name="capacity">The requested queue capacity.</param>
-        /// <returns>A new bounded queue with a capacity of <paramref name="capacity" />.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///     Thrown when <paramref name="capacity" /> is less than or equal to zero.
-        /// </exception>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeArrayQueue<T> Create(int capacity)
-        {
-            ThrowHelpers.ThrowIfNegativeOrZero(capacity, ExceptionArgument.capacity);
-            return new UnsafeArrayQueue<T>(default, RawArrayQueue<T>.Create(Usize.FromI32Unchecked(capacity)));
-        }
     }
 }

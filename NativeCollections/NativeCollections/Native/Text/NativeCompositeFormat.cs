@@ -67,27 +67,6 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Gets the original composite format string used to create
-        ///     this <see cref="NativeCompositeFormat" /> instance.
-        /// </summary>
-        public string Format { get; }
-
-        /// <summary>
-        ///     Gets the minimum number of arguments that must be passed to a
-        ///     formatting operation using this <see cref="NativeCompositeFormat" />.
-        /// </summary>
-        /// <remarks>
-        ///     It's permissible to supply more arguments than this value, but it's an error to pass fewer.
-        /// </remarks>
-        public int MinimumArgumentCount => ArgsRequired;
-
-        /// <summary>
-        ///     Returns the string representation of this instance.
-        /// </summary>
-        /// <returns>The string representation of this instance.</returns>
-        public override string ToString() => "NativeCompositeFormat";
-
-        /// <summary>
         ///     Parse the composite format string <paramref name="format" />.
         /// </summary>
         /// <param name="format">The string to parse.</param>
@@ -121,6 +100,27 @@ namespace NativeCollections
                 segments.Dispose();
             }
         }
+
+        /// <summary>
+        ///     Gets the original composite format string used to create
+        ///     this <see cref="NativeCompositeFormat" /> instance.
+        /// </summary>
+        public string Format { get; }
+
+        /// <summary>
+        ///     Gets the minimum number of arguments that must be passed to a
+        ///     formatting operation using this <see cref="NativeCompositeFormat" />.
+        /// </summary>
+        /// <remarks>
+        ///     It's permissible to supply more arguments than this value, but it's an error to pass fewer.
+        /// </remarks>
+        public int MinimumArgumentCount => ArgsRequired;
+
+        /// <summary>
+        ///     Returns the string representation of this instance.
+        /// </summary>
+        /// <returns>The string representation of this instance.</returns>
+        public override string ToString() => "NativeCompositeFormat";
 
         /// <summary>
         ///     Throws an exception if the specified number of arguments is fewer than the number required.

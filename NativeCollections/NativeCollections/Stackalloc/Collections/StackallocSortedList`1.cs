@@ -423,9 +423,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Returns a read-only span over a portion of this.
+        ///     Returns a read-only span over the entire contents of this.
         /// </summary>
-        /// <returns>A read-only span over a portion of this.</returns>
+        /// <returns>A read-only span over the entire contents of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<T>(_items), _count);
 

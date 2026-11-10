@@ -5,7 +5,7 @@
 namespace NativeCollections
 {
     /// <summary>
-    ///     Specifies the associated type that the decorated type is bound to.
+    ///     Specifies the associated type that the decorated type or field is bound to.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Field)]
     internal sealed class BindingTypeAttribute : Attribute
@@ -18,7 +18,7 @@ namespace NativeCollections
         /// <summary>
         ///     Initializes a new instance of this class.
         /// </summary>
-        /// <param name="type">The type associated with the decorated type.</param>
+        /// <param name="type">The type associated with the decorated type or field.</param>
         public BindingTypeAttribute(Type type) => Type = type;
     }
 }

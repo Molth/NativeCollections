@@ -100,6 +100,41 @@ namespace NativeCollections
         private UnsafeConcurrentDictionary(NativeObject<ConcurrentDictionary<TKey, TValue>> handle) => _handle = handle;
 
         /// <summary>
+        ///     Creates a new instance that is empty, has the default concurrency level, has
+        ///     the default initial capacity, and uses the default comparer for the key type.
+        /// </summary>
+        /// <returns>A new instance.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UnsafeConcurrentDictionary<TKey, TValue> Create()
+        {
+            var handle = NativeObject<ConcurrentDictionary<TKey, TValue>>.Create(new ConcurrentDictionary<TKey, TValue>());
+            return new UnsafeConcurrentDictionary<TKey, TValue>(handle);
+        }
+
+        /// <summary>
+        ///     Creates a new instance that is empty, has the specified concurrency
+        ///     level and capacity, and uses the default comparer for the key type.
+        /// </summary>
+        /// <param name="concurrencyLevel">
+        ///     The estimated number of threads that will update this concurrently; in .NET 8 and later,
+        ///     -1 indicates the default concurrency level.
+        /// </param>
+        /// <param name="capacity">
+        ///     The initial number of elements that this can contain.
+        /// </param>
+        /// <returns>A new instance.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="concurrencyLevel" /> is less than 1 (except -1 on .NET 8 and later)
+        ///     or <paramref name="capacity" /> is negative.
+        /// </exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UnsafeConcurrentDictionary<TKey, TValue> Create(int concurrencyLevel, int capacity)
+        {
+            var handle = NativeObject<ConcurrentDictionary<TKey, TValue>>.Create(new ConcurrentDictionary<TKey, TValue>(concurrencyLevel, capacity));
+            return new UnsafeConcurrentDictionary<TKey, TValue>(handle);
+        }
+
+        /// <summary>
         ///     Indicates whether the current object is equal to another object.
         /// </summary>
         /// <param name="other">The value to compare with this instance.</param>
@@ -181,7 +216,7 @@ namespace NativeCollections
         /// <summary>
         ///     Attempts to remove and return the value with the specified key from this.
         /// </summary>
-        /// <param name="key">The key of the element to remove and return.</param>
+        /// <param name="key">The key of the element to remove.</param>
         /// <param name="value">
         ///     When this method returns, <paramref name="value" /> contains the object removed from
         ///     this or the default value of <typeparamref name="TValue" /> if the operation failed.
@@ -365,40 +400,6 @@ namespace NativeCollections
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TValue AddOrUpdate(TKey key, TValue addValue, Func<TKey, TValue, TValue> updateValueFactory) => Handle.AddOrUpdate(key, addValue, updateValueFactory);
-
-        /// <summary>
-        ///     Creates a new instance that is empty, has the default concurrency level, has
-        ///     the default initial capacity, and uses the default comparer for the key type.
-        /// </summary>
-        /// <returns>A new instance.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeConcurrentDictionary<TKey, TValue> Create()
-        {
-            var handle = NativeObject<ConcurrentDictionary<TKey, TValue>>.Create(new ConcurrentDictionary<TKey, TValue>());
-            return new UnsafeConcurrentDictionary<TKey, TValue>(handle);
-        }
-
-        /// <summary>
-        ///     Creates a new instance that is empty, has the specified concurrency
-        ///     level and capacity, and uses the default comparer for the key type.
-        /// </summary>
-        /// <param name="concurrencyLevel">
-        ///     The estimated number of threads that will update this concurrently, or -1 to indicate a default value.
-        /// </param>
-        /// <param name="capacity">
-        ///     The initial number of elements that this can contain.
-        /// </param>
-        /// <returns>A new instance.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///     Thrown when <paramref name="concurrencyLevel" /> is
-        ///     less than 1 or <paramref name="capacity" /> is negative.
-        /// </exception>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeConcurrentDictionary<TKey, TValue> Create(int concurrencyLevel, int capacity)
-        {
-            var handle = NativeObject<ConcurrentDictionary<TKey, TValue>>.Create(new ConcurrentDictionary<TKey, TValue>(concurrencyLevel, capacity));
-            return new UnsafeConcurrentDictionary<TKey, TValue>(handle);
-        }
 
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.

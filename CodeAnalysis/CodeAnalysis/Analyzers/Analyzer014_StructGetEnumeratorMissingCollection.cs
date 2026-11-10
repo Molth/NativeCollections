@@ -67,11 +67,16 @@ namespace Roslyn
         ///     An enumerator that returns an interface type is skipped, because such a method is a forwarding
         ///     member rather than evidence of a newly introduced collection. The expected element type is taken
         ///     from <c>IIterator&lt;T&gt;</c> when available and from the <c>Current</c> property otherwise.
+        ///     A <c>ref struct</c> is skipped when the language version does not support ref struct
+        ///     interfaces, because such a type cannot implement the required interface there.
         /// </remarks>
         private static void AnalyzeStruct(SyntaxNodeAnalysisContext context)
         {
             var structDeclaration = (StructDeclarationSyntax)context.Node;
             if (context.SemanticModel.GetDeclaredSymbol(structDeclaration) is not { } structSymbol)
+                return;
+
+            if (structSymbol.IsRefLikeType && !SupportsRefStructInterfaces(structDeclaration))
                 return;
 
             var getEnumeratorMethod = structSymbol.GetMembers("GetEnumerator").OfType<IMethodSymbol>().FirstOrDefault(method => !method.IsStatic && method.Parameters.IsEmpty && !method.ReturnsVoid && method.ReturnType.TypeKind != TypeKind.Interface && method.TypeParameters.IsEmpty);
@@ -98,6 +103,20 @@ namespace Roslyn
             var elementTypeName = elementType.ToMinimalDisplayString(context.SemanticModel, structDeclaration.SpanStart);
             context.ReportDiagnostic(Diagnostic.Create(Rule, structDeclaration.Identifier.GetLocation(), structDeclaration.Identifier.ValueText, elementTypeName));
         }
+
+        /// <summary>
+        ///     Determines whether the language version of the analyzed declaration supports ref struct interfaces.
+        /// </summary>
+        /// <param name="structDeclaration">The declaration of the analyzed struct.</param>
+        /// <returns>
+        ///     <see langword="true" /> when a <c>ref struct</c> may implement an interface; otherwise, <see langword="false" />.
+        /// </returns>
+        /// <remarks>
+        ///     The feature was introduced in C# 13. Earlier language versions reject a <c>ref struct</c> with a base
+        ///     list, so the required <see cref="IReadOnlyCollection{T}" /> cannot be implemented there and reporting
+        ///     the rule would flag code that cannot be fixed.
+        /// </remarks>
+        private static bool SupportsRefStructInterfaces(StructDeclarationSyntax structDeclaration) => structDeclaration.SyntaxTree.Options is CSharpParseOptions options && options.LanguageVersion >= LanguageVersion.CSharp13;
 
         /// <summary>
         ///     Infers the element type produced by the given enumerator type.

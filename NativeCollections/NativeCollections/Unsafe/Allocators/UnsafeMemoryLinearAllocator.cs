@@ -48,7 +48,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Creates an allocator view over the specified native buffer.
+        ///     Creates an allocator that takes ownership of the specified native buffer.
         /// </summary>
         /// <param name="buffer">Represents a contiguous region of arbitrary memory.</param>
         /// <param name="length">The size of the buffer in bytes. Must be non-negative.</param>
@@ -59,8 +59,32 @@ namespace NativeCollections
         /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="length" /> is negative.
         /// </exception>
+        /// <remarks>
+        ///     The returned allocator owns <paramref name="buffer" />; <see cref="Dispose" /> calls
+        ///     <see cref="NativeMemoryAllocator.AlignedFree" /> on it. Therefore, <paramref name="buffer" />
+        ///     must be allocated by <see cref="NativeMemoryAllocator" /> or a compatible allocator, or the
+        ///     caller must release it separately and must not call <see cref="Dispose" /> on the returned
+        ///     allocator.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeMemoryLinearAllocator From(byte* buffer, int length) => new(buffer, length);
+
+        /// <summary>
+        ///     Creates a new instance that references the specified span.
+        /// </summary>
+        /// <param name="value">The span to reference as the allocator buffer.</param>
+        /// <returns>
+        ///     An allocator over <paramref name="value" /> whose total
+        ///     size is the span length and whose current position is zero.
+        /// </returns>
+        /// <remarks>
+        ///     The span must remain pinned and valid for the lifetime of the allocator. Do not call
+        ///     <see cref="Dispose" /> on the returned allocator: it calls
+        ///     <see cref="NativeMemoryAllocator.AlignedFree" /> on the span's address, which is not
+        ///     necessarily memory allocated by <see cref="NativeMemoryAllocator" />.
+        /// </remarks>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UnsafeMemoryLinearAllocator From([MustBePinned] Span<byte> value) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(value)), value.Length);
 
         /// <summary>
         ///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
@@ -336,28 +360,17 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Returns a span over a portion of this.
+        ///     Returns a span over the entire contents of this.
         /// </summary>
-        /// <returns>A span over a portion of this.</returns>
+        /// <returns>A span over the entire contents of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<byte> AsSpan() => MemoryMarshal.CreateSpan(ref Unsafe.AsRef<byte>(Buffer), Length);
 
         /// <summary>
-        ///     Returns a read-only span over a portion of this.
+        ///     Returns a read-only span over the entire contents of this.
         /// </summary>
-        /// <returns>A read-only span over a portion of this.</returns>
+        /// <returns>A read-only span over the entire contents of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<byte> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<byte>(Buffer), Length);
-
-        /// <summary>
-        ///     Creates a new instance that references the specified span.
-        /// </summary>
-        /// <param name="value">The span to reference as the allocator buffer.</param>
-        /// <returns>
-        ///     An allocator over <paramref name="value" /> whose total
-        ///     size is the span length and whose current position is zero.
-        /// </returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeMemoryLinearAllocator From([MustBePinned] Span<byte> value) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(value)), value.Length);
     }
 }

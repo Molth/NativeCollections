@@ -213,11 +213,14 @@ namespace Roslyn
         /// </summary>
         /// <param name="node">The node whose source is inspected.</param>
         /// <returns><c>\r\n</c> when the source uses CRLF; otherwise, <c>\n</c>.</returns>
-        public static string GetLineEnding(SyntaxNode node)
-        {
-            var source = node.SyntaxTree?.GetText().ToString() ?? string.Empty;
-            return source.Contains("\r\n", StringComparison.Ordinal) ? "\r\n" : "\n";
-        }
+        public static string GetLineEnding(SyntaxNode node) => GetLineEnding(node.SyntaxTree?.GetText().ToString() ?? string.Empty);
+
+        /// <summary>
+        ///     Gets the first line ending style used by the source, defaulting to LF.
+        /// </summary>
+        /// <param name="source">The source text to inspect.</param>
+        /// <returns><c>\r\n</c> when the source uses CRLF; otherwise, <c>\n</c>.</returns>
+        public static string GetLineEnding(string source) => source.Contains("\r\n", StringComparison.Ordinal) ? "\r\n" : "\n";
 
         /// <summary>
         ///     Gets the indentation of the line on which the token described by the trivia starts.

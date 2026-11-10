@@ -5,13 +5,14 @@
 namespace NativeCollections
 {
     /// <summary>
-    ///     Specifies the origin or implementation basis of a collection type.
+    ///     Specifies the origin or implementation basis of a type.
     /// </summary>
     [Flags]
     internal enum FromType
     {
         /// <summary>
-        ///     None.
+        ///     No external origin or parity basis. This is a non-zero flag value
+        ///     that can be combined with other members.
         /// </summary>
         None = 1 << 30,
 
@@ -19,7 +20,7 @@ namespace NativeCollections
         ///     .NET Standard.
         /// </summary>
         /// <remarks>
-        ///     This type is a direct rewrite of the corresponding .NET Standard collection types. The
+        ///     This type is a direct rewrite of the corresponding .NET Standard types. The
         ///     API surface and runtime behavior are kept as close as possible to the original, ensuring
         ///     seamless substitution and predictable performance. Any deviations are explicitly documented
         ///     and are limited to low-level optimizations that leverage native memory management.

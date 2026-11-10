@@ -35,7 +35,7 @@ namespace NativeCollections
         /// <summary>
         ///     Sets this to its initial position.
         /// </summary>
-        public void Reset() => _state = UnsafeAtomicU32.Create(0);
+        public void Reset() => _state = UnsafeAtomicU32.Create(0U);
 
         /// <summary>
         ///     Enter the lock in read mode.
@@ -151,7 +151,7 @@ namespace NativeCollections
         public bool TryEnterRead()
         {
             var state = _state.Load(Ordering.Acquire);
-            return state < MAX_READERS && _state.CompareExchange(state.WrappingAdd(U32.FromI32Unchecked(1)), state) == state;
+            return state < MAX_READERS && _state.CompareExchange(state.WrappingAdd(1U), state) == state;
         }
 
         /// <summary>
@@ -198,7 +198,7 @@ namespace NativeCollections
         private void SpinUntilUnlocked(int sleep1Threshold)
         {
             UnsafeSpinWait spinWait = default;
-            while ((_state.Load(Ordering.Acquire) & ~WRITER_MASK) != U32.FromI32Unchecked(0))
+            while ((_state.Load(Ordering.Acquire) & ~WRITER_MASK) != 0U)
                 spinWait.SpinOnce(sleep1Threshold);
         }
 
@@ -212,7 +212,7 @@ namespace NativeCollections
         private bool AcquireWriterLock()
         {
             var state = _state.Load(Ordering.Acquire);
-            return (state & WRITER_MASK) == U32.FromI32Unchecked(0) && _state.CompareExchange(state | WRITER_MASK, state) == state;
+            return (state & WRITER_MASK) == 0U && _state.CompareExchange(state | WRITER_MASK, state) == state;
         }
 
         /// <summary>
@@ -313,16 +313,16 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Exit the lock.
+        ///     Exits the lock in read mode.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void ExitRead() => _state.Sub(U32.FromI32Unchecked(1));
+        public void ExitRead() => _state.Sub(1U);
 
         /// <summary>
-        ///     Exit the lock.
+        ///     Exits the lock in write mode.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void ExitWrite() => _state.Store(U32.FromI32Unchecked(0), Ordering.Release);
+        public void ExitWrite() => _state.Store(0U, Ordering.Release);
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.

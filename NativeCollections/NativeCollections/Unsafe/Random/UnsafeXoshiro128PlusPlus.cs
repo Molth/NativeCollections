@@ -42,7 +42,7 @@ namespace NativeCollections
         /// <param name="s3">The fourth initial state word.</param>
         /// <returns>A pseudo-random number generator initialized from the specified state words.</returns>
         /// <exception cref="ArgumentNullException">
-        ///     Thrown when the deserialized state represents an uninitialized (all‑zero) state.
+        ///     Thrown when the specified state is an uninitialized (all-zero) state.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeXoshiro128PlusPlus Create(uint s0, uint s1, uint s2, uint s3) => new(State.Create(s0, s1, s2, s3));
@@ -60,6 +60,19 @@ namespace NativeCollections
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeXoshiro128PlusPlus Create(ReadOnlySpan<byte> buffer) => new(State.Create(buffer));
+
+        /// <summary>
+        ///     Creates a new instance seeded from a non-deterministic system random source.
+        /// </summary>
+        /// <returns>A new instance whose sequence cannot be reproduced.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [SkipLocalsInit]
+        public static UnsafeXoshiro128PlusPlus Create()
+        {
+            Unsafe.SkipInit(out UnsafeXoshiro128PlusPlus random);
+            RandomHelpers.Initialize(ref random);
+            return random;
+        }
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
@@ -138,6 +151,9 @@ namespace NativeCollections
         ///     <see langword="false" /> if they should be uppercase. The default is <see langword="false" />.
         /// </param>
         /// <returns>A string populated with random hexadecimal characters.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="stringLength" /> is negative.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public string GetHexString(int stringLength, bool lowercase = false) => _state.GetHexString(stringLength, lowercase);
 
@@ -222,9 +238,13 @@ namespace NativeCollections
         ///     A 64-bit double-precision floating point number greater than or equal to <paramref name="minValue" />,
         ///     and less than <paramref name="maxValue" />; that is, the range of return values
         ///     includes <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         /// <seealso cref="NextF64()" />
+        /// <remarks>
+        ///     Due to floating-point rounding, the returned value may equal
+        ///     <paramref name="maxValue" /> even though the range is nominally exclusive.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public double LerpF64(double minValue, double maxValue) => _state.LerpF64(minValue, maxValue);
 
@@ -256,9 +276,13 @@ namespace NativeCollections
         ///     A 32-bit single-precision floating point number greater than or equal to <paramref name="minValue" />,
         ///     and less than <paramref name="maxValue" />; that is, the range of return values
         ///     includes <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         /// <seealso cref="NextF32()" />
+        /// <remarks>
+        ///     Due to floating-point rounding, the returned value may equal
+        ///     <paramref name="maxValue" /> even though the range is nominally exclusive.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public float LerpF32(float minValue, float maxValue) => _state.LerpF32(minValue, maxValue);
 
@@ -298,7 +322,7 @@ namespace NativeCollections
         ///     A 32-bit unsigned integer greater than or equal to <paramref name="minValue" />, and
         ///     less than <paramref name="maxValue" />; that is, the range of return values includes
         ///     <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public uint NextU32(uint minValue, uint maxValue) => _state.NextU32(minValue, maxValue);
@@ -340,7 +364,7 @@ namespace NativeCollections
         ///     A 64-bit unsigned integer greater than or equal to <paramref name="minValue" />, and
         ///     less than <paramref name="maxValue" />; that is, the range of return values includes
         ///     <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ulong NextU64(ulong minValue, ulong maxValue) => _state.NextU64(minValue, maxValue);
@@ -381,7 +405,7 @@ namespace NativeCollections
         ///     A 32-bit signed integer greater than or equal to <paramref name="minValue" />, and
         ///     less than <paramref name="maxValue" />; that is, the range of return values includes
         ///     <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int NextI32(int minValue, int maxValue) => _state.NextI32(minValue, maxValue);
@@ -422,7 +446,7 @@ namespace NativeCollections
         ///     A 64-bit signed integer greater than or equal to <paramref name="minValue" />, and
         ///     less than <paramref name="maxValue" />; that is, the range of return values includes
         ///     <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public long NextI64(long minValue, long maxValue) => _state.NextI64(minValue, maxValue);
@@ -507,39 +531,25 @@ namespace NativeCollections
         public void Next<T>(ref T destination) where T : unmanaged => _state.Next(ref destination);
 
         /// <summary>
-        ///     Creates a new instance.
-        /// </summary>
-        /// <returns>A new instance.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [SkipLocalsInit]
-        public static UnsafeXoshiro128PlusPlus Create()
-        {
-            Unsafe.SkipInit(out UnsafeXoshiro128PlusPlus random);
-            RandomHelpers.Initialize(ref random);
-            return random;
-        }
-
-        /// <summary>
         ///     Provides a thread-safe instance that may be used concurrently from any thread.
         /// </summary>
         public static ThreadSafeXoshiro128PlusPlus Shared => default;
 
         /// <summary>
-        ///     Represents a pseudo-random number generator, which is an algorithm that produces
-        ///     a sequence of numbers that meet certain statistical requirements for randomness.
+        ///     Represents the state of the Xoshiro generator.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         private struct State : IIsCreated, IRandomState
         {
             /// <summary>
-            ///     Represents the states.
+            ///     Represents the four 32-bit state words of the Xoshiro generator.
             /// </summary>
             private uint _s0, _s1, _s2, _s3;
 
             /// <summary>
             ///     Gets a value that indicates whether this has been allocated or initialized.
             /// </summary>
-            public readonly bool IsCreated => (_s0 | _s1 | _s2 | _s3) != U32.FromI32Unchecked(0);
+            public readonly bool IsCreated => (_s0 | _s1 | _s2 | _s3) != 0U;
 
             /// <summary>
             ///     Initializes a new instance of this class from states.

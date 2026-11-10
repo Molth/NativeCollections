@@ -491,13 +491,21 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Advances the position within the memory stream by the number of bytes read.
+        ///     Discards up to <paramref name="length" /> bytes from the start of this stream without
+        ///     copying them anywhere, and returns the number of bytes discarded.
         /// </summary>
-        /// <param name="length">The maximum number of bytes to read.</param>
-        /// <returns>The number of bytes read.</returns>
+        /// <param name="length">The maximum number of bytes to discard.</param>
+        /// <returns>
+        ///     The number of bytes discarded, which is <paramref name="length" /> limited by the
+        ///     number of bytes currently buffered.
+        /// </returns>
         /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="length" /> is negative.
         /// </exception>
+        /// <remarks>
+        ///     The chunks that become empty are returned to the free list, or released immediately
+        ///     when the free list is full.
+        /// </remarks>
         public int Read(int length)
         {
             ThrowHelpers.ThrowIfNegative(length, ExceptionArgument.length);
@@ -883,7 +891,7 @@ namespace NativeCollections
         private static MemoryChunk* CreateChunk(int size) => (MemoryChunk*)NativeMemoryAllocator.AlignedAlloc(Usize.FromI32Unchecked(Unsafe.SizeOf<MemoryChunk>()).WrappingAdd(Usize.FromI32Unchecked(size)), NativeMemoryAllocator.AlignOf<MemoryChunk>());
 
         /// <summary>
-        ///     Chunk.
+        ///     Represents a chunk that holds a buffer of bytes and a link to the next chunk.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         private struct MemoryChunk
@@ -956,9 +964,8 @@ namespace NativeCollections
             private MemoryChunk* _currentChunk;
 
             /// <summary>
-            ///     Gets the element in the collection at the current position of the enumerator.
+            ///     The element in the collection at the current position of the enumerator.
             /// </summary>
-            /// <returns>The element in the collection at the current position of the enumerator.</returns>
             private NativeArray<byte> _current;
 
             /// <summary>

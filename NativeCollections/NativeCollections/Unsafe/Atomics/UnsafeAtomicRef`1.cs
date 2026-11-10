@@ -35,6 +35,22 @@ namespace NativeCollections
         private UnsafeAtomicRef(T? handle) => _value = handle;
 
         /// <summary>
+        ///     Creates a new instance.
+        /// </summary>
+        /// <param name="reference">The value used to create the instance.</param>
+        /// <returns>A new instance initialized with <paramref name="reference" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UnsafeAtomicRef<T> From([MustBePinned] T? reference) => new(reference);
+
+        /// <summary>
+        ///     Creates a new instance.
+        /// </summary>
+        /// <param name="buffer">The value used to create the instance.</param>
+        /// <returns>A new instance initialized with the first element of <paramref name="buffer" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UnsafeAtomicRef<T> From([MustBePinned] Span<T> buffer) => new(MemoryMarshal.GetReference(buffer));
+
+        /// <summary>
         ///     Reinterprets the given location as a reference to this.
         /// </summary>
         /// <returns>A reference to the atomic value.</returns>
@@ -52,7 +68,7 @@ namespace NativeCollections
         public T? Load(Ordering order) => (T?)AtomicHelpers.Load(ref _value, order);
 
         /// <summary>
-        ///     Sets a value to a specified value, as an atomic operation.
+        ///     Sets a variable to a specified value, as an atomic operation.
         /// </summary>
         /// <param name="value">The value to store.</param>
         /// <param name="order">The memory ordering constraint applied to the store operation.</param>
@@ -61,7 +77,7 @@ namespace NativeCollections
         public void Store(T? value, Ordering order) => AtomicHelpers.Store(ref _value, value, order);
 
         /// <summary>
-        ///     Sets a value to a specified value and returns the original value, as an atomic operation.
+        ///     Sets a variable to a specified value and returns the original value, as an atomic operation.
         /// </summary>
         /// <param name="value">The value to store.</param>
         /// <returns>The original value.</returns>
@@ -69,7 +85,7 @@ namespace NativeCollections
         public T? Exchange(T? value) => (T?)Interlocked.Exchange(ref _value, value);
 
         /// <summary>
-        ///     Compares two values for equality and, if they are equal, replaces the first value.
+        ///     Compares two values for equality and, if they are equal, replaces the first value, as an atomic operation.
         /// </summary>
         /// <param name="value">
         ///     The value that replaces the destination value if the comparison results in equality.
@@ -114,21 +130,5 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The string representation of this instance.</returns>
         public readonly override string ToString() => SR.Format("UnsafeAtomicRef<{0}>", SR.GetTypeName(typeof(T)));
-
-        /// <summary>
-        ///     Creates a new instance.
-        /// </summary>
-        /// <param name="reference">The value used to create the instance.</param>
-        /// <returns>A new instance initialized with <paramref name="reference" />.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeAtomicRef<T> From([MustBePinned] T? reference) => new(reference);
-
-        /// <summary>
-        ///     Creates a new instance.
-        /// </summary>
-        /// <param name="buffer">The value used to create the instance.</param>
-        /// <returns>A new instance initialized with the first element of <paramref name="buffer" />.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeAtomicRef<T> From([MustBePinned] Span<T> buffer) => new(MemoryMarshal.GetReference(buffer));
     }
 }

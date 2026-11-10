@@ -40,6 +40,9 @@ namespace NativeCollections
         /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="capacity" /> is negative.
         /// </exception>
+        /// <remarks>
+        ///     The requested capacity is clamped to a minimum of 2; read <c>Capacity</c> for the effective value.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeHashSet<T> Create(int capacity)
         {
@@ -147,7 +150,7 @@ namespace NativeCollections
         public bool Add(T item) => _handle->Add(item);
 
         /// <summary>
-        ///     Removes the first occurrence of a specific object from this.
+        ///     Removes the specified element from this.
         /// </summary>
         /// <param name="item">The object to remove from this.</param>
         /// <returns>
@@ -162,7 +165,7 @@ namespace NativeCollections
         public bool Remove(T item) => _handle->Remove(item);
 
         /// <summary>
-        ///     Removes the first occurrence of a specific object and returns the equal value from this.
+        ///     Removes the specified element and returns the equal value from this.
         /// </summary>
         /// <param name="equalValue">The value to search for.</param>
         /// <param name="actualValue">
@@ -208,11 +211,11 @@ namespace NativeCollections
         public bool TryGetValue(T equalValue, out T actualValue) => _handle->TryGetValue(equalValue, out actualValue);
 
         /// <summary>
-        ///     Searches the set for a given value and returns the equal value it finds, if any.
+        ///     Searches the set for a given value and returns a reference to the equal value it finds, if any.
         /// </summary>
         /// <param name="equalValue">The value to search for.</param>
         /// <param name="actualValue">
-        ///     The value from the set that the search found, or the default value
+        ///     A reference to the value from the set that the search found, or the default value
         ///     of <typeparamref name="T" /> when the search yielded no match.
         /// </param>
         /// <returns>A value indicating whether the search was successful.</returns>

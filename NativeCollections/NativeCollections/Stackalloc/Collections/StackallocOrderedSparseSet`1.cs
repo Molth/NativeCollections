@@ -890,7 +890,7 @@ namespace NativeCollections
         ///     Removes the item at the specified index.
         /// </summary>
         /// <param name="index">The zero-based index of the item to remove.</param>
-        /// <param name="keyValuePair">KeyValuePair.</param>
+        /// <param name="keyValuePair">The removed key/value pair at the specified index.</param>
         /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="index" /> is negative or greater than or equal to <see cref="Count" />.
         /// </exception>
@@ -986,7 +986,11 @@ namespace NativeCollections
         ///     Removes the item at the specified index.
         /// </summary>
         /// <param name="index">The zero-based index of the item to remove.</param>
-        /// <param name="keyValuePair">KeyValuePair.</param>
+        /// <param name="keyValuePair">
+        ///     When this method returns, contains the removed key/value pair at the specified index
+        ///     if the index is valid; otherwise, the default value for the type of the
+        ///     <paramref name="keyValuePair" /> parameter. This parameter is passed uninitialized.
+        /// </param>
         /// <returns>
         ///     <see langword="true" /> if the item is successfully removed; otherwise, <see langword="false" />.
         /// </returns>

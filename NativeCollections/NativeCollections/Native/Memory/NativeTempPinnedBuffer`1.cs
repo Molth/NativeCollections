@@ -141,71 +141,6 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Gets a value that indicates whether this has been allocated or initialized.
-        /// </summary>
-        public bool IsCreated => _buffer != null;
-
-        /// <summary>
-        ///     Gets the number of elements in this buffer.
-        /// </summary>
-        public int Length => _length;
-
-        /// <summary>
-        ///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public void Dispose() => ManagedMemoryAllocator.AlignedFree(_buffer);
-
-        /// <summary>
-        ///     Returns a span over a portion of this.
-        /// </summary>
-        /// <returns>A span over a portion of this.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Span<T> AsSpan() => MemoryMarshal.CreateSpan(ref Unsafe.AsRef<T>(_buffer), _length);
-
-        /// <summary>
-        ///     Returns a read-only span over a portion of this.
-        /// </summary>
-        /// <returns>A read-only span over a portion of this.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<T>(_buffer), _length);
-
-        /// <summary>
-        ///     Indicates whether the current object is equal to another object.
-        /// </summary>
-        /// <param name="obj">The object to compare with this instance.</param>
-        /// <returns>
-        ///     <see langword="true" /> if this instance is equal to
-        ///     the other object; otherwise, <see langword="false" />.
-        /// </returns>
-        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
-        [Obsolete(SR.parameter_obsolete)]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public override bool Equals(object? obj)
-        {
-            ThrowHelpers.ThrowCannotCallEqualsException();
-            return default;
-        }
-
-        /// <summary>
-        ///     Returns the hash code for this instance.
-        /// </summary>
-        /// <returns>The hash code for this instance.</returns>
-        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
-        [Obsolete(SR.parameter_obsolete)]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public override int GetHashCode()
-        {
-            ThrowHelpers.ThrowCannotCallGetHashCodeException();
-            return default;
-        }
-
-        /// <summary>
-        ///     Returns the string representation of this instance.
-        /// </summary>
-        /// <returns>The string representation of this instance.</returns>
-        public override string ToString() => SR.Format("NativeTempPinnedBuffer<{0}>[{1}]", SR.GetTypeName(typeof(T)), _length);
-
-        /// <summary>
         ///     Creates a new instance.
         /// </summary>
         /// <param name="buffer">The values to copy into this.</param>
@@ -720,5 +655,70 @@ namespace NativeCollections
             buffer[15] = arg15;
             return temp;
         }
+
+        /// <summary>
+        ///     Gets a value that indicates whether this has been allocated or initialized.
+        /// </summary>
+        public bool IsCreated => _buffer != null;
+
+        /// <summary>
+        ///     Gets the number of elements in this buffer.
+        /// </summary>
+        public int Length => _length;
+
+        /// <summary>
+        ///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public void Dispose() => ManagedMemoryAllocator.AlignedFree(_buffer);
+
+        /// <summary>
+        ///     Returns a span over the entire contents of this.
+        /// </summary>
+        /// <returns>A span over the entire contents of this.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Span<T> AsSpan() => MemoryMarshal.CreateSpan(ref Unsafe.AsRef<T>(_buffer), _length);
+
+        /// <summary>
+        ///     Returns a read-only span over the entire contents of this.
+        /// </summary>
+        /// <returns>A read-only span over the entire contents of this.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<T>(_buffer), _length);
+
+        /// <summary>
+        ///     Indicates whether the current object is equal to another object.
+        /// </summary>
+        /// <param name="obj">The object to compare with this instance.</param>
+        /// <returns>
+        ///     <see langword="true" /> if this instance is equal to
+        ///     the other object; otherwise, <see langword="false" />.
+        /// </returns>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
+        [Obsolete(SR.parameter_obsolete)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public override bool Equals(object? obj)
+        {
+            ThrowHelpers.ThrowCannotCallEqualsException();
+            return default;
+        }
+
+        /// <summary>
+        ///     Returns the hash code for this instance.
+        /// </summary>
+        /// <returns>The hash code for this instance.</returns>
+        /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
+        [Obsolete(SR.parameter_obsolete)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public override int GetHashCode()
+        {
+            ThrowHelpers.ThrowCannotCallGetHashCodeException();
+            return default;
+        }
+
+        /// <summary>
+        ///     Returns the string representation of this instance.
+        /// </summary>
+        /// <returns>The string representation of this instance.</returns>
+        public override string ToString() => SR.Format("NativeTempPinnedBuffer<{0}>[{1}]", SR.GetTypeName(typeof(T)), _length);
     }
 }

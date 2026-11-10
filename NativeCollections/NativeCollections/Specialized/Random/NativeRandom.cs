@@ -40,6 +40,9 @@ namespace NativeCollections
         ///     <see langword="false" /> if they should be uppercase. The default is <see langword="false" />.
         /// </param>
         /// <returns>A string populated with random hexadecimal characters.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="stringLength" /> is negative.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string GetHexString(int stringLength, bool lowercase = false) => _impl.GetHexString(stringLength, lowercase);
 
@@ -124,7 +127,7 @@ namespace NativeCollections
         ///     A 64-bit double-precision floating point number greater than or equal to <paramref name="minValue" />,
         ///     and less than <paramref name="maxValue" />; that is, the range of return values
         ///     includes <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         /// <seealso cref="NextF64()" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -158,7 +161,7 @@ namespace NativeCollections
         ///     A 32-bit single-precision floating point number greater than or equal to <paramref name="minValue" />,
         ///     and less than <paramref name="maxValue" />; that is, the range of return values
         ///     includes <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         /// <seealso cref="NextF32()" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -200,7 +203,7 @@ namespace NativeCollections
         ///     A 32-bit unsigned integer greater than or equal to <paramref name="minValue" />, and
         ///     less than <paramref name="maxValue" />; that is, the range of return values includes
         ///     <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint NextU32(uint minValue, uint maxValue) => _impl.NextU32(minValue, maxValue);
@@ -242,7 +245,7 @@ namespace NativeCollections
         ///     A 64-bit unsigned integer greater than or equal to <paramref name="minValue" />, and
         ///     less than <paramref name="maxValue" />; that is, the range of return values includes
         ///     <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ulong NextU64(ulong minValue, ulong maxValue) => _impl.NextU64(minValue, maxValue);
@@ -283,7 +286,7 @@ namespace NativeCollections
         ///     A 32-bit signed integer greater than or equal to <paramref name="minValue" />, and
         ///     less than <paramref name="maxValue" />; that is, the range of return values includes
         ///     <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int NextI32(int minValue, int maxValue) => _impl.NextI32(minValue, maxValue);
@@ -324,7 +327,7 @@ namespace NativeCollections
         ///     A 64-bit signed integer greater than or equal to <paramref name="minValue" />, and
         ///     less than <paramref name="maxValue" />; that is, the range of return values includes
         ///     <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long NextI64(long minValue, long maxValue) => _impl.NextI64(minValue, maxValue);

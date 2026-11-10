@@ -32,7 +32,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(1))
+                if (U32.FromI32Unchecked(index) >= 1U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -64,7 +64,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(2))
+                if (U32.FromI32Unchecked(index) >= 2U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -107,7 +107,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(3))
+                if (U32.FromI32Unchecked(index) >= 3U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -156,7 +156,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(4))
+                if (U32.FromI32Unchecked(index) >= 4U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -211,7 +211,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(5))
+                if (U32.FromI32Unchecked(index) >= 5U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -272,7 +272,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(6))
+                if (U32.FromI32Unchecked(index) >= 6U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -339,7 +339,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(7))
+                if (U32.FromI32Unchecked(index) >= 7U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -412,7 +412,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(8))
+                if (U32.FromI32Unchecked(index) >= 8U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -491,7 +491,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(9))
+                if (U32.FromI32Unchecked(index) >= 9U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -576,7 +576,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(10))
+                if (U32.FromI32Unchecked(index) >= 10U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -667,7 +667,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(11))
+                if (U32.FromI32Unchecked(index) >= 11U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -764,7 +764,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(12))
+                if (U32.FromI32Unchecked(index) >= 12U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -867,7 +867,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(13))
+                if (U32.FromI32Unchecked(index) >= 13U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -976,7 +976,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(14))
+                if (U32.FromI32Unchecked(index) >= 14U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -1091,7 +1091,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(15))
+                if (U32.FromI32Unchecked(index) >= 15U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -1212,7 +1212,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(16))
+                if (U32.FromI32Unchecked(index) >= 16U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -1310,7 +1310,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(1))
+                if (U32.FromI32Unchecked(index) >= 1U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -1345,7 +1345,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(2))
+                if (U32.FromI32Unchecked(index) >= 2U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -1391,7 +1391,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(3))
+                if (U32.FromI32Unchecked(index) >= 3U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -1443,7 +1443,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(4))
+                if (U32.FromI32Unchecked(index) >= 4U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -1501,7 +1501,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(5))
+                if (U32.FromI32Unchecked(index) >= 5U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -1565,7 +1565,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(6))
+                if (U32.FromI32Unchecked(index) >= 6U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -1635,7 +1635,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(7))
+                if (U32.FromI32Unchecked(index) >= 7U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -1711,7 +1711,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(8))
+                if (U32.FromI32Unchecked(index) >= 8U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -1793,7 +1793,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(9))
+                if (U32.FromI32Unchecked(index) >= 9U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -1881,7 +1881,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(10))
+                if (U32.FromI32Unchecked(index) >= 10U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -1975,7 +1975,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(11))
+                if (U32.FromI32Unchecked(index) >= 11U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -2075,7 +2075,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(12))
+                if (U32.FromI32Unchecked(index) >= 12U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -2181,7 +2181,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(13))
+                if (U32.FromI32Unchecked(index) >= 13U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -2293,7 +2293,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(14))
+                if (U32.FromI32Unchecked(index) >= 14U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -2411,7 +2411,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(15))
+                if (U32.FromI32Unchecked(index) >= 15U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -2535,7 +2535,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(16))
+                if (U32.FromI32Unchecked(index) >= 16U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -2609,12 +2609,12 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         /// <typeparam name="T0">The type of the first argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <exception cref="FormatException">
@@ -2630,7 +2630,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(1))
+                if (U32.FromI32Unchecked(index) >= 1U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -2639,13 +2639,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         /// <typeparam name="T0">The type of the first argument to format.</typeparam>
         /// <typeparam name="T1">The type of the second argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
@@ -2662,7 +2662,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(2))
+                if (U32.FromI32Unchecked(index) >= 2U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -2680,14 +2680,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         /// <typeparam name="T0">The type of the first argument to format.</typeparam>
         /// <typeparam name="T1">The type of the second argument to format.</typeparam>
         /// <typeparam name="T2">The type of the third argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
@@ -2705,7 +2705,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(3))
+                if (U32.FromI32Unchecked(index) >= 3U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -2727,7 +2727,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -2735,7 +2735,7 @@ namespace NativeCollections
         /// <typeparam name="T1">The type of the second argument to format.</typeparam>
         /// <typeparam name="T2">The type of the third argument to format.</typeparam>
         /// <typeparam name="T3">The type of the fourth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
@@ -2754,7 +2754,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(4))
+                if (U32.FromI32Unchecked(index) >= 4U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -2780,7 +2780,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -2789,7 +2789,7 @@ namespace NativeCollections
         /// <typeparam name="T2">The type of the third argument to format.</typeparam>
         /// <typeparam name="T3">The type of the fourth argument to format.</typeparam>
         /// <typeparam name="T4">The type of the fifth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
@@ -2809,7 +2809,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(5))
+                if (U32.FromI32Unchecked(index) >= 5U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -2839,7 +2839,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -2849,7 +2849,7 @@ namespace NativeCollections
         /// <typeparam name="T3">The type of the fourth argument to format.</typeparam>
         /// <typeparam name="T4">The type of the fifth argument to format.</typeparam>
         /// <typeparam name="T5">The type of the sixth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
@@ -2870,7 +2870,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(6))
+                if (U32.FromI32Unchecked(index) >= 6U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -2904,7 +2904,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -2915,7 +2915,7 @@ namespace NativeCollections
         /// <typeparam name="T4">The type of the fifth argument to format.</typeparam>
         /// <typeparam name="T5">The type of the sixth argument to format.</typeparam>
         /// <typeparam name="T6">The type of the seventh argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
@@ -2937,7 +2937,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(7))
+                if (U32.FromI32Unchecked(index) >= 7U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -2975,7 +2975,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -2987,7 +2987,7 @@ namespace NativeCollections
         /// <typeparam name="T5">The type of the sixth argument to format.</typeparam>
         /// <typeparam name="T6">The type of the seventh argument to format.</typeparam>
         /// <typeparam name="T7">The type of the eighth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
@@ -3010,7 +3010,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(8))
+                if (U32.FromI32Unchecked(index) >= 8U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -3052,7 +3052,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -3065,7 +3065,7 @@ namespace NativeCollections
         /// <typeparam name="T6">The type of the seventh argument to format.</typeparam>
         /// <typeparam name="T7">The type of the eighth argument to format.</typeparam>
         /// <typeparam name="T8">The type of the ninth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
@@ -3089,7 +3089,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(9))
+                if (U32.FromI32Unchecked(index) >= 9U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -3135,7 +3135,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -3149,7 +3149,7 @@ namespace NativeCollections
         /// <typeparam name="T7">The type of the eighth argument to format.</typeparam>
         /// <typeparam name="T8">The type of the ninth argument to format.</typeparam>
         /// <typeparam name="T9">The type of the tenth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
@@ -3174,7 +3174,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(10))
+                if (U32.FromI32Unchecked(index) >= 10U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -3224,7 +3224,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -3239,7 +3239,7 @@ namespace NativeCollections
         /// <typeparam name="T8">The type of the ninth argument to format.</typeparam>
         /// <typeparam name="T9">The type of the tenth argument to format.</typeparam>
         /// <typeparam name="T10">The type of the eleventh argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
@@ -3265,7 +3265,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(11))
+                if (U32.FromI32Unchecked(index) >= 11U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -3319,7 +3319,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -3335,7 +3335,7 @@ namespace NativeCollections
         /// <typeparam name="T9">The type of the tenth argument to format.</typeparam>
         /// <typeparam name="T10">The type of the eleventh argument to format.</typeparam>
         /// <typeparam name="T11">The type of the twelfth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
@@ -3362,7 +3362,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(12))
+                if (U32.FromI32Unchecked(index) >= 12U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -3420,7 +3420,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -3437,7 +3437,7 @@ namespace NativeCollections
         /// <typeparam name="T10">The type of the eleventh argument to format.</typeparam>
         /// <typeparam name="T11">The type of the twelfth argument to format.</typeparam>
         /// <typeparam name="T12">The type of the thirteenth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
@@ -3465,7 +3465,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(13))
+                if (U32.FromI32Unchecked(index) >= 13U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -3527,7 +3527,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -3545,7 +3545,7 @@ namespace NativeCollections
         /// <typeparam name="T11">The type of the twelfth argument to format.</typeparam>
         /// <typeparam name="T12">The type of the thirteenth argument to format.</typeparam>
         /// <typeparam name="T13">The type of the fourteenth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
@@ -3574,7 +3574,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(14))
+                if (U32.FromI32Unchecked(index) >= 14U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -3640,7 +3640,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -3659,7 +3659,7 @@ namespace NativeCollections
         /// <typeparam name="T12">The type of the thirteenth argument to format.</typeparam>
         /// <typeparam name="T13">The type of the fourteenth argument to format.</typeparam>
         /// <typeparam name="T14">The type of the fifteenth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
@@ -3689,7 +3689,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(15))
+                if (U32.FromI32Unchecked(index) >= 15U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -3759,7 +3759,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -3779,7 +3779,7 @@ namespace NativeCollections
         /// <typeparam name="T13">The type of the fourteenth argument to format.</typeparam>
         /// <typeparam name="T14">The type of the fifteenth argument to format.</typeparam>
         /// <typeparam name="T15">The type of the sixteenth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
@@ -3810,7 +3810,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(16))
+                if (U32.FromI32Unchecked(index) >= 16U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -3884,12 +3884,12 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         /// <typeparam name="T0">The type of the first argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
@@ -3908,7 +3908,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(1))
+                if (U32.FromI32Unchecked(index) >= 1U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -3917,13 +3917,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         /// <typeparam name="T0">The type of the first argument to format.</typeparam>
         /// <typeparam name="T1">The type of the second argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
@@ -3943,7 +3943,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(2))
+                if (U32.FromI32Unchecked(index) >= 2U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -3961,14 +3961,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         /// <typeparam name="T0">The type of the first argument to format.</typeparam>
         /// <typeparam name="T1">The type of the second argument to format.</typeparam>
         /// <typeparam name="T2">The type of the third argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
@@ -3989,7 +3989,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(3))
+                if (U32.FromI32Unchecked(index) >= 3U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -4011,7 +4011,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -4019,7 +4019,7 @@ namespace NativeCollections
         /// <typeparam name="T1">The type of the second argument to format.</typeparam>
         /// <typeparam name="T2">The type of the third argument to format.</typeparam>
         /// <typeparam name="T3">The type of the fourth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
@@ -4041,7 +4041,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(4))
+                if (U32.FromI32Unchecked(index) >= 4U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -4067,7 +4067,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -4076,7 +4076,7 @@ namespace NativeCollections
         /// <typeparam name="T2">The type of the third argument to format.</typeparam>
         /// <typeparam name="T3">The type of the fourth argument to format.</typeparam>
         /// <typeparam name="T4">The type of the fifth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
@@ -4099,7 +4099,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(5))
+                if (U32.FromI32Unchecked(index) >= 5U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -4129,7 +4129,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -4139,7 +4139,7 @@ namespace NativeCollections
         /// <typeparam name="T3">The type of the fourth argument to format.</typeparam>
         /// <typeparam name="T4">The type of the fifth argument to format.</typeparam>
         /// <typeparam name="T5">The type of the sixth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
@@ -4163,7 +4163,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(6))
+                if (U32.FromI32Unchecked(index) >= 6U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -4197,7 +4197,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -4208,7 +4208,7 @@ namespace NativeCollections
         /// <typeparam name="T4">The type of the fifth argument to format.</typeparam>
         /// <typeparam name="T5">The type of the sixth argument to format.</typeparam>
         /// <typeparam name="T6">The type of the seventh argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
@@ -4233,7 +4233,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(7))
+                if (U32.FromI32Unchecked(index) >= 7U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -4271,7 +4271,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -4283,7 +4283,7 @@ namespace NativeCollections
         /// <typeparam name="T5">The type of the sixth argument to format.</typeparam>
         /// <typeparam name="T6">The type of the seventh argument to format.</typeparam>
         /// <typeparam name="T7">The type of the eighth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
@@ -4309,7 +4309,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(8))
+                if (U32.FromI32Unchecked(index) >= 8U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -4351,7 +4351,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -4364,7 +4364,7 @@ namespace NativeCollections
         /// <typeparam name="T6">The type of the seventh argument to format.</typeparam>
         /// <typeparam name="T7">The type of the eighth argument to format.</typeparam>
         /// <typeparam name="T8">The type of the ninth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
@@ -4391,7 +4391,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(9))
+                if (U32.FromI32Unchecked(index) >= 9U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -4437,7 +4437,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -4451,7 +4451,7 @@ namespace NativeCollections
         /// <typeparam name="T7">The type of the eighth argument to format.</typeparam>
         /// <typeparam name="T8">The type of the ninth argument to format.</typeparam>
         /// <typeparam name="T9">The type of the tenth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
@@ -4479,7 +4479,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(10))
+                if (U32.FromI32Unchecked(index) >= 10U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -4529,7 +4529,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -4544,7 +4544,7 @@ namespace NativeCollections
         /// <typeparam name="T8">The type of the ninth argument to format.</typeparam>
         /// <typeparam name="T9">The type of the tenth argument to format.</typeparam>
         /// <typeparam name="T10">The type of the eleventh argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
@@ -4573,7 +4573,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(11))
+                if (U32.FromI32Unchecked(index) >= 11U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -4627,7 +4627,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -4643,7 +4643,7 @@ namespace NativeCollections
         /// <typeparam name="T9">The type of the tenth argument to format.</typeparam>
         /// <typeparam name="T10">The type of the eleventh argument to format.</typeparam>
         /// <typeparam name="T11">The type of the twelfth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
@@ -4673,7 +4673,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(12))
+                if (U32.FromI32Unchecked(index) >= 12U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -4731,7 +4731,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -4748,7 +4748,7 @@ namespace NativeCollections
         /// <typeparam name="T10">The type of the eleventh argument to format.</typeparam>
         /// <typeparam name="T11">The type of the twelfth argument to format.</typeparam>
         /// <typeparam name="T12">The type of the thirteenth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
@@ -4779,7 +4779,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(13))
+                if (U32.FromI32Unchecked(index) >= 13U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -4841,7 +4841,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -4859,7 +4859,7 @@ namespace NativeCollections
         /// <typeparam name="T11">The type of the twelfth argument to format.</typeparam>
         /// <typeparam name="T12">The type of the thirteenth argument to format.</typeparam>
         /// <typeparam name="T13">The type of the fourteenth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
@@ -4891,7 +4891,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(14))
+                if (U32.FromI32Unchecked(index) >= 14U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -4957,7 +4957,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -4976,7 +4976,7 @@ namespace NativeCollections
         /// <typeparam name="T12">The type of the thirteenth argument to format.</typeparam>
         /// <typeparam name="T13">The type of the fourteenth argument to format.</typeparam>
         /// <typeparam name="T14">The type of the fifteenth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
@@ -5009,7 +5009,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(15))
+                if (U32.FromI32Unchecked(index) >= 15U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -5079,7 +5079,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -5099,7 +5099,7 @@ namespace NativeCollections
         /// <typeparam name="T13">The type of the fourteenth argument to format.</typeparam>
         /// <typeparam name="T14">The type of the fifteenth argument to format.</typeparam>
         /// <typeparam name="T15">The type of the sixteenth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
         /// <param name="format">The composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
@@ -5133,7 +5133,7 @@ namespace NativeCollections
                 if (!ParseFormat(ref builderRef, format, ref position, out var width, out var leftJustify, out var itemFormatSpan1, out var index))
                     return;
 
-                if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(16))
+                if (U32.FromI32Unchecked(index) >= 16U)
                     ThrowHelpers.ThrowFormatIndexOutOfRange();
 
                 var itemFormatSpan2 = MemoryMarshal.CreateReadOnlySpan(ref MemoryMarshal.GetReference(itemFormatSpan1), itemFormatSpan1.Length);
@@ -5263,7 +5263,7 @@ namespace NativeCollections
             leftJustify = false;
             itemFormatSpan1 = default;
             index = ch.WrappingSub('0');
-            if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(10))
+            if (U32.FromI32Unchecked(index) >= 10U)
                 ThrowHelpers.ThrowFormatInvalidString(position, ExceptionResource.Format_ExpectedAsciiDigit);
 
             ch = MoveNext(format, ref position);
@@ -5295,7 +5295,7 @@ namespace NativeCollections
                     }
 
                     width = ch.WrappingSub('0');
-                    if (U32.FromI32Unchecked(width) >= U32.FromI32Unchecked(10))
+                    if (U32.FromI32Unchecked(width) >= 10U)
                         ThrowHelpers.ThrowFormatInvalidString(position, ExceptionResource.Format_ExpectedAsciiDigit);
 
                     ch = MoveNext(format, ref position);
@@ -5596,7 +5596,7 @@ namespace NativeCollections
             leftJustify = false;
             itemFormatSpan1 = default;
             index = ch.WrappingSub('0');
-            if (U32.FromI32Unchecked(index) >= U32.FromI32Unchecked(10))
+            if (U32.FromI32Unchecked(index) >= 10U)
                 ThrowHelpers.ThrowFormatInvalidString(position, ExceptionResource.Format_ExpectedAsciiDigit);
 
             ch = MoveNext(format, ref position);
@@ -5628,7 +5628,7 @@ namespace NativeCollections
                     }
 
                     width = ch.WrappingSub('0');
-                    if (U32.FromI32Unchecked(width) >= U32.FromI32Unchecked(10))
+                    if (U32.FromI32Unchecked(width) >= 10U)
                         ThrowHelpers.ThrowFormatInvalidString(position, ExceptionResource.Format_ExpectedAsciiDigit);
 
                     ch = MoveNext(format, ref position);

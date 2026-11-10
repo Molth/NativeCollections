@@ -31,6 +31,41 @@ namespace NativeCollections
         private NativeConcurrentHashSet(UnsafeConcurrentHashSet<T>* handle) => _handle = handle;
 
         /// <summary>
+        ///     Creates a new instance that is empty, has the default concurrency level, has the
+        ///     default initial capacity, and uses the default comparer for the element type.
+        /// </summary>
+        /// <returns>A new instance.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeConcurrentHashSet<T> Create()
+        {
+            var value = UnsafeConcurrentHashSet<T>.Create();
+            return new NativeConcurrentHashSet<T>(Box.New(ref value));
+        }
+
+        /// <summary>
+        ///     Creates a new instance that is empty, has the specified concurrency
+        ///     level and capacity, and uses the default comparer for the element type.
+        /// </summary>
+        /// <param name="concurrencyLevel">
+        ///     The estimated number of threads that will update this concurrently; in .NET 8 and later,
+        ///     -1 indicates the default concurrency level.
+        /// </param>
+        /// <param name="capacity">
+        ///     The initial number of elements that this can contain.
+        /// </param>
+        /// <returns>A new instance.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="concurrencyLevel" /> is less than 1 (except -1 on .NET 8 and later)
+        ///     or <paramref name="capacity" /> is negative.
+        /// </exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeConcurrentHashSet<T> Create(int concurrencyLevel, int capacity)
+        {
+            var value = UnsafeConcurrentHashSet<T>.Create(concurrencyLevel, capacity);
+            return new NativeConcurrentHashSet<T>(Box.New(ref value));
+        }
+
+        /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public bool IsCreated => _handle != null;
@@ -138,9 +173,9 @@ namespace NativeCollections
         public bool Add(T item) => _handle->Add(item);
 
         /// <summary>
-        ///     Removes the first occurrence of a specific object from this.
+        ///     Removes the specified element from this.
         /// </summary>
-        /// <param name="item">The element to remove and return.</param>
+        /// <param name="item">The element to remove.</param>
         /// <returns>
         ///     <see langword="true" /> if an object was removed successfully; otherwise, <see langword="false" />.
         /// </returns>
@@ -156,40 +191,6 @@ namespace NativeCollections
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Contains(T item) => _handle->Contains(item);
-
-        /// <summary>
-        ///     Creates a new instance that is empty, has the default concurrency level, has the
-        ///     default initial capacity, and uses the default comparer for the element type.
-        /// </summary>
-        /// <returns>A new instance.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeConcurrentHashSet<T> Create()
-        {
-            var value = UnsafeConcurrentHashSet<T>.Create();
-            return new NativeConcurrentHashSet<T>(Box.New(ref value));
-        }
-
-        /// <summary>
-        ///     Creates a new instance that is empty, has the specified concurrency
-        ///     level and capacity, and uses the default comparer for the element type.
-        /// </summary>
-        /// <param name="concurrencyLevel">
-        ///     The estimated number of threads that will update this concurrently, or -1 to indicate a default value.
-        /// </param>
-        /// <param name="capacity">
-        ///     The initial number of elements that this can contain.
-        /// </param>
-        /// <returns>A new instance.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///     Thrown when <paramref name="concurrencyLevel" /> is
-        ///     less than 1 or <paramref name="capacity" /> is negative.
-        /// </exception>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeConcurrentHashSet<T> Create(int concurrencyLevel, int capacity)
-        {
-            var value = UnsafeConcurrentHashSet<T>.Create(concurrencyLevel, capacity);
-            return new NativeConcurrentHashSet<T>(Box.New(ref value));
-        }
 
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.

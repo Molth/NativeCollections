@@ -203,7 +203,6 @@ namespace NativeCollections
                 var offset = UnsafeHelpers.OpportunisticMisalignment(ref pinnedRef, Usize.FromI32Unchecked(4));
                 ref var alignedRef = ref Unsafe.As<byte, uint>(ref Unsafe.SubtractByteOffset(ref pinnedRef, Isize.FromUsizeUnchecked(offset)));
                 var bitOffset = I32.FromUsizeUnchecked((BitConverter.IsLittleEndian ? offset : Usize.FromI32Unchecked(3).WrappingSub(offset)).WrappingMul(Usize.FromI32Unchecked(8)));
-                ThrowHelpers.ThrowIfNotNaturallyAligned(Usize.FromI32Unchecked(bitOffset), Usize.FromI32Unchecked(8), ExceptionArgument.location);
                 var mask = ~(U32.FromU8Unchecked(byte.MaxValue) << bitOffset);
                 var shiftedValue = U32.FromU8Unchecked(value) << bitOffset;
                 var originalValue = alignedRef;
@@ -244,7 +243,6 @@ namespace NativeCollections
                 var offset = UnsafeHelpers.OpportunisticMisalignment(ref pinnedRef, Usize.FromI32Unchecked(4));
                 ref var alignedRef = ref Unsafe.As<byte, uint>(ref Unsafe.SubtractByteOffset(ref pinnedRef, Isize.FromUsizeUnchecked(offset)));
                 var bitOffset = I32.FromUsizeUnchecked((BitConverter.IsLittleEndian ? offset : Usize.FromI32Unchecked(3).WrappingSub(offset)).WrappingMul(Usize.FromI32Unchecked(8)));
-                ThrowHelpers.ThrowIfNotNaturallyAligned(Usize.FromI32Unchecked(bitOffset), Usize.FromI32Unchecked(8), ExceptionArgument.location);
                 var mask = ~(U32.FromU8Unchecked(byte.MaxValue) << bitOffset);
                 var shiftedValue = U32.FromU8Unchecked(value) << bitOffset;
                 var shiftedComparand = U32.FromU8Unchecked(comparand) << bitOffset;
@@ -386,32 +384,32 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Sets a 16-bit signed integer to a specified value and
+        ///     Sets a 16-bit unsigned integer to a specified value and
         ///     returns the original value, as an atomic operation.
         /// </summary>
         /// <param name="location">The variable to set to the specified value.</param>
         /// <param name="value">The value to which the <paramref name="location" /> parameter is set.</param>
         /// <returns>The original value of <paramref name="location" />.</returns>
+        /// <exception cref="ArgumentException">
+        ///     Thrown on .NET 8 and earlier when <paramref name="location" /> is not naturally
+        ///     aligned to 2 bytes.
+        /// </exception>
         /// <remarks>
         ///     <list type="bullet">
         ///         <item>
         ///             <description>
-        ///                 On net8.0 and earlier, <paramref name="location" /> must be naturally aligned to 2 bytes
+        ///                 On .NET 8 and earlier, <paramref name="location" /> must be naturally aligned to 2 bytes
         ///                 because the fallback operates on the naturally aligned 4-byte word that contains the value.
         ///             </description>
         ///         </item>
         ///         <item>
         ///             <description>
-        ///                 On net9.0 and later the operation forwards to
+        ///                 On .NET 9 and later the operation forwards to
         ///                 <see cref="Interlocked" />, which does not validate alignment.
         ///             </description>
         ///         </item>
         ///     </list>
         /// </remarks>
-        /// <exception cref="ArgumentException">
-        ///     Thrown on net8.0 and earlier when <paramref name="location" /> is not naturally
-        ///     aligned to 2 bytes.
-        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ushort Exchange(ref ushort location, ushort value)
         {
@@ -443,7 +441,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Compares two 16-bit signed integers for equality and, if they are equal, replaces the first value.
+        ///     Compares two 16-bit unsigned integers for equality and, if they are equal, replaces the first value.
         /// </summary>
         /// <param name="location">
         ///     The destination, whose value is compared with <paramref name="comparand" /> and possibly replaced.
@@ -453,26 +451,26 @@ namespace NativeCollections
         /// </param>
         /// <param name="comparand">The value that is compared to the value at <paramref name="location" />.</param>
         /// <returns>The original value in <paramref name="location" />.</returns>
+        /// <exception cref="ArgumentException">
+        ///     Thrown on .NET 8 and earlier when <paramref name="location" /> is not naturally
+        ///     aligned to 2 bytes.
+        /// </exception>
         /// <remarks>
         ///     <list type="bullet">
         ///         <item>
         ///             <description>
-        ///                 On net8.0 and earlier, <paramref name="location" /> must be naturally aligned to 2 bytes
+        ///                 On .NET 8 and earlier, <paramref name="location" /> must be naturally aligned to 2 bytes
         ///                 because the fallback operates on the naturally aligned 4-byte word that contains the value.
         ///             </description>
         ///         </item>
         ///         <item>
         ///             <description>
-        ///                 On net9.0 and later the operation forwards to
+        ///                 On .NET 9 and later the operation forwards to
         ///                 <see cref="Interlocked" />, which does not validate alignment.
         ///             </description>
         ///         </item>
         ///     </list>
         /// </remarks>
-        /// <exception cref="ArgumentException">
-        ///     Thrown on net8.0 and earlier when <paramref name="location" /> is not naturally
-        ///     aligned to 2 bytes.
-        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ushort CompareExchange(ref ushort location, ushort value, ushort comparand)
         {

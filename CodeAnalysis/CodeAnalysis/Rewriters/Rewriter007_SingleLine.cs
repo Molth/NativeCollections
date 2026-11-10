@@ -223,12 +223,14 @@ namespace Roslyn
         ///     indentation and the comments around the node stay in place. A node that contains
         ///     a comment or a directive is not normalized, because normalization moves the
         ///     directive to the line of another token and produces source that does not compile.
+        ///     A node that contains a construct with a meaningful multi-line layout is not normalized
+        ///     either, because collapsing it would erase the indentation of its own lines.
         /// </remarks>
         private static T Flatten<T>(T node) where T : SyntaxNode
         {
             var firstLine = node.GetFirstToken().GetLocation().GetLineSpan().StartLinePosition.Line;
             var lastLine = node.GetLastToken().GetLocation().GetLineSpan().EndLinePosition.Line;
-            if (firstLine == lastLine || TriviaHelpers.HasCommentOrDirective(node))
+            if (firstLine == lastLine || TriviaHelpers.HasCommentOrDirective(node) || SyntaxHelpers.ContainsMultilineLayoutConstruct(node))
                 return node;
 
             var leading = node.GetLeadingTrivia();

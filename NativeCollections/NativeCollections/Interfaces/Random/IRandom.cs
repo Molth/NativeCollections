@@ -31,6 +31,9 @@ namespace NativeCollections
         ///     <see langword="false" /> if they should be uppercase. The default is <see langword="false" />.
         /// </param>
         /// <returns>A string populated with random hexadecimal characters.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="stringLength" /> is negative.
+        /// </exception>
         string GetHexString(int stringLength, bool lowercase = false);
 
         /// <summary>
@@ -103,7 +106,7 @@ namespace NativeCollections
         ///     A 64-bit double-precision floating point number greater than or equal to <paramref name="minValue" />,
         ///     and less than <paramref name="maxValue" />; that is, the range of return values
         ///     includes <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         double LerpF64(double minValue, double maxValue);
 
@@ -133,7 +136,7 @@ namespace NativeCollections
         ///     A 32-bit single-precision floating point number greater than or equal to <paramref name="minValue" />,
         ///     and less than <paramref name="maxValue" />; that is, the range of return values
         ///     includes <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         float LerpF32(float minValue, float maxValue);
 
@@ -171,7 +174,7 @@ namespace NativeCollections
         ///     A 32-bit unsigned integer greater than or equal to <paramref name="minValue" />, and
         ///     less than <paramref name="maxValue" />; that is, the range of return values includes
         ///     <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         uint NextU32(uint minValue, uint maxValue);
 
@@ -210,7 +213,7 @@ namespace NativeCollections
         ///     A 64-bit unsigned integer greater than or equal to <paramref name="minValue" />, and
         ///     less than <paramref name="maxValue" />; that is, the range of return values includes
         ///     <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         ulong NextU64(ulong minValue, ulong maxValue);
 
@@ -248,7 +251,7 @@ namespace NativeCollections
         ///     A 32-bit signed integer greater than or equal to <paramref name="minValue" />, and
         ///     less than <paramref name="maxValue" />; that is, the range of return values includes
         ///     <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         int NextI32(int minValue, int maxValue);
 
@@ -286,7 +289,7 @@ namespace NativeCollections
         ///     A 64-bit signed integer greater than or equal to <paramref name="minValue" />, and
         ///     less than <paramref name="maxValue" />; that is, the range of return values includes
         ///     <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         long NextI64(long minValue, long maxValue);
 
@@ -324,7 +327,9 @@ namespace NativeCollections
         /// <summary>
         ///     Fills a specified memory block with random bytes.
         /// </summary>
-        /// <param name="startAddress">A pointer to the memory location where the random bytes will be written.</param>
+        /// <param name="startAddress">
+        ///     A reference to the first byte of the memory location where the random bytes will be written.
+        /// </param>
         /// <param name="byteCount">The number of bytes to fill with random numbers.</param>
         void NextBytes(ref byte startAddress, nuint byteCount);
 

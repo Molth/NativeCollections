@@ -10,7 +10,7 @@ namespace NativeCollections
     internal static class U64
     {
         /// <summary>
-        ///     Converts a 8-bit unsigned integer to 64-bit unsigned integer using unchecked conversion.
+        ///     Converts an 8-bit unsigned integer to 64-bit unsigned integer using unchecked conversion.
         /// </summary>
         /// <param name="value">The value to convert.</param>
         /// <returns>The converted value.</returns>

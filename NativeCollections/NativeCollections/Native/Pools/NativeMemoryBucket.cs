@@ -40,7 +40,7 @@ namespace NativeCollections
         /// </param>
         /// <returns>A newly allocated bucket.</returns>
         /// <exception cref="ArgumentOutOfRangeException">
-        ///     Thrown when <paramref name="capacity" /> or <paramref name="length" /> is negative.
+        ///     Thrown when <paramref name="capacity" />, <paramref name="length" />, or <paramref name="alignment" /> is negative.
         /// </exception>
         /// <exception cref="ArgumentException">
         ///     Thrown when <paramref name="alignment" /> is not a power of two.
@@ -67,7 +67,7 @@ namespace NativeCollections
         /// <param name="allocator">The custom memory allocator to use for allocations and deallocations.</param>
         /// <returns>A newly allocated bucket.</returns>
         /// <exception cref="ArgumentOutOfRangeException">
-        ///     Thrown when <paramref name="capacity" /> or <paramref name="length" /> is negative.
+        ///     Thrown when <paramref name="capacity" />, <paramref name="length" />, or <paramref name="alignment" /> is negative.
         /// </exception>
         /// <exception cref="ArgumentException">
         ///     Thrown when <paramref name="alignment" /> is not a power of two.

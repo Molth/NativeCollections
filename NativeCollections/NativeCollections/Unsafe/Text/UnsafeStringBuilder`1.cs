@@ -650,7 +650,7 @@ namespace NativeCollections
         public readonly void Fill(T value) => Text.Fill(value);
 
         /// <summary>
-        ///     Removes all leading occurrences of a specified element from the span.
+        ///     Removes all leading occurrences of a specified element from this builder.
         /// </summary>
         /// <param name="value">The value to remove from the beginning of this.</param>
         public void TrimStart(T value)
@@ -694,7 +694,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Removes all leading and trailing occurrences of a specified element from the span.
+        ///     Removes all leading and trailing occurrences of a specified element from this builder.
         /// </summary>
         /// <param name="value">The value to remove from the beginning and end of this.</param>
         public void Trim(T value)
@@ -725,7 +725,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Removes all leading occurrences of a set of elements specified in a readonly span from the span.
+        ///     Removes all leading occurrences of a set of elements specified in a readonly span from this builder.
         /// </summary>
         /// <param name="buffer">The values to remove from the beginning of this.</param>
         public void TrimStart(ReadOnlySpan<T> buffer)
@@ -751,7 +751,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Removes all trailing occurrences of a set of elements specified in a readonly span from the span.
+        ///     Removes all trailing occurrences of a set of elements specified in a readonly span from this builder.
         /// </summary>
         /// <param name="buffer">The values to remove from the end of this.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -876,7 +876,7 @@ namespace NativeCollections
         ///     Casts an instance of one primitive type to another primitive type.
         /// </summary>
         /// <typeparam name="TTo">The type to reinterpret the elements as.</typeparam>
-        /// <returns>A span over the characters currently considered part of this.</returns>
+        /// <returns>A span over the elements currently considered part of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<TTo> Cast<TTo>() where TTo : unmanaged => MemoryMarshal.Cast<T, TTo>(AsSpan());
 
@@ -886,7 +886,7 @@ namespace NativeCollections
         /// <typeparam name="TTo">The type to reinterpret the elements as.</typeparam>
         /// <param name="start">The starting element index.</param>
         /// <returns>
-        ///     A span over the characters currently considered part of this, starting at <paramref name="start" />.
+        ///     A span over the elements currently considered part of this, starting at <paramref name="start" />.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<TTo> Cast<TTo>(int start) where TTo : unmanaged => MemoryMarshal.Cast<T, TTo>(AsSpan().Slice(start));
@@ -897,7 +897,7 @@ namespace NativeCollections
         /// <typeparam name="TTo">The type to reinterpret the elements as.</typeparam>
         /// <param name="start">The starting element index.</param>
         /// <param name="length">The number of elements to include in the span.</param>
-        /// <returns>A span over the specified portion of the characters currently considered part of this.</returns>
+        /// <returns>A span over the specified portion of the elements currently considered part of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<TTo> Cast<TTo>(int start, int length) where TTo : unmanaged => MemoryMarshal.Cast<T, TTo>(AsSpan().Slice(start, length));
 
@@ -984,8 +984,9 @@ namespace NativeCollections
         public readonly void CopyTo(Span<T> buffer) => Text.CopyTo(buffer);
 
         /// <summary>
-        ///     Copies the contents of this span into destination span. If the source and destinations overlap, this
-        ///     method behaves as if the original values in a temporary location before the destination is overwritten.
+        ///     Copies the contents of this into <paramref name="buffer" />. If the source and destination overlap,
+        ///     this method behaves as if the original values were first copied to a temporary location
+        ///     before the destination is overwritten.
         /// </summary>
         /// <param name="buffer">The destination span to which all elements are copied.</param>
         /// <returns><see langword="true" /> if all elements were copied; otherwise, <see langword="false" />.</returns>
@@ -1071,7 +1072,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>
         ///     <see langword="true" /> if this is uninitialized or
-        ///     contains no characters; otherwise, <see langword="false" />.
+        ///     contains no elements; otherwise, <see langword="false" />.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool IsNullOrEmpty() => Unsafe.IsNullRef(ref _buffer.GetPinnableReference()) || _length == 0;
@@ -1142,14 +1143,14 @@ namespace NativeCollections
         /// <summary>
         ///     Returns a span over the elements currently considered part of this.
         /// </summary>
-        /// <returns>A span over the characters currently considered part of this.</returns>
+        /// <returns>A span over the elements currently considered part of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<T> AsSpan() => Text;
 
         /// <summary>
         ///     Returns a read-only span over the elements currently considered part of this.
         /// </summary>
-        /// <returns>A read-only span over the characters currently considered part of this.</returns>
+        /// <returns>A read-only span over the elements currently considered part of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<T> AsReadOnlySpan() => Text;
 
@@ -1340,10 +1341,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Returns a <see cref="Memory{T}" /> to write to that is at least
-        ///     the requested size (specified by <paramref name="sizeHint" />).
+        ///     This method is not supported by this type and always throws <see cref="NotSupportedException" />.
         /// </summary>
-        /// <param name="sizeHint">The desired length for the slice (exclusive).</param>
+        /// <param name="sizeHint">The requested minimum size. This parameter is not used.</param>
         /// <exception cref="NotSupportedException">Always thrown by this method.</exception>
         [Obsolete(SR.parameter_obsolete)]
         [EditorBrowsable(EditorBrowsableState.Never)]

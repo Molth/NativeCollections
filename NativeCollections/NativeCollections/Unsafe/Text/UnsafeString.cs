@@ -15,7 +15,7 @@ using System.Text;
 namespace NativeCollections
 {
     /// <summary>
-    ///     This class represents a mutable string. It is convenient for situations in which
+    ///     This struct represents a mutable string. It is convenient for situations in which
     ///     it is desirable to modify a string, perhaps by removing, replacing, or inserting
     ///     characters, without creating a new String subsequent to each modification.
     /// </summary>
@@ -69,7 +69,8 @@ namespace NativeCollections
         public readonly int Capacity => _buffer.Length;
 
         /// <summary>
-        ///     Represents a contiguous region of arbitrary memory.
+        ///     Gets the entire underlying buffer, including the unused space after the current text;
+        ///     its length equals <see cref="Capacity" />.
         /// </summary>
         public readonly Span<char> Buffer => _buffer.AsSpan();
 
@@ -147,6 +148,26 @@ namespace NativeCollections
             _buffer = NativeArray<char>.From(buffer);
             _length = length;
         }
+
+        /// <summary>
+        ///     Converts the specified span to an <see cref="UnsafeString" />.
+        /// </summary>
+        /// <param name="value">The span to wrap; its full length is considered in use.</param>
+        /// <returns>A string that wraps <paramref name="value" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UnsafeString From(Span<char> value) => new(value);
+
+        /// <summary>
+        ///     Creates a string view over the specified span with the given initial length.
+        /// </summary>
+        /// <param name="buffer">The underlying span to use as storage.</param>
+        /// <param name="length">The initial number of characters considered in use.</param>
+        /// <returns>
+        ///     A string that wraps <paramref name="buffer" /> with
+        ///     <paramref name="length" /> characters considered in use.
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UnsafeString From([MustBePinned] Span<char> buffer, int length) => new(buffer, length);
 
         /// <summary>
         ///     Appends the specified read-only character span to this instance.
@@ -478,7 +499,7 @@ namespace NativeCollections
         public bool AppendLine(char value)
         {
             var newLine = NewLine;
-            if (I64.FromI32Unchecked(_length).WrappingAdd(I64.FromI32Unchecked(1)).WrappingAdd(I64.FromI32Unchecked(newLine.Length)) > I64.FromI32Unchecked(Capacity))
+            if (I64.FromI32Unchecked(_length).WrappingAdd(1L).WrappingAdd(I64.FromI32Unchecked(newLine.Length)) > I64.FromI32Unchecked(Capacity))
                 return false;
 
             _buffer[(_length = _length.WrappingAdd(1)).WrappingSub(1)] = value;
@@ -580,21 +601,21 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Determines whether this string instance starts with the specified object.
+        ///     Determines whether this string instance starts with the specified character.
         /// </summary>
         /// <param name="value">The character to find at the start of this instance.</param>
         /// <returns>
-        ///     <see langword="true" /> if this starts with the specified sequence; otherwise, <see langword="false" />.
+        ///     <see langword="true" /> if this starts with the specified character; otherwise, <see langword="false" />.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool StartsWith(char value) => _length > 0 && I32.FromCharUnchecked(_buffer[0]) == I32.FromCharUnchecked(value);
 
         /// <summary>
-        ///     Determines whether this string instance ends with the specified object.
+        ///     Determines whether this string instance ends with the specified character.
         /// </summary>
         /// <param name="value">The character to find at the end of this instance.</param>
         /// <returns>
-        ///     <see langword="true" /> if this ends with the specified sequence; otherwise, <see langword="false" />.
+        ///     <see langword="true" /> if this ends with the specified character; otherwise, <see langword="false" />.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool EndsWith(char value) => _length > 0 && I32.FromCharUnchecked(_buffer[_length.WrappingSub(1)]) == I32.FromCharUnchecked(value);
@@ -625,20 +646,20 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reverses the sequence of the elements in the specified span.
+        ///     Reverses the sequence of the elements in this instance.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void Reverse() => Text.Reverse();
 
         /// <summary>
-        ///     Fills the contents of this span with the given value.
+        ///     Fills the contents of this instance with the given value.
         /// </summary>
-        /// <param name="value">The character to fill the span with.</param>
+        /// <param name="value">The character to fill this instance with.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void Fill(char value) => Text.Fill(value);
 
         /// <summary>
-        ///     Removes all leading white-space characters from the span.
+        ///     Removes all leading white-space characters from this instance.
         /// </summary>
         public void TrimStart()
         {
@@ -680,7 +701,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Removes all leading and trailing white-space characters from the span.
+        ///     Removes all leading and trailing white-space characters from this instance.
         /// </summary>
         public void Trim()
         {
@@ -710,7 +731,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Removes all leading occurrences of a specified element from the span.
+        ///     Removes all leading occurrences of a specified element from this instance.
         /// </summary>
         /// <param name="value">The character to trim.</param>
         public void TrimStart(char value)
@@ -736,7 +757,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Removes all trailing white-space characters from this instance.
+        ///     Removes all trailing occurrences of the specified character from this instance.
         /// </summary>
         /// <param name="value">The character to trim.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -754,7 +775,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Removes all leading and trailing occurrences of a specified element from the span.
+        ///     Removes all leading and trailing occurrences of a specified element from this instance.
         /// </summary>
         /// <param name="value">The character to trim.</param>
         public void Trim(char value)
@@ -785,7 +806,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Removes all leading occurrences of a set of elements specified in a readonly span from the span.
+        ///     Removes all leading occurrences of a set of elements specified in a readonly span from this instance.
         /// </summary>
         /// <param name="buffer">The characters to trim.</param>
         public void TrimStart(ReadOnlySpan<char> buffer)
@@ -811,7 +832,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Removes all trailing occurrences of a set of elements specified in a readonly span from the span.
+        ///     Removes all trailing occurrences of a set of elements specified in a readonly span from this instance.
         /// </summary>
         /// <param name="buffer">The characters to trim.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -830,7 +851,7 @@ namespace NativeCollections
 
         /// <summary>
         ///     Removes all leading and trailing occurrences of a set of
-        ///     characters specified in a readonly span from the span.
+        ///     characters specified in a readonly span from this instance.
         /// </summary>
         /// <param name="buffer">The characters to trim.</param>
         public void Trim(ReadOnlySpan<char> buffer)
@@ -868,6 +889,11 @@ namespace NativeCollections
         /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="start" /> is negative or greater than <see cref="Length" />.
         /// </exception>
+        /// <remarks>
+        ///     The returned string is a view over the same buffer as this instance;
+        ///     changes to its characters are reflected in this instance, and its lifetime
+        ///     follows the original buffer.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly UnsafeString Substring(int start) => From(Text.Slice(start));
 
@@ -884,6 +910,11 @@ namespace NativeCollections
         ///     Thrown when <paramref name="start" /> or <paramref name="length" /> is negative, or when
         ///     <paramref name="start" /> plus <paramref name="length" /> exceeds <see cref="Length" />.
         /// </exception>
+        /// <remarks>
+        ///     The returned string is a view over the same buffer as this instance;
+        ///     changes to its characters are reflected in this instance, and its lifetime
+        ///     follows the original buffer.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly UnsafeString Substring(int start, int length) => From(Text.Slice(start, length));
 
@@ -924,10 +955,18 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Attempts to advance the length of this instance.
+        ///     Attempts to change the length of this instance by the specified number of characters.
         /// </summary>
-        /// <param name="length">The number of characters.</param>
-        /// <returns><see langword="true" /> if the operation succeeded; otherwise, <see langword="false" />.</returns>
+        /// <param name="length">
+        ///     The number of characters to add to the length; a negative value shortens it.
+        /// </param>
+        /// <returns>
+        ///     <see langword="true" /> if the resulting length is within the buffer; otherwise, <see langword="false" />.
+        /// </returns>
+        /// <remarks>
+        ///     Unlike <see cref="Advance" />, this method accepts negative values and does not throw.
+        ///     When the resulting length is negative or greater than <see cref="Capacity" />, the length is left unchanged.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Skip(int length)
         {
@@ -1070,6 +1109,9 @@ namespace NativeCollections
         ///     Thrown when <paramref name="sizeHint" /> is negative
         ///     or does not fit in the unused portion of the buffer.
         /// </exception>
+        /// <remarks>
+        ///     When <paramref name="sizeHint" /> is 0, the returned span is empty; no minimum space is reserved.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<char> GetSpan(int sizeHint = 0) => _buffer.AsSpan().Slice(_length, sizeHint);
 
@@ -1355,26 +1397,6 @@ namespace NativeCollections
         public readonly ReadOnlySpan<char> AsReadOnlySpan() => Text;
 
         /// <summary>
-        ///     Converts the specified span to an <see cref="UnsafeString" />.
-        /// </summary>
-        /// <param name="value">The span to wrap; its full length is considered in use.</param>
-        /// <returns>A string that wraps <paramref name="value" />.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeString From(Span<char> value) => new(value);
-
-        /// <summary>
-        ///     Creates a string view over the specified span with the given initial length.
-        /// </summary>
-        /// <param name="buffer">The underlying span to use as storage.</param>
-        /// <param name="length">The initial number of characters considered in use.</param>
-        /// <returns>
-        ///     A string that wraps <paramref name="buffer" /> with
-        ///     <paramref name="length" /> characters considered in use.
-        /// </returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeString From([MustBePinned] Span<char> buffer, int length) => new(buffer, length);
-
-        /// <summary>
         ///     Indicates whether the current object is equal to another object.
         /// </summary>
         /// <param name="left">The first value to compare.</param>
@@ -1446,7 +1468,7 @@ namespace NativeCollections
         private static readonly char[] _NewLine = Environment.NewLine.ToCharArray();
 
         /// <summary>
-        ///     Gets the newline string defined for this environment.
+        ///     Gets the newline sequence defined for this environment as UTF-8 encoded bytes.
         /// </summary>
         private static readonly byte[] _NewLineUtf8 = Encoding.UTF8.GetBytes(Environment.NewLine);
 
@@ -1466,7 +1488,7 @@ namespace NativeCollections
         public static ReadOnlySpan<char> NewLine => _NewLine;
 
         /// <summary>
-        ///     Gets the newline string defined for this environment.
+        ///     Gets the newline sequence defined for this environment as UTF-8 encoded bytes.
         /// </summary>
         public static ReadOnlySpan<byte> NewLineUtf8 => _NewLineUtf8;
 
@@ -1550,13 +1572,12 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
-        ///     contains zero or more format items, to this instance. Each format item is replaced
-        ///     by the string representation of a corresponding argument in a parameter span.
+        ///     Appends the string representation of <paramref name="obj" />, formatted using
+        ///     the specified <paramref name="format" /> and <paramref name="provider" />, to this instance.
         /// </summary>
         /// <typeparam name="T">The type of the value to format.</typeparam>
         /// <param name="obj">The value to format.</param>
-        /// <param name="format">The format string.</param>
+        /// <param name="format">The format specifier used to format <paramref name="obj" />.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
         /// <returns>
         ///     <see langword="true" /> if <paramref name="obj" /> is <see langword="null" /> or the formatted
@@ -1566,13 +1587,12 @@ namespace NativeCollections
         public bool AppendFormat<T>(T? obj, ReadOnlySpan<char> format = default, IFormatProvider? provider = null) where T : struct => !obj.HasValue || AppendFormat(obj.GetValueOrDefault(), format, provider);
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
-        ///     contains zero or more format items, to this instance. Each format item is replaced
-        ///     by the string representation of a corresponding argument in a parameter span.
+        ///     Appends the string representation of <paramref name="obj" />, formatted using
+        ///     the specified <paramref name="format" /> and <paramref name="provider" />, to this instance.
         /// </summary>
         /// <typeparam name="T">The type of the value to format.</typeparam>
         /// <param name="obj">The value to format.</param>
-        /// <param name="format">The format string.</param>
+        /// <param name="format">The format specifier used to format <paramref name="obj" />.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
         /// <returns>
         ///     <see langword="true" /> if the formatted value was appended; otherwise,

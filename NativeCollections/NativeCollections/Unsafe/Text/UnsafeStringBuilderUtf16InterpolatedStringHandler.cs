@@ -105,7 +105,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Creates a handler used to translate an interpolated string into a <see cref="string" />.
+        ///     Creates a handler used to append an interpolated string into a <see cref="UnsafeStringBuilder{T}" />.
         /// </summary>
         /// <param name="literalLength">
         ///     The number of constant characters outside of interpolation expressions in the interpolated string.
@@ -278,11 +278,11 @@ namespace NativeCollections
         /// </summary>
         /// <typeparam name="T">The type of the value to write.</typeparam>
         /// <param name="value">The value to write.</param>
-        /// <param name="format">The format string.</param>
         /// <param name="alignment">
         ///     Minimum number of characters that should be written for this value. If the value is
         ///     negative, it indicates left-aligned and the required minimum is the absolute value.
         /// </param>
+        /// <param name="format">The format string.</param>
         public void AppendFormatted<T>(T? value, int alignment, string? format) where T : struct
         {
             if (!value.HasValue)
@@ -296,11 +296,11 @@ namespace NativeCollections
         /// </summary>
         /// <typeparam name="T">The type of the value to write.</typeparam>
         /// <param name="value">The value to write.</param>
-        /// <param name="format">The format string.</param>
         /// <param name="alignment">
         ///     Minimum number of characters that should be written for this value. If the value is
         ///     negative, it indicates left-aligned and the required minimum is the absolute value.
         /// </param>
+        /// <param name="format">The format string.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AppendFormatted<T>(T value, int alignment, string? format)
         {

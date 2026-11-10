@@ -125,7 +125,7 @@ namespace NativeCollections
         public sbyte Load(Ordering order) => I8.FromU8Unchecked(_value.Load(order));
 
         /// <summary>
-        ///     Sets a value to a specified value, as an atomic operation.
+        ///     Sets a variable to a specified value, as an atomic operation.
         /// </summary>
         /// <param name="value">The value to store.</param>
         /// <param name="order">The memory ordering constraint applied to the store operation.</param>
@@ -134,7 +134,7 @@ namespace NativeCollections
         public void Store(sbyte value, Ordering order) => _value.Store(U8.FromI8Unchecked(value), order);
 
         /// <summary>
-        ///     Sets a value to a specified value and returns the original value, as an atomic operation.
+        ///     Sets a variable to a specified value and returns the original value, as an atomic operation.
         /// </summary>
         /// <param name="value">The value to store.</param>
         /// <returns>The original value.</returns>
@@ -142,7 +142,7 @@ namespace NativeCollections
         public sbyte Exchange(sbyte value) => I8.FromU8Unchecked(_value.Exchange(U8.FromI8Unchecked(value)));
 
         /// <summary>
-        ///     Compares two values for equality and, if they are equal, replaces the first value.
+        ///     Compares two values for equality and, if they are equal, replaces the first value, as an atomic operation.
         /// </summary>
         /// <param name="value">
         ///     The value that replaces the destination value if the comparison results in equality.

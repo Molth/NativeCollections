@@ -212,8 +212,8 @@ namespace NativeCollections
         /// <param name="item">The item to add.</param>
         /// <returns>
         ///     An <see cref="InsertResult" /> value indicating whether the item was
-        ///     added successfully <see cref="InsertResult.Success" /> or if an existing
-        ///     element was overwritten <see cref="InsertResult.Overwritten" />.
+        ///     added as <see cref="InsertResult.Success" />, or <see cref="InsertResult.Overwritten" />
+        ///     if an existing element was overwritten.
         /// </returns>
         /// <remarks>
         ///     When the buffer is full, the new item takes the slot of the current head,
@@ -250,8 +250,8 @@ namespace NativeCollections
         /// </param>
         /// <returns>
         ///     An <see cref="InsertResult" /> value indicating whether the item was
-        ///     added successfully <see cref="InsertResult.Success" /> or if an existing
-        ///     element was overwritten <see cref="InsertResult.Overwritten" />.
+        ///     added as <see cref="InsertResult.Success" />, or <see cref="InsertResult.Overwritten" />
+        ///     if an existing element was overwritten.
         /// </returns>
         /// <remarks>
         ///     When the buffer is full, the new item takes the slot of the current head,
@@ -310,8 +310,8 @@ namespace NativeCollections
         /// <param name="item">The item to add.</param>
         /// <returns>
         ///     An <see cref="InsertResult" /> value indicating whether the item was
-        ///     added successfully <see cref="InsertResult.Success" /> or if an existing
-        ///     element was overwritten <see cref="InsertResult.Overwritten" />.
+        ///     added as <see cref="InsertResult.Success" />, or <see cref="InsertResult.Overwritten" />
+        ///     if an existing element was overwritten.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public InsertResult EnqueueTail(T item)
@@ -349,8 +349,8 @@ namespace NativeCollections
         /// </param>
         /// <returns>
         ///     An <see cref="InsertResult" /> value indicating whether the item was
-        ///     added successfully <see cref="InsertResult.Success" /> or if an existing
-        ///     element was overwritten <see cref="InsertResult.Overwritten" />.
+        ///     added as <see cref="InsertResult.Success" />, or <see cref="InsertResult.Overwritten" />
+        ///     if an existing element was overwritten.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public InsertResult EnqueueTail(T item, out T overwritten)
@@ -526,10 +526,12 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Copies up to the specified number of elements from this. The actual number of copied elements is
-        ///     limited by the span's length, the specified count, and the current number of elements in this.
+        ///     Copies up to the specified number of elements from this into a destination byte span. The span's
+        ///     length is measured in bytes, and each element occupies the byte size of <typeparamref name="T" />;
+        ///     the actual number of copied elements is limited by the number of elements that fit in the span,
+        ///     the specified count, and the current number of elements in this.
         /// </summary>
-        /// <param name="buffer">The destination span to which elements are copied.</param>
+        /// <param name="buffer">The destination byte span to which elements are copied.</param>
         /// <param name="count">The maximum number of elements to copy. Must be non-negative.</param>
         /// <returns>The actual number of elements copied from this.</returns>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="count" /> is negative.</exception>
@@ -553,12 +555,12 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Copies all elements from this into a destination span. The span must
-        ///     have a length at least equal to the current number of elements in this.
+        ///     Copies all elements from this into a destination byte span. The span's length is measured in bytes
+        ///     and must be at least the byte size of all elements in this.
         /// </summary>
-        /// <param name="buffer">The destination span to which all elements are copied.</param>
+        /// <param name="buffer">The destination byte span to which all elements are copied.</param>
         /// <exception cref="ArgumentOutOfRangeException">
-        ///     Thrown when <paramref name="buffer" /> has insufficient length to hold all the elements of this.
+        ///     Thrown when <paramref name="buffer" /> has insufficient byte length to hold all the elements of this.
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void CopyTo(Span<byte> buffer) => CopyTo(MemoryMarshal.Cast<byte, T>(buffer));

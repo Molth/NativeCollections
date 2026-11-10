@@ -37,6 +37,9 @@ namespace NativeCollections
         /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="maxFreeSlabs" /> is negative.
         /// </exception>
+        /// <exception cref="OverflowException">
+        ///     Thrown when the aligned node size exceeds <see cref="int.MaxValue" />.
+        /// </exception>
         /// <remarks>
         ///     Each slab contains exactly 64 nodes, as the allocation bitmap is stored as a <see cref="ulong" />.
         /// </remarks>

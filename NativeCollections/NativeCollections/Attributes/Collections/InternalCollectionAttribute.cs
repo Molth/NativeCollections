@@ -5,8 +5,8 @@
 namespace NativeCollections
 {
     /// <summary>
-    ///     Specifies that the decorated struct is a low‑level unsafe collection implemented directly
-    ///     as a value type without a handle pointer, offering a lightweight but less managed usage.
+    ///     Specifies that the decorated struct is an internal implementation type
+    ///     that is not part of the public API.
     /// </summary>
     [AttributeUsage(AttributeTargets.Struct)]
     internal sealed class InternalCollectionAttribute : Attribute

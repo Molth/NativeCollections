@@ -113,7 +113,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Fills the contents of this buffer with the given value.
+        ///     Fills the specified buffer with the given value.
         /// </summary>
         /// <typeparam name="T">The unmanaged element type of the values to write.</typeparam>
         /// <param name="refData">A reference to the first element of the memory to fill.</param>
@@ -134,7 +134,7 @@ namespace NativeCollections
 
             fixed (void* pinnedRefData = &refData)
             {
-                if (NativeMemoryAllocator.IsAligned(pinnedRefData, NativeMemoryAllocator.AlignOf<T>()))
+                if (NativeMemoryAllocator.IsAligned<T>() && NativeMemoryAllocator.IsAligned(pinnedRefData, NativeMemoryAllocator.AlignOf<T>()))
                 {
                     refData = ref Unsafe.AsRef<T>(pinnedRefData);
                     for (int count; numElements > Usize.FromI32Unchecked(0); numElements = numElements.WrappingSub(Usize.FromI32Unchecked(count)), refData = ref Unsafe.Add(ref refData, Isize.FromI32Unchecked(count)))
@@ -158,6 +158,11 @@ namespace NativeCollections
         /// <param name="right">A reference to the second sequence.</param>
         /// <param name="byteCount">The number of bytes to compare.</param>
         /// <returns><see langword="true" /> if the sequences are equal; otherwise, <see langword="false" />.</returns>
+        /// <remarks>
+        ///     This method performs no bounds validation; callers must ensure that
+        ///     <paramref name="left" /> and <paramref name="right" /> refer to readable blocks of at least
+        ///     <paramref name="byteCount" /> bytes.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool Equals(ref byte left, ref byte right, nuint byteCount)
         {
@@ -178,6 +183,11 @@ namespace NativeCollections
         /// <param name="right">A reference to the second sequence.</param>
         /// <param name="byteCount">The number of bytes to compare.</param>
         /// <returns>A value that indicates the relative order of the sequences.</returns>
+        /// <remarks>
+        ///     This method performs no bounds validation; callers must ensure that
+        ///     <paramref name="left" /> and <paramref name="right" /> refer to readable blocks of at least
+        ///     <paramref name="byteCount" /> bytes.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Compare(ref byte left, ref byte right, nuint byteCount)
         {

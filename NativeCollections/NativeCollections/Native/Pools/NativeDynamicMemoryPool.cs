@@ -22,7 +22,9 @@ namespace NativeCollections
         private readonly void* _handle;
 
         /// <summary>
-        ///     Total size (in bytes) of the memory pool.
+        ///     The requested usable size (in bytes) of the pool's data region. TLSF control
+        ///     structures, pool overhead, and the per-block reservation overhead are allocated
+        ///     on top of this value.
         /// </summary>
         private readonly nuint _size;
 
@@ -36,7 +38,11 @@ namespace NativeCollections
         ///     Initializes a new instance of this class with the specified state.
         /// </summary>
         /// <param name="handle">The handle to the underlying object.</param>
-        /// <param name="size">Total size (in bytes) of the memory pool.</param>
+        /// <param name="size">
+        ///     The requested usable size (in bytes) of the pool's data region. TLSF control
+        ///     structures, pool overhead, and the per-block reservation overhead are allocated
+        ///     on top of this value.
+        /// </param>
         /// <param name="blocks">
         ///     Expected maximum number of blocks that can be allocated from the pool (used for overhead
         ///     pre-computation).
@@ -52,7 +58,11 @@ namespace NativeCollections
         /// <summary>
         ///     Creates a dynamic memory pool with the specified pool size and block count.
         /// </summary>
-        /// <param name="size">Total size (in bytes) of the memory pool.</param>
+        /// <param name="size">
+        ///     The requested usable size (in bytes) of the pool's data region. TLSF control
+        ///     structures, pool overhead, and the per-block reservation overhead are allocated
+        ///     on top of this value.
+        /// </param>
         /// <param name="blocks">
         ///     The expected maximum number of blocks. This is used to reserve overhead for block management.
         /// </param>
@@ -105,7 +115,8 @@ namespace NativeCollections
         public bool IsCreated => _handle != null;
 
         /// <summary>
-        ///     Total size (in bytes) of the memory pool.
+        ///     Gets the requested usable size (in bytes) of the pool's data region, excluding
+        ///     TLSF control structures, pool overhead, and the per-block reservation overhead.
         /// </summary>
         public nuint Size => _size;
 
@@ -251,7 +262,7 @@ namespace NativeCollections
                     return false;
                 }
 
-                var requestSize = size == 0 ? U64.FromI32Unchecked(0) : nativeSize.WrappingAdd(overhead);
+                var requestSize = size == Usize.FromI32Unchecked(0) ? 0UL : nativeSize.WrappingAdd(overhead);
                 ptr = Tlsf64.TlsfMemalign(_handle, U64.FromUsizeUnchecked(alignment), requestSize);
                 if (ptr == null)
                 {
@@ -273,7 +284,7 @@ namespace NativeCollections
                     return false;
                 }
 
-                var requestSize = size == 0 ? U32.FromI32Unchecked(0) : nativeSize.WrappingAdd(overhead);
+                var requestSize = size == Usize.FromI32Unchecked(0) ? 0U : nativeSize.WrappingAdd(overhead);
                 ptr = Tlsf32.TlsfMemalign(_handle, U32.FromUsizeUnchecked(alignment), requestSize);
                 if (ptr == null)
                 {

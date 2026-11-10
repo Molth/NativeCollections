@@ -52,10 +52,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Frees an aligned block of memory.
+        ///     Frees an aligned block of memory, or does nothing when the pointer is null.
         /// </summary>
         /// <typeparam name="T">The unmanaged type of the value to dispose before its memory is freed.</typeparam>
         /// <param name="ptr">A pointer to the aligned block of memory that should be freed.</param>
+        /// <remarks>
+        ///     When <paramref name="ptr" /> is not <see langword="null" />, the value is disposed
+        ///     before its memory is freed with <see cref="NativeMemoryAllocator.AlignedFree" />.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Drop<T>(T* ptr) where T : unmanaged, IDisposable
         {

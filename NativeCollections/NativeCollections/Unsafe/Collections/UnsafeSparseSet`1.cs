@@ -61,10 +61,15 @@ namespace NativeCollections
         /// <param name="key">The key of the value to get or set.</param>
         /// <value>
         ///     The value associated with the specified key. If the specified key is not found, a get operation throws
-        ///     a <see cref="KeyNotFoundException" />, and a set operation creates a new element with the specified key.
+        ///     a <see cref="KeyNotFoundException" />, and a set operation adds a new element with the specified key
+        ///     or overwrites the value of an existing element.
         /// </value>
         /// <exception cref="KeyNotFoundException">
         ///     Thrown when the property is retrieved and <paramref name="key" /> does not exist in the collection.
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when the property is set and <paramref name="key" /> is negative
+        ///     or greater than or equal to <see cref="Capacity" />.
         /// </exception>
         public TValue this[int key]
         {
@@ -277,11 +282,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Sets the capacity of this to the specified maximum key.
+        ///     Sets the capacity of this, which is the length of its internal arrays.
+        ///     Valid keys for this range from 0 to <paramref name="capacity" /> - 1.
         /// </summary>
-        /// <param name="capacity">The new capacity.</param>
+        /// <param name="capacity">
+        ///     The new capacity. It must be at least the current largest key plus one.
+        /// </param>
         /// <exception cref="ArgumentOutOfRangeException">
-        ///     Thrown when <paramref name="capacity" /> is not large enough to hold the maximum key in this.
+        ///     Thrown when <paramref name="capacity" /> is less than the current largest key plus one.
         /// </exception>
         public void SetCapacity(int capacity)
         {
@@ -492,11 +500,11 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Gets the value associated with the specified key.
+        ///     Gets a reference to the value associated with the specified key.
         /// </summary>
         /// <param name="key">The key of the value to get.</param>
         /// <param name="value">
-        ///     When this method returns, contains the value associated with the specified
+        ///     When this method returns, contains a reference to the value associated with the specified
         ///     key, if the key is found; otherwise, the default value for the type of the
         ///     <paramref name="value" /> parameter. This parameter is passed uninitialized.
         /// </param>
@@ -779,7 +787,7 @@ namespace NativeCollections
         ///     Removes the item at the specified index.
         /// </summary>
         /// <param name="index">The zero-based index of the item to remove.</param>
-        /// <param name="keyValuePair">KeyValuePair.</param>
+        /// <param name="keyValuePair">The removed key/value pair at the specified index.</param>
         /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="index" /> is negative or greater than or equal to <see cref="Count" />.
         /// </exception>
@@ -835,7 +843,11 @@ namespace NativeCollections
         ///     Removes the item at the specified index.
         /// </summary>
         /// <param name="index">The zero-based index of the item to remove.</param>
-        /// <param name="keyValuePair">KeyValuePair.</param>
+        /// <param name="keyValuePair">
+        ///     When this method returns, contains the removed key/value pair at the specified index
+        ///     if the index is valid; otherwise, the default value for the type of the
+        ///     <paramref name="keyValuePair" /> parameter. This parameter is passed uninitialized.
+        /// </param>
         /// <returns>
         ///     <see langword="true" /> if the item is successfully removed; otherwise, <see langword="false" />.
         /// </returns>
@@ -865,9 +877,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Returns a read-only span over a portion of this.
+        ///     Returns a read-only span over the entire contents of this.
         /// </summary>
-        /// <returns>A read-only span over a portion of this.</returns>
+        /// <returns>A read-only span over the entire contents of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<KeyValuePair<int, TValue>> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<KeyValuePair<int, TValue>>(_dense), _count);
 

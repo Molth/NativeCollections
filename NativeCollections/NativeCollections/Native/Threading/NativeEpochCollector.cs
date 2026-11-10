@@ -33,6 +33,17 @@ namespace NativeCollections
         private NativeEpochCollector(RawEpochCollector* handle) => _handle = handle;
 
         /// <summary>
+        ///     Creates a new instance.
+        /// </summary>
+        /// <returns>A new instance.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeEpochCollector Create()
+        {
+            RawEpochCollector value = default;
+            return new NativeEpochCollector(Box.New(ref value, Usize.FromI32Unchecked(CACHE_LINE_SIZE)));
+        }
+
+        /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public bool IsCreated => _handle != null;
@@ -168,16 +179,5 @@ namespace NativeCollections
         /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Retire(uint epoch, void* data, delegate* managed<void*, void> call) => _handle->Retire(epoch, data, call);
-
-        /// <summary>
-        ///     Initializes a new instance of this class.
-        /// </summary>
-        /// <returns>A new instance.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeEpochCollector Create()
-        {
-            RawEpochCollector value = default;
-            return new NativeEpochCollector(Box.New(ref value, Usize.FromI32Unchecked(CACHE_LINE_SIZE)));
-        }
     }
 }

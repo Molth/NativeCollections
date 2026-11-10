@@ -120,28 +120,15 @@ namespace Roslyn
         /// </remarks>
         private static (ExpressionSyntax Base, ExpressionSyntax Offset)? ExtractBaseAndOffset(ExpressionSyntax expression)
         {
-            var inner = UnwrapParentheses(expression);
+            var inner = SyntaxHelpers.UnwrapParentheses(expression);
             if (inner is not InvocationExpressionSyntax asInvocation || asInvocation.Expression is not MemberAccessExpressionSyntax { Expression: IdentifierNameSyntax { Identifier.ValueText: "Unsafe" }, Name.Identifier.ValueText: "As" } || asInvocation.ArgumentList.Arguments.Count != 1)
                 return null;
 
-            var reference = UnwrapParentheses(asInvocation.ArgumentList.Arguments[0].Expression);
+            var reference = SyntaxHelpers.UnwrapParentheses(asInvocation.ArgumentList.Arguments[0].Expression);
             if (reference is InvocationExpressionSyntax addInvocation && addInvocation.Expression is MemberAccessExpressionSyntax { Expression: IdentifierNameSyntax { Identifier.ValueText: "Unsafe" }, Name.Identifier.ValueText: "Add" } && addInvocation.ArgumentList.Arguments.Count >= 2)
-                return (UnwrapParentheses(addInvocation.ArgumentList.Arguments[0].Expression), addInvocation.ArgumentList.Arguments[1].Expression);
+                return (SyntaxHelpers.UnwrapParentheses(addInvocation.ArgumentList.Arguments[0].Expression), addInvocation.ArgumentList.Arguments[1].Expression);
 
             return (reference, SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0)));
-        }
-
-        /// <summary>
-        ///     Removes any number of redundant parentheses around the given expression.
-        /// </summary>
-        /// <param name="expression">The expression to unwrap.</param>
-        /// <returns>The innermost expression after removing all parenthesized wrappers.</returns>
-        private static ExpressionSyntax UnwrapParentheses(ExpressionSyntax expression)
-        {
-            while (expression is ParenthesizedExpressionSyntax parenthesized)
-                expression = parenthesized.Expression;
-
-            return expression;
         }
 
         /// <summary>

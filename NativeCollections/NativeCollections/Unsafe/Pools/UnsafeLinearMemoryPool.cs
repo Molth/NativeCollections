@@ -68,8 +68,8 @@ namespace NativeCollections
         ///     within a single slab, assuming the default alignment of <see cref="IntPtr" />.
         /// </summary>
         /// <remarks>
-        ///     This value is determined by the total slab size minus the overhead required for the slab header
-        ///     and the alignment adjustment for a <see cref="IntPtr" />‑aligned pointer. It represents the largest
+        ///     This value is determined by the slab data region size minus the <c>alignment - 1</c> bytes
+        ///     of padding and the <see cref="nint" /> header required for each allocation. It represents the largest
         ///     contiguous block of memory that can be allocated in one slab when using the default alignment.
         /// </remarks>
         public readonly int MaxLength => GetMaxLength(I32.FromUsizeUnchecked(NativeMemoryAllocator.AlignOf<nint>()));
@@ -82,7 +82,7 @@ namespace NativeCollections
         /// <param name="slabs">The total number of slabs currently allocated in the pool.</param>
         /// <param name="freeSlabs">The number of slabs that are currently free and available for reuse.</param>
         /// <param name="maxFreeSlabs">The maximum number of free slabs retained by the pool.</param>
-        /// <param name="size">The number of nodes in each slab.</param>
+        /// <param name="size">The number of bytes in the slab data region, excluding the slab header.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private UnsafeLinearMemoryPool(MemorySlab* sentinel, MemorySlab* freeList, int slabs, int freeSlabs, int maxFreeSlabs, int size)
         {
@@ -238,7 +238,7 @@ namespace NativeCollections
         /// <summary>
         ///     Clears the contents of this.
         /// </summary>
-        /// <param name="capacity">The minimum number of free slabs to retain.</param>
+        /// <param name="capacity">The maximum number of free slabs to retain.</param>
         /// <returns>The number of free slabs retained by this.</returns>
         /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="capacity" /> is negative.
@@ -491,7 +491,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Represents a slab in the memory pool, containing a linked list of nodes and metadata.
+        ///     Represents a slab in the memory pool, containing the linked-list pointers
+        ///     and the per-slab allocation counters.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         private struct MemorySlab

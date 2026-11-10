@@ -37,6 +37,9 @@ namespace NativeCollections
         /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="capacity" /> is negative.
         /// </exception>
+        /// <remarks>
+        ///     The requested capacity is clamped to a minimum of 2; read <c>Capacity</c> for the effective value.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativePriorityQueue<TElement, TPriority> Create(int capacity)
         {
@@ -273,8 +276,8 @@ namespace NativeCollections
         /// <param name="element">The element to add to this.</param>
         /// <param name="priority">The priority with which to associate the new element.</param>
         /// <param name="result">
-        ///     When this method returns, the minimal element removed after the
-        ///     enqueue operation; otherwise, the default value for the type of the
+        ///     When this method returns, the minimal element removed before the specified
+        ///     element is added; otherwise, the default value for the type of the
         ///     <paramref name="result" /> parameter. This parameter is passed uninitialized.
         /// </param>
         /// <returns>
@@ -339,9 +342,9 @@ namespace NativeCollections
         public int TrimExcess(int capacity) => _handle->TrimExcess(capacity);
 
         /// <summary>
-        ///     Returns a read-only span over a portion of this.
+        ///     Returns a read-only span over the entire contents of this.
         /// </summary>
-        /// <returns>A read-only span over a portion of this.</returns>
+        /// <returns>A read-only span over the entire contents of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ReadOnlySpan<(TElement Element, TPriority Priority)> AsReadOnlySpan() => _handle->AsReadOnlySpan();
     }

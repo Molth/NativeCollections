@@ -2,88 +2,174 @@
 
 [![NuGet](https://img.shields.io/nuget/v/NativeCollections.svg)](https://www.nuget.org/packages/NativeCollections)
 
-Pure C# collections, atomics, allocators, and concurrency primitives backed by unmanaged memory, with managed fallbacks only where documented. The public surface mirrors the .NET BCL where practical, and types backed by native storage do not allocate managed objects on their hot paths.
+Pure C# collections, allocators, atomics, text/I/O types, and concurrency primitives. Types use unmanaged storage where their contract says so and expose ownership, capacity, lifetime, pinning, and concurrency requirements explicitly.
 
-## Design model
+This is a compact contract summary. It is not a usage tutorial, example catalog, benchmark report, or replacement for the current public API/XML documentation. When this file is insufficient, read the exact public member and then its implementation; never choose a convenient interpretation or invent missing behavior.
 
-The prefix defines ownership only for the wrappers below. Static support types (`NativeMemoryAllocator`, `NativeHashCode`, `NativeBitwise`, `NativeRandom`) also use the `Native` prefix but hold no resource.
+## Scope and design goals
 
-| Flavor                 | Storage and ownership                                                                                                                                                                                                                                                                                    | Lifetime                                                         |
-|------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------|
-| `Native*`              | Holds the resource behind a handle: usually a pointer to the underlying `Unsafe*` value, a `GCHandle` for BCL-backed types, or the buffer itself for the `NativeArray` family. `Dispose` frees it; scope types such as `NativeReaderWriterLockScope` release a lock instead.                             | Dispose the owning value exactly once.                           |
-| `Unsafe*`              | Stores its state directly in the struct: a buffer pointer for collections and views, or a `NativeObject<T>` handle for BCL-backed wrappers. `Dispose` frees an owning value's buffer or handle; `UnsafeDisposable<T>` instead disposes the wrapped value, and views such as `UnsafeString` free nothing. | Dispose only the owning values, exactly once.                    |
-| `Stackalloc*`          | Operates on a caller-provided buffer. Never allocates or frees it.                                                                                                                                                                                                                                       | No `Dispose`; the caller owns the buffer lifetime.               |
-| Shared support         | Allocators, hashing, bitwise, and random. These hold no handle and define no `Dispose`.                                                                                                                                                                                                                  | No resource lifetime.                                            |
+- Predictable unmanaged storage and explicit single ownership.
+- Low managed allocation on documented hot paths.
+- BCL-like APIs where useful, without claiming undocumented BCL parity.
+- Explicit results, exceptions, capacity, overflow, layout, and lifetime semantics.
+- One source evaluated across every declared target framework.
+- Unsafe code that can be reviewed through helpers, analyzers, tests, and source evidence.
 
-Where an `Unsafe*` counterpart exists, `Native*` forwards to it; the `NativeArray` family stores its buffer pointer directly. `Stackalloc*` offers the same core operations over fixed storage, but no growth members. Member names, results, and semantics are kept aligned across flavors; any difference must be documented. `[BindingType]` records the type that the decorated type is bound to.
+The library does not make unsafe memory safe by default, add transparent ownership tracking, or make ordinary collections thread-safe. These are design boundaries, not missing convenience features.
 
-- **Stream growth differs by flavor.** `UnsafeMemoryStream.SetLength` returns `void` and may grow its backing buffer; `StackallocMemoryStream.SetLength` returns `bool` because it cannot grow a caller-provided buffer, returning `false` when the requested length exceeds `Capacity`.
-- **No ownership tracking.** There are no ownership flags, reference counts, or idempotent `Dispose`. Double free, freeing memory you did not allocate, and using a disposed instance are caller errors with undefined behavior, not library bugs. The `GCHandle` wrappers `NativeObject<T>`, `NativeMemory<T>`, `NativeArrayRef<T>`, and `NativeMonitorLock` follow the same rule: they keep no ownership state, and `IsCreated` only observes the instance's `readonly` handle field.
-- **Owning values are not shareable.** Copying an owning `Native*` or `Unsafe*` value copies its handle or pointer, not the resource; only one copy may be disposed.
-- **Repeated or copied `GCHandle` disposal is caller error.** `IsCreated` in `NativeObject<T>`, `NativeMemory<T>`, `NativeArrayRef<T>`, and `NativeMonitorLock` only observes the instance's `readonly` handle field. Because that field cannot be cleared, a second `Dispose()` on the same instance, or a `Dispose()` on any copy after one copy has freed the handle, frees the same `GCHandle` again. That is caller error with undefined behavior and must not be reported as a library bug. Keep exactly one owning instance, dispose it once, and pass references or views to everything else.
-- **Views are not owned.** `From(Span<T>)`, `FromBytes`, `Slice`, and span accessors such as `AsSpan`/`AsReadOnlySpan` create views over existing memory. Never dispose a view, and never free an interior pointer. A factory that accepts an existing pointer or handle, such as `NativeObject<T>.From(GCHandle)` or `NativePtr<T>.From(T*)`, transfers ownership of it to the returned value.
+## Storage and ownership
 
-## Behavior contract
+| Flavor        | Storage model                                                                                                                         | Ownership                                                |
+|---------------|---------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------|
+| `Unsafe*`     | Direct buffer/pointer state or a handle to a wrapped value.                                                                           | The owning value; dispose exactly once.                  |
+| `Native*`     | Usually a native wrapper around an `Unsafe*`, `GCHandle`, or directly owned buffer. The exact type documentation controls exceptions. | The owning value unless documented as a view/scope.      |
+| `Stackalloc*` | Caller-provided fixed storage.                                                                                                        | The caller; never allocate, free, or grow it.            |
+| Support types | Allocator, hashing, numeric, bitwise, random, or helper logic.                                                                        | No ownership merely because a name starts with `Native`. |
 
-- **BCL parity.** Types marked `FromType.Standard` follow the corresponding BCL type. Documented deviations are intentional. `FromType.NotImplemented` means the type wraps a managed BCL object instead of using native storage; its API and thread safety are those of the wrapped type. `FromType.None` marks a type with no BCL counterpart.
-- **Sizing.** `Count` is the logical element count. `Capacity` is allocated storage. `NativeArray<T>.Length` and `Count` are the fixed element count of the buffer it wraps. `UnsafeStringBuilder<T>.Length`/`Count` is the logical element count, `Capacity` the allocated element count, `Buffer` a span over the whole storage, and `Text` a span over the logical content.
-- **Unchecked indexing.** Indexers are unchecked unless a type documents otherwise; the checked ones go through `Span<T>` and throw `IndexOutOfRangeException` (for example `UnsafeStringBuilder<T>`). Where unchecked, callers must stay within `0 .. Count - 1` or the documented range, and violations are caller errors that yield garbage values or memory corruption, never exceptions.
-- **Bool and Try results.** `Try*`, `Write*`, and other bool APIs return `false` for "already present", "not found", or "insufficient capacity" exactly as documented; they never throw for these outcomes. `InsertResult` reports `None` (the default), `Success`, `AlreadyExists`, `Overwritten`, or `InsufficientCapacity`. None of these outcomes is an exception.
-- **Exceptions.** Argument errors throw `ArgumentException`/`ArgumentOutOfRangeException`; invalid states throw `InvalidOperationException`; unsupported operations throw `NotSupportedException`. Public members document the exceptions they throw, with their trigger conditions.
-- **Allocation failure.** Allocation failure throws `OutOfMemoryException`, unless an abort callback was installed through `NativeMemoryAllocator.Custom`; that callback then runs, and the allocation helper throws `OutOfMemoryException` when it returns. The library does not retry, clean up, or roll back on allocation failure; that policy belongs to the caller.
-- **Enumeration.** `foreach` uses pattern-based `GetEnumerator()`, which returns an enumerator holding a pointer to the source, so the source must not move while it is enumerated. `IEnumerable<T>.GetEnumerator()` throws `NotSupportedException` to avoid boxing, so LINQ and interface-based enumeration are unsupported. Mutations that bump the collection version invalidate enumerators, which then throw `InvalidOperationException`; each type documents which operations bump it (for example, `UnsafeDictionary.Remove` does not). Enumerators that own traversal state must be disposed when used manually.
-- **Equality and hashing.** Collection and handle values compare the whole struct byte for byte, padding included, through `SpanHelpers`; buffers passed to constructors marked `[MustBeZeroed]` must be zero-initialized; text types compare content. Types that declare `IEquatable<T>` provide `Equals(T)`; equality operators, `GetHashCode`, and `ToString` are not guaranteed and exist only where documented. Atomics are the exception: their obsolete `Equals(object)`/`GetHashCode` throw `NotSupportedException`.
-- **Atomics.** `UnsafeAtomic*` values must have a stable address: pin them with `fixed` or store them in unmanaged memory. Default operations are sequentially consistent; `Load`/`Store` take an explicit `Ordering` (`Relaxed` through `SeqCst`), and `Load` rejects `Release` while `Store` rejects `Acquire` with `NotSupportedException`. Do not copy an atomic while it is in use.
-- **Concurrency.** Thread safety is limited to `UnsafeAtomic*` types, `Concurrency/` and `Threading/` types, and types documented as thread-safe. Ordinary collections have no internal locking; concurrent use is a caller error. On concurrent collections, `Count` is an observation that may be stale; use `IsEmpty` for decisions.
-- **Customization.** `NativeMemoryAllocator.Custom`, `NativeHashCode.Custom`, and `UnsafeString.Custom` are process-wide hooks. Install them once, before any dependent type is used. Callbacks must be thread-safe and must not re-enter types that use the same hook.
+Hard rules:
 
-## Source conventions
+- Copying an owning struct copies its pointer or handle, not ownership. Keep one owner and dispose it exactly once; there is no implicit move, reference count, finalizer, or idempotent disposal.
+- Double-free, freeing another owner's pointer, disposing a non-owner, using a disposed value, or using a dangling view is caller misuse with undefined behavior.
+- `GCHandle` wrappers such as `NativeObject<T>`, `NativeMemory<T>`, and `NativeArrayRef<T>` do not provide universal double-dispose protection. `IsCreated` observes stored state; it is not a lifetime guard.
+- `From(Span<T>)`, `FromBytes`, `Slice`, `AsSpan`, and `AsReadOnlySpan` normally create non-owning views. Never free a view or an interior pointer. A `From` factory may transfer ownership only when its documentation says so.
+- `[MustBePinned]`, `[MustBeDistinct]`, and `[MustBeZeroed]` are caller preconditions. The attributes do not enforce themselves.
+- Do not add `_disposed`, `_ownsPtr`, `_ownsHandle`, hidden reference counting, `SafeHandle`, finalizers, or locks as generic safety patches. Such changes alter layout, ABI, allocation cost, copy semantics, concurrency, and the public contract.
+- State fields are valid when they are part of a documented allocator, pool, free-list, CAS, or other algorithmic state machine. They are not valid merely to hide ownership mistakes.
 
-- One public type per file; the file name is the type name, including the generic arity backtick (``UnsafeList`1.cs``). Nested implementation types stay nested, and partial files add a dot-separated suffix before `.cs` (`UnsafeStringBuilderExtensions.Format.cs`). Directories follow flavor and category: `Native/Collections`, `Unsafe/Atomics`, `Stackalloc/Pools`, `Specialized/Allocators`, and so on.
-- Public value types use `[StructLayout(LayoutKind.Sequential)]` and carry their flavor attribute with `FromType` flags; the only exceptions are the `ref struct` interpolated-string handlers. Native wrappers are `readonly struct`; owning `Unsafe*` collections are not, because their capacity and count change in place.
-- Every member, including private and internal ones, has XML documentation. Remarks state capacity, lifetime, ordering, and invariants; `<exception>` tags list thrown exceptions. Comments must not restate the code.
-- Use `Unsafe.SizeOf<T>()` or `sizeof(T)` for unmanaged element size and stride; never `Marshal.SizeOf`.
-- Use the numeric conversion helpers (`I32`, `U32`, `Usize`, `Isize`, and the sized variants) for size and index conversions. Signedness or width changes go through explicit `From*`/`To*` conversions, or `*Unchecked` only after a proven range check. Do not add ad-hoc casts or implicit conversions.
-- Access memory only through `Unsafe`, `UnsafeHelpers`, `MemoryMarshalHelpers`, and `SpanHelpers`. Do not dereference, index, or perform arithmetic on raw pointers. `CodeAnalysis` enforces this rule.
-- The build enables `CheckForOverflowUnderflow`. Use checked arithmetic for invariants, `WrappingAdd`/`WrappingSub`/`WrappingMul`/`WrappingNeg` for intentional wrap, and no ad-hoc `unchecked` blocks outside conversion or wrapping helpers.
-- `[MustBePinned]` marks a constructor, method, property, or parameter whose value must be pinned so the GC cannot relocate it. `[MustBeDistinct]` marks a constructor or parameter that must receive distinct values. `[MustBeZeroed]` marks a constructor or parameter that must be zero-initialized. These marker attributes document intent; nothing in the library enforces them at compile time or run time.
-- All target frameworks must compile: `net10.0`, `net9.0`, `net8.0`, `net7.0`, `net6.0`, `net5.0`, and `netstandard2.1` (C# 9). Guard newer APIs with `NET*_0_OR_GREATER`.
-- `MethodImplOptions.AggressiveInlining` marks hot forwarding and leaf members; `NoInlining` marks throw, allocation, and slow path helpers. Change inlining only with benchmark evidence.
-- There are no third-party dependencies. `netstandard2.1` alone references `System.Runtime.CompilerServices.Unsafe`.
+Do not import managed ownership patterns into an unmanaged owning struct. A copied `_disposed` or `_owns*` field is copied with the pointer or handle, so different struct copies can disagree about the same resource. Updating one copy cannot invalidate the other copy. Such fields do not protect interior pointers, refs, spans, slices, or other views either. They create a false impression of safety while adding branches, bytes, and an undocumented state machine.
 
-## Contributing
+Use a reference type, `SafeHandle`, reference counting, a finalizer, or runtime disposal guards only when the type's explicit design requires that ownership model and explicitly accepts its allocation, synchronization, layout, and lifetime costs. Never introduce one as a generic AI safety patch. Debug-only poisoning or assertions may be used when explicitly scoped and when Release behavior remains unchanged.
 
-1. Open an issue with the target framework, a minimal repro, expected behavior, and actual behavior.
-2. Keep one logical change per commit or pull request. Do not mix formatting, refactoring, and behavior changes.
-3. Preserve public API, ABI, struct layout, ownership, capacity, and exception semantics. Treat changes to them as breaking changes and obtain explicit approval first.
-4. Document new or changed members, and update remarks whenever behavior, capacity, or lifetime changes.
-5. Satisfy the `CodeAnalysis` rules and compile every target framework. For concurrent types, provide a multithreaded stress repro and run it on more than one target framework; the solution has no test project, so keep that repro outside the repository.
-6. Remove generated files and run `git diff --check` before submitting.
-7. Report the exact commands run, the target frameworks exercised, and the repro result before and after the change.
+## Construction and factory semantics
+
+Factory names describe the source and ownership of a value. They are not interchangeable aliases:
+
+- `Create(...)` creates or allocates a value or resource, or performs a documented initialization operation with creation semantics.
+- `From(...)` accepts external input such as a pointer, handle, span, array, or existing object. It normally creates a view and may transfer ownership only when documented.
+- `FromBytes(...)` accepts external byte input. It is not a generic name for an allocating factory.
+- `New()` is only for a deliberately exposed no-argument default-state factory. It is not a universal replacement for `Create()` and must not be added merely to eliminate a `default` expression.
+
+Do not add a factory to every struct. Decide from the type's actual design, constructor semantics, ownership model, public contract, and complete call chain. `NativeArray<T>` must not gain a zero-argument `Create()` or `New()` merely because a default value appears in source; its default state and parameterized allocation factories are distinct APIs. Do not invent a capacity, allocation, ownership transition, or extra overload to make a call site look uniform.
+
+A public `New()` may be appropriate when a type intentionally exposes its default state as the uniform public entry point. That is type-specific, not mechanical. Do not add a zero-argument factory that only forwards through another factory and a private constructor, and never create recursive factories such as `New() => Type.New()`. `new T()` and `default(T)` are not assumed equivalent without Roslyn and implementation evidence.
+
+## Behavioral contract
+
+### Capacity, memory, and indexing
+
+- `Count` is logical element count and `Capacity` is allocated element storage unless a type documents another unit.
+- `NativeArray<T>.Length`/`Count` is fixed buffer length; it is not growable.
+- `UnsafeStringBuilder<T>.Length`/`Count` is logical content length. `Capacity` is allocated capacity, `Buffer` is the full storage, and `Text` is logical content.
+- `Stackalloc*` cannot grow caller storage. Capacity failure uses the member's documented `false` or `InsertResult`, never hidden allocation.
+- Indexers are unchecked unless explicitly documented otherwise. Invalid unchecked access may read/write invalid memory; it is not expected to throw.
+- Size, stride, offset, capacity, and index arithmetic is checked by default. Intentional wrapping must use the project's wrapping helpers.
+
+### Results and exceptions
+
+| Situation                                            | Contract-level interpretation                                                                           |
+|------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
+| Normal absence, duplicate, or fixed-capacity failure | Documented `false` or `InsertResult`; do not turn it into an exception.                                 |
+| Invalid argument or range                            | Documented argument exception; do not turn it into `false`.                                             |
+| Invalid state                                        | Documented invalid-state exception, commonly `InvalidOperationException`.                               |
+| Unsupported operation/interface                      | Documented `NotSupportedException` path.                                                                |
+| Allocation failure                                   | `OutOfMemoryException` or configured allocator failure; terminal for the operation, not a retry signal. |
+
+The exact member documentation controls the type, trigger, and timing. Do not catch, silently recover from, or reinterpret allocation failure. Do not change normal `false` results into exceptions or exceptions into normal results.
+
+### Enumeration, concurrency, and atomics
+
+- Enumerators may retain a pointer to their source. Moving, resizing, disposing, or otherwise invalidating the source during enumeration is undefined behavior unless the member explicitly guarantees otherwise.
+- Version-bumping mutations invalidate enumerators. The exact version behavior is type-specific and must not be normalized by analogy with another collection.
+- Ordinary collections are not synchronized. Cross-thread access is invalid unless the public type/member documentation explicitly permits it.
+- Names such as `*Concurrent*`, `*TreiberStack*`, `*SegQueue*`, `*ArrayQueue*`, sharded collections, locks, and epoch types are navigation hints, not proof of safe usage. Read the exact API contract.
+- Atomic values require a stable address for their complete use interval. Pin them or store them in unmanaged memory as required; a pointer/ref must not outlive its pin or stack scope, and an atomic must not be copied while in use.
+- Atomic ordering is part of the contract. Invalid Load/Store ordering combinations must be rejected as documented, not silently weakened.
+- Concurrent `Count` may be stale. Use the documented decision property, such as `IsEmpty`, for concurrency-sensitive decisions.
+
+### Layout, equality, and global hooks
+
+- Public API, ABI, struct layout, field order, generic constraints, implicit conversions, ownership, capacity, exception/result behavior, and thread-safety are compatibility-sensitive. Changes require explicit scope.
+- Where documented, equality and hashing include the complete representation, including padding. `[MustBeZeroed]` inputs must satisfy that precondition.
+- `NativeMemoryAllocator.Custom`, `NativeHashCode.Custom`, and `UnsafeString.Custom` are process-wide hooks. Install them before dependent types are used, make callbacks thread-safe, and do not re-enter code using the same hook.
+
+## Frameworks and repository boundaries
+
+The production project is `NativeCollections\NativeCollections.csproj` and currently targets:
+
+```text
+net10.0; net9.0; net8.0; net7.0; net6.0; net5.0; netstandard2.1
+```
+
+It enables nullable annotations, unsafe blocks, and `CheckForOverflowUnderflow`. `netstandard2.1` uses C# 9 and references `System.Runtime.CompilerServices.Unsafe` 6.0.0. `CodeAnalysis\CodeAnalysis.csproj` is a separate Roslyn analyzer/code-fix project and is not evidence of production runtime safety. Release packaging writes `nupkgs` under the project directory; generated package/build outputs are git-ignored and are not part of the source contract.
+
+The main workspace intentionally contains no usage-example catalog, performance suite, test factory, fuzz corpus, or conventional unit-test project. External tests and reproductions are evidence for recorded conditions, not official usage patterns or permanent source artifacts.
+
+## Usage and optimization rules
+
+1. Read the complete current public API/XML documentation before writing usage code or claiming usage evidence: constructors, factories, parameters, constraints, attributes, lifetime, capacity, results, exceptions, threading, and target-framework conditions.
+2. Old snippets, copied tests, historical reports, generated artifacts, blogs, and model knowledge are not contracts. Do not use them as the implementation or proof of behavior.
+3. If the public API does not establish safe usage, read the implementation, helpers, mirror types, conditional branches, and call chain. If they still do not establish it, report a contract gap; do not invent an algorithm or usage recipe.
+4. External performance tests are local measurements for one commit, TFM, compiler/runtime, CPU, allocator, workload, and configuration. They are not universal performance evidence.
+5. "High performance", fewer allocations, less duplication, shorter code, reflection, hidden dispatch, incidental layout, JIT assumptions, or an external dependency never justifies a semantic or safety regression.
+6. An optimization requires algorithm/complexity analysis, memory/lifetime/overflow/concurrency analysis, controlled before/after measurement, and correctness regression tests covering boundaries, random/state transitions, mirrors, and affected TFMs.
+7. Preserve the simplest correct implementation when an improvement is not material and repeatable. Similar source text does not prove equivalent semantics.
+
+Under no circumstances may an implementation detail be guessed. If the source, Roslyn semantic model, data/control-flow analysis, call chain, conditional branch, or reproducible experiment does not establish a fact, mark it unknown or unverified. Do not fill the gap with BCL behavior, naming, directory layout, a familiar design pattern, an old report, or an assumed allocation, ownership, lifetime, overflow, or threading rule.
+
+## Verification status and evidence limits
+
+The project has received multiple rounds of full-scope verification in external shadow copies, including all functions and members in the audited source set, all declared TFMs and relevant conditional branches, reachability/call-chain analysis, ownership/lifetime paths, and millions of generated, randomized, boundary, state-transition, and cross-implementation cases. The absence of test projects from the production checkout is intentional isolation, not evidence that the project was never tested. This statement describes prior verification of recorded snapshots; it is not a certificate for every future commit or environment.
+
+- A successful build proves compilation only, not ownership, lifetime, concurrency, layout, overflow, or semantic correctness.
+- A static diagnostic is a candidate. `confirmed_bug` requires an old-code minimal reproduction, observable failure, expected behavior, and proof that the result is not design behavior, caller misuse, OOM, or a harness failure.
+- A "no finding" result means no finding under the recorded scope and evidence, not proof that every possible defect is impossible.
+- Every run records commit, per-TFM MSBuild Compile set, SDK/runtime, commands, source-copy hashes, seeds, results, tool failures, and uncovered scope.
+
+## CI and external isolation
+
+GitHub Actions and automatic tests must run in a fresh shadow project or isolated CI workspace. They must not write test factories, generated cases, fuzz seeds, repro projects, logs, reports, `bin`, `obj`, or `nupkgs` into the production checkout. This prevents CI noise, AI misclassification of test factories as production code, and reuse of stale conclusions.
+
+Use a unique UTC-timestamped name for every run, branch, artifact, and report set:
+
+```text
+NativeCollections-<purpose>-<UTC-YYYYMMDD-HHMMSS>-<6-char-random>
+```
+
+Never use `latest`, `test`, `new`, `final`, or `backup` as the sole identifier. Each run records `run_id`, purpose, audited commit, parent run or `none`, start time, toolchain, shadow root, and output paths. Never overwrite or merge runs.
+
+## AI audit rules
+
+AI testing is read-only by default. The AI acts as an orchestrator; subagents review disjoint ownership partitions. Testing permission does not grant repair permission.
+
+1. Record HEAD, branch, status, SDK, project settings, and hashes of existing user modifications. Do not alter them.
+2. Create a new external run directory before analysis. Do not read or reuse old audit directories, copied workspaces, reports, test factories, logs, or conclusions.
+3. Derive the file scope separately for every TFM from real MSBuild `Compile` items. Every item has exactly one owner; no duplicates or omissions. Review themes may cover Native collections, Stackalloc collections, Unsafe collections, text/I/O, atomics/concurrency, pools/handles/memory, helpers, Community ports, and support types, but the actual manifest comes from MSBuild.
+4. Build and test only the SHA-256-verified shadow copy. Obtain real per-TFM compiler inputs; do not concatenate files into an artificial compilation.
+5. Each reviewer reads this contract and the complete public API before deriving behavior, then reads implementation/call chains where necessary. Review every assigned member and relevant boundary, not only search matches.
+6. Keep analyzer diagnostics, suspected findings, design behavior, caller misuse, OOM exclusions, documentation gaps, and confirmed defects separate. Diagnostics never directly authorize a rewrite.
+7. A confirmed defect requires reproducible old-code failure. Reports include owner, file/line, TFM/branch, invariant, evidence, consequence, reproduction, expected result, and uncovered scope.
+8. If repair is separately authorized, preserve the baseline, make one minimal change at a time, rerun the reproduction and affected TFMs, check mirrors/API/layout/ownership, compare user-file hashes, and run `git diff --check`.
+
+The analyzer lead must use real per-TFM MSBuild compiler inputs rather than one artificial compilation. Analyzer rules require synthetic self-tests that prove they can emit diagnostics; zero production hits must be explained. A code fix requires synthetic bad code, application of the fix, recompilation, and verification that no same-rule diagnostic remains. Analyzer output is candidate evidence only.
+
+At minimum, the audit should consider control flow after `ThrowHelpers`, `throw new` policy, pointer/ref escape, allocation/free pairing, numeric-width and overflow behavior, checked/unchecked differences, `Span`/`MemoryMarshal` boundaries, atomics and CAS loops, Count/Capacity invariants, disposal paths, conditional compilation, public API contract mismatches, cross-file ownership flow, and Native/Unsafe/Stackalloc mirror differences.
+
+When a tool fails, record the complete command and error, use a read-only alternative, reduce scope to a TFM/file/member or conditional branch when possible, and report the uncovered scope. Never fabricate a reproduction, mark an unverified issue as confirmed, or silently omit a failed partition.
+
+External audit output must include a fresh run ledger, per-TFM scope and ownership matrix, coverage report, analyzer logs and diagnostics, reviewer reports and findings, reproductions where applicable, tool-failure records, and a final report that separates current-run evidence from historical background. No audit artifact belongs in the production checkout.
+
+## Source and contribution rules
+
+- Preserve public API, ABI, layout, ownership, capacity, exception/result, version, and thread-safety semantics.
+- Do not change public constructors, attribute constructors, compiler-required constructors, or add public factories as a side effect of a mechanical rewrite. Any such API change requires explicit scope and a complete call-site review.
+- Use `Unsafe.SizeOf<T>()` for unmanaged sizes and the project's numeric conversion helpers for width and signedness.
+- Access native memory through `Unsafe`, `UnsafeHelpers`, `MemoryMarshalHelpers`, and `SpanHelpers`; do not add ad-hoc pointer arithmetic or indexing.
+- Use checked arithmetic for invariants and wrapping helpers for intentional machine-width wrap.
+- Keep Native, Unsafe, and Stackalloc mirrors aligned only when their contracts are intended to align; document deliberate differences.
+- Keep formatting, refactoring, renaming, warning cleanup, generated files, and unrelated optimization out of behavior fixes.
+- Never infer an implementation detail from a name, pattern, or similar type. Read the source and call chain or record the point as unverified.
+- Compile all seven TFMs and affected conditional branches, record exact commands/results, and run `git diff --check` before submission.
 
 ## License
 
 This project is licensed under the MIT License.
-
-## Rules
-
-1. Keep the flavor contracts intact: owning `Native*` and `Unsafe*` values free their resource exactly once; views and `Stackalloc*` never free.
-2. Never add ownership tracking, reference counting, or automatic skipping of frees beyond the existing `GCHandle` validity check.
-3. Never catch, recover from, clean up after, or retry an allocation failure. `OutOfMemoryException` is a terminal contract, not a handled state.
-4. Never convert a documented `false` result (capacity, absence, or `Try` failure) into an exception.
-5. Never add locks, atomic state, or concurrency fallbacks to single-threaded types. Concurrent misuse is a caller error.
-6. Preserve sizing semantics exactly: `NativeArray<T>.Length` is the fixed buffer length; `UnsafeStringBuilder` keeps logical length and capacity separate; `TrimExcess` keeps its documented behavior.
-7. Preserve unchecked indexers and their documented valid ranges. Do not add hidden bounds checks.
-8. Preserve version and enumerator invalidation semantics precisely; do not add or remove version bumps.
-9. Preserve bitwise equality and hashing. Zero padding before hashing or comparing structs that contain it.
-10. Access pointers only through `Unsafe` helpers. Never add raw pointer arithmetic, indexing, or dereferencing.
-11. Convert numeric types only through the conversion helpers, with explicit checked or intentionally unchecked conversions.
-12. Use checked arithmetic unless wrap is intentional; express intentional wrap only through the `Wrapping*` helpers.
-13. Document every member: summary, type parameters, parameters, return value, exceptions, and remarks for capacity, lifetime, ordering, and invariants.
-14. Keep `Native*`, `Unsafe*`, and `Stackalloc*` APIs aligned. A missing member or a behavioral difference must be a documented design decision.
-15. Compile and verify all seven target frameworks and every affected conditional-compilation branch.
-16. Do not add dependencies, change the public API, alter layout, or change exception behavior without explicit approval.
-17. Do not mix unrelated cleanup, formatting, naming, comments, or warnings into a behavior fix.
-18. Do not copy BCL behavior blindly. Match only the semantics this type documents, and record deliberate deviations in its remarks.
-19. Prove a bug with a minimal repro before changing semantics; state the observed result before and after.
-20. Ship no generated artifacts. Run `git diff --check` and review the exact diff before every commit.

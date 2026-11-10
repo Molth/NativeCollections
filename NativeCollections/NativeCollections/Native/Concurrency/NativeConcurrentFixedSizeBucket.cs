@@ -8,14 +8,21 @@ using System.Threading;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Represents a thread-safe last-in, first-out collection of objects.
+    ///     Represents a thread-safe allocator that rents and returns the indices of fixed-size slots.
     /// </summary>
+    /// <remarks>
+    ///     The bucket does not store objects. <see cref="TryRent" /> hands out slot indices in the range
+    ///     [0, <see cref="Capacity" />), and <see cref="Return" /> makes a slot index available again.
+    ///     The underlying storage holds two additional metadata slots beyond the capacity.
+    /// </remarks>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
     public readonly unsafe struct NativeConcurrentFixedSizeBucket : IIsCreated, IDisposable, IEquatable<NativeConcurrentFixedSizeBucket>
     {
         /// <summary>
-        ///     Represents a contiguous region of arbitrary memory.
+        ///     The underlying storage: element 0 holds the number of slot indices handed out so far,
+        ///     element 1 holds the number of free slots and acts as the free-list head, and the
+        ///     remaining elements hold the free-list entries.
         /// </summary>
         private readonly int* _buffer;
 
@@ -76,8 +83,8 @@ namespace NativeCollections
         /// <param name="capacity">The number of elements the bucket can hold.</param>
         /// <returns>A fixed-size bucket that wraps <paramref name="buffer" />.</returns>
         /// <exception cref="ArgumentOutOfRangeException">
-        ///     Thrown when <paramref name="capacity" /> is negative or <paramref name="buffer" /> is too small to hold
-        ///     the required number of elements (including alignment padding).
+        ///     Thrown when <paramref name="capacity" /> is negative or <paramref name="buffer" /> has a length
+        ///     less than 2 + <paramref name="capacity" /> (two metadata slots followed by the slot storage).
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeConcurrentFixedSizeBucket From([MustBeZeroed] [MustBePinned] Span<int> buffer, int capacity)
@@ -176,12 +183,12 @@ namespace NativeCollections
         public void Dispose() => NativeMemoryAllocator.AlignedFree(_buffer);
 
         /// <summary>
-        ///     Attempts to retrieve an object.
+        ///     Attempts to rent a free slot.
         /// </summary>
         /// <param name="index">
-        ///     When this method returns, contains the index of the retrieved object, or -1 if no object was available.
+        ///     When this method returns, contains the index of the rented slot, or -1 if no slot was available.
         /// </param>
-        /// <returns><see langword="true" /> if an object was retrieved; otherwise, <see langword="false" />.</returns>
+        /// <returns><see langword="true" /> if a slot was rented; otherwise, <see langword="false" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryRent(out int index)
         {
@@ -227,10 +234,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Returns to the pool an index that was previously
+        ///     Returns a rented slot index to this bucket. The index must have been
         ///     obtained via <see cref="TryRent" /> on the same instance.
         /// </summary>
-        /// <param name="index">The index to return to the pool.</param>
+        /// <param name="index">The index of the slot to return.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Return(int index)
         {

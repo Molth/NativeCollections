@@ -7,7 +7,9 @@ using System.Runtime.CompilerServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Represents a contiguous region of arbitrary native memory.
+    ///     Represents a memory manager that exposes a <see cref="NativeArray{T}" /> as
+    ///     <see cref="Memory{T}" /> and <see cref="Span{T}" />. The wrapped native array
+    ///     is disposed when this instance is disposed.
     /// </summary>
     /// <typeparam name="T">The unmanaged element type exposed by the memory manager.</typeparam>
     public sealed unsafe class NativeMemoryManager<T> : MemoryManager<T> where T : unmanaged
@@ -25,21 +27,21 @@ namespace NativeCollections
         private NativeMemoryManager(NativeArray<T> buffer) => _buffer = buffer;
 
         /// <summary>
-        ///     Represents a contiguous region of arbitrary memory.
-        /// </summary>
-        public NativeArray<T> Buffer
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _buffer;
-        }
-
-        /// <summary>
         ///     Creates a memory manager over an existing native array.
         /// </summary>
         /// <param name="buffer">The native array to wrap.</param>
         /// <returns>A memory manager over <paramref name="buffer" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeMemoryManager<T> From(NativeArray<T> buffer) => new(buffer);
+
+        /// <summary>
+        ///     Gets the native array wrapped by this memory manager.
+        /// </summary>
+        public NativeArray<T> Buffer
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _buffer;
+        }
 
         /// <summary>
         ///     Returns the string representation of this instance.
@@ -55,7 +57,7 @@ namespace NativeCollections
         /// <summary>
         ///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        /// <param name="disposing">Disposing.</param>
+        /// <param name="disposing">A value that is ignored; the wrapped native array is disposed regardless of its value.</param>
         protected override void Dispose(bool disposing) => _buffer.Dispose();
 
         /// <summary>

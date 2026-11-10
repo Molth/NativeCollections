@@ -73,21 +73,8 @@ namespace Roslyn
                 return;
 
             var argument = invocation.ArgumentList.Arguments[0].Expression;
-            if (UnwrapParentheses(argument) is CastExpressionSyntax)
+            if (SyntaxHelpers.UnwrapParentheses(argument) is CastExpressionSyntax)
                 context.ReportDiagnostic(Diagnostic.Create(Rule, argument.GetLocation(), method.TypeArguments[0].ToDisplayString()));
-        }
-
-        /// <summary>
-        ///     Removes any number of redundant parentheses around the given expression.
-        /// </summary>
-        /// <param name="expression">The expression to unwrap.</param>
-        /// <returns>The innermost expression after removing all parenthesized wrappers.</returns>
-        private static ExpressionSyntax UnwrapParentheses(ExpressionSyntax expression)
-        {
-            while (expression is ParenthesizedExpressionSyntax parenthesized)
-                expression = parenthesized.Expression;
-
-            return expression;
         }
     }
 }

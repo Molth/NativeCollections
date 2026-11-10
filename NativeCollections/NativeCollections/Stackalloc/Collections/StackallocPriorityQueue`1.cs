@@ -359,9 +359,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Removes and returns the object at the beginning of this.
+        ///     Removes and returns the minimal element from this.
         /// </summary>
-        /// <returns>The object that is removed from the beginning of this.</returns>
+        /// <returns>The minimal element that is removed from this.</returns>
         /// <exception cref="InvalidOperationException">Thrown when this is empty.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TPriority Dequeue()
@@ -448,9 +448,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Returns the object at the beginning of this without removing it.
+        ///     Returns the minimal element from this without removing it.
         /// </summary>
-        /// <returns>The object at the beginning of this.</returns>
+        /// <returns>The minimal element in this.</returns>
         /// <exception cref="InvalidOperationException">Thrown when this is empty.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly TPriority Peek()
@@ -481,9 +481,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Returns a read-only span over a portion of this.
+        ///     Returns a read-only span over the entire contents of this.
         /// </summary>
-        /// <returns>A read-only span over a portion of this.</returns>
+        /// <returns>A read-only span over the entire contents of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<TPriority> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<TPriority>(_buffer), _count);
 
@@ -601,9 +601,9 @@ namespace NativeCollections
             internal static UnorderedItemsCollection From(StackallocPriorityQueue<TPriority>* handle) => new(handle);
 
             /// <summary>
-            ///     Returns a read-only span over a portion of this.
+            ///     Returns a read-only span over the entire contents of this.
             /// </summary>
-            /// <returns>A read-only span over a portion of this.</returns>
+            /// <returns>A read-only span over the entire contents of this.</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public ReadOnlySpan<TPriority> AsReadOnlySpan() => _handle->AsReadOnlySpan();
 

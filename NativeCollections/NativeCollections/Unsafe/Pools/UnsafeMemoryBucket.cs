@@ -72,7 +72,7 @@ namespace NativeCollections
         ///     Initializes a new instance of this class with the specified state.
         /// </summary>
         /// <param name="capacity">The maximum number of buffers that can be retained in the bucket.</param>
-        /// <param name="length">The total number of elements the internal data structure can hold.</param>
+        /// <param name="length">The size (in bytes) of each buffer.</param>
         /// <param name="alignment">The alignment requirement (in bytes) for allocations managed by the bucket.</param>
         /// <param name="buffer">The native buffer that backs the bucket.</param>
         /// <param name="index">The index of the next free slot within the buffer.</param>

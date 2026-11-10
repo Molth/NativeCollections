@@ -32,6 +32,17 @@ namespace NativeCollections
         private NativeTreiberStack(RawTreiberStack<T>* handle) => _handle = handle;
 
         /// <summary>
+        ///     Initializes a new instance of this class.
+        /// </summary>
+        /// <returns>A new instance.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeTreiberStack<T> Create()
+        {
+            RawTreiberStack<T> value = default;
+            return new NativeTreiberStack<T>(Box.New(ref value, Usize.FromI32Unchecked(CACHE_LINE_SIZE)));
+        }
+
+        /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public bool IsCreated => _handle != null;
@@ -146,16 +157,5 @@ namespace NativeCollections
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryPop(out T result) => _handle->TryPop(out result);
-
-        /// <summary>
-        ///     Initializes a new instance of this class.
-        /// </summary>
-        /// <returns>A new instance.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeTreiberStack<T> Create()
-        {
-            RawTreiberStack<T> value = default;
-            return new NativeTreiberStack<T>(Box.New(ref value, Usize.FromI32Unchecked(CACHE_LINE_SIZE)));
-        }
     }
 }

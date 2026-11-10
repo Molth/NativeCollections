@@ -27,6 +27,11 @@ namespace NativeCollections
         /// <remarks>
         ///     The first 24 values are used to map small capacities to a starting index in the
         ///     prime list. The remaining 72 values are precomputed primes for hash table sizing.
+        ///     A typical resize algorithm picks the smallest prime larger than twice the previous
+        ///     capacity. Doubling preserves the asymptotic complexity of operations such as add,
+        ///     and using a prime size keeps double hashing (h1(key) + i*h2(key)) from looping because
+        ///     the probe step and the size must be relatively prime. Higher primes trade increased
+        ///     memory for lower computation cost, which is preferred when right-sizing a HashSet.
         /// </remarks>
         private static ReadOnlySpan<int> LookupTable => new int[96]
         {
@@ -38,22 +43,24 @@ namespace NativeCollections
             1674319, 2009191, 2411033, 2893249, 3471899, 4166287, 4999559, 5999471, 7199369
         };
 
-        // Table of prime numbers to use as hash table sizes.
-        // A typical resize algorithm would pick the smallest prime number in this array
-        // that is larger than twice the previous capacity.
-        // Suppose our Hashtable currently has capacity x and enough elements are added
-        // such that a resize needs to occur. Resizing first computes 2x then finds the
-        // first prime in the table greater than 2x, i.e. if primes are ordered
-        // p_1, p_2, ..., p_i, ..., it finds p_n such that p_n-1 < 2x < p_n.
-        // Doubling is important for preserving the asymptotic complexity of the
-        // hashtable operations such as add. Having a prime guarantees that double
-        // hashing does not lead to infinite loops. IE, your hash function will be
-        // h1(key) + i*h2(key), 0 <= i < size. h2 and the size must be relatively prime.
-        // We prefer the low computation costs of higher prime numbers over the increased
-        // memory allocation of a fixed prime number i.e. when right sizing a HashSet.
         /// <summary>
         ///     Gets the precomputed prime numbers used for hash table sizes.
         /// </summary>
+        /// <remarks>
+        ///     Table of prime numbers to use as hash table sizes.
+        ///     A typical resize algorithm would pick the smallest prime number in this array
+        ///     that is larger than twice the previous capacity.
+        ///     Suppose our Hashtable currently has capacity x and enough elements are added
+        ///     such that a resize needs to occur. Resizing first computes 2x then finds the
+        ///     first prime in the table greater than 2x, i.e. if primes are ordered
+        ///     p_1, p_2, ..., p_i, ..., it finds p_n such that p_n-1 &lt; 2x &lt; p_n.
+        ///     Doubling is important for preserving the asymptotic complexity of the
+        ///     hashtable operations such as add. Having a prime guarantees that double
+        ///     hashing does not lead to infinite loops. IE, your hash function will be
+        ///     h1(key) + i*h2(key), 0 &lt;= i &lt; size. h2 and the size must be relatively prime.
+        ///     We prefer the low computation costs of higher prime numbers over the increased
+        ///     memory allocation of a fixed prime number i.e. when right sizing a HashSet.
+        /// </remarks>
         public static ReadOnlySpan<int> Primes => LookupTable.Slice(24);
 
         /// <summary>
@@ -119,8 +126,11 @@ namespace NativeCollections
         /// <param name="oldSize">The current hash table size.</param>
         /// <returns>The hash table size to use after expansion.</returns>
         /// <remarks>
-        ///     Allow the hashtables to grow to maximum possible size (~2G elements) before encountering capacity
-        ///     overflow. Note that this check works even when _items.Length overflowed thanks to the (uint) cast.
+        ///     Doubles the current size and returns a prime at least as large as the result. When the
+        ///     doubled size exceeds <see cref="MAX_PRIME_ARRAY_LENGTH" /> and the old size is still below that
+        ///     limit, <see cref="MAX_PRIME_ARRAY_LENGTH" /> is returned instead. The doubled size is compared
+        ///     as an unsigned value so that a wrapped negative size is also detected as exceeding the
+        ///     limit.
         /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int ExpandPrime(int oldSize)
@@ -136,7 +146,7 @@ namespace NativeCollections
         /// <returns>The approximate reciprocal of <paramref name="divisor" />.</returns>
         /// <remarks>This should only be used on 64-bit.</remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static ulong GetFastModMultiplier(uint divisor) => (ulong.MaxValue / U64.FromU32Unchecked(divisor)).WrappingAdd(U64.FromI32Unchecked(1));
+        private static ulong GetFastModMultiplier(uint divisor) => (ulong.MaxValue / U64.FromU32Unchecked(divisor)).WrappingAdd(1UL);
 
         /// <summary>
         ///     Performs a mod operation using the multiplier pre-computed with <see cref="GetFastModMultiplier" />.
@@ -147,7 +157,7 @@ namespace NativeCollections
         /// <returns>The remainder of <paramref name="value" /> divided by <paramref name="divisor" />.</returns>
         /// <remarks>This should only be used on 64-bit.</remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static uint FastMod(uint value, uint divisor, ulong multiplier) => U32.FromU64Unchecked((multiplier.WrappingMul(U64.FromU32Unchecked(value)) >> 32).WrappingAdd(U64.FromI32Unchecked(1)).WrappingMul(U64.FromU32Unchecked(divisor)) >> 32);
+        private static uint FastMod(uint value, uint divisor, ulong multiplier) => U32.FromU64Unchecked((multiplier.WrappingMul(U64.FromU32Unchecked(value)) >> 32).WrappingAdd(1UL).WrappingMul(U64.FromU32Unchecked(divisor)) >> 32);
 
         /// <summary>
         ///     Provides a mod operation.
@@ -173,7 +183,7 @@ namespace NativeCollections
             /// <param name="divisor">The divisor for which to precompute a fast-modulo multiplier.</param>
             /// <returns>A helper initialized for <paramref name="divisor" />.</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static FastModImpl Create(uint divisor) => new(Environment.Is64BitProcess ? GetFastModMultiplier(divisor) : U64.FromI32Unchecked(0));
+            public static FastModImpl Create(uint divisor) => new(Environment.Is64BitProcess ? GetFastModMultiplier(divisor) : 0UL);
 
             /// <summary>
             ///     Performs a mod operation.

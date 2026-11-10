@@ -56,7 +56,7 @@ namespace NativeCollections
         /// <summary>
         ///     Gets the minimum value in this.
         /// </summary>
-        /// <value>The minimum value in the set.</value>
+        /// <value>The minimum value in the set, or <see langword="null" /> if this is empty.</value>
         public readonly T? Min
         {
             get
@@ -75,7 +75,7 @@ namespace NativeCollections
         /// <summary>
         ///     Gets the maximum value in this.
         /// </summary>
-        /// <value>The maximum value in the set.</value>
+        /// <value>The maximum value in the set, or <see langword="null" /> if this is empty.</value>
         public readonly T? Max
         {
             get
@@ -523,11 +523,11 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Searches the set for a given value and returns the equal value it finds, if any.
+        ///     Searches the set for a given value and returns a reference to the equal value it finds, if any.
         /// </summary>
         /// <param name="equalValue">The value to search for.</param>
         /// <param name="actualValue">
-        ///     The value from the set that the search found, or the default value
+        ///     A reference to the value from the set that the search found, or the default value
         ///     of <typeparamref name="T" /> when the search yielded no match.
         /// </param>
         /// <returns>A value indicating whether the search was successful.</returns>
@@ -793,15 +793,13 @@ namespace NativeCollections
             private readonly NativeStack<NativePtr<Node<T>>> _nodeStack;
 
             /// <summary>
-            ///     Gets the element in the collection at the current position of the enumerator.
+            ///     The node at the current position of the enumerator.
             /// </summary>
-            /// <returns>The element in the collection at the current position of the enumerator.</returns>
             private Node<T>* _currentNode;
 
             /// <summary>
-            ///     Gets the element in the collection at the current position of the enumerator.
+            ///     The element in the collection at the current position of the enumerator.
             /// </summary>
-            /// <returns>The element in the collection at the current position of the enumerator.</returns>
             private T _current;
 
             /// <summary>

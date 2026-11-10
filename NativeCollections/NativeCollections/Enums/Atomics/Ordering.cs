@@ -16,8 +16,6 @@ namespace NativeCollections
     ///         the same as those of C++20
     ///     </see>
     ///     .
-    ///     <br />
-    ///     For more information see <see href="../../../nomicon/atomics.html">the nomicon</see>.
     /// </remarks>
     public enum Ordering
     {
@@ -73,8 +71,6 @@ namespace NativeCollections
         ///     Notice that in the case of <c>compare_and_swap</c>, it is possible that the operation
         ///     ends up not performing any store and hence it has just <see cref="Acquire" /> ordering.
         ///     However, <see cref="AcqRel" /> will never perform <see cref="Relaxed" /> accesses.
-        ///     <br />
-        ///     This ordering is only applicable for operations that combine both loads and stores.
         ///     <br />
         ///     Corresponds to <c>memory_order_acq_rel</c> in C++20.
         /// </remarks>

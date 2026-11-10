@@ -32,7 +32,7 @@ namespace NativeCollections
 #if NET6_0_OR_GREATER
             return BitOperations.RoundUpToPowerOf2(value);
 #else
-            value = value.WrappingSub(U32.FromI32Unchecked(1));
+            value = value.WrappingSub(1U);
             value |= value >> 1;
             value |= value >> 2;
             value |= value >> 4;
@@ -56,7 +56,7 @@ namespace NativeCollections
 #if NET6_0_OR_GREATER
             return BitOperations.IsPow2(value);
 #else
-            return (value & value.WrappingSub(U32.FromI32Unchecked(1))) == U32.FromI32Unchecked(0) && value != U32.FromI32Unchecked(0);
+            return (value & value.WrappingSub(1U)) == 0U && value != 0U;
 #endif
         }
 
@@ -139,7 +139,7 @@ namespace NativeCollections
             return BitOperations.LeadingZeroCount(value);
 #else
             var high = U32.FromU64Unchecked(value >> 32);
-            return high == U32.FromI32Unchecked(0) ? 32.WrappingAdd(LeadingZeroCount(U32.FromU64Unchecked(value))) : 31 ^ Log2(high);
+            return high == 0U ? 32.WrappingAdd(LeadingZeroCount(U32.FromU64Unchecked(value))) : 31 ^ Log2(high);
 #endif
         }
 
@@ -154,7 +154,7 @@ namespace NativeCollections
 #if NET5_0_OR_GREATER
             return BitOperations.LeadingZeroCount(value);
 #else
-            return value == U32.FromI32Unchecked(0) ? 32 : 31 ^ Log2(value);
+            return value == 0U ? 32 : 31 ^ Log2(value);
 #endif
         }
 
@@ -170,7 +170,7 @@ namespace NativeCollections
             return BitOperations.TrailingZeroCount(value);
 #else
             var low = U32.FromU64Unchecked(value);
-            return low == U32.FromI32Unchecked(0) ? 32.WrappingAdd(TrailingZeroCount(U32.FromU64Unchecked(value >> 32))) : TrailingZeroCount(low);
+            return low == 0U ? 32.WrappingAdd(TrailingZeroCount(U32.FromU64Unchecked(value >> 32))) : TrailingZeroCount(low);
 #endif
         }
 
@@ -185,7 +185,7 @@ namespace NativeCollections
 #if NET5_0_OR_GREATER
             return BitOperations.TrailingZeroCount(value);
 #else
-            return value == U32.FromI32Unchecked(0) ? 32 : I32.FromU8Unchecked(Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(TrailingZeroCountDeBruijn), Isize.FromI32Unchecked(I32.FromU32Unchecked((value & U32.FromI32Unchecked(I32.FromU32Unchecked(value).WrappingNeg())).WrappingMul(125613361U) >> 27))));
+            return value == 0U ? 32 : I32.FromU8Unchecked(Unsafe.AddByteOffset(ref MemoryMarshal.GetReference(TrailingZeroCountDeBruijn), Isize.FromI32Unchecked(I32.FromU32Unchecked((value & U32.FromI32Unchecked(I32.FromU32Unchecked(value).WrappingNeg())).WrappingMul(125613361U) >> 27))));
 #endif
         }
 
@@ -204,7 +204,7 @@ namespace NativeCollections
 #if NET5_0_OR_GREATER
             return BitOperations.Log2(value);
 #else
-            value |= U32.FromI32Unchecked(1);
+            value |= 1U;
             value |= value >> 1;
             value |= value >> 2;
             value |= value >> 4;

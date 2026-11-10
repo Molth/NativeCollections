@@ -14,7 +14,7 @@
         <LangVersion>latest</LangVersion>
 
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
-        <NoWarn>$(NoWarn);RS1038;RS2008</NoWarn>
+        <NoWarn>$(NoWarn);RS1035;RS1038;RS2008</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>

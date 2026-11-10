@@ -548,11 +548,11 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Gets the value associated with the specified key.
+        ///     Gets a reference to the value associated with the specified key.
         /// </summary>
         /// <param name="key">The key of the value to get.</param>
         /// <param name="value">
-        ///     When this method returns, contains the value associated with the specified
+        ///     When this method returns, contains a reference to the value associated with the specified
         ///     key, if the key is found; otherwise, the default value for the type of the
         ///     <paramref name="value" /> parameter. This parameter is passed uninitialized.
         /// </param>
@@ -596,7 +596,7 @@ namespace NativeCollections
         ///     in this or a ref null if it does not exist in this.
         /// </summary>
         /// <param name="key">The key used for lookup.</param>
-        /// <param name="exists">Whether or not a new entry for the given key was added to this.</param>
+        /// <param name="exists">Whether or not the given key already existed in this.</param>
         /// <returns>A reference to the value if the key is found; otherwise, a null reference.</returns>
         /// <remarks>
         ///     Items should not be added or removed from this while the ref <typeparamref name="TValue" />
@@ -694,7 +694,7 @@ namespace NativeCollections
         ///     a new entry with a default value if it does not exist in this.
         /// </summary>
         /// <param name="key">The key used for lookup.</param>
-        /// <param name="exists">Whether or not a new entry for the given key was added to this.</param>
+        /// <param name="exists">Whether or not the given key already existed in this.</param>
         /// <returns>A reference to the value associated with the specified key.</returns>
         /// <remarks>
         ///     Items should not be added to or removed from this
@@ -1009,15 +1009,13 @@ namespace NativeCollections
             private readonly NativeStack<NativePtr<Node<TKey, TValue>>> _nodeStack;
 
             /// <summary>
-            ///     Gets the element in the collection at the current position of the enumerator.
+            ///     The node at the current position of the enumerator.
             /// </summary>
-            /// <returns>The element in the collection at the current position of the enumerator.</returns>
             private Node<TKey, TValue>* _currentNode;
 
             /// <summary>
-            ///     Gets the element in the collection at the current position of the enumerator.
+            ///     The element in the collection at the current position of the enumerator.
             /// </summary>
-            /// <returns>The element in the collection at the current position of the enumerator.</returns>
             private KeyValuePair<TKey, TValue> _current;
 
             /// <summary>
@@ -1298,15 +1296,13 @@ namespace NativeCollections
                 private readonly NativeStack<NativePtr<Node<TKey, TValue>>> _nodeStack;
 
                 /// <summary>
-                ///     Gets the element in the collection at the current position of the enumerator.
+                ///     The node at the current position of the enumerator.
                 /// </summary>
-                /// <returns>The element in the collection at the current position of the enumerator.</returns>
                 private Node<TKey, TValue>* _currentNode;
 
                 /// <summary>
-                ///     Gets the element in the collection at the current position of the enumerator.
+                ///     The element in the collection at the current position of the enumerator.
                 /// </summary>
-                /// <returns>The element in the collection at the current position of the enumerator.</returns>
                 private TKey _current;
 
                 /// <summary>
@@ -1589,15 +1585,13 @@ namespace NativeCollections
                 private readonly NativeStack<NativePtr<Node<TKey, TValue>>> _nodeStack;
 
                 /// <summary>
-                ///     Gets the element in the collection at the current position of the enumerator.
+                ///     The node at the current position of the enumerator.
                 /// </summary>
-                /// <returns>The element in the collection at the current position of the enumerator.</returns>
                 private Node<TKey, TValue>* _currentNode;
 
                 /// <summary>
-                ///     Gets the element in the collection at the current position of the enumerator.
+                ///     The element in the collection at the current position of the enumerator.
                 /// </summary>
-                /// <returns>The element in the collection at the current position of the enumerator.</returns>
                 private TValue _current;
 
                 /// <summary>

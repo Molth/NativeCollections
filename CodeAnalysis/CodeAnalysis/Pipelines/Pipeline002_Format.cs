@@ -14,11 +14,15 @@ namespace Roslyn
     ///     block that the brace rewriter expects. The expression body, brace, and single-line rewriters then
     ///     operate on the already cleaned tree, and the final expression line rewriter flattens the remaining
     ///     inline expressions. The numeric suffix of a rewriter mirrors the position of its step: the rewriters are
-    ///     applied in ascending order, so a step keeps its ordinal when another step is inserted or removed around
-    ///     it. This type composes the steps instead of being one of them, so it lives in its own <c>Pipelines</c>
-    ///     folder rather than in the <c>Rewriters</c> folder, which holds only the rewriters themselves.
+    ///     applied in ascending order, with the end-of-line step deferred to the end, so a step keeps its ordinal
+    ///     when another step is inserted or removed around it. This type composes the steps instead of being one
+    ///     of them, so it lives in its own <c>Pipelines</c> folder rather than in the <c>Rewriters</c> folder,
+    ///     which holds only the rewriters themselves. The literal suffix rewriter runs after the code has been
+    ///     restructured, because it changes the text of a token in place. The end-of-line rewriter runs last,
+    ///     because the earlier rewriters create trivia from the line ending of the source and the normalization
+    ///     must also cover what they inserted.
     /// </remarks>
-    internal static class RewriterPipeline
+    internal static class Pipeline002_Format
     {
         /// <summary>
         ///     Applies the community style rewriters to a syntax tree.
@@ -36,6 +40,8 @@ namespace Roslyn
             result = new Rewriter007_SingleLine().Visit(result);
             result = new Rewriter008_ExpressionLine().Visit(result);
             result = new Rewriter009_BlankLine().Visit(result);
+            result = new Rewriter012_SuffixedLiteral().Visit(result);
+            result = new Rewriter010_EndOfLine().Visit(result);
             return result ?? root;
         }
     }

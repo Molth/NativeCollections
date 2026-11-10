@@ -65,6 +65,13 @@ namespace NativeCollections
         private UnsafeConcurrentStack(NativeObject<ConcurrentStack<T>> handle) => _handle = handle;
 
         /// <summary>
+        ///     Initializes a new instance of this class.
+        /// </summary>
+        /// <returns>A new instance.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UnsafeConcurrentStack<T> Create() => new(NativeObject<ConcurrentStack<T>>.Create(new ConcurrentStack<T>()));
+
+        /// <summary>
         ///     Indicates whether the current object is equal to another object.
         /// </summary>
         /// <param name="other">The value to compare with this instance.</param>
@@ -151,12 +158,5 @@ namespace NativeCollections
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryPop(out T result) => Handle.TryPop(out result);
-
-        /// <summary>
-        ///     Initializes a new instance of this class.
-        /// </summary>
-        /// <returns>A new instance.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeConcurrentStack<T> Create() => new(NativeObject<ConcurrentStack<T>>.Create(new ConcurrentStack<T>()));
     }
 }

@@ -39,7 +39,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Sets a value to a specified value, as an atomic operation.
+        ///     Sets a variable to a specified value, as an atomic operation.
         /// </summary>
         /// <param name="location">The variable to store the value in.</param>
         /// <param name="value">The value to store.</param>
@@ -95,7 +95,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Sets a value to a specified value, as an atomic operation.
+        ///     Sets a variable to a specified value, as an atomic operation.
         /// </summary>
         /// <param name="location">The variable to store the value in.</param>
         /// <param name="value">The value to store.</param>
@@ -151,7 +151,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Sets a value to a specified value, as an atomic operation.
+        ///     Sets a variable to a specified value, as an atomic operation.
         /// </summary>
         /// <param name="location">The variable to store the value in.</param>
         /// <param name="value">The value to store.</param>
@@ -224,7 +224,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Sets a value to a specified value, as an atomic operation.
+        ///     Sets a variable to a specified value, as an atomic operation.
         /// </summary>
         /// <param name="location">The variable to store the value in.</param>
         /// <param name="value">The value to store.</param>
@@ -298,7 +298,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Sets a value to a specified value, as an atomic operation.
+        ///     Sets a variable to a specified value, as an atomic operation.
         /// </summary>
         /// <param name="location">The variable to store the value in.</param>
         /// <param name="value">The value to store.</param>
@@ -354,7 +354,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Sets a value to a specified value, as an atomic operation.
+        ///     Sets a variable to a specified value, as an atomic operation.
         /// </summary>
         /// <param name="location">The variable to store the value in.</param>
         /// <param name="value">The value to store.</param>
@@ -410,7 +410,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Sets a value to a specified value, as an atomic operation.
+        ///     Sets a variable to a specified value, as an atomic operation.
         /// </summary>
         /// <param name="location">The variable to store the value in.</param>
         /// <param name="value">The value to store.</param>

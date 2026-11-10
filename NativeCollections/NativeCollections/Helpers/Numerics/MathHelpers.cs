@@ -8,8 +8,7 @@ using System;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Provides constants and static methods for trigonometric,
-    ///     logarithmic, and other common mathematical functions.
+    ///     Provides helper methods for mathematical operations.
     /// </summary>
     internal static class MathHelpers
     {
@@ -120,7 +119,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Produces the quotient and the remainder of two signed native-size numbers.
+        ///     Produces the quotient and the remainder of two signed 32-bit numbers.
         /// </summary>
         /// <param name="left">The dividend.</param>
         /// <param name="right">The divisor.</param>

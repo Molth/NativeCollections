@@ -26,12 +26,12 @@ namespace NativeCollections
         private readonly UnsafeSortedList<TKey, TValue>* _handle;
 
         /// <summary>
-        ///     Gets a collection containing the keys in the dictionary.
+        ///     Gets a collection containing the keys in the sorted list.
         /// </summary>
         public UnsafeSortedList<TKey, TValue>.KeyCollection Keys => _handle->Keys;
 
         /// <summary>
-        ///     Gets a collection containing the values in the dictionary.
+        ///     Gets a collection containing the values in the sorted list.
         /// </summary>
         public UnsafeSortedList<TKey, TValue>.ValueCollection Values => _handle->Values;
 
@@ -50,6 +50,9 @@ namespace NativeCollections
         /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="capacity" /> is negative.
         /// </exception>
+        /// <remarks>
+        ///     The requested capacity is clamped to a minimum of 2; read <c>Capacity</c> for the effective value.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeSortedList<TKey, TValue> Create(int capacity)
         {
@@ -333,11 +336,11 @@ namespace NativeCollections
         public bool TryGetValue(TKey key, out TValue value) => _handle->TryGetValue(key, out value);
 
         /// <summary>
-        ///     Gets the value associated with the specified key.
+        ///     Gets a reference to the value associated with the specified key.
         /// </summary>
         /// <param name="key">The key of the value to get.</param>
         /// <param name="value">
-        ///     When this method returns, contains the value associated with the specified
+        ///     When this method returns, contains a reference to the value associated with the specified
         ///     key, if the key is found; otherwise, the default value for the type of the
         ///     <paramref name="value" /> parameter. This parameter is passed uninitialized.
         /// </param>

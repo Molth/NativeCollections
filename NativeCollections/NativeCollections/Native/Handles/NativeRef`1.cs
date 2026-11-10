@@ -48,6 +48,14 @@ namespace NativeCollections
         public static NativeRef<T> From(Span<T> handle) => new(handle);
 
         /// <summary>
+        ///     Creates a new instance.
+        /// </summary>
+        /// <param name="reference">The reference to wrap.</param>
+        /// <returns>A new instance that wraps <paramref name="reference" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeRef<T> From(ref T reference) => new(MemoryMarshal.CreateSpan(ref reference, 1));
+
+        /// <summary>
         ///     Indicates whether the current object is equal to another object.
         /// </summary>
         /// <param name="obj">The object to compare with this instance.</param>
@@ -89,13 +97,5 @@ namespace NativeCollections
         /// <returns>A reference to the value wrapped by this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ref T AsRef() => ref MemoryMarshal.GetReference(_handle);
-
-        /// <summary>
-        ///     Creates a new instance.
-        /// </summary>
-        /// <param name="reference">The reference to wrap.</param>
-        /// <returns>A new instance that wraps <paramref name="reference" />.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeRef<T> From(ref T reference) => new(MemoryMarshal.CreateSpan(ref reference, 1));
     }
 }

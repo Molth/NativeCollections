@@ -347,7 +347,7 @@ namespace NativeCollections
         ///     in this or a ref null if it does not exist in this.
         /// </summary>
         /// <param name="key">The key used for lookup.</param>
-        /// <param name="exists">Whether or not a new entry for the given key was added to this.</param>
+        /// <param name="exists">Whether or not the given key already existed in this.</param>
         /// <returns>A reference to the value if the key is found; otherwise, a null reference.</returns>
         /// <remarks>
         ///     Items should not be added or removed from this while the ref <typeparamref name="TValue" />

@@ -453,11 +453,11 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Gets the value associated with the specified key.
+        ///     Gets a reference to the value associated with the specified key.
         /// </summary>
         /// <param name="key">The key of the value to get.</param>
         /// <param name="value">
-        ///     When this method returns, contains the value associated with the specified
+        ///     When this method returns, contains a reference to the value associated with the specified
         ///     key, if the key is found; otherwise, the default value for the type of the
         ///     <paramref name="value" /> parameter. This parameter is passed uninitialized.
         /// </param>
@@ -501,7 +501,7 @@ namespace NativeCollections
         ///     in this or a ref null if it does not exist in this.
         /// </summary>
         /// <param name="key">The key used for lookup.</param>
-        /// <param name="exists">Whether or not a new entry for the given key was added to this.</param>
+        /// <param name="exists">Whether or not the given key already existed in this.</param>
         /// <returns>A reference to the value if the key is found; otherwise, a null reference.</returns>
         /// <remarks>
         ///     Items should not be added or removed from this while the ref <typeparamref name="TValue" />
@@ -537,8 +537,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ref TValue GetValueRefOrAddDefault(TKey key)
         {
-            var outHashCode = U32.FromI32Unchecked(0);
-            var outCollisionCount = U32.FromI32Unchecked(0);
+            var outHashCode = 0U;
+            var outCollisionCount = 0U;
             var index1 = IndexOf(key, ref outHashCode, ref outCollisionCount);
             if (index1 >= 0)
                 return ref Unsafe.Add(ref Unsafe.AsRef<Entry>(_entries), Isize.FromI32Unchecked(index1)).Value;
@@ -572,7 +572,7 @@ namespace NativeCollections
         ///     a new entry with a default value if it does not exist in this.
         /// </summary>
         /// <param name="key">The key used for lookup.</param>
-        /// <param name="exists">Whether or not a new entry for the given key was added to this.</param>
+        /// <param name="exists">Whether or not the given key already existed in this.</param>
         /// <returns>A reference to the value associated with the specified key.</returns>
         /// <exception cref="InvalidOperationException">
         ///     Thrown when a concurrent update corrupted the state of this collection.
@@ -584,8 +584,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ref TValue GetValueRefOrAddDefault(TKey key, out bool exists)
         {
-            var outHashCode = U32.FromI32Unchecked(0);
-            var outCollisionCount = U32.FromI32Unchecked(0);
+            var outHashCode = 0U;
+            var outCollisionCount = 0U;
             var index1 = IndexOf(key, ref outHashCode, ref outCollisionCount);
             if (index1 >= 0)
             {
@@ -825,7 +825,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int IndexOf(TKey key)
         {
-            var num = U32.FromI32Unchecked(0);
+            var num = 0U;
             return IndexOf(key, ref num, ref num);
         }
 
@@ -844,7 +844,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly int IndexOf(TKey key, ref uint outHashCode, ref uint outCollisionCount)
         {
-            var num = U32.FromI32Unchecked(0);
+            var num = 0U;
             var entries = _entries;
             var hashCode = U32.FromI32Unchecked(key.GetHashCode());
             var index = GetBucket(hashCode).WrappingSub(1);
@@ -854,7 +854,7 @@ namespace NativeCollections
                 if (local.HashCode != hashCode || !local.Key.Equals(key))
                 {
                     index = local.Next;
-                    num = num.WrappingAdd(U32.FromI32Unchecked(1));
+                    num = num.WrappingAdd(1U);
                     if (num > U32.FromI32Unchecked(_entriesLength))
                         ThrowHelpers.ThrowConcurrentOperationsNotSupportedException();
                 }
@@ -936,8 +936,8 @@ namespace NativeCollections
                 return;
             }
 
-            var outHashCode = U32.FromI32Unchecked(0);
-            var outCollisionCount = U32.FromI32Unchecked(0);
+            var outHashCode = 0U;
+            var outCollisionCount = 0U;
             if (IndexOf(key, ref outHashCode, ref outCollisionCount) >= 0)
                 ThrowHelpers.ThrowAddingDuplicateWithKeyException(key);
 
@@ -1157,8 +1157,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool TryInsertIgnoreInsertion(TKey key, TValue value)
         {
-            var outHashCode = U32.FromI32Unchecked(0);
-            var outCollisionCount = U32.FromI32Unchecked(0);
+            var outHashCode = 0U;
+            var outCollisionCount = 0U;
             var index1 = IndexOf(key, ref outHashCode, ref outCollisionCount);
             if (index1 >= 0)
                 return false;
@@ -1201,8 +1201,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool TryInsertOverwriteExisting(int index, TKey key, TValue value)
         {
-            var outHashCode = U32.FromI32Unchecked(0);
-            var outCollisionCount = U32.FromI32Unchecked(0);
+            var outHashCode = 0U;
+            var outCollisionCount = 0U;
             var index1 = IndexOf(key, ref outHashCode, ref outCollisionCount);
             if (index1 >= 0)
             {
@@ -1248,8 +1248,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void TryInsertThrowOnExisting(int index, TKey key, TValue value)
         {
-            var outHashCode = U32.FromI32Unchecked(0);
-            var outCollisionCount = U32.FromI32Unchecked(0);
+            var outHashCode = 0U;
+            var outCollisionCount = 0U;
             var index1 = IndexOf(key, ref outHashCode, ref outCollisionCount);
             if (index1 >= 0)
                 ThrowHelpers.ThrowAddingDuplicateWithKeyException(key);

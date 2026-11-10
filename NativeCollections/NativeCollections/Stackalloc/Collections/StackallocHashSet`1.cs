@@ -247,7 +247,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public InsertResult TryAdd(T item)
         {
-            var collisionCount = U32.FromI32Unchecked(0);
+            var collisionCount = 0U;
             var hashCode = U32.FromI32Unchecked(item.GetHashCode());
             ref var bucket = ref GetBucket(hashCode);
             var i = bucket.WrappingSub(1);
@@ -258,7 +258,7 @@ namespace NativeCollections
                     return InsertResult.AlreadyExists;
 
                 i = entry.Next;
-                collisionCount = collisionCount.WrappingAdd(U32.FromI32Unchecked(1));
+                collisionCount = collisionCount.WrappingAdd(1U);
                 if (collisionCount > U32.FromI32Unchecked(_entriesLength))
                     ThrowHelpers.ThrowConcurrentOperationsNotSupportedException();
             }
@@ -304,7 +304,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(T item)
         {
-            var collisionCount = U32.FromI32Unchecked(0);
+            var collisionCount = 0U;
             var last = -1;
             var hashCode = U32.FromI32Unchecked(item.GetHashCode());
             ref var bucket = ref GetBucket(hashCode);
@@ -327,7 +327,7 @@ namespace NativeCollections
 
                 last = i;
                 i = entry.Next;
-                collisionCount = collisionCount.WrappingAdd(U32.FromI32Unchecked(1));
+                collisionCount = collisionCount.WrappingAdd(1U);
                 if (collisionCount > U32.FromI32Unchecked(_entriesLength))
                     ThrowHelpers.ThrowConcurrentOperationsNotSupportedException();
             }
@@ -354,7 +354,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(T equalValue, out T actualValue)
         {
-            var collisionCount = U32.FromI32Unchecked(0);
+            var collisionCount = 0U;
             var last = -1;
             var hashCode = U32.FromI32Unchecked(equalValue.GetHashCode());
             ref var bucket = ref GetBucket(hashCode);
@@ -378,7 +378,7 @@ namespace NativeCollections
 
                 last = i;
                 i = entry.Next;
-                collisionCount = collisionCount.WrappingAdd(U32.FromI32Unchecked(1));
+                collisionCount = collisionCount.WrappingAdd(1U);
                 if (collisionCount > U32.FromI32Unchecked(_entriesLength))
                     ThrowHelpers.ThrowConcurrentOperationsNotSupportedException();
             }
@@ -463,7 +463,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly int FindItemIndex(T item)
         {
-            var collisionCount = U32.FromI32Unchecked(0);
+            var collisionCount = 0U;
             var hashCode = U32.FromI32Unchecked(item.GetHashCode());
             var i = GetBucket(hashCode).WrappingSub(1);
             while (i >= 0)
@@ -473,7 +473,7 @@ namespace NativeCollections
                     return i;
 
                 i = entry.Next;
-                collisionCount = collisionCount.WrappingAdd(U32.FromI32Unchecked(1));
+                collisionCount = collisionCount.WrappingAdd(1U);
                 if (collisionCount > U32.FromI32Unchecked(_entriesLength))
                     ThrowHelpers.ThrowConcurrentOperationsNotSupportedException();
             }

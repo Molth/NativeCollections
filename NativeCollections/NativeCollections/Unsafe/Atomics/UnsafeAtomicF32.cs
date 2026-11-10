@@ -109,7 +109,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Sets a value to a specified value, as an atomic operation.
+        ///     Sets a variable to a specified value, as an atomic operation.
         /// </summary>
         /// <param name="value">The value to store.</param>
         /// <param name="order">The memory ordering constraint applied to the store operation.</param>
@@ -118,7 +118,7 @@ namespace NativeCollections
         public void Store(float value, Ordering order) => _value.Store(BitConverter.SingleToInt32Bits(value), order);
 
         /// <summary>
-        ///     Sets a value to a specified value and returns the original value, as an atomic operation.
+        ///     Sets a variable to a specified value and returns the original value, as an atomic operation.
         /// </summary>
         /// <param name="value">The value to store.</param>
         /// <returns>The original value.</returns>
@@ -130,7 +130,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Compares two values for equality and, if they are equal, replaces the first value.
+        ///     Compares two values for equality and, if they are equal, replaces the first value, as an atomic operation.
         /// </summary>
         /// <param name="value">
         ///     The value that replaces the destination value if the comparison results in equality.

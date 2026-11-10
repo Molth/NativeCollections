@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 #if NET7_0_OR_GREATER
 using System.Numerics;
 #endif
@@ -21,6 +22,10 @@ namespace NativeCollections
         ///     <see langword="true" /> if <paramref name="value" /> represents
         ///     an odd integral number; otherwise, <see langword="false" />.
         /// </returns>
+        /// <exception cref="NotSupportedException">
+        ///     Thrown when <typeparamref name="T" /> is not a 1-, 2-, 4-, or 8-byte type
+        ///     on .NET versions earlier than .NET 7.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsOddInteger<T>(T value) where T : unmanaged
 #if NET7_0_OR_GREATER
@@ -37,10 +42,10 @@ namespace NativeCollections
                 return (I32.FromU16Unchecked(Unsafe.As<T, ushort>(ref value)) & 1) != 0;
 
             if (Unsafe.SizeOf<T>() == 4)
-                return (Unsafe.As<T, uint>(ref value) & U32.FromI32Unchecked(1)) != U32.FromI32Unchecked(0);
+                return (Unsafe.As<T, uint>(ref value) & 1U) != 0U;
 
             if (Unsafe.SizeOf<T>() == 8)
-                return (Unsafe.As<T, ulong>(ref value) & U64.FromI32Unchecked(1)) != U64.FromI32Unchecked(0);
+                return (Unsafe.As<T, ulong>(ref value) & 1UL) != 0UL;
 
             ThrowHelpers.ThrowNotSupportedException();
             return default;

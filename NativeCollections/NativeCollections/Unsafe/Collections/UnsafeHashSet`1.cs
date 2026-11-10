@@ -195,7 +195,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Add(T item)
         {
-            var collisionCount = U32.FromI32Unchecked(0);
+            var collisionCount = 0U;
             var hashCode = U32.FromI32Unchecked(item.GetHashCode());
             ref var bucket = ref GetBucket(hashCode);
             var i = bucket.WrappingSub(1);
@@ -206,7 +206,7 @@ namespace NativeCollections
                     return false;
 
                 i = entry.Next;
-                collisionCount = collisionCount.WrappingAdd(U32.FromI32Unchecked(1));
+                collisionCount = collisionCount.WrappingAdd(1U);
                 if (collisionCount > U32.FromI32Unchecked(_entriesLength))
                     ThrowHelpers.ThrowConcurrentOperationsNotSupportedException();
             }
@@ -255,7 +255,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(T item)
         {
-            var collisionCount = U32.FromI32Unchecked(0);
+            var collisionCount = 0U;
             var last = -1;
             var hashCode = U32.FromI32Unchecked(item.GetHashCode());
             ref var bucket = ref GetBucket(hashCode);
@@ -278,7 +278,7 @@ namespace NativeCollections
 
                 last = i;
                 i = entry.Next;
-                collisionCount = collisionCount.WrappingAdd(U32.FromI32Unchecked(1));
+                collisionCount = collisionCount.WrappingAdd(1U);
                 if (collisionCount > U32.FromI32Unchecked(_entriesLength))
                     ThrowHelpers.ThrowConcurrentOperationsNotSupportedException();
             }
@@ -305,7 +305,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(T equalValue, out T actualValue)
         {
-            var collisionCount = U32.FromI32Unchecked(0);
+            var collisionCount = 0U;
             var last = -1;
             var hashCode = U32.FromI32Unchecked(equalValue.GetHashCode());
             ref var bucket = ref GetBucket(hashCode);
@@ -329,7 +329,7 @@ namespace NativeCollections
 
                 last = i;
                 i = entry.Next;
-                collisionCount = collisionCount.WrappingAdd(U32.FromI32Unchecked(1));
+                collisionCount = collisionCount.WrappingAdd(1U);
                 if (collisionCount > U32.FromI32Unchecked(_entriesLength))
                     ThrowHelpers.ThrowConcurrentOperationsNotSupportedException();
             }
@@ -377,11 +377,11 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Searches the set for a given value and returns the equal value it finds, if any.
+        ///     Searches the set for a given value and returns a reference to the equal value it finds, if any.
         /// </summary>
         /// <param name="equalValue">The value to search for.</param>
         /// <param name="actualValue">
-        ///     The value from the set that the search found, or the default value
+        ///     A reference to the value from the set that the search found, or the default value
         ///     of <typeparamref name="T" /> when the search yielded no match.
         /// </param>
         /// <returns>A value indicating whether the search was successful.</returns>
@@ -546,7 +546,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly int FindItemIndex(T item)
         {
-            var collisionCount = U32.FromI32Unchecked(0);
+            var collisionCount = 0U;
             var hashCode = U32.FromI32Unchecked(item.GetHashCode());
             var i = GetBucket(hashCode).WrappingSub(1);
             while (i >= 0)
@@ -556,7 +556,7 @@ namespace NativeCollections
                     return i;
 
                 i = entry.Next;
-                collisionCount = collisionCount.WrappingAdd(U32.FromI32Unchecked(1));
+                collisionCount = collisionCount.WrappingAdd(1U);
                 if (collisionCount > U32.FromI32Unchecked(_entriesLength))
                     ThrowHelpers.ThrowConcurrentOperationsNotSupportedException();
             }

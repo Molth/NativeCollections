@@ -11,7 +11,7 @@ namespace NativeCollections
     internal static class RingBufferHelpers
     {
         /// <summary>
-        ///     Copies bytes from the source address to the destination address
+        ///     Copies elements from the source ring buffer to the destination address
         ///     without assuming architecture dependent alignment of the addresses.
         /// </summary>
         /// <typeparam name="T">The unmanaged element type of the values to copy.</typeparam>

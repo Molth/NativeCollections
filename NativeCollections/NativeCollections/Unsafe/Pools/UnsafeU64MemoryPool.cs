@@ -357,7 +357,7 @@ namespace NativeCollections
             segment &= ~(1UL << bitMask);
             if (slab != _sentinel)
             {
-                if (segment == U64.FromI32Unchecked(0))
+                if (segment == 0UL)
                 {
                     slab->Previous->Next = slab->Next;
                     slab->Next->Previous = slab->Previous;
@@ -466,7 +466,7 @@ namespace NativeCollections
         ///     The total size, in bytes, of one node, including its header and aligned data region.
         /// </param>
         /// <param name="alignment">The alignment, in bytes, of the allocated slab.</param>
-        /// <returns>A pointer to the newly allocated slab whose free list holds 64 nodes.</returns>
+        /// <returns>A pointer to the newly allocated slab whose bitmap has 64 free slots.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static MemorySlab* CreateSlab(int alignedSlabSize, int fullNodeSize, int alignment)
         {
@@ -495,7 +495,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Represents a slab in the memory pool, containing a linked list of nodes and metadata.
+        ///     Represents a slab in the memory pool, containing the linked-list pointers
+        ///     and the allocation bitmap.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         private struct MemorySlab

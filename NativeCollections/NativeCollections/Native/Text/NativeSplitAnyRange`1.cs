@@ -18,6 +18,13 @@ namespace NativeCollections
     ///     positional ranges (<see cref="Range" />) of each segment instead of the segment slices themselves.
     /// </summary>
     /// <typeparam name="T">The type of elements in the source span.</typeparam>
+    /// <remarks>
+    ///     A segment ends at any occurrence of an element in the delimiter span. An empty source
+    ///     produces exactly one empty segment, represented as an empty <see cref="Range" />.
+    ///     A delimiter at the start or end of the source, or consecutive delimiters, produce
+    ///     empty segments. When the delimiter span is empty, no match is found and the remaining
+    ///     buffer is returned as a single segment.
+    /// </remarks>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
     [IsReferenceOrContainsReferences]

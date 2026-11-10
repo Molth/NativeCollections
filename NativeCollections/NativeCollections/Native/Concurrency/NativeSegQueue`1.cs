@@ -52,6 +52,17 @@ namespace NativeCollections
         private NativeSegQueue(RawSegQueue<T>* handle) => _handle = handle;
 
         /// <summary>
+        ///     Creates an empty unbounded queue.
+        /// </summary>
+        /// <returns>An empty unbounded queue.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeSegQueue<T> Create()
+        {
+            RawSegQueue<T> value = default;
+            return new NativeSegQueue<T>(Box.New(ref value, Usize.FromI32Unchecked(CACHE_LINE_SIZE)));
+        }
+
+        /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public bool IsCreated => _handle != null;
@@ -160,16 +171,5 @@ namespace NativeCollections
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDequeue(out T result) => _handle->TryDequeue(out result);
-
-        /// <summary>
-        ///     Creates an empty unbounded queue.
-        /// </summary>
-        /// <returns>An empty unbounded queue.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeSegQueue<T> Create()
-        {
-            RawSegQueue<T> value = default;
-            return new NativeSegQueue<T>(Box.New(ref value, Usize.FromI32Unchecked(CACHE_LINE_SIZE)));
-        }
     }
 }

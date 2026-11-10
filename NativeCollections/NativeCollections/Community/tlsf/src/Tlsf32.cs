@@ -113,7 +113,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int TlsfFfs(uint word)
         {
-            var reverse = word & (~word).WrappingAdd(U32.FromI32Unchecked(1));
+            var reverse = word & (~word).WrappingAdd(1U);
             var bit = 32.WrappingSub(BitOperationsHelpers.LeadingZeroCount(reverse));
             return bit.WrappingSub(1);
         }
@@ -122,7 +122,7 @@ namespace NativeCollections
         ///     Returns the index of the most significant set bit in a size value.
         /// </summary>
         /// <param name="size">The size value to inspect.</param>
-        /// <returns>The zero-based bit index.</returns>
+        /// <returns>The zero-based bit index, or -1 when <paramref name="size" /> is zero.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int TlsfFlsUsize(uint size) => TlsfFls(size);
 
@@ -170,7 +170,7 @@ namespace NativeCollections
         /// <param name="block">The block to inspect.</param>
         /// <returns><c>1</c> if the block is terminal; otherwise, <c>0</c>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int BlockIsLast(BlockHeader* block) => BlockSize(block) == U32.FromI32Unchecked(0) ? 1 : 0;
+        public static int BlockIsLast(BlockHeader* block) => BlockSize(block) == 0U ? 1 : 0;
 
         /// <summary>
         ///     Returns the free-state flag of a block.
@@ -307,7 +307,7 @@ namespace NativeCollections
         /// <param name="align">The alignment boundary.</param>
         /// <returns>The smallest aligned value greater than or equal to <paramref name="x" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static uint AlignUp(uint x, uint align) => x.WrappingAdd(align.WrappingSub(U32.FromI32Unchecked(1))) & ~align.WrappingSub(U32.FromI32Unchecked(1));
+        public static uint AlignUp(uint x, uint align) => x.WrappingAdd(align.WrappingSub(1U)) & ~align.WrappingSub(1U);
 
         /// <summary>
         ///     Rounds a value down to the specified alignment.
@@ -316,7 +316,7 @@ namespace NativeCollections
         /// <param name="align">The alignment boundary.</param>
         /// <returns>The largest aligned value less than or equal to <paramref name="x" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static uint AlignDown(uint x, uint align) => x.WrappingSub(x & align.WrappingSub(U32.FromI32Unchecked(1)));
+        public static uint AlignDown(uint x, uint align) => x.WrappingSub(x & align.WrappingSub(1U));
 
         /// <summary>
         ///     Rounds a pointer up to the specified alignment.
@@ -327,7 +327,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void* AlignPtr(void* ptr, uint align)
         {
-            var aligned = Isize.FromPtrUnchecked(ptr).WrappingAdd(Isize.FromU32Unchecked(align.WrappingSub(U32.FromI32Unchecked(1)))) & ~Isize.FromU32Unchecked(align.WrappingSub(U32.FromI32Unchecked(1)));
+            var aligned = Isize.FromPtrUnchecked(ptr).WrappingAdd(Isize.FromU32Unchecked(align.WrappingSub(1U))) & ~Isize.FromU32Unchecked(align.WrappingSub(1U));
             return (void*)aligned;
         }
 
@@ -342,8 +342,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint AdjustRequestSize(uint size, uint align)
         {
-            var adjust = U32.FromI32Unchecked(0);
-            if (size != U32.FromI32Unchecked(0))
+            var adjust = 0U;
+            if (size != 0U)
             {
                 var aligned = AlignUp(size, align);
                 if (aligned < BLOCK_SIZE_MAX)
@@ -409,10 +409,10 @@ namespace NativeCollections
             var fl = Unsafe.AsRef<int>(fli);
             var sl = Unsafe.AsRef<int>(sli);
             var slMap = Unsafe.Add(ref Unsafe.AsRef<uint>(control->SlBitmap), Isize.FromI32Unchecked(fl)) & (~0U << sl);
-            if (slMap == U32.FromI32Unchecked(0))
+            if (slMap == 0U)
             {
                 var flMap = control->FlBitmap & (~0U << fl.WrappingAdd(1));
-                if (flMap == U32.FromI32Unchecked(0))
+                if (flMap == 0U)
                     return null;
 
                 fl = TlsfFfs(flMap);
@@ -445,7 +445,7 @@ namespace NativeCollections
                 if (next == &control->BlockNull)
                 {
                     Unsafe.Add(ref Unsafe.AsRef<uint>(control->SlBitmap), Isize.FromI32Unchecked(fl)) &= ~(1U << sl);
-                    if (Unsafe.Add(ref Unsafe.AsRef<uint>(control->SlBitmap), Isize.FromI32Unchecked(fl)) == U32.FromI32Unchecked(0))
+                    if (Unsafe.Add(ref Unsafe.AsRef<uint>(control->SlBitmap), Isize.FromI32Unchecked(fl)) == 0U)
                         control->FlBitmap &= ~(1U << fl);
                 }
             }
@@ -642,7 +642,7 @@ namespace NativeCollections
         {
             int fl = 0, sl = 0;
             BlockHeader* block = null;
-            if (size != U32.FromI32Unchecked(0))
+            if (size != 0U)
             {
                 MappingSearch(size, &fl, &sl);
                 if (fl < FL_INDEX_COUNT)
@@ -688,10 +688,10 @@ namespace NativeCollections
             int i, j;
             control->BlockNull.NextFree = &control->BlockNull;
             control->BlockNull.PrevFree = &control->BlockNull;
-            control->FlBitmap = U32.FromI32Unchecked(0);
+            control->FlBitmap = 0U;
             for (i = 0; i < FL_INDEX_COUNT; i = i.WrappingAdd(1))
             {
-                Unsafe.Add(ref Unsafe.AsRef<uint>(control->SlBitmap), Isize.FromI32Unchecked(i)) = U32.FromI32Unchecked(0);
+                Unsafe.Add(ref Unsafe.AsRef<uint>(control->SlBitmap), Isize.FromI32Unchecked(i)) = 0U;
                 for (j = 0; j < SL_INDEX_COUNT; j = j.WrappingAdd(1))
                     Unsafe.Add(ref Unsafe.AsRef<BlockHeaderPtr>(control->Blocks[i]), Isize.FromI32Unchecked(j)) = BlockHeaderPtr.From(&control->BlockNull);
             }
@@ -705,7 +705,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint TlsfBlockSize(void* ptr)
         {
-            var size = U32.FromI32Unchecked(0);
+            var size = 0U;
             if (ptr != null)
             {
                 var block = BlockFromPtr(ptr);
@@ -748,7 +748,7 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The pool boundary overhead, in bytes.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static uint TlsfPoolOverhead() => U32.FromI32Unchecked(2).WrappingMul(BLOCK_HEADER_OVERHEAD);
+        public static uint TlsfPoolOverhead() => 2U.WrappingMul(BLOCK_HEADER_OVERHEAD);
 
         /// <summary>
         ///     Returns the overhead reserved for an allocation block header.
@@ -767,22 +767,22 @@ namespace NativeCollections
         ///     The start of the added pool, or <see langword="null" />
         ///     when the memory is invalid or the pool size is unsupported.
         /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when the aligned pool size equals <see cref="BLOCK_SIZE_MAX" />.
+        /// </exception>
         /// <remarks>
         ///     A region whose aligned size equals <see cref="BLOCK_SIZE_MAX" /> (1 GiB) is not
         ///     representable by the free-list index; this method throws
         ///     <see cref="ArgumentOutOfRangeException" /> for that exact size instead of returning
         ///     <see langword="null" /> (the upstream TLSF implementation performs an out-of-bounds write).
         /// </remarks>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///     Thrown when the aligned pool size equals <see cref="BLOCK_SIZE_MAX" />.
-        /// </exception>
         public static void* TlsfAddPool(void* tlsf, void* mem, uint bytes)
         {
             BlockHeader* block;
             BlockHeader* next;
             var poolOverhead = TlsfPoolOverhead();
             var poolBytes = AlignDown(bytes.WrappingSub(poolOverhead), U32.FromI32Unchecked(ALIGN_SIZE));
-            if (I64.FromIsizeUnchecked(Isize.FromPtrUnchecked(mem)) % I64.FromI32Unchecked(ALIGN_SIZE) != I64.FromI32Unchecked(0))
+            if (I64.FromIsizeUnchecked(Isize.FromPtrUnchecked(mem)) % I64.FromI32Unchecked(ALIGN_SIZE) != 0L)
                 return null;
 
             if (poolBytes < BLOCK_SIZE_MIN || poolBytes > BLOCK_SIZE_MAX)
@@ -794,7 +794,7 @@ namespace NativeCollections
             BlockSetPrevUsed(block);
             BlockInsert((Control*)tlsf, block);
             next = BlockLinkNext(block);
-            BlockSetSize(next, U32.FromI32Unchecked(0));
+            BlockSetSize(next, 0U);
             BlockSetUsed(next);
             BlockSetPrevFree(next);
             return mem;
@@ -891,14 +891,14 @@ namespace NativeCollections
             var control = (Control*)tlsf;
             var adjust = AdjustRequestSize(size, U32.FromI32Unchecked(ALIGN_SIZE));
             var sizeWithGap = AdjustRequestSize(adjust.WrappingAdd(align).WrappingAdd(U32.FromI32Unchecked(Unsafe.SizeOf<BlockHeader>())), align);
-            var alignedSize = adjust != U32.FromI32Unchecked(0) && align > U32.FromI32Unchecked(ALIGN_SIZE) ? sizeWithGap : adjust;
+            var alignedSize = adjust != 0U && align > U32.FromI32Unchecked(ALIGN_SIZE) ? sizeWithGap : adjust;
             var block = BlockLocateFree(control, alignedSize);
             if (block != null)
             {
                 var ptr = BlockToPtr(block);
                 var aligned = AlignPtr(ptr, align);
                 var gap = U32.FromIsizeUnchecked(Isize.FromPtrUnchecked(aligned).WrappingSub(Isize.FromPtrUnchecked(ptr)));
-                if (gap != U32.FromI32Unchecked(0) && gap < U32.FromI32Unchecked(Unsafe.SizeOf<BlockHeader>()))
+                if (gap != 0U && gap < U32.FromI32Unchecked(Unsafe.SizeOf<BlockHeader>()))
                 {
                     var gapRemain = U32.FromI32Unchecked(Unsafe.SizeOf<BlockHeader>()).WrappingSub(gap);
                     var offset = TlsfMax(gapRemain, align);
@@ -907,7 +907,7 @@ namespace NativeCollections
                     gap = U32.FromIsizeUnchecked(Isize.FromPtrUnchecked(aligned).WrappingSub(Isize.FromPtrUnchecked(ptr)));
                 }
 
-                if (gap != U32.FromI32Unchecked(0))
+                if (gap != 0U)
                     block = BlockTrimFreeLeading(control, block, gap);
             }
 
@@ -946,7 +946,7 @@ namespace NativeCollections
         {
             var control = (Control*)tlsf;
             void* p = null;
-            if (ptr != null && size == U32.FromI32Unchecked(0))
+            if (ptr != null && size == 0U)
             {
                 TlsfFree(tlsf, ptr);
             }

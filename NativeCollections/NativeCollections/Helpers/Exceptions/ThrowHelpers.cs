@@ -149,7 +149,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ThrowIfNotNaturallyAligned(nuint bitOffset, nuint bitWidth, ExceptionArgument paramName)
         {
-            if ((bitOffset & bitWidth.WrappingSub(Usize.FromI32Unchecked(1))) != 0)
+            if ((bitOffset & bitWidth.WrappingSub(Usize.FromI32Unchecked(1))) != Usize.FromI32Unchecked(0))
                 throw new ArgumentException(SR.Format(SR.Argument_AlignmentMustBeNatural, bitWidth, bitOffset), GetArgumentName(paramName));
         }
 

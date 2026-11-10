@@ -7,9 +7,16 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Provides a thread-safe <see cref="UnsafeSplitMix64" />
+    ///     Provides thread-local access to a thread-safe <see cref="UnsafeSplitMix64" />
     ///     instance that may be used concurrently from any thread.
     /// </summary>
+    /// <remarks>
+    ///     The thread-local instance is never seeded: <see cref="UnsafeSplitMix64.IsCreated" />
+    ///     always returns <see langword="true" />, so the thread-static seeding helper skips it.
+    ///     Every thread therefore starts from the same all-zero state and produces the same sequence.
+    ///     This type is only suitable for seeding other pseudo-random number generators; use
+    ///     <see cref="UnsafeSplitMix64.Create(ulong)" /> when an explicitly seeded instance is required.
+    /// </remarks>
     [StructLayout(LayoutKind.Sequential)]
     [SpecializedCollection(FromType.Standard)]
     public unsafe struct ThreadSafeSplitMix64 : IRandom, IEquatable<ThreadSafeSplitMix64>
@@ -83,6 +90,7 @@ namespace NativeCollections
         /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="stringLength" /> is not zero or a positive number.
         /// </exception>
+        /// <seealso cref="GetItems{T}(ReadOnlySpan{T}, Span{T})" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly string GetString(ReadOnlySpan<char> source, int stringLength) => LocalRandom.GetString(source, stringLength);
 
@@ -95,6 +103,9 @@ namespace NativeCollections
         ///     <see langword="false" /> if they should be uppercase. The default is <see langword="false" />.
         /// </param>
         /// <returns>A string populated with random hexadecimal characters.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="stringLength" /> is negative.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly string GetHexString(int stringLength, bool lowercase = false) => LocalRandom.GetHexString(stringLength, lowercase);
 
@@ -114,6 +125,10 @@ namespace NativeCollections
         /// </summary>
         /// <typeparam name="T">The type of buffer.</typeparam>
         /// <param name="buffer">The buffer to shuffle.</param>
+        /// <remarks>
+        ///     This method uses <see cref="NextI32(int, int)" /> to choose
+        ///     values for shuffling. This method is an O(n) operation.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void Shuffle<T>(Span<T> buffer) => LocalRandom.Shuffle(buffer);
 
@@ -159,6 +174,7 @@ namespace NativeCollections
         ///     or (<paramref name="maxValue" />, 0] if <paramref name="maxValue" /> is
         ///     negative. However, if <paramref name="maxValue" /> equals 0, 0 is returned.
         /// </returns>
+        /// <seealso cref="NextF64()" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly double LerpF64(double maxValue) => LocalRandom.LerpF64(maxValue);
 
@@ -174,8 +190,13 @@ namespace NativeCollections
         ///     A 64-bit double-precision floating point number greater than or equal to <paramref name="minValue" />,
         ///     and less than <paramref name="maxValue" />; that is, the range of return values
         ///     includes <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
+        /// <seealso cref="NextF64()" />
+        /// <remarks>
+        ///     Due to floating-point rounding, the returned value may equal
+        ///     <paramref name="maxValue" /> even though the range is nominally exclusive.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly double LerpF64(double minValue, double maxValue) => LocalRandom.LerpF64(minValue, maxValue);
 
@@ -191,6 +212,7 @@ namespace NativeCollections
         ///     or (<paramref name="maxValue" />, 0] if <paramref name="maxValue" /> is
         ///     negative. However, if <paramref name="maxValue" /> equals 0, 0 is returned.
         /// </returns>
+        /// <seealso cref="NextF32()" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly float LerpF32(float maxValue) => LocalRandom.LerpF32(maxValue);
 
@@ -206,8 +228,13 @@ namespace NativeCollections
         ///     A 32-bit single-precision floating point number greater than or equal to <paramref name="minValue" />,
         ///     and less than <paramref name="maxValue" />; that is, the range of return values
         ///     includes <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
+        /// <seealso cref="NextF32()" />
+        /// <remarks>
+        ///     Due to floating-point rounding, the returned value may equal
+        ///     <paramref name="maxValue" /> even though the range is nominally exclusive.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly float LerpF32(float minValue, float maxValue) => LocalRandom.LerpF32(minValue, maxValue);
 
@@ -247,7 +274,7 @@ namespace NativeCollections
         ///     A 32-bit unsigned integer greater than or equal to <paramref name="minValue" />, and
         ///     less than <paramref name="maxValue" />; that is, the range of return values includes
         ///     <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly uint NextU32(uint minValue, uint maxValue) => LocalRandom.NextU32(minValue, maxValue);
@@ -289,7 +316,7 @@ namespace NativeCollections
         ///     A 64-bit unsigned integer greater than or equal to <paramref name="minValue" />, and
         ///     less than <paramref name="maxValue" />; that is, the range of return values includes
         ///     <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ulong NextU64(ulong minValue, ulong maxValue) => LocalRandom.NextU64(minValue, maxValue);
@@ -330,7 +357,7 @@ namespace NativeCollections
         ///     A 32-bit signed integer greater than or equal to <paramref name="minValue" />, and
         ///     less than <paramref name="maxValue" />; that is, the range of return values includes
         ///     <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int NextI32(int minValue, int maxValue) => LocalRandom.NextI32(minValue, maxValue);
@@ -371,7 +398,7 @@ namespace NativeCollections
         ///     A 64-bit signed integer greater than or equal to <paramref name="minValue" />, and
         ///     less than <paramref name="maxValue" />; that is, the range of return values includes
         ///     <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly long NextI64(long minValue, long maxValue) => LocalRandom.NextI64(minValue, maxValue);

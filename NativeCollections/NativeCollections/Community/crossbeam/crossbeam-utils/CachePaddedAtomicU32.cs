@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using static NativeCollections.PaddingHelpers;
 
@@ -39,6 +40,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="order">The memory ordering constraint applied to the load operation.</param>
         /// <returns>The loaded value.</returns>
+        /// <exception cref="NotSupportedException">Thrown when <paramref name="order" /> is not supported.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public uint Load(Ordering order) => _data.Load(order);
 

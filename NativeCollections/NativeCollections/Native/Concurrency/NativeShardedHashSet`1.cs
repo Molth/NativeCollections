@@ -31,6 +31,40 @@ namespace NativeCollections
         private NativeShardedHashSet(UnsafeShardedHashSet<T>* handle) => _handle = handle;
 
         /// <summary>
+        ///     Creates a new instance that is empty, has the default concurrency level, has the
+        ///     default initial capacity, and uses the default comparer for the element type.
+        /// </summary>
+        /// <returns>A new instance.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeShardedHashSet<T> Create()
+        {
+            var value = UnsafeShardedHashSet<T>.Create();
+            return new NativeShardedHashSet<T>(Box.New(ref value));
+        }
+
+        /// <summary>
+        ///     Creates a new instance that is empty, has the specified concurrency
+        ///     level and capacity, and uses the default comparer for the element type.
+        /// </summary>
+        /// <param name="concurrencyLevel">
+        ///     The estimated number of threads that will update this concurrently, or -1 to indicate a default value.
+        /// </param>
+        /// <param name="capacity">
+        ///     The initial number of elements that this can contain.
+        /// </param>
+        /// <returns>A new instance.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="concurrencyLevel" /> is
+        ///     less than 1 or <paramref name="capacity" /> is negative.
+        /// </exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeShardedHashSet<T> Create(int concurrencyLevel, int capacity)
+        {
+            var value = UnsafeShardedHashSet<T>.Create(concurrencyLevel, capacity);
+            return new NativeShardedHashSet<T>(Box.New(ref value));
+        }
+
+        /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public bool IsCreated => _handle != null;
@@ -151,40 +185,6 @@ namespace NativeCollections
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Contains(T item) => _handle->Contains(item);
-
-        /// <summary>
-        ///     Creates a new instance that is empty, has the default concurrency level, has the
-        ///     default initial capacity, and uses the default comparer for the element type.
-        /// </summary>
-        /// <returns>A new instance.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeShardedHashSet<T> Create()
-        {
-            var value = UnsafeShardedHashSet<T>.Create();
-            return new NativeShardedHashSet<T>(Box.New(ref value));
-        }
-
-        /// <summary>
-        ///     Creates a new instance that is empty, has the specified concurrency
-        ///     level and capacity, and uses the default comparer for the element type.
-        /// </summary>
-        /// <param name="concurrencyLevel">
-        ///     The estimated number of threads that will update this concurrently, or -1 to indicate a default value.
-        /// </param>
-        /// <param name="capacity">
-        ///     The initial number of elements that this can contain.
-        /// </param>
-        /// <returns>A new instance.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///     Thrown when <paramref name="concurrencyLevel" /> is
-        ///     less than 1 or <paramref name="capacity" /> is negative.
-        /// </exception>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeShardedHashSet<T> Create(int concurrencyLevel, int capacity)
-        {
-            var value = UnsafeShardedHashSet<T>.Create(concurrencyLevel, capacity);
-            return new NativeShardedHashSet<T>(Box.New(ref value));
-        }
 
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.

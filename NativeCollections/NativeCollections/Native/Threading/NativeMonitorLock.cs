@@ -108,7 +108,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Enter the lock.
+        ///     Enters the lock.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Enter() => Monitor.Enter(_handle.Target!);
@@ -124,6 +124,9 @@ namespace NativeCollections
         ///     even if an exception occurs during the attempt to acquire the lock. Note: If no
         ///     exception occurs, the output of this method is always <see langword="true" />.
         /// </param>
+        /// <exception cref="ArgumentException">
+        ///     Thrown when <paramref name="lockTaken" /> is not <see langword="false" />.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Enter(ref bool lockTaken) => Monitor.Enter(_handle.Target!, ref lockTaken);
 
@@ -157,6 +160,9 @@ namespace NativeCollections
         /// <returns>
         ///     <see langword="true" /> if the lock was acquired; otherwise, <see langword="false" />.
         /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="millisecondsTimeout" /> is less than -1.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryEnter(int millisecondsTimeout) => Monitor.TryEnter(_handle.Target!, millisecondsTimeout);
 
@@ -171,6 +177,9 @@ namespace NativeCollections
         ///     lock is acquired; otherwise, the output is <see langword="false" />. The output
         ///     is set even if an exception occurs during the attempt to acquire the lock.
         /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="millisecondsTimeout" /> is less than -1.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void TryEnter(int millisecondsTimeout, ref bool lockTaken) => Monitor.TryEnter(_handle.Target!, millisecondsTimeout, ref lockTaken);
 
@@ -193,18 +202,30 @@ namespace NativeCollections
         /// <returns>
         ///     <see langword="true" /> if the lock was reacquired; otherwise, <see langword="false" />.
         /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="millisecondsTimeout" /> is less than -1.
+        /// </exception>
+        /// <exception cref="SynchronizationLockException">
+        ///     Thrown when the current thread does not own the lock.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Wait(int millisecondsTimeout) => Monitor.Wait(_handle.Target!, millisecondsTimeout);
 
         /// <summary>
         ///     Notifies a thread in the waiting queue of a change in the locked object's state.
         /// </summary>
+        /// <exception cref="SynchronizationLockException">
+        ///     Thrown when the current thread does not own the lock.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Pulse() => Monitor.Pulse(_handle.Target!);
 
         /// <summary>
         ///     Notifies all waiting threads of a change in the object's state.
         /// </summary>
+        /// <exception cref="SynchronizationLockException">
+        ///     Thrown when the current thread does not own the lock.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void PulseAll() => Monitor.PulseAll(_handle.Target!);
 
@@ -218,6 +239,10 @@ namespace NativeCollections
         /// <returns>
         ///     <see langword="true" /> if the lock was acquired; otherwise, <see langword="false" />.
         /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when the total milliseconds of <paramref name="timeout" /> are less than -1 or greater than
+        ///     <see cref="int.MaxValue" />.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryEnter(TimeSpan timeout) => Monitor.TryEnter(_handle.Target!, timeout);
 
@@ -234,6 +259,10 @@ namespace NativeCollections
         ///     lock is acquired; otherwise, the output is <see langword="false" />. The output
         ///     is set even if an exception occurs during the attempt to acquire the lock.
         /// </param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when the total milliseconds of <paramref name="timeout" /> are less than -1 or greater than
+        ///     <see cref="int.MaxValue" />.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void TryEnter(TimeSpan timeout, ref bool lockTaken) => Monitor.TryEnter(_handle.Target!, timeout, ref lockTaken);
 
@@ -248,6 +277,13 @@ namespace NativeCollections
         /// <returns>
         ///     <see langword="true" /> if the lock was reacquired; otherwise, <see langword="false" />.
         /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when the total milliseconds of <paramref name="timeout" /> are less than -1 or greater than
+        ///     <see cref="int.MaxValue" />.
+        /// </exception>
+        /// <exception cref="SynchronizationLockException">
+        ///     Thrown when the current thread does not own the lock.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Wait(TimeSpan timeout) => Monitor.Wait(_handle.Target!, timeout);
 
@@ -257,6 +293,9 @@ namespace NativeCollections
         /// <returns>
         ///     <see langword="true" /> if the lock was reacquired; otherwise, <see langword="false" />.
         /// </returns>
+        /// <exception cref="SynchronizationLockException">
+        ///     Thrown when the current thread does not own the lock.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Wait() => Monitor.Wait(_handle.Target!);
 
@@ -276,6 +315,12 @@ namespace NativeCollections
         /// <returns>
         ///     <see langword="true" /> if the lock was reacquired; otherwise, <see langword="false" />.
         /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="millisecondsTimeout" /> is less than -1.
+        /// </exception>
+        /// <exception cref="SynchronizationLockException">
+        ///     Thrown when the current thread does not own the lock.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Wait(int millisecondsTimeout, bool exitContext) => Monitor.Wait(_handle.Target!, millisecondsTimeout, exitContext);
 
@@ -295,12 +340,22 @@ namespace NativeCollections
         /// <returns>
         ///     <see langword="true" /> if the lock was reacquired; otherwise, <see langword="false" />.
         /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when the total milliseconds of <paramref name="timeout" /> are less than -1 or greater than
+        ///     <see cref="int.MaxValue" />.
+        /// </exception>
+        /// <exception cref="SynchronizationLockException">
+        ///     Thrown when the current thread does not own the lock.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Wait(TimeSpan timeout, bool exitContext) => Monitor.Wait(_handle.Target!, timeout, exitContext);
 
         /// <summary>
-        ///     Exit the lock.
+        ///     Exits the lock.
         /// </summary>
+        /// <exception cref="SynchronizationLockException">
+        ///     Thrown when the current thread does not own the lock.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Exit() => Monitor.Exit(_handle.Target!);
     }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -166,6 +167,9 @@ namespace NativeCollections
         /// <param name="buffer">A pointer to the buffer that receives the bytes read from the stream.</param>
         /// <param name="length">The maximum number of bytes to read.</param>
         /// <returns>The number of bytes read.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="length" /> is negative.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Read(byte* buffer, int length) => _handle->Read(buffer, length);
 
@@ -175,6 +179,9 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">A pointer to the buffer containing the bytes to write to the stream.</param>
         /// <param name="length">The number of bytes to write.</param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="length" /> is negative.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write([MustNotSelfAlias] byte* buffer, int length) => _handle->Write(buffer, length);
 
@@ -192,6 +199,9 @@ namespace NativeCollections
         ///     current position within this memory stream by the number of bytes written.
         /// </summary>
         /// <param name="buffer">The buffer containing the bytes to write to the stream.</param>
+        /// <exception cref="IOException">
+        ///     Thrown when the resulting stream length exceeds <see cref="int.MaxValue" /> bytes.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Write([MustNotSelfAlias] ReadOnlySpan<byte> buffer) => _handle->Write(buffer);
 
@@ -200,6 +210,9 @@ namespace NativeCollections
         /// </summary>
         /// <param name="length">The maximum number of bytes to read.</param>
         /// <returns>The number of bytes read.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="length" /> is negative.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Read(int length) => _handle->Read(length);
 
@@ -207,6 +220,12 @@ namespace NativeCollections
         ///     Advances the current position within this memory stream by the number of bytes written.
         /// </summary>
         /// <param name="length">The number of bytes by which to advance the position.</param>
+        /// <exception cref="IOException">
+        ///     Thrown when the resulting stream length exceeds <see cref="int.MaxValue" /> bytes.
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="length" /> is negative.
+        /// </exception>
         /// <remarks>
         ///     This method advances the current position without writing any data. The newly exposed
         ///     range is left untouched, so it may contain data previously written to recycled chunks
@@ -229,15 +248,15 @@ namespace NativeCollections
         /// <summary>
         ///     Releases all free chunks from this.
         /// </summary>
-        /// <returns>The new capacity of this.</returns>
+        /// <returns>The number of free chunks retained.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess() => _handle->TrimExcess();
 
         /// <summary>
         ///     Trims the retained free-chunk capacity of this to the specified number of chunks.
         /// </summary>
-        /// <param name="capacity">The new capacity.</param>
-        /// <returns>The new capacity of this.</returns>
+        /// <param name="capacity">The number of free chunks to retain.</param>
+        /// <returns>The number of free chunks retained.</returns>
         /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="capacity" /> is negative.
         /// </exception>

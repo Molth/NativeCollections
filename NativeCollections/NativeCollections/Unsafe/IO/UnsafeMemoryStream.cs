@@ -212,9 +212,12 @@ namespace NativeCollections
         public readonly void Dispose() => NativeMemoryAllocator.AlignedFree(_buffer);
 
         /// <summary>
-        ///     Returns the array of unsigned bytes from which this stream was created.
+        ///     Returns a writable span over the entire capacity buffer of this stream.
         /// </summary>
-        /// <returns>The array of unsigned bytes from which this stream was created.</returns>
+        /// <returns>
+        ///     A span covering <see cref="Capacity" /> bytes. Bytes beyond <see cref="Length" />
+        ///     are included and are not guaranteed to be zeroed.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<byte> GetBuffer() => MemoryMarshal.CreateSpan(ref Unsafe.AsRef<byte>(_buffer), _capacity);
 
@@ -477,16 +480,16 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Returns a span over a portion of this.
+        ///     Returns a span over the entire contents of this.
         /// </summary>
-        /// <returns>A span over a portion of this.</returns>
+        /// <returns>A span over the entire contents of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<byte> AsSpan() => MemoryMarshal.CreateSpan(ref Unsafe.AsRef<byte>(_buffer), _length);
 
         /// <summary>
-        ///     Returns a read-only span over a portion of this.
+        ///     Returns a read-only span over the entire contents of this.
         /// </summary>
-        /// <returns>A read-only span over a portion of this.</returns>
+        /// <returns>A read-only span over the entire contents of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<byte> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<byte>(_buffer), _length);
     }

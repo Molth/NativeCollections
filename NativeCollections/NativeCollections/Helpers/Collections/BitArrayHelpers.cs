@@ -14,16 +14,14 @@ using System.Runtime.Intrinsics.X86;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Manages a compact array of bit values, which are represented as
-    ///     <see cref="bool" />, where <see langword="true" /> indicates that the
-    ///     bit is on (1) and <see langword="false" /> indicates the bit is off (0).
+    ///     Provides helper methods for bit array operations.
     /// </summary>
     internal static class BitArrayHelpers
     {
         /// <summary>
-        ///     Performs the bitwise AND operation between the elements of the current
-        ///     object and the corresponding elements in the specified array. The current
-        ///     object will be modified to store the result of the bitwise AND operation.
+        ///     Performs the bitwise AND operation between the elements of <paramref name="destination" />
+        ///     and the corresponding elements of <paramref name="source" />, storing the result in
+        ///     <paramref name="destination" />.
         /// </summary>
         /// <param name="destination">The span of 32-bit words that receives the result of the operation.</param>
         /// <param name="source">The span of 32-bit words to combine with <paramref name="destination" />.</param>
@@ -72,12 +70,12 @@ namespace NativeCollections
 
             ref var left = ref MemoryMarshal.GetReference(destination);
             ref var right = ref MemoryMarshal.GetReference(source);
-            var i = U32.FromI32Unchecked(0);
+            var i = 0U;
 #if NET5_0_OR_GREATER
 #if NET8_0_OR_GREATER
             if (Vector512.IsHardwareAccelerated && count >= U32.FromI32Unchecked(Vector512<int>.Count))
             {
-                var n = count.WrappingSub(U32.FromI32Unchecked(Vector512<int>.Count).WrappingSub(U32.FromI32Unchecked(1)));
+                var n = count.WrappingSub(U32.FromI32Unchecked(Vector512<int>.Count).WrappingSub(1U));
                 for (; i < n; i = i.WrappingAdd(U32.FromI32Unchecked(Vector512<int>.Count)))
                 {
                     var result = Vector512.LoadUnsafe(ref left, Usize.FromU32Unchecked(i)) & Vector512.LoadUnsafe(ref right, Usize.FromU32Unchecked(i));
@@ -88,7 +86,7 @@ namespace NativeCollections
 #endif
             if (IsHardwareAccelerated256 && count >= U32.FromI32Unchecked(Vector256<int>.Count))
             {
-                var n = count.WrappingSub(U32.FromI32Unchecked(Vector256<int>.Count).WrappingSub(U32.FromI32Unchecked(1)));
+                var n = count.WrappingSub(U32.FromI32Unchecked(Vector256<int>.Count).WrappingSub(1U));
                 for (; i < n; i = i.WrappingAdd(U32.FromI32Unchecked(Vector256<int>.Count)))
                 {
                     var result = And(Load256(ref left, Usize.FromU32Unchecked(i)), Load256(ref right, Usize.FromU32Unchecked(i)));
@@ -97,7 +95,7 @@ namespace NativeCollections
             }
             else if (IsHardwareAccelerated128 && count >= U32.FromI32Unchecked(Vector128<int>.Count))
             {
-                var n = count.WrappingSub(U32.FromI32Unchecked(Vector128<int>.Count).WrappingSub(U32.FromI32Unchecked(1)));
+                var n = count.WrappingSub(U32.FromI32Unchecked(Vector128<int>.Count).WrappingSub(1U));
                 for (; i < n; i = i.WrappingAdd(U32.FromI32Unchecked(Vector128<int>.Count)))
                 {
                     var result = And(Load128(ref left, Usize.FromU32Unchecked(i)), Load128(ref right, Usize.FromU32Unchecked(i)));
@@ -105,14 +103,14 @@ namespace NativeCollections
                 }
             }
 #endif
-            for (; i < count; i = i.WrappingAdd(U32.FromI32Unchecked(1)))
+            for (; i < count; i = i.WrappingAdd(1U))
                 Unsafe.Add(ref left, Isize.FromU32Unchecked(i)) &= Unsafe.Add(ref right, Isize.FromU32Unchecked(i));
         }
 
         /// <summary>
-        ///     Performs the bitwise OR operation between the elements of the current
-        ///     object and the corresponding elements in the specified array. The current
-        ///     object will be modified to store the result of the bitwise OR operation.
+        ///     Performs the bitwise OR operation between the elements of <paramref name="destination" />
+        ///     and the corresponding elements of <paramref name="source" />, storing the result in
+        ///     <paramref name="destination" />.
         /// </summary>
         /// <param name="destination">The span of 32-bit words that receives the result of the operation.</param>
         /// <param name="source">The span of 32-bit words to combine with <paramref name="destination" />.</param>
@@ -161,12 +159,12 @@ namespace NativeCollections
 
             ref var left = ref MemoryMarshal.GetReference(destination);
             ref var right = ref MemoryMarshal.GetReference(source);
-            var i = U32.FromI32Unchecked(0);
+            var i = 0U;
 #if NET5_0_OR_GREATER
 #if NET8_0_OR_GREATER
             if (Vector512.IsHardwareAccelerated && count >= U32.FromI32Unchecked(Vector512<int>.Count))
             {
-                var n = count.WrappingSub(U32.FromI32Unchecked(Vector512<int>.Count).WrappingSub(U32.FromI32Unchecked(1)));
+                var n = count.WrappingSub(U32.FromI32Unchecked(Vector512<int>.Count).WrappingSub(1U));
                 for (; i < n; i = i.WrappingAdd(U32.FromI32Unchecked(Vector512<int>.Count)))
                 {
                     var result = Vector512.LoadUnsafe(ref left, Usize.FromU32Unchecked(i)) | Vector512.LoadUnsafe(ref right, Usize.FromU32Unchecked(i));
@@ -177,7 +175,7 @@ namespace NativeCollections
 #endif
             if (IsHardwareAccelerated256 && count >= U32.FromI32Unchecked(Vector256<int>.Count))
             {
-                var n = count.WrappingSub(U32.FromI32Unchecked(Vector256<int>.Count).WrappingSub(U32.FromI32Unchecked(1)));
+                var n = count.WrappingSub(U32.FromI32Unchecked(Vector256<int>.Count).WrappingSub(1U));
                 for (; i < n; i = i.WrappingAdd(U32.FromI32Unchecked(Vector256<int>.Count)))
                 {
                     var result = Or(Load256(ref left, Usize.FromU32Unchecked(i)), Load256(ref right, Usize.FromU32Unchecked(i)));
@@ -186,7 +184,7 @@ namespace NativeCollections
             }
             else if (IsHardwareAccelerated128 && count >= U32.FromI32Unchecked(Vector128<int>.Count))
             {
-                var n = count.WrappingSub(U32.FromI32Unchecked(Vector128<int>.Count).WrappingSub(U32.FromI32Unchecked(1)));
+                var n = count.WrappingSub(U32.FromI32Unchecked(Vector128<int>.Count).WrappingSub(1U));
                 for (; i < n; i = i.WrappingAdd(U32.FromI32Unchecked(Vector128<int>.Count)))
                 {
                     var result = Or(Load128(ref left, Usize.FromU32Unchecked(i)), Load128(ref right, Usize.FromU32Unchecked(i)));
@@ -194,14 +192,14 @@ namespace NativeCollections
                 }
             }
 #endif
-            for (; i < count; i = i.WrappingAdd(U32.FromI32Unchecked(1)))
+            for (; i < count; i = i.WrappingAdd(1U))
                 Unsafe.Add(ref left, Isize.FromU32Unchecked(i)) |= Unsafe.Add(ref right, Isize.FromU32Unchecked(i));
         }
 
         /// <summary>
-        ///     Performs the bitwise XOR operation between the elements of the current
-        ///     object and the corresponding elements in the specified array. The current
-        ///     object will be modified to store the result of the bitwise XOR operation.
+        ///     Performs the bitwise XOR operation between the elements of <paramref name="destination" />
+        ///     and the corresponding elements of <paramref name="source" />, storing the result in
+        ///     <paramref name="destination" />.
         /// </summary>
         /// <param name="destination">The span of 32-bit words that receives the result of the operation.</param>
         /// <param name="source">The span of 32-bit words to combine with <paramref name="destination" />.</param>
@@ -250,12 +248,12 @@ namespace NativeCollections
 
             ref var left = ref MemoryMarshal.GetReference(destination);
             ref var right = ref MemoryMarshal.GetReference(source);
-            var i = U32.FromI32Unchecked(0);
+            var i = 0U;
 #if NET5_0_OR_GREATER
 #if NET8_0_OR_GREATER
             if (Vector512.IsHardwareAccelerated && count >= U32.FromI32Unchecked(Vector512<int>.Count))
             {
-                var n = count.WrappingSub(U32.FromI32Unchecked(Vector512<int>.Count).WrappingSub(U32.FromI32Unchecked(1)));
+                var n = count.WrappingSub(U32.FromI32Unchecked(Vector512<int>.Count).WrappingSub(1U));
                 for (; i < n; i = i.WrappingAdd(U32.FromI32Unchecked(Vector512<int>.Count)))
                 {
                     var result = Vector512.LoadUnsafe(ref left, Usize.FromU32Unchecked(i)) ^ Vector512.LoadUnsafe(ref right, Usize.FromU32Unchecked(i));
@@ -266,7 +264,7 @@ namespace NativeCollections
 #endif
             if (IsHardwareAccelerated256 && count >= U32.FromI32Unchecked(Vector256<int>.Count))
             {
-                var n = count.WrappingSub(U32.FromI32Unchecked(Vector256<int>.Count).WrappingSub(U32.FromI32Unchecked(1)));
+                var n = count.WrappingSub(U32.FromI32Unchecked(Vector256<int>.Count).WrappingSub(1U));
                 for (; i < n; i = i.WrappingAdd(U32.FromI32Unchecked(Vector256<int>.Count)))
                 {
                     var result = Xor(Load256(ref left, Usize.FromU32Unchecked(i)), Load256(ref right, Usize.FromU32Unchecked(i)));
@@ -275,7 +273,7 @@ namespace NativeCollections
             }
             else if (IsHardwareAccelerated128 && count >= U32.FromI32Unchecked(Vector128<int>.Count))
             {
-                var n = count.WrappingSub(U32.FromI32Unchecked(Vector128<int>.Count).WrappingSub(U32.FromI32Unchecked(1)));
+                var n = count.WrappingSub(U32.FromI32Unchecked(Vector128<int>.Count).WrappingSub(1U));
                 for (; i < n; i = i.WrappingAdd(U32.FromI32Unchecked(Vector128<int>.Count)))
                 {
                     var result = Xor(Load128(ref left, Usize.FromU32Unchecked(i)), Load128(ref right, Usize.FromU32Unchecked(i)));
@@ -283,7 +281,7 @@ namespace NativeCollections
                 }
             }
 #endif
-            for (; i < count; i = i.WrappingAdd(U32.FromI32Unchecked(1)))
+            for (; i < count; i = i.WrappingAdd(1U))
                 Unsafe.Add(ref left, Isize.FromU32Unchecked(i)) ^= Unsafe.Add(ref right, Isize.FromU32Unchecked(i));
         }
 
@@ -337,12 +335,12 @@ namespace NativeCollections
             }
 
             ref var location = ref MemoryMarshal.GetReference(destination);
-            var i = U32.FromI32Unchecked(0);
+            var i = 0U;
 #if NET5_0_OR_GREATER
 #if NET8_0_OR_GREATER
             if (Vector512.IsHardwareAccelerated && count >= U32.FromI32Unchecked(Vector512<int>.Count))
             {
-                var n = count.WrappingSub(U32.FromI32Unchecked(Vector512<int>.Count).WrappingSub(U32.FromI32Unchecked(1)));
+                var n = count.WrappingSub(U32.FromI32Unchecked(Vector512<int>.Count).WrappingSub(1U));
                 for (; i < n; i = i.WrappingAdd(U32.FromI32Unchecked(Vector512<int>.Count)))
                 {
                     var result = ~Vector512.LoadUnsafe(ref location, Usize.FromU32Unchecked(i));
@@ -353,7 +351,7 @@ namespace NativeCollections
 #endif
             if (IsHardwareAccelerated256 && count >= U32.FromI32Unchecked(Vector256<int>.Count))
             {
-                var n = count.WrappingSub(U32.FromI32Unchecked(Vector256<int>.Count).WrappingSub(U32.FromI32Unchecked(1)));
+                var n = count.WrappingSub(U32.FromI32Unchecked(Vector256<int>.Count).WrappingSub(1U));
                 for (; i < n; i = i.WrappingAdd(U32.FromI32Unchecked(Vector256<int>.Count)))
                 {
                     var result = Not(Load256(ref location, Usize.FromU32Unchecked(i)));
@@ -362,7 +360,7 @@ namespace NativeCollections
             }
             else if (IsHardwareAccelerated128 && count >= U32.FromI32Unchecked(Vector128<int>.Count))
             {
-                var n = count.WrappingSub(U32.FromI32Unchecked(Vector128<int>.Count).WrappingSub(U32.FromI32Unchecked(1)));
+                var n = count.WrappingSub(U32.FromI32Unchecked(Vector128<int>.Count).WrappingSub(1U));
                 for (; i < n; i = i.WrappingAdd(U32.FromI32Unchecked(Vector128<int>.Count)))
                 {
                     var result = Not(Load128(ref location, Usize.FromU32Unchecked(i)));
@@ -370,7 +368,7 @@ namespace NativeCollections
                 }
             }
 #endif
-            for (; i < count; i = i.WrappingAdd(U32.FromI32Unchecked(1)))
+            for (; i < count; i = i.WrappingAdd(1U))
                 Unsafe.Add(ref location, Isize.FromU32Unchecked(i)) = ~ Unsafe.Add(ref location, Isize.FromU32Unchecked(i));
         }
 
@@ -379,10 +377,10 @@ namespace NativeCollections
         ///     Gets a value that indicates whether 256-bit vector operations are
         ///     subject to hardware acceleration through JIT intrinsic support.
         /// </summary>
-        /// <returns>
+        /// <value>
         ///     <see langword="true" /> if 256-bit vector operations are subject
         ///     to hardware acceleration; otherwise, <see langword="false" />.
-        /// </returns>
+        /// </value>
         private static bool IsHardwareAccelerated256 =>
 #if NET7_0_OR_GREATER
             Vector256.IsHardwareAccelerated;
@@ -394,10 +392,10 @@ namespace NativeCollections
         ///     Gets a value that indicates whether 128-bit vector operations are
         ///     subject to hardware acceleration through JIT intrinsic support.
         /// </summary>
-        /// <returns>
+        /// <value>
         ///     <see langword="true" /> if 128-bit vector operations are subject
         ///     to hardware acceleration; otherwise, <see langword="false" />.
-        /// </returns>
+        /// </value>
         private static bool IsHardwareAccelerated128 =>
 #if NET7_0_OR_GREATER
             Vector128.IsHardwareAccelerated;

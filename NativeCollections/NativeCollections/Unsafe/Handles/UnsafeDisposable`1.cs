@@ -49,6 +49,14 @@ namespace NativeCollections
         public static UnsafeDisposable<T> From(T* handle) => new(handle);
 
         /// <summary>
+        ///     Creates a disposable wrapper for an existing unmanaged disposable value.
+        /// </summary>
+        /// <param name="reference">The unmanaged disposable value to reference.</param>
+        /// <returns>A disposable wrapper that references <paramref name="reference" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UnsafeDisposable<T> From([MustBePinned] ref T reference) => new(UnsafeHelpers.AsPointer(ref reference));
+
+        /// <summary>
         ///     Indicates whether the current object is equal to another object.
         /// </summary>
         /// <param name="other">The value to compare with this instance.</param>
@@ -113,13 +121,5 @@ namespace NativeCollections
 
             handle->Dispose();
         }
-
-        /// <summary>
-        ///     Creates a disposable wrapper for an existing unmanaged disposable value.
-        /// </summary>
-        /// <param name="reference">The unmanaged disposable value to reference.</param>
-        /// <returns>A disposable wrapper that references <paramref name="reference" />.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeDisposable<T> From([MustBePinned] ref T reference) => new(UnsafeHelpers.AsPointer(ref reference));
     }
 }

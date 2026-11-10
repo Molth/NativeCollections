@@ -11,7 +11,7 @@ namespace NativeCollections
     internal static class I32
     {
         /// <summary>
-        ///     Converts a 8-bit unsigned integer to 32-bit signed integer using unchecked conversion.
+        ///     Converts an 8-bit unsigned integer to 32-bit signed integer using unchecked conversion.
         /// </summary>
         /// <param name="value">The value to convert.</param>
         /// <returns>The converted value.</returns>

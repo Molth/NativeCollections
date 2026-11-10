@@ -384,10 +384,10 @@ namespace NativeCollections
         public void Dispose() => NativeMemoryAllocator.AlignedFree(_buffer);
 
         /// <summary>
-        ///     Returns a reference to the 0th element of the Span. If the Span is empty, returns null reference.
-        ///     It can be used for pinning and is required to support the use of span within a fixed statement.
+        ///     Returns a reference to the 0th element of this. If this is empty, the returned
+        ///     reference must not be dereferenced.
         /// </summary>
-        /// <returns>A reference to the 0th element of the Span, or a null reference if the Span is empty.</returns>
+        /// <returns>A reference to the 0th element of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ref T GetPinnableReference() => ref Unsafe.AsRef<T>(_buffer);
 
@@ -398,16 +398,16 @@ namespace NativeCollections
         public void Clear() => AsSpan().Clear();
 
         /// <summary>
-        ///     Returns a span over a portion of this.
+        ///     Returns a span over the entire contents of this.
         /// </summary>
-        /// <returns>A span over a portion of this.</returns>
+        /// <returns>A span over the entire contents of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Span<T> AsSpan() => MemoryMarshal.CreateSpan(ref Unsafe.AsRef<T>(_buffer), _x.WrappingMul(_y).WrappingMul(_z));
 
         /// <summary>
-        ///     Returns a read-only span over a portion of this.
+        ///     Returns a read-only span over the entire contents of this.
         /// </summary>
-        /// <returns>A read-only span over a portion of this.</returns>
+        /// <returns>A read-only span over the entire contents of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<T>(_buffer), _x.WrappingMul(_y).WrappingMul(_z));
 

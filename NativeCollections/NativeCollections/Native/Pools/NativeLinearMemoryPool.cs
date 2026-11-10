@@ -31,9 +31,13 @@ namespace NativeCollections
         ///     maximum number of free slabs to retain.
         /// </summary>
         /// <param name="maxLength">
-        ///     The amount of memory (in bytes) reserved for each slab. The largest single allocation
-        ///     accepted by <see cref="Rent(int, int)" /> is smaller than this value because the slab
-        ///     header and alignment overhead are subtracted. Must be greater than zero.
+        ///     The payload budget (in bytes) of each slab. Must be greater than zero.
+        ///     This is not the maximum size of a single allocation: every rental also needs
+        ///     <c>alignment - 1</c> bytes of padding plus a <see cref="nint" /> header, so the
+        ///     largest single allocation is <c>maxLength - (alignment - 1)</c>. With the default
+        ///     alignment of 8 that is <c>maxLength - 7</c> bytes; with an alignment of 16 it is
+        ///     <c>maxLength - 15</c> bytes. Requesting more makes <see cref="Rent(int, int)" />
+        ///     throw <see cref="ArgumentOutOfRangeException" />.
         /// </param>
         /// <param name="maxFreeSlabs">
         ///     The maximum number of free slabs to keep in the free list. Must be non‑negative.
@@ -78,8 +82,8 @@ namespace NativeCollections
         ///     within a single slab, assuming the default alignment of <see cref="IntPtr" />.
         /// </summary>
         /// <remarks>
-        ///     This value is determined by the total slab size minus the overhead required for the slab header
-        ///     and the alignment adjustment for a <see cref="IntPtr" />‑aligned pointer. It represents the largest
+        ///     This value is determined by the slab data region size minus the <c>alignment - 1</c> bytes
+        ///     of padding and the <see cref="nint" /> header required for each allocation. It represents the largest
         ///     contiguous block of memory that can be allocated in one slab when using the default alignment.
         /// </remarks>
         public int MaxLength => _handle->MaxLength;
@@ -166,7 +170,7 @@ namespace NativeCollections
         /// <summary>
         ///     Clears the contents of this.
         /// </summary>
-        /// <param name="capacity">The minimum number of free slabs to retain.</param>
+        /// <param name="capacity">The maximum number of free slabs to retain.</param>
         /// <returns>The number of free slabs retained by this.</returns>
         /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="capacity" /> is negative.

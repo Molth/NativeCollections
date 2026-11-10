@@ -35,6 +35,21 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
+        /// <remarks>
+        ///     <list type="bullet">
+        ///         <item>
+        ///             <description>
+        ///                 Always <see langword="true" />.
+        ///             </description>
+        ///         </item>
+        ///         <item>
+        ///             <description>
+        ///                 The default value of this type is a valid empty collector: the epoch slots start
+        ///                 zeroed, so there is no separate initialization step.
+        ///             </description>
+        ///         </item>
+        ///     </list>
+        /// </remarks>
         public readonly bool IsCreated => _handle.IsCreated;
 
         /// <summary>
@@ -164,7 +179,9 @@ namespace NativeCollections
         /// </exception>
         /// <remarks>
         ///     This method is thread-safe and does not block the caller. The deallocation
-        ///     callback will be invoked exactly once after the epoch advances.
+        ///     callback will be invoked exactly once after the epoch advances. Disposing the
+        ///     collector instead invokes all pending callbacks immediately on the disposing
+        ///     thread, without advancing the epoch and regardless of pin counts.
         /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Retire(uint epoch, void* data, delegate* managed<void*, void> call) => _handle.Retire(epoch, data, call);

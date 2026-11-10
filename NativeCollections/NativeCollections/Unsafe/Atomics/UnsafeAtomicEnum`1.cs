@@ -14,12 +14,12 @@ using static NativeCollections.EnumHelpers;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Provides atomic operations on an enum value to type <typeparamref name="T" />.
+    ///     Provides atomic operations on an enum value of type <typeparamref name="T" />.
     /// </summary>
     /// <typeparam name="T">The unmanaged enumeration type.</typeparam>
     /// <remarks>
     ///     For 2-byte underlying types the natural-alignment requirement applies
-    ///     on net8.0 and earlier only; see <see cref="UnsafeAtomicU16" /> for details.
+    ///     on .NET 8 and earlier only; see <see cref="UnsafeAtomicU16" /> for details.
     /// </remarks>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard)]
@@ -322,7 +322,11 @@ namespace NativeCollections
         /// </summary>
         /// <param name="order">The memory ordering constraint applied to the load operation.</param>
         /// <returns>The loaded value.</returns>
-        /// <exception cref="NotSupportedException">Thrown when <paramref name="order" /> is not supported.</exception>
+        /// <exception cref="NotSupportedException">
+        ///     Thrown when the size of <typeparamref name="T" /> is
+        ///     not <c>1</c>, <c>2</c>, <c>4</c>, or <c>8</c> bytes, or when
+        ///     <paramref name="order" /> is not supported.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Load(Ordering order)
         {
@@ -343,11 +347,15 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Sets a value to a specified value, as an atomic operation.
+        ///     Sets a variable to a specified value, as an atomic operation.
         /// </summary>
         /// <param name="value">The value to store.</param>
         /// <param name="order">The memory ordering constraint applied to the store operation.</param>
-        /// <exception cref="NotSupportedException">Thrown when <paramref name="order" /> is not supported.</exception>
+        /// <exception cref="NotSupportedException">
+        ///     Thrown when the size of <typeparamref name="T" /> is
+        ///     not <c>1</c>, <c>2</c>, <c>4</c>, or <c>8</c> bytes, or when
+        ///     <paramref name="order" /> is not supported.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Store(T value, Ordering order)
         {
@@ -379,7 +387,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Sets a value to a specified value and returns the original value, as an atomic operation.
+        ///     Sets a variable to a specified value and returns the original value, as an atomic operation.
         /// </summary>
         /// <param name="value">The value to store.</param>
         /// <returns>The original value.</returns>
@@ -407,7 +415,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Compares two values for equality and, if they are equal, replaces the first value.
+        ///     Compares two values for equality and, if they are equal, replaces the first value, as an atomic operation.
         /// </summary>
         /// <param name="value">
         ///     The value that replaces the destination value if the comparison results in equality.

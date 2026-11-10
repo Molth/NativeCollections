@@ -287,7 +287,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(TKey key)
         {
-            var collisionCount = U32.FromI32Unchecked(0);
+            var collisionCount = 0U;
             var hashCode = U32.FromI32Unchecked(key.GetHashCode());
             ref var bucket = ref GetBucket(hashCode);
             var last = -1;
@@ -310,7 +310,7 @@ namespace NativeCollections
 
                 last = i;
                 i = entry.Next;
-                collisionCount = collisionCount.WrappingAdd(U32.FromI32Unchecked(1));
+                collisionCount = collisionCount.WrappingAdd(1U);
                 if (collisionCount > U32.FromI32Unchecked(_entriesLength))
                     ThrowHelpers.ThrowConcurrentOperationsNotSupportedException();
             }
@@ -334,7 +334,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(TKey key, out TValue value)
         {
-            var collisionCount = U32.FromI32Unchecked(0);
+            var collisionCount = 0U;
             var hashCode = U32.FromI32Unchecked(key.GetHashCode());
             ref var bucket = ref GetBucket(hashCode);
             var last = -1;
@@ -358,7 +358,7 @@ namespace NativeCollections
 
                 last = i;
                 i = entry.Next;
-                collisionCount = collisionCount.WrappingAdd(U32.FromI32Unchecked(1));
+                collisionCount = collisionCount.WrappingAdd(1U);
                 if (collisionCount > U32.FromI32Unchecked(_entriesLength))
                     ThrowHelpers.ThrowConcurrentOperationsNotSupportedException();
             }
@@ -450,7 +450,7 @@ namespace NativeCollections
         ///     in this or a ref null if it does not exist in this.
         /// </summary>
         /// <param name="key">The key used for lookup.</param>
-        /// <param name="exists">Whether or not a new entry for the given key was added to this.</param>
+        /// <param name="exists">Whether or not the given key already existed in this.</param>
         /// <returns>A reference to the value if the key is found; otherwise, a null reference.</returns>
         /// <remarks>
         ///     Items should not be added or removed from this while the ref <typeparamref name="TValue" />
@@ -488,7 +488,7 @@ namespace NativeCollections
         public bool TryGetValueRefOrAddDefault(TKey key, out NativePtr<TValue> value)
         {
             var hashCode = U32.FromI32Unchecked(key.GetHashCode());
-            var collisionCount = U32.FromI32Unchecked(0);
+            var collisionCount = 0U;
             ref var bucket = ref GetBucket(hashCode);
             var i = bucket.WrappingSub(1);
             while (true)
@@ -504,7 +504,7 @@ namespace NativeCollections
                 }
 
                 i = entry.Next;
-                collisionCount = collisionCount.WrappingAdd(U32.FromI32Unchecked(1));
+                collisionCount = collisionCount.WrappingAdd(1U);
                 if (collisionCount > U32.FromI32Unchecked(_entriesLength))
                     ThrowHelpers.ThrowConcurrentOperationsNotSupportedException();
             }
@@ -568,7 +568,7 @@ namespace NativeCollections
         public bool TryGetValueRefOrAddDefault(TKey key, out NativePtr<TValue> value, out bool exists)
         {
             var hashCode = U32.FromI32Unchecked(key.GetHashCode());
-            var collisionCount = U32.FromI32Unchecked(0);
+            var collisionCount = 0U;
             ref var bucket = ref GetBucket(hashCode);
             var i = bucket.WrappingSub(1);
             while (true)
@@ -585,7 +585,7 @@ namespace NativeCollections
                 }
 
                 i = entry.Next;
-                collisionCount = collisionCount.WrappingAdd(U32.FromI32Unchecked(1));
+                collisionCount = collisionCount.WrappingAdd(1U);
                 if (collisionCount > U32.FromI32Unchecked(_entriesLength))
                     ThrowHelpers.ThrowConcurrentOperationsNotSupportedException();
             }
@@ -638,7 +638,7 @@ namespace NativeCollections
         {
             var hashCode = U32.FromI32Unchecked(key.GetHashCode());
             var i = GetBucket(hashCode);
-            var collisionCount = U32.FromI32Unchecked(0);
+            var collisionCount = 0U;
             i = i.WrappingSub(1);
             while (true)
             {
@@ -650,7 +650,7 @@ namespace NativeCollections
                     return ref entry.Value;
 
                 i = entry.Next;
-                collisionCount = collisionCount.WrappingAdd(U32.FromI32Unchecked(1));
+                collisionCount = collisionCount.WrappingAdd(1U);
 
                 if (collisionCount > U32.FromI32Unchecked(_entriesLength))
                     break;
@@ -675,7 +675,7 @@ namespace NativeCollections
         private InsertResult TryInsertOverwriteExisting(TKey key, TValue value)
         {
             var hashCode = U32.FromI32Unchecked(key.GetHashCode());
-            var collisionCount = U32.FromI32Unchecked(0);
+            var collisionCount = 0U;
             ref var bucket = ref GetBucket(hashCode);
             var i = bucket.WrappingSub(1);
             while (true)
@@ -691,7 +691,7 @@ namespace NativeCollections
                 }
 
                 i = entry.Next;
-                collisionCount = collisionCount.WrappingAdd(U32.FromI32Unchecked(1));
+                collisionCount = collisionCount.WrappingAdd(1U);
                 if (collisionCount > U32.FromI32Unchecked(_entriesLength))
                     ThrowHelpers.ThrowConcurrentOperationsNotSupportedException();
             }
@@ -737,7 +737,7 @@ namespace NativeCollections
         private InsertResult TryInsertNone(TKey key, TValue value)
         {
             var hashCode = U32.FromI32Unchecked(key.GetHashCode());
-            var collisionCount = U32.FromI32Unchecked(0);
+            var collisionCount = 0U;
             ref var bucket = ref GetBucket(hashCode);
             var i = bucket.WrappingSub(1);
             while (true)
@@ -750,7 +750,7 @@ namespace NativeCollections
                     return InsertResult.AlreadyExists;
 
                 i = entry.Next;
-                collisionCount = collisionCount.WrappingAdd(U32.FromI32Unchecked(1));
+                collisionCount = collisionCount.WrappingAdd(1U);
                 if (collisionCount > U32.FromI32Unchecked(_entriesLength))
                     ThrowHelpers.ThrowConcurrentOperationsNotSupportedException();
             }

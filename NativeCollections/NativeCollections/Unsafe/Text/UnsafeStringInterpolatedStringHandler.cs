@@ -29,7 +29,7 @@ namespace NativeCollections
         private readonly UnsafeString* _handle;
 
         /// <summary>
-        ///     The associated UnsafeStringBuilder to which to append.
+        ///     The associated <see cref="UnsafeString" /> to which the resulting text is copied.
         /// </summary>
         private readonly UnsafeString _stringBuilder;
 
@@ -62,7 +62,7 @@ namespace NativeCollections
         ///     The number of constant characters outside of interpolation expressions in the interpolated string.
         /// </param>
         /// <param name="formattedCount">The number of interpolation expressions in the interpolated string.</param>
-        /// <param name="stringBuilder">The associated UnsafeStringBuilder to which to append.</param>
+        /// <param name="stringBuilder">The associated <see cref="UnsafeString" /> to which the resulting text is copied.</param>
         /// <remarks>
         ///     This is intended to be called only by compiler-generated code. Arguments are
         ///     not validated as they'd otherwise be for members intended to be used directly.
@@ -77,13 +77,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Creates a handler used to translate an interpolated string into a <see cref="string" />.
+        ///     Creates a handler used to append an interpolated string into a <see cref="UnsafeString" />.
         /// </summary>
         /// <param name="literalLength">
         ///     The number of constant characters outside of interpolation expressions in the interpolated string.
         /// </param>
         /// <param name="formattedCount">The number of interpolation expressions in the interpolated string.</param>
-        /// <param name="stringBuilder">The associated UnsafeStringBuilder to which to append.</param>
+        /// <param name="stringBuilder">The associated <see cref="UnsafeString" /> to which the resulting text is copied.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
         /// <remarks>
         ///     This is intended to be called only by compiler-generated code. Arguments are
@@ -275,11 +275,11 @@ namespace NativeCollections
         /// </summary>
         /// <typeparam name="T">The type of the value to write.</typeparam>
         /// <param name="value">The value to write.</param>
-        /// <param name="format">The format string.</param>
         /// <param name="alignment">
         ///     Minimum number of characters that should be written for this value. If the value is
         ///     negative, it indicates left-aligned and the required minimum is the absolute value.
         /// </param>
+        /// <param name="format">The format string.</param>
         public void AppendFormatted<T>(T? value, int alignment, string? format) where T : struct
         {
             if (!value.HasValue)
@@ -293,11 +293,11 @@ namespace NativeCollections
         /// </summary>
         /// <typeparam name="T">The type of the value to write.</typeparam>
         /// <param name="value">The value to write.</param>
-        /// <param name="format">The format string.</param>
         /// <param name="alignment">
         ///     Minimum number of characters that should be written for this value. If the value is
         ///     negative, it indicates left-aligned and the required minimum is the absolute value.
         /// </param>
+        /// <param name="format">The format string.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AppendFormatted<T>(T value, int alignment, string? format)
         {

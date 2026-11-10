@@ -34,13 +34,6 @@ namespace NativeCollections
         private UnsafeAtomicPtr(T* handle) => _value = UnsafeAtomicIsize.Create(Isize.FromPtrUnchecked(handle));
 
         /// <summary>
-        ///     Initializes a new instance of this class.
-        /// </summary>
-        /// <param name="handle">The initial value.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private UnsafeAtomicPtr(nint handle) => _value = UnsafeAtomicIsize.Create(handle);
-
-        /// <summary>
         ///     Wraps an external pointer in an atomic pointer.
         /// </summary>
         /// <param name="handle">The pointer to wrap.</param>
@@ -54,7 +47,23 @@ namespace NativeCollections
         /// <param name="handle">The native integer representation of the pointer to wrap.</param>
         /// <returns>An atomic pointer initialized with <paramref name="handle" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeAtomicPtr<T> From(nint handle) => new(handle);
+        public static UnsafeAtomicPtr<T> From(nint handle) => new((T*)handle);
+
+        /// <summary>
+        ///     Wraps an external reference in an atomic pointer.
+        /// </summary>
+        /// <param name="reference">The reference to wrap.</param>
+        /// <returns>A new instance initialized with the address of <paramref name="reference" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UnsafeAtomicPtr<T> From([MustBePinned] ref T reference) => new(UnsafeHelpers.AsPointer(ref reference));
+
+        /// <summary>
+        ///     Wraps the first element of an external span in an atomic pointer.
+        /// </summary>
+        /// <param name="buffer">The span whose first element to wrap.</param>
+        /// <returns>A new instance initialized with the first element of <paramref name="buffer" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UnsafeAtomicPtr<T> From([MustBePinned] Span<T> buffer) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(buffer)));
 
         /// <summary>
         ///     Reinterprets the given location as a reference to this.
@@ -74,7 +83,7 @@ namespace NativeCollections
         public T* Load(Ordering order) => (T*)_value.Load(order);
 
         /// <summary>
-        ///     Sets a value to a specified value, as an atomic operation.
+        ///     Sets a variable to a specified value, as an atomic operation.
         /// </summary>
         /// <param name="value">The value to store.</param>
         /// <param name="order">The memory ordering constraint applied to the store operation.</param>
@@ -83,7 +92,7 @@ namespace NativeCollections
         public void Store(T* value, Ordering order) => _value.Store(Isize.FromPtrUnchecked(value), order);
 
         /// <summary>
-        ///     Sets a value to a specified value and returns the original value, as an atomic operation.
+        ///     Sets a variable to a specified value and returns the original value, as an atomic operation.
         /// </summary>
         /// <param name="value">The value to store.</param>
         /// <returns>The original value.</returns>
@@ -91,7 +100,7 @@ namespace NativeCollections
         public T* Exchange(T* value) => (T*)_value.Exchange(Isize.FromPtrUnchecked(value));
 
         /// <summary>
-        ///     Compares two values for equality and, if they are equal, replaces the first value.
+        ///     Compares two values for equality and, if they are equal, replaces the first value, as an atomic operation.
         /// </summary>
         /// <param name="value">
         ///     The value that replaces the destination value if the comparison results in equality.
@@ -136,21 +145,5 @@ namespace NativeCollections
         /// </summary>
         /// <returns>The string representation of this instance.</returns>
         public readonly override string ToString() => SR.Format("UnsafeAtomicPtr<{0}>", SR.GetTypeName(typeof(T)));
-
-        /// <summary>
-        ///     Creates a new instance.
-        /// </summary>
-        /// <param name="reference">The value used to create the instance.</param>
-        /// <returns>A new instance initialized with the address of <paramref name="reference" />.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeAtomicPtr<T> From([MustBePinned] ref T reference) => new(UnsafeHelpers.AsPointer(ref reference));
-
-        /// <summary>
-        ///     Creates a new instance.
-        /// </summary>
-        /// <param name="buffer">The value used to create the instance.</param>
-        /// <returns>A new instance initialized with the first element of <paramref name="buffer" />.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeAtomicPtr<T> From([MustBePinned] Span<T> buffer) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(buffer)));
     }
 }

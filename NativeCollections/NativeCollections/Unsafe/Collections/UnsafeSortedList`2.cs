@@ -20,12 +20,12 @@ namespace NativeCollections
     public unsafe struct UnsafeSortedList<TKey, TValue> : IIsCreated, IDisposable, IEquatable<UnsafeSortedList<TKey, TValue>>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IComparable<TKey> where TValue : unmanaged
     {
         /// <summary>
-        ///     Gets a collection containing the keys in the dictionary.
+        ///     Gets a collection containing the keys in the sorted list.
         /// </summary>
         private TKey* _keys;
 
         /// <summary>
-        ///     Gets a collection containing the values in the dictionary.
+        ///     Gets a collection containing the values in the sorted list.
         /// </summary>
         private TValue* _values;
 
@@ -45,13 +45,13 @@ namespace NativeCollections
         private int _capacity;
 
         /// <summary>
-        ///     Gets a collection containing the keys in the dictionary.
+        ///     Gets a collection containing the keys in the sorted list.
         /// </summary>
         [MustBePinned(SR.parameter_this)]
         public KeyCollection Keys => KeyCollection.From(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
-        ///     Gets a collection containing the values in the dictionary.
+        ///     Gets a collection containing the values in the sorted list.
         /// </summary>
         [MustBePinned(SR.parameter_this)]
         public ValueCollection Values => ValueCollection.From(UnsafeHelpers.AsPointer(ref this));
@@ -118,8 +118,8 @@ namespace NativeCollections
         /// <summary>
         ///     Initializes a new instance of this class with the specified state.
         /// </summary>
-        /// <param name="keys">The keys of the sorted dictionary.</param>
-        /// <param name="values">The values of the sorted dictionary.</param>
+        /// <param name="keys">The keys of the sorted list.</param>
+        /// <param name="values">The values of the sorted list.</param>
         /// <param name="count">The number of elements contained in this.</param>
         /// <param name="version">Used to keep the enumerator synchronized with the collection.</param>
         /// <param name="capacity">The total number of elements the internal data structure can hold.</param>
@@ -1021,9 +1021,9 @@ namespace NativeCollections
             internal static KeyCollection From(UnsafeSortedList<TKey, TValue>* handle) => new(handle);
 
             /// <summary>
-            ///     Returns a read-only span over a portion of this.
+            ///     Returns a read-only span over the entire contents of this.
             /// </summary>
-            /// <returns>A read-only span over a portion of this.</returns>
+            /// <returns>A read-only span over the entire contents of this.</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public ReadOnlySpan<TKey> AsReadOnlySpan()
             {
@@ -1194,9 +1194,9 @@ namespace NativeCollections
             internal static ValueCollection From(UnsafeSortedList<TKey, TValue>* handle) => new(handle);
 
             /// <summary>
-            ///     Returns a span over a portion of this.
+            ///     Returns a span over the entire contents of this.
             /// </summary>
-            /// <returns>A span over a portion of this.</returns>
+            /// <returns>A span over the entire contents of this.</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public Span<TValue> AsSpan()
             {
@@ -1205,9 +1205,9 @@ namespace NativeCollections
             }
 
             /// <summary>
-            ///     Returns a read-only span over a portion of this.
+            ///     Returns a read-only span over the entire contents of this.
             /// </summary>
-            /// <returns>A read-only span over a portion of this.</returns>
+            /// <returns>A read-only span over the entire contents of this.</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public ReadOnlySpan<TValue> AsReadOnlySpan()
             {

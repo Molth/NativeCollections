@@ -17,7 +17,8 @@ namespace NativeCollections
     /// <remarks>
     ///     Writer operations invoke caller-supplied factory delegates while the write lock of the
     ///     target shard is held. Such delegates must not call back into the same dictionary
-    ///     instance, because the shard lock is not reentrant and doing so deadlocks.
+    ///     instance, because the shard lock is not reentrant and doing so deadlocks; they should
+    ///     also be fast, since they block other writers of that shard.
     /// </remarks>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.Community)]
@@ -45,6 +46,40 @@ namespace NativeCollections
         /// <param name="handle">The handle to the underlying object.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private NativeShardedDictionary(UnsafeShardedDictionary<TKey, TValue>* handle) => _handle = handle;
+
+        /// <summary>
+        ///     Creates a new instance that is empty, has the default concurrency level, has
+        ///     the default initial capacity, and uses the default comparer for the key type.
+        /// </summary>
+        /// <returns>A new instance.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeShardedDictionary<TKey, TValue> Create()
+        {
+            var value = UnsafeShardedDictionary<TKey, TValue>.Create();
+            return new NativeShardedDictionary<TKey, TValue>(Box.New(ref value));
+        }
+
+        /// <summary>
+        ///     Creates a new instance that is empty, has the specified concurrency
+        ///     level and capacity, and uses the default comparer for the key type.
+        /// </summary>
+        /// <param name="concurrencyLevel">
+        ///     The estimated number of threads that will update this concurrently, or -1 to indicate a default value.
+        /// </param>
+        /// <param name="capacity">
+        ///     The initial number of elements that this can contain.
+        /// </param>
+        /// <returns>A new instance.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="concurrencyLevel" /> is
+        ///     less than 1 or <paramref name="capacity" /> is negative.
+        /// </exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeShardedDictionary<TKey, TValue> Create(int concurrencyLevel, int capacity)
+        {
+            var value = UnsafeShardedDictionary<TKey, TValue>.Create(concurrencyLevel, capacity);
+            return new NativeShardedDictionary<TKey, TValue>(Box.New(ref value));
+        }
 
         /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
@@ -377,40 +412,6 @@ namespace NativeCollections
         /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TValue AddOrUpdate(TKey key, TValue addValue, Func<TKey, TValue, TValue> updateValueFactory) => _handle->AddOrUpdate(key, addValue, updateValueFactory);
-
-        /// <summary>
-        ///     Creates a new instance that is empty, has the default concurrency level, has
-        ///     the default initial capacity, and uses the default comparer for the key type.
-        /// </summary>
-        /// <returns>A new instance.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeShardedDictionary<TKey, TValue> Create()
-        {
-            var value = UnsafeShardedDictionary<TKey, TValue>.Create();
-            return new NativeShardedDictionary<TKey, TValue>(Box.New(ref value));
-        }
-
-        /// <summary>
-        ///     Creates a new instance that is empty, has the specified concurrency
-        ///     level and capacity, and uses the default comparer for the key type.
-        /// </summary>
-        /// <param name="concurrencyLevel">
-        ///     The estimated number of threads that will update this concurrently, or -1 to indicate a default value.
-        /// </param>
-        /// <param name="capacity">
-        ///     The initial number of elements that this can contain.
-        /// </param>
-        /// <returns>A new instance.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///     Thrown when <paramref name="concurrencyLevel" /> is
-        ///     less than 1 or <paramref name="capacity" /> is negative.
-        /// </exception>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeShardedDictionary<TKey, TValue> Create(int concurrencyLevel, int capacity)
-        {
-            var value = UnsafeShardedDictionary<TKey, TValue>.Create(concurrencyLevel, capacity);
-            return new NativeShardedDictionary<TKey, TValue>(Box.New(ref value));
-        }
 
         /// <summary>
         ///     Returns an enumerator that iterates through the collection.

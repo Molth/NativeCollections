@@ -101,7 +101,7 @@ namespace Roslyn
         /// </remarks>
         private static T Flatten<T>(T node) where T : ExpressionSyntax
         {
-            if (!HasLineBreak(node) || ContainsUnsupportedMultilineConstruct(node) || node.DescendantTrivia(descendIntoTrivia: true).Any(static trivia => trivia.IsDirective))
+            if (!HasLineBreak(node) || SyntaxHelpers.ContainsMultilineLayoutConstruct(node) || node.DescendantTrivia(descendIntoTrivia: true).Any(static trivia => trivia.IsDirective))
                 return node;
 
             var leading = node.GetLeadingTrivia();
@@ -122,20 +122,5 @@ namespace Roslyn
             var span = node.GetLocation().GetLineSpan();
             return span.StartLinePosition.Line != span.EndLinePosition.Line;
         }
-
-        /// <summary>
-        ///     Determines whether the node contains a construct that must keep its multi-line layout.
-        /// </summary>
-        /// <param name="node">The expression to inspect.</param>
-        /// <returns>
-        ///     <see langword="true" /> when the expression contains an
-        ///     unsupported construct; otherwise, <see langword="false" />.
-        /// </returns>
-        /// <remarks>
-        ///     A switch expression, a lambda, an initializer, or a query expression is excluded
-        ///     because normalizing it would either erase the layout that makes it readable
-        ///     or produce nested inline text that the later rewriters cannot format safely.
-        /// </remarks>
-        private static bool ContainsUnsupportedMultilineConstruct(SyntaxNode node) => node.DescendantNodesAndSelf().Any(static descendant => descendant is SwitchExpressionSyntax or AnonymousFunctionExpressionSyntax or InitializerExpressionSyntax or QueryExpressionSyntax);
     }
 }

@@ -20,12 +20,12 @@ namespace NativeCollections
     public unsafe struct StackallocSortedList<TKey, TValue> : IIsCreated, IEquatable<StackallocSortedList<TKey, TValue>>, IReadOnlyCollection<KeyValuePair<TKey, TValue>> where TKey : unmanaged, IComparable<TKey> where TValue : unmanaged
     {
         /// <summary>
-        ///     Gets a collection containing the keys in the dictionary.
+        ///     Gets a collection containing the keys in the sorted list.
         /// </summary>
         private readonly TKey* _keys;
 
         /// <summary>
-        ///     Gets a collection containing the values in the dictionary.
+        ///     Gets a collection containing the values in the sorted list.
         /// </summary>
         private readonly TValue* _values;
 
@@ -45,13 +45,13 @@ namespace NativeCollections
         private readonly int _capacity;
 
         /// <summary>
-        ///     Gets a collection containing the keys in the dictionary.
+        ///     Gets a collection containing the keys in the sorted list.
         /// </summary>
         [MustBePinned(SR.parameter_this)]
         public KeyCollection Keys => KeyCollection.From(UnsafeHelpers.AsPointer(ref this));
 
         /// <summary>
-        ///     Gets a collection containing the values in the dictionary.
+        ///     Gets a collection containing the values in the sorted list.
         /// </summary>
         [MustBePinned(SR.parameter_this)]
         public ValueCollection Values => ValueCollection.From(UnsafeHelpers.AsPointer(ref this));
@@ -937,9 +937,9 @@ namespace NativeCollections
             internal static KeyCollection From(StackallocSortedList<TKey, TValue>* handle) => new(handle);
 
             /// <summary>
-            ///     Returns a read-only span over a portion of this.
+            ///     Returns a read-only span over the entire contents of this.
             /// </summary>
-            /// <returns>A read-only span over a portion of this.</returns>
+            /// <returns>A read-only span over the entire contents of this.</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public ReadOnlySpan<TKey> AsReadOnlySpan()
             {
@@ -1110,9 +1110,9 @@ namespace NativeCollections
             internal static ValueCollection From(StackallocSortedList<TKey, TValue>* handle) => new(handle);
 
             /// <summary>
-            ///     Returns a span over a portion of this.
+            ///     Returns a span over the entire contents of this.
             /// </summary>
-            /// <returns>A span over a portion of this.</returns>
+            /// <returns>A span over the entire contents of this.</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public Span<TValue> AsSpan()
             {

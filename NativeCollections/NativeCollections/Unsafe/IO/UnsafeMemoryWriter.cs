@@ -31,7 +31,10 @@ namespace NativeCollections
         /// <summary>
         ///     Initializes a new instance of this class with the specified buffer and length.
         /// </summary>
-        /// <param name="buffer">Represents a contiguous region of arbitrary memory.</param>
+        /// <param name="buffer">
+        ///     A pointer to the start of the region to write to. The memory must remain valid
+        ///     while this writer is in use.
+        /// </param>
         /// <param name="length">
         ///     The size of the buffer in bytes. Must be non-negative.
         /// </param>
@@ -50,7 +53,10 @@ namespace NativeCollections
         /// <summary>
         ///     Creates a writer view over the specified native buffer.
         /// </summary>
-        /// <param name="buffer">Represents a contiguous region of arbitrary memory.</param>
+        /// <param name="buffer">
+        ///     A pointer to the start of the region to write to. The memory must remain valid
+        ///     while the returned writer is in use.
+        /// </param>
         /// <param name="length">The size of the buffer in bytes. Must be non-negative.</param>
         /// <returns>
         ///     A writer over <paramref name="buffer" /> whose total size is
@@ -59,8 +65,25 @@ namespace NativeCollections
         /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="length" /> is negative.
         /// </exception>
+        /// <remarks>
+        ///     The returned writer owns <paramref name="buffer" />; <see cref="Dispose" /> releases it with
+        ///     <see cref="NativeMemoryAllocator.AlignedFree" />. Therefore, <paramref name="buffer" /> must
+        ///     be allocated by <see cref="NativeMemoryAllocator" /> or a compatible allocator, and the
+        ///     caller must not release it separately while the returned writer is in use.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeMemoryWriter From(byte* buffer, int length) => new(buffer, length);
+
+        /// <summary>
+        ///     Creates a new instance that references the specified span.
+        /// </summary>
+        /// <param name="value">The span to reference as the writer buffer.</param>
+        /// <returns>
+        ///     A writer over <paramref name="value" /> whose total size
+        ///     is the span length and whose current position is zero.
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UnsafeMemoryWriter From([MustBePinned] Span<byte> value) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(value)), value.Length);
 
         /// <summary>
         ///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
@@ -225,8 +248,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Writes the sequence of bytes into the current memory stream, and advances the
-        ///     current position within this memory stream by the number of bytes written.
+        ///     Writes a value of type <typeparamref name="T" /> referenced by the source pointer
+        ///     and advances the position by the size of the value.
         /// </summary>
         /// <typeparam name="T">The unmanaged type of the value to write.</typeparam>
         /// <param name="obj">The source value to write.</param>
@@ -242,8 +265,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Writes the sequence of bytes into the current memory stream, and advances the
-        ///     current position within this memory stream by the number of bytes written.
+        ///     Attempts to write a value of type <typeparamref name="T" /> referenced by the source pointer.
         /// </summary>
         /// <typeparam name="T">The unmanaged type of the value to write.</typeparam>
         /// <param name="obj">The source value to write.</param>
@@ -263,8 +285,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Writes the sequence of bytes into the current memory stream, and advances the
-        ///     current position within this memory stream by the number of bytes written.
+        ///     Writes <paramref name="count" /> values of type <typeparamref name="T" /> from the
+        ///     source pointer and advances the position by their total size.
         /// </summary>
         /// <typeparam name="T">The unmanaged element type of the values to write.</typeparam>
         /// <param name="obj">The source values to write.</param>
@@ -281,12 +303,12 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Writes the sequence of bytes into the current memory stream, and advances the
-        ///     current position within this memory stream by the number of bytes written.
+        ///     Attempts to write <paramref name="count" /> values of type <typeparamref name="T" />
+        ///     from the source pointer.
         /// </summary>
         /// <typeparam name="T">The unmanaged element type of the values to write.</typeparam>
-        /// <param name="count">The number of values to write.</param>
         /// <param name="obj">The source values to write.</param>
+        /// <param name="count">The number of values to write.</param>
         /// <returns>
         ///     <see langword="true" /> if all values were written; otherwise,
         ///     <see langword="false" /> if the remaining space is insufficient.
@@ -300,8 +322,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Writes the sequence of bytes into the current memory stream, and advances the
-        ///     current position within this memory stream by the number of bytes written.
+        ///     Writes values of type <typeparamref name="T" /> from the specified span and advances
+        ///     the position by their total size.
         /// </summary>
         /// <typeparam name="T">The unmanaged element type of the source buffer.</typeparam>
         /// <param name="buffer">The source buffer containing the values to write.</param>
@@ -318,8 +340,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Writes the sequence of bytes into the current memory stream, and advances the
-        ///     current position within this memory stream by the number of bytes written.
+        ///     Attempts to write values of type <typeparamref name="T" /> from the specified span.
         /// </summary>
         /// <typeparam name="T">The unmanaged element type of the source buffer.</typeparam>
         /// <param name="buffer">The source buffer containing the values to write.</param>
@@ -340,8 +361,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Writes the sequence of bytes into the current memory stream, and advances the
-        ///     current position within this memory stream by the number of bytes written.
+        ///     Writes the specified value and advances the position by its size.
         /// </summary>
         /// <typeparam name="T">The unmanaged type of the value to write.</typeparam>
         /// <param name="obj">The source value to write.</param>
@@ -357,8 +377,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Writes the sequence of bytes into the current memory stream, and advances the
-        ///     current position within this memory stream by the number of bytes written.
+        ///     Attempts to write the specified value.
         /// </summary>
         /// <typeparam name="T">The unmanaged type of the value to write.</typeparam>
         /// <param name="obj">The source value to write.</param>
@@ -378,8 +397,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Writes the sequence of bytes into the current memory stream, and advances the
-        ///     current position within this memory stream by the number of bytes written.
+        ///     Writes the specified number of bytes from the source and advances the position by
+        ///     that number.
         /// </summary>
         /// <param name="buffer">The source buffer containing the bytes to write.</param>
         /// <param name="length">The number of bytes to write.</param>
@@ -397,8 +416,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Writes the sequence of bytes into the current memory stream, and advances the
-        ///     current position within this memory stream by the number of bytes written.
+        ///     Attempts to write the specified number of bytes from the source.
         /// </summary>
         /// <param name="buffer">The source buffer containing the bytes to write.</param>
         /// <param name="length">The number of bytes to write.</param>
@@ -422,8 +440,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Writes the sequence of bytes into the current memory stream, and advances the
-        ///     current position within this memory stream by the number of bytes written.
+        ///     Writes the bytes from the specified span and advances the position by the span length.
         /// </summary>
         /// <param name="buffer">The source buffer containing the bytes to write.</param>
         /// <exception cref="ArgumentOutOfRangeException">
@@ -438,8 +455,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Writes the sequence of bytes into the current memory stream, and advances the
-        ///     current position within this memory stream by the number of bytes written.
+        ///     Attempts to write the bytes from the specified span.
         /// </summary>
         /// <param name="buffer">The source buffer containing the bytes to write.</param>
         /// <returns>
@@ -464,28 +480,21 @@ namespace NativeCollections
         public void Clear() => _position = 0;
 
         /// <summary>
-        ///     Returns a span over a portion of this.
+        ///     Returns a span over the buffer up to the current position.
         /// </summary>
-        /// <returns>A span over a portion of this.</returns>
+        /// <returns>
+        ///     A span from the start of the buffer up to the current position.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<byte> AsSpan() => MemoryMarshal.CreateSpan(ref Unsafe.AsRef<byte>(Buffer), _position);
 
         /// <summary>
-        ///     Returns a read-only span over a portion of this.
+        ///     Returns a read-only span over the buffer up to the current position.
         /// </summary>
-        /// <returns>A read-only span over a portion of this.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<byte> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<byte>(Buffer), _position);
-
-        /// <summary>
-        ///     Creates a new instance that references the specified span.
-        /// </summary>
-        /// <param name="value">The span to reference as the writer buffer.</param>
         /// <returns>
-        ///     A writer over <paramref name="value" /> whose total size
-        ///     is the span length and whose current position is zero.
+        ///     A read-only span from the start of the buffer up to the current position.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeMemoryWriter From([MustBePinned] Span<byte> value) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(value)), value.Length);
+        public readonly ReadOnlySpan<byte> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<byte>(Buffer), _position);
     }
 }

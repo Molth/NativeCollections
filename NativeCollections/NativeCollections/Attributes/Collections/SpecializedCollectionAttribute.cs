@@ -5,7 +5,8 @@
 namespace NativeCollections
 {
     /// <summary>
-    ///     Specifies that the decorated struct is a specialized collection.
+    ///     Specifies that the decorated struct is a specialized type outside the standard
+    ///     collection categories, such as an allocator, random number engine, or related support type.
     /// </summary>
     [AttributeUsage(AttributeTargets.Struct)]
     internal sealed class SpecializedCollectionAttribute : Attribute

@@ -31,7 +31,10 @@ namespace NativeCollections
         /// <summary>
         ///     Initializes a new instance of this class with the specified buffer and length.
         /// </summary>
-        /// <param name="buffer">Represents a contiguous region of arbitrary memory.</param>
+        /// <param name="buffer">
+        ///     A pointer to the start of the region to read from. The memory must remain valid
+        ///     while this reader is in use.
+        /// </param>
         /// <param name="length">
         ///     The size of the buffer in bytes. Must be non-negative.
         /// </param>
@@ -50,7 +53,10 @@ namespace NativeCollections
         /// <summary>
         ///     Creates a reader view over the specified native buffer.
         /// </summary>
-        /// <param name="buffer">Represents a contiguous region of arbitrary memory.</param>
+        /// <param name="buffer">
+        ///     A pointer to the start of the region to read from. The memory must remain valid
+        ///     while the returned reader is in use.
+        /// </param>
         /// <param name="length">The size of the buffer in bytes. Must be non-negative.</param>
         /// <returns>
         ///     A reader over <paramref name="buffer" /> whose total size is
@@ -59,8 +65,25 @@ namespace NativeCollections
         /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="length" /> is negative.
         /// </exception>
+        /// <remarks>
+        ///     The returned reader owns <paramref name="buffer" />; <see cref="Dispose" /> releases it with
+        ///     <see cref="NativeMemoryAllocator.AlignedFree" />. Therefore, <paramref name="buffer" /> must
+        ///     be allocated by <see cref="NativeMemoryAllocator" /> or a compatible allocator, and the
+        ///     caller must not release it separately while the returned reader is in use.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeMemoryReader From(byte* buffer, int length) => new(buffer, length);
+
+        /// <summary>
+        ///     Creates a new instance that references the specified span.
+        /// </summary>
+        /// <param name="value">The span to reference as the reader buffer.</param>
+        /// <returns>
+        ///     A reader over <paramref name="value" /> whose total size
+        ///     is the span length and whose current position is zero.
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UnsafeMemoryReader From([MustBePinned] Span<byte> value) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(value)), value.Length);
 
         /// <summary>
         ///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
@@ -225,8 +248,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reads a sequence of bytes from the current memory stream, and advances
-        ///     the position within the memory stream by the number of bytes read.
+        ///     Reads a value of type <typeparamref name="T" /> from the current position and advances
+        ///     the position by the size of the value.
         /// </summary>
         /// <typeparam name="T">The unmanaged type of the value to read.</typeparam>
         /// <returns>
@@ -245,8 +268,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reads a sequence of bytes from the current memory stream, and advances
-        ///     the position within the memory stream by the number of bytes read.
+        ///     Reads a value of type <typeparamref name="T" /> into the specified destination and
+        ///     advances the position by the size of the value.
         /// </summary>
         /// <typeparam name="T">The unmanaged type of the value to read.</typeparam>
         /// <param name="obj">The destination to which to copy the value.</param>
@@ -262,8 +285,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reads a sequence of bytes from the current memory stream, and advances
-        ///     the position within the memory stream by the number of bytes read.
+        ///     Attempts to read a value of type <typeparamref name="T" /> into the specified destination.
         /// </summary>
         /// <typeparam name="T">The unmanaged type of the value to read.</typeparam>
         /// <param name="obj">The destination to which to copy the value.</param>
@@ -283,8 +305,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reads a sequence of bytes from the current memory stream, and advances
-        ///     the position within the memory stream by the number of bytes read.
+        ///     Reads <paramref name="count" /> values of type <typeparamref name="T" /> into the
+        ///     specified destination and advances the position by their total size.
         /// </summary>
         /// <typeparam name="T">The unmanaged element type of the values to read.</typeparam>
         /// <param name="obj">The destination to which to copy the values.</param>
@@ -301,12 +323,12 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reads a sequence of bytes from the current memory stream, and advances
-        ///     the position within the memory stream by the number of bytes read.
+        ///     Attempts to read <paramref name="count" /> values of type <typeparamref name="T" />
+        ///     into the specified destination.
         /// </summary>
         /// <typeparam name="T">The unmanaged element type of the values to read.</typeparam>
-        /// <param name="count">The number of values to read.</param>
         /// <param name="obj">The destination to which to copy the values.</param>
+        /// <param name="count">The number of values to read.</param>
         /// <returns>
         ///     <see langword="true" /> if all values were read; otherwise,
         ///     <see langword="false" /> if the remaining bytes are insufficient.
@@ -320,8 +342,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reads a sequence of bytes from the current memory stream, and advances
-        ///     the position within the memory stream by the number of bytes read.
+        ///     Reads values of type <typeparamref name="T" /> into the specified span and advances
+        ///     the position by their total size.
         /// </summary>
         /// <typeparam name="T">The unmanaged element type of the destination buffer.</typeparam>
         /// <param name="buffer">The destination buffer to fill with values.</param>
@@ -338,8 +360,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reads a sequence of bytes from the current memory stream, and advances
-        ///     the position within the memory stream by the number of bytes read.
+        ///     Attempts to read values of type <typeparamref name="T" /> into the specified span.
         /// </summary>
         /// <typeparam name="T">The unmanaged element type of the destination buffer.</typeparam>
         /// <param name="buffer">The destination buffer to fill with values.</param>
@@ -360,8 +381,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reads a sequence of bytes from the current memory stream, and advances
-        ///     the position within the memory stream by the number of bytes read.
+        ///     Reads a value of type <typeparamref name="T" /> into the specified reference and
+        ///     advances the position by the size of the value.
         /// </summary>
         /// <typeparam name="T">The unmanaged type of the value to read.</typeparam>
         /// <param name="obj">The destination reference to which to copy the value.</param>
@@ -377,8 +398,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reads a sequence of bytes from the current memory stream, and advances
-        ///     the position within the memory stream by the number of bytes read.
+        ///     Attempts to read a value of type <typeparamref name="T" /> into the specified reference.
         /// </summary>
         /// <typeparam name="T">The unmanaged type of the value to read.</typeparam>
         /// <param name="obj">The destination reference to which to copy the value.</param>
@@ -398,8 +418,8 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reads a sequence of bytes from the current memory stream, and advances
-        ///     the position within the memory stream by the number of bytes read.
+        ///     Reads the specified number of bytes into the destination and advances the position
+        ///     by that number.
         /// </summary>
         /// <param name="buffer">The destination buffer to fill.</param>
         /// <param name="length">The number of bytes to read.</param>
@@ -417,8 +437,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reads a sequence of bytes from the current memory stream, and advances
-        ///     the position within the memory stream by the number of bytes read.
+        ///     Attempts to read the specified number of bytes into the destination.
         /// </summary>
         /// <param name="buffer">The destination buffer to fill.</param>
         /// <param name="length">The number of bytes to read.</param>
@@ -442,8 +461,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reads a sequence of bytes from the current memory stream, and advances
-        ///     the position within the memory stream by the number of bytes read.
+        ///     Reads bytes into the specified span and advances the position by the span length.
         /// </summary>
         /// <param name="buffer">The destination buffer to fill.</param>
         /// <exception cref="ArgumentOutOfRangeException">
@@ -458,8 +476,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Reads a sequence of bytes from the current memory stream, and advances
-        ///     the position within the memory stream by the number of bytes read.
+        ///     Attempts to read bytes into the specified span.
         /// </summary>
         /// <param name="buffer">The destination buffer to fill.</param>
         /// <returns>
@@ -478,28 +495,23 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Returns a span over a portion of this.
+        ///     Returns a span over the entire buffer of this reader.
         /// </summary>
-        /// <returns>A span over a portion of this.</returns>
+        /// <returns>
+        ///     A span over the whole buffer, <see cref="Length" /> bytes long, regardless of the
+        ///     current position.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<byte> AsSpan() => MemoryMarshal.CreateSpan(ref Unsafe.AsRef<byte>(Buffer), Length);
 
         /// <summary>
-        ///     Returns a read-only span over a portion of this.
+        ///     Returns a read-only span over the entire buffer of this reader.
         /// </summary>
-        /// <returns>A read-only span over a portion of this.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly ReadOnlySpan<byte> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<byte>(Buffer), Length);
-
-        /// <summary>
-        ///     Creates a new instance that references the specified span.
-        /// </summary>
-        /// <param name="value">The span to reference as the reader buffer.</param>
         /// <returns>
-        ///     A reader over <paramref name="value" /> whose total size
-        ///     is the span length and whose current position is zero.
+        ///     A read-only span over the whole buffer, <see cref="Length" /> bytes long, regardless
+        ///     of the current position.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeMemoryReader From([MustBePinned] Span<byte> value) => new(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(value)), value.Length);
+        public readonly ReadOnlySpan<byte> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<byte>(Buffer), Length);
     }
 }

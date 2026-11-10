@@ -10,9 +10,12 @@ using System.Security.Cryptography;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Represents a pseudo-random number generator, which is an algorithm that produces
-    ///     a sequence of numbers that meet certain statistical requirements for randomness.
+    ///     Represents a cryptographically secure pseudo-random number generator backed by
+    ///     <see cref="RandomNumberGenerator" />.
     /// </summary>
+    /// <remarks>
+    ///     This generator cannot be seeded, and its sequence of values cannot be reproduced.
+    /// </remarks>
     [StructLayout(LayoutKind.Sequential)]
     [SpecializedCollection(FromType.Standard)]
     [BindingType(typeof(RandomNumberGenerator))]
@@ -100,6 +103,9 @@ namespace NativeCollections
         ///     <see langword="false" /> if they should be uppercase. The default is <see langword="false" />.
         /// </param>
         /// <returns>A string populated with random hexadecimal characters.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="stringLength" /> is negative.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public string GetHexString(int stringLength, bool lowercase = false) => _state.GetHexString(stringLength, lowercase);
 
@@ -184,7 +190,7 @@ namespace NativeCollections
         ///     A 64-bit double-precision floating point number greater than or equal to <paramref name="minValue" />,
         ///     and less than <paramref name="maxValue" />; that is, the range of return values
         ///     includes <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         /// <seealso cref="NextF64()" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -218,7 +224,7 @@ namespace NativeCollections
         ///     A 32-bit single-precision floating point number greater than or equal to <paramref name="minValue" />,
         ///     and less than <paramref name="maxValue" />; that is, the range of return values
         ///     includes <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         /// <seealso cref="NextF32()" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -260,7 +266,7 @@ namespace NativeCollections
         ///     A 32-bit unsigned integer greater than or equal to <paramref name="minValue" />, and
         ///     less than <paramref name="maxValue" />; that is, the range of return values includes
         ///     <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public uint NextU32(uint minValue, uint maxValue) => _state.NextU32(minValue, maxValue);
@@ -302,7 +308,7 @@ namespace NativeCollections
         ///     A 64-bit unsigned integer greater than or equal to <paramref name="minValue" />, and
         ///     less than <paramref name="maxValue" />; that is, the range of return values includes
         ///     <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ulong NextU64(ulong minValue, ulong maxValue) => _state.NextU64(minValue, maxValue);
@@ -343,7 +349,7 @@ namespace NativeCollections
         ///     A 32-bit signed integer greater than or equal to <paramref name="minValue" />, and
         ///     less than <paramref name="maxValue" />; that is, the range of return values includes
         ///     <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int NextI32(int minValue, int maxValue) => _state.NextI32(minValue, maxValue);
@@ -384,7 +390,7 @@ namespace NativeCollections
         ///     A 64-bit signed integer greater than or equal to <paramref name="minValue" />, and
         ///     less than <paramref name="maxValue" />; that is, the range of return values includes
         ///     <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public long NextI64(long minValue, long maxValue) => _state.NextI64(minValue, maxValue);
@@ -469,8 +475,8 @@ namespace NativeCollections
         public void Next<T>(ref T destination) where T : unmanaged => _state.Next(ref destination);
 
         /// <summary>
-        ///     Represents a pseudo-random number generator, which is an algorithm that produces
-        ///     a sequence of numbers that meet certain statistical requirements for randomness.
+        ///     Provides the stateless adapter that implements <see cref="IRandomState" />
+        ///     by drawing bytes from <see cref="RandomNumberGenerator" />.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         private struct State : IRandomState

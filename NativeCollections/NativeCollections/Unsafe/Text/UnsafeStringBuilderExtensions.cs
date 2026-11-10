@@ -941,7 +941,7 @@ namespace NativeCollections
         ///     Removes all occurrences of the specified character sequence from this instance.
         /// </summary>
         /// <param name="builder">The string builder to modify.</param>
-        /// <param name="buffer">The values to append.</param>
+        /// <param name="buffer">The characters to remove.</param>
         [SkipLocalsInit]
         public static void Remove(in this UnsafeStringBuilder<byte> builder, ReadOnlySpan<char> buffer)
         {

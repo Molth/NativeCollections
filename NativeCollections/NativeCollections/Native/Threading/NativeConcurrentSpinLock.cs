@@ -32,8 +32,22 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">A pointer to the lock storage.</param>
         /// <returns>A lock wrapper for <paramref name="buffer" />.</returns>
+        /// <remarks>
+        ///     The returned wrapper owns <paramref name="buffer" /> (the lock storage);
+        ///     <see cref="Dispose" /> releases it with <see cref="NativeMemoryAllocator.AlignedFree" />.
+        ///     Therefore, <paramref name="buffer" /> must be allocated by
+        ///     <see cref="NativeMemoryAllocator" /> or a compatible allocator, and the caller must not
+        ///     release it separately while the returned wrapper is in use.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeConcurrentSpinLock From(UnsafeConcurrentSpinLock* buffer) => new(buffer);
+
+        /// <summary>
+        ///     Creates a new instance.
+        /// </summary>
+        /// <returns>A new instance.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeConcurrentSpinLock Create() => new(NativeMemoryAllocator.AlignedAllocZeroed<UnsafeConcurrentSpinLock>(Usize.FromI32Unchecked(1)));
 
         /// <summary>
         ///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
@@ -110,19 +124,19 @@ namespace NativeCollections
         public static bool operator !=(NativeConcurrentSpinLock left, NativeConcurrentSpinLock right) => !left.Equals(right);
 
         /// <summary>
-        ///     Sets this to its initial position.
+        ///     Resets this to the state of a newly created lock.
         /// </summary>
         public void Reset() => _handle->Reset();
 
         /// <summary>
-        ///     Enter the lock.
+        ///     Enters the lock and returns a <see cref="NativeConcurrentSpinLockScope" />.
         /// </summary>
         /// <returns>A scope that holds the lock until it is disposed.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeConcurrentSpinLockScope EnterScope() => _handle->EnterScope();
 
         /// <summary>
-        ///     Enter the lock.
+        ///     Enters the lock and returns a <see cref="NativeConcurrentSpinLockScope" />.
         /// </summary>
         /// <param name="sleep1Threshold">
         ///     A minimum spin count after which <see cref="Thread.Sleep(int)" /> may be
@@ -136,14 +150,14 @@ namespace NativeCollections
         public NativeConcurrentSpinLockScope EnterScope(int sleep1Threshold) => _handle->EnterScope(sleep1Threshold);
 
         /// <summary>
-        ///     Enter the lock.
+        ///     Enters the lock and returns a <see cref="NativeConcurrentSpinLockRefScope" />.
         /// </summary>
         /// <returns>A reference scope that holds the lock until it is disposed.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeConcurrentSpinLockRefScope EnterRefScope() => _handle->EnterRefScope();
 
         /// <summary>
-        ///     Enter the lock.
+        ///     Enters the lock and returns a <see cref="NativeConcurrentSpinLockRefScope" />.
         /// </summary>
         /// <param name="sleep1Threshold">
         ///     A minimum spin count after which <see cref="Thread.Sleep(int)" /> may be
@@ -164,14 +178,14 @@ namespace NativeCollections
         public int Acquire() => _handle->Acquire();
 
         /// <summary>
-        ///     Spins until the lock's sequence number advances beyond the specified value.
+        ///     Spins until the lock's released sequence number reaches the specified value.
         /// </summary>
         /// <param name="sequenceNumber">The sequence number obtained from <see cref="Acquire" />.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Wait(int sequenceNumber) => _handle->Wait(sequenceNumber);
 
         /// <summary>
-        ///     Spins until the lock's sequence number advances beyond
+        ///     Spins until the lock's released sequence number reaches
         ///     the specified value, with configurable sleep behavior.
         /// </summary>
         /// <param name="sequenceNumber">The sequence number obtained from <see cref="Acquire" />.</param>
@@ -186,13 +200,13 @@ namespace NativeCollections
         public void Wait(int sequenceNumber, int sleep1Threshold) => _handle->Wait(sequenceNumber, sleep1Threshold);
 
         /// <summary>
-        ///     Enter the lock.
+        ///     Enters the lock.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Enter() => _handle->Enter();
 
         /// <summary>
-        ///     Enter the lock.
+        ///     Enters the lock.
         /// </summary>
         /// <param name="sleep1Threshold">
         ///     A minimum spin count after which <see cref="Thread.Sleep(int)" /> may be
@@ -205,16 +219,9 @@ namespace NativeCollections
         public void Enter(int sleep1Threshold) => _handle->Enter(sleep1Threshold);
 
         /// <summary>
-        ///     Exit the lock.
+        ///     Exits the lock.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Exit() => _handle->Exit();
-
-        /// <summary>
-        ///     Creates a new instance.
-        /// </summary>
-        /// <returns>A new instance.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeConcurrentSpinLock Create() => new(NativeMemoryAllocator.AlignedAllocZeroed<UnsafeConcurrentSpinLock>(Usize.FromI32Unchecked(1)));
     }
 }

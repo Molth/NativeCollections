@@ -20,17 +20,17 @@ namespace NativeCollections
         /// <summary>
         ///     The first xxHash32 prime constant.
         /// </summary>
-        private const uint PRIME_1 = 0x9E3779B1;
+        private const uint PRIME_1 = 0x9E3779B1U;
 
         /// <summary>
         ///     The second xxHash32 prime constant.
         /// </summary>
-        private const uint PRIME_2 = 0x85EBCA77;
+        private const uint PRIME_2 = 0x85EBCA77U;
 
         /// <summary>
         ///     The third xxHash32 prime constant.
         /// </summary>
-        private const uint PRIME_3 = 0xC2B2AE3D;
+        private const uint PRIME_3 = 0xC2B2AE3DU;
 
         /// <summary>
         ///     The fourth xxHash32 prime constant.

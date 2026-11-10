@@ -30,16 +30,16 @@ namespace NativeCollections
             while (len >= 4)
             {
                 input = input.WrappingAdd(ReadU32(data, cursor).WrappingMul(PRIME_3));
-                cursor = cursor.WrappingAdd(sizeof(uint));
-                len = len.WrappingSub(sizeof(uint));
+                cursor = cursor.WrappingAdd(Unsafe.SizeOf<uint>());
+                len = len.WrappingSub(Unsafe.SizeOf<uint>());
                 input = input.RotateLeft(17).WrappingMul(PRIME_4);
             }
 
             while (len > 0)
             {
                 input = input.WrappingAdd(U32.FromU8Unchecked(data[cursor]).WrappingMul(PRIME_5));
-                cursor = cursor.WrappingAdd(sizeof(byte));
-                len = len.WrappingSub(sizeof(byte));
+                cursor = cursor.WrappingAdd(Unsafe.SizeOf<byte>());
+                len = len.WrappingSub(Unsafe.SizeOf<byte>());
                 input = input.RotateLeft(11).WrappingMul(PRIME_1);
             }
 
@@ -67,13 +67,13 @@ namespace NativeCollections
                 while (true)
                 {
                     v1 = Round(v1, ReadU32(input, cursor));
-                    cursor = cursor.WrappingAdd(sizeof(uint));
+                    cursor = cursor.WrappingAdd(Unsafe.SizeOf<uint>());
                     v2 = Round(v2, ReadU32(input, cursor));
-                    cursor = cursor.WrappingAdd(sizeof(uint));
+                    cursor = cursor.WrappingAdd(Unsafe.SizeOf<uint>());
                     v3 = Round(v3, ReadU32(input, cursor));
-                    cursor = cursor.WrappingAdd(sizeof(uint));
+                    cursor = cursor.WrappingAdd(Unsafe.SizeOf<uint>());
                     v4 = Round(v4, ReadU32(input, cursor));
-                    cursor = cursor.WrappingAdd(sizeof(uint));
+                    cursor = cursor.WrappingAdd(Unsafe.SizeOf<uint>());
 
                     if (input.Length.WrappingSub(cursor) < CHUNK_SIZE)
                         break;

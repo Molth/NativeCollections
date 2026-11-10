@@ -10,13 +10,17 @@ namespace NativeCollections
     /// <summary>
     ///     Provides support for spin-based waiting.
     /// </summary>
+    /// <remarks>
+    ///     This type is not thread-safe: the spin count is stored in an instance field,
+    ///     so each thread must use its own instance.
+    /// </remarks>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.Standard)]
     [BindingType(typeof(SpinWait))]
     public struct UnsafeSpinWait : IEquatable<UnsafeSpinWait>
     {
         /// <summary>
-        ///     Provides support for spin-based waiting.
+        ///     The underlying spin-wait state, which stores the number of completed spins.
         /// </summary>
         private
 #if NET5_0_OR_GREATER
@@ -50,7 +54,7 @@ namespace NativeCollections
         /// </summary>
         /// <remarks>
         ///     This makes <see cref="SpinOnce()" /> and <see cref="NextSpinWillYield" /> behave as though no
-        ///     calls to <see cref="SpinOnce()" /> had been issued on this instance. If a <see cref="SpinWait" />
+        ///     calls to <see cref="SpinOnce()" /> had been issued on this instance. If a <see cref="UnsafeSpinWait" />
         ///     instance is reused many times, it may be useful to reset it to avoid yielding too soon.
         /// </remarks>
         public void Reset() => _spinWait.Reset();

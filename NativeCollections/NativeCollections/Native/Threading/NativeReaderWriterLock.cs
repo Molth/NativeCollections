@@ -33,8 +33,22 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">A pointer to the lock storage.</param>
         /// <returns>A lock wrapper for <paramref name="buffer" />.</returns>
+        /// <remarks>
+        ///     The returned wrapper owns <paramref name="buffer" /> (the lock storage);
+        ///     <see cref="Dispose" /> releases it with <see cref="NativeMemoryAllocator.AlignedFree" />.
+        ///     Therefore, <paramref name="buffer" /> must be allocated by
+        ///     <see cref="NativeMemoryAllocator" /> or a compatible allocator, and the caller must not
+        ///     release it separately while the returned wrapper is in use.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeReaderWriterLock From(UnsafeReaderWriterLock* buffer) => new(buffer);
+
+        /// <summary>
+        ///     Creates a new instance.
+        /// </summary>
+        /// <returns>A new instance.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeReaderWriterLock Create() => new(NativeMemoryAllocator.AlignedAllocZeroed<UnsafeReaderWriterLock>(Usize.FromI32Unchecked(1)));
 
         /// <summary>
         ///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
@@ -101,19 +115,19 @@ namespace NativeCollections
         public static bool operator !=(NativeReaderWriterLock left, NativeReaderWriterLock right) => !left.Equals(right);
 
         /// <summary>
-        ///     Sets this to its initial position.
+        ///     Resets this to the state of a newly created lock.
         /// </summary>
         public void Reset() => _handle->Reset();
 
         /// <summary>
-        ///     Enter the lock in read mode.
+        ///     Enters the lock in read mode and returns a <see cref="NativeReaderWriterLockScope" />.
         /// </summary>
         /// <returns>A scope that releases the lock when disposed.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeReaderWriterLockScope EnterReadScope() => _handle->EnterReadScope();
 
         /// <summary>
-        ///     Enter the lock in read mode.
+        ///     Enters the lock in read mode and returns a <see cref="NativeReaderWriterLockScope" />.
         /// </summary>
         /// <param name="sleep1Threshold">
         ///     A minimum spin count after which <see cref="Thread.Sleep(int)" /> may be
@@ -127,14 +141,14 @@ namespace NativeCollections
         public NativeReaderWriterLockScope EnterReadScope(int sleep1Threshold) => _handle->EnterReadScope(sleep1Threshold);
 
         /// <summary>
-        ///     Enter the lock in write mode.
+        ///     Enters the lock in write mode and returns a <see cref="NativeReaderWriterLockScope" />.
         /// </summary>
         /// <returns>A scope that releases the lock when disposed.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeReaderWriterLockScope EnterWriteScope() => _handle->EnterWriteScope();
 
         /// <summary>
-        ///     Enter the lock in write mode.
+        ///     Enters the lock in write mode and returns a <see cref="NativeReaderWriterLockScope" />.
         /// </summary>
         /// <param name="sleep1Threshold">
         ///     A minimum spin count after which <see cref="Thread.Sleep(int)" /> may be
@@ -148,14 +162,14 @@ namespace NativeCollections
         public NativeReaderWriterLockScope EnterWriteScope(int sleep1Threshold) => _handle->EnterWriteScope(sleep1Threshold);
 
         /// <summary>
-        ///     Enter the lock in read mode.
+        ///     Enters the lock in read mode and returns a <see cref="NativeReaderWriterLockRefScope" />.
         /// </summary>
         /// <returns>A scope that releases the lock when disposed.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeReaderWriterLockRefScope EnterReadRefScope() => _handle->EnterReadRefScope();
 
         /// <summary>
-        ///     Enter the lock in read mode.
+        ///     Enters the lock in read mode and returns a <see cref="NativeReaderWriterLockRefScope" />.
         /// </summary>
         /// <param name="sleep1Threshold">
         ///     A minimum spin count after which <see cref="Thread.Sleep(int)" /> may be
@@ -169,14 +183,14 @@ namespace NativeCollections
         public NativeReaderWriterLockRefScope EnterReadRefScope(int sleep1Threshold) => _handle->EnterReadRefScope(sleep1Threshold);
 
         /// <summary>
-        ///     Enter the lock in write mode.
+        ///     Enters the lock in write mode and returns a <see cref="NativeReaderWriterLockRefScope" />.
         /// </summary>
         /// <returns>A scope that releases the lock when disposed.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public NativeReaderWriterLockRefScope EnterWriteRefScope() => _handle->EnterWriteRefScope();
 
         /// <summary>
-        ///     Enter the lock in write mode.
+        ///     Enters the lock in write mode and returns a <see cref="NativeReaderWriterLockRefScope" />.
         /// </summary>
         /// <param name="sleep1Threshold">
         ///     A minimum spin count after which <see cref="Thread.Sleep(int)" /> may be
@@ -199,13 +213,13 @@ namespace NativeCollections
         public bool TryEnterRead() => _handle->TryEnterRead();
 
         /// <summary>
-        ///     Enter the lock in read mode.
+        ///     Enters the lock in read mode.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void EnterRead() => _handle->EnterRead();
 
         /// <summary>
-        ///     Enter the lock in read mode.
+        ///     Enters the lock in read mode.
         /// </summary>
         /// <param name="sleep1Threshold">
         ///     A minimum spin count after which <see cref="Thread.Sleep(int)" /> may be
@@ -275,13 +289,13 @@ namespace NativeCollections
         public bool TryEnterWrite(int sleep1Threshold) => _handle->TryEnterWrite(sleep1Threshold);
 
         /// <summary>
-        ///     Enter the lock in write mode.
+        ///     Enters the lock in write mode.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void EnterWrite() => _handle->EnterWrite();
 
         /// <summary>
-        ///     Enter the lock in write mode.
+        ///     Enters the lock in write mode.
         /// </summary>
         /// <param name="sleep1Threshold">
         ///     A minimum spin count after which <see cref="Thread.Sleep(int)" /> may be
@@ -294,22 +308,15 @@ namespace NativeCollections
         public void EnterWrite(int sleep1Threshold) => _handle->EnterWrite(sleep1Threshold);
 
         /// <summary>
-        ///     Exit the lock.
+        ///     Exits the lock in read mode.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ExitRead() => _handle->ExitRead();
 
         /// <summary>
-        ///     Exit the lock.
+        ///     Exits the lock in write mode.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ExitWrite() => _handle->ExitWrite();
-
-        /// <summary>
-        ///     Creates a new instance.
-        /// </summary>
-        /// <returns>A new instance.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeReaderWriterLock Create() => new(NativeMemoryAllocator.AlignedAllocZeroed<UnsafeReaderWriterLock>(Usize.FromI32Unchecked(1)));
     }
 }

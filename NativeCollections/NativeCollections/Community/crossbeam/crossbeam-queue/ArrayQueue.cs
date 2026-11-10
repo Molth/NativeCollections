@@ -30,6 +30,16 @@ namespace NativeCollections
     internal static unsafe class ArrayQueue
     {
         /// <summary>
+        ///     Returns a pointer to the element at the specified index without performing bounds checking.
+        /// </summary>
+        /// <typeparam name="T">The type of the elements in the array.</typeparam>
+        /// <param name="array">The array to access.</param>
+        /// <param name="index">The zero-based index of the element to access.</param>
+        /// <returns>A pointer to the element at <paramref name="index" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static T* GetUnchecked<T>(this NativeArray<T> array, nuint index) where T : unmanaged => UnsafeHelpers.Add<T>(array.Buffer, Isize.FromUsizeUnchecked(index));
+
+        /// <summary>
         ///     A slot in a queue.
         /// </summary>
         /// <typeparam name="T">The type of the value stored in the slot.</typeparam>
@@ -74,7 +84,8 @@ namespace NativeCollections
         ///     The preallocated buffer makes this queue somewhat faster than <see cref="SegQueue" />.
         /// </remarks>
         [StructLayout(LayoutKind.Sequential, Size = 3 * CACHE_LINE_SIZE)]
-        public struct RawArrayQueue<T> : IIsCreated, IDisposable where T : unmanaged
+        [InternalCollection(FromType.Community | FromType.Rust)]
+        public struct RawArrayQueue<T> : IIsCreated, IDisposable, IEquatable<RawArrayQueue<T>> where T : unmanaged
         {
             /// <summary>
             ///     The head of the queue.
@@ -110,6 +121,60 @@ namespace NativeCollections
             ///     Gets a value that indicates whether this has been allocated or initialized.
             /// </summary>
             public readonly bool IsCreated => _buffer.IsCreated;
+
+            /// <summary>
+            ///     Indicates whether the current object is equal to another object.
+            /// </summary>
+            /// <param name="other">The value to compare with this instance.</param>
+            /// <returns>
+            ///     <see langword="true" /> if this instance is equal to
+            ///     the other object; otherwise, <see langword="false" />.
+            /// </returns>
+            public readonly bool Equals(RawArrayQueue<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
+
+            /// <summary>
+            ///     Indicates whether the current object is equal to another object.
+            /// </summary>
+            /// <param name="obj">The object to compare with this instance.</param>
+            /// <returns>
+            ///     <see langword="true" /> if this instance is equal to
+            ///     the other object; otherwise, <see langword="false" />.
+            /// </returns>
+            public readonly override bool Equals(object? obj) => obj is RawArrayQueue<T> other && other.Equals(this);
+
+            /// <summary>
+            ///     Returns the hash code for this instance.
+            /// </summary>
+            /// <returns>The hash code for this instance.</returns>
+            public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
+
+            /// <summary>
+            ///     Returns the string representation of this instance.
+            /// </summary>
+            /// <returns>The string representation of this instance.</returns>
+            public readonly override string ToString() => SR.Format("RawArrayQueue<{0}>", SR.GetTypeName(typeof(T)));
+
+            /// <summary>
+            ///     Indicates whether the current object is equal to another object.
+            /// </summary>
+            /// <param name="left">The first value to compare.</param>
+            /// <param name="right">The second value to compare.</param>
+            /// <returns>
+            ///     <see langword="true" /> if this instance is equal to
+            ///     the other object; otherwise, <see langword="false" />.
+            /// </returns>
+            public static bool operator ==(RawArrayQueue<T> left, RawArrayQueue<T> right) => left.Equals(right);
+
+            /// <summary>
+            ///     Indicates whether the current object is not equal to another object.
+            /// </summary>
+            /// <param name="left">The first value to compare.</param>
+            /// <param name="right">The second value to compare.</param>
+            /// <returns>
+            ///     <see langword="true" /> if this instance is not equal to
+            ///     the other object; otherwise, <see langword="false" />.
+            /// </returns>
+            public static bool operator !=(RawArrayQueue<T> left, RawArrayQueue<T> right) => !left.Equals(right);
 
             /// <summary>
             ///     Initializes a new instance of this class with the specified state.

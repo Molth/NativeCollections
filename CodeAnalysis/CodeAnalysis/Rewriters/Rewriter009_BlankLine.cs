@@ -31,7 +31,7 @@ namespace Roslyn
             var result = (CompilationUnitSyntax)base.VisitCompilationUnit(node)!;
             var source = SourceText.From(result.ToFullString());
             var targets = new HashSet<int>();
-            var lineEnding = GetLineEnding(result.ToFullString());
+            var lineEnding = TriviaHelpers.GetLineEnding(result.ToFullString());
 
             AddEarlyReturnTargets(result, source, targets);
             AddSwitchSectionTargets(result, source, targets);
@@ -223,12 +223,5 @@ namespace Roslyn
             IfStatementSyntax { Else.Statement: var elseStatement, Statement: var thenStatement } => IsExitStatement(thenStatement) && IsExitStatement(elseStatement),
             _ => false
         };
-
-        /// <summary>
-        ///     Gets the first line ending style used by the source, defaulting to LF.
-        /// </summary>
-        /// <param name="source">The source text.</param>
-        /// <returns>The source line ending.</returns>
-        private static string GetLineEnding(string source) => source.Contains("\r\n", StringComparison.Ordinal) ? "\r\n" : "\n";
     }
 }

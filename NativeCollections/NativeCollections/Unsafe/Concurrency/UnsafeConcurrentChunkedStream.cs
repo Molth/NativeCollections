@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -38,6 +39,24 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Initializes a new instance of this class with the specified
+        ///     chunk size and maximum number of free chunks to retain.
+        /// </summary>
+        /// <param name="size">
+        ///     The number of bytes each chunk can hold. Must be greater than zero.
+        /// </param>
+        /// <param name="maxFreeChunks">
+        ///     The maximum number of free chunks to keep in the free list. Must be non-negative.
+        /// </param>
+        /// <returns>A newly allocated concurrent chunked stream.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="size" /> is less than or equal
+        ///     to zero or <paramref name="maxFreeChunks" /> is negative.
+        /// </exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UnsafeConcurrentChunkedStream Create(int size, int maxFreeChunks) => new(UnsafeChunkedStream.Create(size, maxFreeChunks), default);
+
+        /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public readonly bool IsCreated => _handle.IsCreated;
@@ -52,7 +71,7 @@ namespace NativeCollections
         public readonly bool IsEmpty => _handle.IsEmpty;
 
         /// <summary>
-        ///     Gets the total number of chunks currently allocated in the stream.
+        ///     Gets the number of chunks currently in use by the stream, excluding free chunks.
         /// </summary>
         /// <remarks>
         ///     This property is read without taking the internal lock, so the
@@ -87,24 +106,6 @@ namespace NativeCollections
         ///     value may be stale when it is observed concurrently.
         /// </remarks>
         public readonly int Length => _handle.Length;
-
-        /// <summary>
-        ///     Initializes a new instance of this class with the specified
-        ///     chunk size and maximum number of free chunks to retain.
-        /// </summary>
-        /// <param name="size">
-        ///     The number of bytes each chunk can hold. Must be greater than zero.
-        /// </param>
-        /// <param name="maxFreeChunks">
-        ///     The maximum number of free chunks to keep in the free list. Must be non-negative.
-        /// </param>
-        /// <returns>A newly allocated concurrent chunked stream.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///     Thrown when <paramref name="size" /> is less than or equal
-        ///     to zero or <paramref name="maxFreeChunks" /> is negative.
-        /// </exception>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeConcurrentChunkedStream Create(int size, int maxFreeChunks) => new(UnsafeChunkedStream.Create(size, maxFreeChunks), default);
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
@@ -172,6 +173,9 @@ namespace NativeCollections
         /// <param name="buffer">A pointer to the buffer that receives the bytes read from the stream.</param>
         /// <param name="length">The maximum number of bytes to read.</param>
         /// <returns>The number of bytes read.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="length" /> is negative.
+        /// </exception>
         public int Read(byte* buffer, int length)
         {
             using (_spinLock.EnterRefScope())
@@ -186,6 +190,9 @@ namespace NativeCollections
         /// </summary>
         /// <param name="buffer">A pointer to the buffer containing the bytes to write to the stream.</param>
         /// <param name="length">The number of bytes to write.</param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="length" /> is negative.
+        /// </exception>
         public void Write([MustNotSelfAlias] byte* buffer, int length)
         {
             using (_spinLock.EnterRefScope())
@@ -213,6 +220,9 @@ namespace NativeCollections
         ///     current position within this memory stream by the number of bytes written.
         /// </summary>
         /// <param name="buffer">The buffer containing the bytes to write to the stream.</param>
+        /// <exception cref="IOException">
+        ///     Thrown when the resulting stream length exceeds <see cref="int.MaxValue" /> bytes.
+        /// </exception>
         public void Write([MustNotSelfAlias] ReadOnlySpan<byte> buffer)
         {
             using (_spinLock.EnterRefScope())
@@ -226,6 +236,9 @@ namespace NativeCollections
         /// </summary>
         /// <param name="length">The maximum number of bytes to read.</param>
         /// <returns>The number of bytes read.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="length" /> is negative.
+        /// </exception>
         public int Read(int length)
         {
             using (_spinLock.EnterRefScope())
@@ -238,6 +251,12 @@ namespace NativeCollections
         ///     Advances the current position within this memory stream by the number of bytes written.
         /// </summary>
         /// <param name="length">The number of bytes by which to advance the position.</param>
+        /// <exception cref="IOException">
+        ///     Thrown when the resulting stream length exceeds <see cref="int.MaxValue" /> bytes.
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="length" /> is negative.
+        /// </exception>
         /// <remarks>
         ///     This method advances the current position without writing any data. The newly exposed
         ///     range is left untouched, so it may contain data previously written to recycled chunks
@@ -270,7 +289,7 @@ namespace NativeCollections
         /// <summary>
         ///     Releases all free chunks from this.
         /// </summary>
-        /// <returns>The new capacity of this.</returns>
+        /// <returns>The number of free chunks retained.</returns>
         public int TrimExcess()
         {
             using (_spinLock.EnterRefScope())
@@ -283,8 +302,8 @@ namespace NativeCollections
         /// <summary>
         ///     Trims the retained free-chunk capacity of this to the specified number of chunks.
         /// </summary>
-        /// <param name="capacity">The new capacity.</param>
-        /// <returns>The new capacity of this.</returns>
+        /// <param name="capacity">The number of free chunks to retain.</param>
+        /// <returns>The number of free chunks retained.</returns>
         /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="capacity" /> is negative.
         /// </exception>

@@ -50,7 +50,7 @@ namespace Roslyn
         /// </summary>
         /// <param name="type">The type to map.</param>
         /// <returns>The wrapper type name, or <see langword="null" /> for a type without a wrapper type.</returns>
-        internal static string? GetHelperTypeName(ITypeSymbol? type)
+        public static string? GetHelperTypeName(ITypeSymbol? type)
         {
             foreach (var wrapper in WrapperTypes)
             {
@@ -68,7 +68,7 @@ namespace Roslyn
         /// <returns>
         ///     <see langword="true" /> when the name belongs to a wrapper type; otherwise, <see langword="false" />.
         /// </returns>
-        internal static bool IsWrapperTypeName(string? typeName) => WrapperTypes.Any(wrapper => wrapper.TypeName == typeName);
+        public static bool IsWrapperTypeName(string? typeName) => WrapperTypes.Any(wrapper => wrapper.TypeName == typeName);
 
         /// <summary>
         ///     Determines whether the type is an integral type whose
@@ -80,7 +80,7 @@ namespace Roslyn
         ///     <see cref="char" /> is included, because a conversion from or to a character
         ///     can truncate even though the character itself is not used in arithmetic.
         /// </remarks>
-        internal static bool IsIntegral(ITypeSymbol? type) => type?.SpecialType is SpecialType.System_SByte or SpecialType.System_Byte or SpecialType.System_Int16 or SpecialType.System_UInt16 or SpecialType.System_Char or SpecialType.System_Int32 or SpecialType.System_UInt32 or SpecialType.System_Int64 or SpecialType.System_UInt64 or SpecialType.System_IntPtr or SpecialType.System_UIntPtr;
+        public static bool IsIntegral(ITypeSymbol? type) => type?.SpecialType is SpecialType.System_SByte or SpecialType.System_Byte or SpecialType.System_Int16 or SpecialType.System_UInt16 or SpecialType.System_Char or SpecialType.System_Int32 or SpecialType.System_UInt32 or SpecialType.System_Int64 or SpecialType.System_UInt64 or SpecialType.System_IntPtr or SpecialType.System_UIntPtr;
 
         /// <summary>
         ///     Determines whether the type is a small integral type
@@ -96,7 +96,7 @@ namespace Roslyn
         ///     take part in arithmetic, so the result type of an operation on them is
         ///     the wrapper type of <see cref="int" /> rather than their own wrapper type.
         /// </remarks>
-        internal static bool IsSmallIntegral(ITypeSymbol? type) => type?.SpecialType is SpecialType.System_SByte or SpecialType.System_Byte or SpecialType.System_Int16 or SpecialType.System_UInt16 or SpecialType.System_Char;
+        public static bool IsSmallIntegral(ITypeSymbol? type) => type?.SpecialType is SpecialType.System_SByte or SpecialType.System_Byte or SpecialType.System_Int16 or SpecialType.System_UInt16 or SpecialType.System_Char;
 
         /// <summary>
         ///     Determines whether the conversion of the source type to the target type
@@ -114,7 +114,7 @@ namespace Roslyn
         ///     type, while the other direction only loses precision and never throws. An unknown native
         ///     size is treated as potentially overflowing, because the width depends on the platform.
         /// </remarks>
-        internal static bool CanOverflow(ITypeSymbol? source, ITypeSymbol? target)
+        public static bool CanOverflow(ITypeSymbol? source, ITypeSymbol? target)
         {
             if (IsFloatingPoint(source))
                 return IsIntegral(target);
@@ -172,7 +172,7 @@ namespace Roslyn
         /// <param name="targetTypeName">The name of the wrapper type that receives the value.</param>
         /// <param name="sourceTypeName">The name of the wrapper type that the value converts from.</param>
         /// <returns><see langword="true" /> when the helper exists; otherwise, <see langword="false" />.</returns>
-        internal static bool HasUncheckedConversionHelper(Compilation compilation, string targetTypeName, string sourceTypeName) => GetMembers(compilation, targetTypeName, "From" + sourceTypeName + "Unchecked").Any(member => member is IMethodSymbol { Parameters.Length: 1 });
+        public static bool HasUncheckedConversionHelper(Compilation compilation, string targetTypeName, string sourceTypeName) => GetMembers(compilation, targetTypeName, "From" + sourceTypeName + "Unchecked").Any(member => member is IMethodSymbol { Parameters.Length: 1 });
 
         /// <summary>
         ///     Determines whether the wrapping type declares one of the binary wrapping helpers.
@@ -181,7 +181,7 @@ namespace Roslyn
         /// <param name="wrappingTypeName">The name of the wrapper type the helper operates on.</param>
         /// <param name="methodName">The name of the helper.</param>
         /// <returns><see langword="true" /> when the helper exists; otherwise, <see langword="false" />.</returns>
-        internal static bool HasBinaryWrappingHelper(Compilation compilation, string? wrappingTypeName, string methodName) => HasWrappingHelper(compilation, wrappingTypeName, methodName, 2);
+        public static bool HasBinaryWrappingHelper(Compilation compilation, string? wrappingTypeName, string methodName) => HasWrappingHelper(compilation, wrappingTypeName, methodName, 2);
 
         /// <summary>
         ///     Determines whether the wrapping type declares <c>WrappingNeg</c>.
@@ -189,7 +189,7 @@ namespace Roslyn
         /// <param name="compilation">The compilation that declares or references the analyzed library.</param>
         /// <param name="wrappingTypeName">The name of the wrapper type the helper operates on.</param>
         /// <returns><see langword="true" /> when the helper exists; otherwise, <see langword="false" />.</returns>
-        internal static bool HasWrappingNegHelper(Compilation compilation, string? wrappingTypeName) => HasWrappingHelper(compilation, wrappingTypeName, "WrappingNeg", 1);
+        public static bool HasWrappingNegHelper(Compilation compilation, string? wrappingTypeName) => HasWrappingHelper(compilation, wrappingTypeName, "WrappingNeg", 1);
 
         /// <summary>
         ///     Determines whether the wrapping extension type declares the helper with the expected parameter count.

@@ -16,7 +16,7 @@ namespace NativeCollections
     ///     Provides atomic operations on a <see cref="char" /> value.
     /// </summary>
     /// <remarks>
-    ///     The 2-byte natural-alignment requirement applies on net8.0 and earlier
+    ///     The 2-byte natural-alignment requirement applies on .NET 8 and earlier
     ///     only; see <see cref="UnsafeAtomicU16" /> for details.
     /// </remarks>
     [StructLayout(LayoutKind.Sequential)]
@@ -113,7 +113,7 @@ namespace NativeCollections
         public char Load(Ordering order) => Char.FromU16Unchecked(_value.Load(order));
 
         /// <summary>
-        ///     Sets a value to a specified value, as an atomic operation.
+        ///     Sets a variable to a specified value, as an atomic operation.
         /// </summary>
         /// <param name="value">The value to store.</param>
         /// <param name="order">The memory ordering constraint applied to the store operation.</param>
@@ -122,7 +122,7 @@ namespace NativeCollections
         public void Store(char value, Ordering order) => _value.Store(U16.FromCharUnchecked(value), order);
 
         /// <summary>
-        ///     Sets a value to a specified value and returns the original value, as an atomic operation.
+        ///     Sets a variable to a specified value and returns the original value, as an atomic operation.
         /// </summary>
         /// <param name="value">The value to store.</param>
         /// <returns>The original value.</returns>
@@ -130,7 +130,7 @@ namespace NativeCollections
         public char Exchange(char value) => Char.FromU16Unchecked(_value.Exchange(U16.FromCharUnchecked(value)));
 
         /// <summary>
-        ///     Compares two values for equality and, if they are equal, replaces the first value.
+        ///     Compares two values for equality and, if they are equal, replaces the first value, as an atomic operation.
         /// </summary>
         /// <param name="value">
         ///     The value that replaces the destination value if the comparison results in equality.

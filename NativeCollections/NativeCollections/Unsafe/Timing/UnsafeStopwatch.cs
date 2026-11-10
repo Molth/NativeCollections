@@ -43,12 +43,8 @@ namespace NativeCollections
         private long _startTimeStamp;
 
         /// <summary>
-        ///     Gets a value indicating whether the <see cref="Stopwatch" /> timer is running.
+        ///     Whether the timer is currently running.
         /// </summary>
-        /// <returns>
-        ///     <see langword="true" /> if the <see cref="Stopwatch" /> instance is currently running
-        ///     and measuring elapsed time for an interval; otherwise, <see langword="false" />.
-        /// </returns>
         private bool _isRunning;
 
         /// <summary>
@@ -259,10 +255,10 @@ namespace NativeCollections
         private readonly long GetElapsedDateTimeTicks() => I64.FromF64Unchecked(F64.FromI64Unchecked(GetRawElapsedTicks()) * _tickFrequency);
 
         /// <summary>
-        ///     Initializes a new <see cref="Stopwatch" /> instance, sets the
+        ///     Initializes a new <see cref="UnsafeStopwatch" /> instance, sets the
         ///     elapsed time property to zero, and starts measuring elapsed time.
         /// </summary>
-        /// <returns>A <see cref="Stopwatch" /> that has just begun measuring elapsed time.</returns>
+        /// <returns>A <see cref="UnsafeStopwatch" /> that has just begun measuring elapsed time.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeStopwatch StartNew()
         {

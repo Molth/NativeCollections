@@ -17,6 +17,14 @@ namespace NativeCollections
     ///     Splits the source span using a sequence of elements as the delimiter.
     /// </summary>
     /// <typeparam name="T">The type of elements in the source span.</typeparam>
+    /// <remarks>
+    ///     The delimiter is either the single element supplied as the delimiter or the complete
+    ///     delimiter sequence; a split occurs only where the whole delimiter matches. An empty
+    ///     source produces exactly one empty segment. A delimiter at the start or end of the
+    ///     source, or consecutive delimiters, produce empty segments. When an empty delimiter
+    ///     sequence is supplied, no match is found and the remaining buffer is returned as a
+    ///     single segment.
+    /// </remarks>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
     [IsReferenceOrContainsReferences]

@@ -125,11 +125,12 @@ namespace NativeCollections
         public readonly bool Equals(ReadOnlySpan<byte> other) => AsReadOnlySpan().SequenceEqual(other);
 
         /// <summary>
-        ///     Compares the current instance with another object of the same type and
-        ///     returns an integer that indicates whether the current instance precedes,
-        ///     follows, or occurs in the same position in the sort order as the other object.
+        ///     Compares the binary representation of the current instance with the specified
+        ///     read-only span of bytes and returns an integer that indicates whether the current
+        ///     instance precedes, follows, or occurs in the same position in the sort order as the
+        ///     specified span.
         /// </summary>
-        /// <param name="other">An object to compare with this instance.</param>
+        /// <param name="other">The span of bytes to compare with this instance.</param>
         /// <returns>
         ///     A value that indicates the relative order of the objects
         ///     being compared. The return value has these meanings:
@@ -185,17 +186,17 @@ namespace NativeCollections
         public readonly override string ToString() => SR.Format("UnsafeBitwise<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
-        ///     Returns a span over a portion of this.
+        ///     Returns a span over the entire contents of this.
         /// </summary>
-        /// <returns>A span over a portion of this.</returns>
+        /// <returns>A span over the entire contents of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
         public Span<byte> AsSpan() => MemoryMarshalHelpers.AsBytes(ref Value);
 
         /// <summary>
-        ///     Returns a read-only span over a portion of this.
+        ///     Returns a read-only span over the entire contents of this.
         /// </summary>
-        /// <returns>A read-only span over a portion of this.</returns>
+        /// <returns>A read-only span over the entire contents of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [MustBePinned(SR.parameter_this)]
         public readonly ReadOnlySpan<byte> AsReadOnlySpan() => MemoryMarshalHelpers.AsReadOnlyBytes(ref Unsafe.AsRef(in Value));

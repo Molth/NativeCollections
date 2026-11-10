@@ -38,25 +38,25 @@ namespace NativeCollections
 
             while (len >= 8)
             {
-                input ^= Round(U64.FromI32Unchecked(0), ReadU64(data, cursor));
-                cursor = cursor.WrappingAdd(sizeof(ulong));
-                len = len.WrappingSub(sizeof(ulong));
+                input ^= Round(0UL, ReadU64(data, cursor));
+                cursor = cursor.WrappingAdd(Unsafe.SizeOf<ulong>());
+                len = len.WrappingSub(Unsafe.SizeOf<ulong>());
                 input = input.RotateLeft(27).WrappingMul(PRIME_1).WrappingAdd(PRIME_4);
             }
 
             if (len >= 4)
             {
                 input ^= U64.FromU32Unchecked(ReadU32(data, cursor)).WrappingMul(PRIME_1);
-                cursor = cursor.WrappingAdd(sizeof(uint));
-                len = len.WrappingSub(sizeof(uint));
+                cursor = cursor.WrappingAdd(Unsafe.SizeOf<uint>());
+                len = len.WrappingSub(Unsafe.SizeOf<uint>());
                 input = input.RotateLeft(23).WrappingMul(PRIME_2).WrappingAdd(PRIME_3);
             }
 
             while (len > 0)
             {
                 input ^= U64.FromU8Unchecked(data[cursor]).WrappingMul(PRIME_5);
-                cursor = cursor.WrappingAdd(sizeof(byte));
-                len = len.WrappingSub(sizeof(byte));
+                cursor = cursor.WrappingAdd(Unsafe.SizeOf<byte>());
+                len = len.WrappingSub(Unsafe.SizeOf<byte>());
                 input = input.RotateLeft(11).WrappingMul(PRIME_1);
             }
 
@@ -85,13 +85,13 @@ namespace NativeCollections
                 while (true)
                 {
                     v1 = Round(v1, ReadU64(input, cursor));
-                    cursor = cursor.WrappingAdd(sizeof(ulong));
+                    cursor = cursor.WrappingAdd(Unsafe.SizeOf<ulong>());
                     v2 = Round(v2, ReadU64(input, cursor));
-                    cursor = cursor.WrappingAdd(sizeof(ulong));
+                    cursor = cursor.WrappingAdd(Unsafe.SizeOf<ulong>());
                     v3 = Round(v3, ReadU64(input, cursor));
-                    cursor = cursor.WrappingAdd(sizeof(ulong));
+                    cursor = cursor.WrappingAdd(Unsafe.SizeOf<ulong>());
                     v4 = Round(v4, ReadU64(input, cursor));
-                    cursor = cursor.WrappingAdd(sizeof(ulong));
+                    cursor = cursor.WrappingAdd(Unsafe.SizeOf<ulong>());
 
                     if (input.Length.WrappingSub(cursor) < CHUNK_SIZE)
                         break;

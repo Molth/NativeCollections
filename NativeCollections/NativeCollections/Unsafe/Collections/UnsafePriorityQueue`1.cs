@@ -409,8 +409,8 @@ namespace NativeCollections
         /// </summary>
         /// <param name="priority">The element to add to this.</param>
         /// <param name="result">
-        ///     When this method returns, the minimal element removed after the
-        ///     enqueue operation; otherwise, the default value for the type of the
+        ///     When this method returns, the minimal element removed before the specified
+        ///     element is added; otherwise, the default value for the type of the
         ///     <paramref name="result" /> parameter. This parameter is passed uninitialized.
         /// </param>
         /// <returns>
@@ -535,9 +535,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Returns a read-only span over a portion of this.
+        ///     Returns a read-only span over the entire contents of this.
         /// </summary>
-        /// <returns>A read-only span over a portion of this.</returns>
+        /// <returns>A read-only span over the entire contents of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<TPriority> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<TPriority>(_buffer), _count);
 
@@ -670,9 +670,9 @@ namespace NativeCollections
             internal static UnorderedItemsCollection From(UnsafePriorityQueue<TPriority>* handle) => new(handle);
 
             /// <summary>
-            ///     Returns a read-only span over a portion of this.
+            ///     Returns a read-only span over the entire contents of this.
             /// </summary>
-            /// <returns>A read-only span over a portion of this.</returns>
+            /// <returns>A read-only span over the entire contents of this.</returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public ReadOnlySpan<TPriority> AsReadOnlySpan() => _handle->AsReadOnlySpan();
 

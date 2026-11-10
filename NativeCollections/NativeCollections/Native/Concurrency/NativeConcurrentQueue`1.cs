@@ -31,6 +31,17 @@ namespace NativeCollections
         private NativeConcurrentQueue(UnsafeConcurrentQueue<T>* handle) => _handle = handle;
 
         /// <summary>
+        ///     Initializes a new instance of this class.
+        /// </summary>
+        /// <returns>A new instance.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeConcurrentQueue<T> Create()
+        {
+            var value = UnsafeConcurrentQueue<T>.Create();
+            return new NativeConcurrentQueue<T>(Box.New(ref value));
+        }
+
+        /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public bool IsCreated => _handle != null;
@@ -153,16 +164,5 @@ namespace NativeCollections
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDequeue(out T result) => _handle->TryDequeue(out result);
-
-        /// <summary>
-        ///     Initializes a new instance of this class.
-        /// </summary>
-        /// <returns>A new instance.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeConcurrentQueue<T> Create()
-        {
-            var value = UnsafeConcurrentQueue<T>.Create();
-            return new NativeConcurrentQueue<T>(Box.New(ref value));
-        }
     }
 }

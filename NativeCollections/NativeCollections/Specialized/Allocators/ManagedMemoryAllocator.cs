@@ -22,6 +22,7 @@ namespace NativeCollections
         /// <exception cref="OverflowException">
         ///     Thrown when the required allocation size exceeds <see cref="int.MaxValue" />.
         /// </exception>
+        /// <exception cref="OutOfMemoryException">Thrown when memory allocation fails.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T* AlignedAlloc<T>(nuint elementCount) where T : unmanaged
         {
@@ -38,6 +39,7 @@ namespace NativeCollections
         /// <exception cref="OverflowException">
         ///     Thrown when the required allocation size exceeds <see cref="int.MaxValue" />.
         /// </exception>
+        /// <exception cref="OutOfMemoryException">Thrown when memory allocation fails.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T* AlignedAllocZeroed<T>(nuint elementCount) where T : unmanaged
         {
@@ -59,6 +61,7 @@ namespace NativeCollections
         /// <exception cref="OverflowException">
         ///     Thrown when the required allocation size exceeds <see cref="int.MaxValue" />.
         /// </exception>
+        /// <exception cref="OutOfMemoryException">Thrown when memory allocation fails.</exception>
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static void* AlignedAlloc(nuint byteCount, nuint alignment)
         {
@@ -88,6 +91,7 @@ namespace NativeCollections
         /// <exception cref="OverflowException">
         ///     Thrown when the required allocation size exceeds <see cref="int.MaxValue" />.
         /// </exception>
+        /// <exception cref="OutOfMemoryException">Thrown when memory allocation fails.</exception>
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static void* AlignedAllocZeroed(nuint byteCount, nuint alignment)
         {

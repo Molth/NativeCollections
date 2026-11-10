@@ -27,7 +27,7 @@ namespace NativeCollections
         public const string parameter_origin = "origin";
 
         /// <summary>
-        ///     The resource key for an error indicating that a duplicate key is being added.
+        ///     The format string for an error indicating that a duplicate key is being added.
         /// </summary>
         public const string Argument_AddingDuplicateWithKey = "AddingDuplicateWithKey: {0}";
 

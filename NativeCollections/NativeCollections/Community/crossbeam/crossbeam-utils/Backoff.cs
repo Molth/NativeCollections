@@ -38,7 +38,7 @@ namespace NativeCollections
         /// <summary>
         ///     Resets the backoff procedure.
         /// </summary>
-        public void Reset() => _step = U32.FromI32Unchecked(0);
+        public void Reset() => _step = 0U;
 
         /// <summary>
         ///     Backs off in a lock-free loop.
@@ -54,7 +54,7 @@ namespace NativeCollections
             Thread.SpinWait(count);
 
             if (_step <= SPIN_LIMIT)
-                _step = _step.WrappingAdd(U32.FromI32Unchecked(1));
+                _step = _step.WrappingAdd(1U);
         }
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace NativeCollections
                 Thread.Yield();
 
             if (_step <= YIELD_LIMIT)
-                _step = _step.WrappingAdd(U32.FromI32Unchecked(1));
+                _step = _step.WrappingAdd(1U);
         }
     }
 }

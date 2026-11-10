@@ -40,8 +40,7 @@ namespace NativeCollections
         ///     The maximum number of free slabs to keep in the free list. Must be non-negative.
         /// </param>
         /// <param name="alignment">
-        ///     The required alignment for allocations, in bytes. Must be a power of
-        ///     two and at least the alignment of the internal slab and node structures.
+        ///     The requested alignment for allocations, in bytes. Must be a power of two.
         /// </param>
         /// <returns>A newly allocated memory pool.</returns>
         /// <exception cref="ArgumentOutOfRangeException">
@@ -54,6 +53,11 @@ namespace NativeCollections
         /// <exception cref="OverflowException">
         ///     Thrown when the aligned node size exceeds <see cref="int.MaxValue" />.
         /// </exception>
+        /// <remarks>
+        ///     An <paramref name="alignment" /> below the alignment of the internal slab and node
+        ///     structures is raised to that alignment rather than rejected; read <see cref="Alignment" />
+        ///     to get the effective value.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeMemoryPool Create(int size, int length, int maxFreeSlabs, int alignment)
         {

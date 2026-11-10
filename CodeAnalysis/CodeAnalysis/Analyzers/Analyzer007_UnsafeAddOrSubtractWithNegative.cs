@@ -96,7 +96,7 @@ namespace Roslyn
             if (methodName is not ("Add" or "AddByteOffset" or "Subtract" or "SubtractByteOffset"))
                 return;
 
-            var offset = UnwrapParentheses(invocation.ArgumentList.Arguments[1].Expression);
+            var offset = SyntaxHelpers.UnwrapParentheses(invocation.ArgumentList.Arguments[1].Expression);
             if (methodName is "Add" or "AddByteOffset")
             {
                 if (IsNegativeConstant(offset, context.SemanticModel) || IsNegativeUnary(offset))
@@ -107,19 +107,6 @@ namespace Roslyn
 
             if (IsNegativeUnary(offset))
                 context.ReportDiagnostic(Diagnostic.Create(Rule002, invocation.ArgumentList.Arguments[1].GetLocation(), methodName == "SubtractByteOffset" ? "ByteOffset" : string.Empty));
-        }
-
-        /// <summary>
-        ///     Removes any number of redundant parentheses around the given expression.
-        /// </summary>
-        /// <param name="expression">The expression to unwrap.</param>
-        /// <returns>The innermost expression after removing all parenthesized wrappers.</returns>
-        private static ExpressionSyntax UnwrapParentheses(ExpressionSyntax expression)
-        {
-            while (expression is ParenthesizedExpressionSyntax parenthesized)
-                expression = parenthesized.Expression;
-
-            return expression;
         }
 
         /// <summary>

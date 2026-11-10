@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -32,6 +31,17 @@ namespace NativeCollections
         private NativeConcurrentBag(UnsafeConcurrentBag<T>* handle) => _handle = handle;
 
         /// <summary>
+        ///     Initializes a new instance of this class.
+        /// </summary>
+        /// <returns>A new instance.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeConcurrentBag<T> Create()
+        {
+            var value = UnsafeConcurrentBag<T>.Create();
+            return new NativeConcurrentBag<T>(Box.New(ref value));
+        }
+
+        /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public bool IsCreated => _handle != null;
@@ -50,8 +60,8 @@ namespace NativeCollections
         /// </summary>
         /// <value>The number of elements contained in this.</value>
         /// <remarks>
-        ///     The count returned represents a moment-in-time snapshot of the contents of the bag. It does not
-        ///     reflect any updates to the collection after <see cref="ConcurrentBag{T}.GetEnumerator" /> was called.
+        ///     The count returned is a moment-in-time snapshot of the contents of the bag. It does not
+        ///     reflect additions or removals performed by other threads after the value was obtained.
         /// </remarks>
         public int Count
         {
@@ -145,16 +155,5 @@ namespace NativeCollections
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryTake(out T result) => _handle->TryTake(out result);
-
-        /// <summary>
-        ///     Initializes a new instance of this class.
-        /// </summary>
-        /// <returns>A new instance.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeConcurrentBag<T> Create()
-        {
-            var value = UnsafeConcurrentBag<T>.Create();
-            return new NativeConcurrentBag<T>(Box.New(ref value));
-        }
     }
 }

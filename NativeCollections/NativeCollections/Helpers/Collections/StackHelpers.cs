@@ -10,8 +10,9 @@ namespace NativeCollections
     internal static class StackHelpers
     {
         /// <summary>
-        ///     Copies bytes from the source address to the destination address
-        ///     without assuming architecture dependent alignment of the addresses.
+        ///     Copies elements from the source address to the destination address in reverse order,
+        ///     so that <c>destination[count - 1 - i] = source[i]</c>, without assuming architecture
+        ///     dependent alignment of the addresses.
         /// </summary>
         /// <typeparam name="T">The unmanaged element type of the values to copy.</typeparam>
         /// <param name="destination">A reference to the first element of the destination memory.</param>

@@ -41,6 +41,9 @@ namespace NativeCollections
         /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="capacity" /> is negative.
         /// </exception>
+        /// <remarks>
+        ///     The requested capacity is clamped to a minimum of 2; read <c>Capacity</c> for the effective value.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeList<T> Create(int capacity)
         {
@@ -187,7 +190,8 @@ namespace NativeCollections
         /// <param name="buffer">The collection whose elements should be added to the end of this.</param>
         /// <returns>
         ///     <see langword="true" /> if the items were successfully added to the list;
-        ///     <see langword="false" /> if the list is already full and the items could not be added.
+        ///     <see langword="false" /> if the remaining capacity is less than the number of items
+        ///     and the items could not be added.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryAddRange(ReadOnlySpan<T> buffer) => _handle->TryAddRange(buffer);
@@ -238,8 +242,9 @@ namespace NativeCollections
         /// <param name="index">The zero-based index at which the new elements should be inserted.</param>
         /// <param name="buffer">The collection whose elements should be inserted into this.</param>
         /// <returns>
-        ///     <see langword="true" /> if the item was successfully added to the list;
-        ///     <see langword="false" /> if the list is already full and the item could not be added.
+        ///     <see langword="true" /> if the items were successfully added to the list;
+        ///     <see langword="false" /> if the remaining capacity is less than the number of items
+        ///     and the items could not be added.
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="index" /> is negative or greater than <see cref="Count" />.
@@ -260,9 +265,10 @@ namespace NativeCollections
         public bool Remove(T item) => _handle->Remove(item);
 
         /// <summary>
-        ///     Removes the first occurrence of a specific object from this using a swap-based removal,
-        ///     which maintains O(1) time complexity by moving the last element into the position of
-        ///     the removed element. This operation does not preserve the original order of elements.
+        ///     Searches for the first occurrence of a specific object in this and, if found, removes it
+        ///     using a swap-based removal; the search is O(n), while the swap itself is O(1) because
+        ///     the last element is moved into the position of the removed element. This operation does
+        ///     not preserve the original order of elements.
         /// </summary>
         /// <param name="item">The object to remove from this.</param>
         /// <returns>
@@ -312,13 +318,14 @@ namespace NativeCollections
         public void RemoveRange(int index, int count) => _handle->RemoveRange(index, count);
 
         /// <summary>
-        ///     Reverses the sequence of the elements in the specified span.
+        ///     Reverses the order of the elements in this.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Reverse() => _handle->Reverse();
 
         /// <summary>
-        ///     Reverses the sequence of the elements in the specified span.
+        ///     Reverses the order of the elements in this from <paramref name="index" />
+        ///     to the end of this.
         /// </summary>
         /// <param name="index">The zero-based starting index.</param>
         /// <exception cref="ArgumentOutOfRangeException">
@@ -329,7 +336,8 @@ namespace NativeCollections
         public void Reverse(int index) => _handle->Reverse(index);
 
         /// <summary>
-        ///     Reverses the sequence of the elements in the specified span.
+        ///     Reverses the order of the elements in this in the range specified by
+        ///     <paramref name="index" /> and <paramref name="count" />.
         /// </summary>
         /// <param name="index">The zero-based starting index.</param>
         /// <param name="count">The number of elements.</param>
@@ -389,6 +397,21 @@ namespace NativeCollections
         /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="capacity" /> is negative.
         /// </exception>
+        /// <remarks>
+        ///     <list type="bullet">
+        ///         <item>
+        ///             <description>
+        ///                 If <paramref name="capacity" /> is less than <see cref="Count" /> or is greater than
+        ///                 or equal to the current capacity, the capacity is left unchanged.
+        ///             </description>
+        ///         </item>
+        ///         <item>
+        ///             <description>
+        ///                 The returned value is the capacity after the call.
+        ///             </description>
+        ///         </item>
+        ///     </list>
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int TrimExcess(int capacity) => _handle->TrimExcess(capacity);
 
@@ -473,16 +496,16 @@ namespace NativeCollections
         public void SetCapacity(int capacity) => _handle->SetCapacity(capacity);
 
         /// <summary>
-        ///     Returns a span over a portion of this.
+        ///     Returns a span over the entire contents of this.
         /// </summary>
-        /// <returns>A span over a portion of this.</returns>
+        /// <returns>A span over the entire contents of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Span<T> AsSpan() => _handle->AsSpan();
 
         /// <summary>
-        ///     Returns a read-only span over a portion of this.
+        ///     Returns a read-only span over the entire contents of this.
         /// </summary>
-        /// <returns>A read-only span over a portion of this.</returns>
+        /// <returns>A read-only span over the entire contents of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ReadOnlySpan<T> AsReadOnlySpan() => _handle->AsReadOnlySpan();
 

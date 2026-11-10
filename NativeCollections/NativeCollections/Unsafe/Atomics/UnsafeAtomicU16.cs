@@ -16,7 +16,7 @@ namespace NativeCollections
     ///     Provides atomic operations on a <see cref="ushort" /> value.
     /// </summary>
     /// <remarks>
-    ///     The 2-byte natural-alignment requirement applies on net8.0 and earlier only; on net9.0 and
+    ///     The 2-byte natural-alignment requirement applies on .NET 8 and earlier only; on .NET 9 and
     ///     later the operations forward to <see cref="Interlocked" />, which does not validate alignment.
     /// </remarks>
     [StructLayout(LayoutKind.Sequential)]
@@ -129,7 +129,7 @@ namespace NativeCollections
         public ushort Load(Ordering order) => AtomicHelpers.Load(ref _value, order);
 
         /// <summary>
-        ///     Sets a value to a specified value, as an atomic operation.
+        ///     Sets a variable to a specified value, as an atomic operation.
         /// </summary>
         /// <param name="value">The value to store.</param>
         /// <param name="order">The memory ordering constraint applied to the store operation.</param>
@@ -138,21 +138,27 @@ namespace NativeCollections
         public void Store(ushort value, Ordering order) => AtomicHelpers.Store(ref _value, value, order);
 
         /// <summary>
-        ///     Sets a value to a specified value and returns the original value, as an atomic operation.
+        ///     Sets a variable to a specified value and returns the original value, as an atomic operation.
         /// </summary>
         /// <param name="value">The value to store.</param>
         /// <returns>The original value.</returns>
+        /// <exception cref="ArgumentException">
+        ///     Thrown on .NET 8 and earlier when the underlying value is not naturally aligned to 2 bytes.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ushort Exchange(ushort value) => InterlockedHelpers.Exchange(ref _value, value);
 
         /// <summary>
-        ///     Compares two values for equality and, if they are equal, replaces the first value.
+        ///     Compares two values for equality and, if they are equal, replaces the first value, as an atomic operation.
         /// </summary>
         /// <param name="value">
         ///     The value that replaces the destination value if the comparison results in equality.
         /// </param>
         /// <param name="comparand">The value that is compared to the value at the destination.</param>
         /// <returns>The original value.</returns>
+        /// <exception cref="ArgumentException">
+        ///     Thrown on .NET 8 and earlier when the underlying value is not naturally aligned to 2 bytes.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ushort CompareExchange(ushort value, ushort comparand) => InterlockedHelpers.CompareExchange(ref _value, value, comparand);
 

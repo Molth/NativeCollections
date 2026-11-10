@@ -21,12 +21,12 @@ namespace NativeCollections
         private readonly NativeArrayPoolBucket* _buckets;
 
         /// <summary>
-        ///     Gets the total number of elements the internal data structure can hold.
+        ///     The number of buckets in the pool.
         /// </summary>
         private readonly int _length;
 
         /// <summary>
-        ///     Gets the total number of elements the internal data structure can hold.
+        ///     The maximum number of buffers that can be retained per bucket.
         /// </summary>
         private readonly int _capacity;
 
@@ -39,8 +39,8 @@ namespace NativeCollections
         ///     Initializes a new instance of this class with the specified state.
         /// </summary>
         /// <param name="buckets">Array of bucket.</param>
-        /// <param name="length">The total number of elements the internal data structure can hold.</param>
-        /// <param name="capacity">The total number of elements the internal data structure can hold.</param>
+        /// <param name="length">The number of buckets in the pool.</param>
+        /// <param name="capacity">The maximum number of buffers that can be retained per bucket.</param>
         /// <param name="allocator">The custom memory allocator used for allocating and deallocating buffers.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private NativeArrayPool(NativeArrayPoolBucket* buckets, int length, int capacity, CustomMemoryAllocator allocator)
@@ -58,8 +58,11 @@ namespace NativeCollections
         ///     The maximum number of buffers that can be retained per bucket. Must be greater than zero.
         /// </param>
         /// <param name="maxLength">
-        ///     The maximum allowed buffer length (in elements). The
-        ///     actual length will be clamped to the nearest power of two.
+        ///     The requested maximum buffer length (in elements). The value is clamped to
+        ///     the range <c>16</c> to <c>2^30</c> and rounded up to a power of two, so the
+        ///     length actually supported by this pool, exposed by <see cref="MaxLength" />,
+        ///     may exceed this parameter; rented buffers may likewise be longer than this
+        ///     parameter.
         /// </param>
         /// <returns>A newly allocated array pool.</returns>
         /// <exception cref="ArgumentOutOfRangeException">
@@ -76,7 +79,11 @@ namespace NativeCollections
         ///     The maximum number of buffers that can be retained per bucket. Must be greater than zero.
         /// </param>
         /// <param name="maxLength">
-        ///     The maximum allowed buffer length (in elements). The actual length will be clamped to the nearest power of two.
+        ///     The requested maximum buffer length (in elements). The value is clamped to
+        ///     the range <c>16</c> to <c>2^30</c> and rounded up to a power of two, so the
+        ///     length actually supported by this pool, exposed by <see cref="MaxLength" />,
+        ///     may exceed this parameter; rented buffers may likewise be longer than this
+        ///     parameter.
         /// </param>
         /// <param name="allocator">
         ///     The custom memory allocator used to allocate and free the per-bucket element buffers.
@@ -125,7 +132,7 @@ namespace NativeCollections
         public bool IsCreated => _buckets != null;
 
         /// <summary>
-        ///     Gets the total number of elements the internal data structure can hold.
+        ///     Gets the maximum number of buffers that can be retained per bucket.
         /// </summary>
         public int Capacity => _capacity;
 
@@ -330,7 +337,7 @@ namespace NativeCollections
         ///     size. Buckets correspond to powers of two, starting from 16.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int SelectBucketIndex(int bufferSize) => BitOperationsHelpers.Log2(U32.FromI32Unchecked(Math.Max(bufferSize, 1)).WrappingSub(U32.FromI32Unchecked(1)) | U32.FromI32Unchecked(15)).WrappingSub(3);
+        private static int SelectBucketIndex(int bufferSize) => BitOperationsHelpers.Log2(U32.FromI32Unchecked(Math.Max(bufferSize, 1)).WrappingSub(1U) | 15U).WrappingSub(3);
 
         /// <summary>
         ///     Represents a bucket that stores free buffers of a fixed size (a power of two).

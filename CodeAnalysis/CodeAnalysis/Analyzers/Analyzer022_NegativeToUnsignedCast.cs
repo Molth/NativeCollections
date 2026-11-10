@@ -70,36 +70,10 @@ namespace Roslyn
         private static void AnalyzeUnaryMinus(SyntaxNodeAnalysisContext context)
         {
             var unaryMinus = (PrefixUnaryExpressionSyntax)context.Node;
-            if (unaryMinus.Parent is not CastExpressionSyntax cast || context.SemanticModel.GetTypeInfo(cast.Type).Type is not { } targetType || !IsUnsignedInteger(targetType) || IsInsideUncheckedContext(cast))
+            if (unaryMinus.Parent is not CastExpressionSyntax cast || context.SemanticModel.GetTypeInfo(cast.Type).Type is not { } targetType || !IsUnsignedInteger(targetType) || SyntaxHelpers.IsInsideUncheckedContext(cast))
                 return;
 
             context.ReportDiagnostic(Diagnostic.Create(Rule, cast.GetLocation()));
-        }
-
-        /// <summary>
-        ///     Determines whether the node is inside the scope of an
-        ///     <see langword="unchecked" /> expression or statement block.
-        /// </summary>
-        /// <param name="node">The node whose lexical context is inspected.</param>
-        /// <returns>
-        ///     <see langword="true" /> when the nearest overflow context is
-        ///     <see langword="unchecked" />; otherwise, <see langword="false" />.
-        /// </returns>
-        private static bool IsInsideUncheckedContext(SyntaxNode node)
-        {
-            foreach (var ancestor in node.Ancestors())
-            {
-                switch (ancestor)
-                {
-                    case CheckedExpressionSyntax expression:
-                        return expression.IsKind(SyntaxKind.UncheckedExpression);
-
-                    case CheckedStatementSyntax statement:
-                        return statement.IsKind(SyntaxKind.UncheckedStatement);
-                }
-            }
-
-            return false;
         }
 
         /// <summary>

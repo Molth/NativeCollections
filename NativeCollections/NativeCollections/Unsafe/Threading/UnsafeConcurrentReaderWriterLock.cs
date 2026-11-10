@@ -13,6 +13,12 @@ namespace NativeCollections
     ///     Represents a lock that is used to manage access to a resource,
     ///     allowing multiple threads for reading or exclusive access for writing.
     /// </summary>
+    /// <remarks>
+    ///     This lock does not verify thread ownership, and write acquisition is not
+    ///     reentrant: calling <see cref="EnterWrite(int)" /> while the same thread already
+    ///     holds a read or write lock waits forever, because the ticket it already holds
+    ///     is not released.
+    /// </remarks>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.None)]
     public unsafe struct UnsafeConcurrentReaderWriterLock : IEquatable<UnsafeConcurrentReaderWriterLock>
@@ -23,7 +29,7 @@ namespace NativeCollections
         private UnsafeConcurrentSpinLock _spinLock;
 
         /// <summary>
-        ///     Indicates whether the write lock is currently held.
+        ///     Indicates whether the last published ticket is a write ticket.
         /// </summary>
         private bool _isWriter;
 
@@ -50,9 +56,9 @@ namespace NativeCollections
         {
             _spinLock.Reset();
             _isWriter = false;
-            _readSequenceNumber = U32.FromI32Unchecked(0);
-            _sequenceNumber = U32.FromI32Unchecked(0);
-            _nextSequenceNumber = U32.FromI32Unchecked(0);
+            _readSequenceNumber = 0U;
+            _sequenceNumber = 0U;
+            _nextSequenceNumber = 0U;
         }
 
         /// <summary>
@@ -192,7 +198,7 @@ namespace NativeCollections
                 _readSequenceNumber = _sequenceNumber;
 
             var readSequenceNumber = _readSequenceNumber;
-            _sequenceNumber = _sequenceNumber.WrappingAdd(U32.FromI32Unchecked(1));
+            _sequenceNumber = _sequenceNumber.WrappingAdd(1U);
             _spinLock.Exit();
             UnsafeSpinWait spinWait = default;
             while (I32.FromU32Unchecked(Volatile.Read(ref _nextSequenceNumber).WrappingSub(readSequenceNumber)) < 0)
@@ -228,7 +234,7 @@ namespace NativeCollections
             _spinLock.Enter();
             _isWriter = true;
             var sequenceNumber = _sequenceNumber;
-            _sequenceNumber = _sequenceNumber.WrappingAdd(U32.FromI32Unchecked(1));
+            _sequenceNumber = _sequenceNumber.WrappingAdd(1U);
             _spinLock.Exit();
             UnsafeSpinWait spinWait = default;
             while (sequenceNumber != Volatile.Read(ref _nextSequenceNumber))

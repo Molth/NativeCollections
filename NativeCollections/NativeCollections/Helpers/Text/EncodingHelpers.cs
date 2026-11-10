@@ -15,7 +15,7 @@ namespace NativeCollections
         ///     Encodes into a span of bytes a set of characters from the
         ///     specified read-only span if the destination is large enough.
         /// </summary>
-        /// <param name="encoding">Encoding.</param>
+        /// <param name="encoding">The encoding used to encode <paramref name="chars" /> into <paramref name="bytes" />.</param>
         /// <param name="chars">The span containing the set of characters to encode.</param>
         /// <param name="bytes">The byte span to hold the encoded bytes.</param>
         /// <param name="bytesWritten">

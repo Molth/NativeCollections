@@ -238,9 +238,9 @@ namespace NativeCollections
         /// <param name="item">The item to add.</param>
         /// <returns>
         ///     An <see cref="InsertResult" /> value indicating whether the item was
-        ///     added successfully <see cref="InsertResult.Success" />, if an existing
-        ///     element was overwritten <see cref="InsertResult.Overwritten" />, or
-        ///     <see cref="InsertResult.InsufficientCapacity" /> when <see cref="Capacity" /> is zero.
+        ///     added as <see cref="InsertResult.Success" />, or <see cref="InsertResult.Overwritten" />
+        ///     if an existing element was overwritten, or <see cref="InsertResult.InsufficientCapacity" />
+        ///     when <see cref="Capacity" /> is zero.
         /// </returns>
         /// <remarks>
         ///     When the buffer is full, the new item takes the slot of the current head,
@@ -280,9 +280,9 @@ namespace NativeCollections
         /// </param>
         /// <returns>
         ///     An <see cref="InsertResult" /> value indicating whether the item was
-        ///     added successfully <see cref="InsertResult.Success" />, if an existing
-        ///     element was overwritten <see cref="InsertResult.Overwritten" />, or
-        ///     <see cref="InsertResult.InsufficientCapacity" /> when <see cref="Capacity" /> is zero.
+        ///     added as <see cref="InsertResult.Success" />, or <see cref="InsertResult.Overwritten" />
+        ///     if an existing element was overwritten, or <see cref="InsertResult.InsufficientCapacity" />
+        ///     when <see cref="Capacity" /> is zero.
         /// </returns>
         /// <remarks>
         ///     When the buffer is full, the new item takes the slot of the current head,
@@ -347,9 +347,9 @@ namespace NativeCollections
         /// <param name="item">The item to add.</param>
         /// <returns>
         ///     An <see cref="InsertResult" /> value indicating whether the item was
-        ///     added successfully <see cref="InsertResult.Success" />, if an existing
-        ///     element was overwritten <see cref="InsertResult.Overwritten" />, or
-        ///     <see cref="InsertResult.InsufficientCapacity" /> when <see cref="Capacity" /> is zero.
+        ///     added as <see cref="InsertResult.Success" />, or <see cref="InsertResult.Overwritten" />
+        ///     if an existing element was overwritten, or <see cref="InsertResult.InsufficientCapacity" />
+        ///     when <see cref="Capacity" /> is zero.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public InsertResult EnqueueTail(T item)
@@ -390,9 +390,9 @@ namespace NativeCollections
         /// </param>
         /// <returns>
         ///     An <see cref="InsertResult" /> value indicating whether the item was
-        ///     added successfully <see cref="InsertResult.Success" />, if an existing
-        ///     element was overwritten <see cref="InsertResult.Overwritten" />, or
-        ///     <see cref="InsertResult.InsufficientCapacity" /> when <see cref="Capacity" /> is zero.
+        ///     added as <see cref="InsertResult.Success" />, or <see cref="InsertResult.Overwritten" />
+        ///     if an existing element was overwritten, or <see cref="InsertResult.InsufficientCapacity" />
+        ///     when <see cref="Capacity" /> is zero.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public InsertResult EnqueueTail(T item, out T overwritten)

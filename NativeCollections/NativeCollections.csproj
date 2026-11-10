@@ -10,7 +10,7 @@
         <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
 
         <PackageId>NativeCollections</PackageId>
-        <Version>1.7.5</Version>
+        <Version>1.7.6</Version>
         <Authors>Molth Nevin</Authors>
         <Company>Hell</Company>
         <Description>High performance pure C# native collections.</Description>

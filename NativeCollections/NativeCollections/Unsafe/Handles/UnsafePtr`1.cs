@@ -12,7 +12,7 @@ namespace NativeCollections
     /// <typeparam name="T">The unmanaged type pointed to.</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [UnsafeCollection(FromType.None)]
-    public unsafe struct UnsafePtr<T> : IIsCreated, IDisposable, IEquatable<UnsafePtr<T>> where T : unmanaged
+    internal unsafe struct UnsafePtr<T> : IIsCreated, IDisposable, IEquatable<UnsafePtr<T>> where T : unmanaged
     {
         /// <summary>
         ///     Represents a contiguous region of arbitrary memory.
@@ -55,6 +55,26 @@ namespace NativeCollections
         /// <returns>A pointer wrapper that references the address represented by <paramref name="handle" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafePtr<T> From(nint handle) => From((T*)handle);
+
+        /// <summary>
+        ///     Creates a new instance.
+        /// </summary>
+        /// <typeparam name="TFrom">The type of the referenced value.</typeparam>
+        /// <param name="reference">The reference whose address is used as the pointer.</param>
+        /// <returns>A pointer wrapper that references the address of <paramref name="reference" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UnsafePtr<T> From<TFrom>([MustBePinned] ref TFrom reference) => new((T*)Unsafe.AsPointer(ref reference));
+
+        /// <summary>
+        ///     Creates a new instance.
+        /// </summary>
+        /// <typeparam name="TFrom">The element type of the span.</typeparam>
+        /// <param name="buffer">The span whose first element address is used as the pointer.</param>
+        /// <returns>
+        ///     A pointer wrapper that references the address of the first element of <paramref name="buffer" />.
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UnsafePtr<T> From<TFrom>([MustBePinned] Span<TFrom> buffer) => new((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)));
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
@@ -106,16 +126,16 @@ namespace NativeCollections
         public readonly UnsafePtr<TTo> Cast<TTo>() where TTo : unmanaged => UnsafePtr<TTo>.From((TTo*)Handle);
 
         /// <summary>
-        ///     Returns a span over a portion of this.
+        ///     Returns a span over the entire contents of this.
         /// </summary>
-        /// <returns>A span over a portion of this.</returns>
+        /// <returns>A span over the entire contents of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly Span<T> AsSpan() => MemoryMarshal.CreateSpan(ref Unsafe.AsRef<T>(Handle), 1);
 
         /// <summary>
-        ///     Returns a read-only span over a portion of this.
+        ///     Returns a read-only span over the entire contents of this.
         /// </summary>
-        /// <returns>A read-only span over a portion of this.</returns>
+        /// <returns>A read-only span over the entire contents of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<T>(Handle), 1);
 
@@ -145,25 +165,5 @@ namespace NativeCollections
         ///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
         public readonly void Dispose() => NativeMemoryAllocator.AlignedFree(Handle);
-
-        /// <summary>
-        ///     Creates a new instance.
-        /// </summary>
-        /// <typeparam name="TFrom">The type of the referenced value.</typeparam>
-        /// <param name="reference">The reference whose address is used as the pointer.</param>
-        /// <returns>A pointer wrapper that references the address of <paramref name="reference" />.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafePtr<T> From<TFrom>([MustBePinned] ref TFrom reference) => new((T*)Unsafe.AsPointer(ref reference));
-
-        /// <summary>
-        ///     Creates a new instance.
-        /// </summary>
-        /// <typeparam name="TFrom">The element type of the span.</typeparam>
-        /// <param name="buffer">The span whose first element address is used as the pointer.</param>
-        /// <returns>
-        ///     A pointer wrapper that references the address of the first element of <paramref name="buffer" />.
-        /// </returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafePtr<T> From<TFrom>([MustBePinned] Span<TFrom> buffer) => new((T*)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)));
     }
 }

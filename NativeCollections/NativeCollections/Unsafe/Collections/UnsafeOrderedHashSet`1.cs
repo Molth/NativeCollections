@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Represents a collection of items that are accessible by the item.
+    ///     Represents a collection of unique elements that preserves insertion order.
     /// </summary>
     /// <typeparam name="T">The type of elements in the set.</typeparam>
     [StructLayout(LayoutKind.Sequential)]
@@ -408,11 +408,11 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Searches the set for a given value and returns the equal value it finds, if any.
+        ///     Searches the set for a given value and returns a reference to the equal value it finds, if any.
         /// </summary>
         /// <param name="equalValue">The value to search for.</param>
         /// <param name="actualValue">
-        ///     The value from the set that the search found, or the default value
+        ///     A reference to the value from the set that the search found, or the default value
         ///     of <typeparamref name="T" /> when the search yielded no match.
         /// </param>
         /// <returns>A value indicating whether the search was successful.</returns>
@@ -486,7 +486,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int IndexOf(T item)
         {
-            var num = U32.FromI32Unchecked(0);
+            var num = 0U;
             return IndexOf(item, ref num, ref num);
         }
 
@@ -505,7 +505,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly int IndexOf(T item, ref uint outHashCode, ref uint outCollisionCount)
         {
-            var num = U32.FromI32Unchecked(0);
+            var num = 0U;
             var entries = _entries;
             var hashCode = U32.FromI32Unchecked(item.GetHashCode());
             var index = GetBucket(hashCode).WrappingSub(1);
@@ -515,7 +515,7 @@ namespace NativeCollections
                 if (local.HashCode != hashCode || !local.Value.Equals(item))
                 {
                     index = local.Next;
-                    num = num.WrappingAdd(U32.FromI32Unchecked(1));
+                    num = num.WrappingAdd(1U);
                     if (num > U32.FromI32Unchecked(_entriesLength))
                         ThrowHelpers.ThrowConcurrentOperationsNotSupportedException();
                 }
@@ -564,8 +564,8 @@ namespace NativeCollections
             if (item.Equals(local.Value))
                 return;
 
-            var outHashCode = U32.FromI32Unchecked(0);
-            var outCollisionCount = U32.FromI32Unchecked(0);
+            var outHashCode = 0U;
+            var outCollisionCount = 0U;
             if (IndexOf(item, ref outHashCode, ref outCollisionCount) >= 0)
                 ThrowHelpers.ThrowAddingDuplicateWithKeyException(item);
 
@@ -783,8 +783,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool TryInsertIgnoreInsertion(T item)
         {
-            var outHashCode = U32.FromI32Unchecked(0);
-            var outCollisionCount = U32.FromI32Unchecked(0);
+            var outHashCode = 0U;
+            var outCollisionCount = 0U;
             var index1 = IndexOf(item, ref outHashCode, ref outCollisionCount);
             if (index1 >= 0)
                 return false;
@@ -822,8 +822,8 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void TryInsertThrowOnExisting(int index, T item)
         {
-            var outHashCode = U32.FromI32Unchecked(0);
-            var outCollisionCount = U32.FromI32Unchecked(0);
+            var outHashCode = 0U;
+            var outCollisionCount = 0U;
             var index1 = IndexOf(item, ref outHashCode, ref outCollisionCount);
             if (index1 >= 0)
                 ThrowHelpers.ThrowAddingDuplicateWithKeyException(item);

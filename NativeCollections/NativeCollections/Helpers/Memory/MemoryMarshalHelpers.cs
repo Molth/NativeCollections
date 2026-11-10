@@ -47,6 +47,13 @@ namespace NativeCollections
         /// <typeparam name="T">The type of the elements in the array.</typeparam>
         /// <param name="array">The array whose first element is referenced.</param>
         /// <returns>A reference to the 0th element of <paramref name="array" />.</returns>
+        /// <exception cref="ArgumentNullException">
+        ///     Thrown when <paramref name="array" /> is <see langword="null" /> on .NET versions
+        ///     earlier than .NET 5.
+        /// </exception>
+        /// <exception cref="NullReferenceException">
+        ///     Thrown when <paramref name="array" /> is <see langword="null" /> on .NET 5 and later.
+        /// </exception>
         /// <remarks>
         ///     This method does not perform array variance checks. The caller must manually perform
         ///     any array variance checks if the caller wishes to write to the returned reference.

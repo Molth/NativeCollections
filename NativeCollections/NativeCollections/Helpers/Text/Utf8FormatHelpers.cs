@@ -29,6 +29,12 @@ namespace NativeCollections
         ///     <see langword="true" /> if the value was formatted into the destination;
         ///     otherwise, <see langword="false" /> if the destination was too small.
         /// </returns>
+        /// <remarks>
+        ///     Character-sequence values (<see cref="string" />, <see cref="ArraySegment{T}" /> of
+        ///     <see cref="char" />, <see cref="ReadOnlyMemory{T}" /> and <see cref="Memory{T}" /> of
+        ///     <see cref="char" />, and their nullable forms) are written as their UTF-8 content;
+        ///     <paramref name="format" /> is ignored for them.
+        /// </remarks>
         public static bool TryFormat<T>(T? value, Span<byte> destination, out int bytesWritten, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
         {
             if (typeof(T) == typeof(string))

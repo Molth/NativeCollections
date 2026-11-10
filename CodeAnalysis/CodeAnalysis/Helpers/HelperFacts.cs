@@ -30,7 +30,7 @@ namespace Roslyn
         ///     and therefore never need a wrapping helper. The signature is deliberately not inspected
         ///     any further, because the helper matrix of the library is partial and differs per type.
         /// </remarks>
-        internal static bool IsWrappingHelper(IMethodSymbol? method)
+        public static bool IsWrappingHelper(IMethodSymbol? method)
         {
             if (method is not { IsStatic: true } || method.ContainingType is not { } containingType || containingType.ContainingNamespace.ToDisplayString() != SR.NATIVE_COLLECTIONS_NAMESPACE)
                 return false;

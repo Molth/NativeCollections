@@ -39,6 +39,9 @@ namespace NativeCollections
         /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="capacity" /> is negative.
         /// </exception>
+        /// <remarks>
+        ///     The requested capacity is clamped to a minimum of 2; read <c>Capacity</c> for the effective value.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeRingBuffer<T> Create(int capacity)
         {
@@ -160,9 +163,14 @@ namespace NativeCollections
         /// <param name="item">The item to add.</param>
         /// <returns>
         ///     An <see cref="InsertResult" /> value indicating whether the item was
-        ///     added successfully <see cref="InsertResult.Success" /> or if an existing
-        ///     element was overwritten <see cref="InsertResult.Overwritten" />.
+        ///     added as <see cref="InsertResult.Success" />, or <see cref="InsertResult.Overwritten" />
+        ///     if an existing element was overwritten.
         /// </returns>
+        /// <remarks>
+        ///     When the buffer is full, the new item takes the slot of the current head,
+        ///     so the head and tail indices both stay unchanged and the previously oldest
+        ///     element is the one that is discarded.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public InsertResult EnqueueHead(T item) => _handle->EnqueueHead(item);
 
@@ -177,9 +185,14 @@ namespace NativeCollections
         /// </param>
         /// <returns>
         ///     An <see cref="InsertResult" /> value indicating whether the item was
-        ///     added successfully <see cref="InsertResult.Success" /> or if an existing
-        ///     element was overwritten <see cref="InsertResult.Overwritten" />.
+        ///     added as <see cref="InsertResult.Success" />, or <see cref="InsertResult.Overwritten" />
+        ///     if an existing element was overwritten.
         /// </returns>
+        /// <remarks>
+        ///     When the buffer is full, the new item takes the slot of the current head,
+        ///     so the head and tail indices both stay unchanged and the previously oldest
+        ///     element is the one returned through <paramref name="overwritten" />.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public InsertResult EnqueueHead(T item, out T overwritten) => _handle->EnqueueHead(item, out overwritten);
 
@@ -201,8 +214,8 @@ namespace NativeCollections
         /// <param name="item">The item to add.</param>
         /// <returns>
         ///     An <see cref="InsertResult" /> value indicating whether the item was
-        ///     added successfully <see cref="InsertResult.Success" /> or if an existing
-        ///     element was overwritten <see cref="InsertResult.Overwritten" />.
+        ///     added as <see cref="InsertResult.Success" />, or <see cref="InsertResult.Overwritten" />
+        ///     if an existing element was overwritten.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public InsertResult EnqueueTail(T item) => _handle->EnqueueTail(item);
@@ -218,8 +231,8 @@ namespace NativeCollections
         /// </param>
         /// <returns>
         ///     An <see cref="InsertResult" /> value indicating whether the item was
-        ///     added successfully <see cref="InsertResult.Success" /> or if an existing
-        ///     element was overwritten <see cref="InsertResult.Overwritten" />.
+        ///     added as <see cref="InsertResult.Success" />, or <see cref="InsertResult.Overwritten" />
+        ///     if an existing element was overwritten.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public InsertResult EnqueueTail(T item, out T overwritten) => _handle->EnqueueTail(item, out overwritten);

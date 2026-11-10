@@ -7,9 +7,9 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Represents a reference to an object pinned in memory using a <see cref="GCHandle" />.
+    ///     Represents a reference to an object held by a <see cref="GCHandle" />.
     /// </summary>
-    /// <typeparam name="T">The type of the pinned object.</typeparam>
+    /// <typeparam name="T">The type of the object referenced by the handle.</typeparam>
     [StructLayout(LayoutKind.Sequential)]
     [NativeCollection(FromType.None)]
     public readonly struct NativeObject<T> : IIsCreated, IDisposable, IEquatable<NativeObject<T>>
@@ -25,6 +25,27 @@ namespace NativeCollections
         /// <param name="handle">The GC handle to wrap.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private NativeObject(GCHandle handle) => _handle = handle;
+
+        /// <summary>
+        ///     Creates a new GC handle for an object using the default
+        ///     <see cref="GCHandleType.Normal" /> handle type.
+        /// </summary>
+        /// <param name="value">The object that the GC handle is created for.</param>
+        /// <returns>A new instance of this class that wraps the created GC handle.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeObject<T> Create(T value) => new(GCHandle.Alloc(value));
+
+        /// <summary>
+        ///     Creates a new GC handle of the specified type for an object.
+        /// </summary>
+        /// <param name="value">The object that the GC handle is created for.</param>
+        /// <param name="type">
+        ///     The type of GC handle to create; the object is pinned only when
+        ///     <see cref="GCHandleType.Pinned" /> is specified.
+        /// </param>
+        /// <returns>A new instance of this class that wraps the created GC handle.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeObject<T> Create(T value, GCHandleType type) => new(GCHandle.Alloc(value, type));
 
         /// <summary>
         ///     Creates an object wrapper for an existing GC handle.
@@ -133,22 +154,5 @@ namespace NativeCollections
 
             handle.Free();
         }
-
-        /// <summary>
-        ///     Creates a new GC handle for an object.
-        /// </summary>
-        /// <param name="value">The object that the GC handle is created for.</param>
-        /// <returns>A new GC handle that protects the object.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeObject<T> Create(T value) => new(GCHandle.Alloc(value));
-
-        /// <summary>
-        ///     Creates a new GC handle for an object.
-        /// </summary>
-        /// <param name="value">The object that the GC handle is created for.</param>
-        /// <param name="type">The type of GC handle to create.</param>
-        /// <returns>A new GC handle that protects the object.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeObject<T> Create(T value, GCHandleType type) => new(GCHandle.Alloc(value, type));
     }
 }

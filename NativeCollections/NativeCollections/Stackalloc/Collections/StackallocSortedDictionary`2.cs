@@ -618,7 +618,7 @@ namespace NativeCollections
         ///     in this or a ref null if it does not exist in this.
         /// </summary>
         /// <param name="key">The key used for lookup.</param>
-        /// <param name="exists">Whether or not a new entry for the given key was added to this.</param>
+        /// <param name="exists">Whether or not the given key already existed in this.</param>
         /// <returns>A reference to the value if the key is found; otherwise, a null reference.</returns>
         /// <remarks>
         ///     Items should not be added or removed from this while the ref <typeparamref name="TValue" />
@@ -1039,6 +1039,10 @@ namespace NativeCollections
         ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         /// <returns>An enumerator that iterates through the collection.</returns>
+        /// <remarks>
+        ///     The returned enumerator allocates native memory that must be released by calling
+        ///     <see cref="Enumerator.Dispose" />.
+        /// </remarks>
         [MustBePinned(SR.parameter_this)]
         public Enumerator GetEnumerator() => Enumerator.From(UnsafeHelpers.AsPointer(ref this));
 
@@ -1069,6 +1073,12 @@ namespace NativeCollections
         /// <summary>
         ///     Supports a simple iteration over a generic collection.
         /// </summary>
+        /// <remarks>
+        ///     The enumerator allocates native memory for a traversal stack when it is created and
+        ///     releases it when <see cref="Dispose" /> is called. The allocation is observable for the
+        ///     lifetime of the enumerator, which is a deviation from the no-allocation contract of the
+        ///     Stackalloc flavor. An enumerator that is not disposed leaks this native memory.
+        /// </remarks>
         [StructLayout(LayoutKind.Sequential)]
         public struct Enumerator : IIterator<KeyValuePair<TKey, TValue>>, IDisposable
         {

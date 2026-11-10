@@ -15,7 +15,7 @@ namespace NativeCollections
     internal static unsafe class RandomHelpers
     {
         /// <summary>
-        ///     Performs initialization of the object.
+        ///     Initializes the state using random bytes, retrying until the state is successfully created.
         /// </summary>
         /// <typeparam name="TRandom">The type of pseudo-random number generator.</typeparam>
         /// <param name="random">The pseudo-random number generator.</param>
@@ -56,13 +56,15 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Returns a random 64-bit double-precision floating point number that is less than the specified maximum.
+        ///     Returns a random 64-bit double-precision floating point number in the range [0,
+        ///     <paramref name="maxValue" />) if <paramref name="maxValue" /> is positive, or
+        ///     (<paramref name="maxValue" />, 0] if <paramref name="maxValue" /> is negative.
         /// </summary>
         /// <typeparam name="TState">The type of pseudo-random number generator.</typeparam>
         /// <param name="random">The pseudo-random number generator.</param>
         /// <param name="maxValue">
-        ///     The exclusive upper bound of the random number returned.
-        ///     <paramref name="maxValue" /> must be greater than or equal to 0.
+        ///     The exclusive upper bound of the random number returned when
+        ///     <paramref name="maxValue" /> is positive.
         /// </param>
         /// <returns>
         ///     A 64-bit double-precision floating point number in the range [0,
@@ -88,24 +90,26 @@ namespace NativeCollections
         ///     A 64-bit double-precision floating point number greater than or equal to <paramref name="minValue" />,
         ///     and less than <paramref name="maxValue" />; that is, the range of return values
         ///     includes <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
+        /// <seealso cref="NextF64{TState}(ref TState)" />
         /// <remarks>
         ///     Due to floating-point rounding, the returned value may equal
         ///     <paramref name="maxValue" /> even though the range is nominally exclusive.
         /// </remarks>
-        /// <seealso cref="NextF64{TState}(ref TState)" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double LerpF64<TState>(ref this TState random, double minValue, double maxValue) where TState : unmanaged, IRandomState => random.NextF64() * (maxValue - minValue) + minValue;
 
         /// <summary>
-        ///     Returns a random 32-bit single-precision floating point number that is less than the specified maximum.
+        ///     Returns a random 32-bit single-precision floating point number in the range [0,
+        ///     <paramref name="maxValue" />) if <paramref name="maxValue" /> is positive, or
+        ///     (<paramref name="maxValue" />, 0] if <paramref name="maxValue" /> is negative.
         /// </summary>
         /// <typeparam name="TState">The type of pseudo-random number generator.</typeparam>
         /// <param name="random">The pseudo-random number generator.</param>
         /// <param name="maxValue">
-        ///     The exclusive upper bound of the random number returned.
-        ///     <paramref name="maxValue" /> must be greater than or equal to 0.
+        ///     The exclusive upper bound of the random number returned when
+        ///     <paramref name="maxValue" /> is positive.
         /// </param>
         /// <returns>
         ///     A 32-bit single-precision floating point number in the range [0,
@@ -131,13 +135,13 @@ namespace NativeCollections
         ///     A 32-bit single-precision floating point number greater than or equal to <paramref name="minValue" />,
         ///     and less than <paramref name="maxValue" />; that is, the range of return values
         ///     includes <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
+        /// <seealso cref="NextF32{TState}(ref TState)" />
         /// <remarks>
         ///     Due to floating-point rounding, the returned value may equal
         ///     <paramref name="maxValue" /> even though the range is nominally exclusive.
         /// </remarks>
-        /// <seealso cref="NextF32{TState}(ref TState)" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float LerpF32<TState>(ref this TState random, float minValue, float maxValue) where TState : unmanaged, IRandomState => random.NextF32() * (maxValue - minValue) + minValue;
 
@@ -148,10 +152,13 @@ namespace NativeCollections
         /// <param name="random">The pseudo-random number generator.</param>
         /// <param name="source">The characters to use to populate the string.</param>
         /// <param name="stringLength">The length of string to return.</param>
-        /// <returns>A string populated with items selected at random from <paramref name="source" />.</returns>
+        /// <returns>
+        ///     A string populated with items selected at random from <paramref name="source" />.
+        ///     If <paramref name="stringLength" /> is zero, an empty string is returned.
+        /// </returns>
         /// <exception cref="ArgumentException">Thrown when <paramref name="source" /> is empty.</exception>
         /// <exception cref="ArgumentOutOfRangeException">
-        ///     Thrown when <paramref name="stringLength" /> is not zero or a positive number.
+        ///     Thrown when <paramref name="stringLength" /> is negative.
         /// </exception>
         /// <seealso cref="GetItems{TState, T}(ref TState, ReadOnlySpan{T}, Span{T})" />
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -180,6 +187,9 @@ namespace NativeCollections
         ///     <see langword="false" /> if they should be uppercase. The default is <see langword="false" />.
         /// </param>
         /// <returns>A string populated with random hexadecimal characters.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="stringLength" /> is negative.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string GetHexString<TState>(ref this TState random, int stringLength, bool lowercase = false) where TState : unmanaged, IRandomState => random.GetString(GetHexChoices(lowercase), stringLength);
 
@@ -397,7 +407,7 @@ namespace NativeCollections
         ///     A 32-bit unsigned integer greater than or equal to <paramref name="minValue" />, and
         ///     less than <paramref name="maxValue" />; that is, the range of return values includes
         ///     <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint NextU32<TState>(ref this TState random, uint minValue, uint maxValue) where TState : unmanaged, IRandomState => random.NextU32(maxValue.WrappingSub(minValue)).WrappingAdd(minValue);
@@ -468,7 +478,7 @@ namespace NativeCollections
         ///     A 64-bit unsigned integer greater than or equal to <paramref name="minValue" />, and
         ///     less than <paramref name="maxValue" />; that is, the range of return values includes
         ///     <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ulong NextU64<TState>(ref this TState random, ulong minValue, ulong maxValue) where TState : unmanaged, IRandomState => random.NextU64(maxValue.WrappingSub(minValue)).WrappingAdd(minValue);
@@ -514,7 +524,7 @@ namespace NativeCollections
         public static int NextI32<TState>(ref this TState random, int maxValue) where TState : unmanaged, IRandomState => I32.FromU32Unchecked(random.NextU32(U32.FromI32Unchecked(maxValue)));
 
         /// <summary>
-        ///     Returns a non-negative random integer that is within a specified range.
+        ///     Returns a random integer that is within a specified range.
         /// </summary>
         /// <typeparam name="TState">The type of pseudo-random number generator.</typeparam>
         /// <param name="random">The pseudo-random number generator.</param>
@@ -527,7 +537,7 @@ namespace NativeCollections
         ///     A 32-bit signed integer greater than or equal to <paramref name="minValue" />, and
         ///     less than <paramref name="maxValue" />; that is, the range of return values includes
         ///     <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int NextI32<TState>(ref this TState random, int minValue, int maxValue) where TState : unmanaged, IRandomState => I32.FromU32Unchecked(random.NextU32(U32.FromI32Unchecked(maxValue.WrappingSub(minValue)))).WrappingAdd(minValue);
@@ -573,7 +583,7 @@ namespace NativeCollections
         public static long NextI64<TState>(ref this TState random, long maxValue) where TState : unmanaged, IRandomState => I64.FromU64Unchecked(random.NextU64(U64.FromI64Unchecked(maxValue)));
 
         /// <summary>
-        ///     Returns a non-negative random integer that is within a specified range.
+        ///     Returns a random integer that is within a specified range.
         /// </summary>
         /// <typeparam name="TState">The type of pseudo-random number generator.</typeparam>
         /// <param name="random">The pseudo-random number generator.</param>
@@ -586,7 +596,7 @@ namespace NativeCollections
         ///     A 64-bit signed integer greater than or equal to <paramref name="minValue" />, and
         ///     less than <paramref name="maxValue" />; that is, the range of return values includes
         ///     <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long NextI64<TState>(ref this TState random, long minValue, long maxValue) where TState : unmanaged, IRandomState => I64.FromU64Unchecked(random.NextU64(U64.FromI64Unchecked(maxValue.WrappingSub(minValue)))).WrappingAdd(minValue);

@@ -13,7 +13,7 @@ namespace NativeCollections
         /// </summary>
         /// <typeparam name="T0">The type of the first argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <exception cref="ArgumentNullException">
         ///     Thrown when <paramref name="format" /> is <see langword="null" />.
@@ -52,7 +52,7 @@ namespace NativeCollections
         /// <typeparam name="T0">The type of the first argument to format.</typeparam>
         /// <typeparam name="T1">The type of the second argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <exception cref="ArgumentNullException">
@@ -97,7 +97,7 @@ namespace NativeCollections
         /// <typeparam name="T1">The type of the second argument to format.</typeparam>
         /// <typeparam name="T2">The type of the third argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -148,7 +148,7 @@ namespace NativeCollections
         /// <typeparam name="T2">The type of the third argument to format.</typeparam>
         /// <typeparam name="T3">The type of the fourth argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -205,7 +205,7 @@ namespace NativeCollections
         /// <typeparam name="T3">The type of the fourth argument to format.</typeparam>
         /// <typeparam name="T4">The type of the fifth argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -268,7 +268,7 @@ namespace NativeCollections
         /// <typeparam name="T4">The type of the fifth argument to format.</typeparam>
         /// <typeparam name="T5">The type of the sixth argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -337,7 +337,7 @@ namespace NativeCollections
         /// <typeparam name="T5">The type of the sixth argument to format.</typeparam>
         /// <typeparam name="T6">The type of the seventh argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -412,7 +412,7 @@ namespace NativeCollections
         /// <typeparam name="T6">The type of the seventh argument to format.</typeparam>
         /// <typeparam name="T7">The type of the eighth argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -493,7 +493,7 @@ namespace NativeCollections
         /// <typeparam name="T7">The type of the eighth argument to format.</typeparam>
         /// <typeparam name="T8">The type of the ninth argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -580,7 +580,7 @@ namespace NativeCollections
         /// <typeparam name="T8">The type of the ninth argument to format.</typeparam>
         /// <typeparam name="T9">The type of the tenth argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -673,7 +673,7 @@ namespace NativeCollections
         /// <typeparam name="T9">The type of the tenth argument to format.</typeparam>
         /// <typeparam name="T10">The type of the eleventh argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -772,7 +772,7 @@ namespace NativeCollections
         /// <typeparam name="T10">The type of the eleventh argument to format.</typeparam>
         /// <typeparam name="T11">The type of the twelfth argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -877,7 +877,7 @@ namespace NativeCollections
         /// <typeparam name="T11">The type of the twelfth argument to format.</typeparam>
         /// <typeparam name="T12">The type of the thirteenth argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -988,7 +988,7 @@ namespace NativeCollections
         /// <typeparam name="T12">The type of the thirteenth argument to format.</typeparam>
         /// <typeparam name="T13">The type of the fourteenth argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -1105,7 +1105,7 @@ namespace NativeCollections
         /// <typeparam name="T13">The type of the fourteenth argument to format.</typeparam>
         /// <typeparam name="T14">The type of the fifteenth argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -1228,7 +1228,7 @@ namespace NativeCollections
         /// <typeparam name="T14">The type of the fifteenth argument to format.</typeparam>
         /// <typeparam name="T15">The type of the sixteenth argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -1342,7 +1342,7 @@ namespace NativeCollections
         /// <typeparam name="T0">The type of the first argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <exception cref="ArgumentNullException">
         ///     Thrown when <paramref name="format" /> is <see langword="null" />.
@@ -1382,7 +1382,7 @@ namespace NativeCollections
         /// <typeparam name="T1">The type of the second argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <exception cref="ArgumentNullException">
@@ -1428,7 +1428,7 @@ namespace NativeCollections
         /// <typeparam name="T2">The type of the third argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -1480,7 +1480,7 @@ namespace NativeCollections
         /// <typeparam name="T3">The type of the fourth argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -1538,7 +1538,7 @@ namespace NativeCollections
         /// <typeparam name="T4">The type of the fifth argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -1602,7 +1602,7 @@ namespace NativeCollections
         /// <typeparam name="T5">The type of the sixth argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -1672,7 +1672,7 @@ namespace NativeCollections
         /// <typeparam name="T6">The type of the seventh argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -1748,7 +1748,7 @@ namespace NativeCollections
         /// <typeparam name="T7">The type of the eighth argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -1830,7 +1830,7 @@ namespace NativeCollections
         /// <typeparam name="T8">The type of the ninth argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -1918,7 +1918,7 @@ namespace NativeCollections
         /// <typeparam name="T9">The type of the tenth argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -2012,7 +2012,7 @@ namespace NativeCollections
         /// <typeparam name="T10">The type of the eleventh argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -2112,7 +2112,7 @@ namespace NativeCollections
         /// <typeparam name="T11">The type of the twelfth argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -2218,7 +2218,7 @@ namespace NativeCollections
         /// <typeparam name="T12">The type of the thirteenth argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -2330,7 +2330,7 @@ namespace NativeCollections
         /// <typeparam name="T13">The type of the fourteenth argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -2448,7 +2448,7 @@ namespace NativeCollections
         /// <typeparam name="T14">The type of the fifteenth argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -2572,7 +2572,7 @@ namespace NativeCollections
         /// <typeparam name="T15">The type of the sixteenth argument to format.</typeparam>
         /// <param name="builder">The string builder to which to append the formatted string.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -2679,13 +2679,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         /// <typeparam name="T0">The type of the first argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <exception cref="ArgumentNullException">
         ///     Thrown when <paramref name="format" /> is <see langword="null" />.
@@ -2717,14 +2717,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         /// <typeparam name="T0">The type of the first argument to format.</typeparam>
         /// <typeparam name="T1">The type of the second argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <exception cref="ArgumentNullException">
@@ -2761,15 +2761,15 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         /// <typeparam name="T0">The type of the first argument to format.</typeparam>
         /// <typeparam name="T1">The type of the second argument to format.</typeparam>
         /// <typeparam name="T2">The type of the third argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -2811,7 +2811,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -2819,8 +2819,8 @@ namespace NativeCollections
         /// <typeparam name="T1">The type of the second argument to format.</typeparam>
         /// <typeparam name="T2">The type of the third argument to format.</typeparam>
         /// <typeparam name="T3">The type of the fourth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -2867,7 +2867,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -2876,8 +2876,8 @@ namespace NativeCollections
         /// <typeparam name="T2">The type of the third argument to format.</typeparam>
         /// <typeparam name="T3">The type of the fourth argument to format.</typeparam>
         /// <typeparam name="T4">The type of the fifth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -2929,7 +2929,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -2939,8 +2939,8 @@ namespace NativeCollections
         /// <typeparam name="T3">The type of the fourth argument to format.</typeparam>
         /// <typeparam name="T4">The type of the fifth argument to format.</typeparam>
         /// <typeparam name="T5">The type of the sixth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -2997,7 +2997,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -3008,8 +3008,8 @@ namespace NativeCollections
         /// <typeparam name="T4">The type of the fifth argument to format.</typeparam>
         /// <typeparam name="T5">The type of the sixth argument to format.</typeparam>
         /// <typeparam name="T6">The type of the seventh argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -3071,7 +3071,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -3083,8 +3083,8 @@ namespace NativeCollections
         /// <typeparam name="T5">The type of the sixth argument to format.</typeparam>
         /// <typeparam name="T6">The type of the seventh argument to format.</typeparam>
         /// <typeparam name="T7">The type of the eighth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -3151,7 +3151,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -3164,8 +3164,8 @@ namespace NativeCollections
         /// <typeparam name="T6">The type of the seventh argument to format.</typeparam>
         /// <typeparam name="T7">The type of the eighth argument to format.</typeparam>
         /// <typeparam name="T8">The type of the ninth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -3237,7 +3237,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -3251,8 +3251,8 @@ namespace NativeCollections
         /// <typeparam name="T7">The type of the eighth argument to format.</typeparam>
         /// <typeparam name="T8">The type of the ninth argument to format.</typeparam>
         /// <typeparam name="T9">The type of the tenth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -3329,7 +3329,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -3344,8 +3344,8 @@ namespace NativeCollections
         /// <typeparam name="T8">The type of the ninth argument to format.</typeparam>
         /// <typeparam name="T9">The type of the tenth argument to format.</typeparam>
         /// <typeparam name="T10">The type of the eleventh argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -3427,7 +3427,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -3443,8 +3443,8 @@ namespace NativeCollections
         /// <typeparam name="T9">The type of the tenth argument to format.</typeparam>
         /// <typeparam name="T10">The type of the eleventh argument to format.</typeparam>
         /// <typeparam name="T11">The type of the twelfth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -3531,7 +3531,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -3548,8 +3548,8 @@ namespace NativeCollections
         /// <typeparam name="T10">The type of the eleventh argument to format.</typeparam>
         /// <typeparam name="T11">The type of the twelfth argument to format.</typeparam>
         /// <typeparam name="T12">The type of the thirteenth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -3641,7 +3641,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -3659,8 +3659,8 @@ namespace NativeCollections
         /// <typeparam name="T11">The type of the twelfth argument to format.</typeparam>
         /// <typeparam name="T12">The type of the thirteenth argument to format.</typeparam>
         /// <typeparam name="T13">The type of the fourteenth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -3757,7 +3757,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -3776,8 +3776,8 @@ namespace NativeCollections
         /// <typeparam name="T12">The type of the thirteenth argument to format.</typeparam>
         /// <typeparam name="T13">The type of the fourteenth argument to format.</typeparam>
         /// <typeparam name="T14">The type of the fifteenth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -3879,7 +3879,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -3899,8 +3899,8 @@ namespace NativeCollections
         /// <typeparam name="T13">The type of the fourteenth argument to format.</typeparam>
         /// <typeparam name="T14">The type of the fifteenth argument to format.</typeparam>
         /// <typeparam name="T15">The type of the sixteenth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -4007,14 +4007,14 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         /// <typeparam name="T0">The type of the first argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <exception cref="ArgumentNullException">
         ///     Thrown when <paramref name="format" /> is <see langword="null" />.
@@ -4046,15 +4046,15 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         /// <typeparam name="T0">The type of the first argument to format.</typeparam>
         /// <typeparam name="T1">The type of the second argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <exception cref="ArgumentNullException">
@@ -4091,16 +4091,16 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
         /// <typeparam name="T0">The type of the first argument to format.</typeparam>
         /// <typeparam name="T1">The type of the second argument to format.</typeparam>
         /// <typeparam name="T2">The type of the third argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -4142,7 +4142,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -4150,9 +4150,9 @@ namespace NativeCollections
         /// <typeparam name="T1">The type of the second argument to format.</typeparam>
         /// <typeparam name="T2">The type of the third argument to format.</typeparam>
         /// <typeparam name="T3">The type of the fourth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -4199,7 +4199,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -4208,9 +4208,9 @@ namespace NativeCollections
         /// <typeparam name="T2">The type of the third argument to format.</typeparam>
         /// <typeparam name="T3">The type of the fourth argument to format.</typeparam>
         /// <typeparam name="T4">The type of the fifth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -4262,7 +4262,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -4272,9 +4272,9 @@ namespace NativeCollections
         /// <typeparam name="T3">The type of the fourth argument to format.</typeparam>
         /// <typeparam name="T4">The type of the fifth argument to format.</typeparam>
         /// <typeparam name="T5">The type of the sixth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -4331,7 +4331,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -4342,9 +4342,9 @@ namespace NativeCollections
         /// <typeparam name="T4">The type of the fifth argument to format.</typeparam>
         /// <typeparam name="T5">The type of the sixth argument to format.</typeparam>
         /// <typeparam name="T6">The type of the seventh argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -4406,7 +4406,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -4418,9 +4418,9 @@ namespace NativeCollections
         /// <typeparam name="T5">The type of the sixth argument to format.</typeparam>
         /// <typeparam name="T6">The type of the seventh argument to format.</typeparam>
         /// <typeparam name="T7">The type of the eighth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -4487,7 +4487,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -4500,9 +4500,9 @@ namespace NativeCollections
         /// <typeparam name="T6">The type of the seventh argument to format.</typeparam>
         /// <typeparam name="T7">The type of the eighth argument to format.</typeparam>
         /// <typeparam name="T8">The type of the ninth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -4574,7 +4574,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -4588,9 +4588,9 @@ namespace NativeCollections
         /// <typeparam name="T7">The type of the eighth argument to format.</typeparam>
         /// <typeparam name="T8">The type of the ninth argument to format.</typeparam>
         /// <typeparam name="T9">The type of the tenth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -4667,7 +4667,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -4682,9 +4682,9 @@ namespace NativeCollections
         /// <typeparam name="T8">The type of the ninth argument to format.</typeparam>
         /// <typeparam name="T9">The type of the tenth argument to format.</typeparam>
         /// <typeparam name="T10">The type of the eleventh argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -4766,7 +4766,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -4782,9 +4782,9 @@ namespace NativeCollections
         /// <typeparam name="T9">The type of the tenth argument to format.</typeparam>
         /// <typeparam name="T10">The type of the eleventh argument to format.</typeparam>
         /// <typeparam name="T11">The type of the twelfth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -4871,7 +4871,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -4888,9 +4888,9 @@ namespace NativeCollections
         /// <typeparam name="T10">The type of the eleventh argument to format.</typeparam>
         /// <typeparam name="T11">The type of the twelfth argument to format.</typeparam>
         /// <typeparam name="T12">The type of the thirteenth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -4982,7 +4982,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -5000,9 +5000,9 @@ namespace NativeCollections
         /// <typeparam name="T11">The type of the twelfth argument to format.</typeparam>
         /// <typeparam name="T12">The type of the thirteenth argument to format.</typeparam>
         /// <typeparam name="T13">The type of the fourteenth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -5099,7 +5099,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -5118,9 +5118,9 @@ namespace NativeCollections
         /// <typeparam name="T12">The type of the thirteenth argument to format.</typeparam>
         /// <typeparam name="T13">The type of the fourteenth argument to format.</typeparam>
         /// <typeparam name="T14">The type of the fifteenth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>
@@ -5222,7 +5222,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Appends the string returned by processing a composite format string, which
+        ///     Appends the string returned by processing a composite format string as UTF-8 encoded bytes, which
         ///     contains zero or more format items, to this instance. Each format item is replaced
         ///     by the string representation of a corresponding argument in a parameter span.
         /// </summary>
@@ -5242,9 +5242,9 @@ namespace NativeCollections
         /// <typeparam name="T13">The type of the fourteenth argument to format.</typeparam>
         /// <typeparam name="T14">The type of the fifteenth argument to format.</typeparam>
         /// <typeparam name="T15">The type of the sixteenth argument to format.</typeparam>
-        /// <param name="builder">The string builder to which to append the formatted string.</param>
+        /// <param name="builder">The string builder to which to append the formatted string as UTF-8 encoded bytes.</param>
         /// <param name="provider">An object that supplies culture-specific formatting information.</param>
-        /// <param name="format">The composite format to append.</param>
+        /// <param name="format">The parsed composite format string.</param>
         /// <param name="arg0">The argument to format.</param>
         /// <param name="arg1">The argument to format.</param>
         /// <param name="arg2">The argument to format.</param>

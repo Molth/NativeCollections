@@ -37,6 +37,9 @@ namespace NativeCollections
         /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="capacity" /> is negative.
         /// </exception>
+        /// <remarks>
+        ///     The requested capacity is clamped to a minimum of 2; read <c>Capacity</c> for the effective value.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeMemoryStream Create(int capacity)
         {
@@ -191,9 +194,12 @@ namespace NativeCollections
         public void Dispose() => Box.Drop(_handle);
 
         /// <summary>
-        ///     Returns the array of unsigned bytes from which this stream was created.
+        ///     Returns a writable span over the entire capacity buffer of this stream.
         /// </summary>
-        /// <returns>The array of unsigned bytes from which this stream was created.</returns>
+        /// <returns>
+        ///     A span covering <see cref="Capacity" /> bytes. Bytes beyond <see cref="Length" />
+        ///     are included and are not guaranteed to be zeroed.
+        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Span<byte> GetBuffer() => _handle->GetBuffer();
 
@@ -320,16 +326,16 @@ namespace NativeCollections
         public void SetCapacity(int capacity) => _handle->SetCapacity(capacity);
 
         /// <summary>
-        ///     Returns a span over a portion of this.
+        ///     Returns a span over the entire contents of this.
         /// </summary>
-        /// <returns>A span over a portion of this.</returns>
+        /// <returns>A span over the entire contents of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Span<byte> AsSpan() => _handle->AsSpan();
 
         /// <summary>
-        ///     Returns a read-only span over a portion of this.
+        ///     Returns a read-only span over the entire contents of this.
         /// </summary>
-        /// <returns>A read-only span over a portion of this.</returns>
+        /// <returns>A read-only span over the entire contents of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ReadOnlySpan<byte> AsReadOnlySpan() => _handle->AsReadOnlySpan();
     }

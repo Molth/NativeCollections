@@ -49,7 +49,7 @@ namespace NativeCollections
     ///         <item>
     ///             <description>
     ///                 <see cref="Enqueue" /> replaces the oldest element when the queue is full and returns
-    ///                 it in an <see cref="InsertResult" />, allowing the queue to act as a ring buffer.
+    ///                 it through the out parameter, allowing the queue to act as a ring buffer.
     ///             </description>
     ///         </item>
     ///     </list>
@@ -93,6 +93,22 @@ namespace NativeCollections
         private NativeArrayQueue(RawArrayQueue<T>* handle) => _handle = handle;
 
         /// <summary>
+        ///     Creates a new bounded queue with the given capacity.
+        /// </summary>
+        /// <param name="capacity">The requested queue capacity.</param>
+        /// <returns>A new bounded queue with a capacity of <paramref name="capacity" />.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="capacity" /> is less than or equal to zero.
+        /// </exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeArrayQueue<T> Create(int capacity)
+        {
+            ThrowHelpers.ThrowIfNegativeOrZero(capacity, ExceptionArgument.capacity);
+            var value = RawArrayQueue<T>.Create(Usize.FromI32Unchecked(capacity));
+            return new NativeArrayQueue<T>(Box.New(ref value, Usize.FromI32Unchecked(CACHE_LINE_SIZE)));
+        }
+
+        /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public bool IsCreated => _handle != null;
@@ -126,6 +142,7 @@ namespace NativeCollections
         ///     For determining whether the collection contains any items, use of the
         ///     <see cref="IsEmpty" /> property is recommended rather than retrieving the
         ///     number of items from the <see cref="Count" /> property and comparing it to 0.
+        ///     The value may change as other threads modify the queue.
         /// </remarks>
         public int Count => I32.FromUsizeUnchecked(_handle->Count());
 
@@ -236,21 +253,5 @@ namespace NativeCollections
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryDequeue(out T result) => _handle->TryDequeue(out result);
-
-        /// <summary>
-        ///     Creates a new bounded queue with the given capacity.
-        /// </summary>
-        /// <param name="capacity">The requested queue capacity.</param>
-        /// <returns>A new bounded queue with a capacity of <paramref name="capacity" />.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///     Thrown when <paramref name="capacity" /> is less than or equal to zero.
-        /// </exception>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeArrayQueue<T> Create(int capacity)
-        {
-            ThrowHelpers.ThrowIfNegativeOrZero(capacity, ExceptionArgument.capacity);
-            var value = RawArrayQueue<T>.Create(Usize.FromI32Unchecked(capacity));
-            return new NativeArrayQueue<T>(Box.New(ref value, Usize.FromI32Unchecked(CACHE_LINE_SIZE)));
-        }
     }
 }

@@ -32,7 +32,7 @@ namespace NativeCollections
 
         /// <summary>
         ///     Number of unpinnings after which a participant will
-        ///     execute some deferred functions from the global queue.
+        ///     execute some deferred functions from the previous epoch slot.
         /// </summary>
         private const uint UNPINNINGS_BETWEEN_COLLECT = 64U;
 
@@ -49,6 +49,21 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
+        /// <remarks>
+        ///     <list type="bullet">
+        ///         <item>
+        ///             <description>
+        ///                 Always <see langword="true" />.
+        ///             </description>
+        ///         </item>
+        ///         <item>
+        ///             <description>
+        ///                 The default value of this type is a valid empty collector: the epoch slots start
+        ///                 zeroed, so there is no separate initialization step.
+        ///             </description>
+        ///         </item>
+        ///     </list>
+        /// </remarks>
         public readonly bool IsCreated => true;
 
         /// <summary>
@@ -81,7 +96,7 @@ namespace NativeCollections
         ///     Returns the string representation of this instance.
         /// </summary>
         /// <returns>The string representation of this instance.</returns>
-        public readonly override string ToString() => "EpochCollector";
+        public readonly override string ToString() => "RawEpochCollector";
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
@@ -110,8 +125,8 @@ namespace NativeCollections
         /// </summary>
         public void Dispose()
         {
-            for (var i = U32.FromI32Unchecked(0); i < U32.FromI32Unchecked(3); i = i.WrappingAdd(U32.FromI32Unchecked(1)))
-                _slots[i].Dispose();
+            for (var i = 0U; i < 3U; i = i.WrappingAdd(1U))
+                _slots.GetUnchecked(i).Dispose();
         }
 
         /// <summary>
@@ -149,15 +164,15 @@ namespace NativeCollections
             while (true)
             {
                 var globalEpoch = _globalEpoch.Load(Ordering.Acquire);
-                var current = globalEpoch % U32.FromI32Unchecked(3);
+                var current = globalEpoch % 3U;
 
-                ref var pinCount = ref _slots[current].PinCount;
-                pinCount.Add(U32.FromI32Unchecked(1));
+                ref var pinCount = ref _slots.GetUnchecked(current).PinCount;
+                pinCount.Add(1U);
 
                 if (globalEpoch == _globalEpoch.Load(Ordering.Acquire))
                     return globalEpoch;
 
-                pinCount.Sub(U32.FromI32Unchecked(1));
+                pinCount.Sub(1U);
                 spinWait.SpinOnce(-1);
             }
         }
@@ -175,17 +190,17 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Unpin(uint epoch)
         {
-            var current = epoch % U32.FromI32Unchecked(3);
+            var current = epoch % 3U;
 
-            ref var slot = ref _slots[current];
-            slot.PinCount.Sub(U32.FromI32Unchecked(1));
+            ref var slot = ref _slots.GetUnchecked(current);
+            slot.PinCount.Sub(1U);
 
-            if ((slot.UnpinCount.Add(U32.FromI32Unchecked(1)) & UNPINNINGS_BETWEEN_COLLECT_MASK) == U32.FromI32Unchecked(0))
+            if ((slot.UnpinCount.Add(1U) & UNPINNINGS_BETWEEN_COLLECT_MASK) == 0U)
                 Collect();
         }
 
         /// <summary>
-        ///     Collects several bags from the global queue and executes deferred functions in them.
+        ///     Collects several bags from the previous epoch slot and executes deferred functions in them.
         /// </summary>
         /// <remarks>
         ///     This method attempts to advance the global epoch when the previous epoch has no
@@ -196,11 +211,11 @@ namespace NativeCollections
         private void Collect()
         {
             var globalEpoch = _globalEpoch.Load(Ordering.Acquire);
-            var current = globalEpoch % U32.FromI32Unchecked(3);
+            var current = globalEpoch % 3U;
 
-            var previous = current == U32.FromI32Unchecked(0) ? U32.FromI32Unchecked(2) : current.WrappingSub(U32.FromI32Unchecked(1));
-            ref var slot = ref _slots[previous];
-            if (slot.PinCount.Load(Ordering.Acquire) == U32.FromI32Unchecked(0) && _globalEpoch.CompareExchange(globalEpoch.WrappingAdd(U32.FromI32Unchecked(1)), globalEpoch) == globalEpoch)
+            var previous = current == 0U ? 2U : current.WrappingSub(1U);
+            ref var slot = ref _slots.GetUnchecked(previous);
+            if (slot.PinCount.Load(Ordering.Acquire) == 0U && _globalEpoch.CompareExchange(globalEpoch.WrappingAdd(1U), globalEpoch) == globalEpoch)
             {
                 Span<Deferred> garbage = stackalloc Deferred[I32.FromU32Unchecked(COLLECT_BATCH_SIZE)];
                 var count = 0;
@@ -260,9 +275,9 @@ namespace NativeCollections
         public void Retire(uint epoch, void* data, delegate* managed<void*, void> call)
         {
             ThrowHelpers.ThrowIfNull(call, ExceptionArgument.call);
-            var current = epoch % U32.FromI32Unchecked(3);
+            var current = epoch % 3U;
 
-            ref var slot = ref _slots[current];
+            ref var slot = ref _slots.GetUnchecked(current);
             var sealedBag = SealedBag.From(epoch, data, call);
             slot.Bag.Enqueue(sealedBag);
         }
@@ -359,7 +374,7 @@ namespace NativeCollections
             ///     can be collected; otherwise, <see langword="false" />.
             /// </returns>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public bool IsExpired(uint epoch) => epoch.WrappingSub(_epoch) >= 2;
+            public bool IsExpired(uint epoch) => epoch.WrappingSub(_epoch) >= 2U;
         }
 
         /// <summary>
@@ -384,22 +399,12 @@ namespace NativeCollections
             private Slot _slot2;
 
             /// <summary>
-            ///     Indexer to retrieve a slot by its epoch index (0, 1, or 2).
+            ///     Retrieves a reference to the slot of the specified epoch index without validating the index.
             /// </summary>
             /// <param name="index">The epoch index (must be 0, 1, or 2).</param>
-            /// <value>A reference to the corresponding slot.</value>
-            /// <exception cref="ArgumentOutOfRangeException">
-            ///     Thrown when <paramref name="index" /> is greater than or equal to the number of epochs.
-            /// </exception>
-            public ref Slot this[uint index]
-            {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get
-                {
-                    ThrowHelpers.ThrowIfGreaterThanOrEqual(index, U32.FromI32Unchecked(3), ExceptionArgument.index);
-                    return ref Unsafe.Add(ref _slot0, Isize.FromU32Unchecked(index));
-                }
-            }
+            /// <returns>A reference to the corresponding slot.</returns>
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public ref Slot GetUnchecked(uint index) => ref Unsafe.Add(ref _slot0, Isize.FromU32Unchecked(index));
         }
 
         /// <summary>

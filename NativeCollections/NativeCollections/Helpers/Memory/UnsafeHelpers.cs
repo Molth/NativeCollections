@@ -69,7 +69,7 @@ namespace NativeCollections
         /// <returns>The value read from <paramref name="source" />.</returns>
         /// <remarks>
         ///     <paramref name="source" /> is not validated; it must refer to an initialized location
-        ///     of at least <c>sizeof(T)</c> bytes. The location does not have to be aligned.
+        ///     of at least <see cref="Unsafe.SizeOf{T}()" /> bytes. The location does not have to be aligned.
         /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T ReadUnaligned<T>(ref T source) where T : unmanaged => Unsafe.ReadUnaligned<T>(ref Unsafe.As<T, byte>(ref source));
@@ -82,13 +82,13 @@ namespace NativeCollections
         /// <param name="value">The value to write.</param>
         /// <remarks>
         ///     <paramref name="destination" /> is not validated; it must refer to a writable
-        ///     location of at least <c>sizeof(T)</c> bytes. The location does not have to be aligned.
+        ///     location of at least <see cref="Unsafe.SizeOf{T}()" /> bytes. The location does not have to be aligned.
         /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteUnaligned<T>(ref T destination, T value) where T : unmanaged => Unsafe.WriteUnaligned(ref Unsafe.As<T, byte>(ref destination), value);
 
         /// <summary>
-        ///     Adds an element offset to the given pointer.
+        ///     Adds an element offset to the given reference.
         /// </summary>
         /// <typeparam name="T">The type of the elements that <paramref name="source" /> refers to.</typeparam>
         /// <param name="source">The reference to add the offset to.</param>
@@ -120,7 +120,7 @@ namespace NativeCollections
         public static T* Add<T>(void* source, nint elementOffset) where T : unmanaged => AsPointer(ref Unsafe.Add(ref Unsafe.AsRef<T>(source), elementOffset));
 
         /// <summary>
-        ///     Adds a byte offset to the given reference.
+        ///     Adds a byte offset to the given pointer.
         /// </summary>
         /// <typeparam name="T">The type of the elements that the returned pointer points to.</typeparam>
         /// <param name="source">The pointer to add the byte offset to.</param>
@@ -137,7 +137,7 @@ namespace NativeCollections
         public static T* AddByteOffset<T>(void* source, nint byteOffset) where T : unmanaged => (T*)Unsafe.AsPointer(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(source), byteOffset));
 
         /// <summary>
-        ///     Adds a byte offset to the given reference.
+        ///     Adds a byte offset to the given pointer.
         /// </summary>
         /// <param name="source">The pointer to add the byte offset to.</param>
         /// <param name="byteOffset">The offset to add, in bytes.</param>
@@ -152,7 +152,7 @@ namespace NativeCollections
         public static void* AddByteOffset(void* source, nint byteOffset) => Unsafe.AsPointer(ref Unsafe.AddByteOffset(ref Unsafe.AsRef<byte>(source), byteOffset));
 
         /// <summary>
-        ///     Subtracts a byte offset from the given reference.
+        ///     Subtracts a byte offset from the given pointer.
         /// </summary>
         /// <typeparam name="T">The type of the elements that the returned pointer points to.</typeparam>
         /// <param name="source">The pointer to subtract the byte offset from.</param>
@@ -169,7 +169,7 @@ namespace NativeCollections
         public static T* SubtractByteOffset<T>(void* source, nint byteOffset) where T : unmanaged => (T*)Unsafe.AsPointer(ref Unsafe.SubtractByteOffset(ref Unsafe.AsRef<byte>(source), byteOffset));
 
         /// <summary>
-        ///     Subtracts a byte offset from the given reference.
+        ///     Subtracts a byte offset from the given pointer.
         /// </summary>
         /// <param name="source">The pointer to subtract the byte offset from.</param>
         /// <param name="byteOffset">The offset to subtract, in bytes.</param>
@@ -185,7 +185,7 @@ namespace NativeCollections
         public static void* SubtractByteOffset(void* source, nint byteOffset) => Unsafe.AsPointer(ref Unsafe.SubtractByteOffset(ref Unsafe.AsRef<byte>(source), byteOffset));
 
         /// <summary>
-        ///     Determines the byte offset from origin to target from the given references.
+        ///     Determines the byte offset from origin to target from the given pointers.
         /// </summary>
         /// <param name="origin">The pointer to use as the origin of the offset.</param>
         /// <param name="target">The pointer whose offset from <paramref name="origin" /> is computed.</param>

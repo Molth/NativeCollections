@@ -11,12 +11,9 @@ using static NativeCollections.PaddingHelpers;
 namespace NativeCollections
 {
     /// <summary>
-    ///     An unbounded multi-producer multi-consumer queue.
+    ///     Contains the implementation of an unbounded multi-producer multi-consumer queue.
     /// </summary>
     /// <remarks>
-    ///     The queue is implemented as a linked list of segments, where each segment is a small buffer that
-    ///     can hold a handful of elements. There is no limit to how many elements can be in the queue at a
-    ///     time. Segments are allocated as elements are added and are released when they are no longer needed.
     ///     <para>
     ///         The implementation is based on <see href="https://github.com/crossbeam-rs/crossbeam">Crossbeam</see>.
     ///     </para>
@@ -78,6 +75,7 @@ namespace NativeCollections
             /// <summary>
             ///     Waits until a value is written into the slot.
             /// </summary>
+            [MethodImpl(MethodImplOptions.NoInlining)]
             public void WaitWrite()
             {
                 Backoff backoff = default;
@@ -196,6 +194,7 @@ namespace NativeCollections
             ///     Waits until the next pointer is set.
             /// </summary>
             /// <returns>The next block in the linked list.</returns>
+            [MethodImpl(MethodImplOptions.NoInlining)]
             public Block<T>* WaitNext()
             {
                 Backoff backoff = default;
@@ -256,7 +255,8 @@ namespace NativeCollections
         ///     time. Segments are allocated as elements are added and are released when they are no longer needed.
         /// </remarks>
         [StructLayout(LayoutKind.Sequential)]
-        public struct RawSegQueue<T> : IDisposable where T : unmanaged
+        [InternalCollection(FromType.Community | FromType.Rust)]
+        public struct RawSegQueue<T> : IIsCreated, IDisposable, IEquatable<RawSegQueue<T>> where T : unmanaged
         {
             /// <summary>
             ///     The head of the queue.
@@ -267,6 +267,80 @@ namespace NativeCollections
             ///     The tail of the queue.
             /// </summary>
             private CachePaddedPosition<T> _tail;
+
+            /// <summary>
+            ///     Gets a value that indicates whether this has been allocated or initialized.
+            /// </summary>
+            /// <remarks>
+            ///     <list type="bullet">
+            ///         <item>
+            ///             <description>
+            ///                 Always <see langword="true" />.
+            ///             </description>
+            ///         </item>
+            ///         <item>
+            ///             <description>
+            ///                 The default value of this type is a valid empty queue: the first block is
+            ///                 allocated by the first enqueue, so there is no separate initialization step.
+            ///             </description>
+            ///         </item>
+            ///     </list>
+            /// </remarks>
+            public readonly bool IsCreated => true;
+
+            /// <summary>
+            ///     Indicates whether the current object is equal to another object.
+            /// </summary>
+            /// <param name="other">The value to compare with this instance.</param>
+            /// <returns>
+            ///     <see langword="true" /> if this instance is equal to
+            ///     the other object; otherwise, <see langword="false" />.
+            /// </returns>
+            public readonly bool Equals(RawSegQueue<T> other) => SpanHelpers.Equals(ref Unsafe.AsRef(in this), ref other);
+
+            /// <summary>
+            ///     Indicates whether the current object is equal to another object.
+            /// </summary>
+            /// <param name="obj">The object to compare with this instance.</param>
+            /// <returns>
+            ///     <see langword="true" /> if this instance is equal to
+            ///     the other object; otherwise, <see langword="false" />.
+            /// </returns>
+            public readonly override bool Equals(object? obj) => obj is RawSegQueue<T> other && other.Equals(this);
+
+            /// <summary>
+            ///     Returns the hash code for this instance.
+            /// </summary>
+            /// <returns>The hash code for this instance.</returns>
+            public readonly override int GetHashCode() => NativeHashCode.GetHashCode(this);
+
+            /// <summary>
+            ///     Returns the string representation of this instance.
+            /// </summary>
+            /// <returns>The string representation of this instance.</returns>
+            public readonly override string ToString() => SR.Format("RawSegQueue<{0}>", SR.GetTypeName(typeof(T)));
+
+            /// <summary>
+            ///     Indicates whether the current object is equal to another object.
+            /// </summary>
+            /// <param name="left">The first value to compare.</param>
+            /// <param name="right">The second value to compare.</param>
+            /// <returns>
+            ///     <see langword="true" /> if this instance is equal to
+            ///     the other object; otherwise, <see langword="false" />.
+            /// </returns>
+            public static bool operator ==(RawSegQueue<T> left, RawSegQueue<T> right) => left.Equals(right);
+
+            /// <summary>
+            ///     Indicates whether the current object is not equal to another object.
+            /// </summary>
+            /// <param name="left">The first value to compare.</param>
+            /// <param name="right">The second value to compare.</param>
+            /// <returns>
+            ///     <see langword="true" /> if this instance is not equal to
+            ///     the other object; otherwise, <see langword="false" />.
+            /// </returns>
+            public static bool operator !=(RawSegQueue<T> left, RawSegQueue<T> right) => !left.Equals(right);
 
             /// <summary>
             ///     Adds an element to the end of the queue.

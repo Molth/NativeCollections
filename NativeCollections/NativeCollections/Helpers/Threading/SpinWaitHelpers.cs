@@ -14,13 +14,8 @@ namespace NativeCollections
     internal static class SpinWaitHelpers
     {
         /// <summary>
-        ///     These constants determine the frequency of yields versus spinning. The numbers may seem
-        ///     fairly arbitrary, but were derived with at least some thought in the design document. I
-        ///     fully expect they will need to change over time as we gain more experience with performance.
+        ///     The number of spins before yielding the processor.
         /// </summary>
-        /// <remarks>
-        ///     When to switch over to a true yield.
-        /// </remarks>
         private const int YIELD_THRESHOLD = 10;
 
         /// <summary>

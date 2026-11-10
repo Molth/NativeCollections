@@ -71,7 +71,7 @@ namespace NativeCollections
         /// <param name="index">Represents a contiguous region of arbitrary memory.</param>
         /// <param name="bitArray">The bit array tracking which slots are currently in use.</param>
         /// <param name="capacity">The total number of elements the internal data structure can hold.</param>
-        /// <param name="bitArrayLength">The total number of bits the bit array can hold.</param>
+        /// <param name="bitArrayLength">The number of integers required to store the allocation bit array.</param>
         /// <param name="count">The number of elements contained in this.</param>
         private UnsafeFixedSizeMemoryPool(T* buffer, int* index, int* bitArray, int capacity, int bitArrayLength, int count)
         {
@@ -186,10 +186,10 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Attempts to retrieve a buffer that is at least the requested length.
+        ///     Attempts to retrieve a single block from the pool.
         /// </summary>
         /// <param name="ptr">
-        ///     When this method returns, contains the rented buffer if
+        ///     When this method returns, contains a pointer to the rented block if
         ///     the operation succeeds; otherwise, <see langword="null" />.
         /// </param>
         /// <returns>

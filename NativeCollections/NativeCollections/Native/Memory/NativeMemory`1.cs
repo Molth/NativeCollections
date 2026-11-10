@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -26,7 +25,7 @@ namespace NativeCollections
         public bool IsCreated => _handle.IsAllocated;
 
         /// <summary>
-        ///     Gets the handle to the underlying object.
+        ///     Gets the memory manager wrapped by this instance.
         /// </summary>
         public NativeMemoryManager<T> Manager
         {
@@ -35,9 +34,9 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Gets the memory block handled by this <see cref="MemoryManager{T}" />.
+        ///     Gets the memory block handled by the memory manager of this instance.
         /// </summary>
-        /// <value>The memory block handled by this <see cref="MemoryManager{T}" />.</value>
+        /// <value>The memory block handled by the memory manager of this instance.</value>
         public Memory<T> Memory
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -163,7 +162,10 @@ namespace NativeCollections
         /// <summary>
         ///     Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        /// <param name="disposing">Disposing.</param>
+        /// <param name="disposing">
+        ///     <see langword="true" /> to release the native buffer held by <see cref="Manager" />
+        ///     as well; <see langword="false" /> to release only the GC handle.
+        /// </param>
         /// <remarks>
         ///     <list type="bullet">
         ///         <item>

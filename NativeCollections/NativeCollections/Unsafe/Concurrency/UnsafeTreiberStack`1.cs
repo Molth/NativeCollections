@@ -32,7 +32,23 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
-        public readonly bool IsCreated => _handle.IsCreated;
+        /// <remarks>
+        ///     <list type="bullet">
+        ///         <item>
+        ///             <description>
+        ///                 Always <see langword="true" />.
+        ///             </description>
+        ///         </item>
+        ///         <item>
+        ///             <description>
+        ///                 The default value of this type is a valid empty stack: the head pointer starts
+        ///                 <see langword="null" /> and the first node is allocated by the first push,
+        ///                 so there is no separate initialization step.
+        ///             </description>
+        ///         </item>
+        ///     </list>
+        /// </remarks>
+        public readonly bool IsCreated => true;
 
         /// <summary>
         ///     Gets a value that indicates whether this is empty.

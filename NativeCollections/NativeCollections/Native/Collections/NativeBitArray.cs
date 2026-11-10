@@ -64,9 +64,6 @@ namespace NativeCollections
         /// </summary>
         /// <param name="n">The number of bits.</param>
         /// <returns>The number of bytes needed to store <paramref name="n" /> bits.</returns>
-        /// <remarks>
-        ///     Same as <see cref="UnsafeBitArray.GetByteArrayLengthFromBitLength" />.
-        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetByteArrayLengthFromBitLength(int n) => UnsafeBitArray.GetByteArrayLengthFromBitLength(n);
 
@@ -75,9 +72,6 @@ namespace NativeCollections
         /// </summary>
         /// <param name="n">The number of bits.</param>
         /// <returns>The number of 32‑bit signed integers needed to store <paramref name="n" /> bits.</returns>
-        /// <remarks>
-        ///     Same as <see cref="UnsafeBitArray.GetInt32ArrayLengthFromBitLength" />.
-        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetInt32ArrayLengthFromBitLength(int n) => UnsafeBitArray.GetInt32ArrayLengthFromBitLength(n);
 
@@ -221,7 +215,7 @@ namespace NativeCollections
         /// <summary>
         ///     Sets the value of the bit at a specific position in this.
         /// </summary>
-        /// <param name="index">The zero-based index of the value to get.</param>
+        /// <param name="index">The zero-based index of the value to set.</param>
         /// <param name="value">The bool value to assign to the bit.</param>
         /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="index" /> is negative or greater than or equal to <see cref="Count" />.
@@ -243,7 +237,7 @@ namespace NativeCollections
         /// <param name="value">The bit array with which to perform the bitwise AND operation.</param>
         /// <returns>The current instance after applying the bitwise AND operation.</returns>
         /// <exception cref="ArgumentNullException">
-        ///     Thrown when <paramref name="value" /> is <see langword="null" />.
+        ///     Thrown when <paramref name="value" /> indicates it is not created.
         /// </exception>
         /// <exception cref="ArgumentException">
         ///     Thrown when <paramref name="value" /> and the current instance do not have the same number of bits.
@@ -262,9 +256,6 @@ namespace NativeCollections
         /// </summary>
         /// <param name="value">The bit array with which to perform the bitwise AND operation.</param>
         /// <returns>The current instance after applying the bitwise AND operation.</returns>
-        /// <exception cref="ArgumentNullException">
-        ///     Thrown when <paramref name="value" /> is <see langword="null" />.
-        /// </exception>
         /// <exception cref="ArgumentException">
         ///     Thrown when <paramref name="value" /> and the current instance do not have the same number of bits.
         /// </exception>
@@ -282,7 +273,7 @@ namespace NativeCollections
         /// <param name="value">The bit array with which to perform the bitwise OR operation.</param>
         /// <returns>The current instance after applying the bitwise OR operation.</returns>
         /// <exception cref="ArgumentNullException">
-        ///     Thrown when <paramref name="value" /> is <see langword="null" />.
+        ///     Thrown when <paramref name="value" /> indicates it is not created.
         /// </exception>
         /// <exception cref="ArgumentException">
         ///     Thrown when <paramref name="value" /> and the current instance do not have the same number of bits.
@@ -301,9 +292,6 @@ namespace NativeCollections
         /// </summary>
         /// <param name="value">The bit array with which to perform the bitwise OR operation.</param>
         /// <returns>The current instance after applying the bitwise OR operation.</returns>
-        /// <exception cref="ArgumentNullException">
-        ///     Thrown when <paramref name="value" /> is <see langword="null" />.
-        /// </exception>
         /// <exception cref="ArgumentException">
         ///     Thrown when <paramref name="value" /> and the current instance do not have the same number of bits.
         /// </exception>
@@ -321,7 +309,7 @@ namespace NativeCollections
         /// <param name="value">The bit array with which to perform the bitwise XOR operation.</param>
         /// <returns>The current instance after applying the bitwise XOR operation.</returns>
         /// <exception cref="ArgumentNullException">
-        ///     Thrown when <paramref name="value" /> is <see langword="null" />.
+        ///     Thrown when <paramref name="value" /> indicates it is not created.
         /// </exception>
         /// <exception cref="ArgumentException">
         ///     Thrown when <paramref name="value" /> and the current instance do not have the same number of bits.
@@ -340,9 +328,6 @@ namespace NativeCollections
         /// </summary>
         /// <param name="value">The bit array with which to perform the bitwise XOR operation.</param>
         /// <returns>The current instance after applying the bitwise XOR operation.</returns>
-        /// <exception cref="ArgumentNullException">
-        ///     Thrown when <paramref name="value" /> is <see langword="null" />.
-        /// </exception>
         /// <exception cref="ArgumentException">
         ///     Thrown when <paramref name="value" /> and the current instance do not have the same number of bits.
         /// </exception>

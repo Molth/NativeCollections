@@ -33,7 +33,7 @@ namespace NativeCollections
         private MemoryChunk* _freeList;
 
         /// <summary>
-        ///     Gets the total number of chunks currently allocated in the queue.
+        ///     Gets the number of chunks currently in use by the queue, excluding free chunks.
         /// </summary>
         private int _chunks;
 
@@ -78,7 +78,7 @@ namespace NativeCollections
         /// <param name="head">Pointer to the first chunk.</param>
         /// <param name="tail">Pointer to the last chunk.</param>
         /// <param name="freeList">Head of the free list of chunks available for reuse.</param>
-        /// <param name="chunks">The total number of chunks currently allocated in the queue.</param>
+        /// <param name="chunks">The number of chunks currently in use by the queue, excluding free chunks.</param>
         /// <param name="freeChunks">The number of chunks that are currently free and available for reuse.</param>
         /// <param name="maxFreeChunks">
         ///     The maximum number of free chunks that can be retained before excess chunks are freed.
@@ -132,7 +132,7 @@ namespace NativeCollections
         public readonly bool IsEmpty => _count == 0;
 
         /// <summary>
-        ///     Gets the total number of chunks currently allocated in the queue.
+        ///     Gets the number of chunks currently in use by the queue, excluding free chunks.
         /// </summary>
         public readonly int Chunks => _chunks;
 
@@ -565,7 +565,7 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Chunk.
+        ///     Represents a chunk that holds a buffer of elements and a link to the next chunk.
         /// </summary>
         [StructLayout(LayoutKind.Sequential)]
         private struct MemoryChunk

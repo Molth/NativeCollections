@@ -12,7 +12,8 @@ using System.Text;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Provides internal structures.
+    ///     Provides helpers for frozen hash tables and their bucket structures,
+    ///     enabling fast lookup for read-only collections.
     /// </summary>
     internal static unsafe class FrozenHelpers
     {
@@ -167,6 +168,9 @@ namespace NativeCollections
             /// <remarks>
             ///     The matching entries are stored contiguously in the <see cref="HashCodes" /> array
             ///     between <paramref name="startIndex" /> and <paramref name="endIndex" /> (inclusive).
+            ///     An empty bucket returns <c>(0, 0)</c>, which does not identify matching entries;
+            ///     callers must compare <c>HashCodes[startIndex]</c> with <paramref name="hashCode" />
+            ///     to determine whether a match exists.
             /// </remarks>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void FindMatchingEntries(int hashCode, out int startIndex, out int endIndex)

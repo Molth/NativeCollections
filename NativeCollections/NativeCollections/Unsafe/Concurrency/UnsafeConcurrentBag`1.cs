@@ -65,6 +65,13 @@ namespace NativeCollections
         private UnsafeConcurrentBag(NativeObject<ConcurrentBag<T>> handle) => _handle = handle;
 
         /// <summary>
+        ///     Initializes a new instance of this class.
+        /// </summary>
+        /// <returns>A new instance.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UnsafeConcurrentBag<T> Create() => new(NativeObject<ConcurrentBag<T>>.Create(new ConcurrentBag<T>()));
+
+        /// <summary>
         ///     Indicates whether the current object is equal to another object.
         /// </summary>
         /// <param name="other">The value to compare with this instance.</param>
@@ -150,12 +157,5 @@ namespace NativeCollections
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryTake(out T result) => Handle.TryTake(out result);
-
-        /// <summary>
-        ///     Initializes a new instance of this class.
-        /// </summary>
-        /// <returns>A new instance.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeConcurrentBag<T> Create() => new(NativeObject<ConcurrentBag<T>>.Create(new ConcurrentBag<T>()));
     }
 }

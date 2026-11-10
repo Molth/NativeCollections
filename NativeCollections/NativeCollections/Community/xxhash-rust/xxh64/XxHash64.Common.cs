@@ -20,12 +20,12 @@ namespace NativeCollections
         /// <summary>
         ///     The first xxHash64 prime constant.
         /// </summary>
-        private const ulong PRIME_1 = 0x9E3779B185EBCA87;
+        private const ulong PRIME_1 = 0x9E3779B185EBCA87UL;
 
         /// <summary>
         ///     The second xxHash64 prime constant.
         /// </summary>
-        private const ulong PRIME_2 = 0xC2B2AE3D27D4EB4F;
+        private const ulong PRIME_2 = 0xC2B2AE3D27D4EB4FUL;
 
         /// <summary>
         ///     The third xxHash64 prime constant.
@@ -35,7 +35,7 @@ namespace NativeCollections
         /// <summary>
         ///     The fourth xxHash64 prime constant.
         /// </summary>
-        private const ulong PRIME_4 = 0x85EBCA77C2B2AE63;
+        private const ulong PRIME_4 = 0x85EBCA77C2B2AE63UL;
 
         /// <summary>
         ///     The fifth xxHash64 prime constant.
@@ -60,7 +60,7 @@ namespace NativeCollections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ulong MergeRound(ulong acc, ulong val)
         {
-            acc ^= Round(U64.FromI32Unchecked(0), val);
+            acc ^= Round(0UL, val);
             return acc.WrappingMul(PRIME_1).WrappingAdd(PRIME_4);
         }
 

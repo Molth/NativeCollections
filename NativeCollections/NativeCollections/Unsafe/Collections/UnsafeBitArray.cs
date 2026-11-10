@@ -93,6 +93,13 @@ namespace NativeCollections
         /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="length" /> is negative or the buffer is too small.
         /// </exception>
+        /// <remarks>
+        ///     The returned bit array references <paramref name="buffer" /> and does not take ownership of
+        ///     it; <paramref name="buffer" /> must remain pinned and valid for the lifetime of the returned
+        ///     bit array. Do not call <see cref="Dispose" /> on the returned bit array, and avoid resizing
+        ///     it (for example, through <see cref="SetLength" />): both <see cref="Dispose" /> and
+        ///     reallocation release the buffer with <see cref="NativeMemoryAllocator.AlignedFree" />.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeBitArray From([MustBePinned] Span<int> buffer, int length)
         {
@@ -113,9 +120,17 @@ namespace NativeCollections
         ///     Thrown when <paramref name="length" /> is negative or the buffer is too small.
         /// </exception>
         /// <remarks>
-        ///     The initial value is applied to the entire backing integer buffer, including storage
-        ///     beyond the <paramref name="length" /> visible bits. When <paramref name="defaultValue" />
-        ///     is <see langword="true" /> all such storage is set to all ones; otherwise it is cleared.
+        ///     Every bit visible through <paramref name="length" /> is set to
+        ///     <paramref name="defaultValue" />. When <paramref name="length" /> is not a multiple of 32,
+        ///     the unused high bits of the last required integer are cleared regardless of
+        ///     <paramref name="defaultValue" />. Any additional whole integers in <paramref name="buffer" />
+        ///     beyond the number required for <paramref name="length" /> are also set to
+        ///     <paramref name="defaultValue" />.
+        ///     The returned bit array references <paramref name="buffer" /> and does not take ownership of
+        ///     it; <paramref name="buffer" /> must remain pinned and valid for the lifetime of the returned
+        ///     bit array. Do not call <see cref="Dispose" /> on the returned bit array, and avoid resizing
+        ///     it (for example, through <see cref="SetLength" />): both <see cref="Dispose" /> and
+        ///     reallocation release the buffer with <see cref="NativeMemoryAllocator.AlignedFree" />.
         /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeBitArray From([MustBePinned] Span<int> buffer, int length, bool defaultValue)
@@ -273,10 +288,12 @@ namespace NativeCollections
         ///     Thrown when <paramref name="length" /> is negative.
         /// </exception>
         /// <remarks>
-        ///     Growing this instance reallocates the backing buffer and releases the previous one.
-        ///     If this instance was created from a caller-supplied span via the <c>From</c> overloads,
-        ///     the caller's buffer is released by this method; the caller must not access or free it
-        ///     afterwards.
+        ///     This instance is reallocated, and the previous buffer is released, only when the required
+        ///     number of integers exceeds the current buffer length or is more than 256 integers smaller
+        ///     than it. Otherwise, the existing buffer is modified in place. If this instance was created
+        ///     from a caller-supplied span via the <c>From</c> overloads, that span remains owned by the
+        ///     caller and must remain pinned; avoid triggering reallocation, because it releases the
+        ///     span's memory with <see cref="NativeMemoryAllocator.AlignedFree" />.
         /// </remarks>
         public void SetLength(int length)
         {
@@ -330,7 +347,7 @@ namespace NativeCollections
         /// <summary>
         ///     Sets the value of the bit at a specific position in this.
         /// </summary>
-        /// <param name="index">The zero-based index of the value to get.</param>
+        /// <param name="index">The zero-based index of the value to set.</param>
         /// <param name="value">The bool value to assign to the bit.</param>
         /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="index" /> is negative or greater than or equal to <see cref="Count" />.
@@ -370,7 +387,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="value">The bit array with which to perform the bitwise AND operation.</param>
         /// <exception cref="ArgumentNullException">
-        ///     Thrown when <paramref name="value" /> is <see langword="null" />.
+        ///     Thrown when <paramref name="value" /> indicates it is not created.
         /// </exception>
         /// <exception cref="ArgumentException">
         ///     Thrown when <paramref name="value" /> and the current instance do not have the same number of bits.
@@ -387,9 +404,6 @@ namespace NativeCollections
         ///     specified bit array. The current instance is modified to store the result of the bitwise AND operation.
         /// </summary>
         /// <param name="value">The bit array with which to perform the bitwise AND operation.</param>
-        /// <exception cref="ArgumentNullException">
-        ///     Thrown when <paramref name="value" /> is <see langword="null" />.
-        /// </exception>
         /// <exception cref="ArgumentException">
         ///     Thrown when <paramref name="value" /> and the current instance do not have the same number of bits.
         /// </exception>
@@ -409,7 +423,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="value">The bit array with which to perform the bitwise OR operation.</param>
         /// <exception cref="ArgumentNullException">
-        ///     Thrown when <paramref name="value" /> is <see langword="null" />.
+        ///     Thrown when <paramref name="value" /> indicates it is not created.
         /// </exception>
         /// <exception cref="ArgumentException">
         ///     Thrown when <paramref name="value" /> and the current instance do not have the same number of bits.
@@ -426,9 +440,6 @@ namespace NativeCollections
         ///     specified bit array. The current instance is modified to store the result of the bitwise OR operation.
         /// </summary>
         /// <param name="value">The bit array with which to perform the bitwise OR operation.</param>
-        /// <exception cref="ArgumentNullException">
-        ///     Thrown when <paramref name="value" /> is <see langword="null" />.
-        /// </exception>
         /// <exception cref="ArgumentException">
         ///     Thrown when <paramref name="value" /> and the current instance do not have the same number of bits.
         /// </exception>
@@ -448,7 +459,7 @@ namespace NativeCollections
         /// </summary>
         /// <param name="value">The bit array with which to perform the bitwise XOR operation.</param>
         /// <exception cref="ArgumentNullException">
-        ///     Thrown when <paramref name="value" /> is <see langword="null" />.
+        ///     Thrown when <paramref name="value" /> indicates it is not created.
         /// </exception>
         /// <exception cref="ArgumentException">
         ///     Thrown when <paramref name="value" /> and the current instance do not have the same number of bits.
@@ -465,9 +476,6 @@ namespace NativeCollections
         ///     specified bit array. The current instance is modified to store the result of the bitwise XOR operation.
         /// </summary>
         /// <param name="value">The bit array with which to perform the bitwise XOR operation.</param>
-        /// <exception cref="ArgumentNullException">
-        ///     Thrown when <paramref name="value" /> is <see langword="null" />.
-        /// </exception>
         /// <exception cref="ArgumentException">
         ///     Thrown when <paramref name="value" /> and the current instance do not have the same number of bits.
         /// </exception>
@@ -683,7 +691,7 @@ namespace NativeCollections
         /// <param name="n">The number of bits.</param>
         /// <returns>The number of bytes needed to store <paramref name="n" /> bits.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetByteArrayLengthFromBitLength(int n) => I32.FromU32Unchecked(U32.FromI32Unchecked(n).WrappingAdd(U32.FromI32Unchecked(7)) >> 3);
+        public static int GetByteArrayLengthFromBitLength(int n) => I32.FromU32Unchecked(U32.FromI32Unchecked(n).WrappingAdd(7U) >> 3);
 
         /// <summary>
         ///     Calculates the minimum number of 32‑bit signed integers required to store the specified number of bits.
@@ -696,13 +704,13 @@ namespace NativeCollections
         /// <summary>
         ///     Divide by 32 and get the remainder.
         /// </summary>
-        /// <param name="number">Number.</param>
-        /// <param name="remainder">Remainder.</param>
+        /// <param name="number">The value to divide by 32.</param>
+        /// <param name="remainder">The remainder modulo 32 of <paramref name="number" />.</param>
         /// <returns>Quotient.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int Div32Rem(int number, out int remainder)
         {
-            var quotient = U32.FromI32Unchecked(number) / U32.FromI32Unchecked(32);
+            var quotient = U32.FromI32Unchecked(number) / 32U;
             remainder = number & 32.WrappingSub(1);
             return I32.FromU32Unchecked(quotient);
         }

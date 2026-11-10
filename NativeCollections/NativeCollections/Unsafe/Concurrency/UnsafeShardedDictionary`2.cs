@@ -29,7 +29,8 @@ namespace NativeCollections
         ///     Array of shards, each containing a separate hash map and its own reader‑writer lock.
         /// </summary>
         /// <remarks>
-        ///     Segment design is inspired by the algorithm outlined at: https://github.com/xacrimon/dashmap
+        ///     Shard design is inspired by the algorithm outlined at:
+        ///     <see href="https://github.com/xacrimon/dashmap">dashmap</see>
         /// </remarks>
         private readonly NativeArray<Shard> _shards;
 
@@ -76,8 +77,9 @@ namespace NativeCollections
         /// </value>
         /// <exception cref="OverflowException">Thrown when the dictionary contains too many elements.</exception>
         /// <remarks>
-        ///     Count has snapshot semantics and represents the number
-        ///     of items in this at the moment when Count was accessed.
+        ///     Each shard is read while its read lock is held, so the counts
+        ///     are accumulated shard by shard rather than captured atomically
+        ///     and may not correspond to any single moment in time.
         /// </remarks>
         public int Count => GetCount(_shards);
 
@@ -97,6 +99,56 @@ namespace NativeCollections
         /// <param name="shards">The shards that back the collection.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private UnsafeShardedDictionary(NativeArray<Shard> shards) => _shards = shards;
+
+        /// <summary>
+        ///     Creates a new instance that is empty, has the default concurrency level, has
+        ///     the default initial capacity, and uses the default comparer for the key type.
+        /// </summary>
+        /// <returns>A new instance.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UnsafeShardedDictionary<TKey, TValue> Create() => Create(-1, 31);
+
+        /// <summary>
+        ///     Creates a new instance that is empty, has the specified concurrency
+        ///     level and capacity, and uses the default comparer for the key type.
+        /// </summary>
+        /// <param name="concurrencyLevel">
+        ///     The estimated number of threads that will update this concurrently, or -1 to use the default concurrency level.
+        /// </param>
+        /// <param name="capacity">
+        ///     The initial number of elements that each shard can contain.
+        /// </param>
+        /// <returns>A new instance.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="concurrencyLevel" /> is less than 1 and not -1,
+        ///     or <paramref name="capacity" /> is negative.
+        /// </exception>
+        /// <remarks>
+        ///     The collection is partitioned into shards whose number is the specified concurrency
+        ///     level rounded up to a power of two, and each shard is created with the specified
+        ///     initial capacity; the total initial capacity is therefore approximately the number of
+        ///     shards multiplied by <paramref name="capacity" />. The exact shard count is an
+        ///     implementation detail.
+        /// </remarks>
+        public static UnsafeShardedDictionary<TKey, TValue> Create(int concurrencyLevel, int capacity)
+        {
+            if (concurrencyLevel < 1)
+            {
+                ThrowHelpers.ThrowIfNotEqual(concurrencyLevel, -1, ExceptionArgument.concurrencyLevel);
+                concurrencyLevel = EnvironmentHelpers.DefaultConcurrencyLevel;
+            }
+
+            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
+            concurrencyLevel = I32.FromU32Unchecked(BitOperationsHelpers.RoundUpToPowerOf2(U32.FromI32Unchecked(concurrencyLevel)));
+            if (concurrencyLevel < 0)
+                concurrencyLevel = 1 << 30;
+
+            var shards = NativeArray<Shard>.Create(concurrencyLevel, CACHE_LINE_SIZE, true);
+            foreach (ref var shard in shards)
+                shard.HashMap = UnsafeDictionary<TKey, TValue>.Create(capacity);
+
+            return new UnsafeShardedDictionary<TKey, TValue>(shards);
+        }
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
@@ -200,7 +252,7 @@ namespace NativeCollections
         /// <summary>
         ///     Attempts to remove and return the value with the specified key from this.
         /// </summary>
-        /// <param name="key">The key of the element to remove and return.</param>
+        /// <param name="key">The key of the element to remove.</param>
         /// <param name="value">
         ///     When this method returns, <paramref name="value" /> contains the object removed from
         ///     this or the default value of <typeparamref name="TValue" /> if the operation failed.
@@ -545,7 +597,7 @@ namespace NativeCollections
         /// <param name="hashCode">The hash code used to select the shard.</param>
         /// <returns>A reference to the shard selected by <paramref name="hashCode" />.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ref Shard GetShard(uint hashCode) => ref _shards[I32.FromU32Unchecked(hashCode & U32.FromI32Unchecked(_shards.Length).WrappingSub(U32.FromI32Unchecked(1)))];
+        private ref Shard GetShard(uint hashCode) => ref _shards[I32.FromU32Unchecked(hashCode & U32.FromI32Unchecked(_shards.Length).WrappingSub(1U))];
 
         /// <summary>
         ///     Sets the value for the specified key in the shard that owns the key.
@@ -612,13 +664,13 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     A single shard consisting of a hash set and its associated lock for concurrent access.
+        ///     A single shard consisting of a hash map and its associated lock for concurrent access.
         /// </summary>
         [StructLayout(LayoutKind.Sequential, Size = CACHE_LINE_SIZE)]
         internal struct Shard
         {
             /// <summary>
-            ///     Reader‑writer lock protecting the hash set in this shard.
+            ///     Reader‑writer lock protecting the hash map in this shard.
             /// </summary>
             public UnsafeReaderWriterLock RwLock;
 
@@ -626,49 +678,6 @@ namespace NativeCollections
             ///     The underlying hash map holding the key‑value pairs for this shard.
             /// </summary>
             public UnsafeDictionary<TKey, TValue> HashMap;
-        }
-
-        /// <summary>
-        ///     Creates a new instance that is empty, has the default concurrency level, has
-        ///     the default initial capacity, and uses the default comparer for the key type.
-        /// </summary>
-        /// <returns>A new instance.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnsafeShardedDictionary<TKey, TValue> Create() => Create(-1, 31);
-
-        /// <summary>
-        ///     Creates a new instance that is empty, has the specified concurrency
-        ///     level and capacity, and uses the default comparer for the key type.
-        /// </summary>
-        /// <param name="concurrencyLevel">
-        ///     The estimated number of threads that will update this concurrently, or -1 to indicate a default value.
-        /// </param>
-        /// <param name="capacity">
-        ///     The initial number of elements that this can contain.
-        /// </param>
-        /// <returns>A new instance.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">
-        ///     Thrown when <paramref name="concurrencyLevel" /> is
-        ///     less than 1 or <paramref name="capacity" /> is negative.
-        /// </exception>
-        public static UnsafeShardedDictionary<TKey, TValue> Create(int concurrencyLevel, int capacity)
-        {
-            if (concurrencyLevel < 1)
-            {
-                ThrowHelpers.ThrowIfNotEqual(concurrencyLevel, -1, ExceptionArgument.concurrencyLevel);
-                concurrencyLevel = EnvironmentHelpers.DefaultConcurrencyLevel;
-            }
-
-            ThrowHelpers.ThrowIfNegative(capacity, ExceptionArgument.capacity);
-            concurrencyLevel = I32.FromU32Unchecked(BitOperationsHelpers.RoundUpToPowerOf2(U32.FromI32Unchecked(concurrencyLevel)));
-            if (concurrencyLevel < 0)
-                concurrencyLevel = 1 << 30;
-
-            var shards = NativeArray<Shard>.Create(concurrencyLevel, CACHE_LINE_SIZE, true);
-            foreach (ref var shard in shards)
-                shard.HashMap = UnsafeDictionary<TKey, TValue>.Create(capacity);
-
-            return new UnsafeShardedDictionary<TKey, TValue>(shards);
         }
 
         /// <summary>

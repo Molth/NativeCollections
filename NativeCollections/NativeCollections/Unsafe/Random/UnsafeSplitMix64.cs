@@ -29,8 +29,8 @@ namespace NativeCollections
         ///     A zero state is a valid state for this generator, so this property always returns
         ///     <see langword="true" />, including for a default-constructed instance. The
         ///     thread-static seeding helper in this library uses this property to decide whether an
-        ///     instance still needs a seed, so the thread-local <c>ThreadSafeSplitMix64</c> instance is
-        ///     never seeded and every thread keeps the zero state, producing the same sequence.
+        ///     instance still needs a seed, so the thread-local <see cref="ThreadSafeSplitMix64" /> instance is
+        ///     never seeded and every thread starts from the same zero state, producing the same sequence.
         ///     This type is therefore only suitable for seeding other pseudo-random number generators;
         ///     use <see cref="Create()" /> or <see cref="Create(ulong)" /> when an explicitly seeded
         ///     instance is required.
@@ -61,6 +61,19 @@ namespace NativeCollections
         /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnsafeSplitMix64 Create(ReadOnlySpan<byte> buffer) => new(State.Create(buffer));
+
+        /// <summary>
+        ///     Creates a new instance seeded from a non-deterministic system random source.
+        /// </summary>
+        /// <returns>A new instance whose sequence cannot be reproduced.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [SkipLocalsInit]
+        public static UnsafeSplitMix64 Create()
+        {
+            Unsafe.SkipInit(out UnsafeSplitMix64 random);
+            RandomHelpers.Initialize(ref random);
+            return random;
+        }
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.
@@ -139,6 +152,9 @@ namespace NativeCollections
         ///     <see langword="false" /> if they should be uppercase. The default is <see langword="false" />.
         /// </param>
         /// <returns>A string populated with random hexadecimal characters.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when <paramref name="stringLength" /> is negative.
+        /// </exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public string GetHexString(int stringLength, bool lowercase = false) => _state.GetHexString(stringLength, lowercase);
 
@@ -223,9 +239,13 @@ namespace NativeCollections
         ///     A 64-bit double-precision floating point number greater than or equal to <paramref name="minValue" />,
         ///     and less than <paramref name="maxValue" />; that is, the range of return values
         ///     includes <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         /// <seealso cref="NextF64()" />
+        /// <remarks>
+        ///     Due to floating-point rounding, the returned value may equal
+        ///     <paramref name="maxValue" /> even though the range is nominally exclusive.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public double LerpF64(double minValue, double maxValue) => _state.LerpF64(minValue, maxValue);
 
@@ -257,9 +277,13 @@ namespace NativeCollections
         ///     A 32-bit single-precision floating point number greater than or equal to <paramref name="minValue" />,
         ///     and less than <paramref name="maxValue" />; that is, the range of return values
         ///     includes <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         /// <seealso cref="NextF32()" />
+        /// <remarks>
+        ///     Due to floating-point rounding, the returned value may equal
+        ///     <paramref name="maxValue" /> even though the range is nominally exclusive.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public float LerpF32(float minValue, float maxValue) => _state.LerpF32(minValue, maxValue);
 
@@ -299,7 +323,7 @@ namespace NativeCollections
         ///     A 32-bit unsigned integer greater than or equal to <paramref name="minValue" />, and
         ///     less than <paramref name="maxValue" />; that is, the range of return values includes
         ///     <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public uint NextU32(uint minValue, uint maxValue) => _state.NextU32(minValue, maxValue);
@@ -341,7 +365,7 @@ namespace NativeCollections
         ///     A 64-bit unsigned integer greater than or equal to <paramref name="minValue" />, and
         ///     less than <paramref name="maxValue" />; that is, the range of return values includes
         ///     <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ulong NextU64(ulong minValue, ulong maxValue) => _state.NextU64(minValue, maxValue);
@@ -382,7 +406,7 @@ namespace NativeCollections
         ///     A 32-bit signed integer greater than or equal to <paramref name="minValue" />, and
         ///     less than <paramref name="maxValue" />; that is, the range of return values includes
         ///     <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int NextI32(int minValue, int maxValue) => _state.NextI32(minValue, maxValue);
@@ -423,7 +447,7 @@ namespace NativeCollections
         ///     A 64-bit signed integer greater than or equal to <paramref name="minValue" />, and
         ///     less than <paramref name="maxValue" />; that is, the range of return values includes
         ///     <paramref name="minValue" /> but not <paramref name="maxValue" />. However, if
-        ///     minValue equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
+        ///     <paramref name="minValue" /> equals <paramref name="maxValue" />, <paramref name="minValue" /> is returned.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public long NextI64(long minValue, long maxValue) => _state.NextI64(minValue, maxValue);
@@ -506,19 +530,6 @@ namespace NativeCollections
         /// <param name="destination">The reference to the memory location to fill with random data.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Next<T>(ref T destination) where T : unmanaged => _state.Next(ref destination);
-
-        /// <summary>
-        ///     Creates a new instance.
-        /// </summary>
-        /// <returns>A new instance.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        [SkipLocalsInit]
-        public static UnsafeSplitMix64 Create()
-        {
-            Unsafe.SkipInit(out UnsafeSplitMix64 random);
-            RandomHelpers.Initialize(ref random);
-            return random;
-        }
 
         /// <summary>
         ///     Provides a thread-safe instance that may be used concurrently from any thread.

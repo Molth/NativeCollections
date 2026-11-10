@@ -31,6 +31,17 @@ namespace NativeCollections
         private NativeConcurrentStack(UnsafeConcurrentStack<T>* handle) => _handle = handle;
 
         /// <summary>
+        ///     Initializes a new instance of this class.
+        /// </summary>
+        /// <returns>A new instance.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeConcurrentStack<T> Create()
+        {
+            var value = UnsafeConcurrentStack<T>.Create();
+            return new NativeConcurrentStack<T>(Box.New(ref value));
+        }
+
+        /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public bool IsCreated => _handle != null;
@@ -145,16 +156,5 @@ namespace NativeCollections
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool TryPop(out T result) => _handle->TryPop(out result);
-
-        /// <summary>
-        ///     Initializes a new instance of this class.
-        /// </summary>
-        /// <returns>A new instance.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeConcurrentStack<T> Create()
-        {
-            var value = UnsafeConcurrentStack<T>.Create();
-            return new NativeConcurrentStack<T>(Box.New(ref value));
-        }
     }
 }

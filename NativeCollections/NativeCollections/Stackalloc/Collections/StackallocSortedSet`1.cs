@@ -56,7 +56,7 @@ namespace NativeCollections
         /// <summary>
         ///     Gets the minimum value in this.
         /// </summary>
-        /// <value>The minimum value in the set.</value>
+        /// <value>The minimum value in the set, or <see langword="null" /> if this is empty.</value>
         public readonly T? Min
         {
             get
@@ -75,7 +75,7 @@ namespace NativeCollections
         /// <summary>
         ///     Gets the maximum value in this.
         /// </summary>
-        /// <value>The maximum value in the set.</value>
+        /// <value>The maximum value in the set, or <see langword="null" /> if this is empty.</value>
         public readonly T? Max
         {
             get
@@ -792,6 +792,10 @@ namespace NativeCollections
         ///     Returns an enumerator that iterates through the collection.
         /// </summary>
         /// <returns>An enumerator that iterates through the collection.</returns>
+        /// <remarks>
+        ///     The returned enumerator allocates native memory that must be released by calling
+        ///     <see cref="Enumerator.Dispose" />.
+        /// </remarks>
         [MustBePinned(SR.parameter_this)]
         public Enumerator GetEnumerator() => Enumerator.From(UnsafeHelpers.AsPointer(ref this));
 
@@ -822,6 +826,12 @@ namespace NativeCollections
         /// <summary>
         ///     Supports a simple iteration over a generic collection.
         /// </summary>
+        /// <remarks>
+        ///     The enumerator allocates native memory for a traversal stack when it is created and
+        ///     releases it when <see cref="Dispose" /> is called. The allocation is observable for the
+        ///     lifetime of the enumerator, which is a deviation from the no-allocation contract of the
+        ///     Stackalloc flavor. An enumerator that is not disposed leaks this native memory.
+        /// </remarks>
         [StructLayout(LayoutKind.Sequential)]
         public struct Enumerator : IIterator<T>, IDisposable
         {

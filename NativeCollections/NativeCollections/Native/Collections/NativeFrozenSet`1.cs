@@ -291,11 +291,11 @@ namespace NativeCollections
         }
 
         /// <summary>
-        ///     Searches the set for a given value and returns the equal value it finds, if any.
+        ///     Searches the set for a given value and returns a reference to the equal value it finds, if any.
         /// </summary>
         /// <param name="equalValue">The value to search for.</param>
         /// <param name="actualValue">
-        ///     The value from the set that the search found, or the default value
+        ///     A reference to the value from the set that the search found, or the default value
         ///     of <typeparamref name="T" /> when the search yielded no match.
         /// </param>
         /// <returns>A value indicating whether the search was successful.</returns>

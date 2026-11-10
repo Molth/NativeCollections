@@ -10,7 +10,8 @@ using System.Runtime.InteropServices;
 namespace NativeCollections
 {
     /// <summary>
-    ///     Represents a contiguous region of arbitrary native memory.
+    ///     Represents a contiguous region of arbitrary native memory whose elements are
+    ///     accessed without assuming the natural alignment of <typeparamref name="T" />.
     /// </summary>
     /// <typeparam name="T">The unmanaged element type.</typeparam>
     [StructLayout(LayoutKind.Sequential)]
@@ -147,6 +148,14 @@ namespace NativeCollections
         }
 
         /// <summary>
+        ///     Creates a new instance that references the specified span.
+        /// </summary>
+        /// <param name="value">The pinned span to wrap.</param>
+        /// <returns>An unaligned array view that references the memory of <paramref name="value" />.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeUnalignedArray<T> From([MustBePinned] Span<T> value) => From(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(value)), value.Length);
+
+        /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
         public bool IsCreated => _buffer != null;
@@ -157,12 +166,18 @@ namespace NativeCollections
         public bool IsEmpty => _length == 0;
 
         /// <summary>
-        ///     Gets or sets the element at the specified index.
+        ///     Gets or sets the element at the specified index without requiring the
+        ///     element to be naturally aligned.
         /// </summary>
         /// <param name="index">The zero-based index of the element to access.</param>
         /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="index" /> is negative or greater than or equal to <see cref="Length" />.
         /// </exception>
+        /// <remarks>
+        ///     Element access uses unaligned reads and writes so that it is valid at any alignment;
+        ///     this may be slower than the naturally aligned accesses performed by
+        ///     <see cref="NativeArray{T}" />.
+        /// </remarks>
         public T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -227,14 +242,6 @@ namespace NativeCollections
         public override string ToString() => SR.Format("NativeUnalignedArray<{0}>[{1}]", SR.GetTypeName(typeof(T)), _length);
 
         /// <summary>
-        ///     Creates a new instance that references the specified span.
-        /// </summary>
-        /// <param name="value">The pinned span to wrap.</param>
-        /// <returns>An unaligned array view that references the memory of <paramref name="value" />.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeUnalignedArray<T> From([MustBePinned] Span<T> value) => From(UnsafeHelpers.AsPointer(ref MemoryMarshal.GetReference(value)), value.Length);
-
-        /// <summary>
         ///     Indicates whether the current object is equal to another object.
         /// </summary>
         /// <param name="left">The first value to compare.</param>
@@ -262,10 +269,10 @@ namespace NativeCollections
         public void Dispose() => NativeMemoryAllocator.AlignedFree(_buffer);
 
         /// <summary>
-        ///     Returns a reference to the 0th element of the Span. If the Span is empty, returns null reference.
-        ///     It can be used for pinning and is required to support the use of span within a fixed statement.
+        ///     Returns a reference to the 0th element of this. If this is empty, the returned
+        ///     reference must not be dereferenced.
         /// </summary>
-        /// <returns>A reference to the 0th element of the Span, or a null reference if the Span is empty.</returns>
+        /// <returns>A reference to the 0th element of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ref T GetPinnableReference() => ref Unsafe.AsRef<T>(_buffer);
 
@@ -287,21 +294,21 @@ namespace NativeCollections
         public NativeUnalignedArray<TTo> Cast<TTo>() where TTo : unmanaged => NativeUnalignedArray<TTo>.From(MemoryMarshal.Cast<T, TTo>(AsSpan()));
 
         /// <summary>
-        ///     Returns a span over a portion of this.
+        ///     Returns a span over the entire contents of this.
         /// </summary>
-        /// <returns>A span over a portion of this.</returns>
+        /// <returns>A span over the entire contents of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Span<T> AsSpan() => MemoryMarshal.CreateSpan(ref Unsafe.AsRef<T>(_buffer), _length);
 
         /// <summary>
-        ///     Returns a read-only span over a portion of this.
+        ///     Returns a read-only span over the entire contents of this.
         /// </summary>
-        /// <returns>A read-only span over a portion of this.</returns>
+        /// <returns>A read-only span over the entire contents of this.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ReadOnlySpan<T> AsReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef<T>(_buffer), _length);
 
         /// <summary>
-        ///     Forms a slice out of the given span.
+        ///     Forms a slice out of this.
         /// </summary>
         /// <param name="start">The starting element index.</param>
         /// <returns>A slice of this starting at <paramref name="start" />.</returns>
@@ -312,7 +319,7 @@ namespace NativeCollections
         public NativeUnalignedArray<T> Slice(int start) => From(AsSpan().Slice(start));
 
         /// <summary>
-        ///     Forms a slice out of the given span.
+        ///     Forms a slice out of this.
         /// </summary>
         /// <param name="start">The starting element index.</param>
         /// <param name="length">The number of elements in the slice.</param>

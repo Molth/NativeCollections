@@ -19,7 +19,7 @@ namespace NativeCollections
 #endif
 
         /// <summary>
-        ///     The number of concurrent writes for which to optimize by default.
+        ///     Gets the default concurrency level, computed as four times the processor count.
         /// </summary>
         public static int DefaultConcurrencyLevel => Environment.ProcessorCount.WrappingMul(4);
     }

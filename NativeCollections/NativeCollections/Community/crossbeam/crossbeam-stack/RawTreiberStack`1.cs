@@ -35,6 +35,22 @@ namespace NativeCollections
         /// <summary>
         ///     Gets a value that indicates whether this has been allocated or initialized.
         /// </summary>
+        /// <remarks>
+        ///     <list type="bullet">
+        ///         <item>
+        ///             <description>
+        ///                 Always <see langword="true" />.
+        ///             </description>
+        ///         </item>
+        ///         <item>
+        ///             <description>
+        ///                 The default value of this type is a valid empty stack: the head pointer starts
+        ///                 <see langword="null" /> and the first node is allocated by the first push,
+        ///                 so there is no separate initialization step.
+        ///             </description>
+        ///         </item>
+        ///     </list>
+        /// </remarks>
         public readonly bool IsCreated => true;
 
         /// <summary>
@@ -107,7 +123,7 @@ namespace NativeCollections
         ///     Returns the string representation of this instance.
         /// </summary>
         /// <returns>The string representation of this instance.</returns>
-        public readonly override string ToString() => SR.Format("TreiberStack<{0}>", SR.GetTypeName(typeof(T)));
+        public readonly override string ToString() => SR.Format("RawTreiberStack<{0}>", SR.GetTypeName(typeof(T)));
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object.

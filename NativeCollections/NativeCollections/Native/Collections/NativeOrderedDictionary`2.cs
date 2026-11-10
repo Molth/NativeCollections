@@ -51,6 +51,9 @@ namespace NativeCollections
         /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="capacity" /> is negative.
         /// </exception>
+        /// <remarks>
+        ///     The requested capacity is clamped to a minimum of 2; read <c>Capacity</c> for the effective value.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeOrderedDictionary<TKey, TValue> Create(int capacity)
         {
@@ -286,11 +289,11 @@ namespace NativeCollections
         public bool TryGetValue(TKey key, out TValue value) => _handle->TryGetValue(key, out value);
 
         /// <summary>
-        ///     Gets the value associated with the specified key.
+        ///     Gets a reference to the value associated with the specified key.
         /// </summary>
         /// <param name="key">The key of the value to get.</param>
         /// <param name="value">
-        ///     When this method returns, contains the value associated with the specified
+        ///     When this method returns, contains a reference to the value associated with the specified
         ///     key, if the key is found; otherwise, the default value for the type of the
         ///     <paramref name="value" /> parameter. This parameter is passed uninitialized.
         /// </param>
@@ -319,7 +322,7 @@ namespace NativeCollections
         ///     in this or a ref null if it does not exist in this.
         /// </summary>
         /// <param name="key">The key used for lookup.</param>
-        /// <param name="exists">Whether or not a new entry for the given key was added to this.</param>
+        /// <param name="exists">Whether or not the given key already existed in this.</param>
         /// <returns>A reference to the value if the key is found; otherwise, a null reference.</returns>
         /// <remarks>
         ///     Items should not be added or removed from this while the ref <typeparamref name="TValue" />
@@ -349,7 +352,7 @@ namespace NativeCollections
         ///     a new entry with a default value if it does not exist in this.
         /// </summary>
         /// <param name="key">The key used for lookup.</param>
-        /// <param name="exists">Whether or not a new entry for the given key was added to this.</param>
+        /// <param name="exists">Whether or not the given key already existed in this.</param>
         /// <returns>A reference to the value associated with the specified key.</returns>
         /// <exception cref="InvalidOperationException">
         ///     Thrown when a concurrent update corrupted the state of this collection.
@@ -516,6 +519,11 @@ namespace NativeCollections
         /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when <paramref name="index" /> is negative or greater than or equal to <see cref="Count" />.
         /// </exception>
+        /// <remarks>
+        ///     Replacing the value at an existing index does not change the order of the
+        ///     collection and does not invalidate enumerators; the version counter is not
+        ///     incremented, matching <c>OrderedDictionary&lt;TKey, TValue&gt;</c>.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetAt(int index, TValue value) => _handle->SetAt(index, value);
 
@@ -529,6 +537,12 @@ namespace NativeCollections
         ///     Thrown when <paramref name="index" /> is negative or greater than or equal to <see cref="Count" />.
         /// </exception>
         /// <exception cref="ArgumentException">Thrown when <paramref name="key" /> already exists in this.</exception>
+        /// <remarks>
+        ///     When <paramref name="key" /> equals the existing key, only the value is replaced;
+        ///     the order is preserved, enumerators are not invalidated, and the version counter
+        ///     is not incremented, matching <c>OrderedDictionary&lt;TKey, TValue&gt;</c>.
+        ///     Replacing the key updates the bucket chain and increments the version counter.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetAt(int index, TKey key, TValue value) => _handle->SetAt(index, key, value);
 

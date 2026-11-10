@@ -102,6 +102,10 @@ namespace NativeCollections
         /// <exception cref="ArgumentException">
         ///     Thrown when <paramref name="alignment" /> is not a power of two.
         /// </exception>
+        /// <exception cref="OverflowException">
+        ///     Thrown when the required allocation size overflows a native-sized integer
+        ///     on .NET versions earlier than .NET 6.
+        /// </exception>
         /// <exception cref="OutOfMemoryException">Thrown when memory allocation fails.</exception>
         [Customizable]
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -171,6 +175,10 @@ namespace NativeCollections
         /// <returns>A pointer to the allocated and zeroed aligned block of memory.</returns>
         /// <exception cref="ArgumentException">
         ///     Thrown when <paramref name="alignment" /> is not a power of two.
+        /// </exception>
+        /// <exception cref="OverflowException">
+        ///     Thrown when the required allocation size overflows a native-sized integer
+        ///     on .NET versions earlier than .NET 6.
         /// </exception>
         /// <exception cref="OutOfMemoryException">Thrown when memory allocation fails.</exception>
         [Customizable]
@@ -412,7 +420,7 @@ namespace NativeCollections
         public static nuint AlignUp(nuint value, nuint alignment)
         {
             ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, ExceptionArgument.alignment);
-            return UnsafeUtility.AlignUp(value, alignment);
+            return (value + alignment.WrappingSub(Usize.FromI32Unchecked(1))) & ~alignment.WrappingSub(Usize.FromI32Unchecked(1));
         }
 
         /// <summary>
@@ -428,7 +436,7 @@ namespace NativeCollections
         public static nuint AlignDown(nuint value, nuint alignment)
         {
             ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, ExceptionArgument.alignment);
-            return UnsafeUtility.AlignDown(value, alignment);
+            return value.WrappingSub(value & alignment.WrappingSub(Usize.FromI32Unchecked(1)));
         }
 
         /// <summary>
@@ -436,6 +444,10 @@ namespace NativeCollections
         /// </summary>
         /// <typeparam name="T">The unmanaged type whose alignment is to be determined.</typeparam>
         /// <returns>The alignment, in bytes, of type <typeparamref name="T" />.</returns>
+        /// <remarks>
+        ///     If <typeparamref name="T" /> is not naturally aligned, as determined by
+        ///     <see cref="IsAligned{T}()" />, this method may return an incorrect value.
+        /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static nuint AlignOf<T>() where T : unmanaged => Usize.FromI32Unchecked(Unsafe.SizeOf<AlignOfHelper<T>>().WrappingSub(Unsafe.SizeOf<T>()));
 
@@ -449,7 +461,13 @@ namespace NativeCollections
         ///     a multiple of its alignment; otherwise, <see langword="false" />.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsAligned<T>() where T : unmanaged => UnsafeUtility.IsAligned(Usize.FromI32Unchecked(Unsafe.SizeOf<T>()), AlignOf<T>());
+        [SkipLocalsInit]
+        public static bool IsAligned<T>() where T : unmanaged
+        {
+            Unsafe.SkipInit(out AlignOfHelper<T> helper);
+            var alignment = Usize.FromIsizeUnchecked(Unsafe.ByteOffset(ref Unsafe.AsRef(in helper.Dummy), ref Unsafe.As<T, byte>(ref Unsafe.AsRef(in helper.Data))));
+            return (Usize.FromI32Unchecked(Unsafe.SizeOf<T>()) & alignment.WrappingSub(Usize.FromI32Unchecked(1))) == Usize.FromI32Unchecked(0);
+        }
 
         /// <summary>
         ///     Determines whether the specified memory pointer is aligned to the given alignment boundary.
@@ -467,7 +485,7 @@ namespace NativeCollections
         public static bool IsAligned(void* ptr, nuint alignment)
         {
             ThrowHelpers.ThrowIfAlignmentNotBePow2(alignment, ExceptionArgument.alignment);
-            return UnsafeUtility.IsAligned(Usize.FromIsizeUnchecked(Isize.FromPtrUnchecked(ptr)), alignment);
+            return (Usize.FromIsizeUnchecked(Isize.FromPtrUnchecked(ptr)) & alignment.WrappingSub(Usize.FromI32Unchecked(1))) == Usize.FromI32Unchecked(0);
         }
 
         /// <summary>
@@ -489,12 +507,12 @@ namespace NativeCollections
             /// <summary>
             ///     Padding byte used for alignment calculation.
             /// </summary>
-            private readonly byte _dummy;
+            public readonly byte Dummy;
 
             /// <summary>
             ///     The typed data used for alignment measurement.
             /// </summary>
-            private readonly T _data;
+            public readonly T Data;
         }
     }
 }
