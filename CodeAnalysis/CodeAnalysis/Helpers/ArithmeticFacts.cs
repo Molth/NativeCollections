@@ -43,12 +43,13 @@ namespace Roslyn
         ///     An expression is size arithmetic when it reads a value that is named like a size, when it
         ///     contains <see langword="sizeof" />, when it feeds a size-like parameter of an allocator or
         ///     of a method whose parameter is named like a size, when it initializes or assigns a size-named
-        ///     variable, when it is returned from a size-named member, or when it is an array length. The
-        ///     decision is made per operation, so a mixed expression still wraps the parts that are not sizes.
+        ///     variable, when it is returned from a size-named member, when it adds a collection count,
+        ///     or when it is an array length. The decision is made per operation, so a mixed expression
+        ///     still wraps the parts that are not sizes.
         /// </remarks>
         public static bool IsCheckedSizeArithmetic(SyntaxNode node, SemanticModel semanticModel)
         {
-            if (ContainsSizeOf(node) || ReadsSizeNamedValue(node, semanticModel))
+            if (ContainsSizeOf(node) || ReadsSizeNamedValue(node, semanticModel) || AddsCollectionCount(node, semanticModel))
                 return true;
 
             for (var current = node.Parent; current != null; current = current.Parent)
@@ -83,6 +84,71 @@ namespace Roslyn
             }
 
             return false;
+        }
+
+        /// <summary>
+        ///     Recognizes sums of collection sizes in the project's default checked context.
+        /// </summary>
+        /// <param name="node">The operation to classify.</param>
+        /// <param name="semanticModel">The semantic model used to resolve collection properties.</param>
+        /// <returns>Whether a direct addend reads a collection's <c>Count</c> property under checked arithmetic.</returns>
+        private static bool AddsCollectionCount(SyntaxNode node, SemanticModel semanticModel)
+        {
+            if (semanticModel.Compilation.Options is not CSharpCompilationOptions { CheckOverflow: true })
+                return false;
+
+            var addsCount = node switch
+            {
+                BinaryExpressionSyntax binary when binary.IsKind(SyntaxKind.AddExpression) => IsCollectionCount(binary.Left, semanticModel) || IsCollectionCount(binary.Right, semanticModel),
+                AssignmentExpressionSyntax assignment when assignment.IsKind(SyntaxKind.AddAssignmentExpression) => IsCollectionCount(assignment.Right, semanticModel),
+                _ => false
+            };
+            return addsCount && !SyntaxHelpers.IsInsideUncheckedContext(node);
+        }
+
+        /// <summary>
+        ///     Checks that the property is the count exposed by a collection interface or implements it.
+        /// </summary>
+        /// <param name="expression">The addend to inspect.</param>
+        /// <param name="semanticModel">The semantic model used to resolve the property.</param>
+        /// <returns>Whether the addend reads a collection count.</returns>
+        private static bool IsCollectionCount(ExpressionSyntax expression, SemanticModel semanticModel)
+        {
+            expression = SyntaxHelpers.UnwrapParentheses(expression);
+
+            if (GetAssignedName(expression) != "Count" || semanticModel.GetSymbolInfo(expression).Symbol is not IPropertySymbol { Type.SpecialType: SpecialType.System_Int32 } property)
+                return false;
+
+            var type = property.ContainingType;
+            if (IsCollectionInterface(type, semanticModel.Compilation))
+                return true;
+
+            foreach (var contract in type.AllInterfaces)
+            {
+                if (IsCollectionInterface(contract, semanticModel.Compilation) && contract.GetMembers("Count").FirstOrDefault() is IPropertySymbol count && SymbolEqualityComparer.Default.Equals(type.FindImplementationForInterfaceMember(count), property))
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        ///     Identifies collection interfaces that declare an integral count.
+        /// </summary>
+        /// <param name="type">The type to identify.</param>
+        /// <param name="compilation">The compilation that defines the collection interfaces.</param>
+        /// <returns>Whether this type is a recognized collection interface.</returns>
+        private static bool IsCollectionInterface(INamedTypeSymbol type, Compilation compilation)
+        {
+            var definition = type.OriginalDefinition;
+            var name = type.MetadataName switch
+            {
+                "ICollection" => "System.Collections.ICollection",
+                "ICollection`1" => "System.Collections.Generic.ICollection`1",
+                "IReadOnlyCollection`1" => "System.Collections.Generic.IReadOnlyCollection`1",
+                _ => null
+            };
+            return name != null && SymbolEqualityComparer.Default.Equals(definition, compilation.GetTypeByMetadataName(name));
         }
 
         /// <summary>

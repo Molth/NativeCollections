@@ -653,10 +653,7 @@ namespace NativeCollections
             {
                 using (shard.RwLock.EnterReadScope())
                 {
-                    checked
-                    {
-                        count += shard.HashMap.Count;
-                    }
+                    count += shard.HashMap.Count;
                 }
             }
 

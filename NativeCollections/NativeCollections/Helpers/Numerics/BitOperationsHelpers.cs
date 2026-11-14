@@ -56,7 +56,7 @@ namespace NativeCollections
 #if NET6_0_OR_GREATER
             return BitOperations.IsPow2(value);
 #else
-            return (value & value.WrappingSub(1U)) == 0U && value != 0U;
+            return value != 0U && (value & value.WrappingSub(1U)) == 0U;
 #endif
         }
 
@@ -69,7 +69,14 @@ namespace NativeCollections
         ///     is a power of two; otherwise, <see langword="false" />.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsPow2(nuint value) => value != Usize.FromI32Unchecked(0) && (value & value.WrappingSub(Usize.FromI32Unchecked(1))) == Usize.FromI32Unchecked(0);
+        public static bool IsPow2(nuint value)
+        {
+#if NET7_0_OR_GREATER
+            return BitOperations.IsPow2(value);
+#else
+            return value != Usize.FromI32Unchecked(0) && (value & value.WrappingSub(Usize.FromI32Unchecked(1))) == Usize.FromI32Unchecked(0);
+#endif
+        }
 
         /// <summary>
         ///     Rotates the specified value left by the specified number of bits.
@@ -155,6 +162,21 @@ namespace NativeCollections
             return BitOperations.LeadingZeroCount(value);
 #else
             return value == 0U ? 32 : 31 ^ Log2(value);
+#endif
+        }
+
+        /// <summary>
+        ///     Counts trailing zero bits in a native-width mask.
+        /// </summary>
+        /// <param name="value">The mask to scan.</param>
+        /// <returns>The index of the least significant set bit, or the native word width for zero.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int TrailingZeroCount(nuint value)
+        {
+#if NET7_0_OR_GREATER
+            return BitOperations.TrailingZeroCount(value);
+#else
+            return Environment.Is64BitProcess ? TrailingZeroCount(U64.FromUsizeUnchecked(value)) : TrailingZeroCount(U32.FromUsizeUnchecked(value));
 #endif
         }
 
